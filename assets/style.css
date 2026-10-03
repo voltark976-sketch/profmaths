@@ -124,6 +124,9 @@ table.valeurs { border-collapse: collapse; background: var(--surface); font-vari
 .g-clabel { font-size: 13px; }
 .g-clabel .sub { font-size: 9px; }
 .g-bar { stroke: var(--lagon); stroke-width: 9; }
+.g-box line, .g-box rect { stroke: var(--lagon); stroke-width: 2; fill: var(--lagon-pale); }
+.g-box .med { stroke-width: 3.2; }
+.g-box-1 line, .g-box-1 rect { stroke: var(--courbe2); }
 .g-curve { fill: none; stroke: var(--lagon); stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
 .g-end { fill: var(--lagon); }
 .g-curve-1.g-curve { stroke: var(--courbe2); }

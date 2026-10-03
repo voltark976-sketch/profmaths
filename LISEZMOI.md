@@ -7,6 +7,7 @@ Site statique : aucune base de données, aucun compte élève. Ouvrir `index.htm
 - `data/config-comptes.js` : activation des comptes élèves (Firebase) et liste des classes.
 - `data/seconde/information-chiffree.js` : chapitre 3 de Seconde.
 - `data/seconde/automatismes.js` : automatismes de Seconde (10 fiches, séries flash, test).
+- `data/automatismes/*.js` : partie Automatismes, un fichier par thème officiel de l'épreuve anticipée (calcul numérique, calcul algébrique, proportions, évolutions, fonctions, statistiques, probabilités). Les générateurs d'exercices correspondants commencent par `am-` dans `assets/exercices.js`.
 - `data/premiere/suites.js` et `data/premiere/second-degre.js` : chapitres 1 et 2 de Première spécialité.
 - `data/terminale/lois-discretes.js` : chapitre 2 de Terminale maths complémentaires.
 - `data/seconde/fonctions.js` : tout le contenu du chapitre pilote (cours, liens des vidéos YouTube, PDF, QCM, fiche méthode).

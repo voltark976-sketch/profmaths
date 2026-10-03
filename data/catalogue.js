@@ -6,6 +6,7 @@
   - id      : identifiant court, sans espace ni accent (sert dans l'adresse de la page)
   - statut  : "disponible" (page complète) ou "bientot" (affiché grisé)
   - drive   : lien du sous-dossier Drive du chapitre
+  - code    : sigle affiché dans la pastille (sinon le numéro du chapitre, ou « A »)
   - fichier : nom de la variable du fichier de contenu (seulement si disponible)
 */
 window.CATALOGUE = {
@@ -27,11 +28,75 @@ window.CATALOGUE = {
           titre: "Information chiffrée",
           statut: "disponible",
           drive: "https://drive.google.com/drive/folders/153RvVVumMoWU_bPz6w6RypIZVkocK6Pb"
+        }
+      ]
+    },
+    {
+      id: "automatismes",
+      nom: "Automatismes",
+      intro: "Les 7 thèmes officiels de l'épreuve anticipée de mathématiques, de la Seconde à la Première.",
+      chapitres: [
+        {
+          id: "auto-calcul-numerique",
+          numero: null,
+          code: "CN",
+          titre: "Calcul numérique",
+          statut: "disponible",
+          drive: "https://drive.google.com/drive/folders/1FSdCJtja6emqTtKUZ_RQNPUYfwfHvoLv"
+        },
+        {
+          id: "auto-calcul-algebrique",
+          numero: null,
+          code: "CA",
+          titre: "Calcul algébrique",
+          statut: "disponible",
+          drive: "https://drive.google.com/drive/folders/1FSdCJtja6emqTtKUZ_RQNPUYfwfHvoLv"
+        },
+        {
+          id: "auto-proportions",
+          numero: null,
+          code: "PP",
+          titre: "Proportions et pourcentages",
+          statut: "disponible",
+          drive: "https://drive.google.com/drive/folders/1FSdCJtja6emqTtKUZ_RQNPUYfwfHvoLv"
+        },
+        {
+          id: "auto-evolutions",
+          numero: null,
+          code: "EV",
+          titre: "Évolutions et variations",
+          statut: "disponible",
+          drive: "https://drive.google.com/drive/folders/1FSdCJtja6emqTtKUZ_RQNPUYfwfHvoLv"
+        },
+        {
+          id: "auto-fonctions",
+          numero: null,
+          code: "FR",
+          titre: "Fonctions et représentations",
+          statut: "disponible",
+          drive: "https://drive.google.com/drive/folders/1FSdCJtja6emqTtKUZ_RQNPUYfwfHvoLv"
+        },
+        {
+          id: "auto-statistiques",
+          numero: null,
+          code: "ST",
+          titre: "Statistiques",
+          statut: "disponible",
+          drive: "https://drive.google.com/drive/folders/1FSdCJtja6emqTtKUZ_RQNPUYfwfHvoLv"
+        },
+        {
+          id: "auto-probabilites",
+          numero: null,
+          code: "PR",
+          titre: "Probabilités",
+          statut: "disponible",
+          drive: "https://drive.google.com/drive/folders/1FSdCJtja6emqTtKUZ_RQNPUYfwfHvoLv"
         },
         {
           id: "seconde-automatismes",
           numero: null,
-          titre: "Automatismes",
+          code: "2de",
+          titre: "Dossier de Seconde : test et 10 fiches",
           statut: "disponible",
           drive: "https://drive.google.com/drive/folders/1FSdCJtja6emqTtKUZ_RQNPUYfwfHvoLv"
         }

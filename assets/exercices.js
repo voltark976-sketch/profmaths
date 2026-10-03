@@ -1332,8 +1332,601 @@
     };
   };
 
+  /* ---------- Automatismes (liste officielle de l'épreuve anticipée de Première) ---------- */
+  // Nombre écrit à la française avec espaces des milliers : 52 300 ; 0,00052
+  const nb = (x) => {
+    const s = String(+(+x).toPrecision(10));
+    const neg = s[0] === "-";
+    const [ent, dec] = (neg ? s.slice(1) : s).split(".");
+    const e = ent.replace(/\B(?=(\d{3})+(?!\d))/g, "\\,");
+    return (neg ? "-" : "") + e + (dec ? "{,}" + dec : "");
+  };
+  const cmpChoix = (A, B) => [`$${A} < ${B}$`, `$${A} > ${B}$`, `$${A} = ${B}$`];
+  const cmpRep = (a, b) => (Math.abs(a - b) < 1e-12 ? 2 : a < b ? 0 : 1);
+  const melangeChoix = (bonne, fausses) => { const c = shuffle([bonne, ...[...new Set(fausses)].filter((f) => f !== bonne).slice(0, 3)]); return { choix: c, attendu: c.indexOf(bonne) }; };
+
+  // CN01 : comparer deux nombres
+  GEN["am-comparer"] = function () {
+    const T = [
+      () => {
+        let a, b, c, d; do { b = rand(3, 9); d = rand(3, 9); a = rand(1, b - 1); c = rand(1, d - 1); } while (b === d);
+        return [`\\dfrac{${a}}{${b}}`, `\\dfrac{${c}}{${d}}`, a / b, c / d,
+          ["Compare par la différence : réduis d'abord au même dénominateur.", `$\\dfrac{${a}}{${b}} = \\dfrac{${a * d}}{${b * d}}$ et $\\dfrac{${c}}{${d}} = \\dfrac{${c * b}}{${b * d}}$.`, "Avec le même dénominateur, la plus grande fraction est celle qui a le plus grand numérateur."],
+          `$\\dfrac{${a}}{${b}} = \\dfrac{${a * d}}{${b * d}}$ et $\\dfrac{${c}}{${d}} = \\dfrac{${c * b}}{${b * d}}$.`];
+      },
+      () => {
+        const x = rand(101, 999) / 100, y = Math.floor(x * 10) / 10 + pick([0, 0.1]), s = Math.random() < 0.4 ? -1 : 1;
+        const A = s * x, B = +(s * y).toFixed(1);
+        const B2 = (B < 0 ? "-" : "") + Math.abs(B).toFixed(2).replace(".", "{,}");
+        return [nb(A), nb(B), A, B,
+          ["Écris les deux nombres avec le même nombre de décimales.", `$${nb(B)} = ${B2}$.`, s < 0 ? "Pour deux nombres négatifs, le plus grand est le plus proche de $0$." : "Compare chiffre par chiffre, de la gauche vers la droite."],
+          `$${nb(B)} = ${B2}$.` + (s < 0 ? " Pour des négatifs, le plus grand est le plus proche de $0$." : "")];
+      },
+      () => {
+        const [n, d] = pick([[1, 3], [2, 3], [1, 4], [3, 4], [1, 5], [3, 8], [5, 6], [1, 6], [2, 7], [4, 9]]);
+        const v = n / d, D = +(Math.round(v * 100) / 100 + pick([-0.01, 0, 0.01])).toFixed(2);
+        return [`\\dfrac{${n}}{${d}}`, nb(D), v, D,
+          ["Calcule l'écriture décimale de la fraction : c'est une division.", `$${n} \\div ${d} ${Number.isInteger(v * 1000) ? "=" : "\\approx"} ${nb(+v.toFixed(4))}$.`, "Compare ensuite les deux écritures décimales."],
+          `$\\dfrac{${n}}{${d}} ${Number.isInteger(v * 1000) ? "=" : "\\approx"} ${nb(+v.toFixed(4))}$.`];
+      },
+      () => {
+        const [A, B, a, b, expl] = pick([
+          ["2^{10}", "10^{3}", 1024, 1000, "$2^{10} = 1\\,024$ et $10^3 = 1\\,000$."],
+          ["3^{2}", "2^{3}", 9, 8, "$3^2 = 9$ et $2^3 = 8$."],
+          ["(-2)^{3}", "-2^{3}", -8, -8, "$(-2)^3 = -8$ et $-2^3 = -8$."],
+          ["(-3)^{2}", "-3^{2}", 9, -9, "$(-3)^2 = 9$ mais $-3^2 = -9$ : le carré ne porte que sur $3$."],
+          ["10^{-2}", "0{,}01", 0.01, 0.01, "$10^{-2} = \\dfrac{1}{100} = 0{,}01$."],
+          ["2^{-1}", "0{,}2", 0.5, 0.2, "$2^{-1} = \\dfrac{1}{2} = 0{,}5$."],
+          ["5^{0}", "0", 1, 0, "Tout nombre non nul à la puissance $0$ vaut $1$."],
+          ["0{,}1^{2}", "0{,}1", 0.01, 0.1, "$0{,}1^2 = 0{,}01$ : élever au carré un nombre entre $0$ et $1$ le rend plus petit."],
+          ["\\sqrt{50}", "7", Math.sqrt(50), 7, "$7^2 = 49 < 50$, donc $\\sqrt{50} > 7$."],
+          ["\\sqrt{16} + \\sqrt{9}", "\\sqrt{25}", 7, 5, "$\\sqrt{16} + \\sqrt{9} = 4 + 3 = 7$ alors que $\\sqrt{25} = 5$."]
+        ]);
+        return [A, B, a, b, ["Calcule la valeur de chaque nombre.", "Attention aux priorités : la puissance passe avant le signe $-$.", expl], expl];
+      }
+    ];
+    const [A, B, a, b, aides, sol] = pick(T)();
+    const choix = cmpChoix(A, B), r = cmpRep(a, b);
+    return {
+      enonce: `Compare les nombres $${A}$ et $${B}$.`,
+      mode: "choix", choix, attendu: r, aides,
+      solution: `${sol}\n\nDonc ${choix[r]}.`
+    };
+  };
+
+  GEN["am-fractions"] = () => GEN["auto-fractions"](0);
+
+  // CN03 : puissances et écriture scientifique
+  GEN["am-puissances"] = function () {
+    if (Math.random() < 0.5) return GEN["auto-fractions"](1);
+    const a = rand(11, 99) / 10, n = pick([-4, -3, -2, 3, 4, 5, 6]);
+    const x = +(a * 10 ** n).toPrecision(2);
+    return {
+      enonce: `On écrit $${nb(x)}$ en écriture scientifique $${fr(a)} \\times 10^{n}$. Quelle est la valeur de $n$ ?`,
+      mode: "nombre", prefixe: "n =", attendu: n,
+      erreurs: [{ valeur: -n, message: "Attention au signe : un nombre plus grand que $10$ a un exposant positif, un nombre plus petit que $1$ un exposant négatif." }],
+      aides: ["Écriture scientifique : $a \\times 10^n$ avec $1 \\leqslant a < 10$.", `Compte de combien de rangs la virgule se déplace pour passer de $${fr(a)}$ à $${nb(x)}$.`, n > 0 ? "Le nombre est plus grand que $10$ : l'exposant est positif." : "Le nombre est plus petit que $1$ : l'exposant est négatif."],
+      solution: `$${nb(x)} = ${fr(a)} \\times 10^{${n}}$`
+    };
+  };
+
+  // CN04 : passer d'une écriture à une autre
+  GEN["am-ecritures"] = function () {
+    const T = [
+      () => { const [n, d] = pick([[3, 4], [1, 4], [1, 5], [2, 5], [3, 8], [7, 20], [1, 8], [3, 25], [9, 10], [7, 4]]); return [`Écris $\\dfrac{${n}}{${d}}$ sous forme décimale.`, n / d, "", ["Une fraction est une division : numérateur ÷ dénominateur.", `Calcule $${n} \\div ${d}$.`, "Tu peux aussi chercher une fraction égale de dénominateur $10$, $100$ ou $1\\,000$."], `$\\dfrac{${n}}{${d}} = ${nb(n / d)}$`]; },
+      () => { const p = pick([12.5, 7, 45, 3, 150, 0.5, 80, 2.5]); return [`Écris $${pc(p)}$ sous forme décimale.`, p / 100, "", ["« Pour cent » veut dire « divisé par $100$ ».", `Calcule $${fr(p)} \\div 100$.`, "Diviser par $100$ : la virgule recule de deux rangs."], `$${pc(p)} = \\dfrac{${fr(p)}}{100} = ${nb(p / 100)}$`]; },
+      () => { const v = pick([0.07, 0.35, 0.125, 1.2, 0.005, 0.6, 0.98]); return [`Écris $${fr(v)}$ sous forme de pourcentage.`, v * 100, "%", ["Pour obtenir un pourcentage, on multiplie par $100$.", `Calcule $${fr(v)} \\times 100$.`, "Multiplier par $100$ : la virgule avance de deux rangs."], `$${fr(v)} = \\dfrac{${nb(+(v * 100).toFixed(6))}}{100} = ${pc(+(v * 100).toFixed(6))}$`]; },
+      () => { const [n, d] = pick([[3, 5], [1, 4], [7, 10], [1, 8], [9, 20], [3, 2], [1, 50]]); return [`Écris $\\dfrac{${n}}{${d}}$ sous forme de pourcentage.`, (n / d) * 100, "%", ["Commence par l'écriture décimale de la fraction.", `$\\dfrac{${n}}{${d}} = ${nb(n / d)}$.`, "Puis multiplie par $100$."], `$\\dfrac{${n}}{${d}} = ${nb(n / d)} = ${pc(+((n / d) * 100).toFixed(6))}$`]; }
+    ];
+    const [enonce, rep, suffixe, aides, solution] = pick(T)();
+    return { enonce, mode: "nombre", prefixe: "Réponse :", suffixe, attendu: +rep.toFixed(6), aides, solution };
+  };
+
+  // CN05 : ordre de grandeur
+  GEN["am-ordre-grandeur"] = function () {
+    let b1, b2, est, op;
+    if (Math.random() < 0.6) {
+      b1 = pick([2, 3, 4, 5, 6, 8]) * 10 ** rand(1, 3); b2 = pick([2, 3, 5]) * 10 ** rand(-2, 1); est = b1 * b2; op = "\\times";
+    } else {
+      b2 = pick([2, 3, 4, 5]) * 10 ** rand(-2, 0); est = pick([1, 2, 3, 5]) * 10 ** rand(1, 3); b1 = est * b2; op = "\\div";
+    }
+    b1 = +b1.toPrecision(6); b2 = +b2.toPrecision(6); est = +est.toPrecision(6);
+    let A, B; do { A = +(b1 * (1 + rand(-4, 4) / 100)).toPrecision(3); } while (A === b1);
+    do { B = +(b2 * (1 + rand(-6, 6) / 100)).toPrecision(2); } while (B === b2 && Math.random() < 0.8);
+    const start = -rand(0, 3);
+    const vals = [0, 1, 2, 3].map((k) => +(est * 10 ** (start + k)).toPrecision(6));
+    return {
+      enonce: `Sans calculatrice, donne un ordre de grandeur de $${nb(A)} ${op} ${nb(B)}$.`,
+      mode: "choix", choix: vals.map((v) => `$${nb(v)}$`), attendu: -start,
+      aides: ["Arrondis chaque nombre à une valeur simple, avec un seul chiffre non nul.", `$${nb(A)} \\approx ${nb(b1)}$ et $${nb(B)} \\approx ${nb(b2)}$.`, `Calcule de tête $${nb(b1)} ${op} ${nb(b2)}$.`],
+      solution: `$${nb(A)} ${op} ${nb(B)} \\approx ${nb(b1)} ${op} ${nb(b2)} = ${nb(est)}$`
+    };
+  };
+
+  // CN06 : vraisemblance d'un résultat
+  GEN["am-coherence"] = function () {
+    const [q, bonne, fausses, expl] = pick([
+      ["La hauteur d'une porte de maison est d'environ :", "$2$ m", ["$20$ m", "$2$ cm", "$0{,}2$ km"], "Une porte est un peu plus haute qu'une personne : environ $2$ m."],
+      ["Un élève calcule la proportion de filles dans sa classe et trouve $1{,}25$. Que penser ?", "C'est impossible : une proportion est comprise entre $0$ et $1$", ["C'est possible s'il y a beaucoup de filles", "Cela veut dire qu'il y a $125$ filles", "Cela veut dire $1{,}25\\,\\%$ de filles"], "Une proportion (partie ÷ tout) est toujours entre $0$ et $1$, soit entre $0\\,\\%$ et $100\\,\\%$."],
+      ["La masse d'un litre d'eau est d'environ :", "$1$ kg", ["$10$ kg", "$100$ g", "$1$ g"], "Un litre d'eau pèse environ $1$ kg (une grande bouteille de $1{,}5$ L pèse $1{,}5$ kg)."],
+      ["La vitesse d'une voiture sur une route nationale est d'environ :", "$80$ km/h", ["$8$ km/h", "$800$ km/h", "$80$ m/s"], "$80$ m/s, c'est $288$ km/h : beaucoup trop. $8$ km/h, c'est la vitesse d'un piéton qui court doucement."],
+      ["Un article à $40$ € baisse de $25\\,\\%$. Un élève trouve un nouveau prix de $50$ €. Que penser ?", "C'est faux : après une baisse, le prix doit être inférieur à $40$ €", ["C'est juste", "C'est juste si le magasin le décide", "C'est faux : il fallait trouver $65$ €"], "Après une baisse, le nouveau prix est plus petit. Ici : $40 \\times 0{,}75 = 30$ €."],
+      ["La superficie de Mayotte est d'environ :", "$374$ km²", ["$374$ m²", "$37\\,400$ km²", "$3{,}74$ km²"], "Mayotte mesure environ $374$ km² ($374$ m², c'est la taille d'une grande maison)."],
+      ["Un élève trouve une probabilité égale à $-0{,}2$. Que penser ?", "C'est faux : une probabilité est comprise entre $0$ et $1$", ["C'est un événement très rare", "C'est un événement impossible", "Il faut l'écrire $-20\\,\\%$"], "Une probabilité n'est jamais négative : il y a une erreur de calcul."],
+      ["Un triangle rectangle a des côtés de l'angle droit de $3$ cm et $4$ cm. Un élève trouve une hypoténuse de $7$ cm. Que penser ?", "C'est faux : l'hypoténuse est plus courte que la somme des deux autres côtés", ["C'est juste : $3 + 4 = 7$", "C'est juste si le triangle est grand", "C'est faux : elle mesure $12$ cm"], "Dans un triangle, un côté est toujours plus court que la somme des deux autres. Ici $\\sqrt{9 + 16} = 5$ cm."],
+      ["Le volume d'une bouteille d'eau est d'environ :", "$1{,}5$ L", ["$1{,}5$ m³", "$15$ mL", "$150$ L"], "$1$ m³ $= 1\\,000$ L : c'est le volume d'une grande cuve, pas d'une bouteille."],
+      ["Un élève calcule la moyenne de ses notes sur $20$ et trouve $23{,}5$. Que penser ?", "C'est faux : une moyenne est entre la plus petite et la plus grande valeur", ["C'est possible avec des bonus", "C'est juste s'il a beaucoup de notes", "Cela fait $11{,}75$ sur $10$"], "La moyenne est toujours comprise entre la plus petite et la plus grande note, donc ici entre $0$ et $20$."]
+    ]);
+    const m = melangeChoix(bonne, fausses);
+    return {
+      enonce: q, mode: "choix", choix: m.choix, attendu: m.attendu,
+      aides: ["Pense à une situation de la vie courante que tu connais.", "Vérifie l'ordre de grandeur et l'unité.", "Une proportion, une probabilité : entre $0$ et $1$. Une moyenne : entre la plus petite et la plus grande valeur."],
+      solution: `**${bonne}**.\n\n${expl}`
+    };
+  };
+
+  // CA01 : remplacer des lettres par des nombres
+  GEN["am-substituer"] = function () {
+    const a = randNZ(-5, 6), b = randNZ(-5, 6), k = rand(2, 5), m = rand(2, 4);
+    const E = pick([
+      [`${k}a - ${m}b`, k * a - m * b, `${k} \\times ${par(a)} - ${m} \\times ${par(b)}`],
+      [`a^2 + b`, a * a + b, `${par(a)}^2 + ${par(b)}`],
+      [`(a - b)^2`, (a - b) ** 2, `(${a} - ${par(b)})^2`],
+      [`ab + ${k}`, a * b + k, `${par(a)} \\times ${par(b)} + ${k}`],
+      [`-a^2 + ${k}b`, -a * a + k * b, `-${par(a)}^2 + ${k} \\times ${par(b)}`],
+      [`${k}(a + b)`, k * (a + b), `${k} \\times (${a} + ${par(b)})`]
+    ]);
+    return {
+      enonce: `Calcule $${E[0]}$ pour $a = ${a}$ et $b = ${b}$.`,
+      mode: "nombre", prefixe: "Résultat :", attendu: E[1],
+      erreurs: E[0].startsWith("-a^2") ? [{ valeur: a * a + k * b, message: "$-a^2$ : on calcule d'abord $a^2$, puis on prend l'opposé. Le résultat de $-a^2$ est toujours négatif ou nul." }] : [],
+      aides: ["Remplace chaque lettre par sa valeur, entre parenthèses si elle est négative.", `On calcule $${E[2]}$.`, "Priorités : puissances, puis multiplications, puis additions et soustractions."],
+      solution: `$${E[2]} = ${E[1]}$`
+    };
+  };
+
+  // CA01 : réduire une expression
+  GEN["am-reduire"] = function () {
+    let a, b, c, d; do { a = randNZ(-7, 7); b = randNZ(-9, 9); c = randNZ(-7, 7); d = randNZ(-9, 9); } while (a + c === 0 || b + d === 0);
+    const termes = shuffle([[a, "x"], [b, ""], [c, "x"], [d, ""]]);
+    let expr = "";
+    termes.forEach(([v, x], i) => {
+      const abs = Math.abs(v), coef = x && abs === 1 ? "" : `${abs}`;
+      expr += i === 0 ? `${v < 0 ? "-" : ""}${coef}${x}` : ` ${v < 0 ? "-" : "+"} ${coef}${x}`;
+    });
+    const bonne = poly([a + c, b + d]);
+    const m = melangeChoix(bonne, [poly([a - c, b + d]), poly([a + c, b - d]), poly([a + c + b + d, 0]), poly([-(a + c), b + d]), poly([a + c, -(b + d)])]);
+    return {
+      enonce: `Réduis l'expression $${expr}$.`,
+      mode: "choix", choix: m.choix.map((x) => `$${x}$`), attendu: m.attendu,
+      aides: ["Regroupe les termes en $x$ entre eux, et les nombres entre eux.", `Termes en $x$ : $${par(a)} + ${par(c)} = ${a + c}$.`, `Nombres : $${par(b)} + ${par(d)} = ${b + d}$. On ne peut pas additionner un terme en $x$ et un nombre.`],
+      solution: `$${expr} = ${bonne}$`
+    };
+  };
+
+  // CA03 : équation ou inéquation du premier degré
+  GEN["am-premier-degre"] = function (i) {
+    if (Math.random() < 0.5) return GEN["auto-equations"](0);
+    const a = randNZ(-6, 6), b = randNZ(-9, 9), r = randNZ(-6, 6), c = a * r + b;
+    const s = pick(["<", "\\leqslant", ">", "\\geqslant"]);
+    const flip = { "<": ">", ">": "<", "\\leqslant": "\\geqslant", "\\geqslant": "\\leqslant" };
+    const bonne = `x ${a > 0 ? s : flip[s]} ${r}`;
+    const choix = [`x ${s} ${r}`, `x ${flip[s]} ${r}`, `x ${s} ${-r}`, `x ${flip[s]} ${-r}`];
+    return {
+      enonce: `Résous l'inéquation $${poly([a, b])} ${s} ${c}$.`,
+      mode: "choix", choix: choix.map((x) => `$${x}$`), attendu: choix.indexOf(bonne),
+      aides: ["Isole d'abord le terme en $x$, puis divise par le coefficient de $x$.", `$${a}x ${s} ${c} - ${par(b)}$, soit $${a}x ${s} ${c - b}$.`, a < 0 ? `Tu divises par $${a}$, un nombre **négatif** : le sens de l'inégalité change.` : `Tu divises par $${a}$, un nombre positif : le sens ne change pas.`],
+      solution: `$${poly([a, b])} ${s} ${c} \\iff ${a}x ${s} ${c - b} \\iff ${bonne}$` + (a < 0 ? "\n\nLe sens change car on divise par un nombre négatif." : "")
+    };
+  };
+
+  // CA04 : isoler une variable
+  GEN["am-isoler"] = function () {
+    const [f, v, bonne, fausses, ex] = pick([
+      ["d = v \\times t", "t", "t = \\dfrac{d}{v}", ["t = \\dfrac{v}{d}", "t = d - v", "t = d \\times v"], "On divise les deux membres par $v$."],
+      ["P = U \\times I", "I", "I = \\dfrac{P}{U}", ["I = \\dfrac{U}{P}", "I = P - U", "I = P \\times U"], "On divise les deux membres par $U$."],
+      ["\\mathcal{A} = \\dfrac{b \\times h}{2}", "h", "h = \\dfrac{2\\mathcal{A}}{b}", ["h = \\dfrac{\\mathcal{A}}{2b}", "h = 2\\mathcal{A} - b", "h = \\dfrac{\\mathcal{A} \\times b}{2}"], "On multiplie par $2$ : $2\\mathcal{A} = b \\times h$, puis on divise par $b$."],
+      ["y = 3x + 5", "x", "x = \\dfrac{y - 5}{3}", ["x = \\dfrac{y}{3} - 5", "x = 3y - 5", "x = \\dfrac{y + 5}{3}"], "On soustrait $5$ : $y - 5 = 3x$, puis on divise par $3$."],
+      ["F = 1{,}8C + 32", "C", "C = \\dfrac{F - 32}{1{,}8}", ["C = \\dfrac{F}{1{,}8} - 32", "C = 1{,}8F - 32", "C = \\dfrac{F + 32}{1{,}8}"], "On soustrait $32$ : $F - 32 = 1{,}8C$, puis on divise par $1{,}8$."],
+      ["E = mc^2", "m", "m = \\dfrac{E}{c^2}", ["m = E - c^2", "m = Ec^2", "m = \\dfrac{c^2}{E}"], "On divise les deux membres par $c^2$."],
+      ["V = \\pi r^2 h", "h", "h = \\dfrac{V}{\\pi r^2}", ["h = V - \\pi r^2", "h = \\dfrac{\\pi r^2}{V}", "h = V \\pi r^2"], "On divise les deux membres par $\\pi r^2$."],
+      ["P = 2(L + \\ell)", "L", "L = \\dfrac{P}{2} - \\ell", ["L = \\dfrac{P - \\ell}{2}", "L = 2P - \\ell", "L = P - 2\\ell"], "On divise par $2$ : $\\dfrac{P}{2} = L + \\ell$, puis on soustrait $\\ell$."],
+      ["v = \\dfrac{d}{t}", "d", "d = v \\times t", ["d = \\dfrac{v}{t}", "d = \\dfrac{t}{v}", "d = v + t"], "On multiplie les deux membres par $t$."],
+      ["v = \\dfrac{d}{t}", "t", "t = \\dfrac{d}{v}", ["t = d \\times v", "t = \\dfrac{v}{d}", "t = d - v"], "On multiplie par $t$ : $vt = d$, puis on divise par $v$."]
+    ]);
+    const m = melangeChoix(bonne, fausses);
+    return {
+      enonce: `On donne la formule $${f}$. Exprime $${v}$ en fonction des autres lettres.`,
+      mode: "choix", choix: m.choix.map((x) => `$${x}$`), attendu: m.attendu,
+      aides: ["Fais les mêmes opérations des deux côtés de l'égalité, comme pour résoudre une équation.", "Enlève d'abord ce qui est ajouté ou soustrait, puis ce qui multiplie ou divise la lettre.", "Vérifie ta réponse avec des valeurs simples."],
+      solution: `$${bonne}$. ${ex}`
+    };
+  };
+
+  // CA05 : appliquer une formule
+  GEN["am-formule"] = function () {
+    const T = [
+      () => { const m = pick([2, 4, 6, 10, 50]), v = rand(2, 9); return [`L'énergie cinétique d'un objet est $E_c = \\dfrac{1}{2} m v^2$. Calcule $E_c$ pour $m = ${m}$ kg et $v = ${v}$ m/s.`, 0.5 * m * v * v, "J", `$E_c = \\dfrac{1}{2} \\times ${m} \\times ${v}^2 = \\dfrac{1}{2} \\times ${m} \\times ${v * v}$`, "Calcule d'abord la puissance : $v^2$."]; },
+      () => { const B = rand(6, 12), b = rand(2, 5), h = rand(2, 8); return [`L'aire d'un trapèze est $\\mathcal{A} = \\dfrac{(B + b) \\times h}{2}$. Calcule $\\mathcal{A}$ pour $B = ${B}$ cm, $b = ${b}$ cm et $h = ${h}$ cm.`, ((B + b) * h) / 2, "cm²", `$\\mathcal{A} = \\dfrac{(${B} + ${b}) \\times ${h}}{2} = \\dfrac{${B + b} \\times ${h}}{2}$`, "Les parenthèses d'abord : $B + b$."]; },
+      () => { const v = pick([60, 80, 90, 110]), t = pick([0.5, 1.5, 2.5, 0.25]); return [`Une voiture roule à la vitesse constante $v = ${v}$ km/h pendant $t = ${fr(t)}$ h. Calcule la distance $d = v \\times t$.`, v * t, "km", `$d = ${v} \\times ${fr(t)}$`, `$${fr(t)}$ h, c'est ${t === 0.5 ? "une demi-heure" : t === 0.25 ? "un quart d'heure" : "une heure et demie ou deux heures et demie"}.`]; },
+      () => { const R = pick([10, 20, 50, 100]), I = pick([0.2, 0.5, 1.5, 0.05]); return [`La loi d'Ohm s'écrit $U = R \\times I$. Calcule $U$ pour $R = ${R}$ Ω et $I = ${fr(I)}$ A.`, R * I, "V", `$U = ${R} \\times ${fr(I)}$`, "Multiplier par $10$ ou $100$ : la virgule avance."]; },
+      () => { const C = pick([0, 10, 25, 30, 37, -10]); return [`Pour convertir des degrés Celsius en degrés Fahrenheit, on utilise $F = 1{,}8C + 32$. Calcule $F$ pour $C = ${C}$.`, 1.8 * C + 32, "°F", `$F = 1{,}8 \\times ${par(C)} + 32$`, "La multiplication d'abord, l'addition ensuite."]; },
+      () => { const HT = pick([25, 40, 75, 120, 250]); return [`Le prix TTC se calcule avec la formule $\\text{TTC} = \\text{HT} \\times 1{,}2$. Calcule le prix TTC d'un article à $${HT}$ € HT.`, HT * 1.2, "€", `$\\text{TTC} = ${HT} \\times 1{,}2$`, `$${HT} \\times 1{,}2 = ${HT} + ${HT} \\times 0{,}2$.`]; }
+    ];
+    const [enonce, rep, suffixe, calc, astuce] = pick(T)();
+    return {
+      enonce, mode: "nombre", prefixe: "Résultat :", suffixe, attendu: +rep.toFixed(6),
+      aides: ["Remplace chaque lettre de la formule par sa valeur.", `${calc}.`, astuce],
+      solution: `${calc.slice(0, -1)} = ${nb(+rep.toFixed(6))}$ ${suffixe}.`
+    };
+  };
+
+  // CA06 : équation produit nul
+  const fx = (a, b) => (a === 1 && b === 0 ? "x" : `(${poly([a, b])})`);
+  GEN["am-produit-nul"] = function () {
+    const r1 = randNZ(-6, 6);
+    let a2, b2, r2;
+    if (Math.random() < 0.5) { do { r2 = rand(-6, 6); } while (r2 === r1); a2 = 1; b2 = -r2; }
+    else { a2 = pick([2, -2, 3]); do { b2 = randNZ(-9, 9); } while (b2 % a2 === 0); r2 = -b2 / a2; }
+    const f1 = fx(1, -r1), f2 = fx(a2, b2);
+    const prod = Math.random() < 0.5 ? `${f1}${f2}` : `${f2}${f1}`;
+    const rtex = (r) => (Number.isInteger(r) ? `${r}` : frac(-b2, a2));
+    const S = [r1, r2].sort((x, y) => x - y);
+    return {
+      enonce: `Résous l'équation $${prod} = 0$.`,
+      mode: "ensemble", prefixe: "Solutions :", attendu: [r1, r2],
+      aides: ["Un produit est nul si et seulement si l'un au moins de ses facteurs est nul.", `$${poly([1, -r1])} = 0$ ou $${poly([a2, b2])} = 0$.`, "Résous les deux équations, puis donne les deux solutions séparées par « ; ». Une fraction s'écrit par exemple $3/2$."],
+      solution: `$${prod} = 0 \\iff ${poly([1, -r1])} = 0$ ou $${poly([a2, b2])} = 0 \\iff x = ${r1}$ ou $x = ${rtex(r2)}$.\n\n$S = \\{${S.map(rtex).join("\\,;")}\\}$`
+    };
+  };
+
+  // CA07 : signe d'une expression
+  GEN["am-signe"] = function () {
+    if (Math.random() < 0.5) {
+      const a = randNZ(-4, 4), r = randNZ(-5, 5), b = -a * r;
+      const bonne = a > 0 ? `x > ${r}` : `x < ${r}`;
+      const choix = [`x > ${r}`, `x < ${r}`, `x > ${-r}`, `x < ${-r}`];
+      return {
+        enonce: `Pour quelles valeurs de $x$ l'expression $${poly([a, b])}$ est-elle strictement positive ?`,
+        mode: "choix", choix: choix.map((x) => `$${x}$`), attendu: choix.indexOf(bonne),
+        aides: [`Résous l'inéquation $${poly([a, b])} > 0$.`, `$${a}x > ${-b}$.`, a < 0 ? "On divise par un nombre négatif : le sens de l'inégalité change." : "On divise par un nombre positif : le sens ne change pas."],
+        solution: `$${poly([a, b])} > 0 \\iff ${a}x > ${-b} \\iff ${bonne}$.\n\nRègle : $ax + b$ est du signe de $a$ à droite de sa racine $${r}$.`
+      };
+    }
+    let r1, r2; do { r1 = rand(-5, 3); r2 = rand(r1 + 1, 6); } while (r1 === -r2);
+    const neg = Math.random() < 0.5;
+    const dedans = `[${r1}\\,;${r2}]`, dehors = `]-\\infty\\,;${r1}] \\cup [${r2}\\,;+\\infty[`;
+    const choix = [dedans, dehors, `[${-r2}\\,;${-r1}]`, `]-\\infty\\,;${-r2}] \\cup [${-r1}\\,;+\\infty[`];
+    const bonne = neg ? dedans : dehors;
+    return {
+      enonce: `Sur quel ensemble l'expression $${facteur(r1)}${facteur(r2)}$ est-elle ${neg ? "négative ou nulle" : "positive ou nulle"} ?`,
+      mode: "choix", choix: choix.map((x) => `$${x}$`), attendu: choix.indexOf(bonne),
+      aides: ["Cherche les valeurs qui annulent chaque facteur.", `Les racines sont $${r1}$ et $${r2}$. Développé, le coefficient de $x^2$ vaut $1 > 0$.`, "Un trinôme est du signe de $a$ à l'extérieur des racines, et du signe contraire entre les racines."],
+      solution: `Racines $${r1}$ et $${r2}$, et $a = 1 > 0$ : l'expression est négative entre les racines et positive à l'extérieur.\n\nRéponse : $${bonne}$.`
+    };
+  };
+
+  // FR03 : reconnaître une fonction linéaire ou affine
+  GEN["am-reconnaitre"] = function () {
+    const k = randNZ(-6, 6), a = randNZ(-5, 5), b = randNZ(-9, 9), d = rand(2, 5);
+    const lin = shuffle([poly([k, 0]), `-\\dfrac{x}{${d}}`, `\\dfrac{x}{${d}}`]);
+    const aff = shuffle([poly([a, b]), `${Math.abs(b)} - ${Math.abs(a) === 1 ? "" : Math.abs(a)}x`, `\\dfrac{x + ${Math.abs(b)}}{${d}}`, `${Math.abs(a) === 1 ? 2 : Math.abs(a)}(x ${sg(b)})`]);
+    const non = shuffle([`x^2 ${sg(b)}`, `\\dfrac{${Math.abs(k)}}{x}`, `\\sqrt{x} ${sg(b)}`, poly([a, 0, 0]), `x(x ${sg(b)})`, `\\dfrac{1}{x ${sg(b)}}`]);
+    const t = pick(["affine", "lineaire", "pas"]);
+    let bonne, fausses, q, expl;
+    if (t === "affine") { bonne = pick([lin[0], aff[0], aff[1]]); fausses = non.slice(0, 3); q = "Laquelle de ces fonctions est affine ?"; expl = "Une fonction affine s'écrit $f(x) = mx + p$ : $x$ n'apparaît qu'à la puissance $1$, jamais au carré, sous une racine ou au dénominateur."; }
+    else if (t === "lineaire") { bonne = lin[0]; fausses = [aff[0], aff[1], non[0]]; q = "Laquelle de ces fonctions est linéaire ?"; expl = "Une fonction linéaire s'écrit $f(x) = mx$ (affine avec $p = 0$). Sa droite passe par l'origine."; }
+    else { bonne = non[0]; fausses = [lin[0], aff[0], aff[2]]; q = "Laquelle de ces fonctions **n'est pas** affine ?"; expl = "Les autres peuvent s'écrire $mx + p$. Celle-ci contient $x$ au carré, sous une racine ou au dénominateur."; }
+    const m = melangeChoix(bonne, fausses);
+    return {
+      enonce: q, mode: "choix", choix: m.choix.map((x) => `$f(x) = ${x}$`), attendu: m.attendu,
+      aides: ["Affine : $f(x) = mx + p$. Linéaire : $f(x) = mx$.", "Développe ou simplifie l'expression si besoin : $\\dfrac{x + 3}{2} = \\dfrac{1}{2}x + \\dfrac{3}{2}$ est affine.", "$x^2$, $\\sqrt{x}$ ou $\\dfrac{1}{x}$ : ce n'est pas affine."],
+      solution: `$f(x) = ${bonne}$.\n\n${expl}`
+    };
+  };
+
+  // FR05 : variations et extremum lus sur une courbe
+  GEN["am-signe-graph"] = function () {
+    const P = parabole();
+    const dom = `[${P.h - 3}\\,;${P.h + 3}]`;
+    if (Math.random() < 0.5) {
+      const cr = Math.random() < 0.5;
+      const gauche = `[${P.h - 3}\\,;${P.h}]`, droite = `[${P.h}\\,;${P.h + 3}]`;
+      const lo = Math.min(P.k, P.k + 9 * P.a), hi = Math.max(P.k, P.k + 9 * P.a);
+      const bonne = (P.a < 0) === cr ? gauche : droite;
+      const choix = [gauche, droite, dom, `[${lo}\\,;${hi}]`];
+      return {
+        enonce: `Voici la courbe d'une fonction $f$ définie sur $${dom}$. Sur quel intervalle $f$ est-elle ${cr ? "croissante" : "décroissante"} ?`,
+        figure: graph(P.opts()), mode: "choix", choix: choix.map((x) => `$${x}$`), attendu: choix.indexOf(bonne),
+        aides: ["Parcours la courbe de gauche à droite.", `${cr ? "Croissante" : "Décroissante"} : la courbe ${cr ? "monte" : "descend"}.`, "Les intervalles de variation se lisent sur l'axe des **abscisses** (horizontal)."],
+        solution: `La courbe ${cr ? "monte" : "descend"} sur $${bonne}$ : $f$ y est ${cr ? "croissante" : "décroissante"}.`
+      };
+    }
+    const mot = P.a < 0 ? "maximum" : "minimum";
+    return {
+      enonce: `Voici la courbe d'une fonction $f$ définie sur $${dom}$. Quel est le ${mot} de $f$ ?`,
+      figure: graph(P.opts()), mode: "nombre", prefixe: `${mot} :`, attendu: P.k,
+      erreurs: [{ valeur: P.h, message: `Ça, c'est la valeur de $x$ où le ${mot} est atteint. Le ${mot} est une valeur de $f(x)$, lue sur l'axe vertical.` }],
+      aides: [`Cherche le point le plus ${P.a < 0 ? "haut" : "bas"} de la courbe.`, "Le " + mot + " est l'**ordonnée** de ce point.", `Ce point a pour abscisse $${P.h}$.`],
+      solution: `Le point le plus ${P.a < 0 ? "haut" : "bas"} est $(${P.h}\\,;${P.k})$ : le ${mot} de $f$ est $${P.k}$, atteint en $x = ${P.h}$.`
+    };
+  };
+
+  // FR06-FR08 : droites
+  const mtex = (m) => (m === 1 ? "x" : m === -1 ? "-x" : Number.isInteger(m) ? `${m}x` : `${m < 0 ? "-" : ""}\\dfrac{1}{${Math.round(1 / Math.abs(m))}}x`);
+  const eqD = (m, p) => `y = ${mtex(m)}${p ? ` ${p < 0 ? "-" : "+"} ${fr(Math.abs(p))}` : ""}`;
+
+  GEN["am-droite-point"] = function () {
+    const m = randNZ(-4, 4), p = rand(-6, 6), x0 = randNZ(-4, 4), y0 = m * x0 + p;
+    const surD = (pt) => pt[1] === m * pt[0] + p;
+    const cand = [[x0, y0 + pick([-2, -1, 1, 2])], [y0, x0], [x0, m * x0 - p], [-x0, y0], [x0 + 1, y0 - m]].filter((pt) => !surD(pt));
+    const T = (pt) => `(${pt[0]}\\,;${pt[1]})`;
+    const ms = melangeChoix(T([x0, y0]), cand.map(T));
+    return {
+      enonce: `Lequel de ces points appartient à la droite d'équation $${eqD(m, p)}$ ?`,
+      mode: "choix", choix: ms.choix.map((x) => `$${x}$`), attendu: ms.attendu,
+      aides: ["Un point $(x\\,;y)$ est sur la droite si ses coordonnées vérifient l'équation.", "Pour chaque point, calcule $" + mtex(m) + (p ? ` ${sg(p)}` : "") + "$ avec son abscisse et compare à son ordonnée.", `Pour $x = ${x0}$ : $${m} \\times ${par(x0)}${p ? ` ${sg(p)}` : ""} = ${y0}$.`],
+      solution: `$${m} \\times ${par(x0)}${p ? ` ${sg(p)}` : ""} = ${y0}$ : le point $${T([x0, y0])}$ est sur la droite.`
+    };
+  };
+
+  GEN["am-lire-droite"] = function () {
+    const m = pick([-2, -1, -0.5, 0.5, 1, 2, 3]), p = rand(-3, 3);
+    const Y = 5.5;
+    let a = -4.5, b = 4.5;
+    if (m > 0) { a = Math.max(a, (-Y - p) / m); b = Math.min(b, (Y - p) / m); } else { a = Math.max(a, (Y - p) / m); b = Math.min(b, (-Y - p) / m); }
+    const o = { xmin: -4.8, xmax: 4.8, ymin: -5.8, ymax: 5.8, curves: [{ f: (x) => m * x + p, a, b, closed: false, label: "d", lx: b - 0.3, dx: -6, dy: m > 0 ? -6 : 14 }], aria: "Droite d dans un repère quadrillé" };
+    const bonne = eqD(m, p);
+    const inv = Math.abs(m) === 2 ? m / 4 : Math.abs(m) === 0.5 ? m * 4 : null;
+    const fausses = [eqD(-m, p), eqD(m, p ? -p : 2), inv ? eqD(inv, p) : eqD(m, p + 1), eqD(m, p - 1)];
+    const ms = melangeChoix(bonne, fausses);
+    const pts = [{ x: 0, y: p, label: `(0 ; ${p})`.replace("-", "−") }];
+    const x1 = Number.isInteger(m) ? 1 : 2;
+    pts.push({ x: x1, y: m * x1 + p });
+    return {
+      enonce: "Quelle est l'équation réduite de la droite $d$ ?",
+      figure: graph(o), mode: "choix", choix: ms.choix.map((x) => `$${x}$`), attendu: ms.attendu,
+      aides: ["L'équation réduite s'écrit $y = mx + p$.", "$p$ (l'ordonnée à l'origine) se lit là où la droite coupe l'axe vertical.", `$m$ : quand $x$ augmente de $${x1}$, $y$ varie de $${m * x1}$. Donc $m = \\dfrac{${m * x1}}{${x1}}$.`],
+      solution: `La droite coupe l'axe vertical en $${p}$, donc $p = ${p}$. Quand $x$ augmente de $${x1}$, $y$ varie de $${m * x1}$, donc $m = ${fr(m)}$.\n\n$d : ${bonne}$`,
+      figureSolution: graph(Object.assign({}, o, { points: pts }))
+    };
+  };
+
+  GEN["am-coef-dir"] = function () {
+    let xa, xb, ya, yb, m; do { xa = rand(-4, 3); xb = rand(xa + 1, 6); m = pick([-3, -2, -1, 1, 2, 3, 0.5, -0.5, 4]); ya = rand(-5, 5); yb = ya + m * (xb - xa); } while (!Number.isInteger(yb) || Math.abs(yb) > 12);
+    const dx = xb - xa, dy = yb - ya, p = ya - m * xa;
+    if (Math.random() < 0.6) return {
+      enonce: `On donne les points $A(${xa}\\,;${ya})$ et $B(${xb}\\,;${yb})$. Calcule le coefficient directeur $m$ de la droite $(AB)$.`,
+      mode: "nombre", prefixe: "m =", attendu: m,
+      erreurs: dy ? [{ valeur: dx / dy, message: "Tu as inversé : on divise la variation des **ordonnées** par la variation des **abscisses**." }, { valeur: -m, message: "Attention à l'ordre : il faut soustraire dans le même ordre en haut et en bas." }] : [],
+      aides: ["$m = \\dfrac{y_B - y_A}{x_B - x_A}$.", `$m = \\dfrac{${yb} - ${par(ya)}}{${xb} - ${par(xa)}}$.`, `$m = \\dfrac{${dy}}{${dx}}$. Tu peux répondre par une fraction.`],
+      solution: `$m = \\dfrac{${yb} - ${par(ya)}}{${xb} - ${par(xa)}} = \\dfrac{${dy}}{${dx}} = ${fr(m)}$`
+    };
+    return {
+      enonce: `La droite $(AB)$ passe par $A(${xa}\\,;${ya})$ et a pour coefficient directeur $m = ${fr(m)}$. Calcule son ordonnée à l'origine $p$.`,
+      mode: "nombre", prefixe: "p =", attendu: p,
+      aides: ["L'équation s'écrit $y = mx + p$, et les coordonnées de $A$ la vérifient.", `$${ya} = ${fr(m)} \\times ${par(xa)} + p$.`, `$p = ${ya} - ${m < 0 ? `(${fr(m)})` : fr(m)} \\times ${par(xa)}$.`],
+      solution: `$${ya} = ${fr(m)} \\times ${par(xa)} + p \\iff p = ${ya} - ${m * xa < 0 ? `(${fr(m * xa)})` : fr(m * xa)} = ${fr(p)}$.\n\n$(AB) : ${eqD(m, p)}$`
+    };
+  };
+
+  // ST02 / ST06 : quartiles et moyenne pondérée
+  GEN["am-quartiles"] = function () {
+    const n = rand(8, 12), s = Array.from({ length: n }, () => rand(2, 20));
+    const tri = s.slice().sort((x, y) => x - y);
+    const q1 = Math.random() < 0.5;
+    const rang = Math.ceil((q1 ? 1 : 3) * n / 4), val = tri[rang - 1];
+    return {
+      enonce: `Voici les notes de $${n}$ élèves : $${s.join(" ; ")}$. Détermine le ${q1 ? "premier quartile $Q_1$" : "troisième quartile $Q_3$"}.`,
+      mode: "nombre", prefixe: q1 ? "Q₁ =" : "Q₃ =", attendu: val,
+      erreurs: [{ valeur: s[rang - 1], message: "Il faut d'abord **ranger** les valeurs dans l'ordre croissant." }],
+      aides: ["Range les valeurs dans l'ordre croissant.", `${q1 ? "$Q_1$" : "$Q_3$"} est la valeur de rang $${q1 ? `\\dfrac{n}{4}` : `\\dfrac{3n}{4}`}$, arrondi à l'entier supérieur : ici $${q1 ? n : 3 * n} \\div 4 = ${fr((q1 ? n : 3 * n) / 4)}$, donc le rang $${rang}$.`, `Valeurs rangées : $${tri.join(" ; ")}$.`],
+      solution: `Valeurs rangées : $${tri.join(" ; ")}$. Rang $${rang}$ : ${q1 ? "$Q_1$" : "$Q_3$"} $= ${val}$.\n\nAu moins ${q1 ? "$25\\,\\%$" : "$75\\,\\%$"} des notes sont inférieures ou égales à $${val}$.`
+    };
+  };
+
+  GEN["am-moyenne-ponderee"] = function () {
+    const vals = shuffle([8, 9, 10, 11, 12, 13, 14, 15, 16]).slice(0, rand(3, 4)).sort((x, y) => x - y);
+    const eff = vals.map(() => rand(1, 6));
+    const N = eff.reduce((x, y) => x + y), S = vals.reduce((t, v, k) => t + v * eff[k], 0);
+    const moy = +(S / N).toFixed(2);
+    return {
+      enonce: "Voici les notes obtenues par un groupe d'élèves. Calcule la note moyenne (arrondie au centième si besoin).",
+      tableau: { var: "\\text{Note}", nom: "\\text{Effectif}", x: vals, y: eff },
+      mode: "nombre", prefixe: "Moyenne :", attendu: moy, tolerance: 0.006,
+      erreurs: [{ valeur: +(vals.reduce((x, y) => x + y) / vals.length).toFixed(2), message: "Chaque note doit compter autant de fois que son effectif." }],
+      aides: ["Moyenne pondérée : $\\dfrac{\\text{somme des (note} \\times \\text{effectif)}}{\\text{effectif total}}$.", `Somme : $${vals.map((v, k) => `${v} \\times ${eff[k]}`).join(" + ")} = ${S}$.`, `Effectif total : $${eff.join(" + ")} = ${N}$.`],
+      solution: `$\\bar{x} = \\dfrac{${S}}{${N}} ${S % N === 0 ? "=" : "\\approx"} ${fr(moy)}$`
+    };
+  };
+
+  // ST01 / ST04 / ST05 : lire un diagramme
+  GEN["am-diagramme"] = function () {
+    if (Math.random() < 0.3) {
+      const [ang, pct] = pick([[36, 10], [72, 20], [90, 25], [108, 30], [180, 50], [54, 15], [18, 5], [270, 75]]);
+      return {
+        enonce: `Dans un diagramme circulaire, un secteur a un angle de $${ang}°$. Quel pourcentage de l'effectif représente-t-il ?`,
+        mode: "nombre", prefixe: "Réponse :", suffixe: "%", attendu: pct,
+        aides: ["Le disque entier ($360°$) représente $100\\,\\%$.", "Les angles sont proportionnels aux effectifs.", `$\\dfrac{${ang}}{360} \\times 100$.`],
+        solution: `$\\dfrac{${ang}}{360} \\times 100 = ${pct}$, soit $${pct}\\,\\%$.`
+      };
+    }
+    let eff; do { eff = Array.from({ length: 6 }, () => rand(1, 9)); } while (eff.filter((e) => e === Math.max(...eff)).length > 1);
+    const N = eff.reduce((x, y) => x + y);
+    const o = { xmin: -0.8, xmax: 5.8, ymin: -0.8, ymax: 10, h: 240, xlabel: "frères et sœurs", ylabel: "effectif", bars: eff.map((e, k) => ({ x: k, y: e })), aria: "Diagramme en bâtons des effectifs selon le nombre de frères et sœurs, de 0 à 5" };
+    const k = rand(2, 4);
+    const Q = pick([
+      [`Combien d'élèves ont au moins $${k}$ frères et sœurs ?`, eff.slice(k).reduce((x, y) => x + y), `Additionne les effectifs des valeurs $${k}$ à $5$ : « au moins $${k}$ » veut dire $${k}$ ou plus.`, `$${eff.slice(k).join(" + ")} = ${eff.slice(k).reduce((x, y) => x + y)}$`],
+      ["Combien d'élèves ont été interrogés ?", N, "L'effectif total est la somme de tous les effectifs.", `$${eff.join(" + ")} = ${N}$`],
+      ["Quel nombre de frères et sœurs est le plus fréquent ?", eff.indexOf(Math.max(...eff)), "Cherche le bâton le plus haut, puis lis sa valeur sur l'axe horizontal.", `Le bâton le plus haut est en $${eff.indexOf(Math.max(...eff))}$ (effectif $${Math.max(...eff)}$).`],
+      [`Combien d'élèves ont moins de $${k}$ frères et sœurs ?`, eff.slice(0, k).reduce((x, y) => x + y), `« Moins de $${k}$ » : les valeurs $0$ à $${k - 1}$, sans $${k}$.`, `$${eff.slice(0, k).join(" + ")} = ${eff.slice(0, k).reduce((x, y) => x + y)}$`]
+    ]);
+    return {
+      enonce: `On a demandé à des élèves combien ils ont de frères et sœurs. ${Q[0]}`,
+      figure: graph(o), mode: "nombre", prefixe: "Réponse :", attendu: Q[1],
+      aides: ["Lis la hauteur de chaque bâton sur l'axe vertical : c'est l'effectif.", Q[2], "Vérifie ta lecture sur le quadrillage."],
+      solution: `Effectifs lus : $${eff.join(" ; ")}$ pour $0$ à $5$ frères et sœurs. ${Q[3]}.`
+    };
+  };
+
+  // ST03 : comparer deux boîtes à moustaches
+  function boites(B) {
+    const W = 320, pad = 18, lo = 0, hi = 20, H = 40 + 46 * B.length;
+    const X = (v) => +(pad + 20 + ((v - lo) * (W - 2 * pad - 20)) / (hi - lo)).toFixed(1);
+    let s = `<svg class="graph" viewBox="0 0 ${W} ${H}" role="img" aria-label="Boîtes à moustaches de ${B.map((b) => b.nom).join(" et ")}"><g class="g-grid">`;
+    for (let v = lo; v <= hi; v += 2) s += `<line x1="${X(v)}" y1="8" x2="${X(v)}" y2="${H - 26}"/>`;
+    s += `</g>`;
+    B.forEach((b, i) => {
+      const y = 30 + 46 * i;
+      s += `<g class="g-box g-box-${i}"><line x1="${X(b.v[0])}" y1="${y}" x2="${X(b.v[1])}" y2="${y}"/><line x1="${X(b.v[3])}" y1="${y}" x2="${X(b.v[4])}" y2="${y}"/>`;
+      s += `<line x1="${X(b.v[0])}" y1="${y - 7}" x2="${X(b.v[0])}" y2="${y + 7}"/><line x1="${X(b.v[4])}" y1="${y - 7}" x2="${X(b.v[4])}" y2="${y + 7}"/>`;
+      s += `<rect x="${X(b.v[1])}" y="${y - 13}" width="${X(b.v[3]) - X(b.v[1])}" height="26"/><line class="med" x1="${X(b.v[2])}" y1="${y - 13}" x2="${X(b.v[2])}" y2="${y + 13}"/></g>`;
+      s += `<text class="g-label" x="${pad - 6}" y="${y + 4}">${b.nom}</text>`;
+    });
+    s += `<g class="g-axis"><line x1="${X(lo)}" y1="${H - 26}" x2="${X(hi)}" y2="${H - 26}"/></g><g class="g-tick">`;
+    for (let v = lo; v <= hi; v += 2) s += `<text x="${X(v)}" y="${H - 12}" text-anchor="middle">${v}</text>`;
+    return s + `</g></svg>`;
+  }
+  FIGURES["boites-exemple"] = () => boites([{ nom: "A", v: [5, 9, 11, 13, 17] }, { nom: "B", v: [2, 6, 10, 15, 19] }]);
+  GEN["am-boites"] = function () {
+    const serie = () => { const v = [rand(0, 5), 0, 0, 0, 0]; v[1] = v[0] + rand(1, 4); v[2] = v[1] + rand(1, 4); v[3] = v[2] + rand(1, 4); v[4] = Math.min(20, v[3] + rand(1, 5)); return v; };
+    let A, B; do { A = serie(); B = serie(); } while (A[2] === B[2] || A.join() === B.join());
+    const fig = boites([{ nom: "A", v: A }, { nom: "B", v: B }]);
+    const ctx = "Les boîtes à moustaches résument les notes sur $20$ de deux classes $A$ et $B$.";
+    const lire = `Classe $A$ : min $${A[0]}$, $Q_1 = ${A[1]}$, médiane $${A[2]}$, $Q_3 = ${A[3]}$, max $${A[4]}$. Classe $B$ : min $${B[0]}$, $Q_1 = ${B[1]}$, médiane $${B[2]}$, $Q_3 = ${B[3]}$, max $${B[4]}$.`;
+    const t = rand(0, 2);
+    if (t === 0) {
+      const best = A[2] > B[2] ? 0 : 1;
+      return {
+        enonce: `${ctx} Dans quelle classe au moins la moitié des élèves ont-ils une note supérieure ou égale à $${Math.max(A[2], B[2])}$ ?`,
+        figure: fig, mode: "choix", choix: ["Classe $A$", "Classe $B$"], attendu: best,
+        aides: ["Le trait à l'intérieur de la boîte est la médiane.", "Au moins la moitié des notes sont supérieures ou égales à la médiane.", "Compare les deux médianes."],
+        solution: `${lire}\n\nLa médiane de la classe ${best ? "$B$" : "$A$"} vaut $${Math.max(A[2], B[2])}$ : au moins la moitié de ses élèves ont au moins cette note.`
+      };
+    }
+    if (t === 1) {
+      const c = Math.random() < 0.5 ? ["A", A] : ["B", B];
+      return {
+        enonce: `${ctx} Quel est l'écart interquartile de la classe $${c[0]}$ ?`,
+        figure: fig, mode: "nombre", prefixe: "Q₃ − Q₁ =", attendu: c[1][3] - c[1][1],
+        erreurs: [{ valeur: c[1][4] - c[1][0], message: "Ça, c'est l'étendue (max − min). L'écart interquartile, c'est $Q_3 - Q_1$ : la largeur de la boîte." }],
+        aides: ["Les bords de la boîte sont $Q_1$ (à gauche) et $Q_3$ (à droite).", "Écart interquartile $= Q_3 - Q_1$.", `Pour la classe $${c[0]}$ : $Q_1 = ${c[1][1]}$ et $Q_3 = ${c[1][3]}$.`],
+        solution: `$Q_3 - Q_1 = ${c[1][3]} - ${c[1][1]} = ${c[1][3] - c[1][1]}$. Environ la moitié des notes de la classe $${c[0]}$ sont dans cet intervalle.`
+      };
+    }
+    const c = Math.random() < 0.5 ? ["A", A] : ["B", B];
+    const [qn, pctTxt] = pick([[1, "$75\\,\\%$"], [3, "$25\\,\\%$"]]);
+    const seuil = c[1][qn] + (Math.random() < 0.5 ? 0 : pick([-1, 1]));
+    const vrai = seuil === c[1][qn];
+    return {
+      enonce: `${ctx} Vrai ou faux : « Dans la classe $${c[0]}$, au moins ${pctTxt} des élèves ont une note supérieure ou égale à $${seuil}$. »`,
+      figure: fig, mode: "choix", choix: ["Vrai", "Faux"], attendu: vrai ? 0 : 1,
+      aides: ["Au moins $75\\,\\%$ des valeurs sont supérieures ou égales à $Q_1$ ; au moins $25\\,\\%$ sont supérieures ou égales à $Q_3$.", `Pour la classe $${c[0]}$ : $Q_1 = ${c[1][1]}$ et $Q_3 = ${c[1][3]}$.`, `Compare $${seuil}$ avec ${qn === 1 ? "$Q_1$" : "$Q_3$"}.`],
+      solution: `${qn === 1 ? "$Q_1$" : "$Q_3$"} $= ${c[1][qn]}$ dans la classe $${c[0]}$. ` + (vrai ? "L'affirmation est **vraie**." : `Le graphique permet d'affirmer cela pour $${c[1][qn]}$, pas pour $${seuil}$ : on répond **faux**.`)
+    };
+  };
+
+  // PR03 : loi de probabilité, somme des probabilités
+  GEN["am-proba-loi"] = function () {
+    let ps; do { const a = rand(5, 40), b = rand(5, 40), c = rand(5, 30); ps = [a, b, c, 100 - a - b - c].map((x) => x / 100); } while (ps[3] < 0.05);
+    const noms = ["\\text{Rouge}", "\\text{Vert}", "\\text{Bleu}", "\\text{Jaune}"];
+    const miss = rand(0, 3);
+    if (Math.random() < 0.5) return {
+      enonce: "Une roue de loterie s'arrête sur une couleur. Voici les probabilités de chaque couleur. Détermine $p$.",
+      tableau: { var: "\\text{Couleur}", nom: "\\text{Probabilité}", x: noms, y: ps.map((p, i) => (i === miss ? "p" : fr(p))) },
+      mode: "nombre", prefixe: "p =", attendu: ps[miss], tolerance: 1e-6,
+      aides: ["La somme des probabilités de toutes les issues vaut $1$.", `$p = 1 - (${ps.filter((_, i) => i !== miss).map(fr).join(" + ")})$.`, "Une probabilité est toujours entre $0$ et $1$."],
+      solution: `$p = 1 - (${ps.filter((_, i) => i !== miss).map(fr).join(" + ")}) = ${fr(ps[miss])}$`
+    };
+    const [i, j] = shuffle([0, 1, 2, 3]).slice(0, 2).sort();
+    return {
+      enonce: `Une roue de loterie s'arrête sur une couleur, avec les probabilités ci-dessous. Quelle est la probabilité d'obtenir $${noms[i]}$ ou $${noms[j]}$ ?`,
+      tableau: { var: "\\text{Couleur}", nom: "\\text{Probabilité}", x: noms, y: ps.map(fr) },
+      mode: "nombre", prefixe: "p =", attendu: +(ps[i] + ps[j]).toFixed(6), tolerance: 1e-6,
+      aides: ["La probabilité d'un événement est la somme des probabilités des issues qui le réalisent.", `$p = ${fr(ps[i])} + ${fr(ps[j])}$.`, "Les deux issues ne peuvent pas se produire en même temps : on additionne."],
+      solution: `$p = ${fr(ps[i])} + ${fr(ps[j])} = ${fr(+(ps[i] + ps[j]).toFixed(6))}$`
+    };
+  };
+
+  // PR05 / PR06 : tableau croisé, probabilités conditionnelles
+  GEN["am-proba-tableau"] = function () {
+    const k = pick([2, 3, 4, 5]);
+    const a = rand(4, 15) * k, b = rand(4, 15) * k, c = rand(4, 15) * k, d = rand(4, 15) * k;
+    const F = a + b, G = c + d, D = a + c, E = b + d, N = F + G;
+    const lignes = [["", "\\text{Demi-pens.}", "\\text{Externe}", "\\text{Total}"], ["\\text{Fille}", a, b, F], ["\\text{Garçon}", c, d, G], ["\\text{Total}", D, E, N]];
+    const Q = pick([
+      ["P(F)", F, N, "On divise le nombre de filles par l'effectif total.", []],
+      ["P(F \\cap D)", a, N, "$F \\cap D$ : l'élève est une fille **et** demi-pensionnaire. On divise par l'effectif total.", [[a, F, "Ça, c'est $P_F(D)$. Pour $P(F \\cap D)$, on divise par l'effectif **total**."]]],
+      ["P_F(D)", a, F, "$P_F(D)$ : **parmi les filles**, la proportion de demi-pensionnaires. On divise par le nombre de filles.", [[a, N, "Ça, c'est $P(F \\cap D)$. Pour $P_F(D)$, on se place **parmi les filles** : on divise par $" + F + "$."], [a, D, "Ça, c'est $P_D(F)$. Pour $P_F(D)$, on divise par le nombre de **filles**."]]],
+      ["P_D(F)", a, D, "$P_D(F)$ : **parmi les demi-pensionnaires**, la proportion de filles. On divise par le nombre de demi-pensionnaires.", [[a, F, "Ça, c'est $P_F(D)$. Pour $P_D(F)$, on divise par le nombre de **demi-pensionnaires**."], [a, N, "Ça, c'est $P(F \\cap D)$. Ici on se place parmi les demi-pensionnaires."]]],
+      ["P(\\overline{F})", G, N, "$\\overline{F}$ : l'élève n'est pas une fille, donc c'est un garçon.", []]
+    ]);
+    return {
+      enonce: `Voici la répartition des élèves de Seconde d'un lycée. On choisit un élève au hasard. On note $F$ : « l'élève est une fille » et $D$ : « l'élève est demi-pensionnaire ». Calcule $${Q[0]}$.`,
+      tableau: { lignes }, mode: "nombre", prefixe: "Probabilité :", attendu: Q[1] / Q[2], tolerance: 0.0006,
+      erreurs: Q[4].map(([n, d, msg]) => ({ valeur: n / d, message: msg })),
+      aides: [Q[3], `Effectifs utiles : $${Q[1]}$ et $${Q[2]}$.`, "Réponds par une fraction, par exemple $12/50$, ou par un décimal arrondi au millième."],
+      solution: `$${Q[0]} = \\dfrac{${Q[1]}}{${Q[2]}}${pgcd(Q[1], Q[2]) > 1 ? ` = ${frac(Q[1], Q[2])}` : ""} ${Number.isInteger((Q[1] * 1000) / Q[2]) ? "=" : "\\approx"} ${fr(+(Q[1] / Q[2]).toFixed(3))}$`
+    };
+  };
+
+  GEN["am-proba-arbre"] = function () {
+    const a = pick([0.2, 0.3, 0.4, 0.6, 0.7]), b = pick([0.1, 0.2, 0.4, 0.5, 0.8, 0.9]), c = pick([0.1, 0.3, 0.6, 0.7]);
+    const ctx = `Dans un arbre pondéré, on lit $P(A) = ${fr(a)}$, $P_A(B) = ${fr(b)}$ et $P_{\\overline{A}}(B) = ${fr(c)}$.`;
+    const t = rand(0, 2);
+    if (t === 0) return {
+      enonce: `${ctx} Calcule $P(A \\cap B)$.`, mode: "nombre", prefixe: "P(A ∩ B) =", attendu: +(a * b).toFixed(6), tolerance: 1e-6,
+      erreurs: [{ valeur: +(a + b).toFixed(6), message: "Le long d'un chemin, on **multiplie** les probabilités." }],
+      aides: ["$A \\cap B$ correspond au chemin qui passe par $A$ puis par $B$.", "Le long d'un chemin, on multiplie : $P(A \\cap B) = P(A) \\times P_A(B)$.", `$${fr(a)} \\times ${fr(b)}$.`],
+      solution: `$P(A \\cap B) = P(A) \\times P_A(B) = ${fr(a)} \\times ${fr(b)} = ${fr(+(a * b).toFixed(6))}$`
+    };
+    if (t === 1) return {
+      enonce: `${ctx} Calcule $P(\\overline{A} \\cap B)$.`, mode: "nombre", prefixe: "P(Ā ∩ B) =", attendu: +((1 - a) * c).toFixed(6), tolerance: 1e-6,
+      erreurs: [{ valeur: +(a * c).toFixed(6), message: "$P(\\overline{A}) = 1 - P(A)$, pas $P(A)$." }],
+      aides: ["$P(\\overline{A}) = 1 - P(A)$.", `$P(\\overline{A}) = ${fr(1 - a)}$.`, "Le long du chemin $\\overline{A}$ puis $B$, on multiplie."],
+      solution: `$P(\\overline{A} \\cap B) = ${fr(1 - a)} \\times ${fr(c)} = ${fr(+((1 - a) * c).toFixed(6))}$`
+    };
+    const pB = +(a * b + (1 - a) * c).toFixed(6);
+    return {
+      enonce: `${ctx} Calcule $P(B)$.`, mode: "nombre", prefixe: "P(B) =", attendu: pB, tolerance: 1e-6,
+      erreurs: [{ valeur: +(a * b).toFixed(6), message: "C'est seulement $P(A \\cap B)$ : il faut aussi ajouter le chemin qui passe par $\\overline{A}$." }],
+      aides: ["Deux chemins mènent à $B$ : par $A$ et par $\\overline{A}$.", "On additionne les probabilités des deux chemins (formule des probabilités totales).", `$P(B) = ${fr(a)} \\times ${fr(b)} + ${fr(1 - a)} \\times ${fr(c)}$.`],
+      solution: `$P(B) = ${fr(a)} \\times ${fr(b)} + ${fr(1 - a)} \\times ${fr(c)} = ${fr(+(a * b).toFixed(6))} + ${fr(+((1 - a) * c).toFixed(6))} = ${fr(pB)}$`
+    };
+  };
+
+  GEN["am-proba-notation"] = function () {
+    const [ctx, A, B, ph] = pick([
+      ["On choisit au hasard un élève du lycée.", "l'élève est une fille", "l'élève fait du sport", ["que l'élève soit une fille qui fait du sport", "sachant que l'élève est une fille, qu'elle fasse du sport", "parmi les élèves qui font du sport, de choisir une fille", "que l'élève soit une fille ou fasse du sport"]],
+      ["On choisit au hasard une personne qui a fait un test de dépistage.", "la personne est malade", "le test est positif", ["que la personne soit malade et ait un test positif", "sachant que la personne est malade, que son test soit positif", "sachant que le test est positif, que la personne soit malade", "que la personne soit malade ou ait un test positif"]],
+      ["On choisit au hasard un client d'un magasin.", "le client a une carte de fidélité", "le client achète un produit en promotion", ["que le client ait une carte et achète un produit en promotion", "parmi les clients qui ont une carte, qu'il achète un produit en promotion", "parmi les clients qui achètent un produit en promotion, qu'il ait une carte", "que le client ait une carte ou achète un produit en promotion"]]
+    ]);
+    const nots = ["P(A \\cap B)", "P_A(B)", "P_B(A)", "P(A \\cup B)"];
+    const k = rand(0, 3);
+    return {
+      enonce: `${ctx} On note $A$ : « ${A} » et $B$ : « ${B} ». Comment note-t-on la probabilité ${ph[k]} ?`,
+      mode: "choix", choix: nots.map((x) => `$${x}$`), attendu: k,
+      aides: ["« Et » : intersection $\\cap$. « Ou » : réunion $\\cup$.", "« Sachant que… » ou « parmi… » : probabilité conditionnelle. La condition se met en indice.", "$P_A(B)$ : on se place parmi les issues de $A$ et on cherche la probabilité de $B$."],
+      solution: `C'est $${nots[k]}$. ` + ["« Et » : les deux événements à la fois.", "On sait que $A$ est réalisé : $A$ est en indice.", "On sait que $B$ est réalisé : $B$ est en indice.", "« Ou » : au moins l'un des deux."][k]
+    };
+  };
+
+  /* Séries « flash » d'un thème : mélange de ses générateurs */
+  const THEMES = {
+    "am-flash-cn": ["am-comparer", "am-fractions", "am-puissances", "am-ecritures", "am-ordre-grandeur", "am-coherence", "auto-conversions"],
+    "am-flash-ca": ["am-substituer", "am-reduire", "auto-litteral", "am-premier-degre", "am-isoler", "am-formule", "am-produit-nul", "am-signe"],
+    "am-flash-pp": ["proportion-pourcentage", "partie-tout", "proportion-de-proportion", "am-ecritures"],
+    "am-flash-ev": ["coefficient", "appliquer-evolution", "taux-evolution", "evolutions-successives", "taux-reciproque"],
+    "am-flash-fr": ["lecture-image", "lecture-antecedents", "appartenance", "am-reconnaitre", "resolution-graphique", "am-signe-graph", "am-droite-point", "am-lire-droite", "am-coef-dir"],
+    "am-flash-st": ["auto-statistiques", "am-quartiles", "am-moyenne-ponderee", "am-diagramme", "am-boites"],
+    "am-flash-pr": ["auto-probabilites", "am-proba-loi", "am-proba-tableau", "am-proba-arbre", "am-proba-notation"]
+  };
+  Object.keys(THEMES).forEach((k) => { GEN[k] = (i) => GEN[pick(THEMES[k])](rand(0, 4)); });
+  GEN["am-flash-tout"] = (i) => { const t = Object.keys(THEMES); return GEN[t[(i + rand(0, 6)) % t.length]](i); };
+
+
   /* Une « erreur connue » ne doit jamais coïncider avec la bonne réponse (à la tolérance près) */
-  Object.keys(GEN).filter((k) => k.startsWith("ld-")).forEach((k) => {
+  Object.keys(GEN).filter((k) => k.startsWith("ld-") || k.startsWith("am-")).forEach((k) => {
     const g = GEN[k];
     GEN[k] = (i) => { const q = g(i); if (q.erreurs) q.erreurs = q.erreurs.filter((e) => Math.abs(e.valeur - q.attendu) >= (q.tolerance || 1e-9)); return q; };
   });

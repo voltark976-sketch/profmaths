@@ -71,7 +71,9 @@
       return out;
     }).join("");
   }
-  const tableau = (t) => `<div class="scroll-x"><table class="valeurs"><tr><th>${tex(t.var || "x")}</th>${t.x.map((v) => `<td>${tex(String(v))}</td>`).join("")}</tr><tr><th>${tex(t.nom)}</th>${t.y.map((v) => `<td>${tex(String(v))}</td>`).join("")}</tr></table></div>`;
+  const tableau = (t) => t.lignes
+    ? `<div class="scroll-x"><table class="valeurs croise">${t.lignes.map((l, i) => `<tr>${l.map((v, j) => (i === 0 || j === 0 ? `<th>${v === "" ? "" : tex(String(v))}</th>` : `<td>${tex(String(v))}</td>`)).join("")}</tr>`).join("")}</table></div>`
+    : `<div class="scroll-x"><table class="valeurs"><tr><th>${tex(t.var || "x")}</th>${t.x.map((v) => `<td>${tex(String(v))}</td>`).join("")}</tr><tr><th>${tex(t.nom)}</th>${t.y.map((v) => `<td>${tex(String(v))}</td>`).join("")}</tr></table></div>`;
   const figure = (nom) => (FIGURES[nom] ? `<figure class="fig">${FIGURES[nom]()}</figure>` : "");
 
   /* ---------- Vidéos YouTube : vignette légère, la vidéo ne se charge qu'au clic ---------- */
@@ -129,10 +131,10 @@
     if (!Compte.eleve()) h += `<a class="invite" href="#compte"><strong>Crée ton compte</strong><span>pour retrouver tes points et tes étoiles sur n'importe quel téléphone ou ordinateur.</span></a>`;
     h += `<div class="niveaux">`;
     CATALOGUE.niveaux.forEach((n) => {
-      h += `<section class="niveau"><h2>${esc(n.nom)}</h2><ol class="chapitres">`;
+      h += `<section class="niveau"><h2>${esc(n.nom)}</h2>${n.intro ? `<p class="muted niveau-intro">${esc(n.intro)}</p>` : ""}<ol class="chapitres">`;
       n.chapitres.forEach((ch) => {
         const dispo = ch.statut === "disponible" && window.CHAPITRES && CHAPITRES[ch.id];
-        const num = ch.numero ? `<span class="num">${ch.numero}</span>` : `<span class="num num-a">A</span>`;
+        const num = ch.code ? `<span class="num num-a">${esc(ch.code)}</span>` : ch.numero ? `<span class="num">${ch.numero}</span>` : `<span class="num num-a">A</span>`;
         if (dispo) {
           const b = bilanChapitre(ch.id);
           const pct = Math.round((b.got / b.total) * 100);
