@@ -5,6 +5,7 @@ Le site est en ligne : **https://voltark976-sketch.github.io/profmaths/**
 - Dépôt GitHub : https://github.com/voltark976-sketch/profmaths
 - La publication se fait depuis la branche **gh-pages**. Claude met à jour `main` et `gh-pages` à chaque changement.
 - Si vous modifiez vous-même un fichier sur GitHub, faites-le sur la branche `gh-pages`, ou réglez une fois pour toutes Settings > Pages > Branch sur `main`.
+- Comptes élèves : projet Firebase **profmaths-ca535** (compte voltark976@gmail.com), déjà branché dans `data/config-comptes.js`. Le domaine `voltark976-sketch.github.io` doit figurer dans Authentication > Paramètres > Domaines autorisés.
 
 La suite de ce guide explique comment refaire la mise en ligne de zéro.
 

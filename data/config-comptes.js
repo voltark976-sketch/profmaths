@@ -18,7 +18,15 @@
   Ces valeurs ne sont pas secrètes : la sécurité vient des règles Firestore (voir LISEZMOI.md).
 */
 window.CONFIG_COMPTES = {
-  firebase: null,
+  // Projet Firebase « profmaths-ca535 » (compte voltark976@gmail.com), activé le 3 octobre 2026
+  firebase: {
+    apiKey: "AIzaSyCNr_bdQahLq_TulnkqaHm3Qk7DsFw3xI4",
+    authDomain: "profmaths-ca535.firebaseapp.com",
+    projectId: "profmaths-ca535",
+    storageBucket: "profmaths-ca535.firebasestorage.app",
+    messagingSenderId: "830391678944",
+    appId: "1:830391678944:web:f472650d4f317277c41d85"
+  },
   // Classes proposées à la création du compte (modifiable)
   classes: ["Seconde", "Première spécialité", "Terminale maths complémentaires"]
 };
