@@ -1,0 +1,277 @@
+/*
+  CHAPITRE : Première spécialité — Suites numériques
+  ---------------------------------------------------
+  Mêmes règles d'écriture que data/seconde/fonctions.js (formules entre $...$, antislash doublé,
+  **gras**, "- " pour une puce). Dans les formules, la virgule décimale s'écrit {,} : $0{,}35$.
+  video : vidéo d'aide affichée sous une notion (vidéos d'Yvan Monka citées dans le dossier élève).
+  Le corrigé détaillé du Drive est réservé au professeur : il n'est pas lié ici.
+*/
+window.CHAPITRES = window.CHAPITRES || {};
+window.CHAPITRES["premiere-suites"] = {
+  niveau: "Première spécialité",
+  numero: 1,
+  titre: "Suites numériques",
+  accroche: "Calculer des termes, reconnaître une suite arithmétique ou géométrique, étudier ses variations et chercher un seuil, avec le lagon propre en fil rouge.",
+
+  playlist: "",
+  drive: "https://drive.google.com/drive/folders/1Ymru1W2dLIhiEgpawEdchTrVvaK8Q3n6",
+  pdfs: [
+    {
+      titre: "Dossier élève : cours, méthodes et exercices",
+      url: "https://drive.google.com/file/d/1ccZ0rwB10ZQr00MtVd9k_bBGR2KYtK44/view"
+    }
+  ],
+
+  /* ---------- 1. CAPSULE DE COURS ---------- */
+  cours: [
+    {
+      titre: "Qu'est-ce qu'une suite ?",
+      texte:
+        "Une **suite** $(u_n)$ associe à chaque entier naturel $n$ un nombre $u_n$, appelé **terme de rang $n$**.\n\n" +
+        "- **Formule explicite** : $u_n$ s'exprime directement en fonction de $n$, par exemple $u_n = 3n^2 - 1$. On calcule n'importe quel terme d'un coup.\n" +
+        "- **Relation de récurrence** : on donne le premier terme et le moyen de passer d'un terme au suivant, par exemple $u_0 = 5$ et $u_{n+1} = 2u_n - 3$. On calcule les termes **de proche en proche**.\n\n" +
+        "Attention à ne pas confondre $u_{n+1}$ (le terme suivant) et $u_n + 1$ (le terme plus un).",
+      video: { titre: "Vidéo d'Yvan Monka : calculer les termes d'une suite (formule explicite)", youtube: "https://youtu.be/HacflVQ7DIE" },
+      exemple: {
+        enonce: "On définit $u_0 = 5$ et $u_{n+1} = 2u_n - 3$. Calcule $u_1$, $u_2$ et $u_3$.",
+        solution: "$u_1 = 2 \\times 5 - 3 = 7$, $u_2 = 2 \\times 7 - 3 = 11$, $u_3 = 2 \\times 11 - 3 = 19$."
+      }
+    },
+    {
+      titre: "Représentation et sens de variation",
+      texte:
+        "On représente une suite par le **nuage de points** de coordonnées $(n\\,;u_n)$ : on ne relie pas les points.\n\n" +
+        "- $(u_n)$ est **croissante** si $u_{n+1} \\geqslant u_n$ pour tout $n$, **décroissante** si $u_{n+1} \\leqslant u_n$.\n" +
+        "- Méthode : on étudie le **signe de $u_{n+1} - u_n$**.\n" +
+        "- Si $u_n = f(n)$ et que $f$ est monotone sur $[0\\,;+\\infty[$, la suite a le même sens de variation que $f$.",
+      figure: "suite-nuage",
+      video: { titre: "Vidéo d'Yvan Monka : étudier les variations d'une suite", youtube: "https://youtu.be/DFz8LDKCw9Y" },
+      exemple: {
+        enonce: "Étudie le sens de variation de $u_n = n^2 - 4n$ à partir du rang $2$.",
+        solution: "$u_{n+1} - u_n = (n+1)^2 - 4(n+1) - n^2 + 4n = 2n - 3$. Pour $n \\geqslant 2$, $2n - 3 > 0$ : la suite est croissante à partir du rang $2$, comme on le voit sur le nuage."
+      }
+    },
+    {
+      titre: "Suites arithmétiques",
+      texte:
+        "$(u_n)$ est **arithmétique** de raison $r$ si l'on passe d'un terme au suivant en **ajoutant** toujours $r$ : $u_{n+1} = u_n + r$.\n\n" +
+        "- Terme général : $u_n = u_0 + nr$, ou $u_n = u_p + (n - p)r$.\n" +
+        "- Elle est croissante si $r > 0$, décroissante si $r < 0$.\n" +
+        "- Ses points sont **alignés** : c'est l'équivalent discret d'une fonction affine.\n" +
+        "- Pour la reconnaître : on vérifie que $u_{n+1} - u_n$ est constant.",
+      video: { titre: "Vidéo d'Yvan Monka : déterminer une suite arithmétique", youtube: "https://youtu.be/YCokWYcBBOk" },
+      exemple: {
+        enonce: "Un club de plongée ramasse $40$ kg de déchets la première semaine, puis $6$ kg de plus chaque semaine. On note $u_1 = 40$. Combien ramasse-t-il la semaine $10$ ?",
+        solution: "$(u_n)$ est arithmétique de raison $6$ : $u_{10} = u_1 + 9 \\times 6 = 40 + 54 = 94$ kg."
+      }
+    },
+    {
+      titre: "Suites géométriques",
+      texte:
+        "$(u_n)$ est **géométrique** de raison $q$ si l'on passe d'un terme au suivant en **multipliant** toujours par $q$ : $u_{n+1} = q \\times u_n$.\n\n" +
+        "- Terme général : $u_n = u_0 \\times q^n$, ou $u_n = u_p \\times q^{n-p}$.\n" +
+        "- Une évolution de $t\\,\\%$ à chaque étape donne une suite géométrique de raison $q = 1 + \\dfrac{t}{100}$.\n" +
+        "- Avec $u_0 > 0$ : croissante si $q > 1$, décroissante si $0 < q < 1$. Si $q < 0$, elle n'est pas monotone.\n" +
+        "- Pour la reconnaître : on vérifie que $\\dfrac{u_{n+1}}{u_n}$ est constant.",
+      video: { titre: "Vidéo d'Yvan Monka : déterminer une suite géométrique", youtube: "https://youtu.be/YPbEHxuMaeQ" },
+      exemple: {
+        enonce: "Grâce aux campagnes de nettoyage, la masse de plastique sur une plage diminue de $15\\,\\%$ par an. Elle est de $800$ kg en 2026. Exprime $u_n$, la masse $n$ années après 2026.",
+        solution: "Baisser de $15\\,\\%$, c'est multiplier par $0{,}85$ : $u_n = 800 \\times 0{,}85^n$. En 2029 : $u_3 = 800 \\times 0{,}85^3 \\approx 491$ kg."
+      }
+    },
+    {
+      titre: "Sommes de termes",
+      texte:
+        "- **Entiers consécutifs** : $1 + 2 + \\dots + n = \\dfrac{n(n+1)}{2}$.\n" +
+        "- **Suite arithmétique** : $S = \\text{nombre de termes} \\times \\dfrac{\\text{premier terme} + \\text{dernier terme}}{2}$.\n" +
+        "- **Puissances** ($q \\neq 1$) : $1 + q + q^2 + \\dots + q^n = \\dfrac{1 - q^{n+1}}{1 - q}$.\n" +
+        "- **Suite géométrique** : $S = \\text{premier terme} \\times \\dfrac{1 - q^{\\text{nombre de termes}}}{1 - q}$.\n\n" +
+        "Compter les termes : de $u_0$ à $u_n$, il y en a $n + 1$.",
+      video: { titre: "Vidéo d'Yvan Monka : calculer la somme des termes d'une suite arithmétique", youtube: "https://youtu.be/WeDtB9ZUTHs" },
+      exemple: {
+        enonce: "Le club de plongée de l'exemple précédent ramasse $40$, $46$, $52$… kg. Quelle masse totale en $10$ semaines ?",
+        solution: "Dernier terme : $u_{10} = 94$. $S = 10 \\times \\dfrac{40 + 94}{2} = 670$ kg."
+      }
+    },
+    {
+      titre: "Comportement à l'infini et seuil",
+      texte:
+        "Quand $n$ devient très grand, on observe vers quoi vont les termes :\n\n" +
+        "- $q^n$ devient aussi grand qu'on veut si $q > 1$ ;\n" +
+        "- $q^n$ se rapproche de $0$ si $0 < q < 1$.\n\n" +
+        "Pour trouver le **plus petit rang** $n$ à partir duquel $u_n$ dépasse (ou passe sous) un seuil, on utilise le **tableau de valeurs** de la calculatrice ou un **algorithme** avec une boucle « tant que ».",
+      video: { titre: "Vidéo d'Yvan Monka : conjecturer la limite d'une suite", youtube: "https://youtu.be/0CC-EqOH92c" },
+      exemple: {
+        enonce: "Avec $u_n = 800 \\times 0{,}85^n$, à partir de quelle année la masse de plastique passe-t-elle sous $200$ kg ?",
+        solution: "À la calculatrice : $u_8 \\approx 218$ et $u_9 \\approx 185$. Le seuil est $n = 9$, soit en **2035**."
+      }
+    }
+  ],
+
+  videos: [],
+
+  /* ---------- 2. EXERCICES INTERACTIFS ---------- */
+  exercices: [
+    { type: "suite-explicite", titre: "Calculer un terme (formule explicite)", etape: "Généralités", nb: 5 },
+    { type: "suite-recurrence", titre: "Calculer un terme (récurrence)", etape: "Généralités", nb: 5 },
+    { type: "suite-arithmetique", titre: "Suites arithmétiques", etape: "Arithmétique et géométrique", nb: 5 },
+    { type: "suite-geometrique", titre: "Suites géométriques", etape: "Arithmétique et géométrique", nb: 5 },
+    { type: "suite-nature", titre: "Arithmétique, géométrique ou ni l'un ni l'autre ?", etape: "Arithmétique et géométrique", nb: 5 },
+    { type: "suite-variation", titre: "Sens de variation", etape: "Variations et limites", nb: 5 },
+    { type: "suite-somme", titre: "Sommes de termes", etape: "Défi", nb: 4 },
+    { type: "suite-seuil", titre: "Chercher un seuil", etape: "Défi", nb: 4 }
+  ],
+
+  /* ---------- 3. QCM DE RÉVISION ---------- */
+  qcm: [
+    {
+      question: "$u_n = n^2 - 3n$. Combien vaut $u_4$ ?",
+      choix: ["$4$", "$-4$", "$28$", "$13$"],
+      bonne: 0,
+      explication: "$u_4 = 4^2 - 3 \\times 4 = 16 - 12 = 4$."
+    },
+    {
+      question: "$u_0 = 2$ et $u_{n+1} = 3u_n - 1$. Combien vaut $u_2$ ?",
+      choix: ["$5$", "$14$", "$17$", "$8$"],
+      bonne: 1,
+      explication: "$u_1 = 3 \\times 2 - 1 = 5$, puis $u_2 = 3 \\times 5 - 1 = 14$."
+    },
+    {
+      question: "Pour une suite $(u_n)$, que désigne $u_{n+1}$ ?",
+      choix: ["Le terme $u_n$ augmenté de $1$", "Le terme qui suit $u_n$", "Le rang du terme suivant", "Le produit de $u_n$ par $n + 1$"],
+      bonne: 1,
+      explication: "$u_{n+1}$ est le terme de rang $n + 1$, c'est-à-dire le suivant. À ne pas confondre avec $u_n + 1$."
+    },
+    {
+      question: "$(u_n)$ est arithmétique, $u_0 = 7$ et $r = -2$. Combien vaut $u_{20}$ ?",
+      choix: ["$-33$", "$47$", "$-35$", "$-40$"],
+      bonne: 0,
+      explication: "$u_{20} = 7 + 20 \\times (-2) = 7 - 40 = -33$."
+    },
+    {
+      question: "$(u_n)$ est arithmétique avec $u_3 = 11$ et $u_7 = 23$. Quelle est sa raison ?",
+      choix: ["$12$", "$4$", "$3$", "$\\dfrac{23}{11}$"],
+      bonne: 2,
+      explication: "$r = \\dfrac{23 - 11}{7 - 3} = \\dfrac{12}{4} = 3$."
+    },
+    {
+      question: "Une population augmente de $4\\,\\%$ par an. Quelle est la raison de la suite géométrique associée ?",
+      choix: ["$4$", "$0{,}04$", "$1{,}4$", "$1{,}04$"],
+      bonne: 3,
+      explication: "Augmenter de $4\\,\\%$, c'est multiplier par $1 + 0{,}04 = 1{,}04$."
+    },
+    {
+      question: "$(u_n)$ est géométrique, $u_0 = 3$ et $q = 2$. Quelle est la formule de $u_n$ ?",
+      choix: ["$u_n = 3 + 2n$", "$u_n = 6^n$", "$u_n = 3 \\times 2^n$", "$u_n = 2 \\times 3^n$"],
+      bonne: 2,
+      explication: "Terme général : $u_n = u_0 \\times q^n = 3 \\times 2^n$. Seule la raison est à la puissance $n$."
+    },
+    {
+      question: "Les termes $2 ; 6 ; 18 ; 54$ peuvent être ceux d'une suite…",
+      choix: ["arithmétique de raison $4$", "géométrique de raison $3$", "géométrique de raison $4$", "ni arithmétique ni géométrique"],
+      bonne: 1,
+      explication: "Les quotients valent tous $3$ ($6 \\div 2 = 18 \\div 6 = 54 \\div 18 = 3$), alors que les différences ($4$, $12$, $36$) ne sont pas constantes."
+    },
+    {
+      question: "$u_n = -5 \\times 0{,}8^n$. Quel est le sens de variation de $(u_n)$ ?",
+      choix: ["Croissante", "Décroissante", "Ni l'un ni l'autre", "Constante"],
+      bonne: 0,
+      explication: "$0 < 0{,}8 < 1$ donc $0{,}8^n$ diminue ; multiplié par $-5$ (négatif), le sens s'inverse : $(u_n)$ est croissante."
+    },
+    {
+      question: "On sait que $u_{n+1} - u_n = -n^2 - 1$ pour tout $n$. Que peut-on dire de $(u_n)$ ?",
+      choix: ["Elle est croissante", "Elle est décroissante", "Elle est arithmétique", "On ne peut pas conclure"],
+      bonne: 1,
+      explication: "$-n^2 - 1 < 0$ pour tout $n$, donc $u_{n+1} < u_n$ : la suite est décroissante."
+    },
+    {
+      question: "Combien vaut $1 + 2 + 3 + \\dots + 40$ ?",
+      choix: ["$800$", "$820$", "$1\\,600$", "$780$"],
+      bonne: 1,
+      explication: "$\\dfrac{40 \\times 41}{2} = 820$."
+    },
+    {
+      question: "Combien de termes compte la somme $u_0 + u_1 + \\dots + u_{15}$ ?",
+      choix: ["$14$", "$15$", "$16$", "$17$"],
+      bonne: 2,
+      explication: "De $0$ à $15$, il y a $15 + 1 = 16$ termes."
+    },
+    {
+      question: "Combien vaut $1 + 2 + 2^2 + \\dots + 2^7$ ?",
+      choix: ["$127$", "$128$", "$255$", "$256$"],
+      bonne: 2,
+      explication: "$\\dfrac{1 - 2^8}{1 - 2} = \\dfrac{-255}{-1} = 255$ (il y a $8$ termes, donc l'exposant est $8$)."
+    },
+    {
+      question: "$u_n = 1\\,000 \\times 0{,}5^n$. Quand $n$ devient très grand, $u_n$…",
+      choix: ["devient très grand", "se rapproche de $0$", "se rapproche de $500$", "se rapproche de $1\\,000$"],
+      bonne: 1,
+      explication: "$0 < 0{,}5 < 1$ donc $0{,}5^n$ se rapproche de $0$, et $u_n$ aussi."
+    },
+    {
+      question: "$u_n = 100 \\times 2^n$. Quel est le plus petit $n$ tel que $u_n > 1\\,000$ ?",
+      choix: ["$3$", "$4$", "$5$", "$10$"],
+      bonne: 1,
+      explication: "$u_3 = 800 \\leqslant 1\\,000$ et $u_4 = 1\\,600 > 1\\,000$ : le seuil est $n = 4$."
+    }
+  ],
+
+  /* ---------- 4. FICHE MÉTHODE ---------- */
+  methode: [
+    {
+      titre: "Calculer des termes",
+      etapes: [
+        "Repérer le type de définition : formule explicite ($u_n$ en fonction de $n$) ou récurrence ($u_{n+1}$ en fonction de $u_n$).",
+        "Explicite : remplacer $n$ par la valeur voulue, avec des parenthèses autour des nombres négatifs.",
+        "Récurrence : partir du premier terme et calculer chaque terme à partir du précédent, dans l'ordre."
+      ],
+      exemple: "$u_0 = 4$, $u_{n+1} = \\dfrac{1}{2}u_n + 1$ : $u_1 = 3$, $u_2 = 2{,}5$, $u_3 = 2{,}25$."
+    },
+    {
+      titre: "Montrer qu'une suite est arithmétique ou géométrique",
+      etapes: [
+        "Arithmétique : calculer $u_{n+1} - u_n$ et montrer que le résultat ne dépend pas de $n$ ; c'est la raison $r$.",
+        "Géométrique : écrire $u_{n+1}$ sous la forme $q \\times u_n$ (ou montrer que $\\dfrac{u_{n+1}}{u_n}$ est constant).",
+        "Pour montrer qu'une suite **n'est pas** arithmétique (ou géométrique), un contre-exemple sur les trois premiers termes suffit."
+      ],
+      exemple: "$u_n = 5 - 3n$ : $u_{n+1} - u_n = 5 - 3(n+1) - 5 + 3n = -3$. Arithmétique de raison $-3$."
+    },
+    {
+      titre: "Étudier le sens de variation",
+      etapes: [
+        "Si la suite est arithmétique : signe de $r$. Si elle est géométrique : position de $q$ par rapport à $1$, et signe de $u_0$.",
+        "Sinon, calculer et simplifier $u_{n+1} - u_n$.",
+        "Étudier son signe pour tout $n \\in \\mathbb{N}$ et conclure."
+      ],
+      exemple: "$u_n = n^2 + n$ : $u_{n+1} - u_n = 2n + 2 > 0$, donc $(u_n)$ est croissante."
+    },
+    {
+      titre: "Calculer une somme de termes",
+      etapes: [
+        "Reconnaître la nature de la suite et sa raison.",
+        "Compter les termes : de $u_p$ à $u_n$, il y en a $n - p + 1$.",
+        "Arithmétique : nombre de termes $\\times \\dfrac{\\text{premier} + \\text{dernier}}{2}$. Géométrique : premier $\\times \\dfrac{1 - q^{\\text{nb termes}}}{1 - q}$."
+      ],
+      exemple: "$3 + 6 + 12 + \\dots + 3 \\times 2^9$ : $10$ termes, $S = 3 \\times \\dfrac{1 - 2^{10}}{1 - 2} = 3\\,069$."
+    },
+    {
+      titre: "Déterminer un seuil",
+      etapes: [
+        "Vérifier le sens de variation de la suite, pour savoir qu'une fois le seuil franchi, il le reste.",
+        "Calculatrice : mode Suite, puis tableau de valeurs, et lire les deux termes qui encadrent le seuil.",
+        "Ou algorithme : tant que $u \\leqslant A$, faire $n \\leftarrow n + 1$ et $u \\leftarrow q \\times u$ ; la valeur finale de $n$ est le seuil.",
+        "Conclure dans le contexte (année, semaine…)."
+      ],
+      exemple: "$u_n = 50 \\times 1{,}2^n > 200$ : $u_7 \\approx 179$ et $u_8 \\approx 215$, donc $n = 8$."
+    }
+  ],
+  erreurs: [
+    "Confondre $u_{n+1}$ (le terme suivant) et $u_n + 1$.",
+    "Oublier qu'une suite commençant à $u_1$ a pour terme général $u_n = u_1 + (n - 1)r$, et non $u_1 + nr$.",
+    "Écrire $(u_0 \\times q)^n$ au lieu de $u_0 \\times q^n$ : seule la raison est à la puissance.",
+    "Prendre le taux pour la raison : une hausse de $5\\,\\%$ donne $q = 1{,}05$, pas $0{,}05$.",
+    "Conclure qu'une suite est arithmétique en vérifiant seulement les deux premières différences.",
+    "Se tromper dans le nombre de termes d'une somme : de $u_0$ à $u_n$, il y en a $n + 1$.",
+    "Relier les points du nuage d'une suite comme pour une courbe de fonction."
+  ]
+};
