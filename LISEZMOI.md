@@ -1,4 +1,4 @@
-# Site ObjectifMaths
+# Site ProfMaths
 
 Site statique : aucune base de données, aucun compte élève. Ouvrir `index.html` dans un navigateur suffit.
 

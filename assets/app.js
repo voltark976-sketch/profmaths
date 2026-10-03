@@ -124,7 +124,7 @@
 
   /* ---------- Accueil ---------- */
   function pageAccueil() {
-    document.title = "ObjectifMaths";
+    document.title = "ProfMaths";
     let h = `<section class="hero"><p class="eyebrow">Maths au lycée · Mayotte</p><h1>Une vidéo, un cours, des exercices. À ton rythme.</h1><p class="lead">Choisis ton niveau puis ton chapitre. Les chapitres suivent l'ordre des playlists de la chaîne.</p></section>`;
     if (!Compte.eleve()) h += `<a class="invite" href="#compte"><strong>Crée ton compte</strong><span>pour retrouver tes points et tes étoiles sur n'importe quel téléphone ou ordinateur.</span></a>`;
     h += `<div class="niveaux">`;
@@ -149,7 +149,7 @@
 
   /* ---------- Page compte ---------- */
   function pageCompte() {
-    document.title = "Mon compte · ObjectifMaths";
+    document.title = "Mon compte · ProfMaths";
     const e = Compte.eleve();
     const demo = Compte.demo ? `<p class="demo">Mode démonstration : le compte n'est gardé que sur cet appareil. Les vrais comptes, accessibles partout, seront activés à la mise en ligne.</p>` : "";
     if (e) {
@@ -208,7 +208,7 @@
   /* ---------- Page chapitre ---------- */
   function pageChapitre(id, onglet) {
     const c = CHAPITRES[id];
-    document.title = `${c.titre} · ObjectifMaths`;
+    document.title = `${c.titre} · ProfMaths`;
     if (!ONGLETS.some((o) => o.id === onglet)) onglet = "cours";
     const b = bilanChapitre(id);
     let h = `<a class="retour" href="#">← Tous les chapitres</a>
