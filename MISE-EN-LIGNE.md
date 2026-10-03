@@ -1,5 +1,13 @@
 # Mettre le site en ligne (gratuit)
 
+## État actuel (3 octobre 2026)
+Le site est en ligne : **https://voltark976-sketch.github.io/profmaths/**
+- Dépôt GitHub : https://github.com/voltark976-sketch/profmaths
+- La publication se fait depuis la branche **gh-pages**. Claude met à jour `main` et `gh-pages` à chaque changement.
+- Si vous modifiez vous-même un fichier sur GitHub, faites-le sur la branche `gh-pages`, ou réglez une fois pour toutes Settings > Pages > Branch sur `main`.
+
+La suite de ce guide explique comment refaire la mise en ligne de zéro.
+
 Le site est un ensemble de fichiers « statiques » (HTML, CSS, JavaScript) : pas de serveur à louer, pas de base de données à installer. On le dépose chez un hébergeur gratuit, et il obtient une adresse publique à donner aux élèves.
 
 Hébergeur conseillé : **GitHub Pages**. Il est gratuit, sans publicité, et l'adresse ne change plus (`https://votre-nom.github.io/profmaths/`). Tout se fait dans le navigateur, sans rien installer.
