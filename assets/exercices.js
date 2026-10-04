@@ -339,8 +339,9 @@
   };
 
 
-  /* Résoudre graphiquement f(x) = g(x) : abscisses des points d'intersection de deux courbes */
-  GEN["graph-f-egal-g"] = function (i) {
+  /* Deux courbes (deux droites, ou une parabole et une droite) qui se coupent en des points à coordonnées entières.
+     interieur : les points d'intersection sont strictement à l'intérieur de [L ; R] (utile pour les inéquations). */
+  function deuxCourbes(i, interieur) {
     let f, g, L, R, sol, essais = 0;
     const deuxDroites = Math.random() < (i < 2 ? 0.6 : 0.2);
     for (;;) {
@@ -355,8 +356,9 @@
         // Une parabole et une droite qui la coupe en deux points (parfois un seul sur l'intervalle)
         const P = parabole(); f = P.f; L = P.h - 3; R = P.h + 3;
         const unSeul = i === 4 && Math.random() < 0.5;
-        let u = rand(L, R), v;
-        do { v = unSeul ? pick([L - 1, L - 2, R + 1, R + 2]) : rand(L, R); } while (v === u);
+        const m0 = interieur ? 1 : 0;
+        let u = rand(L + m0, R - m0), v;
+        do { v = unSeul ? pick([L - 1, L - 2, R + 1, R + 2]) : rand(L + m0, R - m0); } while (v === u);
         const m = P.a * (u + v - 2 * P.h), fu = f(u);
         g = (x) => fu + m * (x - u);
         sol = unSeul ? [u] : [Math.min(u, v), Math.max(u, v)];
@@ -376,6 +378,12 @@
       ],
       aria: "Courbes de deux fonctions f et g dans un repère quadrillé"
     }, extra || {});
+    return { f, g, L, R, sol, opts };
+  }
+
+  /* Résoudre graphiquement f(x) = g(x) : abscisses des points d'intersection de deux courbes */
+  GEN["graph-f-egal-g"] = function (i) {
+    const { f, L, R, sol, opts } = deuxCourbes(i, false);
     const pts = sol.map((x) => `$(${x}\\,;${f(x)})$`);
     return {
       enonce: `Voici les courbes de deux fonctions $f$ et $g$ définies sur $[${L}\\,;${R}]$. Résous graphiquement l'équation $f(x) = g(x)$.`,
@@ -387,6 +395,41 @@
         "Lis l'abscisse de chaque point d'intersection sur l'axe horizontal (pas son ordonnée !). Sépare les valeurs par « ; »."
       ],
       solution: `Les courbes $\\mathcal{C}_f$ et $\\mathcal{C}_g$ se coupent ${sol.length === 1 ? `en un seul point : ${pts[0]}` : `en deux points : ${pts[0]} et ${pts[1]}`}.\n\nOn garde les abscisses : $S = \\{${sol.join("\\,;")}\\}$.`,
+      figureSolution: graph(opts({ points: sol.map((x) => ({ x, y: f(x) })) }))
+    };
+  };
+
+  /* Inéquations f(x) > g(x), f(x) ⩾ g(x), f(x) < g(x), f(x) ⩽ g(x) */
+  const OPS = [">", "\\geqslant", "<", "\\leqslant"];
+  const OPS_TXT = { ">": "strictement au-dessus de", "\\geqslant": "au-dessus de (ou sur)", "<": "strictement en dessous de", "\\leqslant": "en dessous de (ou sur)" };
+  const OPS_INV = { ">": "<", "<": ">", "\\geqslant": "\\leqslant", "\\leqslant": "\\geqslant" };
+  // Ensemble des x de [L ; R] tels que f(x) op g(x), quand les courbes se croisent aux abscisses sol (intérieures à [L ; R])
+  function ensembleInegalite(f, g, L, R, sol, op) {
+    const p = [L, ...sol, R], large = op === "\\geqslant" || op === "\\leqslant", dessus = op === ">" || op === "\\geqslant";
+    const morceaux = [];
+    for (let k = 0; k + 1 < p.length; k++) {
+      const m = (p[k] + p[k + 1]) / 2;
+      if ((f(m) > g(m)) === dessus) morceaux.push(interv(p[k], p[k + 1], k === 0 || large, k + 2 === p.length || large));
+    }
+    return morceaux.join(" \\cup ");
+  }
+
+  GEN["graph-f-inf-g"] = function (i) {
+    const { f, g, L, R, sol, opts } = deuxCourbes(i, true);
+    const op = pick(OPS), large = op === "\\geqslant" || op === "\\leqslant";
+    const ens = OPS.map((o) => ensembleInegalite(f, g, L, R, sol, o));
+    const bonne = ens[OPS.indexOf(op)], mel = shuffle(ens);
+    const xs = sol.map((x) => `$${x}$`).join(" et ");
+    return {
+      enonce: `Voici les courbes de deux fonctions $f$ et $g$ définies sur $[${L}\\,;${R}]$. Résous graphiquement l'inéquation $f(x) ${op} g(x)$.`,
+      figure: graph(opts()),
+      mode: "choix", choix: mel.map((e) => `$S = ${e}$`), attendu: mel.indexOf(bonne),
+      aides: [
+        `$f(x) ${op} g(x)$ : on cherche les abscisses des points où $\\mathcal{C}_f$ est ${OPS_TXT[op]} $\\mathcal{C}_g$.`,
+        `Les courbes se coupent ${sol.length === 1 ? "en $x = " + sol[0] + "$" : "en $x = " + sol[0] + "$ et $x = " + sol[1] + "$"}. De part et d'autre, regarde quelle courbe est au-dessus.`,
+        large ? "Inégalité large : les abscisses des points d'intersection sont **incluses**." : "Inégalité stricte : les abscisses des points d'intersection sont **exclues**. Les bornes de l'intervalle de définition restent incluses si elles conviennent."
+      ],
+      solution: `Les courbes se coupent pour $x = ${sol.join("$ et $x = ")}$. On lit les abscisses des points où $\\mathcal{C}_f$ est ${OPS_TXT[op]} $\\mathcal{C}_g$, ${large ? "en incluant" : "en excluant"} ${sol.length === 1 ? "l'abscisse " + xs : "les abscisses " + xs} des points d'intersection.\n\n$S = ${bonne}$`,
       figureSolution: graph(opts({ points: sol.map((x) => ({ x, y: f(x) })) }))
     };
   };
@@ -436,6 +479,26 @@
         `$x(x ${sg(-r)}) = 0$ : un produit est nul si et seulement si l'un de ses facteurs est nul.`
       ],
       solution: `$f(x) = g(x) \\iff ${poly([1, -r, 0])} = 0 \\iff x(x ${sg(-r)}) = 0 \\iff x = 0$ ou $x = ${r}$.\n\n$S = \\{${sol.join("\\,;")}\\}$`
+    };
+  };
+
+  /* Résoudre f(x) > g(x), f(x) ⩽ g(x)… par le calcul : inéquation du premier degré */
+  GEN["calcul-f-inf-g"] = function () {
+    const op = pick(OPS), A = pick([-4, -3, -2, -1, 2, 3, 4]);
+    const a = randNZ(-5, 5), c = a - A, x0 = rand(-6, 6), b = randNZ(-9, 9), d = b + A * x0, B = d - b;
+    const op2 = A < 0 ? OPS_INV[op] : op;
+    const intervalle = (o) => (o === ">" || o === "\\geqslant" ? interv(x0, "+\\infty", o === "\\geqslant", false) : interv("-\\infty", x0, false, o === "\\leqslant"));
+    const ens = OPS.map(intervalle), bonne = intervalle(op2), mel = shuffle(ens);
+    return {
+      enonce: `Soit $f(x) = ${poly([a, b])}$ et $g(x) = ${poly([c, d])}$. Résous l'inéquation $f(x) ${op} g(x)$.`,
+      mode: "choix", choix: mel.map((e) => `$S = ${e}$`), attendu: mel.indexOf(bonne),
+      aides: [
+        `Écris l'inéquation $${poly([a, b])} ${op} ${poly([c, d])}$, puis regroupe les $x$ à gauche et les nombres à droite.`,
+        `Tu obtiens $${poly([A, 0])} ${op} ${B}$.`,
+        A < 0 ? `On divise par $${A}$, un nombre **négatif** : le sens de l'inégalité **change** !` : `On divise par $${A}$, un nombre positif : le sens de l'inégalité ne change pas.`
+      ],
+      solution: `$${poly([a, b])} ${op} ${poly([c, d])} \\iff ${poly([A, 0])} ${op} ${B} \\iff x ${op2} ${x0}$` +
+        (A < 0 ? `. On a divisé par $${A}$, négatif : le sens de l'inégalité a changé.` : ".") + `\n\n$S = ${bonne}$`
     };
   };
 
