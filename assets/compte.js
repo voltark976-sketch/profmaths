@@ -3,6 +3,8 @@
   - Mode Firebase si data/config-comptes.js contient une configuration.
   - Sinon mode démonstration : comptes gardés sur l'appareil seulement.
   Les élèves n'ont pas besoin d'adresse e-mail : ils choisissent un identifiant et un mot de passe.
+  Ils peuvent aussi se connecter avec Google ou Apple si c'est activé dans data/config-comptes.js
+  (l'adresse e-mail du compte Google ou Apple n'est jamais enregistrée par le site).
 */
 (function () {
   "use strict";
@@ -10,7 +12,7 @@
   const DOMAINE = "profmaths.example.com"; // identifiant -> adresse technique, aucun e-mail n'est envoyé
   const FB_VERSION = "10.14.1";
   let ecouteur = () => {};
-  let eleve = null; // { uid, identifiant, prenom, classe }
+  let eleve = null; // { uid, identifiant, prenom, classe, fournisseur, aCompleter }
   let fb = null; // { auth, db }
   let minuterie = null;
 
@@ -42,18 +44,32 @@
     await Promise.all([chargerScript(base + "firebase-auth-compat.js"), chargerScript(base + "firebase-firestore-compat.js")]);
     firebase.initializeApp(CFG.firebase);
     fb = { auth: firebase.auth(), db: firebase.firestore() };
+    // Retour d'une connexion Google/Apple faite par redirection (si la fenêtre surgissante était bloquée)
+    fb.auth.getRedirectResult().catch((e) => { erreurRedirection = messageFirebase(e); });
     fb.auth.onAuthStateChanged(async (u) => {
       if (!u) { eleve = null; ecouteur(null, null); return; }
+      const p = fournisseurDe(u);
+      const idTech = p ? "" : (u.email || "").split("@")[0];
       try {
         const snap = await fb.db.collection("eleves").doc(u.uid).get();
         const d = snap.exists ? snap.data() : {};
-        eleve = { uid: u.uid, identifiant: d.identifiant || u.email.split("@")[0], prenom: d.prenom || "", classe: d.classe || "" };
+        // Premier passage avec Google/Apple : on propose le prénom du compte, l'élève le confirme
+        const prenom = d.prenom || (p ? String(u.displayName || "").trim().split(/\s+/)[0] : "");
+        eleve = { uid: u.uid, identifiant: d.identifiant || idTech, prenom, classe: d.classe || "", fournisseur: p, aCompleter: !!p && !d.prenom };
         ecouteur(eleve, { xp: d.xp || 0, exo: d.exo || {}, qcm: d.qcm || {} });
       } catch (e) {
-        eleve = { uid: u.uid, identifiant: u.email.split("@")[0], prenom: "", classe: "" };
+        eleve = { uid: u.uid, identifiant: idTech, prenom: "", classe: "", fournisseur: p, aCompleter: false };
         ecouteur(eleve, null);
       }
     });
+  }
+  let erreurRedirection = "";
+  const NOMS = { google: "Google", apple: "Apple" };
+  function fournisseurDe(u) {
+    const ids = (u.providerData || []).map((x) => x && x.providerId);
+    if (ids.includes("google.com")) return "google";
+    if (ids.includes("apple.com")) return "apple";
+    return "";
   }
   function messageFirebase(e) {
     const c = (e && e.code) || "";
@@ -61,6 +77,10 @@
     if (c.includes("weak-password")) return "Le mot de passe doit faire au moins 6 caractères.";
     if (c.includes("invalid-credential") || c.includes("wrong-password") || c.includes("user-not-found") || c.includes("invalid-email")) return "Identifiant ou mot de passe incorrect.";
     if (c.includes("too-many-requests")) return "Trop d'essais. Attends quelques minutes puis réessaie.";
+    if (c.includes("account-exists-with-different-credential")) return "Un compte existe déjà avec cette adresse, créé avec un autre moyen de connexion. Utilise celui-là.";
+    if (c.includes("operation-not-allowed")) return "Ce moyen de connexion n'est pas encore activé. Utilise ton identifiant et ton mot de passe.";
+    if (c.includes("unauthorized-domain")) return "Connexion impossible depuis cette adresse du site. Préviens ton professeur.";
+    if (c.includes("web-storage-unsupported") || c.includes("disallowed")) return "Ouvre le site dans Chrome ou Safari (pas dans une application de messagerie) pour te connecter.";
     if (c.includes("network")) return "Pas de connexion internet. Réessaie quand le réseau revient.";
     return "La connexion a échoué. Réessaie dans un instant.";
   }
@@ -75,6 +95,10 @@
   window.PM_COMPTE = {
     demo: !CFG.firebase,
     classes: CFG.classes || [],
+    // Boutons « Continuer avec Google / Apple » affichés seulement si activés dans la configuration
+    fournisseurs: CFG.firebase ? ["google", "apple"].filter((p) => (CFG.connexions || {})[p]) : [],
+    nomFournisseur: (p) => NOMS[p] || p,
+    erreurRedirection: () => { const m = erreurRedirection; erreurRedirection = ""; return m; },
     eleve: () => eleve,
     fusion,
 
@@ -134,6 +158,39 @@
       ecrireJSON(SESSION, id);
       eleve = { uid: id, identifiant: id, prenom: c.prenom, classe: c.classe };
       ecouteur(eleve, c.prog || null);
+    },
+
+    // Connexion avec Google ou Apple (crée le compte au premier passage)
+    async connecterAvec(p) {
+      if (!fb) throw new Error("Le service de comptes ne répond pas. Vérifie ta connexion internet.");
+      let prov;
+      if (p === "google") { prov = new firebase.auth.GoogleAuthProvider(); prov.setCustomParameters({ prompt: "select_account" }); }
+      else if (p === "apple") { prov = new firebase.auth.OAuthProvider("apple.com"); prov.addScope("name"); }
+      else throw new Error("Moyen de connexion inconnu.");
+      fb.auth.languageCode = "fr";
+      try {
+        await fb.auth.signInWithPopup(prov); // onAuthStateChanged prend le relais
+      } catch (e) {
+        const c = e.code || "";
+        if (c.includes("popup-closed-by-user") || c.includes("cancelled-popup-request")) return; // l'élève a fermé la fenêtre
+        if (c.includes("popup-blocked") || c.includes("operation-not-supported-in-this-environment")) {
+          try { await fb.auth.signInWithRedirect(prov); return; } catch (e2) { throw new Error(messageFirebase(e2)); }
+        }
+        throw new Error(messageFirebase(e));
+      }
+    },
+
+    // Après une première connexion Google/Apple : prénom et classe
+    async completer({ prenom, classe }) {
+      if (!eleve || !fb) return;
+      if (!String(prenom).trim()) throw new Error("Indique ton prénom.");
+      try {
+        await fb.db.collection("eleves").doc(eleve.uid).set({
+          prenom: prenom.trim(), classe, fournisseur: eleve.fournisseur,
+          creeLe: firebase.firestore.FieldValue.serverTimestamp()
+        }, { merge: true });
+      } catch (e) { throw new Error("L'enregistrement a échoué. Vérifie ta connexion internet."); }
+      Object.assign(eleve, { prenom: prenom.trim(), classe, aCompleter: false });
     },
 
     async deconnecter() {

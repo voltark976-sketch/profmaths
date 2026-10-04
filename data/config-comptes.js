@@ -27,6 +27,10 @@ window.CONFIG_COMPTES = {
     messagingSenderId: "830391678944",
     appId: "1:830391678944:web:f472650d4f317277c41d85"
   },
+  // Connexion avec un compte Google ou Apple (true = bouton affiché).
+  // À activer seulement après avoir activé le fournisseur dans Firebase > Authentication > Méthodes de connexion.
+  // Apple demande en plus un compte Apple Developer payant (voir LISEZMOI.md).
+  connexions: { google: false, apple: false },
   // Classes proposées à la création du compte (modifiable)
   classes: ["Seconde", "Première spécialité", "Terminale maths complémentaires"]
 };

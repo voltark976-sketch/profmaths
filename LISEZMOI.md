@@ -31,7 +31,7 @@ Site statique : aucune base de données, aucun compte élève. Ouvrir `index.htm
 Voir `MISE-EN-LIGNE.md` (GitHub Pages, gratuit, sans rien installer).
 
 ## Comptes élèves
-Les élèves créent un compte avec prénom, classe, identifiant et mot de passe (pas d'e-mail).
+Les élèves créent un compte avec prénom, classe, identifiant et mot de passe (pas d'e-mail), ou se connectent avec Google ou Apple si c'est activé (voir plus bas).
 Leur progression (points, étoiles, meilleur QCM) est enregistrée après chaque exercice.
 Sans compte, la progression reste sur l'appareil ; elle rejoint le compte à la création.
 À la déconnexion, la progression est effacée de l'appareil (utile sur un téléphone partagé) mais reste dans le compte.
@@ -55,6 +55,22 @@ service cloud.firestore {
 ```
 5. Paramètres du projet > Vos applications > icône Web `</>` : copier l'objet `firebaseConfig` dans `data/config-comptes.js`.
 6. Authentication > Paramètres > Domaines autorisés : ajouter l'adresse du site (ex. `xxx.github.io`).
+
+### Connexion avec Google ou Apple (facultatif)
+Les élèves peuvent aussi se connecter avec leur compte Google ou Apple. Au premier passage, le site leur demande seulement leur prénom et leur classe. L'adresse e-mail du compte n'est pas enregistrée dans Firestore (Firebase la garde dans Authentication).
+Les boutons ne s'affichent que si `connexions` les active dans `data/config-comptes.js`.
+
+**Google** (gratuit) :
+1. Console Firebase > Authentication > **Méthode de connexion** > Ajouter un fournisseur > **Google** > Activer.
+2. Choisir l'adresse e-mail d'assistance (la vôtre), puis Enregistrer.
+3. Dans `data/config-comptes.js`, mettre `google: true`.
+
+**Apple** : il faut un compte **Apple Developer** payant (99 $ par an).
+1. Sur developer.apple.com : créer un App ID, un Services ID (domaine `profmaths-ca535.firebaseapp.com`, URL de retour `https://profmaths-ca535.firebaseapp.com/__/auth/handler`) et une clé « Sign in with Apple ».
+2. Console Firebase > Authentication > Méthode de connexion > **Apple** > Activer, et coller le Services ID, l'identifiant d'équipe, l'identifiant de la clé et la clé privée.
+3. Dans `data/config-comptes.js`, mettre `apple: true`.
+
+Un élève qui ouvre le site depuis une application de messagerie (WhatsApp, Instagram…) peut être refusé par Google : il suffit d'ouvrir le lien dans Chrome ou Safari.
 
 Mot de passe oublié : la console Firebase ne permet pas de choisir un nouveau mot de passe ; le plus simple est de supprimer le compte dans Authentication pour que l'élève en recrée un (la progression repart de zéro). Un outil de réinitialisation pour le professeur pourra être ajouté.
 La progression de chaque élève se lit dans Firestore, collection `eleves` (un tableau de bord professeur pourra être ajouté ensuite).
