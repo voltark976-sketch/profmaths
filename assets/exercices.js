@@ -339,6 +339,107 @@
   };
 
 
+  /* Résoudre graphiquement f(x) = g(x) : abscisses des points d'intersection de deux courbes */
+  GEN["graph-f-egal-g"] = function (i) {
+    let f, g, L, R, sol, essais = 0;
+    const deuxDroites = Math.random() < (i < 2 ? 0.6 : 0.2);
+    for (;;) {
+      essais++;
+      if (deuxDroites) {
+        // Deux droites sécantes en un point à coordonnées entières
+        const x0 = rand(-2, 2), y0 = rand(-2, 2), m1 = randNZ(-2, 2);
+        let m2; do { m2 = rand(-2, 2); } while (m2 === m1);
+        f = (x) => m1 * (x - x0) + y0; g = (x) => m2 * (x - x0) + y0;
+        L = x0 - rand(2, 3); R = x0 + rand(2, 3); sol = [x0];
+      } else {
+        // Une parabole et une droite qui la coupe en deux points (parfois un seul sur l'intervalle)
+        const P = parabole(); f = P.f; L = P.h - 3; R = P.h + 3;
+        const unSeul = i === 4 && Math.random() < 0.5;
+        let u = rand(L, R), v;
+        do { v = unSeul ? pick([L - 1, L - 2, R + 1, R + 2]) : rand(L, R); } while (v === u);
+        const m = P.a * (u + v - 2 * P.h), fu = f(u);
+        g = (x) => fu + m * (x - u);
+        sol = unSeul ? [u] : [Math.min(u, v), Math.max(u, v)];
+      }
+      // La droite doit rester lisible dans le repère
+      const ys = [L, R].map(g).concat([L, R, (L + R) / 2].map(f));
+      if (Math.max(...ys) - Math.min(...ys) <= 13 || essais > 60) break;
+    }
+    const xs = Array.from({ length: (R - L) * 4 + 1 }, (_, k) => L + k / 4);
+    const vals = xs.map(f).concat(xs.map(g), [0]);
+    const opts = (extra) => Object.assign({
+      xmin: Math.min(L - 0.6, -0.6), xmax: Math.max(R + 0.6, 0.6),
+      ymin: Math.min(...vals) - 0.6, ymax: Math.max(...vals) + 0.6,
+      curves: [
+        { f, a: L, b: R, label: "C<tspan class=\"sub\" dy=\"3\">f</tspan>", lx: R, dx: -2, dy: g(R) > f(R) ? 18 : -8 },
+        { f: g, a: L, b: R, label: "C<tspan class=\"sub\" dy=\"3\">g</tspan>", lx: R, dx: -2, dy: g(R) > f(R) ? -8 : 18 }
+      ],
+      aria: "Courbes de deux fonctions f et g dans un repère quadrillé"
+    }, extra || {});
+    const pts = sol.map((x) => `$(${x}\\,;${f(x)})$`);
+    return {
+      enonce: `Voici les courbes de deux fonctions $f$ et $g$ définies sur $[${L}\\,;${R}]$. Résous graphiquement l'équation $f(x) = g(x)$.`,
+      figure: graph(opts()),
+      mode: "ensemble", prefixe: "Solution(s) :", attendu: sol,
+      aides: [
+        "Les solutions de $f(x) = g(x)$ sont les **abscisses** des points où les deux courbes se coupent.",
+        `Sur $[${L}\\,;${R}]$, les courbes se coupent en ${sol.length === 1 ? "un seul point" : "deux points"}.`,
+        "Lis l'abscisse de chaque point d'intersection sur l'axe horizontal (pas son ordonnée !). Sépare les valeurs par « ; »."
+      ],
+      solution: `Les courbes $\\mathcal{C}_f$ et $\\mathcal{C}_g$ se coupent ${sol.length === 1 ? `en un seul point : ${pts[0]}` : `en deux points : ${pts[0]} et ${pts[1]}`}.\n\nOn garde les abscisses : $S = \\{${sol.join("\\,;")}\\}$.`,
+      figureSolution: graph(opts({ points: sol.map((x) => ({ x, y: f(x) })) }))
+    };
+  };
+
+  /* Résoudre f(x) = g(x) par le calcul (niveau Seconde : premier degré ou produit nul) */
+  GEN["calcul-f-egal-g"] = function (i) {
+    const type = i < 2 ? 0 : i < 4 ? pick([0, 1]) : pick([1, 2]);
+    if (type === 0) {
+      // ax + b = cx + d
+      const a = randNZ(-5, 5); let c; do { c = randNZ(-5, 5); } while (c === a);
+      const x0 = rand(-5, 5), b = randNZ(-9, 9), d = (a - c) * x0 + b, A = a - c, B = d - b;
+      return {
+        enonce: `Soit $f(x) = ${poly([a, b])}$ et $g(x) = ${poly([c, d])}$. Résous l'équation $f(x) = g(x)$.`,
+        mode: "ensemble", prefixe: "Solution(s) :", attendu: [x0],
+        aides: [
+          `Écris l'équation : $${poly([a, b])} = ${poly([c, d])}$.`,
+          `Regroupe les $x$ à gauche et les nombres à droite : $${poly([a, 0])} ${c > 0 ? "-" : "+"} ${poly([Math.abs(c), 0])} = ${d} ${b > 0 ? "-" : "+"} ${Math.abs(b)}$, soit $${poly([A, 0])} = ${B}$.`,
+          `Divise les deux membres par $${A}$.`
+        ],
+        solution: `$${poly([a, b])} = ${poly([c, d])} \\iff ${poly([A, 0])} = ${B} \\iff x = ${x0}$.\n\n$S = \\{${x0}\\}$. Vérification : $f(${x0}) = g(${x0}) = ${a * x0 + b}$.`
+      };
+    }
+    if (type === 1) {
+      // (x + p)² = x² + q : les x² s'éliminent
+      const p = randNZ(-4, 4), x0 = rand(-4, 4), q = p * p + 2 * p * x0;
+      const fx = `(x ${sg(p)})^2`, gx = poly([1, 0, q]);
+      return {
+        enonce: `Soit $f(x) = ${fx}$ et $g(x) = ${gx}$. Résous l'équation $f(x) = g(x)$.`,
+        mode: "ensemble", prefixe: "Solution(s) :", attendu: [x0],
+        aides: [
+          `Développe $f(x)$ avec une identité remarquable : $${fx} = ${poly([1, 2 * p, p * p])}$.`,
+          `L'équation devient $${poly([1, 2 * p, p * p])} = ${gx}$ : les $x^2$ s'éliminent.`,
+          `Il reste $${poly([2 * p, 0])} = ${q - p * p}$.`
+        ],
+        solution: `$${fx} = ${gx} \\iff ${poly([1, 2 * p, p * p])} = ${gx} \\iff ${poly([2 * p, 0])} = ${q - p * p} \\iff x = ${x0}$.\n\n$S = \\{${x0}\\}$`
+      };
+    }
+    // x² + bx + c = mx + c : on se ramène à x(x - r) = 0
+    const b = rand(-5, 5), c = randNZ(-6, 6), r = randNZ(-6, 6), m = b + r;
+    const sol = [0, r].sort((u, v) => u - v);
+    return {
+      enonce: `Soit $f(x) = ${poly([1, b, c])}$ et $g(x) = ${poly([m, c])}$. Résous l'équation $f(x) = g(x)$.`,
+      mode: "ensemble", prefixe: "Solution(s) :", attendu: sol,
+      aides: [
+        "Passe tout du même côté pour obtenir une équation de la forme $\\ldots = 0$.",
+        `$f(x) - g(x) = ${poly([1, -r, 0])}$. Factorise par $x$.`,
+        `$x(x ${sg(-r)}) = 0$ : un produit est nul si et seulement si l'un de ses facteurs est nul.`
+      ],
+      solution: `$f(x) = g(x) \\iff ${poly([1, -r, 0])} = 0 \\iff x(x ${sg(-r)}) = 0 \\iff x = 0$ ou $x = ${r}$.\n\n$S = \\{${sol.join("\\,;")}\\}$`
+    };
+  };
+
+
   /* ---------- Chapitre « Information chiffrée » ---------- */
   // 0.35 -> "0{,}35" (virgule française dans les formules)
   const fr = (n) => String(+(+n).toFixed(6)).replace(".", "{,}");
@@ -1910,6 +2011,285 @@
       solution: `C'est $${nots[k]}$. ` + ["« Et » : les deux événements à la fois.", "On sait que $A$ est réalisé : $A$ est en indice.", "On sait que $B$ est réalisé : $B$ est en indice.", "« Ou » : au moins l'un des deux."][k]
     };
   };
+
+  /* ---------- Seconde, chapitre 1 : ensembles de nombres, intervalles, valeur absolue ---------- */
+
+  /* Droite graduée avec un ou deux intervalles. Un intervalle : { a, b, ga, gb, label } ;
+     a = -Infinity ou b = Infinity pour une borne infinie ; ga / gb : borne incluse. */
+  function droite(o) {
+    const W = 320, pad = 18, ints = o.intervalles || [], plusieurs = ints.length > 1;
+    const H = plusieurs ? 50 + 18 * ints.length : 46;
+    const ux = (W - 2 * pad) / (o.max - o.min);
+    const X = (x) => +(pad + (Math.min(Math.max(x, o.min - 0.7), o.max + 0.7) - o.min) * ux).toFixed(1);
+    const y0 = H - 20;
+    const pasTexte = o.max - o.min > 12 ? 2 : 1;
+    let s = `<svg class="graph droite" viewBox="0 0 ${W} ${H}" role="img" aria-label="${o.aria || "Droite graduée"}">`;
+    s += `<g class="g-axis"><line x1="4" y1="${y0}" x2="${W - 6}" y2="${y0}"/><path d="M${W - 2} ${y0} l-8 -4 v8z"/></g><g class="g-tick">`;
+    for (let x = Math.ceil(o.min); x <= o.max; x++) {
+      s += `<line class="g-graduation" x1="${X(x)}" y1="${y0 - 4}" x2="${X(x)}" y2="${y0 + 4}"/>`;
+      if (x % pasTexte === 0) s += `<text x="${X(x)}" y="${y0 + 16}" text-anchor="middle">${String(x).replace("-", "−")}</text>`;
+    }
+    s += `</g>`;
+    const crochet = (x, y, dir, k) => `<path class="g-crochet g-crochet-${k}" d="M${x + 5 * dir} ${y - 8} H${x} V${y + 8} H${x + 5 * dir}"/>`;
+    // Un seul intervalle : sur l'axe. Plusieurs : chacun sur sa ligne au-dessus de l'axe, avec des repères pointillés.
+    ints.forEach((I, k) => {
+      const y = plusieurs ? y0 - 16 - 18 * k : y0, xa = X(I.a), xb = X(I.b);
+      if (plusieurs) [I.a, I.b].filter(isFinite).forEach((x) => { s += `<line class="g-guide" x1="${X(x)}" y1="${y}" x2="${X(x)}" y2="${y0}"/>`; });
+      s += `<line class="g-int g-int-${k}" x1="${xa}" y1="${y}" x2="${xb}" y2="${y}"/>`;
+      if (isFinite(I.a)) s += crochet(xa, y, I.ga ? 1 : -1, k);
+      if (isFinite(I.b)) s += crochet(xb, y, I.gb ? -1 : 1, k);
+      if (I.label) s += isFinite(I.a) && xa > 24
+        ? `<text class="g-clabel g-curve-${k}" x="${xa - 9}" y="${y + 5}" text-anchor="end">${I.label}</text>`
+        : `<text class="g-clabel g-curve-${k}" x="${xb + 9}" y="${y + 5}">${I.label}</text>`;
+    });
+    (o.points || []).forEach((p) => {
+      s += `<circle class="g-point" cx="${X(p.x)}" cy="${y0}" r="4"/>`;
+      if (p.label) s += `<text class="g-plabel" x="${X(p.x)}" y="${y0 - 10}" text-anchor="middle">${p.label}</text>`;
+    });
+    return s + `</svg>`;
+  }
+
+  FIGURES["intervalle-exemple"] = () => droite({ min: -4, max: 5, intervalles: [{ a: -2, b: 3, ga: true, gb: false }], aria: "Droite graduée : l'intervalle [−2 ; 3[, crochet fermé en −2 et ouvert en 3" });
+  FIGURES["intervalle-infini"] = () => droite({ min: -4, max: 5, intervalles: [{ a: -Infinity, b: 1, ga: false, gb: true }], aria: "Droite graduée : l'intervalle ]−∞ ; 1], colorié jusqu'au bout à gauche, crochet fermé en 1" });
+  FIGURES["inter-union"] = () => droite({ min: -4, max: 6, intervalles: [{ a: -3, b: 2, ga: true, gb: true, label: "I" }, { a: 0, b: 5, ga: false, gb: true, label: "J" }], aria: "Droite graduée : I = [−3 ; 2] et J = ]0 ; 5]" });
+  FIGURES["valeur-absolue"] = () => droite({ min: -3, max: 5, intervalles: [{ a: -1, b: 3, ga: true, gb: true }], points: [{ x: 1, label: "1" }], aria: "Droite graduée : les nombres à une distance au plus 2 de 1 forment l'intervalle [−1 ; 3]" });
+
+  const SETS = ["\\mathbb{N}", "\\mathbb{Z}", "\\mathbb{D}", "\\mathbb{Q}", "\\mathbb{R}"];
+  const NOMS_SETS = ["les entiers naturels", "les entiers relatifs", "les décimaux", "les rationnels", "les réels"];
+
+  /* Un nombre au hasard et le plus petit ensemble qui le contient (0 = N … 4 = R) */
+  function nombreEnsemble() {
+    const cat = pick([0, 0, 1, 1, 2, 2, 3, 3, 4]);
+    const T = [
+      [ // N
+        () => { const n = rand(0, 25); return [`${n}`, `$${n}$ est un entier positif.`]; },
+        () => { const k = rand(2, 9), d = rand(2, 6); return [`\\dfrac{${k * d}}{${d}}`, `$\\dfrac{${k * d}}{${d}} = ${k}$ : c'est un entier positif, même s'il est écrit en fraction.`]; },
+        () => { const k = rand(2, 12); return [`\\sqrt{${k * k}}`, `$\\sqrt{${k * k}} = ${k}$ car $${k}^2 = ${k * k}$ : c'est un entier positif.`]; }
+      ],
+      [ // Z
+        () => { const n = -rand(1, 30); return [`${n}`, `$${n}$ est un entier négatif : il est dans $\\mathbb{Z}$ mais pas dans $\\mathbb{N}$.`]; },
+        () => { const k = rand(2, 9), d = rand(2, 6); return [`-\\dfrac{${k * d}}{${d}}`, `$-\\dfrac{${k * d}}{${d}} = -${k}$ : c'est un entier négatif.`]; },
+        () => { const k = rand(2, 9); return [`-\\sqrt{${k * k}}`, `$-\\sqrt{${k * k}} = -${k}$ : c'est un entier négatif.`]; }
+      ],
+      [ // D
+        () => { let x; do { x = rand(-999, 999) / pick([10, 100]); } while (Number.isInteger(x)); return [nb(x), `$${nb(x)}$ s'écrit avec un nombre fini de chiffres après la virgule, mais ce n'est pas un entier.`]; },
+        () => { const [n, d] = pick([[3, 4], [1, 8], [7, 20], [2, 5], [9, 25], [3, 2], [1, 5], [7, 4], [5, 8], [11, 50]]); return [`\\dfrac{${n}}{${d}}`, `$\\dfrac{${n}}{${d}} = ${nb(n / d)}$ : un nombre fini de chiffres après la virgule (le dénominateur $${d}$ n'a que $2$ et $5$ comme facteurs premiers).`]; }
+      ],
+      [ // Q
+        () => {
+          const [n, d] = pick([[1, 3], [2, 3], [5, 6], [2, 7], [4, 9], [10, 3], [1, 6], [5, 7], [7, 12], [1, 11]]), s = Math.random() < 0.3 ? "-" : "";
+          return [`${s}\\dfrac{${n}}{${d}}`, `$${s}\\dfrac{${n}}{${d}} \\approx ${s}${nb(+(n / d).toFixed(4))}\\ldots$ : l'écriture décimale ne s'arrête jamais (le dénominateur contient un facteur premier autre que $2$ et $5$). C'est un quotient d'entiers, donc un rationnel, mais pas un décimal.`];
+        }
+      ],
+      [ // R
+        () => pick([
+          ["\\sqrt{2}", "$\\sqrt{2} \\approx 1{,}414\\ldots$ est **irrationnel** : il ne peut pas s'écrire comme un quotient de deux entiers."],
+          ["\\sqrt{3}", "$\\sqrt{3}$ est **irrationnel** : $3$ n'est pas le carré d'un entier, et $\\sqrt{3}$ ne s'écrit pas comme un quotient d'entiers."],
+          ["\\sqrt{5}", "$\\sqrt{5}$ est **irrationnel** : $5$ n'est pas le carré d'un entier."],
+          ["\\pi", "$\\pi \\approx 3{,}14159\\ldots$ est **irrationnel** : ses décimales ne s'arrêtent jamais et ne se répètent pas."],
+          ["1 + \\sqrt{2}", "$\\sqrt{2}$ est irrationnel, donc $1 + \\sqrt{2}$ aussi."],
+          ["\\dfrac{\\pi}{2}", "$\\pi$ est irrationnel, donc $\\dfrac{\\pi}{2}$ aussi."]
+        ])
+      ]
+    ];
+    const [tex, expl] = pick(T[cat])();
+    return { tex, cat, expl };
+  }
+
+  GEN["ens-plus-petit"] = function () {
+    const N = nombreEnsemble();
+    return {
+      enonce: `Quel est le **plus petit** ensemble de nombres auquel appartient $${N.tex}$ ?`,
+      mode: "choix", choix: SETS.map((e) => `$${e}$`), attendu: N.cat,
+      aides: [
+        "Commence par simplifier le nombre si c'est possible (fraction, racine carrée).",
+        "Rappel : $\\mathbb{N} \\subset \\mathbb{Z} \\subset \\mathbb{D} \\subset \\mathbb{Q} \\subset \\mathbb{R}$. Teste les ensembles dans cet ordre.",
+        "Décimal : un nombre **fini** de chiffres après la virgule. Rationnel : un quotient de deux entiers."
+      ],
+      solution: `${N.expl}\n\nLe plus petit ensemble qui contient $${N.tex}$ est $${SETS[N.cat]}$ (${NOMS_SETS[N.cat]}).`
+    };
+  };
+
+  GEN["ens-vrai-faux"] = function () {
+    if (Math.random() < 0.2) {
+      let a = rand(0, 4), b; do { b = rand(0, 4); } while (b === a);
+      const vrai = a < b;
+      return {
+        enonce: `Vrai ou faux : $${SETS[a]} \\subset ${SETS[b]}$ ?`,
+        mode: "choix", choix: ["Vrai", "Faux"], attendu: vrai ? 0 : 1,
+        aides: ["$A \\subset B$ se lit « $A$ est inclus dans $B$ » : tous les nombres de $A$ sont aussi dans $B$.", "Rappel : $\\mathbb{N} \\subset \\mathbb{Z} \\subset \\mathbb{D} \\subset \\mathbb{Q} \\subset \\mathbb{R}$.", `Cherche un nombre de $${SETS[Math.max(a, b)]}$ qui n'est pas dans $${SETS[Math.min(a, b)]}$.`],
+        solution: `On a $\\mathbb{N} \\subset \\mathbb{Z} \\subset \\mathbb{D} \\subset \\mathbb{Q} \\subset \\mathbb{R}$. ` + (vrai
+          ? `Donc $${SETS[a]} \\subset ${SETS[b]}$ : **vrai**.`
+          : `**Faux** : par exemple $${["", "-1", "0{,}5", "\\dfrac{1}{3}", "\\sqrt{2}"][a]}$ est dans $${SETS[a]}$ mais pas dans $${SETS[b]}$.`)
+      };
+    }
+    const N = nombreEnsemble(), t = rand(0, 4), vrai = N.cat <= t;
+    return {
+      enonce: `Vrai ou faux : $${N.tex} \\in ${SETS[t]}$ ?`,
+      mode: "choix", choix: ["Vrai", "Faux"], attendu: vrai ? 0 : 1,
+      aides: [
+        `Le symbole $\\in$ se lit « appartient à ». $${SETS[t]}$, ce sont ${NOMS_SETS[t]}.`,
+        "Simplifie d'abord le nombre si c'est possible.",
+        "Cherche le plus petit ensemble qui contient ce nombre : il appartient aussi à tous les ensembles plus grands."
+      ],
+      solution: `${N.expl} Son plus petit ensemble est $${SETS[N.cat]}$.\n\n` + (vrai ? `Comme $${SETS[N.cat]} \\subset ${SETS[t]}$, l'affirmation est **vraie**.` : `Il n'est pas dans $${SETS[t]}$ : l'affirmation est **fausse**.`)
+    };
+  };
+
+  /* Outils pour les intervalles */
+  const bTex = (x) => (x === -Infinity ? "-\\infty" : x === Infinity ? "+\\infty" : nb(x));
+  const intTex = (I) => `${I.ga ? "[" : "]"}${bTex(I.a)}\\,;${bTex(I.b)}${I.gb ? "]" : "["}`;
+  function ineqTex(I) {
+    if (!isFinite(I.a)) return `x ${I.gb ? "\\leqslant" : "<"} ${bTex(I.b)}`;
+    if (!isFinite(I.b)) return `x ${I.ga ? "\\geqslant" : ">"} ${bTex(I.a)}`;
+    return `${bTex(I.a)} ${I.ga ? "\\leqslant" : "<"} x ${I.gb ? "\\leqslant" : "<"} ${bTex(I.b)}`;
+  }
+  function intervalle() {
+    const k = rand(0, 3);
+    const a = rand(-8, 5), b = a + rand(2, 7);
+    if (k === 0) return { a: -Infinity, b, ga: false, gb: Math.random() < 0.5 };
+    if (k === 1) return { a, b: Infinity, ga: Math.random() < 0.5, gb: false };
+    return { a, b, ga: Math.random() < 0.5, gb: Math.random() < 0.5 };
+  }
+  // Intervalles voisins : crochets changés, ou mauvais côté pour une borne infinie
+  function voisins(I) {
+    const v = [];
+    if (isFinite(I.a)) v.push(Object.assign({}, I, { ga: !I.ga }));
+    if (isFinite(I.b)) v.push(Object.assign({}, I, { gb: !I.gb }));
+    if (isFinite(I.a) && isFinite(I.b)) v.push(Object.assign({}, I, { ga: !I.ga, gb: !I.gb }));
+    if (!isFinite(I.a)) v.push({ a: I.b, b: Infinity, ga: I.gb, gb: false }, { a: I.b, b: Infinity, ga: !I.gb, gb: false });
+    if (!isFinite(I.b)) v.push({ a: -Infinity, b: I.a, ga: false, gb: I.ga }, { a: -Infinity, b: I.a, ga: false, gb: !I.ga });
+    return v;
+  }
+  const choixIntervalles = (bonne, autres, fmt) => melangeChoix(fmt(bonne), autres.map(fmt));
+  const regleCrochets = "Borne **incluse** ($\\leqslant$, $\\geqslant$) : crochet tourné vers l'intérieur. Borne **exclue** ($<$, $>$) : crochet tourné vers l'extérieur.";
+
+  GEN["int-inegalite"] = function () {
+    const I = intervalle(), versIntervalle = Math.random() < 0.6;
+    const fmt = versIntervalle ? (J) => `$x \\in ${intTex(J)}$` : (J) => `$${ineqTex(J)}$`;
+    const c = choixIntervalles(I, voisins(I), fmt);
+    return {
+      enonce: versIntervalle ? `Traduis par un intervalle : $${ineqTex(I)}$.` : `Traduis par une inégalité : $x \\in ${intTex(I)}$.`,
+      mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: [
+        isFinite(I.a) && isFinite(I.b) ? `Les bornes sont $${bTex(I.a)}$ et $${bTex(I.b)}$ : regarde si chacune est incluse ou exclue.` : `Il n'y a qu'une borne, $${bTex(isFinite(I.a) ? I.a : I.b)}$ : $x$ peut être aussi ${isFinite(I.a) ? "grand" : "petit"} que l'on veut.`,
+        regleCrochets,
+        "Du côté de $+\\infty$ ou de $-\\infty$, le crochet est **toujours ouvert** (tourné vers l'extérieur)."
+      ],
+      solution: `$${ineqTex(I)} \\iff x \\in ${intTex(I)}$`
+    };
+  };
+
+  GEN["int-droite"] = function () {
+    const I = intervalle();
+    const lo = isFinite(I.a) ? I.a : I.b - 5, hi = isFinite(I.b) ? I.b : I.a + 5;
+    const c = choixIntervalles(I, voisins(I), (J) => `$${intTex(J)}$`);
+    return {
+      enonce: "Quel intervalle est représenté sur la droite graduée ?",
+      figure: droite({ min: Math.min(lo - 2, -1), max: Math.max(hi + 2, 1), intervalles: [I], aria: "Droite graduée avec un intervalle colorié" }),
+      mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: [
+        "Repère où commence et où s'arrête la partie coloriée. Si elle va jusqu'au bout de la droite, la borne est $-\\infty$ ou $+\\infty$.",
+        "Regarde le sens de chaque crochet : tourné vers la partie coloriée, la borne est incluse ; tourné vers l'extérieur, elle est exclue.",
+        "Du côté de l'infini, le crochet est toujours ouvert."
+      ],
+      solution: `La partie coloriée correspond à $${ineqTex(I)}$, soit $x \\in ${intTex(I)}$.`
+    };
+  };
+
+  GEN["int-appartient"] = function () {
+    const I = intervalle();
+    const bornes = [I.a, I.b].filter(isFinite);
+    const lo = isFinite(I.a) ? I.a : I.b - 6, hi = isFinite(I.b) ? I.b : I.a + 6;
+    const t = Math.random();
+    const x = t < 0.5 ? pick(bornes) : t < 0.75 ? rand(lo - 3, hi + 3) : +(pick(bornes) + pick([-0.1, 0.1, -0.5, 0.5])).toFixed(1);
+    const dedans = (x > I.a || (x === I.a && I.ga)) && (x < I.b || (x === I.b && I.gb));
+    const borne = bornes.includes(x);
+    return {
+      enonce: `Le nombre $${nb(x)}$ appartient-il à l'intervalle $${intTex(I)}$ ?`,
+      mode: "choix", choix: ["Oui", "Non"], attendu: dedans ? 0 : 1,
+      aides: [
+        `$x \\in ${intTex(I)}$ signifie $${ineqTex(I)}$.`,
+        `Remplace $x$ par $${nb(x)}$ et vérifie ${isFinite(I.a) && isFinite(I.b) ? "les deux inégalités" : "l'inégalité"}.`,
+        borne ? "C'est une borne de l'intervalle : regarde le sens du crochet." : "Place le nombre sur une droite graduée si besoin."
+      ],
+      solution: borne
+        ? `$${nb(x)}$ est une borne, et le crochet est ${(x === I.a ? I.ga : I.gb) ? "fermé (tourné vers l'intérieur) : elle est **incluse**" : "ouvert (tourné vers l'extérieur) : elle est **exclue**"}.\n\n$${nb(x)} ${dedans ? "\\in" : "\\notin"} ${intTex(I)}$`
+        : `$x \\in ${intTex(I)}$ signifie $${ineqTex(I)}$. Avec $x = ${nb(x)}$, ${dedans ? "c'est vérifié" : "ce n'est pas vérifié"}.\n\n$${nb(x)} ${dedans ? "\\in" : "\\notin"} ${intTex(I)}$`
+    };
+  };
+
+  GEN["int-inter-union"] = function () {
+    // I = [a ; b] et J = [c ; d] avec a < c < b < d (ils se chevauchent)
+    const a = rand(-8, 0), c = a + rand(1, 4), b = c + rand(1, 4), d = b + rand(1, 4);
+    const inf = Math.random() < 0.3;
+    const I = { a: inf ? -Infinity : a, b, ga: inf ? false : Math.random() < 0.5, gb: Math.random() < 0.5, label: "I" };
+    const J = { a: c, b: d, ga: Math.random() < 0.5, gb: Math.random() < 0.5, label: "J" };
+    const inter = Math.random() < 0.5;
+    const R = inter ? { a: c, b, ga: J.ga, gb: I.gb } : { a: I.a, b: d, ga: I.ga, gb: J.gb };
+    const autre = inter ? { a: I.a, b: d, ga: I.ga, gb: J.gb } : { a: c, b, ga: J.ga, gb: I.gb };
+    const c4 = choixIntervalles(R, [autre, Object.assign({}, R, { ga: !R.ga && isFinite(R.a) }), Object.assign({}, R, { gb: !R.gb }), { a: R.a, b: R.b, ga: inter ? I.ga && isFinite(I.a) : J.ga, gb: inter ? J.gb : I.gb }], (K) => `$${intTex(K)}$`);
+    const op = inter ? "\\cap" : "\\cup";
+    return {
+      enonce: `On donne $I = ${intTex(I)}$ et $J = ${intTex(J)}$. Détermine $I ${op} J$.`,
+      figure: droite({ min: Math.min(isFinite(I.a) ? I.a : c - 4, c) - 1, max: d + 1, intervalles: [I, J], aria: "Droite graduée avec les intervalles I et J" }),
+      mode: "choix", choix: c4.choix, attendu: c4.attendu,
+      aides: [
+        inter ? "$I \\cap J$ (« I **inter** J ») : les nombres qui sont **à la fois** dans $I$ et dans $J$. C'est la partie commune." : "$I \\cup J$ (« I **union** J ») : les nombres qui sont dans $I$ **ou** dans $J$ (au moins l'un des deux). C'est tout ce qui est colorié.",
+        inter ? `La partie commune va de $${bTex(c)}$ à $${bTex(b)}$.` : `La réunion va de $${bTex(I.a)}$ à $${bTex(d)}$.`,
+        "Pour chaque borne, regarde de quel intervalle elle vient et garde son crochet."
+      ],
+      solution: `${inter ? "Partie commune" : "Tout ce qui est colorié"} : de $${bTex(R.a)}$ à $${bTex(R.b)}$. ` +
+        `La borne $${bTex(R.b)}$ vient de ${inter ? "$I$" : "$J$"}${isFinite(R.a) ? `, la borne $${bTex(R.a)}$ vient de ${inter ? "$J$" : "$I$"}` : ""} : on garde leurs crochets.\n\n$I ${op} J = ${intTex(R)}$`
+    };
+  };
+
+  GEN["abs-distance"] = function () {
+    const t = rand(0, 2);
+    if (t === 0) {
+      const x = Math.random() < 0.5 ? -rand(1, 30) : -rand(11, 99) / 10;
+      return {
+        enonce: `Calcule $|${nb(x)}|$.`,
+        mode: "nombre", prefixe: `|${String(x).replace(".", ",").replace("-", "−")}| =`, attendu: -x,
+        erreurs: [{ valeur: x, message: "Une valeur absolue est une **distance** : elle n'est jamais négative." }],
+        aides: ["$|x|$ est la distance entre $x$ et $0$ sur la droite graduée.", "Une distance n'est jamais négative.", "Pour un nombre négatif, $|x| = -x$ : on enlève le signe moins."],
+        solution: `$${nb(x)}$ est négatif, donc $|${nb(x)}| = -(${nb(x)}) = ${nb(-x)}$.`
+      };
+    }
+    let a = rand(-9, 9), b; do { b = rand(-9, 9); } while (b === a);
+    const d = Math.abs(a - b);
+    const erreurs = [{ valeur: a - b, message: "Une distance n'est jamais négative : pense à la valeur absolue." }];
+    if (Math.abs(a + b) !== d) erreurs.push({ valeur: Math.abs(a + b), message: `Attention au signe : $${a} - ${par(b)}$, ce n'est pas $${a} + ${par(b)}$.` });
+    return {
+      enonce: t === 1 ? `Calcule $|${a} - ${par(b)}|$.` : `Quelle est la distance entre les nombres $${a}$ et $${b}$ sur la droite graduée ?`,
+      mode: "nombre", prefixe: t === 1 ? "Résultat :" : "Distance :", attendu: d,
+      erreurs: erreurs.filter((e) => e.valeur !== d),
+      aides: [
+        t === 1 ? "Calcule d'abord ce qu'il y a entre les barres." : `La distance entre $a$ et $b$ est $|a - b|$ : ici $|${a} - ${par(b)}|$.`,
+        `$${a} - ${par(b)} = ${a - b}$.`,
+        "Une valeur absolue est une distance : le résultat est toujours positif."
+      ],
+      solution: `$|${a} - ${par(b)}| = |${a - b}| = ${d}$.` + (t === 2 ? ` Les nombres $${a}$ et $${b}$ sont à une distance de $${d}$ l'un de l'autre.` : "")
+    };
+  };
+
+  GEN["abs-intervalle"] = function () {
+    const a = randNZ(-6, 6), r = rand(1, 5), large = Math.random() < 0.6;
+    const abs = `|x ${sg(-a)}|`, op = large ? "\\leqslant" : "<";
+    const R = { a: a - r, b: a + r, ga: large, gb: large };
+    const c = choixIntervalles(R, [{ a: a - r, b: a + r, ga: !large, gb: !large }, { a: -a - r, b: -a + r, ga: large, gb: large }, { a, b: a + r, ga: large, gb: large }], (K) => `$${intTex(K)}$`);
+    return {
+      enonce: `Traduis par un intervalle : $${abs} ${op} ${r}$.`,
+      mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: [
+        `$|x - a|$ est la distance entre $x$ et $a$. Écris $${abs}$ sous la forme $|x - a|$ : ici $a = ${a}$.`,
+        `On cherche les nombres $x$ à une distance ${large ? "inférieure ou égale" : "strictement inférieure"} à $${r}$ de $${a}$.`,
+        `On part de $${a}$ et on va de $${r}$ à gauche et de $${r}$ à droite : de $${a - r}$ à $${a + r}$.`
+      ],
+      solution: `$${abs} = |x - ${par(a)}|$ : c'est la distance entre $x$ et $${a}$.\n\n$${abs} ${op} ${r} \\iff ${a - r} ${op} x ${op} ${a + r} \\iff x \\in ${intTex(R)}$`
+    };
+  };
+
 
   /* Séries « flash » d'un thème : mélange de ses générateurs */
   const THEMES = {

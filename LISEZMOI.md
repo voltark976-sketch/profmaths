@@ -5,6 +5,7 @@ Site statique : aucune base de données, aucun compte élève. Ouvrir `index.htm
 ## Ce que vous pouvez modifier
 - `data/catalogue.js` : la liste des niveaux et des chapitres (ordre des playlists, statut « disponible » ou « bientot »).
 - `data/config-comptes.js` : activation des comptes élèves (Firebase) et liste des classes.
+- `data/seconde/ensembles.js` : chapitre 1 de Seconde (ensembles de nombres, intervalles, valeur absolue). Les générateurs d'exercices correspondants commencent par `ens-`, `int-` et `abs-` dans `assets/exercices.js`.
 - `data/seconde/information-chiffree.js` : chapitre 3 de Seconde.
 - `data/seconde/automatismes.js` : automatismes de Seconde (10 fiches, séries flash, test).
 - `data/automatismes/*.js` : partie Automatismes, un fichier par thème officiel de l'épreuve anticipée (calcul numérique, calcul algébrique, proportions, évolutions, fonctions, statistiques, probabilités). Les générateurs d'exercices correspondants commencent par `am-` dans `assets/exercices.js`.

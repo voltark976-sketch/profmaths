@@ -17,7 +17,7 @@ window.CHAPITRES["seconde-fonctions"] = {
   niveau: "Seconde",
   numero: 2,
   titre: "Généralités sur les fonctions",
-  accroche: "Image, antécédent, courbe et résolutions graphiques : les bases pour toute l'année.",
+  accroche: "Image, antécédent, courbe, résolutions graphiques et par le calcul : les bases pour toute l'année.",
 
   playlist: "", // lien de la playlist YouTube du chapitre
   drive: "https://drive.google.com/drive/folders/1T6TrIhKIQw81y_UyeuU0X5AljmqZbbvr",
@@ -107,6 +107,18 @@ window.CHAPITRES["seconde-fonctions"] = {
         enonce: "Kayaks dans le lagon : le loueur A fait payer $A(t) = 8t$ et le loueur B $B(t) = 4t + 12$, pour $t \\in [0\\,;6]$ heures. Résoudre $A(t) = B(t)$ puis $A(t) < B(t)$.",
         solution: "Les droites se coupent en $I(3\\,;24)$ : $S = \\{3\\}$. Pour 3 h, les deux loueurs demandent 24 €.\n\nLa droite de A est sous celle de B pour $t$ entre 0 (inclus) et 3 (exclu) : $S = [0\\,;3[$. Pour moins de 3 h, le loueur A est le moins cher."
       }
+    },
+    {
+      titre: "Résoudre $f(x) = g(x)$ par le calcul",
+      texte:
+        "On écrit l'équation $f(x) = g(x)$ et on la résout :\n\n" +
+        "- on regroupe les $x$ d'un côté et les nombres de l'autre (équation du premier degré) ;\n" +
+        "- ou on passe tout du même côté, $f(x) - g(x) = 0$, puis on factorise (produit nul).\n\n" +
+        "Les solutions sont les **abscisses** des points d'intersection des deux courbes. Pour obtenir les points eux-mêmes, on calcule ensuite leurs images.",
+      exemple: {
+        enonce: "Kayaks : retrouver par le calcul le point d'intersection des droites de $A(t) = 8t$ et $B(t) = 4t + 12$.",
+        solution: "$8t = 4t + 12 \\iff 4t = 12 \\iff t = 3$. Puis $A(3) = 8 \\times 3 = 24$.\n\nLe calcul confirme la lecture graphique : le point commun est $I(3\\,;24)$."
+      }
     }
   ],
 
@@ -122,13 +134,15 @@ window.CHAPITRES["seconde-fonctions"] = {
      Chaque série tire des nombres au hasard : on peut la refaire autant qu'on veut.
      type : nom du générateur (voir assets/exercices.js). nb : nombre de questions. */
   exercices: [
-    { type: "image-calcul", titre: "Calculer une image", etape: "Échauffement", nb: 5 },
-    { type: "antecedent-affine", titre: "Trouver un antécédent par le calcul", etape: "Échauffement", nb: 5 },
-    { type: "ensemble-definition", titre: "Repérer la valeur interdite", etape: "Échauffement", nb: 4 },
-    { type: "appartenance", titre: "Le point est-il sur la courbe ?", etape: "Entraînement", nb: 5 },
-    { type: "lecture-image", titre: "Lire une image sur la courbe", etape: "Entraînement", nb: 5 },
-    { type: "lecture-antecedents", titre: "Lire des antécédents sur la courbe", etape: "Entraînement", nb: 5 },
-    { type: "resolution-graphique", titre: "Résoudre graphiquement une inéquation", etape: "Défi", nb: 5 }
+    { type: "lecture-image", titre: "Lire une image sur la courbe", etape: "Résolutions graphiques", nb: 5 },
+    { type: "lecture-antecedents", titre: "Lire des antécédents : résoudre f(x) = k", etape: "Résolutions graphiques", nb: 5 },
+    { type: "graph-f-egal-g", titre: "Résoudre graphiquement f(x) = g(x)", etape: "Résolutions graphiques", nb: 5 },
+    { type: "resolution-graphique", titre: "Résoudre graphiquement une inéquation", etape: "Résolutions graphiques", nb: 5 },
+    { type: "image-calcul", titre: "Calculer une image", etape: "Par le calcul", nb: 5 },
+    { type: "antecedent-affine", titre: "Trouver un antécédent par le calcul", etape: "Par le calcul", nb: 5 },
+    { type: "ensemble-definition", titre: "Repérer la valeur interdite", etape: "Par le calcul", nb: 4 },
+    { type: "appartenance", titre: "Le point est-il sur la courbe ?", etape: "Par le calcul", nb: 5 },
+    { type: "calcul-f-egal-g", titre: "Résoudre f(x) = g(x) par le calcul", etape: "Par le calcul", nb: 5 }
   ],
 
   /* ---------- 3. QCM DE RÉVISION ----------
@@ -188,6 +202,12 @@ window.CHAPITRES["seconde-fonctions"] = {
       explication: "$8t < 4t + 12 \\iff 4t < 12 \\iff t < 3$. Avec $t \\geqslant 0$ : $S = [0\\,;3[$. On n'oublie pas la contrainte $t \\in [0\\,;6]$."
     },
     {
+      question: "Soit $f(x) = 3x - 4$ et $g(x) = x + 2$. Quelles sont les solutions de $f(x) = g(x)$ ?",
+      choix: ["$S = \\{3\\}$", "$S = \\{5\\}$", "$S = \\{-3\\}$", "$S = \\{6\\}$"],
+      bonne: 0,
+      explication: "$3x - 4 = x + 2 \\iff 2x = 6 \\iff x = 3$. Le nombre $5 = f(3) = g(3)$ est l'ordonnée du point commun, pas une solution."
+    },
+    {
       question: "Avec $A(x) = x(10 - x)$, quelle est l'image de $3$ ?",
       choix: ["$27$", "$21$", "$7$", "$30$"],
       bonne: 1,
@@ -223,6 +243,15 @@ window.CHAPITRES["seconde-fonctions"] = {
       exemple: "$f(x) = 2x + 7$ et $k = 1$ : $2x + 7 = 1 \\iff 2x = -6 \\iff x = -3$."
     },
     {
+      titre: "Résoudre $f(x) = g(x)$ par le calcul",
+      etapes: [
+        "Écrire l'équation $f(x) = g(x)$.",
+        "Regrouper les $x$ d'un côté et les nombres de l'autre, ou tout passer d'un côté et factoriser.",
+        "Résoudre, puis écrire $S = \\{\\ldots\\}$ : les solutions sont des valeurs de $x$."
+      ],
+      exemple: "$3x - 4 = x + 2 \\iff 2x = 6 \\iff x = 3$, donc $S = \\{3\\}$."
+    },
+    {
       titre: "Savoir si un point est sur la courbe",
       etapes: [
         "Calculer l'image de l'**abscisse** du point.",
@@ -237,6 +266,15 @@ window.CHAPITRES["seconde-fonctions"] = {
         "Antécédents de $k$ : droite **horizontale** $y = k$, puis lecture des abscisses de **tous** les points d'intersection."
       ],
       exemple: "Un nombre peut n'avoir aucun antécédent : la droite $y = k$ ne touche alors pas la courbe."
+    },
+    {
+      titre: "Résoudre graphiquement $f(x) = g(x)$",
+      etapes: [
+        "Repérer les points d'intersection des courbes $\\mathcal{C}_f$ et $\\mathcal{C}_g$.",
+        "Lire l'**abscisse** de chacun de ces points.",
+        "Écrire l'ensemble des solutions $S = \\{\\ldots\\}$ (ou $S = \\varnothing$ si les courbes ne se coupent pas)."
+      ],
+      exemple: "Kayaks : les droites se coupent en $I(3\\,;24)$, donc $S = \\{3\\}$ (et non $24$)."
     },
     {
       titre: "Résoudre graphiquement $f(x) > k$ (ou $\\geqslant$, $<$, $\\leqslant$)",

@@ -16,6 +16,13 @@ window.CATALOGUE = {
       nom: "Seconde",
       chapitres: [
         {
+          id: "seconde-ensembles",
+          numero: 1,
+          titre: "Ensembles de nombres et intervalles",
+          statut: "disponible",
+          drive: ""
+        },
+        {
           id: "seconde-fonctions",
           numero: 2,
           titre: "Généralités sur les fonctions",
