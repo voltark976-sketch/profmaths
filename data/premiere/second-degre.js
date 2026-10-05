@@ -31,11 +31,7 @@ window.CHAPITRES["premiere-second-degre"] = {
       url: "https://drive.google.com/file/d/13EQuWAGkNRVNSXuhjc-z1atSD5OfTD5m/view"
     }
   ],
-  liens: [
-    { titre: "Jeuxmaths : vrai ou faux sur le second degré", url: "https://www.jeuxmaths.fr/exercice-de-math-vrai-faux-seconddegre.html" },
-    { titre: "Jeuxmaths : équations du second degré", url: "https://www.jeuxmaths.fr/exoshtml5/equations-second-degre.html" },
-    { titre: "Jeuxmaths : inéquations du second degré", url: "https://www.jeuxmaths.fr/exoshtml5/inequations-second-degre.html" }
-  ],
+  liens: [],
 
   /* ---------- 1. CAPSULE DE COURS ---------- */
   cours: [
