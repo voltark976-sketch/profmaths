@@ -113,14 +113,10 @@
     const [chap, onglet] = h.split(".");
     if (minuterieJeu) { clearInterval(minuterieJeu); minuterieJeu = null; }
     if (chap === "compte") pageCompte();
-    else if (chap === "jeux") pageJeux(onglet);
     else if (chap && window.CHAPITRES && CHAPITRES[chap]) pageChapitre(chap, onglet || "cours");
     else pageAccueil();
   }
   window.addEventListener("hashchange", () => { route(); window.scrollTo(0, 0); });
-  const majLienJeux = () => { const a = document.getElementById("jeux-btn"); if (a) a.classList.toggle("actif", location.hash.startsWith("#jeux")); };
-  window.addEventListener("hashchange", majLienJeux);
-  majLienJeux();
 
   const etoiles = (n, max) => `<span class="etoiles" aria-label="${n} étoile${n > 1 ? "s" : ""} sur ${max}">${"★".repeat(n)}<span class="off">${"★".repeat(max - n)}</span></span>`;
 
@@ -136,7 +132,6 @@
     document.title = "ProfMaths";
     let h = `<section class="hero"><p class="eyebrow">Maths au lycée · Mayotte</p><h1>Une vidéo, un cours, des exercices. À ton rythme.</h1><p class="lead">Choisis ton niveau puis ton chapitre. Les chapitres suivent l'ordre des playlists de la chaîne.</p></section>`;
     if (!Compte.eleve()) h += `<a class="invite" href="#compte"><strong>Crée ton compte</strong><span>pour retrouver tes points et tes étoiles sur n'importe quel téléphone ou ordinateur.</span></a>`;
-    if (window.JEUX) h += `<a class="carte-jeu" href="#jeux"><span class="carte-jeu-ico" aria-hidden="true">⏱</span><span><strong>${esc(JEUX.chrono.titre)}</strong><span>Teste-toi contre la montre, classe par classe.</span></span><span class="go" aria-hidden="true">→</span></a>`;
     h += `<div class="niveaux">`;
     CATALOGUE.niveaux.forEach((n) => {
       h += `<section class="niveau"><h2>${esc(n.nom)}</h2>${n.intro ? `<p class="muted niveau-intro">${esc(n.intro)}</p>` : ""}<ol class="chapitres">`;
@@ -501,7 +496,7 @@
     p.innerHTML = h;
   }
 
-  /* ---------- Jeux ---------- */
+  /* ---------- Défi chrono ---------- */
   const nombreFr = (x) => String(+(+x).toFixed(6)).replace("-", "−").replace(".", ",");
   function bonneReponse(q) {
     if (q.mode === "choix") return inline(q.choix[q.attendu]);
@@ -529,18 +524,18 @@
     p.innerHTML = `<div class="defi-chap"><p class="intro">${inline(J.accroche)}</p>
       <ul class="regles"><li><b>⏱</b> ${J.duree} secondes</li><li><b class="coeur">♥</b> ${J.vies} vies</li><li><b>×3</b> bonus de série</li></ul>
       <p class="defi-rec">${rec ? `Ton record sur ce chapitre : <strong>${rec} pts</strong>` : "Tu n'as pas encore joué sur ce chapitre."}</p>
-      <button class="btn" id="go">Lancer le défi</button>
-      <a class="lien-classement" href="#jeux">Voir le classement et les autres défis →</a></div>`;
+      <button class="btn" id="go">Lancer le défi</button></div>
+      <section class="classement"><h2 class="jeu-choix-t">Classement général</h2>
+        <div class="filtres" role="group" aria-label="Classement">${[""].concat(Compte.classes).map((cl) => `<button class="filtre" data-c="${esc(cl)}" aria-pressed="${cl === filtreClassement}">${cl ? esc(cl.split(" ")[0]) : "Tous"}</button>`).join("")}</div>
+        <ol class="top" id="top"></ol>
+        <p class="muted">Les points de classement sont la somme des records sur les défis de tous les chapitres${Compte.eleve() ? ` (toi : <strong>${Compte.pointsJeux(prog.jeux)} pts</strong>)` : ""}. Seul le top 10 s'affiche.</p></section>`;
+    p.querySelectorAll(".filtre").forEach((b) => b.addEventListener("click", () => {
+      filtreClassement = b.dataset.c;
+      p.querySelectorAll(".filtre").forEach((x) => x.setAttribute("aria-pressed", x === b));
+      afficherClassement();
+    }));
+    afficherClassement();
     p.querySelector("#go").addEventListener("click", () => lancerChrono(J, t, { cible: p, retour: () => vueDefi(p, c, id), retourTexte: "Défi", libelle: c.titre }));
-  }
-
-  // Un onglet par classe du catalogue ; une ligne « Tout le programme » puis une par chapitre disponible
-  function themesJeu(J) {
-    return CATALOGUE.niveaux.map((n) => {
-      const chaps = n.chapitres.filter((ch) => ch.statut === "disponible" && CHAPITRES[ch.id]).map((ch) => themeChapitre(J, ch.id, ch.titre)).filter((t) => t.series.length);
-      const tout = { id: "tout-" + n.id, titre: chaps.length > 1 ? "Tout mélangé" : "", series: [].concat(...chaps.map((t) => t.series)) };
-      return { id: n.id, nom: n.nom, themes: chaps.length > 1 ? [tout].concat(chaps) : chaps };
-    }).filter((n) => n.themes.length);
   }
 
   let filtreClassement = "";
@@ -557,37 +552,6 @@
     }).catch(() => {
       if ($top.isConnected) $top.innerHTML = `<li class="top-vide">Classement indisponible pour le moment.</li>`;
     });
-  }
-
-  function pageJeux(niveauId) {
-    document.title = "Jeux · ProfMaths";
-    const J = JEUX.chrono;
-    const niveaux = themesJeu(J);
-    const e = Compte.eleve();
-    let niv = niveaux.find((n) => n.id === niveauId) || niveaux.find((n) => e && n.nom === e.classe) || niveaux[0];
-    $app.innerHTML = `<a class="retour" href="#">← Tous les chapitres</a>
-      <header class="chap-head"><p class="eyebrow">Jeux</p><h1>${esc(J.titre)}</h1><p class="lead">${inline(J.accroche)}</p></header>
-      <ul class="regles"><li><b>⏱</b> ${J.duree} secondes</li><li><b class="coeur">♥</b> ${J.vies} vies</li><li><b>×3</b> bonus de série</li></ul>
-      <nav class="onglets" aria-label="Classes">${niveaux.map((n) => `<a href="#jeux.${n.id}" ${n === niv ? 'aria-current="page"' : ""}>${esc(n.nom.split(" ")[0])}</a>`).join("")}</nav>
-      <h2 class="jeu-choix-t">${esc(niv.nom)} : choisis ton thème</h2>
-      <ol class="series jeu-themes">${niv.themes.map((t, k) => {
-        const rec = prog.jeux["chrono:" + t.id];
-        return `<li><button class="serie${k === 0 && t.id.startsWith("tout-") ? " serie-tout" : ""}" data-k="${k}"><span class="chap-t"><strong>${esc(t.titre)}</strong><span class="meta">${rec ? `Record : ${rec} pts` : "Pas encore joué"}</span></span><span class="go" aria-hidden="true">▶</span></button></li>`;
-      }).join("")}</ol>
-      <section class="classement" id="classement"><h2 class="jeu-choix-t">Classement</h2>
-        <div class="filtres" role="group" aria-label="Classement">${[""].concat(Compte.classes).map((cl) => `<button class="filtre" data-c="${esc(cl)}" aria-pressed="${cl === filtreClassement}">${cl ? esc(cl.split(" ")[0]) : "Général"}</button>`).join("")}</div>
-        <ol class="top" id="top"></ol>
-        <p class="muted">Tes points de classement : la somme de tes records sur tous les défis${Compte.eleve() ? ` (toi : <strong>${Compte.pointsJeux(prog.jeux)} pts</strong>)` : ""}. Seul le top 10 s'affiche.</p></section>`;
-    $app.querySelectorAll(".filtre").forEach((b) => b.addEventListener("click", () => {
-      filtreClassement = b.dataset.c;
-      $app.querySelectorAll(".filtre").forEach((x) => x.setAttribute("aria-pressed", x === b));
-      afficherClassement();
-    }));
-    afficherClassement();
-    $app.querySelectorAll(".jeu-themes .serie").forEach((b) => b.addEventListener("click", () => {
-      const t = niv.themes[+b.dataset.k];
-      lancerChrono(J, t, { cible: $app, retour: () => pageJeux(niv.id), libelle: niv.nom.split(" ")[0] + " · " + t.titre });
-    }));
   }
 
   // o = { cible: élément où jouer, retour: fonction du bouton retour, libelle: texte du bilan }

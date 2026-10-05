@@ -1,12 +1,10 @@
 /*
   JEUX
   ----
-  Les jeux de l'onglet « Jeux ». Pour l'instant un seul jeu : le Défi chrono.
+  Le Défi chrono : onglet « Défi » de chaque chapitre, avec les questions des exercices du chapitre.
   - duree : temps de la partie, en secondes
   - vies  : nombre d'erreurs permises
-  Les thèmes se construisent tout seuls à partir de data/catalogue.js : un onglet par classe,
-  une ligne « Tout mélangé » puis une ligne par chapitre disponible.
-  Un nouveau chapitre apparaît donc automatiquement dans le jeu.
+  Chaque nouveau chapitre a automatiquement son défi.
   - exclure : séries d'exercices à ne pas mettre dans le jeu (trop longues pour un chrono),
     par exemple exclure: ["sd-developper"]
 */

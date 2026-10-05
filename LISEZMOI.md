@@ -4,7 +4,7 @@ Site statique : aucune base de données, aucun compte élève. Ouvrir `index.htm
 
 ## Ce que vous pouvez modifier
 - `data/catalogue.js` : la liste des niveaux et des chapitres (ordre des playlists, statut « disponible » ou « bientot »).
-- `data/jeux.js` : le Défi chrono (onglet Jeux et onglet « Défi » de chaque chapitre) : durée, nombre de vies, séries exclues. Les thèmes suivent `data/catalogue.js`. Le classement (top 10 général et par classe) est dans la collection Firestore `classement` : prénom, classe et points seulement.
+- `data/jeux.js` : le Défi chrono (onglet « Défi » de chaque chapitre) : durée, nombre de vies, séries exclues. Le classement (top 10 général et par classe) est dans la collection Firestore `classement` : prénom, classe et points seulement.
 - `data/config-comptes.js` : activation des comptes élèves (Firebase) et liste des classes.
 - `data/seconde/ensembles.js` : chapitre 1 de Seconde (ensembles de nombres, intervalles, valeur absolue). Les générateurs d'exercices correspondants commencent par `ens-`, `int-` et `abs-` dans `assets/exercices.js`.
 - `data/seconde/information-chiffree.js` : chapitre 3 de Seconde.
