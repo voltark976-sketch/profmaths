@@ -325,6 +325,24 @@ table.valeurs { border-collapse: collapse; background: var(--surface); font-vari
 .regles b:not(.coeur) { color: var(--ylang); }
 .jeu-choix-t { font-size: 1.1rem; margin: 24px 0 10px; }
 .jeu-themes .go { margin-left: auto; }
+.defi-chap { max-width: 30rem; }
+.defi-chap .btn { width: 100%; margin-top: 8px; font-size: 1.05rem; }
+.defi-rec { margin: 18px 0 6px; }
+.lien-classement { display: inline-block; margin-top: 16px; font-weight: 700; }
+.classement { margin-top: 28px; }
+.filtres { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+.filtre { padding: 7px 13px; border-radius: 999px; border: 1.5px solid var(--trait); background: var(--surface); color: var(--doux); font-weight: 700; cursor: pointer; }
+.filtre[aria-pressed="true"] { background: var(--encre); border-color: var(--encre); color: var(--fond); }
+.top { list-style: none; padding: 0; margin: 0; display: grid; gap: 6px; max-width: 30rem; }
+.top li { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-radius: 10px; background: var(--surface); border: 1px solid var(--trait); }
+.top li.moi { border: 2px solid var(--ylang); background: var(--ylang-pale); }
+.top .top-vide { color: var(--doux); display: block; }
+.rang { flex: none; width: 1.8em; text-align: center; font: 800 1.05rem/1 var(--f-titre); color: var(--doux); }
+.top-nom { flex: 1; min-width: 0; display: flex; align-items: baseline; gap: 8px; overflow: hidden; }
+.top-nom strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.top-pts { font-weight: 700; font-variant-numeric: tabular-nums; color: var(--ylang); white-space: nowrap; }
+.serie-tout { border: 2px solid var(--ylang); }
+.regles + .onglets { margin-top: 20px; }
 .jeu { padding-top: 12px; }
 .jeu-haut { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
 .vies { font-size: 1.3rem; letter-spacing: 2px; }

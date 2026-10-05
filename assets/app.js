@@ -104,6 +104,7 @@
     { id: "cours", nom: "Cours" },
     { id: "exercices", nom: "Exercices" },
     { id: "qcm", nom: "QCM" },
+    { id: "defi", nom: "Défi" },
     { id: "methode", nom: "Méthode" }
   ];
   let minuterieJeu = null; // chrono du jeu en cours, arrêté quand on change de page
@@ -112,7 +113,7 @@
     const [chap, onglet] = h.split(".");
     if (minuterieJeu) { clearInterval(minuterieJeu); minuterieJeu = null; }
     if (chap === "compte") pageCompte();
-    else if (chap === "jeux") pageJeux();
+    else if (chap === "jeux") pageJeux(onglet);
     else if (chap && window.CHAPITRES && CHAPITRES[chap]) pageChapitre(chap, onglet || "cours");
     else pageAccueil();
   }
@@ -135,7 +136,7 @@
     document.title = "ProfMaths";
     let h = `<section class="hero"><p class="eyebrow">Maths au lycée · Mayotte</p><h1>Une vidéo, un cours, des exercices. À ton rythme.</h1><p class="lead">Choisis ton niveau puis ton chapitre. Les chapitres suivent l'ordre des playlists de la chaîne.</p></section>`;
     if (!Compte.eleve()) h += `<a class="invite" href="#compte"><strong>Crée ton compte</strong><span>pour retrouver tes points et tes étoiles sur n'importe quel téléphone ou ordinateur.</span></a>`;
-    if (window.JEUX) h += `<a class="carte-jeu" href="#jeux"><span class="carte-jeu-ico" aria-hidden="true">⏱</span><span><strong>${esc(JEUX.chrono.titre)}</strong><span>Teste tes automatismes contre la montre.</span></span><span class="go" aria-hidden="true">→</span></a>`;
+    if (window.JEUX) h += `<a class="carte-jeu" href="#jeux"><span class="carte-jeu-ico" aria-hidden="true">⏱</span><span><strong>${esc(JEUX.chrono.titre)}</strong><span>Teste-toi contre la montre, classe par classe.</span></span><span class="go" aria-hidden="true">→</span></a>`;
     h += `<div class="niveaux">`;
     CATALOGUE.niveaux.forEach((n) => {
       h += `<section class="niveau"><h2>${esc(n.nom)}</h2>${n.intro ? `<p class="muted niveau-intro">${esc(n.intro)}</p>` : ""}<ol class="chapitres">`;
@@ -265,7 +266,7 @@
       <div class="panneau" id="panneau"></div>`;
     $app.innerHTML = h;
     const p = document.getElementById("panneau");
-    ({ cours: vueCours, exercices: vueExercices, qcm: vueQCM, methode: vueMethode })[onglet](p, c, id);
+    ({ cours: vueCours, exercices: vueExercices, qcm: vueQCM, defi: vueDefi, methode: vueMethode })[onglet](p, c, id);
   }
 
   function vueCours(p, c, id) {
@@ -520,36 +521,94 @@
     return v.length === a.length && v.every((x, k) => Math.abs(x - a[k]) < 1e-9);
   }
 
-  function pageJeux() {
+  const themeChapitre = (J, id, titre) => ({ id, titre, series: CHAPITRES[id].exercices.map((e) => e.type).filter((t) => GEN[t] && !(J.exclure || []).includes(t)) });
+
+  /* Onglet « Défi chrono » d'un chapitre */
+  function vueDefi(p, c, id) {
+    const J = JEUX.chrono, t = themeChapitre(J, id, c.titre), rec = prog.jeux["chrono:" + id];
+    p.innerHTML = `<div class="defi-chap"><p class="intro">${inline(J.accroche)}</p>
+      <ul class="regles"><li><b>⏱</b> ${J.duree} secondes</li><li><b class="coeur">♥</b> ${J.vies} vies</li><li><b>×3</b> bonus de série</li></ul>
+      <p class="defi-rec">${rec ? `Ton record sur ce chapitre : <strong>${rec} pts</strong>` : "Tu n'as pas encore joué sur ce chapitre."}</p>
+      <button class="btn" id="go">Lancer le défi</button>
+      <a class="lien-classement" href="#jeux">Voir le classement et les autres défis →</a></div>`;
+    p.querySelector("#go").addEventListener("click", () => lancerChrono(J, t, { cible: p, retour: () => vueDefi(p, c, id), retourTexte: "Défi", libelle: c.titre }));
+  }
+
+  // Un onglet par classe du catalogue ; une ligne « Tout le programme » puis une par chapitre disponible
+  function themesJeu(J) {
+    return CATALOGUE.niveaux.map((n) => {
+      const chaps = n.chapitres.filter((ch) => ch.statut === "disponible" && CHAPITRES[ch.id]).map((ch) => themeChapitre(J, ch.id, ch.titre)).filter((t) => t.series.length);
+      const tout = { id: "tout-" + n.id, titre: chaps.length > 1 ? "Tout mélangé" : "", series: [].concat(...chaps.map((t) => t.series)) };
+      return { id: n.id, nom: n.nom, themes: chaps.length > 1 ? [tout].concat(chaps) : chaps };
+    }).filter((n) => n.themes.length);
+  }
+
+  let filtreClassement = "";
+  function afficherClassement() {
+    const $top = document.getElementById("top");
+    if (!$top) return;
+    const demande = filtreClassement;
+    $top.innerHTML = `<li class="top-vide">Chargement…</li>`;
+    Compte.classement(demande).then((l) => {
+      if (demande !== filtreClassement || !$top.isConnected) return;
+      if (l === null) { $top.innerHTML = `<li class="top-vide"><a href="#compte">Connecte-toi</a> pour voir le classement et y apparaître.</li>`; return; }
+      if (!l.length) { $top.innerHTML = `<li class="top-vide">Personne pour l'instant. Lance un défi pour être le premier !</li>`; return; }
+      $top.innerHTML = l.map((x, k) => `<li class="${x.moi ? "moi" : ""}"><span class="rang">${["🥇", "🥈", "🥉"][k] || k + 1}</span><span class="top-nom"><strong>${esc(x.prenom)}</strong>${!demande && x.classe ? `<span class="meta">${esc(x.classe.split(" ")[0])}</span>` : ""}</span><span class="top-pts">${x.points} pts</span></li>`).join("");
+    }).catch(() => {
+      if ($top.isConnected) $top.innerHTML = `<li class="top-vide">Classement indisponible pour le moment.</li>`;
+    });
+  }
+
+  function pageJeux(niveauId) {
     document.title = "Jeux · ProfMaths";
     const J = JEUX.chrono;
+    const niveaux = themesJeu(J);
+    const e = Compte.eleve();
+    let niv = niveaux.find((n) => n.id === niveauId) || niveaux.find((n) => e && n.nom === e.classe) || niveaux[0];
     $app.innerHTML = `<a class="retour" href="#">← Tous les chapitres</a>
       <header class="chap-head"><p class="eyebrow">Jeux</p><h1>${esc(J.titre)}</h1><p class="lead">${inline(J.accroche)}</p></header>
       <ul class="regles"><li><b>⏱</b> ${J.duree} secondes</li><li><b class="coeur">♥</b> ${J.vies} vies</li><li><b>×3</b> bonus de série</li></ul>
-      <h2 class="jeu-choix-t">Choisis ton thème</h2>
-      <ol class="series jeu-themes">${J.themes.map((t, k) => {
+      <nav class="onglets" aria-label="Classes">${niveaux.map((n) => `<a href="#jeux.${n.id}" ${n === niv ? 'aria-current="page"' : ""}>${esc(n.nom.split(" ")[0])}</a>`).join("")}</nav>
+      <h2 class="jeu-choix-t">${esc(niv.nom)} : choisis ton thème</h2>
+      <ol class="series jeu-themes">${niv.themes.map((t, k) => {
         const rec = prog.jeux["chrono:" + t.id];
-        return `<li><button class="serie" data-k="${k}"><span class="chap-t"><strong>${esc(t.titre)}</strong><span class="meta">${rec ? `Record : ${rec} pts` : "Pas encore joué"}</span></span><span class="go" aria-hidden="true">▶</span></button></li>`;
-      }).join("")}</ol>`;
-    $app.querySelectorAll(".jeu-themes .serie").forEach((b) => b.addEventListener("click", () => lancerChrono(J, J.themes[+b.dataset.k])));
+        return `<li><button class="serie${k === 0 && t.id.startsWith("tout-") ? " serie-tout" : ""}" data-k="${k}"><span class="chap-t"><strong>${esc(t.titre)}</strong><span class="meta">${rec ? `Record : ${rec} pts` : "Pas encore joué"}</span></span><span class="go" aria-hidden="true">▶</span></button></li>`;
+      }).join("")}</ol>
+      <section class="classement" id="classement"><h2 class="jeu-choix-t">Classement</h2>
+        <div class="filtres" role="group" aria-label="Classement">${[""].concat(Compte.classes).map((cl) => `<button class="filtre" data-c="${esc(cl)}" aria-pressed="${cl === filtreClassement}">${cl ? esc(cl.split(" ")[0]) : "Général"}</button>`).join("")}</div>
+        <ol class="top" id="top"></ol>
+        <p class="muted">Tes points de classement : la somme de tes records sur tous les défis${Compte.eleve() ? ` (toi : <strong>${Compte.pointsJeux(prog.jeux)} pts</strong>)` : ""}. Seul le top 10 s'affiche.</p></section>`;
+    $app.querySelectorAll(".filtre").forEach((b) => b.addEventListener("click", () => {
+      filtreClassement = b.dataset.c;
+      $app.querySelectorAll(".filtre").forEach((x) => x.setAttribute("aria-pressed", x === b));
+      afficherClassement();
+    }));
+    afficherClassement();
+    $app.querySelectorAll(".jeu-themes .serie").forEach((b) => b.addEventListener("click", () => {
+      const t = niv.themes[+b.dataset.k];
+      lancerChrono(J, t, { cible: $app, retour: () => pageJeux(niv.id), libelle: niv.nom.split(" ")[0] + " · " + t.titre });
+    }));
   }
 
-  function lancerChrono(J, theme) {
-    const gen = GEN[theme.serie];
+  // o = { cible: élément où jouer, retour: fonction du bouton retour, libelle: texte du bilan }
+  function lancerChrono(J, theme, o) {
+    const $c = o.cible;
+    const gen = () => GEN[theme.series[Math.floor(Math.random() * theme.series.length)]](Math.floor(Math.random() * 5));
     let vies = J.vies, score = 0, serie = 0, bonnes = 0, n = 0;
     let reste = J.duree * 1000, depart = 0, enPause = true, fini = false;
-    $app.innerHTML = `<div class="jeu">
-      <div class="jeu-haut"><button class="lien" id="quitter">← Thèmes</button><span class="vies" aria-label="Vies"></span><span class="jeu-score"><b id="score">0</b> pts</span></div>
+    $c.innerHTML = `<div class="jeu">
+      <div class="jeu-haut"><button class="lien" id="quitter">← ${esc(o.retourTexte || "Thèmes")}</button><span class="vies" aria-label="Vies"></span><span class="jeu-score"><b id="score">0</b> pts</span></div>
       <div class="chrono" aria-hidden="true"><span id="barre"></span></div>
       <div class="jeu-info"><span id="temps"></span><span id="multi"></span></div>
       <div id="zone"></div></div>`;
-    const $zone = document.getElementById("zone"), $barre = document.getElementById("barre"), $temps = document.getElementById("temps");
-    document.getElementById("quitter").addEventListener("click", () => { clearInterval(minuterieJeu); minuterieJeu = null; pageJeux(); });
+    if ($c !== $app) window.scrollTo(0, Math.max(0, $c.getBoundingClientRect().top + window.scrollY - 110));
+    const $zone = $c.querySelector("#zone"), $barre = $c.querySelector("#barre"), $temps = $c.querySelector("#temps");
+    $c.querySelector("#quitter").addEventListener("click", () => { clearInterval(minuterieJeu); minuterieJeu = null; o.retour(); });
     const multi = () => (serie >= 6 ? 3 : serie >= 3 ? 2 : 1);
     function majHaut() {
-      $app.querySelector(".vies").innerHTML = "♥".repeat(vies) + `<span class="off">${"♥".repeat(J.vies - vies)}</span>`;
-      document.getElementById("score").textContent = score;
-      document.getElementById("multi").innerHTML = multi() > 1 ? `<b class="combo">Série ×${multi()}</b>` : serie ? `Série : ${serie}` : "";
+      $c.querySelector(".vies").innerHTML = "♥".repeat(vies) + `<span class="off">${"♥".repeat(J.vies - vies)}</span>`;
+      $c.querySelector("#score").textContent = score;
+      $c.querySelector("#multi").innerHTML = multi() > 1 ? `<b class="combo">Série ×${multi()}</b>` : serie ? `Série : ${serie}` : "";
     }
     function temps() { return Math.max(0, enPause ? reste : reste - (performance.now() - depart)); }
     function tic() {
@@ -563,7 +622,7 @@
     const reprendre = () => { if (enPause) { depart = performance.now(); enPause = false; } };
 
     function question() {
-      const q = gen(n++);
+      const q = gen(); n++;
       let repondu = false;
       $zone.innerHTML = `<div class="enonce">${md(q.enonce)}</div>${q.tableau ? tableau(q.tableau) : ""}${q.figure ? `<figure class="fig">${q.figure}</figure>` : ""}${champReponse(q)}<div class="retour-rep" id="fb" role="status" aria-live="polite"></div>`;
       const fb = $zone.querySelector("#fb");
@@ -609,11 +668,11 @@
       const gain = bonnes * 3;
       prog.jeux[k] = Math.max(ancien, score);
       prog.xp += gain; save();
-      $app.innerHTML = `<div class="bilan"><p class="eyebrow">${esc(J.titre)} · ${esc(theme.titre)}</p><p>${esc(raison)}</p><p class="gros">${score}<span> pts</span></p>${record && score ? `<p class="record">Nouveau record !</p>` : ancien ? `<p class="muted">Ton record : ${ancien} pts</p>` : ""}
+      $c.innerHTML = `<div class="bilan"><p class="eyebrow">${esc(J.titre)} · ${esc(o.libelle)}</p><p>${esc(raison)}</p><p class="gros">${score}<span> pts</span></p>${record && score ? `<p class="record">Nouveau record !</p>` : ancien ? `<p class="muted">Ton record : ${ancien} pts</p>` : ""}
         <p>${bonnes} bonne${bonnes > 1 ? "s" : ""} réponse${bonnes > 1 ? "s" : ""} sur ${n}. +${gain} points ajoutés à ton total.</p>
-        <div class="exo-actions"><button class="btn" id="rejouer">Rejouer</button><button class="btn-sec" id="themes">Changer de thème</button></div></div>`;
-      $app.querySelector("#rejouer").addEventListener("click", () => lancerChrono(J, theme));
-      $app.querySelector("#themes").addEventListener("click", pageJeux);
+        <div class="exo-actions"><button class="btn" id="rejouer">Rejouer</button><button class="btn-sec" id="themes">${esc(o.retourTexte || "Changer de thème")}</button></div></div>`;
+      $c.querySelector("#rejouer").addEventListener("click", () => lancerChrono(J, theme, o));
+      $c.querySelector("#themes").addEventListener("click", o.retour);
     }
 
     majHaut();

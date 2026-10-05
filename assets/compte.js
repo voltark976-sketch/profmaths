@@ -15,6 +15,9 @@
   let eleve = null; // { uid, identifiant, prenom, classe, fournisseur, aCompleter }
   let fb = null; // { auth, db }
   let minuterie = null;
+  let dernierClassement = ""; // évite de renvoyer la même ligne du classement
+  // Points du classement : somme des records de l'élève sur tous les Défis chrono
+  const pointsJeux = (jeux) => Object.values(jeux || {}).reduce((s, v) => s + (+v || 0), 0);
 
   const normId = (s) => String(s || "").trim().toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/\s+/g, ".");
   function verifId(id) {
@@ -201,6 +204,24 @@
       eleve = null; ecouteur(null, null);
     },
 
+    // Top 10 du Défi chrono (classe = "" pour le classement général). Renvoie null si l'élève n'est pas connecté.
+    async classement(classe) {
+      let liste;
+      if (fb) {
+        if (!eleve) return null;
+        const col = fb.db.collection("classement");
+        // Par classe : pas de tri côté serveur (il faudrait créer un index), on trie ici
+        const snap = await (classe ? col.where("classe", "==", classe) : col.orderBy("points", "desc").limit(10)).get();
+        liste = snap.docs.map((d) => Object.assign({}, d.data(), { moi: d.id === eleve.uid }));
+      } else {
+        if (CFG.firebase) throw new Error("Firebase indisponible");
+        liste = Object.entries(lireJSON(DEMO, {})).map(([id, c]) => ({ prenom: c.prenom, classe: c.classe, points: pointsJeux(c.prog && c.prog.jeux), moi: !!eleve && id === eleve.uid }))
+          .filter((l) => l.points > 0 && (!classe || l.classe === classe));
+      }
+      return liste.sort((a, b) => b.points - a.points).slice(0, 10);
+    },
+    pointsJeux,
+
     // Enregistre la progression (regroupe les envois rapprochés pour économiser le réseau)
     sauver(prog) {
       if (!eleve) return;
@@ -211,6 +232,13 @@
           fb.db.collection("eleves").doc(eleve.uid)
             .set(Object.assign(copie, { majLe: firebase.firestore.FieldValue.serverTimestamp() }), { merge: true })
             .catch(() => {}); // hors ligne : la copie locale reste, elle repartira au prochain enregistrement
+          // Classement : seulement le prénom, la classe et les points (lisible par les élèves connectés)
+          const pts = pointsJeux(copie.jeux), sig = [eleve.uid, eleve.prenom, eleve.classe, pts].join("|");
+          if (pts > 0 && eleve.prenom && sig !== dernierClassement) {
+            fb.db.collection("classement").doc(eleve.uid)
+              .set({ prenom: eleve.prenom, classe: eleve.classe || "", points: pts, majLe: firebase.firestore.FieldValue.serverTimestamp() })
+              .then(() => { dernierClassement = sig; }).catch(() => {});
+          }
         } else {
           const comptes = lireJSON(DEMO, {});
           if (comptes[eleve.uid]) { comptes[eleve.uid].prog = copie; ecrireJSON(DEMO, comptes); }
