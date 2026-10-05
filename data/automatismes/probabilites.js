@@ -20,6 +20,7 @@ window.CHAPITRES["auto-probabilites"] = {
   cours: [
     {
       titre: "Les règles de base (PR01, PR02, PR03)",
+      video: { titre: "Vidéo d'Yvan Monka : le cours sur les probabilités", youtube: "https://youtu.be/dvx_O37gfyY" },
       texte:
         "- Une probabilité est toujours comprise entre $0$ (événement impossible) et $1$ (événement certain).\n" +
         "- La somme des probabilités de toutes les issues vaut $1$.\n" +
@@ -32,6 +33,7 @@ window.CHAPITRES["auto-probabilites"] = {
     },
     {
       titre: "Équiprobabilité (PR04)",
+      video: { titre: "Vidéo d'Yvan Monka : calculer des probabilités (dés spéciaux)", youtube: "https://youtu.be/Y9u4EnP01wo" },
       texte:
         "- Quand toutes les issues ont la même probabilité (dé équilibré, tirage « au hasard »), on dit qu'il y a équiprobabilité.\n" +
         "- Alors $P(A) = \\dfrac{\\text{nombre d'issues favorables}}{\\text{nombre d'issues possibles}}$.\n" +
@@ -43,6 +45,7 @@ window.CHAPITRES["auto-probabilites"] = {
     },
     {
       titre: "Tableau croisé et probabilité conditionnelle (PR05, Première)",
+      video: { titre: "Vidéo d'Yvan Monka : probabilité conditionnelle à l'aide d'un tableau", youtube: "https://youtu.be/Shh5IdHwqqw" },
       texte:
         "- Avec un tableau d'effectifs, on choisit un individu au hasard : $P(A) = \\dfrac{\\text{effectif de } A}{\\text{effectif total}}$.\n" +
         "- $P(A \\cap B)$ : probabilité que $A$ **et** $B$ soient réalisés. On divise par l'effectif **total**.\n" +

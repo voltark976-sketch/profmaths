@@ -33,6 +33,7 @@ window.CHAPITRES["auto-fonctions"] = {
     },
     {
       titre: "Un point est-il sur la courbe ? (FR02)",
+      video: { titre: "Vidéo d'Yvan Monka : vérifier si un point appartient à une droite", youtube: "https://youtu.be/XA0YajthETQ" },
       texte:
         "- Le point $M(x_M\\,;y_M)$ appartient à la courbe de $f$ si et seulement si $f(x_M) = y_M$.\n" +
         "- On calcule l'image de l'**abscisse** et on compare à l'**ordonnée**.\n" +
@@ -44,6 +45,7 @@ window.CHAPITRES["auto-fonctions"] = {
     },
     {
       titre: "Fonctions linéaires et affines (FR03)",
+      video: { titre: "Vidéo d'Yvan Monka : le cours sur les fonctions affines", youtube: "https://youtu.be/n5_pRx4ozIg" },
       texte:
         "- Fonction **affine** : $f(x) = mx + p$. Sa courbe est une **droite**.\n" +
         "- Fonction **linéaire** : $f(x) = mx$ (cas $p = 0$). Sa droite passe par l'origine, et elle traduit une situation de proportionnalité.\n" +
@@ -57,6 +59,7 @@ window.CHAPITRES["auto-fonctions"] = {
     },
     {
       titre: "Résoudre graphiquement, lire signe et variations (FR04, FR05, Première)",
+      video: { titre: "Vidéo d'Yvan Monka : déterminer graphiquement le signe d'une fonction", youtube: "https://youtu.be/AZvjA44WfPw" },
       texte:
         "- Les solutions de $f(x) = k$ sont les abscisses des points de la courbe d'ordonnée $k$.\n" +
         "- Les solutions de $f(x) > k$ : les abscisses des points de la courbe situés **au-dessus** de la droite $y = k$.\n" +
@@ -70,6 +73,7 @@ window.CHAPITRES["auto-fonctions"] = {
     },
     {
       titre: "Équations de droites (FR06 à FR08, Première)",
+      video: { titre: "Vidéo d'Yvan Monka : déterminer graphiquement une fonction affine", youtube: "https://youtu.be/OnnrfqztpTY" },
       texte:
         "- Une droite non verticale a une **équation réduite** $y = mx + p$.\n" +
         "- $p$ est l'**ordonnée à l'origine** : la droite coupe l'axe vertical au point $(0\\,;p)$.\n" +

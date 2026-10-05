@@ -38,6 +38,7 @@ window.CHAPITRES["seconde-automatismes"] = {
     },
     {
       titre: "Unités et ordres de grandeur",
+      video: { titre: "Vidéo de ton prof : conversions d'unités", youtube: "https://youtu.be/ZmsrIiQvadQ" },
       texte:
         "- Aires : $\\times 100$ d'une unité à la suivante ($1$ m² $= 10\\,000$ cm²). Volumes : $\\times 1\\,000$ ($1$ dm³ $= 1$ L).\n" +
         "- Durées : $0{,}25$ h $= 15$ min, $0{,}1$ h $= 6$ min. Vitesses : $1$ m/s $= 3{,}6$ km/h.\n" +
@@ -100,6 +101,7 @@ window.CHAPITRES["seconde-automatismes"] = {
     },
     {
       titre: "Repérage, aires et volumes",
+      video: { titre: "Vidéo d'Yvan Monka : calculer des volumes (boule, cylindre)", youtube: "https://youtu.be/ZnB0RIPlIsw" },
       texte:
         "- Rectangle $L \\times \\ell$ ; triangle $\\dfrac{\\text{base} \\times \\text{hauteur}}{2}$ ; disque $\\pi r^2$ ; cercle $2\\pi r$.\n" +
         "- Pavé $L \\times \\ell \\times h$ ; prisme et cylindre $\\mathcal{B} \\times h$ ($\\pi r^2 h$) ; pyramide et cône $\\dfrac{1}{3}\\mathcal{B} \\times h$ ; boule $\\dfrac{4}{3}\\pi r^3$.\n" +
@@ -136,6 +138,7 @@ window.CHAPITRES["seconde-automatismes"] = {
     },
     {
       titre: "Probabilités",
+      video: { titre: "Vidéo d'Yvan Monka : le cours sur les probabilités", youtube: "https://youtu.be/dvx_O37gfyY" },
       texte:
         "- Une probabilité est toujours entre $0$ et $1$ ; la somme des probabilités des issues vaut $1$.\n" +
         "- Événement contraire : $P(\\overline{A}) = 1 - P(A)$.\n" +

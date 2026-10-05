@@ -94,6 +94,7 @@ window.CHAPITRES["seconde-information-chiffree"] = {
     },
     {
       titre: "Points de pourcentage ou pourcentage ?",
+      video: { titre: "Vidéo de ton prof : proportions et points de pourcentage", youtube: "https://youtu.be/brXtcTsDP8M" },
       texte:
         "« $80\\,\\%$ des élèves sont externes » est un pourcentage de **proportion**. « Le prix a baissé de $20\\,\\%$ » est un pourcentage d'**évolution**.\n\n" +
         "Quand une proportion évolue, l'écart se compte en **points**, et le taux d'évolution en **%**.",
@@ -105,10 +106,10 @@ window.CHAPITRES["seconde-information-chiffree"] = {
   ],
 
   videos: [
-    { titre: "Exercice 1 · Comparer deux prix", type: "Application", youtube: "" },
-    { titre: "Exercice 2 · Évolutions et fonctions", type: "Graphique", youtube: "" },
-    { titre: "Exercice 3 · Vrai ou faux ?", type: "Raisonnement", youtube: "" },
-    { titre: "Exercice 4 · La coopérative agricole de Coconi", type: "Synthèse", youtube: "" }
+    { titre: "Exercice 1 · Comparer deux prix", type: "Application", youtube: "https://youtu.be/OgV5rz90SNA" },
+    { titre: "Exercice 2 · Évolutions et fonctions", type: "Graphique", youtube: "https://youtu.be/j3ZBvNVBUlg" },
+    { titre: "Exercice 3 · Vrai ou faux ?", type: "Raisonnement", youtube: "https://youtu.be/sWmQm5Y5fpM" },
+    { titre: "Exercice 4 · La coopérative agricole de Coconi", type: "Synthèse", youtube: "https://youtu.be/brXtcTsDP8M" }
   ],
 
   /* ---------- 2. EXERCICES INTERACTIFS ---------- */

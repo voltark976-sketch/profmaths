@@ -20,6 +20,7 @@ window.CHAPITRES["auto-calcul-algebrique"] = {
   cours: [
     {
       titre: "Calculer avec des lettres (CA01, CA05)",
+      video: { titre: "Vidéo d'Yvan Monka : appliquer une formule (substitution)", youtube: "https://youtu.be/FOSVfFdDi7w" },
       texte:
         "- Remplacer une lettre par un nombre : on met le nombre **entre parenthèses** s'il est négatif. Pour $a = -2$ : $3a^2 = 3 \\times (-2)^2 = 12$.\n" +
         "- Priorités : parenthèses, puis puissances, puis multiplications et divisions, puis additions et soustractions.\n" +
@@ -57,6 +58,7 @@ window.CHAPITRES["auto-calcul-algebrique"] = {
     },
     {
       titre: "Isoler une variable (CA04)",
+      video: { titre: "Vidéo d'Yvan Monka : exprimer une grandeur en fonction d'une autre", youtube: "https://youtu.be/se9gyoJkkJ0" },
       texte:
         "- On traite la formule comme une équation dont l'inconnue est la lettre à isoler.\n" +
         "- On enlève d'abord ce qui est **ajouté ou soustrait**, puis ce qui **multiplie ou divise**.\n" +
@@ -68,6 +70,7 @@ window.CHAPITRES["auto-calcul-algebrique"] = {
     },
     {
       titre: "Équation produit nul (CA06, Première)",
+      video: { titre: "Vidéo d'Yvan Monka : résoudre une équation-produit", youtube: "https://youtu.be/4CWk30Ypj04" },
       texte:
         "- Un produit est nul si et seulement si **l'un au moins** de ses facteurs est nul.\n" +
         "- $(ax + b)(cx + d) = 0 \\iff ax + b = 0$ ou $cx + d = 0$.\n" +

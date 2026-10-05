@@ -20,6 +20,7 @@ window.CHAPITRES["auto-statistiques"] = {
   cours: [
     {
       titre: "Lire un graphique (ST01, ST04, ST05)",
+      video: { titre: "Vidéo d'Yvan Monka : lire et interpréter un graphique", youtube: "https://youtu.be/CR4lSAfho5A" },
       texte:
         "- Diagramme en **bâtons** ou en **barres** : la hauteur donne l'effectif (ou la fréquence) de chaque valeur.\n" +
         "- Diagramme **circulaire** : les angles sont proportionnels aux effectifs. Le disque entier ($360°$) représente $100\\,\\%$ : un secteur de $90°$ représente $25\\,\\%$.\n" +
@@ -32,6 +33,7 @@ window.CHAPITRES["auto-statistiques"] = {
     },
     {
       titre: "Moyenne (ST02, ST06)",
+      video: { titre: "Vidéo d'Yvan Monka : appliquer la linéarité de la moyenne", youtube: "https://youtu.be/Z4bwDyrtO8A" },
       texte:
         "- Moyenne : $\\bar{x} = \\dfrac{\\text{somme des valeurs}}{\\text{nombre de valeurs}}$.\n" +
         "- Avec des effectifs : $\\bar{x} = \\dfrac{n_1 x_1 + n_2 x_2 + \\dots + n_p x_p}{N}$, où $N$ est l'effectif total (moyenne **pondérée**).\n" +
@@ -57,6 +59,7 @@ window.CHAPITRES["auto-statistiques"] = {
     },
     {
       titre: "Comparer avec des boîtes à moustaches (ST03)",
+      video: { titre: "Vidéo d'Yvan Monka : construire un diagramme en boîte", youtube: "https://youtu.be/la7c0Yf8VyM" },
       texte:
         "- La boîte va de $Q_1$ à $Q_3$, le trait intérieur est la médiane, les moustaches vont jusqu'au minimum et au maximum.\n" +
         "- Pour comparer deux séries : on compare les **médianes** (position) et les **écarts interquartiles** (dispersion : largeur de la boîte).\n" +

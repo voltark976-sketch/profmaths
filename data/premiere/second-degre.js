@@ -41,6 +41,7 @@ window.CHAPITRES["premiere-second-degre"] = {
   cours: [
     {
       titre: "Trois écritures pour une même fonction",
+      video: { titre: "Vidéo de ton prof : développée, canonique ou factorisée ?", youtube: "https://youtu.be/um5vzSymAr4" },
       texte:
         "Une **fonction polynôme du second degré** est définie sur $\\mathbb{R}$ par $f(x) = ax^2 + bx + c$, avec $a$, $b$, $c$ réels et $a \\neq 0$. Sa courbe est une **parabole**.\n\n" +
         "- **Forme développée** $ax^2 + bx + c$ : on lit $f(0) = c$.\n" +
@@ -112,6 +113,7 @@ window.CHAPITRES["premiere-second-degre"] = {
     },
     {
       titre: "Position de deux courbes",
+      video: { titre: "Vidéo d'Yvan Monka : étudier la position relative de deux courbes", youtube: "https://youtu.be/OWoaJjL9Hy4" },
       texte:
         "Pour comparer les courbes de $f$ et $g$ :\n\n" +
         "- les **points communs** ont pour abscisses les solutions de $f(x) = g(x)$, soit $f(x) - g(x) = 0$ ;\n" +
@@ -139,10 +141,10 @@ window.CHAPITRES["premiere-second-degre"] = {
   ],
 
   videos: [
-    { titre: "Exercice 1 · Racines et forme développée", type: "Application", youtube: "" },
-    { titre: "Exercice 2 · Identité ou équation ?", type: "Raisonnement", youtube: "" },
-    { titre: "Exercice 3 · Résoudre des inéquations", type: "Méthode", youtube: "" },
-    { titre: "Exercice 4 · Factoriser pour résoudre", type: "Synthèse", youtube: "" }
+    { titre: "Exercice 1 · Racines et forme développée", type: "Application", youtube: "https://youtu.be/ZAp3Z1pdFiY" },
+    { titre: "Exercice 2 · Identité ou équation ?", type: "Raisonnement", youtube: "https://youtu.be/tpadBfbxTt0" },
+    { titre: "Exercice 3 · Résoudre des inéquations", type: "Méthode", youtube: "https://youtu.be/xpcwo2134yI" },
+    { titre: "Exercice 4 · Factoriser pour résoudre", type: "Synthèse", youtube: "https://youtu.be/QYNlY_BFeUE" }
   ],
 
   /* ---------- 2. EXERCICES INTERACTIFS ---------- */

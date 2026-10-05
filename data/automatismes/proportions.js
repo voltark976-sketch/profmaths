@@ -32,6 +32,7 @@ window.CHAPITRES["auto-proportions"] = {
     },
     {
       titre: "Trois écritures d'une proportion (PP02, Première)",
+      video: { titre: "Vidéo d'Yvan Monka : le cours sur les pourcentages", youtube: "https://youtu.be/Y_gDKPidUQ0" },
       texte:
         "- Une proportion peut s'écrire sous forme de **fraction**, de **nombre décimal** ou de **pourcentage** : $\\dfrac{3}{20} = 0{,}15 = 15\\,\\%$.\n" +
         "- « $3$ élèves sur $20$ », « $15$ sur $100$ » et « $0{,}15$ » disent la même chose.\n" +
@@ -43,6 +44,7 @@ window.CHAPITRES["auto-proportions"] = {
     },
     {
       titre: "Retrouver une partie ou le tout (PP03)",
+      video: { titre: "Vidéo d'Yvan Monka : QCM sur les pourcentages", youtube: "https://youtu.be/J-6tiyxTd3o" },
       texte:
         "- **Partie** : $n_A = p \\times n_E$. Prendre $30\\,\\%$ de $250$, c'est calculer $0{,}3 \\times 250 = 75$.\n" +
         "- **Tout** : $n_E = \\dfrac{n_A}{p}$. Si $75$ personnes représentent $30\\,\\%$ du total, il y en a $\\dfrac{75}{0{,}3} = 250$.\n" +

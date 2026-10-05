@@ -26,6 +26,7 @@ window.CHAPITRES["terminale-lois-discretes"] = {
   cours: [
     {
       titre: "Variable aléatoire et loi uniforme",
+      video: { titre: "Vidéo de ton prof : variable aléatoire et loi de Bernoulli (cours 1/4)", youtube: "https://youtu.be/gQhLo-TDi9Q" },
       texte:
         "Associer un nombre au résultat d'une expérience aléatoire, c'est définir une **variable aléatoire** $X$. Sa **loi de probabilité** associe à chaque valeur possible sa probabilité ; la somme des probabilités vaut $1$.\n\n" +
         "- **Espérance** : $E(X) = x_1 p_1 + x_2 p_2 + \\dots + x_n p_n$, la moyenne à long terme sur de nombreuses répétitions.\n" +
@@ -80,6 +81,7 @@ window.CHAPITRES["terminale-lois-discretes"] = {
     },
     {
       titre: "Cumul et intervalle de fluctuation",
+      video: { titre: "Vidéo de ton prof : fonction de cumul et intervalle de fluctuation (cours 3/4)", youtube: "https://youtu.be/p1QICyjsI-Y" },
       texte:
         "La calculatrice donne le **cumul** $F(k) = P(X \\leqslant k)$ : toutes les valeurs de $0$ à $k$ incluses.\n\n" +
         "- $P(X \\geqslant k) = 1 - P(X \\leqslant k - 1)$.\n" +
@@ -109,6 +111,7 @@ window.CHAPITRES["terminale-lois-discretes"] = {
     },
     {
       titre: "Absence de mémoire et choix du modèle",
+      video: { titre: "Vidéo de ton prof : loi géométrique et absence de mémoire (cours 4/4)", youtube: "https://youtu.be/Lp19Rs3SHRs" },
       texte:
         "La loi géométrique est **sans mémoire** : après $s$ échecs, attendre encore plus de $t$ essais a la même probabilité qu'au départ.\n\n" +
         "$P_{T > s}(T > s + t) = P(T > t)$\n\n" +

@@ -21,6 +21,7 @@ window.CHAPITRES["seconde-ensembles"] = {
   cours: [
     {
       titre: "Les ensembles de nombres",
+      video: { titre: "Vidéo d'Yvan Monka : reconnaître la nature d'un nombre", youtube: "https://youtu.be/pKxTaiqnyHg" },
       texte:
         "- $\\mathbb{N}$ : les **entiers naturels** $0$, $1$, $2$, $3$…\n" +
         "- $\\mathbb{Z}$ : les **entiers relatifs**, positifs ou négatifs : $-3$, $0$, $12$…\n" +
@@ -36,6 +37,7 @@ window.CHAPITRES["seconde-ensembles"] = {
     },
     {
       titre: "Décimal ou pas ?",
+      video: { titre: "Vidéo d'Yvan Monka : démontrer que 1/3 n'est pas décimal", youtube: "https://youtu.be/SHRo1ISyIXI" },
       texte:
         "Un nombre **décimal** s'écrit $\\dfrac{a}{10^n}$ avec $a$ entier : $2{,}35 = \\dfrac{235}{100}$.\n\n" +
         "Une fraction **irréductible** est un décimal si et seulement si son dénominateur n'a **que $2$ et $5$** comme facteurs premiers.\n\n" +
@@ -48,6 +50,7 @@ window.CHAPITRES["seconde-ensembles"] = {
     },
     {
       titre: "Les nombres irrationnels",
+      video: { titre: "Vidéo d'Yvan Monka : démontrer que √2 est irrationnel", youtube: "https://youtu.be/oRcTlNh1Sjc" },
       texte:
         "Un réel qui n'est pas rationnel est dit **irrationnel** : il ne s'écrit pas comme un quotient de deux entiers.\n\n" +
         "- $\\sqrt{2}$ est irrationnel (on le démontre par l'absurde).\n" +
@@ -61,6 +64,7 @@ window.CHAPITRES["seconde-ensembles"] = {
     },
     {
       titre: "Les intervalles",
+      video: { titre: "Vidéo d'Yvan Monka : le cours sur les intervalles", youtube: "https://youtu.be/mvJy4LVCmRI" },
       texte:
         "Un **intervalle** est un ensemble de réels « sans trou » entre deux bornes.\n\n" +
         "- $a \\leqslant x \\leqslant b \\iff x \\in [a\\,;b]$\n" +
@@ -77,6 +81,7 @@ window.CHAPITRES["seconde-ensembles"] = {
     },
     {
       titre: "Intersection et réunion",
+      video: { titre: "Vidéo d'Yvan Monka : QCM sur les intervalles", youtube: "https://youtu.be/wSRDSD6-mhg" },
       texte:
         "Soit $I$ et $J$ deux intervalles.\n\n" +
         "- $I \\cap J$ (« $I$ **inter** $J$ ») : les réels qui sont **à la fois** dans $I$ et dans $J$. C'est la partie commune.\n" +
@@ -90,6 +95,7 @@ window.CHAPITRES["seconde-ensembles"] = {
     },
     {
       titre: "Valeur absolue et distance",
+      video: { titre: "Vidéo d'Yvan Monka : le cours sur la valeur absolue", youtube: "https://youtu.be/5-rUuceEgAE" },
       texte:
         "La **valeur absolue** de $x$, notée $|x|$, est sa distance à $0$ : $|x| = x$ si $x \\geqslant 0$, et $|x| = -x$ si $x < 0$.\n\n" +
         "- $|a - b|$ est la **distance** entre les nombres $a$ et $b$ sur la droite graduée. Elle n'est jamais négative.\n" +

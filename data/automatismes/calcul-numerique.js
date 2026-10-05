@@ -22,6 +22,7 @@ window.CHAPITRES["auto-calcul-numerique"] = {
   cours: [
     {
       titre: "Comparer deux nombres (CN01)",
+      video: { titre: "Vidéo de ton prof : comparer deux nombres", youtube: "https://youtu.be/qt6CzZFcV3s" },
       texte:
         "- **Par la différence** : $a - b > 0 \\iff a > b$, et $a - b < 0 \\iff a < b$.\n" +
         "- **Par le quotient**, si $a$ et $b$ sont strictement positifs : $\\dfrac{a}{b} > 1 \\iff a > b$.\n" +
@@ -47,6 +48,7 @@ window.CHAPITRES["auto-calcul-numerique"] = {
     },
     {
       titre: "Puissances (CN03)",
+      video: { titre: "Vidéo de ton prof : puissances et écriture scientifique", youtube: "https://youtu.be/DKvTtv77YIw" },
       texte:
         "- $a^m \\times a^n = a^{m+n}$, $\\dfrac{a^m}{a^n} = a^{m-n}$, $(a^m)^n = a^{mn}$.\n" +
         "- $a^0 = 1$ et $a^{-n} = \\dfrac{1}{a^n}$ (pour $a \\neq 0$).\n" +
@@ -59,6 +61,7 @@ window.CHAPITRES["auto-calcul-numerique"] = {
     },
     {
       titre: "Décimal, fraction, pourcentage (CN04)",
+      video: { titre: "Vidéo d'Yvan Monka : passer de la fraction à l'écriture décimale", youtube: "https://youtu.be/n_x3EAigoB0" },
       texte:
         "- Un même nombre a plusieurs écritures : $\\dfrac{3}{4} = 0{,}75 = 75\\,\\%$.\n" +
         "- Fraction → décimal : on divise le numérateur par le dénominateur.\n" +
@@ -83,6 +86,7 @@ window.CHAPITRES["auto-calcul-numerique"] = {
     },
     {
       titre: "Conversions d'unités (CN07)",
+      video: { titre: "Vidéo de ton prof : conversions d'unités", youtube: "https://youtu.be/ZmsrIiQvadQ" },
       texte:
         "- Longueurs : $\\times 10$ d'une unité à la suivante. Aires : $\\times 100$. Volumes : $\\times 1\\,000$.\n" +
         "- $1$ dm³ $= 1$ L, $1$ m³ $= 1\\,000$ L, $1$ ha $= 10\\,000$ m².\n" +

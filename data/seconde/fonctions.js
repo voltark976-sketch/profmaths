@@ -36,6 +36,7 @@ window.CHAPITRES["seconde-fonctions"] = {
   cours: [
     {
       titre: "Qu'est-ce qu'une fonction ?",
+      video: { titre: "Vidéo de ton prof : généralités sur les fonctions, cours complet", youtube: "https://youtu.be/FYTU8j_1Nxg" },
       texte:
         "Une **fonction** $f$ associe à chaque nombre $x$ de son ensemble de définition un **unique** nombre, noté $f(x)$.\n\n" +
         "- $f(x)$ est l'**image** de $x$ par $f$.\n" +
@@ -48,6 +49,7 @@ window.CHAPITRES["seconde-fonctions"] = {
     },
     {
       titre: "L'ensemble de définition",
+      video: { titre: "Vidéo de ton prof : valeur interdite, image et antécédent", youtube: "https://youtu.be/kDgEr5qJj0Q" },
       texte:
         "L'**ensemble de définition** $D$ de $f$ regroupe tous les nombres $x$ qui ont une image.\n\n" +
         "- Un quotient n'existe que si son **dénominateur est non nul**.\n" +
@@ -59,6 +61,7 @@ window.CHAPITRES["seconde-fonctions"] = {
     },
     {
       titre: "Calculer une image, dresser un tableau de valeurs",
+      video: { titre: "Vidéo d'Yvan Monka : déterminer une image ou un antécédent", youtube: "https://youtu.be/vl0nOQT_czU" },
       texte:
         "Pour calculer $f(a)$, on vérifie que $a \\in D$ puis on **remplace $x$ par $a$** dans l'expression.\n\n" +
         "Un **tableau de valeurs** rassemble plusieurs images calculées ainsi.",
@@ -74,6 +77,7 @@ window.CHAPITRES["seconde-fonctions"] = {
     },
     {
       titre: "La courbe représentative",
+      video: { titre: "Vidéo de ton prof : généralités sur les fonctions, cours complet", youtube: "https://youtu.be/FYTU8j_1Nxg" },
       texte:
         "La **courbe** $\\mathcal{C}_f$ est l'ensemble des points $M(x\\,;f(x))$ avec $x \\in D$.\n\n" +
         "Un point $M(a\\,;b)$ appartient à $\\mathcal{C}_f$ si et seulement si $a \\in D$ **et** $f(a) = b$.\n\n" +
@@ -85,6 +89,7 @@ window.CHAPITRES["seconde-fonctions"] = {
     },
     {
       titre: "Lire une image et des antécédents sur une courbe",
+      video: { titre: "Vidéo d'Yvan Monka : lire une image ou un antécédent", youtube: "https://youtu.be/VM2iC9P3Qmg" },
       texte:
         "- **Image de $a$** : on part de $a$ sur l'axe des abscisses, on monte (ou on descend) jusqu'à la courbe, puis on lit l'ordonnée.\n" +
         "- **Antécédents de $k$** : on trace la droite horizontale $y = k$ et on lit les abscisses de tous les points d'intersection avec la courbe.",
@@ -96,6 +101,7 @@ window.CHAPITRES["seconde-fonctions"] = {
     },
     {
       titre: "Résoudre graphiquement une équation ou une inéquation",
+      video: { titre: "Vidéo de ton prof : résoudre graphiquement équations et inéquations", youtube: "https://youtu.be/M1WsNoPcego" },
       texte:
         "- $f(x) = k$ : abscisses des points de $\\mathcal{C}_f$ situés **sur** la droite $y = k$.\n" +
         "- $f(x) > k$ : abscisses des points de $\\mathcal{C}_f$ situés **strictement au-dessus** de $y = k$.\n" +
@@ -112,6 +118,7 @@ window.CHAPITRES["seconde-fonctions"] = {
     },
     {
       titre: "Résoudre $f(x) = g(x)$ ou $f(x) < g(x)$ par le calcul",
+      video: { titre: "Vidéo d'Yvan Monka : le cours sur les inéquations", youtube: "https://youtu.be/kbTWwWQ9tYo" },
       texte:
         "On écrit l'équation $f(x) = g(x)$ et on la résout :\n\n" +
         "- on regroupe les $x$ d'un côté et les nombres de l'autre (équation du premier degré) ;\n" +
@@ -125,6 +132,7 @@ window.CHAPITRES["seconde-fonctions"] = {
     },
     {
       titre: "Fonctions paires",
+      video: { titre: "Vidéo d'Yvan Monka : fonction paire, fonction impaire (cours)", youtube: "https://youtu.be/DUbAkwCX8O8" },
       texte:
         "Une fonction $f$ définie sur $D$ est **paire** si :\n\n" +
         "- $D$ est **symétrique par rapport à $0$** (si $x \\in D$, alors $-x \\in D$) ;\n" +
@@ -139,6 +147,7 @@ window.CHAPITRES["seconde-fonctions"] = {
     },
     {
       titre: "Fonctions impaires",
+      video: { titre: "Vidéo d'Yvan Monka : démontrer qu'une fonction n'est ni paire ni impaire", youtube: "https://youtu.be/Mtyywrp6F8s" },
       texte:
         "Une fonction $f$ définie sur $D$ est **impaire** si :\n\n" +
         "- $D$ est **symétrique par rapport à $0$** ;\n" +
@@ -156,10 +165,10 @@ window.CHAPITRES["seconde-fonctions"] = {
 
   /* Les 4 exercices des PDF, corrigés en vidéo */
   videos: [
-    { titre: "Exercice 1 · Location de kayaks dans le lagon", type: "Lecture et calcul", youtube: "" },
-    { titre: "Exercice 2 · Tout par le calcul", type: "Bilan", youtube: "" },
-    { titre: "Exercice 3 · Tout par le graphique", type: "Bilan", youtube: "" },
-    { titre: "Exercice 4 · L'enclos des cabris", type: "Synthèse", youtube: "" }
+    { titre: "Exercice 1 · Location de kayaks dans le lagon", type: "Lecture et calcul", youtube: "https://youtu.be/p03kXQ2bVXU" },
+    { titre: "Exercice 2 · Tout par le calcul", type: "Bilan", youtube: "https://youtu.be/kDgEr5qJj0Q" },
+    { titre: "Exercice 3 · Tout par le graphique", type: "Bilan", youtube: "https://youtu.be/M1WsNoPcego" },
+    { titre: "Exercice 4 · L'enclos des cabris", type: "Synthèse", youtube: "https://youtu.be/LeM5BO2az9w" }
   ],
 
   /* ---------- 2. EXERCICES INTERACTIFS ----------
