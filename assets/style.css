@@ -360,3 +360,4 @@ table.valeurs { border-collapse: collapse; background: var(--surface); font-vari
 @media (min-width: 760px) { .jeu { max-width: 46rem; } }
 @media (max-width: 380px) { .marque-t { display: none; } }
 @media (prefers-reduced-motion: reduce) { .combo { animation: none; } .chrono span { transition: none; } }
+.panneau .jeu { min-height: 100vh; min-height: 100dvh; }
