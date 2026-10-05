@@ -105,6 +105,34 @@ window.CHAPITRES["premiere-suites"] = {
         enonce: "Avec $u_n = 800 \\times 0{,}85^n$, à partir de quelle année la masse de plastique passe-t-elle sous $200$ kg ?",
         solution: "À la calculatrice : $u_8 \\approx 218$ et $u_9 \\approx 185$. Le seuil est $n = 9$, soit en **2035**."
       }
+    },
+    {
+      titre: "Programmes Python",
+      texte:
+        "Trois programmes à savoir lire et compléter, pour la suite $u_0 = 500$ et $u_{n+1} = 0{,}9u_n + 20$.\n\n" +
+        "**Calculer le terme** $u_n$ : la boucle « for » répète la ligne $n$ fois.\n\n" +
+        "```python\ndef terme(n):\n    u = 500\n    for i in range(n):\n        u = 0.9 * u + 20\n    return u\n```\n\n" +
+        "**Calculer la somme** $u_0 + u_1 + \\dots + u_n$ : on part de $s = u_0$ et on ajoute chaque nouveau terme.\n\n" +
+        "```python\ndef somme(n):\n    u = 500\n    s = u\n    for i in range(n):\n        u = 0.9 * u + 20\n        s = s + u\n    return s\n```\n\n" +
+        "**Chercher un seuil** : le plus petit $n$ tel que $u_n < 300$. La boucle « while » continue **tant que** la condition est vraie.\n\n" +
+        "```python\ndef seuil():\n    u = 500\n    n = 0\n    while u >= 300:\n        u = 0.9 * u + 20\n        n = n + 1\n    return n\n```",
+      video: { titre: "Vidéo d'Yvan Monka : déterminer un seuil pour une suite avec Python", youtube: "https://youtu.be/vJmpzwhaka8" },
+      exemple: {
+        enonce: "Que renvoie terme(3) ? Et seuil() ?",
+        solution: "terme(3) : la boucle tourne $3$ fois. $u$ vaut $470$, puis $443$, puis $418{,}7$. La fonction renvoie $418{,}7$, c'est $u_3$.\n\nseuil() : $u_{10} \\approx 304{,}6$ et $u_{11} \\approx 294{,}1$. La boucle s'arrête quand $u < 300$, après $11$ passages : seuil() renvoie $11$."
+      }
+    },
+    {
+      titre: "Démonstrations à connaître",
+      texte:
+        "**Somme des entiers.** Soit $S = 1 + 2 + \\dots + n$. On l'écrit aussi à l'envers : $S = n + (n - 1) + \\dots + 1$. En additionnant les deux lignes terme à terme, chaque colonne vaut $n + 1$, et il y a $n$ colonnes : $2S = n(n + 1)$, donc $S = \\dfrac{n(n + 1)}{2}$.\n\n" +
+        "**Somme des puissances** ($q \\neq 1$). Soit $S = 1 + q + q^2 + \\dots + q^n$. On multiplie par $q$ : $qS = q + q^2 + \\dots + q^n + q^{n+1}$. En soustrayant, tous les termes du milieu disparaissent : $S - qS = 1 - q^{n+1}$, soit $(1 - q)S = 1 - q^{n+1}$. Comme $q \\neq 1$, on divise par $1 - q$ : $S = \\dfrac{1 - q^{n+1}}{1 - q}$.\n\n" +
+        "**Terme général.** Suite arithmétique : de $u_0$ à $u_n$, on ajoute $n$ fois la raison, donc $u_n = u_0 + nr$. Suite géométrique : on multiplie $n$ fois par $q$, donc $u_n = u_0 \\times q^n$.",
+      video: { titre: "Vidéo d'Yvan Monka : démonstration de la somme des termes d'une suite géométrique", youtube: "https://youtu.be/7msY7aEe084" },
+      exemple: {
+        enonce: "Calculer $1 + 2 + \\dots + 100$, puis $1 + 2 + 2^2 + \\dots + 2^{10}$.",
+        solution: "$1 + 2 + \\dots + 100 = \\dfrac{100 \\times 101}{2} = 5\\,050$.\n\n$1 + 2 + \\dots + 2^{10} = \\dfrac{1 - 2^{11}}{1 - 2} = \\dfrac{1 - 2\\,048}{-1} = 2\\,047$."
+      }
     }
   ],
 
@@ -118,6 +146,7 @@ window.CHAPITRES["premiere-suites"] = {
     { type: "suite-geometrique", titre: "Suites géométriques", etape: "Arithmétique et géométrique", nb: 5 },
     { type: "suite-nature", titre: "Arithmétique, géométrique ou ni l'un ni l'autre ?", etape: "Arithmétique et géométrique", nb: 5 },
     { type: "suite-variation", titre: "Sens de variation", etape: "Variations et limites", nb: 5 },
+    { type: "suite-python", titre: "Que renvoie ce programme Python ?", etape: "Algorithmique", nb: 5 },
     { type: "suite-somme", titre: "Sommes de termes", etape: "Défi", nb: 4 },
     { type: "suite-seuil", titre: "Chercher un seuil", etape: "Défi", nb: 4 }
   ],
@@ -213,6 +242,18 @@ window.CHAPITRES["premiere-suites"] = {
       choix: ["$3$", "$4$", "$5$", "$10$"],
       bonne: 1,
       explication: "$u_3 = 800 \\leqslant 1\\,000$ et $u_4 = 1\\,600 > 1\\,000$ : le seuil est $n = 4$."
+    },
+    {
+      question: "En Python, combien de fois la boucle « for i in range(5): » est-elle répétée ?",
+      choix: ["$4$ fois", "$5$ fois", "$6$ fois", "Tant que $i < 5$, sans fin"],
+      bonne: 1,
+      explication: "« range(5) » donne $0$, $1$, $2$, $3$, $4$ : cinq passages."
+    },
+    {
+      question: "Pour démontrer que $1 + q + \\dots + q^n = \\dfrac{1 - q^{n+1}}{1 - q}$, on calcule :",
+      choix: ["$S - qS$", "$S + qS$", "$S \\times S$", "$2S$"],
+      bonne: 0,
+      explication: "$S - qS = 1 - q^{n+1}$ : tous les termes du milieu se simplifient. On écrit $S + S$ à l'envers pour la somme $1 + 2 + \\dots + n$."
     }
   ],
 
@@ -263,6 +304,16 @@ window.CHAPITRES["premiere-suites"] = {
         "Conclure dans le contexte (année, semaine…)."
       ],
       exemple: "$u_n = 50 \\times 1{,}2^n > 200$ : $u_7 \\approx 179$ et $u_8 \\approx 215$, donc $n = 8$."
+    },
+    {
+      titre: "Lire un programme Python",
+      etapes: [
+        "Repérer les variables et leur valeur de départ.",
+        "Faire un tableau : une colonne par variable, une ligne par passage dans la boucle.",
+        "« for i in range(n) » : exactement $n$ passages. « while condition » : on continue tant que la condition est vraie.",
+        "La fonction renvoie la variable écrite après « return »."
+      ],
+      exemple: "$u = 3$, puis « u = 2 * u » tant que $u < 100$ : $3$, $6$, $12$, $24$, $48$, $96$, $192$. Six passages : le seuil est $n = 6$."
     }
   ],
   erreurs: [
@@ -272,6 +323,7 @@ window.CHAPITRES["premiere-suites"] = {
     "Prendre le taux pour la raison : une hausse de $5\\,\\%$ donne $q = 1{,}05$, pas $0{,}05$.",
     "Conclure qu'une suite est arithmétique en vérifiant seulement les deux premières différences.",
     "Se tromper dans le nombre de termes d'une somme : de $u_0$ à $u_n$, il y en a $n + 1$.",
-    "Relier les points du nuage d'une suite comme pour une courbe de fonction."
+    "Relier les points du nuage d'une suite comme pour une courbe de fonction.",
+    "Dans un programme de seuil, renvoyer $u$ au lieu de $n$ : la question porte sur le rang."
   ]
 };

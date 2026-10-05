@@ -80,6 +80,23 @@ window.CHAPITRES["premiere-second-degre"] = {
       }
     },
     {
+      titre: "Démonstration : d'où viennent les formules ?",
+      texte:
+        "On part de $f(x) = ax^2 + bx + c$ avec $a \\neq 0$, et on met $a$ en facteur : $f(x) = a\\left(x^2 + \\dfrac{b}{a}x\\right) + c$.\n\n" +
+        "- On **complète le carré** : $x^2 + \\dfrac{b}{a}x = \\left(x + \\dfrac{b}{2a}\\right)^2 - \\dfrac{b^2}{4a^2}$.\n" +
+        "- Donc $f(x) = a\\left(x + \\dfrac{b}{2a}\\right)^2 - \\dfrac{b^2}{4a} + c = a\\left(x + \\dfrac{b}{2a}\\right)^2 - \\dfrac{b^2 - 4ac}{4a}$.\n\n" +
+        "C'est la **forme canonique**, avec $\\alpha = -\\dfrac{b}{2a}$ et $\\beta = -\\dfrac{\\Delta}{4a}$ où $\\Delta = b^2 - 4ac$.\n\n" +
+        "En divisant par $a$, l'équation $f(x) = 0$ devient $\\left(x + \\dfrac{b}{2a}\\right)^2 = \\dfrac{\\Delta}{4a^2}$ :\n\n" +
+        "- si $\\Delta < 0$ : un carré n'est jamais négatif, il n'y a **aucune solution** ;\n" +
+        "- si $\\Delta = 0$ : $x + \\dfrac{b}{2a} = 0$, une seule solution $x_0 = -\\dfrac{b}{2a}$ ;\n" +
+        "- si $\\Delta > 0$ : $x + \\dfrac{b}{2a} = \\pm\\dfrac{\\sqrt{\\Delta}}{2a}$, d'où $x = \\dfrac{-b \\pm \\sqrt{\\Delta}}{2a}$.",
+      video: { titre: "Vidéo d'Yvan Monka : démonstration des solutions d'une équation du second degré", youtube: "https://youtu.be/7VFpZ63Tgis" },
+      exemple: {
+        enonce: "Complète le carré pour écrire $x^2 + 6x + 5$ sous forme canonique, puis résous $x^2 + 6x + 5 = 0$ sans discriminant.",
+        solution: "$x^2 + 6x = (x + 3)^2 - 9$, donc $x^2 + 6x + 5 = (x + 3)^2 - 4$.\n\n$(x + 3)^2 = 4 \\iff x + 3 = 2$ ou $x + 3 = -2 \\iff x = -1$ ou $x = -5$."
+      }
+    },
+    {
       titre: "Forme factorisée, somme et produit des racines",
       texte:
         "- Si $\\Delta > 0$ : $f(x) = a(x - x_1)(x - x_2)$. Si $\\Delta = 0$ : $f(x) = a(x - x_0)^2$. Si $\\Delta < 0$ : pas de factorisation en facteurs du premier degré réels.\n" +
@@ -149,6 +166,7 @@ window.CHAPITRES["premiere-second-degre"] = {
     { type: "sd-canonique-construire", titre: "Trouver la forme canonique", etape: "Forme canonique", nb: 5 },
     { type: "sd-variations", titre: "Variations d'une fonction du second degré", etape: "Forme canonique", nb: 5 },
     { type: "sd-sommet", titre: "Sommet et extremum depuis les racines", etape: "Forme canonique", nb: 4 },
+    { type: "sd-completer-carre", titre: "Compléter le carré", etape: "Forme canonique", nb: 5 },
     { type: "sd-discriminant", titre: "Calculer un discriminant", etape: "Discriminant et équations", nb: 5 },
     { type: "sd-nb-racines", titre: "Combien de racines ?", etape: "Discriminant et équations", nb: 5 },
     { type: "sd-resoudre", titre: "Résoudre une équation du second degré", etape: "Discriminant et équations", nb: 6 },
@@ -282,6 +300,12 @@ window.CHAPITRES["premiere-second-degre"] = {
       choix: ["$(9x - 25)(9x + 25)$", "$(3x - 5)^2$", "$(3x - 5)(3x + 5)$", "$9(x - 5)(x + 5)$"],
       bonne: 2,
       explication: "$a^2 - b^2 = (a - b)(a + b)$ avec $a = 3x$ et $b = 5$."
+    },
+    {
+      question: "Dans la forme canonique $f(x) = a(x - \\alpha)^2 + \\beta$ de $ax^2 + bx + c$, on a $\\beta =$ :",
+      choix: ["$-\\dfrac{\\Delta}{4a}$", "$-\\dfrac{b}{2a}$", "$\\dfrac{\\Delta}{4a}$", "$b^2 - 4ac$"],
+      bonne: 0,
+      explication: "En complétant le carré : $f(x) = a\\left(x + \\dfrac{b}{2a}\\right)^2 - \\dfrac{b^2 - 4ac}{4a}$, donc $\\beta = -\\dfrac{\\Delta}{4a}$. $-\\dfrac{b}{2a}$, c'est $\\alpha$."
     }
   ],
 

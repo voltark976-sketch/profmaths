@@ -35,45 +35,56 @@
 
   /* ---------- Graphiques SVG ---------- */
   function graph(o) {
-    const W = 320, pad = 14;
+    const W = 320, pad = 14, padL = o.padL || pad, padB = o.padB || pad; // marges de gauche et du bas, pour les nombres des axes
     const xstep = o.xstep || 1, ystep = o.ystep || 1;
     const spanX = o.xmax - o.xmin, spanY = o.ymax - o.ymin;
-    const ux = (W - 2 * pad) / spanX;
-    let H = o.h || Math.round(ux * spanY * (xstep / ystep) + 2 * pad);
+    const ux = (W - padL - pad) / spanX;
+    let H = o.h || Math.round(ux * spanY * (xstep / ystep) + pad + padB);
     H = Math.max(200, Math.min(400, H));
-    const uy = (H - 2 * pad) / spanY;
-    const X = (x) => +(pad + (x - o.xmin) * ux).toFixed(1);
+    const uy = (H - pad - padB) / spanY;
+    const X = (x) => +(padL + (x - o.xmin) * ux).toFixed(1);
     const Y = (y) => +(pad + (o.ymax - y) * uy).toFixed(1);
     let s = `<svg class="graph" viewBox="0 0 ${W} ${H}" role="img" aria-label="${o.aria || "Courbe dans un repère"}">`;
     // quadrillage
     s += `<g class="g-grid">`;
-    for (let x = Math.ceil(o.xmin / xstep) * xstep; x <= o.xmax; x += xstep) s += `<line x1="${X(x)}" y1="${pad}" x2="${X(x)}" y2="${H - pad}"/>`;
-    for (let y = Math.ceil(o.ymin / ystep) * ystep; y <= o.ymax; y += ystep) s += `<line x1="${pad}" y1="${Y(y)}" x2="${W - pad}" y2="${Y(y)}"/>`;
+    for (let x = Math.ceil(o.xmin / xstep) * xstep; x <= o.xmax; x += xstep) s += `<line x1="${X(x)}" y1="${pad}" x2="${X(x)}" y2="${H - padB}"/>`;
+    for (let y = Math.ceil(o.ymin / ystep) * ystep; y <= o.ymax; y += ystep) s += `<line x1="${padL}" y1="${Y(y)}" x2="${W - pad}" y2="${Y(y)}"/>`;
     s += `</g>`;
     // axes
     const x0 = Math.min(Math.max(0, o.xmin), o.xmax), y0 = Math.min(Math.max(0, o.ymin), o.ymax);
-    s += `<g class="g-axis"><line x1="${pad}" y1="${Y(y0)}" x2="${W - pad}" y2="${Y(y0)}"/><line x1="${X(x0)}" y1="${pad}" x2="${X(x0)}" y2="${H - pad}"/>`;
+    // histogramme : rectangles de a à b, de hauteur h (sous les axes et les étiquettes)
+    (o.rects || []).forEach((r) => { s += `<rect class="g-rect" x="${X(r.a)}" y="${Y(r.h)}" width="${+(X(r.b) - X(r.a)).toFixed(1)}" height="${+(Y(y0) - Y(r.h)).toFixed(1)}"/>`; });
+    // si l'origine n'est pas 0 sur un axe, l'autre axe s'arrête à l'origine
+    const axG = y0 !== 0 && x0 > o.xmin ? X(x0) : padL, axB = x0 !== 0 && y0 > o.ymin ? Y(y0) : H - padB;
+    s += `<g class="g-axis"><line x1="${axG}" y1="${Y(y0)}" x2="${W - pad}" y2="${Y(y0)}"/><line x1="${X(x0)}" y1="${pad}" x2="${X(x0)}" y2="${axB}"/>`;
     s += `<path d="M${W - pad} ${Y(y0)} l-6 -3.5 v7z"/><path d="M${X(x0)} ${pad} l-3.5 6 h7z"/></g>`;
-    // graduations
+    // graduations (xetiq / yetiq : un nombre écrit toutes les k unités, par défaut à chaque graduation)
+    const xetiq = o.xetiq || xstep, yetiq = o.yetiq || ystep;
+    const gy = X(x0) - ((o.bars || []).some((b) => b.x === x0) ? 8 : 4); // nombres de l'axe vertical, décalés si un bâton est sur l'axe
     s += `<g class="g-tick">`;
-    for (let x = Math.ceil(o.xmin / xstep) * xstep; x <= o.xmax - xstep / 2; x += xstep) {
+    for (let x = Math.ceil(o.xmin / xetiq) * xetiq; x <= o.xmax - xstep / 2; x += xetiq) {
       if (x === 0) continue;
       s += `<text x="${X(x)}" y="${Y(y0) + 13}" text-anchor="middle">${String(+x.toFixed(6)).replace("-", "−").replace(".", ",")}</text>`;
     }
-    for (let y = Math.ceil(o.ymin / ystep) * ystep; y <= o.ymax - ystep / 2; y += ystep) {
+    for (let y = Math.ceil(o.ymin / yetiq) * yetiq; y <= o.ymax - ystep / 2; y += yetiq) {
       if (y === 0) continue;
-      s += `<text x="${X(x0) - 4}" y="${Y(y) + 4}" text-anchor="end">${String(+y.toFixed(6)).replace("-", "−").replace(".", ",")}</text>`;
+      s += `<text x="${gy}" y="${Y(y) + 4}" text-anchor="end">${String(+y.toFixed(6)).replace("-", "−").replace(".", ",")}</text>`;
     }
-    s += `<text x="${X(x0) - 4}" y="${Y(y0) + 13}" text-anchor="end">0</text></g>`;
+    // le 0 : au coin si l'origine est (0 ; 0), sinon sur l'axe où il se trouve
+    if (x0 === 0 && y0 === 0) s += `<text x="${X(x0) - 4}" y="${Y(y0) + 13}" text-anchor="end">0</text>`;
+    else if (x0 === 0) s += `<text x="${X(0)}" y="${Y(y0) + 13}" text-anchor="middle">0</text>`;
+    else if (y0 === 0) s += `<text x="${gy}" y="${Y(0) + 4}" text-anchor="end">0</text>`;
+    s += `</g>`;
     if (o.xlabel) s += `<text class="g-label" x="${W - pad}" y="${Y(y0) - 6}" text-anchor="end">${o.xlabel}</text>`;
     if (o.ylabel) s += `<text class="g-label" x="${X(x0) + 6}" y="${pad + 8}">${o.ylabel}</text>`;
     // droites horizontales
     (o.hlines || []).forEach((h) => {
-      s += `<line class="g-hline" x1="${pad}" y1="${Y(h.y)}" x2="${W - pad}" y2="${Y(h.y)}"/>`;
+      s += `<line class="g-hline" x1="${padL}" y1="${Y(h.y)}" x2="${W - pad}" y2="${Y(h.y)}"/>`;
       if (h.label) s += `<text class="g-hlabel" x="${W - pad - 2}" y="${Y(h.y) - 5}" text-anchor="end">${h.label}</text>`;
     });
     // diagramme en bâtons
-    (o.bars || []).forEach((b) => { s += `<line class="g-bar" x1="${X(b.x)}" y1="${Y(0)}" x2="${X(b.x)}" y2="${Y(b.y)}"/>`; });
+    (o.bars || []).forEach((b) => { s += `<line class="g-bar" x1="${X(b.x)}" y1="${Y(y0)}" x2="${X(b.x)}" y2="${Y(b.y)}"/>`; });
+    (o.marques || []).forEach((m) => { s += `<text class="g-label" x="${X(m.x)}" y="${Y(m.y)}" text-anchor="middle">${m.texte}</text>`; });
     // courbes
     (o.curves || []).forEach((c, i) => {
       const n = 160; let d = "";
@@ -1045,6 +1056,59 @@
     };
   };
 
+  // Lire un programme Python : terme, somme, seuil, factorielle
+  GEN["suite-python"] = function () {
+    const t = rand(0, 3);
+    const bloc = (lignes) => "```python\n" + lignes.join("\n") + "\n```";
+    if (t === 0) {
+      let u0, a, b; do { u0 = rand(1, 5); a = pick([2, 3]); b = pick([-2, -1, 1, 2, 3]); } while (a * u0 + b === u0); // pas de suite constante
+      const n = rand(2, 4);
+      const vals = [u0]; for (let i = 0; i < n; i++) vals.push(a * vals[i] + b);
+      const maj = `u = ${a} * u ${b < 0 ? "-" : "+"} ${Math.abs(b)}`;
+      return {
+        enonce: `Voici une fonction Python.\n\n${bloc(["def terme(n):", `    u = ${u0}`, "    for i in range(n):", `        ${maj}`, "    return u"])}\n\nQue renvoie terme(${n}) ?`,
+        mode: "nombre", prefixe: "Réponse :", attendu: vals[n],
+        erreurs: [{ valeur: vals[n - 1], message: `La boucle tourne $${n}$ fois, pas $${n - 1}$.` }, { valeur: a * vals[n] + b, message: `« range(${n}) » fait exactement $${n}$ passages.` }],
+        aides: [`Au départ, $u = ${u0}$. « for i in range(${n}) » répète la ligne « ${maj} » $${n}$ fois.`, `Premier passage : $u = ${a} \\times ${u0} ${sg(b)} = ${vals[1]}$.`, `Les valeurs successives de $u$ : $${vals.join(" ; ")}$.`],
+        solution: `$u$ prend les valeurs $${vals.join(" ; ")}$. Après $${n}$ passages, la fonction renvoie $${vals[n]}$ : c'est $u_{${n}}$ pour la suite $u_0 = ${u0}$, $u_{n+1} = ${a}u_n ${sg(b)}$.`
+      };
+    }
+    if (t === 1) {
+      const u0 = rand(1, 6), r = rand(2, 5), n = rand(2, 4);
+      const vals = [u0]; for (let i = 0; i < n; i++) vals.push(vals[i] + r);
+      const S = vals.reduce((x, y) => x + y);
+      return {
+        enonce: `Voici une fonction Python.\n\n${bloc(["def somme(n):", `    u = ${u0}`, "    s = u", "    for i in range(n):", `        u = u + ${r}`, "        s = s + u", "    return s"])}\n\nQue renvoie somme(${n}) ?`,
+        mode: "nombre", prefixe: "Réponse :", attendu: S,
+        erreurs: [{ valeur: S - u0, message: `N'oublie pas le premier terme : « s = u » met $${u0}$ dans $s$ dès le départ.` }, { valeur: vals[n], message: "Ça, c'est la valeur finale de $u$. La fonction renvoie $s$." }],
+        aides: [`Au départ, $u = ${u0}$ et $s = ${u0}$.`, `À chaque passage, $u$ augmente de $${r}$, puis on l'ajoute à $s$.`, `Les valeurs de $u$ : $${vals.join(" ; ")}$. Additionne-les.`],
+        solution: `$s = ${vals.join(" + ")} = ${S}$ : c'est la somme $u_0 + \\dots + u_{${n}}$ de la suite arithmétique de premier terme $${u0}$ et de raison $${r}$.`
+      };
+    }
+    if (t === 2) {
+      const up = Math.random() < 0.6;
+      const u0 = up ? rand(2, 6) : pick([800, 1000, 1200]), q = up ? pick([2, 3]) : 2, A = up ? pick([50, 100, 200]) : pick([20, 50, 100]);
+      const vals = [u0]; let n = 0;
+      while (up ? vals[n] < A : vals[n] > A) { vals.push(up ? vals[n] * q : vals[n] / q); n++; }
+      const cond = up ? `u < ${A}` : `u > ${A}`, maj = up ? `u = ${q} * u` : "u = u / 2";
+      return {
+        enonce: `Voici une fonction Python.\n\n${bloc(["def seuil():", `    u = ${u0}`, "    n = 0", `    while ${cond}:`, `        ${maj}`, "        n = n + 1", "    return n"])}\n\nQue renvoie seuil() ?`,
+        mode: "nombre", prefixe: "Réponse :", attendu: n,
+        erreurs: [{ valeur: vals[n], message: "Ça, c'est la valeur finale de $u$. La fonction renvoie $n$, le nombre de passages." }, { valeur: n - 1, message: `La boucle continue tant que « ${cond} » : vérifie le dernier passage.` }],
+        aides: [`« while ${cond} » : on répète tant que la condition est vraie.`, `Les valeurs de $u$ : $${vals.slice(0, 3).map(nbr).join(" ; ")}$…`, `Continue jusqu'à ce que $u ${up ? "\\geqslant" : "\\leqslant"} ${A}$, en comptant les passages.`],
+        solution: `$u$ prend les valeurs $${vals.map(nbr).join(" ; ")}$. La condition devient fausse après $${n}$ passages : seuil() renvoie $${n}$.`
+      };
+    }
+    const n = rand(3, 6), f = [1, 1, 2, 6, 24, 120, 720][n];
+    return {
+      enonce: `Voici une fonction Python.\n\n${bloc(["def f(n):", "    p = 1", "    for i in range(1, n + 1):", "        p = p * i", "    return p"])}\n\nQue renvoie f(${n}) ?`,
+      mode: "nombre", prefixe: "Réponse :", attendu: f,
+      erreurs: [{ valeur: f / n, message: `« range(1, ${n} + 1) » va de $1$ à $${n}$ inclus.` }],
+      aides: ["« range(1, n + 1) » donne les entiers de $1$ à $n$.", "$p$ est multiplié successivement par $1$, $2$, $3$…", `$f(${n}) = ${Array.from({ length: n }, (_, k) => k + 1).join(" \\times ")}$.`],
+      solution: `$p = ${Array.from({ length: n }, (_, k) => k + 1).join(" \\times ")} = ${f}$. Ce produit s'appelle « factorielle ${n} », noté $${n}!$.`
+    };
+  };
+
   /* ---------- Première : second degré, forme factorisée ---------- */
   const facteur = (r) => (r === 0 ? "x" : `(x ${r > 0 ? "-" : "+"} ${Math.abs(r)})`);
   const formeFact = (a, r1, r2) => `${a === 1 ? "" : a === -1 ? "-" : a}${r1 === r2 ? `${facteur(r1)}^2` : r2 === 0 ? facteur(r2) + facteur(r1) : facteur(r1) + facteur(r2)}`;
@@ -1172,6 +1236,20 @@
       mode: "choix", choix: choix.map((x) => `$${x}$`), attendu: choix.indexOf(bonne),
       aides: ["$\\alpha = -\\dfrac{b}{2a}$, puis $\\beta = f(\\alpha)$.", `$\\alpha = -\\dfrac{${b}}{2 \\times ${par(a)}} = ${al}$.`, `$\\beta = f(${al}) = ${be}$. Vérifie en développant ta réponse.`],
       solution: `$\\alpha = -\\dfrac{${b}}{${2 * a}} = ${al}$ et $\\beta = f(${al}) = ${be}$, donc $f(x) = ${bonne}$.`
+    };
+  };
+
+  // Compléter le carré : la méthode qui démontre la forme canonique
+  GEN["sd-completer-carre"] = function () {
+    const k = randNZ(-6, 6); let c; do { c = randNZ(-12, 12); } while (c === k * k);
+    const be = c - k * k;
+    const car = `\\left(x ${k > 0 ? "+" : "-"} ${Math.abs(k)}\\right)^2`;
+    return {
+      enonce: `On complète le carré : $x^2 ${sg(2 * k)}x = ${car} - ${k * k}$. Écris $f(x) = ${poly([1, 2 * k, c])}$ sous la forme $${car} + \\beta$. Que vaut $\\beta$ ?`,
+      mode: "nombre", prefixe: "β =", attendu: be,
+      erreurs: [{ valeur: c + k * k, message: `On **retire** $${k * k}$ : $${car}$ contient $${k * k}$ en trop.` }],
+      aides: [`Développe $${car}$ : tu obtiens $x^2 ${sg(2 * k)}x + ${k * k}$.`, `Pour retrouver $x^2 ${sg(2 * k)}x$, il faut retirer $${k * k}$.`, `$f(x) = ${car} - ${k * k} ${sg(c)}$.`],
+      solution: `$f(x) = ${car} - ${k * k} ${sg(c)} = ${car} ${sg(be)}$. Donc $\\beta = ${be}$, et le sommet de la parabole est $S(${-k}\\,;${be})$.`
     };
   };
 
@@ -1933,6 +2011,125 @@
     };
   };
 
+  // ST04 : lire un graphique en repérant l'origine, les unités et les graduations
+  GEN["am-lire-graphique"] = function () {
+    if (Math.random() < 0.5) {
+      // Histogramme : l'axe horizontal ne commence pas à 0, un carreau vertical vaut 1 ou 2
+      const w = pick([5, 10]), a0 = w === 5 ? pick([5, 10, 15]) : pick([10, 20]);
+      const ystep = pick([1, 2]), yetiq = ystep === 1 ? 5 : 10;
+      const eff = Array.from({ length: 5 }, () => ystep * rand(1, 13));
+      const ymax = Math.max(...eff) + 1.5 * ystep;
+      const N = eff.reduce((x, y) => x + y), k = rand(1, 3);
+      const cl = (j) => `[${a0 + j * w}\\,;${a0 + (j + 1) * w}[`;
+      const Q = pick([
+        [`Combien d'élèves mettent entre $${a0 + k * w}$ et $${a0 + (k + 1) * w}$ minutes (classe $${cl(k)}$) ?`, eff[k], `Le rectangle de la classe $${cl(k)}$ a une hauteur de $${eff[k]}$.`],
+        [`Combien d'élèves mettent moins de $${a0 + (k + 1) * w}$ minutes ?`, eff.slice(0, k + 1).reduce((x, y) => x + y), `Classes de $${a0}$ à $${a0 + (k + 1) * w}$ : $${eff.slice(0, k + 1).join(" + ")} = ${eff.slice(0, k + 1).reduce((x, y) => x + y)}$.`],
+        ["Combien d'élèves ont été interrogés ?", N, `$${eff.join(" + ")} = ${N}$.`],
+        ["Sur l'axe vertical, combien d'élèves représente un carreau ?", ystep, `Entre deux nombres écrits, il y a $${yetiq / ystep}$ carreaux pour $${yetiq}$ élèves : un carreau vaut $${ystep}$.`]
+      ]);
+      const o = {
+        xmin: a0, xmax: a0 + 5.7 * w, ymin: 0, ymax, xstep: w, ystep, yetiq, h: 270, padL: 30, padB: 22,
+        xlabel: "min", ylabel: "effectif",
+        rects: eff.map((e, j) => ({ a: a0 + j * w, b: a0 + (j + 1) * w, h: e })),
+        aria: `Histogramme des temps de trajet par classes de ${w} minutes à partir de ${a0} minutes`
+      };
+      return {
+        enonce: `On a relevé le temps de trajet domicile-lycée d'élèves, en minutes. ${Q[0]}`,
+        figure: graph(o), mode: "nombre", prefixe: "Réponse :", attendu: Q[1],
+        aides: [
+          `Repère les unités : l'axe horizontal commence à $${a0}$ (pas à $0$) et chaque rectangle couvre $${w}$ minutes.`,
+          `Sur l'axe vertical, un nombre est écrit tous les $${yetiq}$ : un carreau vaut donc $${ystep}$ élève${ystep > 1 ? "s" : ""}.`,
+          Q[2]
+        ],
+        solution: `Effectifs lus, classe par classe : $${eff.join(" ; ")}$. ${Q[2]}`
+      };
+    }
+    // Courbe de température : l'axe vertical commence à 18 ou 20, un carreau horizontal vaut 2 h
+    const tmin = rand(21, 24), d = rand(5, 8), tmax = tmin + d;
+    const T = [tmin + 2, tmin + 1, tmin, tmin + 1, tmin + Math.round(0.4 * d), tmin + Math.round(0.7 * d), tmax - 1, tmax, tmax - 1, tmin + Math.round(0.6 * d), tmin + Math.round(0.45 * d), tmin + Math.round(0.35 * d), tmin + 2];
+    const f = (x) => { const i = Math.min(11, Math.floor(x / 2)); return T[i] + ((T[i + 1] - T[i]) * (x - 2 * i)) / 2; };
+    const ymin = 2 * Math.floor((tmin - 2) / 2);
+    const h = pick([2, 6, 10, 18, 22]);
+    const Q = pick([
+      [`Quelle est la température à $${h}$ h ?`, T[h / 2], `Repère $${h}$ h : c'est la graduation entre $${h - 2}$ et $${h + 2}$. Monte jusqu'à la courbe, puis lis la température : $${T[h / 2]}\\,°C$.`, "°C"],
+      ["À quelle heure la température est-elle la plus élevée ?", 14, `Le point le plus haut de la courbe est à $14$ h ($${tmax}\\,°C$).`, "h"],
+      ["De combien de degrés la température monte-t-elle entre $4$ h et $14$ h ?", d, `À $4$ h : $${tmin}\\,°C$. À $14$ h : $${tmax}\\,°C$. Hausse : $${tmax} - ${tmin} = ${d}\\,°C$.`, "°C"]
+    ]);
+    const o = {
+      xmin: 0, xmax: 25.6, ymin, ymax: tmax + 2.6, xstep: 2, xetiq: 4, ystep: 1, yetiq: 2, h: 290, padL: 30, padB: 22,
+      xlabel: "heure (h)", ylabel: "°C",
+      curves: [{ f, a: 0, b: 24, closed: false }],
+      points: T.map((t, i) => ({ x: 2 * i, y: t })),
+      aria: `Courbe de la température au cours d'une journée, de 0 h à 24 h, axe vertical commençant à ${ymin} °C`
+    };
+    return {
+      enonce: `La courbe donne la température relevée à Mamoudzou au cours d'une journée. ${Q[0]}`,
+      figure: graph(o), mode: "nombre", prefixe: "Réponse :", suffixe: Q[3], attendu: Q[1],
+      aides: [
+        `Attention à l'origine : l'axe vertical commence à $${ymin}\\,°C$, pas à $0$.`,
+        "Repère les unités : sur l'axe horizontal un carreau vaut $2$ h, sur l'axe vertical un carreau vaut $1\\,°C$.",
+        Q[2]
+      ],
+      solution: Q[2]
+    };
+  };
+
+  // ST05 : passer du graphique aux données et vice-versa
+  GEN["am-graphique-donnees"] = function () {
+    const t = rand(0, 2);
+    if (t === 0) {
+      // Des données au diagramme circulaire
+      const N = pick([36, 40, 60, 72, 90, 120]), noms = ["Bus", "À pied", "Taxi", "Voiture"];
+      let eff; do { const c = [rand(1, N - 3), rand(1, N - 3), rand(1, N - 3)].sort((x, y) => x - y); eff = [c[0], c[1] - c[0], c[2] - c[1], N - c[2]]; } while (eff.some((e) => e < N / 12));
+      const k = rand(0, 3), ang = (eff[k] * 360) / N;
+      return {
+        enonce: `On a demandé à $${N}$ élèves comment ils viennent au lycée. On veut représenter ces données par un diagramme circulaire. Quel angle faut-il donner au secteur « ${noms[k]} » ?`,
+        tableau: { var: "\\text{Transport}", nom: "\\text{Effectif}", x: noms.map((n) => `\\text{${n}}`), y: eff },
+        mode: "nombre", prefixe: "Angle :", suffixe: "°", attendu: ang,
+        erreurs: [{ valeur: +((eff[k] * 100) / N).toFixed(2), message: "Ça, c'est le pourcentage : le disque entier fait $360°$, pas $100$." }],
+        aides: ["Le disque entier ($360°$) représente tout l'effectif.", `Les angles sont proportionnels aux effectifs : $${N}$ élèves $\\to 360°$.`, `$\\dfrac{${eff[k]}}{${N}} \\times 360$.`],
+        solution: `$\\dfrac{${eff[k]}}{${N}} \\times 360 = ${ang}°$.`
+      };
+    }
+    if (t === 1) {
+      // Du diagramme aux données : retrouver le bâton manquant
+      const eff = Array.from({ length: 6 }, () => rand(1, 9));
+      const k = rand(1, 4), N = eff.reduce((x, y) => x + y);
+      const o = {
+        xmin: -0.8, xmax: 6.4, ymin: -0.8, ymax: 10, h: 240, xlabel: "livres", ylabel: "effectif",
+        bars: eff.map((e, j) => ({ x: j, y: e })).filter((b) => b.x !== k),
+        marques: [{ x: k, y: 0.5, texte: "?" }],
+        aria: `Diagramme en bâtons du nombre de livres lus, de 0 à 5, le bâton de ${k} est effacé`
+      };
+      const autres = eff.filter((_, j) => j !== k), S = autres.reduce((x, y) => x + y);
+      return {
+        enonce: `On a demandé à $${N}$ élèves combien de livres ils ont lus cet été. Le bâton de la valeur $${k}$ a été effacé. Combien d'élèves ont lu $${k}$ livre${k > 1 ? "s" : ""} ?`,
+        figure: graph(o), mode: "nombre", prefixe: "Réponse :", attendu: eff[k],
+        aides: ["Lis les effectifs de tous les bâtons visibles.", `Additionne-les : $${autres.join(" + ")} = ${S}$.`, `Il manque ce qu'il faut pour arriver à $${N}$ : $${N} - ${S}$.`],
+        solution: `Bâtons visibles : $${autres.join(" + ")} = ${S}$. Donc $${N} - ${S} = ${eff[k]}$ élèves ont lu $${k}$ livre${k > 1 ? "s" : ""}.`
+      };
+    }
+    // Du diagramme en fréquences aux effectifs
+    const N = pick([200, 300, 400, 500]);
+    let fq; do { fq = Array.from({ length: 5 }, () => 5 * rand(1, 7)); } while (fq.reduce((x, y) => x + y) >= 100 || fq.reduce((x, y) => x + y) < 65);
+    fq.push(100 - fq.reduce((x, y) => x + y));
+    fq = shuffle(fq);
+    const k = rand(0, 5), n = (fq[k] * N) / 100;
+    const o = {
+      xmin: -0.8, xmax: 6.4, ymin: -2.5, ymax: Math.max(...fq) + 4, ystep: 5, yetiq: 10, h: 260,
+      xlabel: "repas", ylabel: "fréquence (%)",
+      bars: fq.map((f, j) => ({ x: j, y: f })),
+      aria: "Diagramme en bâtons des fréquences en pourcentage du nombre de repas pris à la cantine par semaine, de 0 à 5"
+    };
+    return {
+      enonce: `Le diagramme donne la répartition (en $\\%$) des $${N}$ élèves d'un lycée selon le nombre de repas pris à la cantine par semaine. Combien d'élèves prennent $${k}$ repas par semaine ?`,
+      figure: graph(o), mode: "nombre", prefixe: "Réponse :", attendu: n,
+      erreurs: [{ valeur: fq[k], message: "Ça, c'est la fréquence en %. On demande un nombre d'élèves." }],
+      aides: ["Sur l'axe vertical, un carreau vaut $5\\,\\%$.", `Le bâton de la valeur $${k}$ monte à $${fq[k]}\\,\\%$.`, `$${fq[k]}\\,\\%$ de $${N}$ : $\\dfrac{${fq[k]}}{100} \\times ${N}$.`],
+      solution: `Lecture : $${fq[k]}\\,\\%$. Effectif : $\\dfrac{${fq[k]}}{100} \\times ${N} = ${n}$ élèves.`
+    };
+  };
+
   // ST03 : comparer deux boîtes à moustaches
   function boites(B) {
     const W = 320, pad = 18, lo = 0, hi = 20, H = 40 + 46 * B.length;
@@ -2197,6 +2394,39 @@
       ],
       solution: `${N.expl} Son plus petit ensemble est $${SETS[N.cat]}$.\n\n` + (vrai ? `Comme $${SETS[N.cat]} \\subset ${SETS[t]}$, l'affirmation est **vraie**.` : `Il n'est pas dans $${SETS[t]}$ : l'affirmation est **fausse**.`)
     };
+  };
+
+  // Encadrement décimal d'amplitude 10^-n et arrondi à 10^-n près
+  GEN["ens-arrondi"] = function () {
+    let tex, v;
+    if (Math.random() < 0.5) {
+      [tex, v] = pick([["\\sqrt{2}", Math.SQRT2], ["\\sqrt{3}", Math.sqrt(3)], ["\\sqrt{5}", Math.sqrt(5)], ["\\sqrt{7}", Math.sqrt(7)], ["\\sqrt{10}", Math.sqrt(10)], ["\\sqrt{11}", Math.sqrt(11)], ["\\pi", Math.PI], ["2\\pi", 2 * Math.PI]]);
+    } else {
+      const q = pick([3, 6, 7, 9, 11, 12, 13]); let p; do { p = rand(1, 5 * q); } while (pgcd(p, q) !== 1);
+      tex = `\\dfrac{${p}}{${q}}`; v = p / q;
+    }
+    const n = rand(1, 3), P = 10 ** n, nom = ["", "dixième", "centième", "millième"][n];
+    const tronc = Math.floor(v * P + 1e-9) / P, sup = (Math.floor(v * P + 1e-9) + 1) / P, arr = Math.round(v * P) / P;
+    const suivant = Math.floor(v * P * 10 + 1e-9) % 10;
+    const ecran = v.toFixed(9).replace(".", "{,}");
+    const pt = (x) => x.toFixed(n).replace(".", "{,}");
+    const t = rand(0, 2);
+    const base = { mode: "nombre", prefixe: "Réponse :" };
+    if (t === 0) return Object.assign(base, {
+      enonce: `La calculatrice affiche $${tex} \\approx ${ecran}$. Donne l'arrondi de $${tex}$ au ${nom} ($10^{-${n}}$ près).`,
+      attendu: arr,
+      erreurs: arr !== tronc ? [{ valeur: tronc, message: "Tu as coupé sans arrondir : regarde le chiffre qui suit." }] : [{ valeur: sup, message: `Le chiffre qui suit est $${suivant}$ : on ne monte pas.` }],
+      aides: [`Garde $${n}$ chiffre${n > 1 ? "s" : ""} après la virgule : $${pt(tronc)}$…`, `Regarde le chiffre suivant : c'est $${suivant}$.`, "De $0$ à $4$ on garde, de $5$ à $9$ on ajoute $1$ au dernier chiffre gardé."],
+      solution: `$${tex} \\approx ${ecran}$ : le chiffre après le ${nom} est $${suivant}$, ${suivant >= 5 ? "on arrondit au-dessus" : "on garde"}. L'arrondi au ${nom} est $${pt(arr)}$.`
+    });
+    const bas = t === 1;
+    return Object.assign(base, {
+      enonce: `La calculatrice affiche $${tex} \\approx ${ecran}$. On cherche un encadrement d'amplitude $10^{-${n}}$ : $a \\leqslant ${tex} < b$, avec $a$ et $b$ écrits avec $${n}$ chiffre${n > 1 ? "s" : ""} après la virgule. Que vaut $${bas ? "a" : "b"}$ ?`,
+      prefixe: `${bas ? "a" : "b"} =`, attendu: bas ? tronc : sup,
+      erreurs: [{ valeur: bas ? sup : tronc, message: `Ça, c'est $${bas ? "b" : "a"}$ : on cherche la borne ${bas ? "inférieure" : "supérieure"}.` }],
+      aides: [`$10^{-${n}} = ${fr(1 / P)}$ : les bornes ont $${n}$ chiffre${n > 1 ? "s" : ""} après la virgule et sont écartées de $${fr(1 / P)}$.`, `$a$ : on coupe l'écriture après le ${nom}, soit $${pt(tronc)}$.`, `$b = a + ${fr(1 / P)}$.`],
+      solution: `$${pt(tronc)} \\leqslant ${tex} < ${pt(sup)}$ : encadrement d'amplitude $10^{-${n}}$. Donc $${bas ? "a" : "b"} = ${pt(bas ? tronc : sup)}$.`
+    });
   };
 
   /* Outils pour les intervalles */
@@ -2475,7 +2705,7 @@
     "am-flash-pp": ["proportion-pourcentage", "partie-tout", "proportion-de-proportion", "am-ecritures"],
     "am-flash-ev": ["coefficient", "appliquer-evolution", "taux-evolution", "evolutions-successives", "taux-reciproque"],
     "am-flash-fr": ["lecture-image", "lecture-antecedents", "appartenance", "am-reconnaitre", "resolution-graphique", "am-signe-graph", "am-droite-point", "am-lire-droite", "am-coef-dir"],
-    "am-flash-st": ["auto-statistiques", "am-quartiles", "am-moyenne-ponderee", "am-diagramme", "am-boites"],
+    "am-flash-st": ["auto-statistiques", "am-quartiles", "am-moyenne-ponderee", "am-diagramme", "am-boites", "am-lire-graphique", "am-graphique-donnees"],
     "am-flash-pr": ["auto-probabilites", "am-proba-loi", "am-proba-tableau", "am-proba-arbre", "am-proba-notation"]
   };
   Object.keys(THEMES).forEach((k) => { GEN[k] = (i) => GEN[pick(THEMES[k])](rand(0, 4)); });

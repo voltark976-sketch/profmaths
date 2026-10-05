@@ -25,7 +25,8 @@ window.CHAPITRES["auto-statistiques"] = {
         "- Diagramme en **bâtons** ou en **barres** : la hauteur donne l'effectif (ou la fréquence) de chaque valeur.\n" +
         "- Diagramme **circulaire** : les angles sont proportionnels aux effectifs. Le disque entier ($360°$) représente $100\\,\\%$ : un secteur de $90°$ représente $25\\,\\%$.\n" +
         "- **Histogramme** : pour des classes $[a\\,;b[$, les aires des rectangles sont proportionnelles aux effectifs.\n" +
-        "- Avant de lire : titre, unités des axes, graduations.",
+        "- Avant de lire (ST04) : le titre, les unités, l'**origine** du repère (un axe ne commence pas toujours à $0$) et la **valeur d'un carreau** : si $20$ et $30$ sont séparés par $5$ carreaux, un carreau vaut $2$.\n" +
+        "- Du graphique aux données et inversement (ST05) : on lit les effectifs sur le graphique ; pour construire un diagramme circulaire, l'angle d'un secteur vaut $\\dfrac{\\text{effectif}}{\\text{effectif total}} \\times 360°$.",
       exemple: {
         enonce: "Dans un diagramme circulaire, un secteur représente $15\\,\\%$ de l'effectif. Quel est son angle ?",
         solution: "$0{,}15 \\times 360 = 54°$."
@@ -79,6 +80,8 @@ window.CHAPITRES["auto-statistiques"] = {
     { type: "auto-statistiques", titre: "ST02 · Moyenne, médiane, étendue", etape: "Programme de Seconde", nb: 5 },
     { type: "am-quartiles", titre: "ST02 · Quartiles", etape: "Programme de Seconde", nb: 5 },
     { type: "am-boites", titre: "ST03 · Comparer des boîtes à moustaches", etape: "Programme de Seconde", nb: 5 },
+    { type: "am-lire-graphique", titre: "ST04 · Origine, unités et graduations", etape: "Ajouts de Première", nb: 5 },
+    { type: "am-graphique-donnees", titre: "ST05 · Du graphique aux données", etape: "Ajouts de Première", nb: 5 },
     { type: "am-moyenne-ponderee", titre: "ST06 · Moyenne avec des effectifs", etape: "Ajouts de Première", nb: 5 },
     { type: "am-flash-st", titre: "Flash : statistiques mélangées", etape: "Défi", nb: 8 }
   ],
@@ -91,6 +94,9 @@ window.CHAPITRES["auto-statistiques"] = {
     { question: "ST02 · On ajoute une valeur très grande à une série. Ce qui change le plus :", choix: ["la médiane", "la moyenne"], bonne: 1, explication: "La moyenne est sensible aux valeurs extrêmes, la médiane beaucoup moins." },
     { question: "ST03 · Dans une boîte à moustaches, la largeur de la boîte est :", choix: ["l'étendue", "l'écart interquartile", "la moyenne", "la médiane"], bonne: 1, explication: "La boîte va de $Q_1$ à $Q_3$ : sa largeur est $Q_3 - Q_1$." },
     { question: "ST03 · D'après les boîtes du cours, au moins la moitié des élèves de la classe $A$ ont au moins :", figure: "boites-exemple", choix: ["$9$", "$11$", "$13$", "$18$"], bonne: 1, explication: "La médiane de la classe $A$ vaut $11$." },
+    { question: "ST04 · Sur l'axe vertical d'un graphique, les nombres $20$ et $30$ sont écrits et séparés par $5$ carreaux. Un carreau vaut :", choix: ["$1$", "$2$", "$5$", "$10$"], bonne: 1, explication: "$5$ carreaux pour $30 - 20 = 10$ : un carreau vaut $\\dfrac{10}{5} = 2$." },
+    { question: "ST05 · Sur $200$ élèves, $15\\,\\%$ viennent à pied. Dans un diagramme en bâtons des effectifs, le bâton « à pied » monte à :", choix: ["$15$", "$30$", "$185$", "$20$"], bonne: 1, explication: "$\\dfrac{15}{100} \\times 200 = 30$ élèves." },
+    { question: "ST05 · $9$ élèves sur $36$ viennent en bus. Dans un diagramme circulaire, l'angle du secteur « bus » est :", choix: ["$9°$", "$25°$", "$90°$", "$36°$"], bonne: 2, explication: "$\\dfrac{9}{36} \\times 360 = 90°$." },
     { question: "ST06 · Notes : $10$ (effectif $2$), $16$ (effectif $1$). Moyenne :", choix: ["$13$", "$12$", "$26$", "$14$"], bonne: 1, explication: "$\\dfrac{2 \\times 10 + 16}{3} = \\dfrac{36}{3} = 12$." },
     { question: "ST06 · L'étendue de $3 ; 17 ; 8 ; 12$ est :", choix: ["$9$", "$14$", "$17$", "$10$"], bonne: 1, explication: "$17 - 3 = 14$." }
   ],

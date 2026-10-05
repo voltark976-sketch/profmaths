@@ -8,6 +8,8 @@
     Dans ce fichier, chaque antislash est doublé : $\\frac{1}{2}$, $\\mathbb{R}$.
   - **texte** met en gras. Une ligne vide sépare deux paragraphes.
   - Une ligne qui commence par "- " devient une puce.
+  - Un programme Python s'écrit entre une ligne ```python et une ligne ``` (sans ligne vide dedans),
+    voir le cours « Programmes Python » de data/premiere/suites.js.
   - youtube : coller l'adresse de la vidéo (https://youtu.be/... ou https://www.youtube.com/watch?v=...).
     Laisser "" tant que la vidéo n'est pas choisie : un emplacement s'affiche.
   - figure : nom d'un graphique prédéfini ("courbe-u", "kayaks", "enclos", "courbe-paire", "courbe-impaire").

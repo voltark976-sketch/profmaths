@@ -114,6 +114,10 @@ table.valeurs { border-collapse: collapse; background: var(--surface); font-vari
 .katex { font-size: 1.08em; }
 .katex-display { overflow-x: auto; overflow-y: hidden; }
 
+/* Programmes Python */
+pre.code { margin: 10px 0; padding: 10px 12px; background: var(--fond); border: 1px solid var(--trait); border-left: 4px solid var(--lagon); border-radius: 8px; overflow-x: auto; font: 0.9rem/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: var(--encre); tab-size: 4; }
+pre.code code { font: inherit; }
+
 /* Graphiques */
 .graph { display: block; width: 100%; height: auto; }
 .g-grid line { stroke: var(--trait); stroke-width: 0.8; }
@@ -124,6 +128,7 @@ table.valeurs { border-collapse: collapse; background: var(--surface); font-vari
 .g-clabel { font-size: 13px; }
 .g-clabel .sub { font-size: 9px; }
 .g-bar { stroke: var(--lagon); stroke-width: 9; }
+.g-rect { fill: var(--lagon-pale); stroke: var(--lagon); stroke-width: 1.6; }
 .g-box line, .g-box rect { stroke: var(--lagon); stroke-width: 2; fill: var(--lagon-pale); }
 .g-box .med { stroke-width: 3.2; }
 .g-box-1 line, .g-box-1 rect { stroke: var(--courbe2); }

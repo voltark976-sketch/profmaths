@@ -4,7 +4,7 @@
   Mêmes règles d'écriture que data/seconde/fonctions.js (formules entre $...$, antislash doublé,
   **gras**, "- " pour une puce). Dans les formules, la virgule décimale s'écrit {,} : $0{,}35$.
   figure : "intervalle-exemple", "intervalle-infini", "inter-union" ou "valeur-absolue" (droites graduées).
-  Pas encore de vidéo ni de PDF pour ce chapitre : ajouter les liens dans playlist, pdfs et videos le moment venu.
+  Pas encore de PDF pour ce chapitre : ajouter les liens dans playlist, pdfs et videos le moment venu.
 */
 window.CHAPITRES = window.CHAPITRES || {};
 window.CHAPITRES["seconde-ensembles"] = {
@@ -63,6 +63,19 @@ window.CHAPITRES["seconde-ensembles"] = {
       }
     },
     {
+      titre: "Encadrement décimal et arrondi",
+      video: { titre: "Vidéo d'Yvan Monka : donner un encadrement d'un nombre réel", youtube: "https://youtu.be/sJIXJT3fdcU" },
+      texte:
+        "La calculatrice ne donne qu'une **valeur approchée** d'un réel comme $\\sqrt{2}$ ou $\\pi$. On l'encadre par deux décimaux.\n\n" +
+        "- Un **encadrement d'amplitude** $10^{-n}$ de $x$ : $a \\leqslant x < b$, où $a$ et $b$ ont $n$ chiffres après la virgule et $b - a = 10^{-n}$. Pour $x$ positif, on trouve $a$ en coupant l'écriture de $x$ après le $n$-ième chiffre.\n" +
+        "- L'**arrondi** de $x$ à $10^{-n}$ près est celle des deux bornes la plus proche de $x$ : on regarde le chiffre suivant. De $0$ à $4$, on garde $a$ ; de $5$ à $9$, on prend $b$.\n\n" +
+        "Avec $\\sqrt{2} \\approx 1{,}41421$ : $1{,}41 \\leqslant \\sqrt{2} < 1{,}42$ (amplitude $10^{-2}$) et l'arrondi au centième est $1{,}41$.",
+      exemple: {
+        enonce: "Donner un encadrement de $\\dfrac{2}{7}$ d'amplitude $10^{-3}$, puis son arrondi au millième.",
+        solution: "La calculatrice donne $\\dfrac{2}{7} \\approx 0{,}285714$.\n\nEncadrement : $0{,}285 \\leqslant \\dfrac{2}{7} < 0{,}286$.\n\nLe chiffre après le millième est $7$, entre $5$ et $9$ : l'arrondi au millième est $0{,}286$."
+      }
+    },
+    {
       titre: "Les intervalles",
       video: { titre: "Vidéo d'Yvan Monka : le cours sur les intervalles", youtube: "https://youtu.be/mvJy4LVCmRI" },
       texte:
@@ -118,6 +131,7 @@ window.CHAPITRES["seconde-ensembles"] = {
   exercices: [
     { type: "ens-plus-petit", titre: "Le plus petit ensemble d'un nombre", etape: "Ensembles de nombres", nb: 6 },
     { type: "ens-vrai-faux", titre: "Appartient ou pas ? Vrai ou faux", etape: "Ensembles de nombres", nb: 6 },
+    { type: "ens-arrondi", titre: "Encadrer et arrondir à 10⁻ⁿ près", etape: "Ensembles de nombres", nb: 5 },
     { type: "int-inegalite", titre: "Inégalité et intervalle", etape: "Intervalles", nb: 6 },
     { type: "int-droite", titre: "Lire un intervalle sur une droite graduée", etape: "Intervalles", nb: 5 },
     { type: "int-appartient", titre: "Le nombre est-il dans l'intervalle ?", etape: "Intervalles", nb: 6 },
@@ -146,6 +160,18 @@ window.CHAPITRES["seconde-ensembles"] = {
       choix: ["$\\sqrt{16}$", "$\\sqrt{7}$", "$\\dfrac{2}{3}$", "$0{,}125$"],
       bonne: 1,
       explication: "$7$ n'est pas un carré parfait, donc $\\sqrt{7}$ est irrationnel. $\\sqrt{16} = 4$, $\\dfrac{2}{3}$ est rationnel et $0{,}125$ est décimal."
+    },
+    {
+      question: "L'arrondi de $\\pi \\approx 3{,}14159$ au millième est :",
+      choix: ["$3{,}141$", "$3{,}142$", "$3{,}14$", "$3{,}1416$"],
+      bonne: 1,
+      explication: "On garde $3{,}141$, puis on regarde le chiffre suivant : $5$. De $5$ à $9$, on ajoute $1$ au dernier chiffre gardé : $3{,}142$. $3{,}141$ est la troncature."
+    },
+    {
+      question: "Un encadrement de $\\sqrt{3} \\approx 1{,}732$ d'amplitude $10^{-2}$ est :",
+      choix: ["$1{,}73 \\leqslant \\sqrt{3} < 1{,}74$", "$1{,}7 \\leqslant \\sqrt{3} < 1{,}8$", "$1{,}72 \\leqslant \\sqrt{3} < 1{,}73$", "$1{,}73 \\leqslant \\sqrt{3} < 1{,}75$"],
+      bonne: 0,
+      explication: "Amplitude $10^{-2} = 0{,}01$ : deux chiffres après la virgule et des bornes écartées de $0{,}01$. On coupe $1{,}732$ après le centième : $1{,}73$, puis $1{,}73 + 0{,}01 = 1{,}74$."
     },
     {
       question: "Quelle affirmation est vraie ?",
@@ -217,6 +243,15 @@ window.CHAPITRES["seconde-ensembles"] = {
       exemple: "$\\dfrac{7}{40}$ : $40 = 2^3 \\times 5$, décimal ($0{,}175$). $\\dfrac{5}{12}$ : $12 = 2^2 \\times 3$, pas décimal."
     },
     {
+      titre: "Encadrer et arrondir à $10^{-n}$ près",
+      etapes: [
+        "Écrire le nombre avec au moins $n + 1$ chiffres après la virgule (calculatrice).",
+        "Encadrement d'amplitude $10^{-n}$ : couper après le $n$-ième chiffre pour avoir $a$, puis $b = a + 10^{-n}$.",
+        "Arrondi : regarder le chiffre suivant. De $0$ à $4$, l'arrondi est $a$ ; de $5$ à $9$, c'est $b$."
+      ],
+      exemple: "$\\sqrt{5} \\approx 2{,}2360$ : $2{,}23 \\leqslant \\sqrt{5} < 2{,}24$. Le chiffre suivant est $6$ : l'arrondi au centième est $2{,}24$."
+    },
+    {
       titre: "Passer d'une inégalité à un intervalle",
       etapes: [
         "Repérer la ou les bornes, de la plus petite à la plus grande.",
@@ -248,6 +283,7 @@ window.CHAPITRES["seconde-ensembles"] = {
     "Croire qu'une fraction n'est jamais un entier : $\\dfrac{12}{4} = 3 \\in \\mathbb{N}$.",
     "Écrire $\\dfrac{1}{3} = 0{,}33$ : ce n'est qu'une valeur approchée.",
     "Conclure trop vite qu'une racine carrée est irrationnelle : $\\sqrt{49} = 7$.",
+    "Arrondir en coupant simplement : l'arrondi de $2{,}236$ au centième est $2{,}24$, pas $2{,}23$.",
     "Mettre un crochet fermé du côté de l'infini : $[3\\,;+\\infty]$ n'a pas de sens.",
     "Confondre $\\cap$ (« et », la partie commune) et $\\cup$ (« ou », tout ce qui est colorié).",
     "Donner une distance négative : $|2 - 9| = |-7| = 7$.",

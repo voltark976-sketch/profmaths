@@ -60,6 +60,8 @@
   }
   function md(s) {
     return String(s).split(/\n\n+/).map((bloc) => {
+      // Bloc de code (programme Python) : entre deux lignes ```, sans ligne vide à l'intérieur
+      if (bloc.startsWith("```")) return `<pre class="code"><code>${esc(bloc.replace(/^```[a-z]*\n?/, "").replace(/\n?```\s*$/, ""))}</code></pre>`;
       const lignes = bloc.split("\n");
       let out = "", liste = [];
       const flush = () => { if (liste.length) { out += `<ul>${liste.map((l) => `<li>${inline(l)}</li>`).join("")}</ul>`; liste = []; } };
@@ -302,7 +304,7 @@
   }
 
   function normaliser(s) {
-    return String(s).trim().toLowerCase().replace(/[−–—]/g, "-").replace(/,/g, ".").replace(/\s+/g, "").replace(/[%€]$/, "").replace(/^\+/, "").replace(/^[{(\[]|[})\]]$/g, "");
+    return String(s).trim().toLowerCase().replace(/[−–—]/g, "-").replace(/,/g, ".").replace(/\s+/g, "").replace(/[%€°]$/, "").replace(/^\+/, "").replace(/^[{(\[]|[})\]]$/g, "");
   }
   function lireNombre(s) {
     s = normaliser(s);
