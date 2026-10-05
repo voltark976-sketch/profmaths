@@ -300,6 +300,8 @@ table.valeurs { border-collapse: collapse; background: var(--surface); font-vari
 
 @media (max-width: 420px) {
   .xp .mot { display: none; }
+  .haut-d { gap: 6px; }
+  .jeux-btn, .compte-btn { padding: 7px 10px; }
   .marque { font-size: 1.05rem; }
   .compte-btn { max-width: 7.5rem; }
 }
@@ -309,3 +311,34 @@ table.valeurs { border-collapse: collapse; background: var(--surface); font-vari
 .suffixe { font-weight: 700; font-size: 1.15rem; color: var(--doux); }
 .video-aide { margin-top: 14px; max-width: 22rem; }
 .video-aide .muted { margin: 6px 0 0; }
+
+/* Jeux */
+.jeux-btn { font: 700 0.85rem/1 var(--f-texte); padding: 7px 12px; border-radius: 999px; background: var(--ylang); color: #1d1503; text-decoration: none; white-space: nowrap; }
+.jeux-btn.actif { background: var(--encre); color: var(--fond); }
+.carte-jeu { display: flex; align-items: center; gap: 14px; margin-top: 14px; padding: 14px 16px; border-radius: var(--r); border: 2px solid var(--ylang); background: var(--surface); color: var(--encre); text-decoration: none; }
+.carte-jeu > span:nth-child(2) { flex: 1; display: grid; gap: 2px; }
+.carte-jeu > span:nth-child(2) span { font-size: 0.92rem; color: var(--doux); }
+.carte-jeu-ico { flex: none; width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center; background: var(--ylang-pale); font-size: 1.3rem; }
+.regles { list-style: none; padding: 0; margin: 18px 0 0; display: flex; flex-wrap: wrap; gap: 8px; }
+.regles li { padding: 7px 12px; border-radius: 999px; background: var(--surface); border: 1px solid var(--trait); font-size: 0.92rem; }
+.regles b, .coeur, .vies { color: var(--faux); }
+.regles b:not(.coeur) { color: var(--ylang); }
+.jeu-choix-t { font-size: 1.1rem; margin: 24px 0 10px; }
+.jeu-themes .go { margin-left: auto; }
+.jeu { padding-top: 12px; }
+.jeu-haut { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.vies { font-size: 1.3rem; letter-spacing: 2px; }
+.vies .off { color: var(--trait); }
+.jeu-score { font-weight: 700; font-variant-numeric: tabular-nums; }
+.jeu-score b { font: 800 1.4rem/1 var(--f-titre); color: var(--ylang); }
+.chrono { height: 10px; border-radius: 5px; background: var(--trait); overflow: hidden; margin: 12px 0 6px; }
+.chrono span { display: block; height: 100%; width: 100%; background: var(--lagon); transition: width 0.25s linear; }
+.chrono span.urgent { background: var(--faux); }
+.jeu-info { display: flex; justify-content: space-between; font-size: 0.9rem; color: var(--doux); font-variant-numeric: tabular-nums; min-height: 1.4em; }
+.combo { color: var(--ylang); animation: pop 0.3s ease; }
+@keyframes pop { from { transform: scale(1.4); } to { transform: scale(1); } }
+.decompte { text-align: center; font: 800 5rem/1 var(--f-titre); color: var(--lagon); margin: 48px 0; }
+.jeu .retour-rep .btn { margin-top: 10px; width: 100%; }
+@media (min-width: 760px) { .jeu { max-width: 46rem; } }
+@media (max-width: 380px) { .marque-t { display: none; } }
+@media (prefers-reduced-motion: reduce) { .combo { animation: none; } .chrono span { transition: none; } }

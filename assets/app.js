@@ -10,7 +10,7 @@
 
   /* ---------- Progression (gardée dans le navigateur de l'élève) ---------- */
   const CLE = "profmaths:v1";
-  let prog = { xp: 0, exo: {}, qcm: {} };
+  let prog = { xp: 0, exo: {}, qcm: {}, jeux: {} };
   try { prog = Object.assign(prog, JSON.parse(localStorage.getItem(CLE) || "{}")); } catch (e) {}
   const Compte = window.PM_COMPTE;
   const save = () => { try { localStorage.setItem(CLE, JSON.stringify(prog)); } catch (e) {} majXP(); Compte.sauver(prog); };
@@ -33,7 +33,7 @@
       save();
     } else if (etaitConnecte) {
       // Déconnexion : on efface la progression de l'appareil (téléphone partagé)
-      prog = { xp: 0, exo: {}, qcm: {} };
+      prog = { xp: 0, exo: {}, qcm: {}, jeux: {} };
       try { localStorage.removeItem(CLE); } catch (e) {}
       etaitConnecte = false;
       majXP();
@@ -106,14 +106,20 @@
     { id: "qcm", nom: "QCM" },
     { id: "methode", nom: "Méthode" }
   ];
+  let minuterieJeu = null; // chrono du jeu en cours, arrêté quand on change de page
   function route() {
     const h = location.hash.replace(/^#/, "");
     const [chap, onglet] = h.split(".");
+    if (minuterieJeu) { clearInterval(minuterieJeu); minuterieJeu = null; }
     if (chap === "compte") pageCompte();
+    else if (chap === "jeux") pageJeux();
     else if (chap && window.CHAPITRES && CHAPITRES[chap]) pageChapitre(chap, onglet || "cours");
     else pageAccueil();
   }
   window.addEventListener("hashchange", () => { route(); window.scrollTo(0, 0); });
+  const majLienJeux = () => { const a = document.getElementById("jeux-btn"); if (a) a.classList.toggle("actif", location.hash.startsWith("#jeux")); };
+  window.addEventListener("hashchange", majLienJeux);
+  majLienJeux();
 
   const etoiles = (n, max) => `<span class="etoiles" aria-label="${n} étoile${n > 1 ? "s" : ""} sur ${max}">${"★".repeat(n)}<span class="off">${"★".repeat(max - n)}</span></span>`;
 
@@ -129,6 +135,7 @@
     document.title = "ProfMaths";
     let h = `<section class="hero"><p class="eyebrow">Maths au lycée · Mayotte</p><h1>Une vidéo, un cours, des exercices. À ton rythme.</h1><p class="lead">Choisis ton niveau puis ton chapitre. Les chapitres suivent l'ordre des playlists de la chaîne.</p></section>`;
     if (!Compte.eleve()) h += `<a class="invite" href="#compte"><strong>Crée ton compte</strong><span>pour retrouver tes points et tes étoiles sur n'importe quel téléphone ou ordinateur.</span></a>`;
+    if (window.JEUX) h += `<a class="carte-jeu" href="#jeux"><span class="carte-jeu-ico" aria-hidden="true">⏱</span><span><strong>${esc(JEUX.chrono.titre)}</strong><span>Teste tes automatismes contre la montre.</span></span><span class="go" aria-hidden="true">→</span></a>`;
     h += `<div class="niveaux">`;
     CATALOGUE.niveaux.forEach((n) => {
       h += `<section class="niveau"><h2>${esc(n.nom)}</h2>${n.intro ? `<p class="muted niveau-intro">${esc(n.intro)}</p>` : ""}<ol class="chapitres">`;
@@ -315,6 +322,23 @@
     return parts.some(isNaN) ? null : parts.sort((a, b) => a - b);
   }
 
+  /* Zone de réponse : boutons de choix, ou champ avec touches de symboles */
+  function champReponse(q) {
+    return q.mode === "choix"
+      ? `<div class="choix">${q.choix.map((ch, k) => `<button class="opt" data-k="${k}"><span>${inline(ch)}</span></button>`).join("")}</div>`
+      : `<form class="saisie" autocomplete="off"><label for="rep">${esc(q.prefixe)}</label><span class="champ"><input id="rep" inputmode="text" enterkeyhint="done" placeholder="${q.mode === "ensemble" ? "ex. −1 ; 3  ou  aucun" : "ta réponse"}">${q.suffixe ? `<span class="suffixe">${esc(q.suffixe)}</span>` : ""}</span>
+         <div class="touches" aria-label="Symboles">${["−", ";", "/", ","].map((t) => `<button type="button" class="touche" data-t="${t}">${t}</button>`).join("")}</div>
+         <button class="btn" type="submit">Vérifier</button></form>`;
+  }
+  function brancherTouches(p, inp) {
+    p.querySelectorAll(".touche").forEach((t) => t.addEventListener("click", () => {
+      const s = inp.selectionStart ?? inp.value.length;
+      const ins = t.dataset.t === ";" ? " ; " : t.dataset.t;
+      inp.value = inp.value.slice(0, s) + ins + inp.value.slice(inp.selectionEnd ?? s);
+      inp.focus(); inp.setSelectionRange(s + ins.length, s + ins.length);
+    }));
+  }
+
   function lancerSerie(p, c, id, ex) {
     const gen = GEN[ex.type];
     let i = 0, score = 0;
@@ -323,11 +347,7 @@
     function question() {
       const q = gen(i);
       let aides = 0, erreurs = 0, fini = false;
-      const champ = q.mode === "choix"
-        ? `<div class="choix">${q.choix.map((ch, k) => `<button class="opt" data-k="${k}"><span>${inline(ch)}</span></button>`).join("")}</div>`
-        : `<form class="saisie" autocomplete="off"><label for="rep">${esc(q.prefixe)}</label><span class="champ"><input id="rep" inputmode="text" enterkeyhint="done" placeholder="${q.mode === "ensemble" ? "ex. −1 ; 3  ou  aucun" : "ta réponse"}">${q.suffixe ? `<span class="suffixe">${esc(q.suffixe)}</span>` : ""}</span>
-           <div class="touches" aria-label="Symboles">${["−", ";", "/", ","].map((t) => `<button type="button" class="touche" data-t="${t}">${t}</button>`).join("")}</div>
-           <button class="btn" type="submit">Vérifier</button></form>`;
+      const champ = champReponse(q);
       p.innerHTML = `<div class="exo">
         <div class="exo-top"><button class="lien" id="quitter">← Séries</button><span class="progression">Question ${i + 1}/${ex.nb}</span><span class="pts">${score} pts</span></div>
         <div class="pastilles">${Array.from({ length: ex.nb }, (_, k) => `<span class="${k < i ? "ok" : k === i ? "cur" : ""}"></span>`).join("")}</div>
@@ -394,12 +414,7 @@
       else {
         const inp = p.querySelector("#rep");
         p.querySelector(".saisie").addEventListener("submit", (e) => { e.preventDefault(); verifier(inp.value); });
-        p.querySelectorAll(".touche").forEach((t) => t.addEventListener("click", () => {
-          const s = inp.selectionStart ?? inp.value.length;
-          const ins = t.dataset.t === ";" ? " ; " : t.dataset.t;
-          inp.value = inp.value.slice(0, s) + ins + inp.value.slice(inp.selectionEnd ?? s);
-          inp.focus(); inp.setSelectionRange(s + ins.length, s + ins.length);
-        }));
+        brancherTouches(p, inp);
       }
       bAide.addEventListener("click", () => {
         if (aides >= q.aides.length) return;
@@ -483,6 +498,138 @@
     });
     h += `</div><section class="erreurs"><h2>Les erreurs fréquentes</h2><ul>${c.erreurs.map((e) => `<li>${inline(e)}</li>`).join("")}</ul></section>`;
     p.innerHTML = h;
+  }
+
+  /* ---------- Jeux ---------- */
+  const nombreFr = (x) => String(+(+x).toFixed(6)).replace("-", "−").replace(".", ",");
+  function bonneReponse(q) {
+    if (q.mode === "choix") return inline(q.choix[q.attendu]);
+    const v = q.mode === "ensemble" ? (q.attendu.length ? q.attendu.map(nombreFr).join(" ; ") : "aucun") : nombreFr(q.attendu);
+    return `<strong>${v}</strong>${q.suffixe ? " " + esc(q.suffixe) : ""}`;
+  }
+  // Renvoie true (juste), false (faux) ou null (réponse illisible : pas de pénalité)
+  function juger(q, val) {
+    if (q.mode === "choix") return val === q.attendu;
+    if (q.mode === "nombre") {
+      const v = lireNombre(val);
+      return isNaN(v) ? null : Math.abs(v - q.attendu) < (q.tolerance || 1e-9);
+    }
+    const v = lireEnsemble(val);
+    if (v === null) return null;
+    const a = q.attendu.slice().sort((x, y) => x - y);
+    return v.length === a.length && v.every((x, k) => Math.abs(x - a[k]) < 1e-9);
+  }
+
+  function pageJeux() {
+    document.title = "Jeux · ProfMaths";
+    const J = JEUX.chrono;
+    $app.innerHTML = `<a class="retour" href="#">← Tous les chapitres</a>
+      <header class="chap-head"><p class="eyebrow">Jeux</p><h1>${esc(J.titre)}</h1><p class="lead">${inline(J.accroche)}</p></header>
+      <ul class="regles"><li><b>⏱</b> ${J.duree} secondes</li><li><b class="coeur">♥</b> ${J.vies} vies</li><li><b>×3</b> bonus de série</li></ul>
+      <h2 class="jeu-choix-t">Choisis ton thème</h2>
+      <ol class="series jeu-themes">${J.themes.map((t, k) => {
+        const rec = prog.jeux["chrono:" + t.id];
+        return `<li><button class="serie" data-k="${k}"><span class="chap-t"><strong>${esc(t.titre)}</strong><span class="meta">${rec ? `Record : ${rec} pts` : "Pas encore joué"}</span></span><span class="go" aria-hidden="true">▶</span></button></li>`;
+      }).join("")}</ol>`;
+    $app.querySelectorAll(".jeu-themes .serie").forEach((b) => b.addEventListener("click", () => lancerChrono(J, J.themes[+b.dataset.k])));
+  }
+
+  function lancerChrono(J, theme) {
+    const gen = GEN[theme.serie];
+    let vies = J.vies, score = 0, serie = 0, bonnes = 0, n = 0;
+    let reste = J.duree * 1000, depart = 0, enPause = true, fini = false;
+    $app.innerHTML = `<div class="jeu">
+      <div class="jeu-haut"><button class="lien" id="quitter">← Thèmes</button><span class="vies" aria-label="Vies"></span><span class="jeu-score"><b id="score">0</b> pts</span></div>
+      <div class="chrono" aria-hidden="true"><span id="barre"></span></div>
+      <div class="jeu-info"><span id="temps"></span><span id="multi"></span></div>
+      <div id="zone"></div></div>`;
+    const $zone = document.getElementById("zone"), $barre = document.getElementById("barre"), $temps = document.getElementById("temps");
+    document.getElementById("quitter").addEventListener("click", () => { clearInterval(minuterieJeu); minuterieJeu = null; pageJeux(); });
+    const multi = () => (serie >= 6 ? 3 : serie >= 3 ? 2 : 1);
+    function majHaut() {
+      $app.querySelector(".vies").innerHTML = "♥".repeat(vies) + `<span class="off">${"♥".repeat(J.vies - vies)}</span>`;
+      document.getElementById("score").textContent = score;
+      document.getElementById("multi").innerHTML = multi() > 1 ? `<b class="combo">Série ×${multi()}</b>` : serie ? `Série : ${serie}` : "";
+    }
+    function temps() { return Math.max(0, enPause ? reste : reste - (performance.now() - depart)); }
+    function tic() {
+      const t = temps();
+      $barre.style.width = (t / (J.duree * 1000)) * 100 + "%";
+      $barre.classList.toggle("urgent", t < 10000);
+      $temps.textContent = `${Math.ceil(t / 1000)} s`;
+      if (t <= 0 && !fini) fin("Temps écoulé !");
+    }
+    const pause = () => { if (!enPause) { reste = temps(); enPause = true; } };
+    const reprendre = () => { if (enPause) { depart = performance.now(); enPause = false; } };
+
+    function question() {
+      const q = gen(n++);
+      let repondu = false;
+      $zone.innerHTML = `<div class="enonce">${md(q.enonce)}</div>${q.tableau ? tableau(q.tableau) : ""}${q.figure ? `<figure class="fig">${q.figure}</figure>` : ""}${champReponse(q)}<div class="retour-rep" id="fb" role="status" aria-live="polite"></div>`;
+      const fb = $zone.querySelector("#fb");
+      function repondre(val) {
+        if (repondu || fini) return;
+        const ok = juger(q, val);
+        if (ok === null) { fb.className = "retour-rep info"; fb.textContent = q.mode === "ensemble" ? "Écris les nombres séparés par « ; », ou « aucun »." : "Écris un nombre, par exemple −3 ou 2,5."; return; }
+        repondu = true;
+        $zone.querySelectorAll("input, .opt, .touche, .saisie .btn").forEach((el) => (el.disabled = true));
+        if (ok) {
+          serie++; bonnes++;
+          const gain = 10 * multi();
+          score += gain; majHaut();
+          fb.className = "retour-rep bon"; fb.innerHTML = `<strong>Juste !</strong> +${gain}`;
+          if (q.mode === "choix") $zone.querySelector(`.opt[data-k="${val}"]`).classList.add("opt-bonne");
+          setTimeout(() => { if (!fini) question(); }, 450);
+        } else {
+          serie = 0; vies--; majHaut();
+          pause();
+          if (q.mode === "choix") { $zone.querySelector(`.opt[data-k="${val}"]`).classList.add("barre-opt"); $zone.querySelector(`.opt[data-k="${q.attendu}"]`).classList.add("opt-bonne"); }
+          fb.className = "retour-rep faux";
+          fb.innerHTML = `<strong>Raté${vies ? `, il te reste ${vies} vie${vies > 1 ? "s" : ""}` : ""}.</strong> Bonne réponse : ${bonneReponse(q)}<details><summary>Voir la solution</summary><div class="solution">${md(q.solution)}</div></details><p class="muted">Le chrono est en pause.</p><button class="btn" id="continuer">${vies ? "Continuer →" : "Voir mon score →"}</button>`;
+          const b = fb.querySelector("#continuer");
+          b.focus();
+          b.addEventListener("click", () => { if (!vies) fin("Plus de vies !"); else { reprendre(); question(); } });
+        }
+      }
+      if (q.mode === "choix") $zone.querySelectorAll(".opt").forEach((b) => b.addEventListener("click", () => repondre(+b.dataset.k)));
+      else {
+        const inp = $zone.querySelector("#rep");
+        $zone.querySelector(".saisie").addEventListener("submit", (e) => { e.preventDefault(); repondre(inp.value); });
+        brancherTouches($zone, inp);
+        inp.focus({ preventScroll: true });
+      }
+    }
+
+    function fin(raison) {
+      fini = true; pause();
+      clearInterval(minuterieJeu); minuterieJeu = null;
+      const k = "chrono:" + theme.id;
+      const ancien = prog.jeux[k] || 0;
+      const record = score > ancien;
+      const gain = bonnes * 3;
+      prog.jeux[k] = Math.max(ancien, score);
+      prog.xp += gain; save();
+      $app.innerHTML = `<div class="bilan"><p class="eyebrow">${esc(J.titre)} · ${esc(theme.titre)}</p><p>${esc(raison)}</p><p class="gros">${score}<span> pts</span></p>${record && score ? `<p class="record">Nouveau record !</p>` : ancien ? `<p class="muted">Ton record : ${ancien} pts</p>` : ""}
+        <p>${bonnes} bonne${bonnes > 1 ? "s" : ""} réponse${bonnes > 1 ? "s" : ""} sur ${n}. +${gain} points ajoutés à ton total.</p>
+        <div class="exo-actions"><button class="btn" id="rejouer">Rejouer</button><button class="btn-sec" id="themes">Changer de thème</button></div></div>`;
+      $app.querySelector("#rejouer").addEventListener("click", () => lancerChrono(J, theme));
+      $app.querySelector("#themes").addEventListener("click", pageJeux);
+    }
+
+    majHaut();
+    // Compte à rebours avant le départ
+    let compte = 3;
+    $zone.innerHTML = `<p class="decompte">${compte}</p>`;
+    const $dec = $zone.firstChild;
+    const dec = setInterval(() => {
+      if (!$dec.isConnected) return clearInterval(dec);
+      compte--;
+      if (compte > 0) { $dec.textContent = compte; return; }
+      clearInterval(dec);
+      reprendre(); question(); tic();
+      minuterieJeu = setInterval(tic, 250);
+    }, 700);
+    tic();
   }
 
   route();

@@ -24,9 +24,10 @@
 
   function fusion(a, b) {
     a = a || {}; b = b || {};
-    const out = { xp: Math.max(a.xp || 0, b.xp || 0), exo: Object.assign({}, a.exo), qcm: Object.assign({}, a.qcm) };
+    const out = { xp: Math.max(a.xp || 0, b.xp || 0), exo: Object.assign({}, a.exo), qcm: Object.assign({}, a.qcm), jeux: Object.assign({}, a.jeux) };
     for (const k in b.exo || {}) out.exo[k] = Math.max(out.exo[k] || 0, b.exo[k]);
     for (const k in b.qcm || {}) out.qcm[k] = Math.max(out.qcm[k] ?? 0, b.qcm[k]);
+    for (const k in b.jeux || {}) out.jeux[k] = Math.max(out.jeux[k] || 0, b.jeux[k]);
     return out;
   }
 
@@ -56,7 +57,7 @@
         // Premier passage avec Google/Apple : on propose le prénom du compte, l'élève le confirme
         const prenom = d.prenom || (p ? String(u.displayName || "").trim().split(/\s+/)[0] : "");
         eleve = { uid: u.uid, identifiant: d.identifiant || idTech, prenom, classe: d.classe || "", fournisseur: p, aCompleter: !!p && !d.prenom };
-        ecouteur(eleve, { xp: d.xp || 0, exo: d.exo || {}, qcm: d.qcm || {} });
+        ecouteur(eleve, { xp: d.xp || 0, exo: d.exo || {}, qcm: d.qcm || {}, jeux: d.jeux || {} });
       } catch (e) {
         eleve = { uid: u.uid, identifiant: idTech, prenom: "", classe: "", fournisseur: p, aCompleter: false };
         ecouteur(eleve, null);
@@ -204,7 +205,7 @@
     sauver(prog) {
       if (!eleve) return;
       clearTimeout(minuterie);
-      const copie = { xp: prog.xp, exo: Object.assign({}, prog.exo), qcm: Object.assign({}, prog.qcm) };
+      const copie = { xp: prog.xp, exo: Object.assign({}, prog.exo), qcm: Object.assign({}, prog.qcm), jeux: Object.assign({}, prog.jeux) };
       minuterie = setTimeout(() => {
         if (fb) {
           fb.db.collection("eleves").doc(eleve.uid)
