@@ -1995,7 +1995,7 @@
     }
     let eff; do { eff = Array.from({ length: 6 }, () => rand(1, 9)); } while (eff.filter((e) => e === Math.max(...eff)).length > 1);
     const N = eff.reduce((x, y) => x + y);
-    const o = { xmin: -0.8, xmax: 5.8, ymin: -0.8, ymax: 10, h: 240, xlabel: "frères et sœurs", ylabel: "effectif", bars: eff.map((e, k) => ({ x: k, y: e })), aria: "Diagramme en bâtons des effectifs selon le nombre de frères et sœurs, de 0 à 5" };
+    const o = { xmin: -0.8, xmax: 6.4, ymin: -0.8, ymax: 10, h: 240, xlabel: "nombre", ylabel: "effectif", bars: eff.map((e, k) => ({ x: k, y: e })), aria: "Diagramme en bâtons des effectifs selon le nombre de frères et sœurs, de 0 à 5" };
     const k = rand(2, 4);
     const Q = pick([
       [`Combien d'élèves ont au moins $${k}$ frères et sœurs ?`, eff.slice(k).reduce((x, y) => x + y), `Additionne les effectifs des valeurs $${k}$ à $5$ : « au moins $${k}$ » veut dire $${k}$ ou plus.`, `$${eff.slice(k).join(" + ")} = ${eff.slice(k).reduce((x, y) => x + y)}$`],
