@@ -2354,6 +2354,120 @@
   };
 
 
+  /* ---------- Seconde · Fonctions paires et impaires ---------- */
+  FIGURES["courbe-paire"] = () => graph({
+    xmin: -3.6, xmax: 3.6, ymin: -2.6, ymax: 3.6, h: 260,
+    curves: [{ f: (x) => 0.5 * x * x - 2, a: -3, b: 3, closed: false, label: "C<tspan class=\"sub\" dy=\"3\">f</tspan>", lx: 2.6, dx: 28, dy: 6 }],
+    points: [{ x: -2, y: 0, label: "M′", gauche: true }, { x: 2, y: 0, label: "M" }],
+    aria: "Courbe de f(x) = 0,5x² − 2, symétrique par rapport à l'axe des ordonnées : f(−2) = f(2) = 0"
+  });
+  FIGURES["courbe-impaire"] = () => graph({
+    xmin: -3.6, xmax: 3.6, ymin: -4.2, ymax: 4.2, h: 280,
+    curves: [{ f: (x) => 0.25 * x * x * x - x, a: -3, b: 3, closed: false, label: "C<tspan class=\"sub\" dy=\"3\">g</tspan>", lx: 2.9, dx: -8, dy: 4 }],
+    points: [{ x: -1, y: 0.75, label: "N′", gauche: true }, { x: 1, y: -0.75, label: "N" }],
+    aria: "Courbe de g(x) = 0,25x³ − x, symétrique par rapport à l'origine : g(−1) = 0,75 et g(1) = −0,75"
+  });
+
+  const evalPoly = (coefs, x) => coefs.reduce((s, c) => s * x + c, 0);
+  // f(−x) : on change le signe des coefficients des puissances impaires
+  const polyMoinsX = (coefs) => coefs.map((c, i) => ((coefs.length - 1 - i) % 2 ? -c : c));
+  const NOMS_PARITE = ["Paire", "Impaire", "Ni paire ni impaire"];
+
+  GEN["parite-graphique"] = function () {
+    const genre = rand(0, 2), variante = rand(0, 2), a = pick([-1, 1]);
+    let f, xa = -3, xb = 3, explication;
+    if (genre === 0) {
+      const c = rand(-2, 2);
+      f = variante === 0 ? (x) => a * (0.5 * x * x) + c : variante === 1 ? (x) => a * 0.25 * (x * x - 1) * (x * x - 6) : (x) => a * (Math.abs(x) - 1.5);
+      explication = "La courbe est **symétrique par rapport à l'axe des ordonnées** : $f$ est paire.";
+    } else if (genre === 1) {
+      f = variante === 0 ? (x) => a * 0.75 * x : variante === 1 ? (x) => a * (0.25 * x * x * x - x) : (x) => a * 4 * x / (x * x + 1);
+      explication = "La courbe est **symétrique par rapport à l'origine** du repère : $f$ est impaire.";
+    } else if (variante === 0) {
+      const h = pick([-1, 1]), k = rand(-2, 1);
+      f = (x) => a * 0.5 * (x - h) * (x - h) + k;
+      explication = "La courbe n'est symétrique ni par rapport à l'axe des ordonnées, ni par rapport à l'origine : $f$ n'est ni paire ni impaire.";
+    } else if (variante === 1) {
+      const k = pick([-2, -1, 1, 2]);
+      f = (x) => a * (0.25 * x * x * x - x) + k;
+      explication = "La courbe ne passe pas par l'origine et n'est symétrique ni par rapport à l'axe des ordonnées, ni par rapport à l'origine : $f$ n'est ni paire ni impaire.";
+    } else {
+      xb = 2; xa = -3;
+      f = (x) => 0.5 * x * x - 2;
+      explication = "La courbe ressemble à une courbe paire, mais $f$ est définie sur $[-3\\,;2]$, un intervalle qui **n'est pas symétrique** par rapport à $0$ : $f$ n'est ni paire ni impaire.";
+    }
+    let lo = Infinity, hi = -Infinity;
+    for (let k = 0; k <= 60; k++) { const y = f(xa + ((xb - xa) * k) / 60); lo = Math.min(lo, y); hi = Math.max(hi, y); }
+    lo = Math.min(Math.floor(lo), -1); hi = Math.max(Math.ceil(hi), 1);
+    return {
+      enonce: "Voici la courbe d'une fonction $f$ sur son ensemble de définition. La fonction $f$ est-elle paire, impaire, ou ni l'un ni l'autre ?",
+      figure: graph({ xmin: -3.6, xmax: 3.6, ymin: lo - 0.6, ymax: hi + 0.6, ystep: hi - lo > 10 ? 2 : 1, curves: [{ f, a: xa, b: xb, label: "C<tspan class=\"sub\" dy=\"3\">f</tspan>", lx: xb, dx: -6, dy: -8 }], aria: "Courbe d'une fonction f dans un repère quadrillé" }),
+      mode: "choix", choix: NOMS_PARITE.slice(), attendu: genre === 2 ? 2 : genre,
+      aides: [
+        "Regarde d'abord l'ensemble de définition : il doit être **symétrique par rapport à $0$** (de $-3$ à $3$ par exemple).",
+        "Paire : la courbe se replie sur elle-même en pliant le long de l'**axe des ordonnées**.",
+        "Impaire : en faisant tourner la courbe d'un demi-tour autour de l'**origine**, elle retombe sur elle-même."
+      ],
+      solution: explication
+    };
+  };
+
+  GEN["parite-calcul"] = function () {
+    const genre = rand(0, 2);
+    let coefs;
+    if (genre === 0) coefs = pick([[randNZ(-4, 4), 0, randNZ(-9, 9)], [randNZ(-2, 2), 0, randNZ(-5, 5), 0, rand(-6, 6)], [randNZ(-5, 5), 0, 0]]);
+    else if (genre === 1) coefs = pick([[randNZ(-4, 4), 0, randNZ(-7, 7), 0], [randNZ(-7, 7), 0], [randNZ(-3, 3), 0, 0, 0]]);
+    else {
+      // au moins une puissance paire et une impaire, et f(1), f(−1) qui ne se compensent pas
+      do { coefs = pick([[randNZ(-3, 3), randNZ(-6, 6), randNZ(-9, 9)], [randNZ(-3, 3), 0, randNZ(-5, 5), randNZ(-9, 9)], [randNZ(-4, 4), randNZ(-9, 9)]]); }
+      while (evalPoly(coefs, 1) === evalPoly(coefs, -1) || evalPoly(coefs, 1) === -evalPoly(coefs, -1));
+    }
+    const mx = polyMoinsX(coefs), oppose = coefs.map((c) => -c);
+    // f(−x) écrit en remplaçant x par (−x)
+    const deg = coefs.length - 1;
+    const remplace = coefs.map((c, i) => {
+      const p = deg - i; if (c === 0) return "";
+      const m = p === 0 ? "" : p === 1 ? "(-x)" : `(-x)^{${p}}`;
+      return { c, m };
+    }).filter(Boolean).map((t, k) => (k === 0 ? (t.c === -1 && t.m ? "-" : t.c === 1 && t.m ? "" : t.c) : (t.c < 0 ? " - " : " + ") + (Math.abs(t.c) === 1 && t.m ? "" : Math.abs(t.c))) + (t.m && Math.abs(t.c) !== 1 ? " \\times " : "") + t.m).join("");
+    let solution = `$f$ est définie sur $\\mathbb{R}$, qui est symétrique par rapport à $0$.\n\n$f(-x) = ${remplace} = ${poly(mx)}$.\n\n`;
+    if (genre === 0) solution += `On retrouve $f(x)$ : $f(-x) = f(x)$ pour tout réel $x$, donc $f$ est **paire**.`;
+    else if (genre === 1) solution += `On obtient l'opposé : $-f(x) = ${poly(oppose)} = f(-x)$ pour tout réel $x$, donc $f$ est **impaire**.`;
+    else {
+      const f1 = evalPoly(coefs, 1), fm1 = evalPoly(coefs, -1);
+      solution += `Ce n'est ni $f(x)$, ni $-f(x) = ${poly(oppose)}$. Pour le prouver, un contre-exemple suffit : $f(1) = ${f1}$ et $f(-1) = ${fm1}$.\n\n$f(-1) \\neq f(1)$ donc $f$ n'est pas paire, et $f(-1) \\neq -f(1)$ donc $f$ n'est pas impaire.`;
+    }
+    return {
+      enonce: `Soit $f$ la fonction définie sur $\\mathbb{R}$ par $f(x) = ${poly(coefs)}$. Étudie sa parité.`,
+      mode: "choix", choix: NOMS_PARITE.slice(), attendu: genre,
+      aides: [
+        "Calcule $f(-x)$ en remplaçant chaque $x$ par $(-x)$.",
+        "$(-x)^2 = x^2$ et $(-x)^4 = x^4$ ; mais $(-x)^3 = -x^3$ et $(-x)^1 = -x$.",
+        "Compare $f(-x)$ avec $f(x)$ (paire) puis avec $-f(x)$ (impaire)."
+      ],
+      solution
+    };
+  };
+
+  GEN["parite-symetrique"] = function () {
+    const paire = Math.random() < 0.5;
+    const a = rand(1, 6), b = randNZ(-9, 9), signe = pick([-1, 1]);
+    return {
+      enonce: `$f$ est une fonction **${paire ? "paire" : "impaire"}** définie sur $\\mathbb{R}$, et $f(${signe * a}) = ${b}$. Combien vaut $f(${-signe * a})$ ?`,
+      mode: "nombre", prefixe: `f(${-signe * a}) =`, attendu: paire ? b : -b,
+      erreurs: [{ valeur: paire ? -b : b, message: paire ? "Une fonction **paire** vérifie $f(-x) = f(x)$ : l'image ne change pas de signe." : "Une fonction **impaire** vérifie $f(-x) = -f(x)$ : il faut prendre l'opposé." }],
+      aides: [
+        paire ? "Paire : $f(-x) = f(x)$ pour tout réel $x$." : "Impaire : $f(-x) = -f(x)$ pour tout réel $x$.",
+        `Applique la formule avec $x = ${signe * a}$.`,
+        paire ? "Sur la courbe : les points d'abscisses opposées ont la même ordonnée." : "Sur la courbe : les points d'abscisses opposées ont des ordonnées opposées."
+      ],
+      solution: paire
+        ? `$f$ est paire, donc $f(${-signe * a}) = f(${signe * a}) = ${b}$.`
+        : `$f$ est impaire, donc $f(${-signe * a}) = -f(${signe * a}) = ${-b}$.`
+    };
+  };
+
+
   /* Séries « flash » d'un thème : mélange de ses générateurs */
   const THEMES = {
     "am-flash-cn": ["am-comparer", "am-fractions", "am-puissances", "am-ecritures", "am-ordre-grandeur", "am-coherence", "auto-conversions"],

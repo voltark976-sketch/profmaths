@@ -10,7 +10,7 @@
   - Une ligne qui commence par "- " devient une puce.
   - youtube : coller l'adresse de la vidéo (https://youtu.be/... ou https://www.youtube.com/watch?v=...).
     Laisser "" tant que la vidéo n'est pas choisie : un emplacement s'affiche.
-  - figure : nom d'un graphique prédéfini ("courbe-u", "kayaks", "enclos").
+  - figure : nom d'un graphique prédéfini ("courbe-u", "kayaks", "enclos", "courbe-paire", "courbe-impaire").
 */
 window.CHAPITRES = window.CHAPITRES || {};
 window.CHAPITRES["seconde-fonctions"] = {
@@ -122,6 +122,35 @@ window.CHAPITRES["seconde-fonctions"] = {
         enonce: "Kayaks : retrouver par le calcul le point d'intersection des droites de $A(t) = 8t$ et $B(t) = 4t + 12$, puis résoudre $A(t) < B(t)$. Enfin, résoudre $-2x + 1 \\leqslant x + 7$.",
         solution: "$8t = 4t + 12 \\iff 4t = 12 \\iff t = 3$. Puis $A(3) = 8 \\times 3 = 24$ : le point commun est $I(3\\,;24)$.\n\n$8t < 4t + 12 \\iff 4t < 12 \\iff t < 3$. Avec $t \\in [0\\,;6]$ : $S = [0\\,;3[$, comme sur le graphique.\n\n$-2x + 1 \\leqslant x + 7 \\iff -3x \\leqslant 6 \\iff x \\geqslant -2$ (on divise par $-3$, le sens change). $S = [-2\\,;+\\infty[$."
       }
+    },
+    {
+      titre: "Fonctions paires",
+      texte:
+        "Une fonction $f$ définie sur $D$ est **paire** si :\n\n" +
+        "- $D$ est **symétrique par rapport à $0$** (si $x \\in D$, alors $-x \\in D$) ;\n" +
+        "- pour tout $x$ de $D$, $f(-x) = f(x)$.\n\n" +
+        "Deux nombres opposés ont la **même image**. Sa courbe est **symétrique par rapport à l'axe des ordonnées** : on peut la plier le long de cet axe.\n\n" +
+        "Exemples : la fonction carré $x \\mapsto x^2$, la fonction valeur absolue $x \\mapsto |x|$.",
+      figure: "courbe-paire",
+      exemple: {
+        enonce: "Montrer que $f(x) = 0{,}5x^2 - 2$, définie sur $\\mathbb{R}$, est paire.",
+        solution: "$\\mathbb{R}$ est symétrique par rapport à $0$.\n\n$f(-x) = 0{,}5(-x)^2 - 2 = 0{,}5x^2 - 2 = f(x)$ car $(-x)^2 = x^2$.\n\nDonc $f$ est paire. Sur la courbe, $M(2\\,;0)$ et $M'(-2\\,;0)$ sont symétriques par rapport à l'axe des ordonnées."
+      }
+    },
+    {
+      titre: "Fonctions impaires",
+      texte:
+        "Une fonction $f$ définie sur $D$ est **impaire** si :\n\n" +
+        "- $D$ est **symétrique par rapport à $0$** ;\n" +
+        "- pour tout $x$ de $D$, $f(-x) = -f(x)$.\n\n" +
+        "Deux nombres opposés ont des **images opposées**. Sa courbe est **symétrique par rapport à l'origine** du repère : un demi-tour autour de $O$ la laisse inchangée. Si $0 \\in D$, alors $f(0) = 0$.\n\n" +
+        "Exemples : $x \\mapsto x$, la fonction cube $x \\mapsto x^3$, la fonction inverse $x \\mapsto \\dfrac{1}{x}$.\n\n" +
+        "Une fonction peut n'être **ni paire ni impaire** : il suffit d'un contre-exemple, par exemple $f(-1) \\neq f(1)$ et $f(-1) \\neq -f(1)$.",
+      figure: "courbe-impaire",
+      exemple: {
+        enonce: "Étudier la parité de $g(x) = 0{,}25x^3 - x$ puis de $h(x) = x^2 + x$, toutes deux définies sur $\\mathbb{R}$.",
+        solution: "$g(-x) = 0{,}25(-x)^3 - (-x) = -0{,}25x^3 + x = -(0{,}25x^3 - x) = -g(x)$ : $g$ est impaire.\n\n$h(1) = 2$ et $h(-1) = 1 - 1 = 0$. On a $h(-1) \\neq h(1)$ et $h(-1) \\neq -h(1)$ : $h$ n'est ni paire ni impaire."
+      }
     }
   ],
 
@@ -147,7 +176,10 @@ window.CHAPITRES["seconde-fonctions"] = {
     { type: "ensemble-definition", titre: "Repérer la valeur interdite", etape: "Par le calcul", nb: 4 },
     { type: "appartenance", titre: "Le point est-il sur la courbe ?", etape: "Par le calcul", nb: 5 },
     { type: "calcul-f-egal-g", titre: "Résoudre f(x) = g(x) par le calcul", etape: "Par le calcul", nb: 5 },
-    { type: "calcul-f-inf-g", titre: "Résoudre f(x) > g(x), f(x) ≤ g(x)… par le calcul", etape: "Par le calcul", nb: 5 }
+    { type: "calcul-f-inf-g", titre: "Résoudre f(x) > g(x), f(x) ≤ g(x)… par le calcul", etape: "Par le calcul", nb: 5 },
+    { type: "parite-graphique", titre: "Paire ou impaire ? Lire sur la courbe", etape: "Parité", nb: 5 },
+    { type: "parite-calcul", titre: "Paire ou impaire ? Calculer f(−x)", etape: "Parité", nb: 5 },
+    { type: "parite-symetrique", titre: "Utiliser la parité pour trouver une image", etape: "Parité", nb: 5 }
   ],
 
   /* ---------- 3. QCM DE RÉVISION ----------
@@ -230,6 +262,30 @@ window.CHAPITRES["seconde-fonctions"] = {
       choix: ["$0$", "$0$ et $2$", "$1$", "$4$"],
       bonne: 1,
       explication: "On cherche $1$ dans la ligne des images : il apparaît sous $x = 0$ et sous $x = 2$. L'image de $1$, elle, vaut $0$."
+    },
+    {
+      question: "La courbe d'une fonction paire est symétrique par rapport…",
+      choix: ["à l'axe des ordonnées", "à l'axe des abscisses", "à l'origine du repère", "à la droite $y = x$"],
+      bonne: 0,
+      explication: "$f(-x) = f(x)$ : les points $(x\\,;f(x))$ et $(-x\\,;f(x))$ sont symétriques par rapport à l'axe des ordonnées. La symétrie par rapport à l'origine correspond aux fonctions impaires."
+    },
+    {
+      question: "Soit $f(x) = x^3 - 4x$, définie sur $\\mathbb{R}$. La fonction $f$ est…",
+      choix: ["paire", "impaire", "ni paire ni impaire"],
+      bonne: 1,
+      explication: "$f(-x) = (-x)^3 - 4(-x) = -x^3 + 4x = -(x^3 - 4x) = -f(x)$ : $f$ est impaire."
+    },
+    {
+      question: "$f$ est impaire sur $\\mathbb{R}$ et $f(3) = -5$. Que vaut $f(-3)$ ?",
+      choix: ["$5$", "$-5$", "$3$", "On ne peut pas savoir"],
+      bonne: 0,
+      explication: "Impaire : $f(-3) = -f(3) = -(-5) = 5$."
+    },
+    {
+      question: "La fonction $f(x) = x^2$ définie sur $[-2\\,;5]$ est…",
+      choix: ["paire", "impaire", "ni paire ni impaire"],
+      bonne: 2,
+      explication: "$[-2\\,;5]$ n'est pas symétrique par rapport à $0$ : par exemple $4$ est dans l'intervalle mais pas $-4$. La fonction n'est donc ni paire ni impaire, même si $(-x)^2 = x^2$."
     }
   ],
 
@@ -315,6 +371,16 @@ window.CHAPITRES["seconde-fonctions"] = {
         "Abscisses des points d'intersection : **exclues** pour $<$ ou $>$, **incluses** pour $\\leqslant$ ou $\\geqslant$."
       ],
       exemple: "Kayaks : la droite de A est en dessous de celle de B avant le point $I(3\\,;24)$, donc $A(t) \\leqslant B(t) \\iff t \\in [0\\,;3]$."
+    },
+    {
+      titre: "Étudier la parité d'une fonction",
+      etapes: [
+        "Vérifier que l'ensemble de définition est **symétrique par rapport à $0$**. Sinon, $f$ n'est ni paire ni impaire.",
+        "Calculer $f(-x)$ en remplaçant chaque $x$ par $(-x)$ : $(-x)^2 = x^2$, $(-x)^3 = -x^3$.",
+        "Si on retrouve $f(x)$ : $f$ est **paire**. Si on obtient $-f(x)$ : $f$ est **impaire**.",
+        "Sinon, donner un **contre-exemple** : calculer $f(1)$ et $f(-1)$ et montrer que $f(-1) \\neq f(1)$ et $f(-1) \\neq -f(1)$."
+      ],
+      exemple: "$f(x) = 2x^4 - x^2$ : $f(-x) = 2(-x)^4 - (-x)^2 = 2x^4 - x^2 = f(x)$, donc $f$ est paire."
     }
   ],
   erreurs: [
@@ -324,6 +390,8 @@ window.CHAPITRES["seconde-fonctions"] = {
     "Inclure une borne dans une inéquation stricte, ou oublier les contraintes du problème ($t \\geqslant 0$).",
     "Pour $u(x) \\leqslant -5$, oublier le cas d'égalité et répondre $S = \\varnothing$.",
     "Oublier de **changer le sens** de l'inégalité en divisant par un nombre négatif : $-3x \\leqslant 6 \\iff x \\geqslant -2$.",
-    "Pour $f(x) > g(x)$, regarder seulement la courbe de $f$ : il faut **comparer** les deux courbes, point par point."
+    "Pour $f(x) > g(x)$, regarder seulement la courbe de $f$ : il faut **comparer** les deux courbes, point par point.",
+    "Écrire $(-x)^2 = -x^2$ : un carré est toujours positif, $(-x)^2 = x^2$. En revanche $(-x)^3 = -x^3$.",
+    "Conclure qu'une fonction est paire à partir d'**un seul** exemple $f(-1) = f(1)$ : il faut l'égalité pour **tous** les $x$. Un exemple suffit seulement pour prouver qu'elle **n'est pas** paire."
   ]
 };
