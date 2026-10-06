@@ -114,7 +114,9 @@
     const h = location.hash.replace(/^#/, "");
     const [chap, onglet] = h.split(".");
     if (minuterieJeu) { clearInterval(minuterieJeu); minuterieJeu = null; }
+    document.getElementById("jeu-btn").toggleAttribute("aria-current", chap === "jeu");
     if (chap === "compte") pageCompte();
+    else if (chap === "jeu") pageJeu();
     else if (chap && window.CHAPITRES && CHAPITRES[chap]) pageChapitre(chap, onglet || "cours");
     else pageAccueil();
   }
@@ -152,6 +154,16 @@
     });
     h += `</div><footer class="pied"><a href="https://www.youtube.com/@Profmaths-q1p" target="_blank" rel="noopener">Chaîne YouTube</a><a href="https://drive.google.com/drive/folders/1mTeWgDGTv4hNYrD_ozxN9-cSDDGH_Oqn" target="_blank" rel="noopener">Cours et corrigés (Drive)</a></footer>`;
     $app.innerHTML = h;
+  }
+
+  /* ---------- Page jeu : « Les Salles », dans le dossier les-salles/ ---------- */
+  function pageJeu() {
+    document.title = "Les Salles · ProfMaths";
+    $app.innerHTML = `<section class="page-jeu"><p class="eyebrow">Jeu · Seconde</p><h1>Les Salles</h1>
+      <p class="lead">Un jeu de plateforme dans un temple grec : résous les exercices gravés sur les stèles pour ouvrir les portes.</p>
+      <p class="muted">Se joue au clavier, sur ordinateur. Clique une fois dans le jeu (le bouton « Commencer » suffit) pour que les touches répondent. Ta progression reste dans ce navigateur.</p>
+      <iframe class="cadre-jeu" src="les-salles/index.html" title="Jeu Les Salles" width="100%" height="720" style="border:0"></iframe>
+      <p class="muted"><a href="les-salles/index.html" target="_blank" rel="noopener">Ouvrir le jeu en plein écran</a></p></section>`;
   }
 
   /* ---------- Page compte ---------- */

@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Les Salles</title>
+  <!-- Polices « antiques » (si pas d'Internet, le navigateur en prend une autre). -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=EB+Garamond:ital,wght@0,400;0,600;1,400&display=swap">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <header>
+    <div class="ligne-haut">
+      <div class="titres">
+        <p id="chapitre"></p>
+        <h1 id="titre-salle">Chargement…</h1>
+      </div>
+      <div class="outils">
+        <span class="compteur" id="compteur-sceaux" title="Sceaux de pierre : un par stèle de pierre résolue (elles ouvrent les portes)">
+          <svg class="sceau" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8.5" fill="#b0a998" stroke="#6f6858" stroke-width="1.5"/><text x="10" y="14" text-anchor="middle" font-size="10" font-weight="700" fill="#4a4538">Ω</text></svg>
+          <span id="texte-sceaux"></span>
+        </span>
+        <span class="compteur compteur-bonus" id="compteur-bonus" title="Sceaux d'or : un par stèle d'or résolue (facultatives). Ils débloquent les parures et les sanctuaires secrets.">
+          <svg class="sceau" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8.5" fill="#e2b24c" stroke="#9b7226" stroke-width="1.5"/><text x="10" y="14" text-anchor="middle" font-size="10" font-weight="700" fill="#7a471c">Ω</text></svg>
+          <span id="texte-bonus"></span>
+        </span>
+        <button id="bouton-parures" title="Les ornements de Talos, gagnés avec les sceaux d'or">✦ Parures</button>
+        <select id="choix-salle" aria-label="Aller à la salle"></select>
+        <button id="bouton-recommencer" title="Recommencer la salle (touche R)">↺ Recommencer</button>
+      </div>
+    </div>
+    <p id="athena"><span class="qui">Athéna</span> <span id="athena-texte"></span></p>
+  </header>
+
+  <main id="zone-jeu">
+    <canvas id="salle"></canvas>
+    <div id="avis" hidden></div>
+    <div id="bulle" hidden>
+      <p class="qui" id="bulle-nom"></p>
+      <p id="bulle-texte"></p>
+    </div>
+  </main>
+
+  <footer>
+    <span class="aide">
+      <kbd>←</kbd> <kbd>→</kbd> ou <kbd>Q</kbd> <kbd>D</kbd> courir ·
+      <kbd>Espace</kbd>, <kbd>↑</kbd> ou <kbd>Z</kbd> sauter ·
+      <kbd>E</kbd> lire une stèle ·
+      <kbd>R</kbd> recommencer ·
+      si le clavier ne répond pas, cliquez une fois sur le jeu
+    </span>
+    <span class="compteur-dalles" id="compteur-dalles"></span>
+    <button id="bouton-effacer" class="discret">Effacer la progression</button>
+  </footer>
+
+  <!-- Les messages qui apparaissent quelques secondes (nouvelle parure...) -->
+  <div id="toasts" aria-live="polite"></div>
+
+  <!-- La stèle : la fenêtre où l'on résout un exercice -->
+  <div id="stele" class="voile" hidden>
+    <form class="parchemin" id="stele-formulaire" autocomplete="off">
+      <p class="sur-titre" id="stele-sur-titre">Stèle</p>
+      <p class="note-or" id="stele-note" hidden></p>
+      <h2 id="stele-titre"></h2>
+      <p id="stele-enonce"></p>
+      <div class="ligne-reponse">
+        <label for="stele-reponse">Votre réponse</label>
+        <input id="stele-reponse" type="text" inputmode="decimal">
+        <span id="stele-unite"></span>
+        <button type="submit" id="stele-valider">Graver</button>
+      </div>
+      <p id="stele-retour" class="retour"></p>
+      <p id="stele-indice" class="indice" hidden></p>
+      <p id="stele-explication" class="explication" hidden></p>
+      <div class="ligne-boutons">
+        <button type="button" id="stele-fermer" class="discret">Fermer (Échap)</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Fenêtre de message (salle réussie, chapitre, erreurs...) -->
+  <div id="fenetre" class="voile" hidden>
+    <div class="parchemin">
+      <h2 id="fenetre-titre"></h2>
+      <p id="fenetre-texte"></p>
+      <div class="ligne-choix">
+        <button id="fenetre-bouton"></button>
+        <button id="fenetre-bouton2" class="second" hidden></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Les parures de Talos et les sanctuaires secrets -->
+  <div id="parures" class="voile" hidden>
+    <div class="parchemin">
+      <p class="sur-titre">Sceaux d'or : <span id="parures-compte"></span></p>
+      <h2>Les parures de Talos</h2>
+      <p>Les sceaux d'or se gagnent aux stèles d'or, qui sont facultatives. Chaque sceau rapproche Talos d'une nouvelle parure et aide à ouvrir le sanctuaire secret de son chapitre.</p>
+      <ul id="parures-liste" class="liste-parures"></ul>
+      <h3>Les sanctuaires secrets</h3>
+      <ul id="sanctuaires-liste" class="liste-sanctuaires"></ul>
+      <div class="ligne-boutons">
+        <button type="button" id="parures-fermer" class="discret">Fermer (Échap)</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- L'écran de titre -->
+  <div id="ecran-titre" class="voile" hidden>
+    <div class="cartouche">
+      <p class="sur-titre">Un voyage mathématique dans le temple d'Athéna</p>
+      <h1 class="grand-titre">Les Salles</h1>
+      <p class="accroche">Résous les exercices du programme de Seconde gravés sur les stèles pour ouvrir les portes du temple.</p>
+      <button id="titre-bouton">Commencer</button>
+      <p id="titre-progres"></p>
+    </div>
+  </div>
+
+  <!-- L'ordre compte : les niveaux d'abord, le chef d'orchestre (jeu.js) en dernier. -->
+  <script src="niveaux/niveaux.js"></script>
+  <script src="niveaux/parures.js"></script>
+  <script src="js/sauvegarde.js"></script>
+  <script src="js/moteur.js"></script>
+  <script src="js/decor.js"></script>
+  <script src="js/ambiances1.js"></script>
+  <script src="js/ambiances2.js"></script>
+  <script src="js/ambiances3.js"></script>
+  <script src="js/dessin.js"></script>
+  <script src="js/commandes.js"></script>
+  <script src="js/jeu.js"></script>
+</body>
+</html>

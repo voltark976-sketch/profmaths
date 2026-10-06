@@ -28,6 +28,15 @@ Site statique : aucune base de données, aucun compte élève. Ouvrir `index.htm
 2. Ajouter une ligne `<script src="data/...">` dans `index.html`.
 3. Passer le chapitre en `statut: "disponible"` dans `data/catalogue.js`.
 
+## Le jeu « Les Salles »
+Le jeu est dans le dossier `les-salles/` (page `les-salles/index.html`). La page **Jeu** du site (lien « Jeu » en haut, adresse `#jeu`) l'affiche dans un cadre ; le code de cette page est la fonction `pageJeu` de `assets/app.js`. La sauvegarde du jeu reste dans le navigateur de chaque élève.
+
+Installer une nouvelle version du jeu :
+1. Décompressez le nouveau zip : vous obtenez un dossier `les-salles`.
+2. Supprimez l'ancien dossier `les-salles/` du site, puis mettez le nouveau à sa place (même nom, à côté de `index.html`).
+3. Vérifiez que le dossier ne contient pas de fichier de réponses, puis remettez le site en ligne.
+Sur GitHub, le plus simple est de demander à Claude de le faire : il remplace le dossier sur `main` et `gh-pages`. Rien d'autre à modifier, tant que la page du jeu reste `les-salles/index.html`.
+
 ## Mise en ligne
 Voir `MISE-EN-LIGNE.md` (GitHub Pages, gratuit, sans rien installer).
 

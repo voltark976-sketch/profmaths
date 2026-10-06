@@ -1,0 +1,443 @@
+/* ====================================================================
+   APPARENCE : couleurs, polices, disposition des éléments de la page
+   Thème : un temple grec éclairé à la torche.
+   ==================================================================== */
+
+:root {
+  --fond: #17110c;
+  --panneau: #241a12;
+  --bordure: #5a4630;
+  --texte: #efe4cc;
+  --texte-doux: #b9a888;
+  --or: #e2b24c;
+  --or-sombre: #9b7226;
+  --parchemin: #f3e7c9;
+  --encre: #2b2015;
+  --juste: #3f7d3a;
+  --faux: #a2382b;
+  --police-titre: "Cinzel", "Trajan Pro", Georgia, serif;
+  --police-texte: "EB Garamond", Garamond, Georgia, serif;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  height: 100%;
+  background: var(--fond);
+  color: var(--texte);
+  font-family: var(--police-texte);
+  font-size: 17px;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* ---------- En-tête ---------- */
+header {
+  padding: 10px 16px 6px;
+  border-bottom: 1px solid var(--bordure);
+  background: linear-gradient(var(--panneau), var(--fond));
+}
+
+.ligne-haut {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+#chapitre {
+  margin: 0;
+  font-family: var(--police-titre);
+  font-size: 0.7rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--or-sombre);
+}
+
+h1 {
+  margin: 0;
+  font-family: var(--police-titre);
+  font-weight: 700;
+  font-size: 1.3rem;
+  letter-spacing: 0.04em;
+  color: var(--or);
+}
+
+.outils { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+
+.compteur {
+  font-family: var(--police-titre);
+  font-size: 0.85rem;
+  color: var(--or);
+  padding: 4px 10px;
+  border: 1px solid var(--or-sombre);
+  border-radius: 999px;
+  font-variant-numeric: tabular-nums;
+}
+
+.compteur-bonus { background: rgba(226, 178, 76, 0.15); }
+.compteur[hidden] { display: none; }
+
+/* Inscription d'Athéna */
+#athena {
+  margin: 8px 0 0;
+  font-style: italic;
+  color: var(--texte);
+  max-width: 75ch;
+  line-height: 1.35;
+}
+.qui {
+  font-family: var(--police-titre);
+  font-style: normal;
+  font-weight: 700;
+  font-size: 0.75rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--or);
+  margin-right: 6px;
+}
+
+/* ---------- Zone de jeu ---------- */
+#zone-jeu {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 16px;
+  position: relative;
+}
+
+canvas {
+  display: block;
+  border: 2px solid var(--or-sombre);
+  border-radius: 3px;
+  box-shadow: 0 0 40px rgba(226, 178, 76, 0.12);
+}
+
+#avis {
+  position: absolute;
+  bottom: 22px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(23, 17, 12, 0.92);
+  border: 1px solid var(--or-sombre);
+  border-radius: 6px;
+  padding: 6px 14px;
+}
+
+/* Parole d'un philosophe */
+#bulle {
+  position: absolute;
+  left: 50%;
+  top: 14px;
+  transform: translateX(-50%);
+  width: min(620px, calc(100% - 32px));
+  background: rgba(23, 17, 12, 0.94);
+  border: 1px solid var(--or-sombre);
+  border-radius: 8px;
+  padding: 10px 16px;
+  line-height: 1.4;
+}
+#bulle p { margin: 0; }
+#bulle-texte { margin-top: 4px !important; }
+
+/* ---------- Boutons ---------- */
+button, select {
+  font-family: var(--police-titre);
+  font-size: 0.8rem;
+  color: var(--texte);
+  background: var(--panneau);
+  border: 1px solid var(--bordure);
+  border-radius: 6px;
+  padding: 6px 10px;
+  cursor: pointer;
+}
+button:hover, select:hover { border-color: var(--or); }
+button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px solid var(--or); outline-offset: 1px; }
+
+/* ---------- Pied de page ---------- */
+footer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 6px 16px;
+  padding: 6px 16px 10px;
+  font-size: 0.85rem;
+  color: var(--texte-doux);
+  border-top: 1px solid var(--bordure);
+}
+.discret { background: transparent; color: var(--texte-doux); }
+.compteur-dalles { font-variant-numeric: tabular-nums; }
+
+kbd {
+  display: inline-block;
+  min-width: 1.6em;
+  padding: 0 5px;
+  border: 1px solid var(--bordure);
+  border-bottom-width: 2px;
+  border-radius: 4px;
+  background: var(--panneau);
+  color: var(--texte);
+  font-family: var(--police-titre);
+  font-size: 0.7rem;
+  text-align: center;
+}
+.aide { line-height: 1.9; }
+
+/* ---------- Fenêtres (stèle, messages) ---------- */
+.voile {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 7, 4, 0.72);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+.voile[hidden] { display: none; }
+
+.parchemin {
+  background: var(--parchemin);
+  color: var(--encre);
+  border: 3px double var(--or-sombre);
+  border-radius: 4px;
+  padding: 20px 26px;
+  max-width: 560px;
+  width: 100%;
+  max-height: calc(100vh - 32px);
+  overflow-y: auto;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+  -webkit-user-select: text;
+  user-select: text;
+}
+.parchemin h2 {
+  margin: 0 0 10px;
+  font-family: var(--police-titre);
+  font-size: 1.25rem;
+  color: var(--encre);
+  text-wrap: balance;
+}
+.parchemin p { margin: 0 0 12px; line-height: 1.45; }
+.parchemin > button { background: var(--encre); color: var(--parchemin); border-color: var(--encre); font-size: 0.95rem; padding: 8px 16px; }
+
+.sur-titre {
+  font-family: var(--police-titre);
+  font-size: 0.7rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--or-sombre);
+  margin-bottom: 2px !important;
+}
+
+#stele-enonce { font-size: 1.1rem; }
+
+.ligne-reponse {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 14px 0 10px;
+}
+.ligne-reponse label { font-family: var(--police-titre); font-size: 0.8rem; }
+.ligne-reponse input {
+  font-family: var(--police-texte);
+  font-size: 1.15rem;
+  width: 8em;
+  padding: 4px 8px;
+  border: 1px solid var(--or-sombre);
+  border-radius: 4px;
+  background: #fffaf0;
+  color: var(--encre);
+}
+.ligne-reponse button { background: var(--encre); color: var(--parchemin); border-color: var(--encre); }
+.ligne-reponse button:disabled, .ligne-reponse input:disabled { opacity: 0.5; cursor: default; }
+
+.retour { font-weight: 600; min-height: 1.4em; }
+.retour.juste { color: var(--juste); }
+.retour.faux { color: var(--faux); }
+
+.indice, .explication {
+  border-left: 3px solid var(--or-sombre);
+  padding: 4px 0 4px 12px;
+  background: rgba(155, 114, 38, 0.08);
+}
+.indice[hidden], .explication[hidden] { display: none; }
+
+.ligne-boutons { display: flex; justify-content: flex-end; gap: 8px; }
+.ligne-boutons .discret { color: var(--encre); border-color: var(--or-sombre); }
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
+}
+
+/* ====================================================================
+   Ajouts de l'étape 5 : sceaux, parures, inscriptions, écran de titre
+   ==================================================================== */
+
+/* ---------- Compteurs de sceaux (avec leur petite image) ---------- */
+.compteur { display: inline-flex; align-items: center; gap: 6px; }
+.sceau { width: 18px; height: 18px; flex: none; }
+.compteur[hidden] { display: none; }
+
+/* ---------- Bulle d'une inscription d'Athéna ---------- */
+#bulle.inscription {
+  border-color: #8a8170;
+  background: linear-gradient(rgba(46, 40, 31, 0.96), rgba(30, 25, 19, 0.96));
+}
+#bulle.inscription .qui { color: #ead9b0; }
+
+/* ---------- Fenêtres : un ou deux choix ---------- */
+.ligne-choix { display: flex; flex-wrap: wrap; gap: 10px; }
+.ligne-choix button { background: var(--encre); color: var(--parchemin); border-color: var(--encre); font-size: 0.95rem; padding: 8px 16px; }
+.ligne-choix button.second { background: transparent; color: var(--encre); border-color: var(--or-sombre); }
+.ligne-choix button[hidden] { display: none; }
+
+/* ---------- Le parchemin : un liseré doré, et il se déplie ---------- */
+.parchemin { position: relative; }
+.parchemin::before {
+  content: "";
+  position: absolute;
+  inset: 5px;
+  border: 1px solid rgba(155, 114, 38, 0.45);
+  border-radius: 2px;
+  pointer-events: none;
+}
+.voile:not([hidden]) .parchemin,
+.voile:not([hidden]) .cartouche { animation: deplier 0.35s ease-out; }
+@keyframes deplier {
+  from { opacity: 0; transform: translateY(12px) scaleY(0.85); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* ---------- La stèle d'or ---------- */
+#stele.doree .parchemin { background: linear-gradient(#fbf1d2, #f1dfa8); border-color: var(--or); }
+.note-or {
+  font-style: italic;
+  font-size: 0.95rem;
+  color: #6b4e14;
+  border: 1px dashed var(--or-sombre);
+  border-radius: 4px;
+  padding: 6px 10px;
+  background: rgba(226, 178, 76, 0.18);
+}
+.note-or[hidden] { display: none; }
+
+/* ---------- Le panneau des parures ---------- */
+.parchemin h3 { font-family: var(--police-titre); font-size: 1rem; margin: 16px 0 8px; }
+.liste-parures, .liste-sanctuaires { list-style: none; margin: 0; padding: 0; }
+.parure {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(155, 114, 38, 0.25);
+}
+.parure div { flex: 1; min-width: 0; }
+.parure strong { display: block; font-family: var(--police-titre); font-size: 0.9rem; }
+.parure small { display: block; font-size: 0.92rem; opacity: 0.85; }
+.pastille {
+  flex: none;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-family: var(--police-titre);
+  font-weight: 700;
+  font-size: 0.8rem;
+  border: 2px solid var(--or-sombre);
+  background: #e9dcb8;
+  color: #6f5a2c;
+}
+.parure.ouverte .pastille { background: radial-gradient(circle at 35% 35%, #f6d47a, #c8962f); color: #5a3d0e; border-color: #9b7226; }
+.parure.fermee { opacity: 0.72; }
+.parure button { background: var(--encre); color: var(--parchemin); border-color: var(--encre); }
+.manque { font-size: 0.85rem; font-style: italic; white-space: nowrap; }
+.liste-sanctuaires li { padding: 4px 0 4px 20px; position: relative; line-height: 1.4; }
+.liste-sanctuaires li::before { content: "✦"; position: absolute; left: 0; color: var(--or-sombre); }
+
+/* ---------- Les messages passagers (nouvelle parure...) ---------- */
+#toasts {
+  position: fixed;
+  left: 50%;
+  bottom: 70px;
+  transform: translateX(-50%);
+  width: min(560px, calc(100% - 32px));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  z-index: 30;
+  pointer-events: none;
+}
+.toast {
+  background: linear-gradient(#3a2a14, #241a10);
+  color: var(--texte);
+  border: 1px solid var(--or);
+  border-radius: 8px;
+  padding: 10px 16px;
+  text-align: center;
+  line-height: 1.4;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.5), 0 0 18px rgba(226, 178, 76, 0.25);
+  animation: arriver 0.4s ease-out;
+  transition: opacity 0.5s, transform 0.5s;
+}
+.toast.partir { opacity: 0; transform: translateY(8px); }
+@keyframes arriver {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* ---------- L'écran de titre ---------- */
+#ecran-titre { background: radial-gradient(ellipse at center, rgba(20, 14, 8, 0.5), rgba(10, 7, 4, 0.9)); z-index: 20; }
+.cartouche {
+  position: relative;
+  text-align: center;
+  max-width: 620px;
+  padding: 34px 30px;
+  border: 1px solid var(--or-sombre);
+  border-radius: 6px;
+  background: rgba(23, 17, 12, 0.82);
+  box-shadow: 0 0 60px rgba(226, 178, 76, 0.18);
+}
+.cartouche::before {
+  content: "";
+  position: absolute;
+  inset: 6px;
+  border: 1px solid rgba(226, 178, 76, 0.3);
+  border-radius: 3px;
+  pointer-events: none;
+}
+.cartouche .sur-titre { color: #c9a24a; }
+.grand-titre {
+  font-size: clamp(2.4rem, 7vw, 4rem);
+  margin: 6px 0 10px;
+  letter-spacing: 0.08em;
+  color: var(--or);
+  text-shadow: 0 0 24px rgba(226, 178, 76, 0.45);
+}
+.accroche { font-size: 1.15rem; line-height: 1.45; margin: 0 auto 22px; max-width: 46ch; }
+#titre-bouton {
+  font-size: 1.1rem;
+  padding: 10px 28px;
+  background: linear-gradient(#e9be5c, #b8862e);
+  color: #2b1d08;
+  border-color: #f6d47a;
+}
+#titre-bouton:hover { filter: brightness(1.08); }
+#titre-progres { margin: 18px 0 0; font-size: 0.95rem; color: var(--texte-doux); line-height: 1.5; }
+
+/* La liste des salles reste étroite, pour que l'en-tête tienne sur une ligne. */
+#choix-salle { max-width: 260px; }

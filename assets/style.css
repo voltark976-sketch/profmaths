@@ -243,6 +243,10 @@ pre.code code { font: inherit; }
 /* Compte élève */
 .haut-d { display: flex; align-items: center; gap: 8px; min-width: 0; }
 .compte-btn { font: 700 0.85rem/1 var(--f-texte); padding: 7px 12px; border-radius: 999px; border: 1.5px solid var(--lagon); color: var(--lagon); text-decoration: none; white-space: nowrap; max-width: 9.5rem; overflow: hidden; text-overflow: ellipsis; }
+.jeu-btn { font: 700 0.85rem/1 var(--f-texte); padding: 7px 12px; border-radius: 999px; color: var(--encre); text-decoration: none; white-space: nowrap; }
+.jeu-btn[aria-current] { background: var(--ylang-pale); }
+.page-jeu { padding-top: 24px; }
+.cadre-jeu { display: block; width: 100%; height: 720px; border: 0; margin-top: 12px; }
 .compte-btn.connecte { background: var(--lagon); color: var(--fond); }
 .invite { display: grid; gap: 2px; margin-top: 20px; padding: 14px 16px; border-radius: var(--r); background: var(--ylang-pale); color: var(--encre); text-decoration: none; }
 .invite strong { color: var(--encre); }
@@ -308,6 +312,7 @@ pre.code code { font: inherit; }
   .haut-d { gap: 6px; }
   .marque { font-size: 1.05rem; }
   .compte-btn { max-width: 7.5rem; }
+  .jeu-btn { padding: 7px 4px; }
 }
 
 /* Champ avec unité, vidéo d'aide dans le cours */
