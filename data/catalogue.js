@@ -35,6 +35,13 @@ window.CATALOGUE = {
           titre: "Information chiffrée",
           statut: "disponible",
           drive: "https://drive.google.com/drive/folders/153RvVVumMoWU_bPz6w6RypIZVkocK6Pb"
+        },
+        {
+          id: "seconde-variations",
+          numero: 4,
+          titre: "Variations et fonctions de référence",
+          statut: "disponible",
+          drive: ""
         }
       ]
     },

@@ -2821,6 +2821,178 @@
   };
 
 
+  /* ---------- Seconde : variations et fonctions de référence (var-) ---------- */
+  const nbSvg = (x) => String(+(+x).toFixed(6)).replace("-", "−").replace(".", ","); // nombre écrit dans un SVG
+  // Courbe lisse qui monte ou descend entre des nœuds (x entiers) : extremums exactement aux nœuds
+  function courbeNoeuds() {
+    const n = pick([3, 4]);
+    let xs, ys;
+    do {
+      xs = [rand(-5, -3)]; for (let k = 1; k < n; k++) xs.push(xs[k - 1] + rand(2, 3));
+      ys = [rand(-4, 4)]; for (let k = 1; k < n; k++) { let y; do { y = rand(-4, 4); } while (Math.abs(y - ys[k - 1]) < 2 || (k > 1 && Math.sign(y - ys[k - 1]) === Math.sign(ys[k - 1] - ys[k - 2]))); ys.push(y); }
+    } while (xs[n - 1] > 5);
+    const f = (x) => { let k = 0; while (k < n - 2 && x > xs[k + 1]) k++; const t = (x - xs[k]) / (xs[k + 1] - xs[k]); return ys[k] + (ys[k + 1] - ys[k]) * (1 - Math.cos(Math.PI * t)) / 2; };
+    const opts = (extra) => Object.assign({ xmin: -5.6, xmax: 5.6, ymin: -5.6, ymax: 5.6, curves: [{ f, a: xs[0], b: xs[n - 1] }], aria: "Courbe d'une fonction f qui monte et descend" }, extra || {});
+    return { xs, ys, n, f, opts };
+  }
+  // Tableau de variations dessiné en SVG
+  function tabvar(xs, ys, nom) {
+    const W = 320, H = 112, g = 52, L = (W - g - 26) / (xs.length - 1);
+    const X = (k) => g + 12 + k * L;
+    let s = `<svg class="graph tabvar" viewBox="0 0 ${W} ${H}" role="img" aria-label="Tableau de variations de ${nom || "f"}">`;
+    s += `<g class="g-axis"><rect x="1" y="1" width="${W - 2}" height="${H - 2}" fill="none" stroke-width="1.2" style="stroke:var(--doux)"/><line x1="1" y1="30" x2="${W - 1}" y2="30"/><line x1="${g}" y1="1" x2="${g}" y2="${H - 1}"/></g>`;
+    s += `<text class="g-label" x="${g / 2}" y="20" text-anchor="middle">x</text><text class="g-label" x="${g / 2}" y="76" text-anchor="middle">${nom || "f"}</text>`;
+    const haut = ys.map((y, k) => (k === 0 ? y > ys[1] : k === ys.length - 1 ? y > ys[k - 1] : y > ys[k - 1]));
+    xs.forEach((x, k) => { s += `<text class="g-label" x="${X(k)}" y="20" text-anchor="middle">${nbSvg(x)}</text>`; s += `<text class="g-label" x="${X(k)}" y="${haut[k] ? 48 : 102}" text-anchor="middle">${nbSvg(ys[k])}</text>`; });
+    for (let k = 0; k < xs.length - 1; k++) {
+      const y1 = haut[k] ? 54 : 90, y2 = haut[k + 1] ? 54 : 90, x1 = X(k) + 12, x2 = X(k + 1) - 12;
+      const a = Math.atan2(y2 - y1, x2 - x1), hx = x2 - 7 * Math.cos(a - 0.45), hy = y2 - 7 * Math.sin(a - 0.45), kx = x2 - 7 * Math.cos(a + 0.45), ky = y2 - 7 * Math.sin(a + 0.45);
+      s += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" style="stroke:var(--lagon);stroke-width:1.8"/><path d="M${x2} ${y2} L${hx.toFixed(1)} ${hy.toFixed(1)} L${kx.toFixed(1)} ${ky.toFixed(1)}z" style="fill:var(--lagon)"/>`;
+    }
+    return s + `</svg>`;
+  }
+  FIGURES["tabvar-exemple"] = () => tabvar([-3, 1, 4], [2, -4, 3]);
+
+  GEN["var-intervalle"] = function () {
+    const C = courbeNoeuds();
+    const seg = []; for (let k = 0; k < C.n - 1; k++) seg.push({ a: C.xs[k], b: C.xs[k + 1], monte: C.ys[k + 1] > C.ys[k], ya: C.ys[k], yb: C.ys[k + 1] });
+    const s = pick(seg), mot = s.monte ? "croissante" : "décroissante";
+    const I = (a, b) => `$[${fr(a)}\\,;${fr(b)}]$`;
+    const autre = seg.find((t) => t.monte !== s.monte);
+    const ms = melangeChoix(I(s.a, s.b), [I(autre.a, autre.b), I(Math.min(s.ya, s.yb), Math.max(s.ya, s.yb)), I(C.xs[0], C.xs[C.n - 1])]);
+    return {
+      enonce: `Voici la courbe de $f$ sur $[${fr(C.xs[0])}\\,;${fr(C.xs[C.n - 1])}]$. Sur quel intervalle $f$ est-elle ${mot} ?`,
+      figure: graph(C.opts()), mode: "choix", choix: ms.choix, attendu: ms.attendu,
+      aides: [s.monte ? "Croissante : la courbe **monte** quand on la parcourt de gauche à droite." : "Décroissante : la courbe **descend** quand on la parcourt de gauche à droite.", "Repère les points où la courbe change de sens : ce sont les bornes des intervalles.", "Un intervalle de variation se lit sur l'axe des **abscisses** (horizontal), pas sur l'axe des ordonnées."],
+      solution: `De gauche à droite, la courbe ${s.monte ? "monte" : "descend"} entre $x = ${fr(s.a)}$ et $x = ${fr(s.b)}$ : $f$ est ${mot} sur ${I(s.a, s.b)}.`
+    };
+  };
+
+  GEN["var-extremum"] = function () {
+    const C = courbeNoeuds();
+    const max = Math.random() < 0.5, val = max ? Math.max(...C.ys) : Math.min(...C.ys), xv = C.xs[C.ys.indexOf(val)];
+    return {
+      enonce: `Voici la courbe de $f$ sur $[${fr(C.xs[0])}\\,;${fr(C.xs[C.n - 1])}]$. Quel est le ${max ? "maximum" : "minimum"} de $f$ sur cet intervalle ?`,
+      figure: graph(C.opts()), mode: "nombre", prefixe: max ? "Maximum :" : "Minimum :", attendu: val,
+      erreurs: xv !== val ? [{ valeur: xv, message: `C'est l'abscisse où il est atteint. Le ${max ? "maximum" : "minimum"} est une valeur de $f(x)$ : lis-la sur l'axe **vertical**.` }] : [],
+      aides: [max ? "Cherche le point **le plus haut** de toute la courbe." : "Cherche le point **le plus bas** de toute la courbe.", "N'oublie pas de regarder aussi les extrémités de la courbe.", "Le maximum ou le minimum est l'**ordonnée** de ce point."],
+      solution: `Le point le plus ${max ? "haut" : "bas"} est $(${fr(xv)}\\,;${fr(val)})$ : le ${max ? "maximum" : "minimum"} de $f$ vaut $${fr(val)}$, atteint en $x = ${fr(xv)}$.`,
+      figureSolution: graph(C.opts({ points: [{ x: xv, y: val }] }))
+    };
+  };
+
+  GEN["var-tableau"] = function () {
+    const C = courbeNoeuds();
+    const fig = tabvar(C.xs, C.ys);
+    if (Math.random() < 0.3) {
+      const max = Math.random() < 0.5, val = max ? Math.max(...C.ys) : Math.min(...C.ys);
+      return {
+        enonce: `D'après ce tableau de variations, quel est le ${max ? "maximum" : "minimum"} de $f$ ?`,
+        figure: fig, mode: "nombre", prefixe: max ? "Maximum :" : "Minimum :", attendu: val,
+        aides: ["Les valeurs de $f(x)$ sont sur la deuxième ligne, au bout des flèches.", max ? "Prends la plus grande valeur de la deuxième ligne." : "Prends la plus petite valeur de la deuxième ligne.", "La première ligne donne seulement les valeurs de $x$."],
+        solution: `Sur la ligne de $f$, la ${max ? "plus grande" : "plus petite"} valeur est $${fr(val)}$ : c'est le ${max ? "maximum" : "minimum"}.`
+      };
+    }
+    const k = rand(0, C.n - 2), a = C.xs[k], b = C.xs[k + 1], monte = C.ys[k + 1] > C.ys[k];
+    let u, v; do { u = a + rand(1, (b - a) * 2 - 1) / 2; v = a + rand(1, (b - a) * 2 - 1) / 2; } while (u >= v);
+    const choix = [`$f(${fr(u)}) < f(${fr(v)})$`, `$f(${fr(u)}) > f(${fr(v)})$`, `$f(${fr(u)}) = f(${fr(v)})$`, "On ne peut pas savoir"];
+    return {
+      enonce: `D'après ce tableau de variations, compare $f(${fr(u)})$ et $f(${fr(v)})$.`,
+      figure: fig, mode: "choix", choix, attendu: monte ? 0 : 1,
+      aides: [`Les deux nombres $${fr(u)}$ et $${fr(v)}$ sont dans l'intervalle $[${fr(a)}\\,;${fr(b)}]$.`, `Sur cet intervalle, la flèche ${monte ? "monte : $f$ est croissante" : "descend : $f$ est décroissante"}.`, monte ? "Croissante : les images sont rangées **dans le même ordre** que les nombres." : "Décroissante : les images sont rangées **dans l'ordre contraire** des nombres."],
+      solution: `$${fr(u)} < ${fr(v)}$ et $f$ est ${monte ? "croissante" : "décroissante"} sur $[${fr(a)}\\,;${fr(b)}]$, donc $f(${fr(u)}) ${monte ? "<" : ">"} f(${fr(v)})$.`
+    };
+  };
+
+  GEN["var-affine"] = function () {
+    let m, r; do { m = pick([-3, -2, -1, -0.5, 0.5, 1, 2, 3]); r = rand(-4, 4); } while (!Number.isInteger(-m * r));
+    const p = -m * r, expr = eqD(m, p).replace("y = ", "");
+    if (Math.random() < 0.4) return {
+      enonce: `Soit $f(x) = ${expr}$. Quel est le sens de variation de $f$ ?`,
+      mode: "choix", choix: ["croissante sur $\\mathbb{R}$", "décroissante sur $\\mathbb{R}$", "constante sur $\\mathbb{R}$"], attendu: m > 0 ? 0 : 1,
+      aides: ["$f$ est une fonction affine $f(x) = mx + p$ : elle est soit croissante, soit décroissante sur $\\mathbb{R}$.", `Ici $m = ${fr(m)}$.`, "Si $m > 0$, $f$ est croissante ; si $m < 0$, $f$ est décroissante."],
+      solution: `$m = ${fr(m)}$ est ${m > 0 ? "positif" : "négatif"}, donc $f$ est ${m > 0 ? "croissante" : "décroissante"} sur $\\mathbb{R}$.`
+    };
+    const pos = m > 0 ? `$]${fr(r)}\\,;+\\infty[$` : `$]-\\infty\\,;${fr(r)}[$`, neg = m > 0 ? `$]-\\infty\\,;${fr(r)}[$` : `$]${fr(r)}\\,;+\\infty[$`;
+    const ms = melangeChoix(pos, [neg, `$]${fr(-r)}\\,;+\\infty[$`, `$]-\\infty\\,;${fr(-r)}[$`, `$]${fr(p)}\\,;+\\infty[$`]);
+    return {
+      enonce: `Soit $f(x) = ${expr}$. Pour quels réels $x$ a-t-on $f(x) > 0$ ?`,
+      mode: "choix", choix: ms.choix, attendu: ms.attendu,
+      aides: [`Cherche d'abord où $f$ s'annule : résous $${expr} = 0$.`, `$f(x) = 0$ pour $x = ${fr(r)}$.`, `$m = ${fr(m)}$ est ${m > 0 ? "positif : $f$ est négative avant $" + fr(r) + "$ puis positive après" : "négatif : $f$ est positive avant $" + fr(r) + "$ puis négative après"}.`],
+      solution: `$f(x) = 0 \\iff x = ${fr(r)}$. Comme $m = ${fr(m)}$ est ${m > 0 ? "positif" : "négatif"}, $f(x) > 0$ pour $x \\in$ ${pos}.`
+    };
+  };
+
+  const REF = {
+    carre: { nom: "carré", f: (x) => x * x, tex: (a) => (a < 0 ? `(${fr(a)})^2` : `${fr(a)}^2`), sens: "décroissante sur $]-\\infty\\,;0]$ et croissante sur $[0\\,;+\\infty[$" },
+    inverse: { nom: "inverse", f: (x) => 1 / x, tex: (a) => `\\dfrac{1}{${fr(a)}}`, sens: "décroissante sur $]-\\infty\\,;0[$ et décroissante sur $]0\\,;+\\infty[$" },
+    absolue: { nom: "valeur absolue", f: (x) => Math.abs(x), tex: (a) => `|${fr(a)}|`, sens: "décroissante sur $]-\\infty\\,;0]$ et croissante sur $[0\\,;+\\infty[$" },
+    cube: { nom: "cube", f: (x) => x ** 3, tex: (a) => (a < 0 ? `(${fr(a)})^3` : `${fr(a)}^3`), sens: "croissante sur $\\mathbb{R}$" },
+    racine: { nom: "racine carrée", f: (x) => Math.sqrt(x), tex: (a) => `\\sqrt{${fr(a)}}`, sens: "croissante sur $[0\\,;+\\infty[$" }
+  };
+
+  const lab = (t) => `<tspan>${t}</tspan>`;
+  FIGURES["courbe-carre"] = () => graph({ xmin: -3.4, xmax: 3.4, ymin: -0.8, ymax: 9.6, h: 300, curves: [{ f: (x) => x * x, a: -3, b: 3, closed: false, label: lab("y = x²"), lx: 2.6, dx: -10, dy: 4 }], points: [{ x: 0, y: 0 }, { x: 2, y: 4, label: "(2 ; 4)" }, { x: -2, y: 4, label: "(−2 ; 4)", gauche: true }], aria: "Parabole y = x², sommet à l'origine" });
+  FIGURES["courbe-inverse"] = () => graph({ xmin: -4.6, xmax: 4.6, ymin: -4.6, ymax: 4.6, curves: [{ f: (x) => 1 / x, a: -4.4, b: -0.23, closed: false }, { f: (x) => 1 / x, a: 0.23, b: 4.4, closed: false, label: lab("y = 1/x"), lx: 3.6, dx: 0, dy: -10 }], points: [{ x: 1, y: 1, label: "(1 ; 1)" }, { x: -1, y: -1 }], aria: "Hyperbole y = 1/x, deux branches" }).replace(/g-curve-1/g, "g-curve-0");
+  FIGURES["courbe-absolue"] = () => graph({ xmin: -4.6, xmax: 4.6, ymin: -0.8, ymax: 4.6, curves: [{ f: (x) => Math.abs(x), a: -4.4, b: 4.4, closed: false, label: lab("y = |x|"), lx: 3.6, dx: -10, dy: 4 }], points: [{ x: 0, y: 0 }], aria: "Courbe en V de y = |x|" });
+  FIGURES["courbe-racine-cube"] = () => graph({ xmin: -2.4, xmax: 4.6, ymin: -3.6, ymax: 3.6, curves: [{ f: (x) => Math.sqrt(x), a: 0, b: 4.4, closed: false, label: lab("y = √x"), lx: 4.2, dx: -4, dy: -8 }, { f: (x) => x ** 3, a: -1.5, b: 1.5, closed: false, label: lab("y = x³"), lx: 1.45, dx: -8, dy: 4 }], aria: "Courbes de la racine carrée et de la fonction cube" });
+  FIGURES["x-et-x2"] = () => graph({ xmin: -0.3, xmax: 2.2, ymin: -0.3, ymax: 2.6, xstep: 0.5, ystep: 0.5, h: 280, curves: [{ f: (x) => x, a: 0, b: 2.1, closed: false, label: lab("y = x"), lx: 2.1, dx: -4, dy: 16 }, { f: (x) => x * x, a: 0, b: 1.58, closed: false, label: lab("y = x²"), lx: 1.55, dx: -8, dy: 2 }], points: [{ x: 1, y: 1, label: "(1 ; 1)" }], aria: "Sur [0 ; 1] la droite y = x est au-dessus de la parabole, après 1 elle est en dessous" });
+
+  GEN["var-ref-comparer"] = function () {
+    const cle = pick(["carre", "carre", "inverse", "absolue", "cube", "racine"]), R = REF[cle];
+    const dec = () => rand(1, 49) / 10;
+    let a, b;
+    if (cle === "racine") { a = dec(); b = dec(); }
+    else if (cle === "inverse") { const s = pick([1, -1]); a = s * dec(); b = s * dec(); }
+    else { const s = pick([1, -1, 0]); a = s ? s * dec() : -dec(); b = s ? s * dec() : dec(); }
+    if (a === b) b = +(b + 0.3).toFixed(1);
+    const fa = R.f(a), fb = R.f(b);
+    const att = Math.abs(fa - fb) < 1e-12 ? 2 : fa < fb ? 0 : 1;
+    const memeSigne = a * b > 0;
+    return {
+      enonce: `Sans calculatrice, compare $${R.tex(a)}$ et $${R.tex(b)}$.`,
+      mode: "choix", choix: [`$${R.tex(a)} < ${R.tex(b)}$`, `$${R.tex(a)} > ${R.tex(b)}$`, `$${R.tex(a)} = ${R.tex(b)}$`], attendu: att,
+      aides: [`On utilise la fonction ${R.nom} : elle est ${R.sens}.`, memeSigne || cle === "cube" || cle === "racine" ? `$${fr(a)}$ et $${fr(b)}$ sont dans un même intervalle où le sens de variation est connu : range-les, puis applique le sens de variation.` : "Les deux nombres n'ont pas le même signe : compare leurs distances à $0$ (pour le carré et la valeur absolue).", "Croissante : même ordre. Décroissante : ordre contraire."],
+      solution: `$${fr(Math.min(a, b))} < ${fr(Math.max(a, b))}$${memeSigne || cle === "cube" || cle === "racine" ? `. La fonction ${R.nom} est ${R.sens}` : `. Ici on compare les distances à $0$ : $${fr(Math.abs(a))}$ et $${fr(Math.abs(b))}$`}. Donc $${att === 0 ? `${R.tex(a)} < ${R.tex(b)}` : att === 1 ? `${R.tex(a)} > ${R.tex(b)}` : `${R.tex(a)} = ${R.tex(b)}`}$.`
+    };
+  };
+
+  GEN["var-ref-equation"] = function () {
+    const T = [
+      () => { const k = pick([-9, -4, 0, 1, 4, 9, 16, 25, 36, 49, 0.25]); const s = k < 0 ? [] : k === 0 ? [0] : [-Math.sqrt(k), Math.sqrt(k)]; return [`x^2 = ${fr(k)}`, s, "Un carré est toujours positif ou nul.", k > 0 ? `Deux nombres ont pour carré $${fr(k)}$ : $\\sqrt{${fr(k)}}$ et son opposé.` : k === 0 ? "Seul $0$ a pour carré $0$." : "Aucun nombre réel n'a un carré négatif."]; },
+      () => { const k = pick([-3, 0, 2, 5, 7, 1.5]); const s = k < 0 ? [] : k === 0 ? [0] : [-k, k]; return [`|x| = ${fr(k)}`, s, "$|x|$ est la distance entre $x$ et $0$.", k > 0 ? `Deux nombres sont à la distance $${fr(k)}$ de $0$ : $${fr(k)}$ et $${fr(-k)}$.` : k === 0 ? "Seul $0$ est à la distance $0$ de $0$." : "Une distance n'est jamais négative."]; },
+      () => { const c = pick([-3, -2, -1, 1, 2, 3, 4]); return [`x^3 = ${c ** 3}`, [c], "La fonction cube est croissante sur $\\mathbb{R}$ : l'équation a une seule solution.", `Cherche le nombre dont le cube vaut $${c ** 3}$ (attention au signe).`]; },
+      () => { const k = pick([-2, 0, 1, 2, 3, 5, 0.5]); return [`\\sqrt{x} = ${fr(k)}`, k < 0 ? [] : [k * k], "Une racine carrée est toujours positive ou nulle.", k < 0 ? "Une racine carrée ne peut pas être négative." : `$\\sqrt{x} = ${fr(k)}$ donne $x = ${fr(k)}^2$.`]; },
+      () => { const k = pick([2, -2, 4, -4, 0.5, -0.5, 0.25, 5, 0]); return [`\\dfrac{1}{x} = ${fr(k)}`, k === 0 ? [] : [1 / k], "La fonction inverse ne s'annule jamais.", k === 0 ? "$\\dfrac{1}{x}$ n'est jamais égal à $0$." : `$\\dfrac{1}{x} = ${fr(k)}$ donne $x = \\dfrac{1}{${fr(k)}}$.`]; }
+    ];
+    const [eq, sol, a1, a2] = pick(T)();
+    return {
+      enonce: `Résous dans $\\mathbb{R}$ l'équation $${eq}$.`,
+      mode: "ensemble", prefixe: "Solution(s) :", attendu: sol,
+      aides: [a1, a2, "Écris les solutions séparées par « ; », ou « aucun » s'il n'y en a pas."],
+      solution: sol.length ? `$${eq}$ a pour solution${sol.length > 1 ? "s" : ""} $${sol.map(nb).join("$ et $")}$.` : `$${eq}$ n'a **aucune** solution réelle.`
+    };
+  };
+
+  GEN["var-ref-courbe"] = function () {
+    const cle = pick(Object.keys(REF)), R = REF[cle];
+    const curves = cle === "inverse" ? [{ f: R.f, a: -4.5, b: -0.22, closed: false }, { f: R.f, a: 0.22, b: 4.5, closed: false }]
+      : cle === "racine" ? [{ f: R.f, a: 0, b: 4.5, closed: false }]
+      : cle === "cube" ? [{ f: R.f, a: -1.65, b: 1.65, closed: false }]
+      : cle === "carre" ? [{ f: R.f, a: -2.15, b: 2.15, closed: false }] : [{ f: R.f, a: -4.5, b: 4.5, closed: false }];
+    const exprs = { carre: "x^2", inverse: "\\dfrac{1}{x}", absolue: "|x|", cube: "x^3", racine: "\\sqrt{x}" };
+    const ms = melangeChoix(`$f(x) = ${exprs[cle]}$`, shuffle(Object.keys(exprs).filter((k) => k !== cle)).map((k) => `$f(x) = ${exprs[k]}$`));
+    const indices = { carre: "Parabole tournée vers le haut, sommet à l'origine.", inverse: "Deux branches (hyperbole), la courbe ne coupe jamais les axes.", absolue: "Un « V » de sommet l'origine, formé de deux demi-droites.", cube: "La courbe monte toujours et passe par l'origine, avec un replat en $0$.", racine: "La courbe n'existe que pour $x \\geqslant 0$ et monte de plus en plus lentement." };
+    return {
+      enonce: "Quelle fonction de référence a cette courbe ?",
+      figure: graph({ xmin: -4.8, xmax: 4.8, ymin: -4.8, ymax: 4.8, curves, aria: "Courbe d'une fonction de référence" }).replace(/g-curve-1/g, "g-curve-0"),
+      mode: "choix", choix: ms.choix, attendu: ms.attendu,
+      aides: ["Regarde si la courbe existe pour les $x$ négatifs.", "Regarde si elle passe par l'origine et si elle a une ou deux branches.", "Teste un point : que vaut $f(1)$ ? et $f(2)$ ?"],
+      solution: `${indices[cle]} C'est la fonction ${R.nom} : $f(x) = ${exprs[cle]}$.`
+    };
+  };
+
+
   /* Séries « flash » d'un thème : mélange de ses générateurs */
   const THEMES = {
     "am-flash-cn": ["am-comparer", "am-fractions", "am-puissances", "am-ecritures", "am-ordre-grandeur", "am-coherence", "auto-conversions"],
