@@ -119,6 +119,9 @@
     else if (chap === "jeu") pageJeu();
     else if (chap && window.CHAPITRES && CHAPITRES[chap]) pageChapitre(chap, onglet || "cours");
     else pageAccueil();
+    // Couleur du niveau (Seconde, Première...) pour habiller la page chapitre
+    const niv = CATALOGUE.niveaux.find((n) => n.chapitres.some((ch) => ch.id === chap));
+    if (niv) $app.dataset.niv = niv.id; else delete $app.dataset.niv;
   }
   window.addEventListener("hashchange", () => { route(); window.scrollTo(0, 0); });
 
@@ -132,13 +135,25 @@
   }
 
   /* ---------- Accueil ---------- */
+  // Décor du bandeau d'accueil : courbes et symboles dessinés en SVG (aucune image à télécharger)
+  const DECOR_HERO = `<svg class="hero-decor" viewBox="0 0 320 240" aria-hidden="true" focusable="false">
+    <g class="d-grille">${[40, 80, 120, 160, 200].map((y) => `<line x1="0" y1="${y}" x2="320" y2="${y}"/>`).join("")}${[40, 80, 120, 160, 200, 240, 280].map((x) => `<line x1="${x}" y1="0" x2="${x}" y2="240"/>`).join("")}</g>
+    <path class="d-courbe" d="M40 30 Q160 330 280 30"/>
+    <path class="d-courbe d2" d="M0 150 C40 100 80 100 120 150 S200 200 240 150 S300 100 320 130"/>
+    <circle class="d-point" cx="160" cy="180" r="6"/>
+    <text x="34" y="214">π</text><text x="236" y="72" class="t2">x²</text><text x="252" y="214" class="t3">√2</text><text x="96" y="64" class="t3">Δ</text>
+  </svg>`;
   function pageAccueil() {
     document.title = "ProfMaths";
-    let h = `<section class="hero"><p class="eyebrow">Maths au lycée · Mayotte</p><h1>Une vidéo, un cours, des exercices. À ton rythme.</h1><p class="lead">Choisis ton niveau puis ton chapitre. Les chapitres suivent l'ordre des playlists de la chaîne.</p></section>`;
+    const dispos = Object.keys(window.CHAPITRES || {});
+    const nbSeries = dispos.reduce((s, k) => s + CHAPITRES[k].exercices.length, 0);
+    const nbQcm = dispos.reduce((s, k) => s + CHAPITRES[k].qcm.length, 0);
+    let h = `<section class="hero"><div class="hero-in"><p class="eyebrow">Maths au lycée · Mayotte</p><h1>Une vidéo, un cours, des exercices. À ton rythme.</h1><p class="lead">Choisis ton niveau puis ton chapitre. Les chapitres suivent l'ordre des playlists de la chaîne.</p>
+      <ul class="chiffres"><li><b>${dispos.length}</b> chapitres</li><li><b>${nbSeries}</b> séries d'exercices</li><li><b>${nbQcm}</b> questions de QCM</li></ul></div>${DECOR_HERO}</section>`;
     if (!Compte.eleve()) h += `<a class="invite" href="#compte"><strong>Crée ton compte</strong><span>pour retrouver tes points et tes étoiles sur n'importe quel téléphone ou ordinateur.</span></a>`;
     h += `<div class="niveaux">`;
     CATALOGUE.niveaux.forEach((n) => {
-      h += `<section class="niveau"><h2>${esc(n.nom)}</h2>${n.intro ? `<p class="muted niveau-intro">${esc(n.intro)}</p>` : ""}<ol class="chapitres">`;
+      h += `<section class="niveau" data-niv="${esc(n.id)}"><h2><span class="pastille-niv" aria-hidden="true"></span>${esc(n.nom)}</h2>${n.intro ? `<p class="muted niveau-intro">${esc(n.intro)}</p>` : ""}<ol class="chapitres">`;
       n.chapitres.forEach((ch) => {
         const dispo = ch.statut === "disponible" && window.CHAPITRES && CHAPITRES[ch.id];
         const num = ch.code ? `<span class="num num-a">${esc(ch.code)}</span>` : ch.numero ? `<span class="num">${ch.numero}</span>` : `<span class="num num-a">A</span>`;
@@ -269,7 +284,7 @@
     if (!ONGLETS.some((o) => o.id === onglet)) onglet = "cours";
     const b = bilanChapitre(id);
     let h = `<a class="retour" href="#">← Tous les chapitres</a>
-      <header class="chap-head"><p class="eyebrow">${esc(c.niveau)} · ${c.numero ? `Chapitre ${c.numero}` : esc(c.periode || "Toute l'année")}</p><h1>${esc(c.titre)}</h1><p class="lead">${inline(c.accroche)}</p>
+      <header class="chap-head">${c.numero ? `<span class="chap-filigrane" aria-hidden="true">${c.numero}</span>` : ""}<p class="eyebrow">${esc(c.niveau)} · ${c.numero ? `Chapitre ${c.numero}` : esc(c.periode || "Toute l'année")}</p><h1>${esc(c.titre)}</h1><p class="lead">${inline(c.accroche)}</p>
       <p class="score-chap">${etoiles(Math.round((b.got / b.total) * 5), 5)} <span>${b.got}/${b.total} étoiles d'exercices</span></p></header>
       <nav class="onglets" aria-label="Parties du chapitre">${ONGLETS.map((o) => `<a href="#${id}.${o.id}" ${o.id === onglet ? 'aria-current="page"' : ""}>${o.nom}</a>`).join("")}</nav>
       <div class="panneau" id="panneau"></div>`;

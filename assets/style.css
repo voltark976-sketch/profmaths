@@ -359,3 +359,139 @@ pre.code code { font: inherit; }
 @media (min-width: 760px) { .jeu { max-width: 46rem; } }
 @media (prefers-reduced-motion: reduce) { .combo { animation: none; } .chrono span { transition: none; } }
 .panneau .jeu { min-height: 100vh; min-height: 100dvh; }
+
+/* ==========================================================================
+   Habillage « lagon » (octobre 2026) : couleur par niveau, bandeau d'accueil,
+   cartes en relief. Tout est en CSS et SVG : rien de plus à télécharger.
+   ========================================================================== */
+:root {
+  --ac: var(--lagon); --ac-pale: var(--lagon-pale);
+  --ombre: 0 1px 2px rgba(19, 40, 44, 0.06), 0 4px 14px rgba(19, 40, 44, 0.06);
+  --ombre-haut: 0 2px 4px rgba(19, 40, 44, 0.08), 0 12px 28px rgba(19, 40, 44, 0.12);
+  --hero-a: #0a7c76; --hero-b: #0d5a8c;
+}
+[data-niv="automatismes"] { --ac: #b8620a; --ac-pale: #fdebd5; }
+[data-niv="premiere"] { --ac: #6747c7; --ac-pale: #ece6fb; }
+[data-niv="terminale"] { --ac: #1e63b8; --ac-pale: #e1ecfa; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { --ombre: 0 1px 2px rgba(0, 0, 0, 0.3); --ombre-haut: 0 10px 26px rgba(0, 0, 0, 0.45); --hero-a: #0b5e5a; --hero-b: #123f63; }
+  :root:not([data-theme="light"]) [data-niv="automatismes"] { --ac: #f3a24b; --ac-pale: #3a2611; }
+  :root:not([data-theme="light"]) [data-niv="premiere"] { --ac: #b19dff; --ac-pale: #2a2148; }
+  :root:not([data-theme="light"]) [data-niv="terminale"] { --ac: #7fb3ff; --ac-pale: #172c47; }
+}
+:root[data-theme="dark"] { --ombre: 0 1px 2px rgba(0, 0, 0, 0.3); --ombre-haut: 0 10px 26px rgba(0, 0, 0, 0.45); --hero-a: #0b5e5a; --hero-b: #123f63; }
+:root[data-theme="dark"] [data-niv="automatismes"] { --ac: #f3a24b; --ac-pale: #3a2611; }
+:root[data-theme="dark"] [data-niv="premiere"] { --ac: #b19dff; --ac-pale: #2a2148; }
+:root[data-theme="dark"] [data-niv="terminale"] { --ac: #7fb3ff; --ac-pale: #172c47; }
+
+body { background: radial-gradient(60rem 30rem at 85% -10%, var(--lagon-pale), transparent 70%) no-repeat, var(--fond); }
+
+/* Barre du haut translucide */
+.barre-haut { background: color-mix(in srgb, var(--fond) 82%, transparent); -webkit-backdrop-filter: saturate(1.4) blur(10px); backdrop-filter: saturate(1.4) blur(10px); }
+.marque i { background: linear-gradient(135deg, var(--hero-a), var(--hero-b)); color: #fff; box-shadow: 0 3px 8px rgba(10, 124, 118, 0.35); transform: rotate(-6deg); }
+.compte-btn, .jeu-btn, .xp { transition: background-color 0.15s, transform 0.15s; }
+.jeu-btn:hover { background: var(--ylang-pale); }
+.compte-btn:hover { background: var(--lagon-pale); }
+
+/* Bandeau d'accueil */
+.hero { position: relative; overflow: hidden; margin-top: 14px; padding: 26px 20px 22px; border-radius: 22px; color: #fff; background: linear-gradient(135deg, var(--hero-a) 0%, var(--hero-b) 100%); box-shadow: var(--ombre-haut); isolation: isolate; }
+.hero-in { position: relative; z-index: 1; }
+.hero .eyebrow { color: #ffe08a; }
+.hero h1 { color: #fff; }
+.hero .lead { color: rgba(255, 255, 255, 0.86); }
+.hero-decor { position: absolute; z-index: 0; right: -70px; bottom: -70px; width: 260px; height: auto; opacity: 0.3; pointer-events: none; -webkit-mask-image: radial-gradient(closest-side, #000 55%, transparent); mask-image: radial-gradient(closest-side, #000 55%, transparent); }
+.hero-decor .d-grille line { stroke: #fff; stroke-width: 0.6; opacity: 0.35; }
+.hero-decor .d-courbe { fill: none; stroke: #ffe08a; stroke-width: 4; stroke-linecap: round; }
+.hero-decor .d2 { stroke: #fff; stroke-width: 3; }
+.hero-decor .d-point { fill: #ffe08a; }
+.hero-decor text { fill: #fff; font: 800 40px var(--f-titre); }
+.hero-decor .t2 { font-size: 30px; fill: #ffe08a; }
+.hero-decor .t3 { font-size: 26px; }
+.chiffres { list-style: none; padding: 0; margin: 18px 0 0; display: flex; flex-wrap: wrap; gap: 8px; }
+.chiffres li { padding: 6px 12px; border-radius: 999px; background: rgba(255, 255, 255, 0.16); border: 1px solid rgba(255, 255, 255, 0.25); font-size: 0.88rem; color: #fff; }
+.chiffres b { font: 800 1rem/1 var(--f-titre); color: #ffe08a; margin-right: 2px; }
+
+.invite { position: relative; padding-left: 52px; border: 1px solid color-mix(in srgb, var(--ylang) 35%, transparent); box-shadow: var(--ombre); transition: transform 0.15s, box-shadow 0.15s; }
+.invite::before { content: "★"; position: absolute; left: 16px; top: 14px; width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; background: var(--ylang); color: #fff; font-size: 0.9rem; }
+.invite:hover { transform: translateY(-2px); box-shadow: var(--ombre-haut); }
+
+/* Niveaux et chapitres */
+.niveau h2 { display: flex; align-items: center; gap: 10px; color: var(--ac); }
+.pastille-niv { flex: none; width: 12px; height: 12px; border-radius: 4px; background: var(--ac); box-shadow: 0 0 0 4px var(--ac-pale); }
+.chap, .serie { border-color: color-mix(in srgb, var(--trait) 70%, transparent); box-shadow: var(--ombre); transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s; }
+a.chap:hover, .serie:hover { transform: translateY(-2px); box-shadow: var(--ombre-haut); border-color: var(--ac); }
+a.chap:active, .serie:active { transform: translateY(0); }
+.chap-off { box-shadow: none; }
+.num { background: linear-gradient(140deg, var(--ac-pale), color-mix(in srgb, var(--ac-pale) 60%, var(--ac) 18%)); color: var(--ac); border-radius: 12px; }
+.go { color: var(--ac); transition: transform 0.15s; }
+a.chap:hover .go { transform: translateX(3px); }
+.barre span { background: linear-gradient(90deg, var(--ylang), #f0b93a); border-radius: 3px; }
+.pied { align-items: center; }
+.pied::before { content: "π ProfMaths"; font: 800 1rem var(--f-titre); color: var(--encre); margin-right: auto; }
+
+/* Apparition douce des cartes */
+@keyframes monte { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+.chapitres > li, .series > li, .methode, .hero, .invite { animation: monte 0.4s ease both; }
+.chapitres > li:nth-child(2), .series > li:nth-child(2) { animation-delay: 0.04s; }
+.chapitres > li:nth-child(3), .series > li:nth-child(3) { animation-delay: 0.08s; }
+.chapitres > li:nth-child(n+4), .series > li:nth-child(n+4) { animation-delay: 0.12s; }
+
+/* En-tête de chapitre : bandeau à la couleur du niveau */
+.chap-head { position: relative; overflow: hidden; margin-top: 4px; padding: 20px 20px 18px; border-radius: 20px; background: linear-gradient(135deg, var(--ac-pale), color-mix(in srgb, var(--ac-pale) 55%, var(--surface))); border: 1px solid color-mix(in srgb, var(--ac) 18%, transparent); }
+.chap-head > :not(.chap-filigrane) { position: relative; }
+.chap-head .eyebrow { color: var(--ac); }
+.chap-head .lead { color: color-mix(in srgb, var(--encre) 72%, var(--ac-pale)); }
+.chap-filigrane { position: absolute; right: 4px; bottom: -0.2em; font: 800 11rem/1 var(--f-titre); color: var(--ac); opacity: 0.1; pointer-events: none; }
+.score-chap { display: inline-flex; padding: 6px 12px; border-radius: 999px; background: var(--surface); box-shadow: var(--ombre); color: var(--doux); }
+.retour { font-weight: 700; color: var(--ac); }
+
+/* Onglets : une rangée de boutons qui tient sur un téléphone */
+.onglets { gap: 2px; padding-top: 10px; padding-bottom: 10px; }
+.onglets a { padding: 8px 12px; transition: background-color 0.15s, color 0.15s; }
+.onglets a:hover { background: var(--ac-pale); color: var(--ac); }
+.onglets a[aria-current="page"] { background: var(--ac); color: #fff; box-shadow: 0 3px 10px color-mix(in srgb, var(--ac) 40%, transparent); }
+:root[data-theme="dark"] .onglets a[aria-current="page"] { color: var(--fond); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .onglets a[aria-current="page"] { color: var(--fond); } }
+
+/* Cours */
+.pdf { box-shadow: var(--ombre); transition: transform 0.15s, box-shadow 0.15s; }
+.pdf:hover { transform: translateY(-1px); box-shadow: var(--ombre-haut); }
+.n { display: inline-grid; place-items: center; min-width: 1.9em; height: 1.9em; border-radius: 9px; background: var(--ac); color: #fff; font-size: 0.9rem; align-self: center; }
+.notion h2 { align-items: center; }
+.exemple { border-left: 4px solid var(--ac); background: var(--ac-pale); }
+.exemple .tag, details summary { color: var(--ac); }
+.methode { box-shadow: var(--ombre); border-top: 4px solid var(--ac); }
+.methode li::marker { color: var(--ac); }
+.erreurs { border-left: 4px solid var(--faux); }
+
+/* Boutons */
+.btn, .suite { background: linear-gradient(135deg, var(--lagon), color-mix(in srgb, var(--lagon) 70%, var(--hero-b))); border-color: transparent; box-shadow: 0 4px 12px color-mix(in srgb, var(--lagon) 30%, transparent); transition: transform 0.12s, box-shadow 0.12s, filter 0.12s; }
+.btn:hover:not(:disabled), .suite:hover { filter: brightness(1.06); box-shadow: 0 6px 18px color-mix(in srgb, var(--lagon) 38%, transparent); }
+.btn:active:not(:disabled), .suite:active { transform: translateY(1px) scale(0.99); }
+.btn-sec { transition: background-color 0.15s; }
+.btn-sec:hover:not(:disabled) { background: var(--lagon-pale); }
+
+/* Exercices et QCM */
+.serie { border-left: 4px solid var(--ac); }
+.opt { transition: border-color 0.12s, background-color 0.12s, transform 0.12s; }
+.opt:active:not(:disabled) { transform: scale(0.99); }
+.pastilles span { transition: background-color 0.25s; }
+.retour-rep { animation: monte 0.25s ease both; }
+.bilan .gros { background: linear-gradient(135deg, var(--lagon), var(--hero-b)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.bilan .gros span { -webkit-text-fill-color: var(--doux); }
+.top li { box-shadow: var(--ombre); }
+.top li:nth-child(1) .rang { color: #d4a017; }
+.top li:nth-child(2) .rang { color: #9aa5ad; }
+.top li:nth-child(3) .rang { color: #c07a45; }
+
+@media (min-width: 760px) {
+  .hero { margin-top: 28px; padding: 44px 44px 36px; border-radius: 28px; }
+  .hero-decor { right: -10px; bottom: -60px; width: 460px; opacity: 0.42; }
+  .hero h1, .hero .lead { max-width: 60%; }
+  .chap-head { padding: 28px 32px 24px; }
+  .chap-filigrane { font-size: 15rem; right: 24px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .chapitres > li, .series > li, .methode, .hero, .invite, .retour-rep { animation: none; }
+  a.chap:hover, .serie:hover, .invite:hover, .pdf:hover { transform: none; }
+}
