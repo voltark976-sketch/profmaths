@@ -41,7 +41,7 @@ window.CATALOGUE = {
     {
       id: "automatismes",
       nom: "Automatismes",
-      intro: "Les 7 thèmes officiels de l'épreuve anticipée de mathématiques, de la Seconde à la Première.",
+      intro: "Les automatismes officiels de l'épreuve anticipée de mathématiques (programmes 2026) : la liste de Seconde, à entretenir en Première, et celle de Première.",
       chapitres: [
         {
           id: "auto-calcul-numerique",
@@ -80,6 +80,14 @@ window.CATALOGUE = {
           numero: null,
           code: "FR",
           titre: "Fonctions et représentations",
+          statut: "disponible",
+          drive: "https://drive.google.com/drive/folders/1FSdCJtja6emqTtKUZ_RQNPUYfwfHvoLv"
+        },
+        {
+          id: "auto-geometrie",
+          numero: null,
+          code: "GE",
+          titre: "Géométrie",
           statut: "disponible",
           drive: "https://drive.google.com/drive/folders/1FSdCJtja6emqTtKUZ_RQNPUYfwfHvoLv"
         },

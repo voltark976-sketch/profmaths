@@ -14,6 +14,6 @@ window.JEUX = {
     accroche: "Réponds juste à un maximum de questions avant la fin du temps. Enchaîne les bonnes réponses pour multiplier tes points !",
     duree: 90,
     vies: 3,
-    exclure: []
+    exclure: ["parite-graphique", "parite-calcul", "parite-symetrique"] // parité : programme de Première depuis 2026
   }
 };

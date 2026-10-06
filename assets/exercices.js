@@ -2287,7 +2287,7 @@
     s += `<g class="g-axis"><line x1="4" y1="${y0}" x2="${W - 6}" y2="${y0}"/><path d="M${W - 2} ${y0} l-8 -4 v8z"/></g><g class="g-tick">`;
     for (let x = Math.ceil(o.min); x <= o.max; x++) {
       s += `<line class="g-graduation" x1="${X(x)}" y1="${y0 - 4}" x2="${X(x)}" y2="${y0 + 4}"/>`;
-      if (x % pasTexte === 0) s += `<text x="${X(x)}" y="${y0 + 16}" text-anchor="middle">${String(x).replace("-", "−")}</text>`;
+      if (x % pasTexte === 0 && (!o.etiquettes || o.etiquettes.includes(x))) s += `<text x="${X(x)}" y="${y0 + 16}" text-anchor="middle">${String(x).replace("-", "−")}</text>`;
     }
     s += `</g>`;
     const crochet = (x, y, dir, k) => `<path class="g-crochet g-crochet-${k}" d="M${x + 5 * dir} ${y - 8} H${x} V${y + 8} H${x + 5 * dir}"/>`;
@@ -2698,15 +2698,139 @@
   };
 
 
+  /* ---------- Automatismes de géométrie (GE01 à GE05, programme de Seconde 2026) ---------- */
+  // Petit dessin de figure : segments, points nommés et longueurs écrites sur les côtés
+  function dessin(o) {
+    let s = `<svg class="graph" viewBox="0 0 320 ${o.h || 220}" role="img" aria-label="${o.aria}">`;
+    (o.segments || []).forEach(([a, b, k]) => { s += `<line class="g-curve${k ? " g-curve-1" : ""}" x1="${o.P[a][0]}" y1="${o.P[a][1]}" x2="${o.P[b][0]}" y2="${o.P[b][1]}"/>`; });
+    if (o.droit) { const [x, y, dx, dy] = o.droit; s += `<path class="g-crochet" d="M${x + dx} ${y} V${y + dy} H${x}" style="stroke-width:1.6"/>`; }
+    if (o.angle) { const [x, y, r, a1, a2] = o.angle; const p = (a) => [x + r * Math.cos(a), y - r * Math.sin(a)].map((v) => v.toFixed(1)).join(" "); s += `<path class="g-crochet g-crochet-1" d="M${p(a1)} A${r} ${r} 0 0 0 ${p(a2)}" style="stroke-width:2"/>`; }
+    Object.keys(o.P).forEach((k) => { const [x, y, dx, dy] = o.P[k]; s += `<circle class="g-point" cx="${x}" cy="${y}" r="3.5"/><text class="g-plabel" x="${x + (dx || 0)}" y="${y + (dy || 0)}" text-anchor="middle">${k}</text>`; });
+    (o.textes || []).forEach(([x, y, t]) => { s += `<text class="g-label" x="${x}" y="${y}" text-anchor="middle">${t}</text>`; });
+    return s + `</svg>`;
+  }
+
+  GEN["am-repere-droite"] = function () {
+    const min = rand(-6, -3), max = min + 9;
+    const demi = Math.random() < 0.35;
+    let x; do { x = rand(min + 1, max - 1) + (demi ? 0.5 : 0); } while (x === 0 || x >= max);
+    return {
+      enonce: "Quelle est l'abscisse du point $A$ sur cette droite graduée ?",
+      figure: droite({ min, max, etiquettes: [0, 1], points: [{ x, label: "A" }], aria: "Droite graduée de 1 en 1, seuls 0 et 1 sont écrits, avec un point A" }),
+      mode: "nombre", prefixe: "A :", attendu: x,
+      erreurs: [{ valeur: -x, message: "Attention au signe : à gauche de $0$, les abscisses sont négatives." }],
+      aides: ["Repère d'abord où se trouve $0$.", "Les graduations vont de $1$ en $1$. Compte les graduations entre $0$ et $A$.", demi ? "$A$ est au milieu de deux graduations : son abscisse se termine par $,5$." : `${x < 0 ? "À gauche de $0$, l'abscisse est négative." : "À droite de $0$, l'abscisse est positive."}`],
+      solution: `$A$ a pour abscisse $${fr(x)}$.`
+    };
+  };
+
+  GEN["am-coordonnees"] = function () {
+    let x, y; do { x = rand(-4, 4); y = rand(-4, 4); } while (x === 0 || y === 0 || Math.abs(x) === Math.abs(y));
+    const c = (a, b) => `$(${a}\\,;${b})$`;
+    const ms = melangeChoix(c(x, y), [c(y, x), c(-x, y), c(x, -y), c(-y, -x)]);
+    return {
+      enonce: "Quelles sont les coordonnées du point $A$ ?",
+      figure: graph({ xmin: -5.2, xmax: 5.2, ymin: -5.2, ymax: 5.2, points: [{ x, y, label: "A", gauche: x < 0 }], aria: "Point A dans un repère quadrillé" }),
+      mode: "choix", choix: ms.choix, attendu: ms.attendu,
+      aides: ["Les coordonnées s'écrivent $(x\\,;y)$ : d'abord l'abscisse (axe horizontal), puis l'ordonnée (axe vertical).", `Descends ou monte de $A$ jusqu'à l'axe horizontal : tu lis $x = ${x}$.`, `Va de $A$ jusqu'à l'axe vertical : tu lis $y = ${y}$.`],
+      solution: `$A$ a pour abscisse $${x}$ et pour ordonnée $${y}$ : $A${c(x, y).slice(1, -1)}$.`
+    };
+  };
+
+  GEN["am-perimetre"] = function () {
+    const T = [
+      () => { const L = rand(4, 15), l = rand(2, L - 1); return [`le périmètre d'un rectangle de $${L}$ cm sur $${l}$ cm`, 2 * (L + l), "cm", "Périmètre d'un rectangle : $2 \\times (L + \\ell)$.", L * l]; },
+      () => { const c = rand(3, 12); return [`le périmètre d'un carré de côté $${c}$ cm`, 4 * c, "cm", "Périmètre d'un carré : $4 \\times c$.", c * c]; },
+      () => { const [a, b, d] = shuffle([rand(3, 9), rand(4, 10), rand(5, 11)]); return [`le périmètre d'un triangle de côtés $${a}$ cm, $${b}$ cm et $${d}$ cm`, a + b + d, "cm", "Périmètre d'un polygone : la somme des longueurs de ses côtés.", null]; },
+      () => { const r = rand(2, 9); return [`la longueur d'un cercle de rayon $${r}$ cm (valeur exacte)`, 2 * r, "π cm", "Longueur d'un cercle : $2\\pi r$. Donne le nombre devant $\\pi$.", r * r]; },
+      () => { const d = rand(2, 9) * 2; return [`la longueur d'un cercle de diamètre $${d}$ cm (valeur exacte)`, d, "π cm", "Longueur d'un cercle : $\\pi \\times d$ (ou $2\\pi r$). Donne le nombre devant $\\pi$.", d * d / 4]; }
+    ];
+    const [quoi, rep, unite, regle, aire] = pick(T)();
+    return {
+      enonce: `Calcule ${quoi}.`,
+      mode: "nombre", prefixe: "Réponse :", suffixe: unite, attendu: rep,
+      erreurs: aire && aire !== rep ? [{ valeur: aire, message: "Ça, c'est une **aire**. Le périmètre est la longueur du tour de la figure." }] : [],
+      aides: [regle, "Le périmètre est la longueur du tour : on additionne des longueurs, on ne les multiplie pas entre elles.", "Calcule de tête, étape par étape."],
+      solution: `${regle} Ici : $${fr(rep)}$ ${unite}.`
+    };
+  };
+
+  GEN["am-thales"] = function () {
+    const k = pick([2, 3, 4, 1.5]);
+    let am; do { am = rand(2, 6); } while (!Number.isInteger(am * k));
+    let mn; do { mn = rand(2, 6); } while (!Number.isInteger(mn * k));
+    const ab = am * k, bc = mn * k;
+    const chercheBC = Math.random() < 0.5;
+    // A en haut, B et C en bas ; M et N au rapport 1/k sur [AB] et [AC], donc (MN) parallèle à (BC)
+    const A = [150, 26], B = [40, 196], C = [290, 196];
+    const sur = (Q, t) => [+(A[0] + (Q[0] - A[0]) * t).toFixed(1), +(A[1] + (Q[1] - A[1]) * t).toFixed(1)];
+    const M = sur(B, 1 / k), N = sur(C, 1 / k);
+    const P = { A: [...A, 0, -9], B: [...B, -4, 18], C: [...C, 4, 18], M: [...M, -12, 2], N: [...N, 12, 2] };
+    const txt = (v) => fr(v).replace("{,}", ",");
+    const fig = dessin({
+      P, h: 222, segments: [["A", "B"], ["A", "C"], ["B", "C"], ["M", "N", 1]],
+      textes: [[(A[0] + M[0]) / 2 - 16, (A[1] + M[1]) / 2, txt(am)], [B[0] + 4, B[1] - 40, `AB = ${txt(ab)}`], chercheBC ? [(M[0] + N[0]) / 2, M[1] - 6, txt(mn)] : [(B[0] + C[0]) / 2, B[1] - 6, txt(bc)]],
+      aria: "Triangle ABC avec M sur [AB], N sur [AC] et (MN) parallèle à (BC)"
+    });
+    const rapport = `\\dfrac{AM}{AB} = \\dfrac{AN}{AC} = \\dfrac{MN}{BC}`;
+    if (chercheBC) return {
+      enonce: `$(MN) \\parallel (BC)$, $AM = ${am}$, $AB = ${fr(ab)}$ et $MN = ${mn}$. Calcule $BC$.`,
+      figure: fig, mode: "nombre", prefixe: "BC =", attendu: bc,
+      erreurs: [{ valeur: mn * am / ab, message: "Le rapport est inversé : $BC$ est plus grand que $MN$." }],
+      aides: [`Thalès : $${rapport}$.`, `$\\dfrac{${am}}{${fr(ab)}} = \\dfrac{${mn}}{BC}$.`, `$BC = \\dfrac{${mn} \\times ${fr(ab)}}{${am}}$.`],
+      solution: `Comme $(MN) \\parallel (BC)$ : $\\dfrac{AM}{AB} = \\dfrac{MN}{BC}$, donc $BC = \\dfrac{${mn} \\times ${fr(ab)}}{${am}} = ${fr(bc)}$.`
+    };
+    return {
+      enonce: `$(MN) \\parallel (BC)$, $AM = ${am}$, $AB = ${fr(ab)}$ et $BC = ${fr(bc)}$. Calcule $MN$.`,
+      figure: fig, mode: "nombre", prefixe: "MN =", attendu: mn,
+      erreurs: [{ valeur: bc * ab / am, message: "Le rapport est inversé : $MN$ est plus petit que $BC$." }],
+      aides: [`Thalès : $${rapport}$.`, `$\\dfrac{${am}}{${fr(ab)}} = \\dfrac{MN}{${fr(bc)}}$.`, `$MN = \\dfrac{${am} \\times ${fr(bc)}}{${fr(ab)}}$.`],
+      solution: `Comme $(MN) \\parallel (BC)$ : $\\dfrac{AM}{AB} = \\dfrac{MN}{BC}$, donc $MN = \\dfrac{${am} \\times ${fr(bc)}}{${fr(ab)}} = ${fr(mn)}$.`
+    };
+  };
+
+  GEN["am-trigo"] = function () {
+    const P = { A: [60, 190, -10, 14], B: [270, 190, 10, 14], C: [60, 50, -10, 0] };
+    const fig = dessin({ P, segments: [["A", "B"], ["B", "C"], ["C", "A"]], droit: [60, 190, 14, -14], angle: [270, 190, 34, Math.PI, Math.PI - 0.59], aria: "Triangle ABC rectangle en A, angle en B marqué" });
+    if (Math.random() < 0.5) {
+      const f = pick([["\\cos", "AB", "BC", "adjacent", "l'hypoténuse"], ["\\sin", "AC", "BC", "opposé", "l'hypoténuse"], ["\\tan", "AC", "AB", "opposé", "adjacent"]]);
+      const all = ["AB", "AC", "BC"]; const frs = [];
+      all.forEach((n) => all.forEach((d) => { if (n !== d) frs.push(`$\\dfrac{${n}}{${d}}$`); }));
+      const bonne = `$\\dfrac{${f[1]}}{${f[2]}}$`;
+      const ms = melangeChoix(bonne, shuffle(frs));
+      return {
+        enonce: `$ABC$ est rectangle en $A$. Que vaut $${f[0]}\\widehat{ABC}$ ?`,
+        figure: fig, mode: "choix", choix: ms.choix, attendu: ms.attendu,
+        aides: ["Repère l'hypoténuse : c'est le côté en face de l'angle droit, ici $[BC]$.", "Depuis l'angle $\\widehat{ABC}$ : le côté adjacent est $[AB]$, le côté opposé est $[AC]$.", "CAH SOH TOA : $\\cos = \\dfrac{\\text{adj}}{\\text{hyp}}$, $\\sin = \\dfrac{\\text{opp}}{\\text{hyp}}$, $\\tan = \\dfrac{\\text{opp}}{\\text{adj}}$."],
+        solution: `$${f[0]}\\widehat{ABC} = \\dfrac{\\text{côté ${f[3]}}}{\\text{${f[4] === "adjacent" ? "côté adjacent" : "hypoténuse"}}} = \\dfrac{${f[1]}}{${f[2]}}$.`
+      };
+    }
+    const T = [
+      () => { const bc = rand(2, 9) * 2; return [`$\\widehat{ABC} = 60^\\circ$ et $BC = ${bc}$. On rappelle $\\cos 60^\\circ = 0{,}5$. Calcule $AB$.`, "AB =", bc / 2, `$\\cos 60^\\circ = \\dfrac{AB}{BC}$, donc $AB = ${bc} \\times 0{,}5 = ${bc / 2}$.`, "$\\cos \\widehat{ABC} = \\dfrac{AB}{BC}$ (adjacent sur hypoténuse)."]; },
+      () => { const bc = rand(2, 9) * 2; return [`$\\widehat{ABC} = 30^\\circ$ et $BC = ${bc}$. On rappelle $\\sin 30^\\circ = 0{,}5$. Calcule $AC$.`, "AC =", bc / 2, `$\\sin 30^\\circ = \\dfrac{AC}{BC}$, donc $AC = ${bc} \\times 0{,}5 = ${bc / 2}$.`, "$\\sin \\widehat{ABC} = \\dfrac{AC}{BC}$ (opposé sur hypoténuse)."]; },
+      () => { const ab = rand(2, 12); return [`$\\widehat{ABC} = 45^\\circ$ et $AB = ${ab}$. On rappelle $\\tan 45^\\circ = 1$. Calcule $AC$.`, "AC =", ab, `$\\tan 45^\\circ = \\dfrac{AC}{AB} = 1$, donc $AC = AB = ${ab}$.`, "$\\tan \\widehat{ABC} = \\dfrac{AC}{AB}$ (opposé sur adjacent)."]; },
+      () => { const bc = rand(2, 10) * 10, c = pick([0.6, 0.8]); return [`$BC = ${bc}$ et $\\cos \\widehat{ABC} = ${fr(c)}$. Calcule $AB$.`, "AB =", bc * c, `$AB = BC \\times \\cos \\widehat{ABC} = ${bc} \\times ${fr(c)} = ${fr(bc * c)}$.`, "$\\cos \\widehat{ABC} = \\dfrac{AB}{BC}$, donc $AB = BC \\times \\cos \\widehat{ABC}$."]; }
+    ];
+    const [enonce, prefixe, rep, sol, regle] = pick(T)();
+    return {
+      enonce: `$ABC$ est rectangle en $A$. ${enonce}`, figure: fig,
+      mode: "nombre", prefixe, attendu: rep,
+      aides: ["Repère l'hypoténuse $[BC]$, puis le côté adjacent $[AB]$ et le côté opposé $[AC]$ à l'angle $\\widehat{ABC}$.", regle, "Remplace par les valeurs et calcule de tête."],
+      solution: sol
+    };
+  };
+
+
   /* Séries « flash » d'un thème : mélange de ses générateurs */
   const THEMES = {
     "am-flash-cn": ["am-comparer", "am-fractions", "am-puissances", "am-ecritures", "am-ordre-grandeur", "am-coherence", "auto-conversions"],
     "am-flash-ca": ["am-substituer", "am-reduire", "auto-litteral", "am-premier-degre", "am-isoler", "am-formule", "am-produit-nul", "am-signe"],
-    "am-flash-pp": ["proportion-pourcentage", "partie-tout", "proportion-de-proportion", "am-ecritures"],
+    "am-flash-pp": ["proportion-pourcentage", "partie-tout", "am-ecritures"],
     "am-flash-ev": ["coefficient", "appliquer-evolution", "taux-evolution", "evolutions-successives", "taux-reciproque"],
     "am-flash-fr": ["lecture-image", "lecture-antecedents", "appartenance", "am-reconnaitre", "resolution-graphique", "am-signe-graph", "am-droite-point", "am-lire-droite", "am-coef-dir"],
     "am-flash-st": ["auto-statistiques", "am-quartiles", "am-moyenne-ponderee", "am-diagramme", "am-boites", "am-lire-graphique", "am-graphique-donnees"],
-    "am-flash-pr": ["auto-probabilites", "am-proba-loi", "am-proba-tableau", "am-proba-arbre", "am-proba-notation"]
+    "am-flash-pr": ["auto-probabilites", "am-proba-loi", "am-proba-tableau", "am-proba-arbre", "am-proba-notation"],
+    "am-flash-ge": ["am-repere-droite", "am-coordonnees", "am-perimetre", "auto-grandeurs", "auto-pythagore", "am-thales", "am-trigo"]
   };
   Object.keys(THEMES).forEach((k) => { GEN[k] = (i) => GEN[pick(THEMES[k])](rand(0, 4)); });
   GEN["am-flash-tout"] = (i) => { const t = Object.keys(THEMES); return GEN[t[(i + rand(0, 6)) % t.length]](i); };

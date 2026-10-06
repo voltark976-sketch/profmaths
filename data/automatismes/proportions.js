@@ -1,7 +1,8 @@
 /*
   AUTOMATISMES · PROPORTIONS ET POURCENTAGES (PP01 à PP03)
   --------------------------------------------------------
-  PP01 et PP03 : programme de Seconde. PP02 : ajout de Première.
+  PP01 à PP03 : liste des automatismes de Seconde (programme 2026), à entretenir en Première.
+  Proportion de proportion : au programme de Seconde, mais pas dans la liste des automatismes.
 */
 window.CHAPITRES = window.CHAPITRES || {};
 window.CHAPITRES["auto-proportions"] = {
@@ -31,7 +32,7 @@ window.CHAPITRES["auto-proportions"] = {
       }
     },
     {
-      titre: "Trois écritures d'une proportion (PP02, Première)",
+      titre: "Trois écritures d'une proportion (PP02)",
       video: { titre: "Vidéo d'Yvan Monka : le cours sur les pourcentages", youtube: "https://youtu.be/Y_gDKPidUQ0" },
       texte:
         "- Une proportion peut s'écrire sous forme de **fraction**, de **nombre décimal** ou de **pourcentage** : $\\dfrac{3}{20} = 0{,}15 = 15\\,\\%$.\n" +
@@ -72,8 +73,8 @@ window.CHAPITRES["auto-proportions"] = {
   exercices: [
     { type: "proportion-pourcentage", titre: "PP01 · Calculer une proportion", etape: "Programme de Seconde", nb: 5 },
     { type: "partie-tout", titre: "PP03 · Retrouver la partie ou le tout", etape: "Programme de Seconde", nb: 6 },
-    { type: "am-ecritures", titre: "PP02 · Fraction, décimal, pourcentage", etape: "Ajouts de Première", nb: 6 },
-    { type: "proportion-de-proportion", titre: "Proportion de proportion", etape: "Ajouts de Première", nb: 4 },
+    { type: "am-ecritures", titre: "PP02 · Fraction, décimal, pourcentage", etape: "Programme de Seconde", nb: 6 },
+    { type: "proportion-de-proportion", titre: "Proportion de proportion", etape: "Pour aller plus loin (hors liste des automatismes)", nb: 4 },
     { type: "am-flash-pp", titre: "Flash : proportions mélangées", etape: "Défi", nb: 8 }
   ],
 

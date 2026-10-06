@@ -133,7 +133,7 @@ window.CHAPITRES["seconde-fonctions"] = {
       }
     },
     {
-      titre: "Fonctions paires",
+      titre: "Pour aller plus loin : fonctions paires (programme de Première)",
       video: { titre: "Vidéo d'Yvan Monka : fonction paire, fonction impaire (cours)", youtube: "https://youtu.be/DUbAkwCX8O8" },
       texte:
         "Une fonction $f$ définie sur $D$ est **paire** si :\n\n" +
@@ -148,7 +148,7 @@ window.CHAPITRES["seconde-fonctions"] = {
       }
     },
     {
-      titre: "Fonctions impaires",
+      titre: "Pour aller plus loin : fonctions impaires (programme de Première)",
       video: { titre: "Vidéo d'Yvan Monka : démontrer qu'une fonction n'est ni paire ni impaire", youtube: "https://youtu.be/Mtyywrp6F8s" },
       texte:
         "Une fonction $f$ définie sur $D$ est **impaire** si :\n\n" +
@@ -188,9 +188,9 @@ window.CHAPITRES["seconde-fonctions"] = {
     { type: "appartenance", titre: "Le point est-il sur la courbe ?", etape: "Par le calcul", nb: 5 },
     { type: "calcul-f-egal-g", titre: "Résoudre f(x) = g(x) par le calcul", etape: "Par le calcul", nb: 5 },
     { type: "calcul-f-inf-g", titre: "Résoudre f(x) > g(x), f(x) ≤ g(x)… par le calcul", etape: "Par le calcul", nb: 5 },
-    { type: "parite-graphique", titre: "Paire ou impaire ? Lire sur la courbe", etape: "Parité", nb: 5 },
-    { type: "parite-calcul", titre: "Paire ou impaire ? Calculer f(−x)", etape: "Parité", nb: 5 },
-    { type: "parite-symetrique", titre: "Utiliser la parité pour trouver une image", etape: "Parité", nb: 5 }
+    { type: "parite-graphique", titre: "Paire ou impaire ? Lire sur la courbe", etape: "Pour aller plus loin : parité (programme de Première)", nb: 5 },
+    { type: "parite-calcul", titre: "Paire ou impaire ? Calculer f(−x)", etape: "Pour aller plus loin : parité (programme de Première)", nb: 5 },
+    { type: "parite-symetrique", titre: "Utiliser la parité pour trouver une image", etape: "Pour aller plus loin : parité (programme de Première)", nb: 5 }
   ],
 
   /* ---------- 3. QCM DE RÉVISION ----------
@@ -273,30 +273,6 @@ window.CHAPITRES["seconde-fonctions"] = {
       choix: ["$0$", "$0$ et $2$", "$1$", "$4$"],
       bonne: 1,
       explication: "On cherche $1$ dans la ligne des images : il apparaît sous $x = 0$ et sous $x = 2$. L'image de $1$, elle, vaut $0$."
-    },
-    {
-      question: "La courbe d'une fonction paire est symétrique par rapport…",
-      choix: ["à l'axe des ordonnées", "à l'axe des abscisses", "à l'origine du repère", "à la droite $y = x$"],
-      bonne: 0,
-      explication: "$f(-x) = f(x)$ : les points $(x\\,;f(x))$ et $(-x\\,;f(x))$ sont symétriques par rapport à l'axe des ordonnées. La symétrie par rapport à l'origine correspond aux fonctions impaires."
-    },
-    {
-      question: "Soit $f(x) = x^3 - 4x$, définie sur $\\mathbb{R}$. La fonction $f$ est…",
-      choix: ["paire", "impaire", "ni paire ni impaire"],
-      bonne: 1,
-      explication: "$f(-x) = (-x)^3 - 4(-x) = -x^3 + 4x = -(x^3 - 4x) = -f(x)$ : $f$ est impaire."
-    },
-    {
-      question: "$f$ est impaire sur $\\mathbb{R}$ et $f(3) = -5$. Que vaut $f(-3)$ ?",
-      choix: ["$5$", "$-5$", "$3$", "On ne peut pas savoir"],
-      bonne: 0,
-      explication: "Impaire : $f(-3) = -f(3) = -(-5) = 5$."
-    },
-    {
-      question: "La fonction $f(x) = x^2$ définie sur $[-2\\,;5]$ est…",
-      choix: ["paire", "impaire", "ni paire ni impaire"],
-      bonne: 2,
-      explication: "$[-2\\,;5]$ n'est pas symétrique par rapport à $0$ : par exemple $4$ est dans l'intervalle mais pas $-4$. La fonction n'est donc ni paire ni impaire, même si $(-x)^2 = x^2$."
     }
   ],
 
@@ -384,7 +360,7 @@ window.CHAPITRES["seconde-fonctions"] = {
       exemple: "Kayaks : la droite de A est en dessous de celle de B avant le point $I(3\\,;24)$, donc $A(t) \\leqslant B(t) \\iff t \\in [0\\,;3]$."
     },
     {
-      titre: "Étudier la parité d'une fonction",
+      titre: "Étudier la parité d'une fonction (Première, pour aller plus loin)",
       etapes: [
         "Vérifier que l'ensemble de définition est **symétrique par rapport à $0$**. Sinon, $f$ n'est ni paire ni impaire.",
         "Calculer $f(-x)$ en remplaçant chaque $x$ par $(-x)$ : $(-x)^2 = x^2$, $(-x)^3 = -x^3$.",
