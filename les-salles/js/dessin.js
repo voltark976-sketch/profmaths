@@ -9,7 +9,8 @@
 //  Le décor (fonds, murs, effets du ciel...) vient de decor.js et des
 //  fichiers d'ambiances. Ce fichier dessine par-dessus ce qui fait le
 //  jeu : dalles, portes, passerelles, stèles, inscriptions, bustes des
-//  mathématiciens et Talos, avec leurs petites animations.
+//  mathématiciens, gardiens (gardiens.js) et Talos, avec leurs petites
+//  animations, et les figures acrobatiques des stèles d'Hermès.
 //
 //  Deux horloges servent aux animations :
 //   - le temps du jeu (etat.temps), qui s'arrête quand une fenêtre est
@@ -97,7 +98,7 @@ var Dessin = (function () {
   // =================================================================
   //  Une image complète
   // =================================================================
-  // infos = { steleProche, guideProche, inscriptionProche, parures, tps, mouvementReduit }
+  // infos = { steleProche, guideProche, inscriptionProche, receptionProche, parures, tps, mouvementReduit }
   function dessiner(canvas, etat, infos) {
     infos = infos || {};
     if (!decor || decor.etat !== etat) ajuster(canvas, etat);
@@ -120,7 +121,10 @@ var Dessin = (function () {
     dessinerPasserelle(ctx, etat, t, tps);
     (etat.inscriptions || []).forEach(function (ins, i) { dessinerInscription(ctx, ins, t, i === infos.inscriptionProche, tps); });
     etat.guides.forEach(function (g, i) { dessinerBuste(ctx, g, t, i === infos.guideProche, tps); });
+    etat.steles.forEach(function (s, i) { if (s.effet === "figure") dessinerReception(ctx, etat, s, t, i === infos.receptionProche, tps); });
     etat.steles.forEach(function (s, i) { dessinerStele(ctx, etat, s, t, i === infos.steleProche, tps); });
+    if (typeof Gardiens !== "undefined" && etat.gardiens) Gardiens.dessiner(ctx, etat, t, tps);
+    dessinerFigure(ctx, etat, t);
     dessinerTalos(ctx, etat, t, tps, infos.parures || {}, !!p.amb.sombre);
 
     Decor.dessinerAvant(ctx, p, tps);
@@ -410,6 +414,8 @@ var Dessin = (function () {
   }
 
   function dessinerStele(ctx, etat, s, t, proche, tps) {
+    if (s.effet === "figure") { dessinerHermes(ctx, etat, s, t, proche, tps); return; }
+    if (s.boss) { dessinerSteleBoss(ctx, etat, s, t, proche, tps); return; }
     var cx = s.x * t + t / 2, bas = (s.y + 1) * t;
     var marche = t * 0.08, socle = bas - marche;
     var l = t * (s.bonus ? 0.52 : 0.64), h = t * (s.bonus ? 0.76 : 0.92);
@@ -501,6 +507,209 @@ var Dessin = (function () {
       ctx.font = "700 " + Math.round(t * 0.26) + "px " + POLICE;
       ctx.textAlign = "center";
       ctx.fillText("E", kx, ky + t * 0.09);
+    }
+  }
+
+  // La touche E qui flotte au-dessus d'un objet
+  function toucheE(ctx, kx, ky, t) {
+    var kk = t * 0.36;
+    ctx.fillStyle = C.marbreClair;
+    O.rectArrondi(ctx, kx - kk / 2, ky - kk / 2, kk, kk, t * 0.06);
+    ctx.fill();
+    ctx.strokeStyle = C.orSombre;
+    ctx.lineWidth = 1;
+    ctx.stroke();
+    ctx.fillStyle = C.encre;
+    ctx.font = "700 " + Math.round(t * 0.26) + "px " + POLICE;
+    ctx.textAlign = "center";
+    ctx.fillText("E", kx, ky + t * 0.09);
+  }
+
+  // Une flèche qui tourne en rond (le signe d'un salto)
+  function fleche(ctx, x, y, r, couleur, epaisseur) {
+    ctx.strokeStyle = couleur;
+    ctx.fillStyle = couleur;
+    ctx.lineWidth = epaisseur;
+    ctx.beginPath();
+    ctx.arc(x, y, r, -Math.PI * 0.35, Math.PI * 1.45);
+    ctx.stroke();
+    var a = Math.PI * 1.45, px = x + Math.cos(a) * r, py = y + Math.sin(a) * r, p = r * 0.55;
+    ctx.beginPath();
+    ctx.moveTo(px + p * 0.9, py - p * 0.2);
+    ctx.lineTo(px - p * 0.2, py - p * 0.75);
+    ctx.lineTo(px - p * 0.15, py + p * 0.55);
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  // Deux petites ailes, comme celles des sandales d'Hermès.
+  // battement : de -1 à 1 ; ouvert : l'écart des ailes.
+  function ailes(ctx, cx, cy, r, battement, couleur, bord) {
+    for (var cote = -1; cote <= 1; cote += 2) {
+      ctx.save();
+      ctx.translate(cx + cote * r * 0.35, cy);
+      ctx.scale(cote, 1);
+      ctx.rotate(-0.35 - 0.25 * battement);
+      for (var k = 0; k < 3; k++) {
+        ctx.fillStyle = couleur;
+        ctx.beginPath();
+        ctx.ellipse(r * (0.55 - k * 0.04), -k * r * 0.2, r * (0.62 - k * 0.14), r * 0.15, -k * 0.28, 0, PI2);
+        ctx.fill();
+        if (bord) { ctx.strokeStyle = bord; ctx.lineWidth = 1; ctx.stroke(); }
+      }
+      ctx.restore();
+    }
+  }
+
+  // =================================================================
+  //  Stèle d'Hermès : un problème, et la récompense est une figure
+  //  acrobatique (salto, double salto) jusqu'à la réception R
+  // =================================================================
+  function dessinerHermes(ctx, etat, s, t, proche, tps) {
+    var cx = s.x * t + t / 2, bas = (s.y + 1) * t;
+    var marche = t * 0.08, socle = bas - marche;
+    var l = t * 0.56, h = t * 0.86;
+    var x0 = cx - l / 2, y0 = socle - h;
+    var bat = Math.sin(tps * (s.resolue ? 9 : 3) + s.x);
+
+    // le halo bleu-argent, plus vif quand la stèle est résolue
+    lueurAjoutee(ctx, cx, y0 + h * 0.45, t * 1.1, "170,215,255", (s.resolue ? 0.42 : (proche ? 0.32 : 0.2)) + 0.08 * Math.sin(tps * 2.3 + s.x));
+    ctx.fillStyle = "#6f7f8f";
+    ctx.fillRect(cx - l * 0.65, socle, l * 1.3, marche);
+    var g = ctx.createLinearGradient(x0, 0, x0 + l, 0);
+    g.addColorStop(0, "#9eabb8"); g.addColorStop(0.45, proche ? "#eef4fa" : "#d6dee6"); g.addColorStop(1, "#7f8c99");
+    ctx.fillStyle = g;
+    cheminStele(ctx, x0, y0, l, socle);
+    ctx.fill();
+    ctx.strokeStyle = "#56636f";
+    ctx.lineWidth = 1;
+    ctx.stroke();
+    var e = l * 0.12;
+    cheminStele(ctx, x0 + e, y0 + e, l - 2 * e, socle - e * 0.6);
+    ctx.strokeStyle = "rgba(70,90,110,0.5)";
+    ctx.stroke();
+
+    // les ailes d'Hermès au sommet : elles battent quand la stèle est résolue
+    ailes(ctx, cx, y0 + h * 0.08, t * 0.3, bat, s.resolue ? "#fffaf0" : "#e9eef3", "rgba(70,90,110,0.6)");
+    // le signe gravé
+    ctx.textAlign = "center";
+    ctx.font = "700 " + Math.round(t * 0.36) + "px " + POLICE;
+    if (s.resolue) {
+      lueurAjoutee(ctx, cx, y0 + h * 0.55, t * 0.32, "200,230,255", 0.5);
+      var n = s.figure === "double" ? 2 : 1;
+      for (var q = 0; q < n; q++) fleche(ctx, cx + (q - (n - 1) / 2) * t * 0.2, y0 + h * 0.56, t * (n > 1 ? 0.1 : 0.13), "#ffffff", Math.max(1.5, t * 0.045));
+    } else {
+      ctx.fillStyle = "rgba(40,70,110," + (0.7 + 0.3 * Math.sin(tps * 3 + s.x)).toFixed(3) + ")";
+      ctx.fillText("?", cx, y0 + h * 0.62);
+    }
+    if (s.resolue && typeof s.instantResolue === "number") eclat(ctx, cx, y0 + h * 0.45, t, etat.temps - s.instantResolue, "200,230,255", 18);
+    if (proche && !etat.figure) toucheE(ctx, cx, y0 - t * 0.42 + Math.sin(tps * 4) * t * 0.05, t);
+  }
+
+  // La réception d'une stèle d'Hermès : un cercle ailé sur le sol.
+  // Avant la stèle, on ne voit qu'un contour pâle ; après, il brille.
+  function dessinerReception(ctx, etat, s, t, proche, tps) {
+    var r = s.vers, cx = r.x * t + t / 2, sol = (r.y + 1) * t - t * 0.04;
+    var bat = Math.sin(tps * 6 + r.x);
+    if (s.resolue) {
+      lueurAjoutee(ctx, cx, sol - t * 0.3, t * 0.95, "170,215,255", 0.32 + 0.1 * Math.sin(tps * 2.6));
+      ctx.strokeStyle = "rgba(225,240,255,0.95)";
+      ctx.lineWidth = Math.max(1.5, t * 0.05);
+      ctx.beginPath(); ctx.ellipse(cx, sol, t * 0.42, t * 0.11, 0, 0, PI2); ctx.stroke();
+      ctx.strokeStyle = "rgba(170,215,255,0.6)";
+      ctx.beginPath(); ctx.ellipse(cx, sol, t * 0.28, t * 0.07, 0, 0, PI2); ctx.stroke();
+      ailes(ctx, cx, sol - t * 0.05, t * 0.24, bat, "rgba(250,252,255,0.95)", null);
+      // des étincelles qui montent
+      for (var k = 0; k < 3; k++) {
+        var u = O.boucler(tps * 0.7 + k / 3 + r.x * 0.21, 0, 1);
+        etincelle(ctx, cx + t * (k - 1) * 0.25, sol - u * t * 1.1, t * 0.05, "rgba(220,240,255," + Math.sin(Math.PI * u).toFixed(3) + ")");
+      }
+      if (proche && !etat.figure) toucheE(ctx, cx, sol - t * 1.45 + Math.sin(tps * 4) * t * 0.05, t);
+    } else {
+      ctx.save();
+      ctx.setLineDash([t * 0.08, t * 0.08]);
+      ctx.strokeStyle = "rgba(200,220,240," + (0.35 + 0.1 * Math.sin(tps * 2)).toFixed(3) + ")";
+      ctx.lineWidth = Math.max(1, t * 0.035);
+      ctx.beginPath(); ctx.ellipse(cx, sol, t * 0.42, t * 0.11, 0, 0, PI2); ctx.stroke();
+      ctx.restore();
+    }
+  }
+
+  // =================================================================
+  //  Stèle du boss : plus grande, sombre, gravée de runes rouges
+  // =================================================================
+  function dessinerSteleBoss(ctx, etat, s, t, proche, tps) {
+    var cx = s.x * t + t / 2, bas = (s.y + 1) * t;
+    var marche = t * 0.1, socle = bas - marche;
+    var l = t * 0.8, h = t * 1.25;
+    var x0 = cx - l / 2, y0 = socle - h;
+    var pulse = 0.5 + 0.5 * Math.sin(tps * 2.4);
+    if (s.resolue) lueurAjoutee(ctx, cx, y0 + h * 0.45, t * 1.4, "255,215,120", 0.5 + 0.08 * Math.sin(tps * 2));
+    else lueurAjoutee(ctx, cx, y0 + h * 0.45, t * 1.35, "255,70,40", 0.22 + 0.14 * pulse);
+    ctx.fillStyle = "#3d302a";
+    ctx.fillRect(cx - l * 0.7, socle, l * 1.4, marche);
+    ctx.fillRect(cx - l * 0.6, socle - marche * 0.6, l * 1.2, marche * 0.6);
+    var g = ctx.createLinearGradient(x0, 0, x0 + l, 0);
+    g.addColorStop(0, "#4a3b33"); g.addColorStop(0.45, proche && !s.resolue ? "#7c665a" : "#66544a"); g.addColorStop(1, "#3a2d26");
+    ctx.fillStyle = g;
+    cheminStele(ctx, x0, y0, l, socle - marche * 0.6);
+    ctx.fill();
+    ctx.strokeStyle = "#231a15";
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+    var e = l * 0.1;
+    cheminStele(ctx, x0 + e, y0 + e, l - 2 * e, socle - marche * 0.6 - e * 0.6);
+    ctx.strokeStyle = s.resolue ? "rgba(255,215,120,0.7)" : "rgba(255,90,60," + (0.35 + 0.35 * pulse).toFixed(3) + ")";
+    ctx.stroke();
+    // le grand signe, et des runes
+    ctx.textAlign = "center";
+    ctx.font = "700 " + Math.round(t * 0.5) + "px " + POLICE;
+    if (s.resolue) {
+      ctx.fillStyle = C.or;
+      ctx.fillText("Ω", cx, y0 + h * 0.5);
+    } else {
+      lueurAjoutee(ctx, cx, y0 + h * 0.4, t * 0.45, "255,80,50", 0.3 + 0.3 * pulse);
+      ctx.fillStyle = "rgba(255," + Math.round(120 + 60 * pulse) + ",90,0.95)";
+      ctx.fillText("Ψ", cx, y0 + h * 0.5);
+    }
+    ctx.font = "700 " + Math.round(t * 0.16) + "px " + POLICE;
+    ctx.fillStyle = s.resolue ? "rgba(255,215,120,0.8)" : "rgba(255,110,80," + (0.4 + 0.4 * pulse).toFixed(3) + ")";
+    ctx.fillText("Δ Σ Φ Λ", cx, y0 + h * 0.72);
+    ctx.fillText("Ξ Π Θ", cx, y0 + h * 0.86);
+    if (s.resolue && typeof s.instantResolue === "number") eclat(ctx, cx, y0 + h * 0.45, t, etat.temps - s.instantResolue, "255,215,120", 24);
+    if (proche && !s.resolue) toucheE(ctx, cx, y0 - t * 0.4 + Math.sin(tps * 4) * t * 0.05, t);
+  }
+
+  // =================================================================
+  //  La figure acrobatique : une traînée de lumière derrière Talos,
+  //  un éclat au départ et un autre à l'arrivée
+  // =================================================================
+  function centreFigure(f, u, j) {
+    var x = f.x0 + (f.x1 - f.x0) * u, y = f.haut + f.k * (u - f.us) * (u - f.us);
+    return { x: x + j.l / 2, y: y + j.h / 2 };
+  }
+  function dessinerFigure(ctx, etat, t) {
+    var j = etat.joueur, f = etat.figure;
+    if (f) {
+      var u = Math.min(1, f.t / f.duree);
+      ctx.save();
+      ctx.globalCompositeOperation = "lighter";
+      ctx.lineCap = "round";
+      for (var k = 14; k >= 1; k--) {
+        var ua = Math.max(0, u - k * 0.022), ub = Math.max(0, u - (k - 1) * 0.022);
+        if (ub <= 0) continue;
+        var a = centreFigure(f, ua, j), b = centreFigure(f, ub, j);
+        ctx.strokeStyle = "rgba(190,225,255," + (0.5 * (1 - k / 15)).toFixed(3) + ")";
+        ctx.lineWidth = Math.max(1.5, t * 0.32 * (1 - k / 15));
+        ctx.beginPath(); ctx.moveTo(a.x * t, a.y * t); ctx.lineTo(b.x * t, b.y * t); ctx.stroke();
+      }
+      ctx.restore();
+      var d = centreFigure(f, 0, j);
+      eclat(ctx, d.x * t, (f.y0 + j.h) * t, t, etat.temps - f.debut, "200,230,255", 12);
+    }
+    var df = etat.derniereFigure;
+    if (df && typeof etat.instantReception === "number") {
+      eclat(ctx, (df.x1 + j.l / 2) * t, (df.y1 + j.h) * t, t, etat.temps - etat.instantReception, "200,230,255", 16);
     }
   }
 
@@ -924,6 +1133,13 @@ var Dessin = (function () {
         ovale(ctx, cx, sol * t, l * 0.45 * ko + 1, t * 0.06 * ko + 0.5);
       }
     }
+    // Pendant une figure acrobatique, Talos tourne sur lui-même
+    ctx.save();
+    if (etat.figure) {
+      ctx.translate(cx, py + h / 2);
+      ctx.rotate(Moteur.angleFigure(etat.figure));
+      ctx.translate(-cx, -(py + h / 2));
+    }
     // Sa lumière dans les salles sombres, et l'aura de sagesse
     if (sombre) lueurAjoutee(ctx, cx, py + h * 0.5, t * 2.6, "255,196,120", 0.16);
     if (parures.aura) lueurAjoutee(ctx, cx, py + h * 0.5, t * 1.4, "190,205,255", 0.22 + 0.08 * Math.sin(tps * 2.5));
@@ -1097,7 +1313,32 @@ var Dessin = (function () {
       ctx.stroke();
       ctx.restore();
     }
+    ctx.restore();
   }
 
-  return { ajuster: ajuster, dessiner: dessiner };
+  // =================================================================
+  //  Le fond de la salle, pour l'arène des combats (combat.js)
+  // =================================================================
+  // Dessine le décor lointain de la salle en cours dans le rectangle
+  // (x, y, L, H), agrandi pour le remplir, et place si possible le sol
+  // de la salle à la hauteur « sol ». Renvoie faux si aucune salle n'est prête.
+  function fondCombat(ctx, x, y, L, H, sol, tps) {
+    if (!decor) return false;
+    var p = decor.p;
+    var s = Math.max(L / p.W, H / p.H);
+    var dy = sol - p.sol * s;
+    dy = Math.min(y, Math.max(y + H - p.H * s, dy));
+    var dx = x + (L - p.W * s) / 2;
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(x, y, L, H);
+    ctx.clip();
+    ctx.translate(dx, dy);
+    ctx.scale(s, s);
+    Decor.dessinerFond(ctx, p, tps, 0);
+    ctx.restore();
+    return true;
+  }
+
+  return { ajuster: ajuster, dessiner: dessiner, fondCombat: fondCombat };
 })();

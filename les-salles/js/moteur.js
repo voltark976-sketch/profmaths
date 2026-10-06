@@ -7,6 +7,9 @@
 //  Puis, plusieurs dizaines de fois par seconde, il fait avancer
 //  le temps : la gravité attire le personnage vers le bas, les
 //  touches le font courir ou sauter, les murs l'arrêtent.
+//  Il vérifie aussi les réponses aux stèles (une stèle peut avoir
+//  plusieurs exercices, un par manche de combat) et fait voler Talos
+//  pendant les figures acrobatiques des stèles d'Hermès.
 //
 //  Les distances sont mesurées en cases (1 = la largeur d'une case),
 //  les durées en secondes. Le repère est celui de l'écran :
@@ -38,8 +41,53 @@ var Moteur = (function () {
     "G": "guide",       // la statue d'un philosophe (on la traverse)
     "P": "passerelle",  // une case de passerelle, solide une fois construite
     "A": "bonus",       // une stèle d'or : un automatisme en bonus (on la traverse)
-    "I": "inscription"  // une inscription d'Athéna, lue en passant (on la traverse)
+    "I": "inscription", // une inscription d'Athéna, lue en passant (on la traverse)
+    "H": "hermes",      // une stèle d'Hermès : une figure acrobatique (on la traverse)
+    "R": "reception"    // l'endroit où Talos se pose après la figure acrobatique
   };
+
+  // Les figures acrobatiques des stèles d'Hermès : le nombre de tours
+  // que Talos fait sur lui-même pendant le vol, et le nom affiché.
+  var FIGURES = {
+    salto:  { tours: 1, nom: "Salto avant" },
+    double: { tours: 2, nom: "Double salto" }
+  };
+
+  // Une stèle peut porter un seul exercice (comme avant) ou plusieurs,
+  // dans sa liste « exercices » : un par manche du combat.
+  function exercicesDe(entree) {
+    if (entree && Array.isArray(entree.exercices)) return entree.exercices;
+    return entree ? [entree] : [];
+  }
+
+  // Vérifie les exercices d'une stèle et les range dans la stèle.
+  // Renvoie un texte d'erreur, ou "" si tout va bien.
+  function preparerStele(stele, entree, nom) {
+    var liste = exercicesDe(entree);
+    if (liste.length === 0) return nom + " n'a pas d'exercice.";
+    for (var k = 0; k < liste.length; k++) {
+      if (!liste[k] || typeof liste[k].reponse !== "number") {
+        return nom + (liste.length > 1 ? ", exercice n° " + (k + 1) + "," : "") + " n'a pas de réponse (reponse: un nombre).";
+      }
+    }
+    stele.entree = entree;
+    stele.exercices = liste;
+    stele.manche = 0;                // l'exercice en cours (la manche du combat)
+    stele.exercice = liste[0];
+    stele.resolue = false;
+    stele.erreurs = 0;
+    var passerelle = entree.effet === "passerelle";
+    var monstre = entree.monstre || "";
+    liste.forEach(function (ex) {
+      if (ex.effet === "passerelle") passerelle = true;
+      if (!monstre && ex.monstre) monstre = ex.monstre;
+    });
+    stele.effet = passerelle ? "passerelle" : "porte";
+    stele.monstre = monstre;
+    stele.boss = entree.boss || "";          // le nom du boss, s'il y en a un
+    stele.contexte = entree.contexte || "";  // l'énoncé commun aux questions
+    return "";
+  }
 
   // Transforme une salle de niveaux.js en état de jeu.
   // Si le plan contient une erreur, renvoie { erreur: "explication" }.
@@ -63,6 +111,8 @@ var Moteur = (function () {
     var passerelle = [];  // positions des P
     var bonus = [];       // positions des A
     var inscriptions = []; // positions des I
+    var hermes = [];      // positions des H
+    var receptions = [];  // positions des R
 
     for (var y = 0; y < hauteur; y++) {
       var rangee = [];
@@ -87,6 +137,8 @@ var Moteur = (function () {
         if (sorte === "passerelle") passerelle.push({ x: x, y: y });
         if (sorte === "bonus") bonus.push({ x: x, y: y });
         if (sorte === "inscription") inscriptions.push({ x: x, y: y });
+        if (sorte === "hermes") hermes.push({ x: x, y: y });
+        if (sorte === "reception") receptions.push({ x: x, y: y });
         rangee.push(sorte);
       }
       cases.push(rangee);
@@ -108,13 +160,10 @@ var Moteur = (function () {
                        philosophes.length + ". Il en faut autant." };
     }
     for (var i = 0; i < exercices.length; i++) {
-      steles[i].exercice = exercices[i];
-      steles[i].resolue = false;
-      if (typeof exercices[i].reponse !== "number") {
-        return { erreur: "L'exercice n° " + (i + 1) + " n'a pas de réponse (reponse: un nombre)." };
-      }
-      if (exercices[i].effet === "passerelle" && passerelle.length === 0) {
-        return { erreur: "L'exercice n° " + (i + 1) + " construit une passerelle, mais le plan ne contient pas de P." };
+      var probleme = preparerStele(steles[i], exercices[i], "La stèle de pierre n° " + (i + 1));
+      if (probleme) return { erreur: probleme };
+      if (steles[i].effet === "passerelle" && passerelle.length === 0) {
+        return { erreur: "La stèle de pierre n° " + (i + 1) + " construit une passerelle, mais le plan ne contient pas de P." };
       }
     }
     for (var g = 0; g < guides.length; g++) guides[g].philosophe = philosophes[g];
@@ -127,16 +176,33 @@ var Moteur = (function () {
                        automatismes.length + " automatisme(s). Il en faut autant." };
     }
     for (var b = 0; b < bonus.length; b++) {
-      if (typeof automatismes[b].reponse !== "number") {
-        return { erreur: "L'automatisme n° " + (b + 1) + " n'a pas de réponse (reponse: un nombre)." };
-      }
-      bonus[b].exercice = automatismes[b];
-      bonus[b].resolue = false;
+      var souci = preparerStele(bonus[b], automatismes[b], "La stèle d'or n° " + (b + 1));
+      if (souci) return { erreur: souci };
+      bonus[b].effet = "bonus";
       bonus[b].bonus = true;
       bonus[b].numero = b;
       steles.push(bonus[b]);
     }
     for (var n = 0; n < exercices.length; n++) steles[n].numero = n;
+
+    // Les stèles d'Hermès (H) portent les problèmes de la liste « acrobaties » :
+    // une fois résolues, Talos peut faire une figure acrobatique jusqu'à la
+    // réception R qui leur correspond (la première H va vers la première R...).
+    var acrobaties = niveau.acrobaties || [];
+    if (acrobaties.length !== hermes.length || receptions.length !== hermes.length) {
+      return { erreur: "Le plan contient " + hermes.length + " stèle(s) d'Hermès (H) et " + receptions.length +
+                       " réception(s) (R), et la liste « acrobaties » en contient " + acrobaties.length + ". Il en faut autant." };
+    }
+    for (var h = 0; h < hermes.length; h++) {
+      var ennui = preparerStele(hermes[h], acrobaties[h], "La stèle d'Hermès n° " + (h + 1));
+      if (ennui) return { erreur: ennui };
+      hermes[h].effet = "figure";
+      hermes[h].figure = FIGURES[acrobaties[h].figure] ? acrobaties[h].figure : "salto";
+      hermes[h].nomFigure = FIGURES[hermes[h].figure].nom;
+      hermes[h].vers = receptions[h];
+      hermes[h].numero = h;
+      steles.push(hermes[h]);
+    }
 
     // Chaque I du plan doit avoir son texte dans « inscriptions ».
     var textes = niveau.inscriptions || [];
@@ -162,6 +228,7 @@ var Moteur = (function () {
       passerelleConstruite: false,
       passerelleFantome: null,  // longueur d'une passerelle ratée, pour la montrer
       porteOuverte: false,
+      figure: null,             // la figure acrobatique en cours (voir lancerFigure)
       temps: 0,
       joueur: null
     };
@@ -181,9 +248,7 @@ var Moteur = (function () {
   function porteDoitSOuvrir(etat) {
     if (Object.keys(etat.dallesAllumees).length < etat.nbDalles) return false;
     for (var i = 0; i < etat.steles.length; i++) {
-      if (etat.steles[i].bonus) continue;
-      var effet = etat.steles[i].exercice.effet || "porte";
-      if (effet === "porte" && !etat.steles[i].resolue) return false;
+      if (etat.steles[i].effet === "porte" && !etat.steles[i].resolue) return false;
     }
     return true;
   }
@@ -202,31 +267,128 @@ var Moteur = (function () {
     return a / b;
   }
 
-  // Le joueur propose une réponse à la stèle n° i.
-  // Renvoie { juste: vrai/faux, valeur: le nombre lu (ou null) }.
+  // Le joueur propose une réponse à l'exercice en cours de la stèle n° i.
+  // Une stèle à plusieurs exercices se résout en plusieurs manches : une
+  // bonne réponse fait passer à l'exercice suivant, et la stèle est résolue
+  // après le dernier.
+  // Renvoie { juste, valeur (le nombre lu, ou null), manche (le numéro de
+  // l'exercice auquel on vient de répondre, à partir de 0), total (le nombre
+  // d'exercices), finie (la stèle vient-elle d'être résolue ?) }.
   function proposerReponse(etat, i, texte) {
     var stele = etat.steles[i];
     var ex = stele.exercice;
+    var manche = stele.manche || 0, total = stele.exercices.length;
     var valeur = lireNombre(texte);
-    if (valeur === null) return { juste: false, valeur: null };
+    if (valeur === null) return { juste: false, valeur: null, manche: manche, total: total, finie: false };
     var tolerance = typeof ex.tolerance === "number" ? ex.tolerance : 1e-6;
     var juste = Math.abs(valeur - ex.reponse) <= tolerance;
+    var finie = false;
 
     if (juste) {
-      stele.resolue = true;
-      stele.instantResolue = etat.temps;   // pour l'éclat de lumière
-      if (ex.effet === "passerelle" && !stele.bonus) {
-        etat.passerelleConstruite = true;
-        etat.passerelleFantome = null;
-        etat.instantPasserelle = etat.temps;
+      stele.manche = manche + 1;
+      if (stele.manche >= total) {
+        finie = true;
+        stele.resolue = true;
+        stele.instantResolue = etat.temps;   // pour l'éclat de lumière
+        if (stele.effet === "passerelle") {
+          etat.passerelleConstruite = true;
+          etat.passerelleFantome = null;
+          etat.instantPasserelle = etat.temps;
+        }
+      } else {
+        stele.exercice = stele.exercices[stele.manche];
       }
-    } else if (ex.effet === "passerelle" && !stele.bonus) {
-      // On montre la passerelle telle que la réponse la construirait :
-      // une case par unité, en partant du bord gauche. Elle est fragile.
-      etat.passerelleFantome = Math.max(0, Math.round(valeur));
+    } else {
+      stele.erreurs = (stele.erreurs || 0) + 1;
+      if (ex.effet === "passerelle" && stele.effet === "passerelle") {
+        // On montre la passerelle telle que la réponse la construirait :
+        // une case par unité, en partant du bord gauche. Elle est fragile.
+        etat.passerelleFantome = Math.max(0, Math.round(valeur));
+      }
     }
     verifierPorte(etat);
-    return { juste: juste, valeur: valeur };
+    return { juste: juste, valeur: valeur, manche: manche, total: total, finie: finie };
+  }
+
+  // Le sablier de la manche s'est vidé : cela compte comme une erreur
+  // (la manche reste à jouer).
+  function tempsEcoule(etat, i) {
+    var stele = etat.steles[i];
+    stele.erreurs = (stele.erreurs || 0) + 1;
+    return { juste: false, valeur: null, manche: stele.manche || 0, total: stele.exercices.length,
+             finie: false, tempsEcoule: true };
+  }
+
+  // Résout d'un coup tous les exercices d'une stèle (pour les vérifications).
+  function resoudre(etat, i) {
+    var s = etat.steles[i];
+    while (!s.resolue) proposerReponse(etat, i, String(s.exercice.reponse));
+  }
+
+  // ---------------------------------------------------------------
+  //  Les figures acrobatiques (stèles d'Hermès)
+  // ---------------------------------------------------------------
+  // Talos s'élance vers la réception de la stèle n° i (ou, si versStele
+  // est vrai, de la réception vers la stèle). Il suit un arc de parabole
+  // et tourne sur lui-même pendant le vol. Renvoie vrai si la figure part.
+  function lancerFigure(etat, i, versStele) {
+    var s = etat.steles[i];
+    if (!s || s.effet !== "figure" || !s.resolue || etat.figure) return false;
+    var j = etat.joueur;
+    var depart = versStele ? s.vers : s, but = versStele ? s : s.vers;
+    // L'arc part toujours de la case de départ (la stèle ou la réception) :
+    // c'est ce chemin qui a été vérifié. Si Talos se tient un peu à côté,
+    // l'écart s'efface pendant le premier quart du vol.
+    var x0 = depart.x + (1 - j.l) / 2, y0 = depart.y + 1 - j.h;
+    var x1 = but.x + (1 - j.l) / 2, y1 = but.y + 1 - j.h;
+    var dx = x1 - x0;
+    // Le sommet de l'arc (y vers le bas) : au-dessus du plus haut des deux
+    // points, mais sans toucher le plafond de la salle.
+    var haut = Math.max(1.05, Math.min(y0, y1) - (1.3 + 0.2 * Math.abs(dx)));
+    var a = Math.sqrt(Math.max(0, y0 - haut)), b = Math.sqrt(Math.max(0, y1 - haut));
+    var us = a + b > 0 ? a / (a + b) : 0.5;
+    var k = us > 0 ? (y0 - haut) / (us * us) : (y1 - haut) / ((1 - us) * (1 - us));
+    var distance = Math.sqrt(dx * dx + (y1 - y0) * (y1 - y0));
+    etat.figure = {
+      stele: i, x0: x0, y0: y0, x1: x1, y1: y1, haut: haut, us: us, k: k, ecartX: j.x - x0, ecartY: j.y - y0,
+      t: 0, duree: 0.85 + 0.045 * distance,
+      tours: FIGURES[s.figure].tours, sens: dx >= 0 ? 1 : -1, nom: s.nomFigure, debut: etat.temps
+    };
+    j.regard = dx >= 0 ? 1 : -1;
+    j.auSol = false;
+    return true;
+  }
+
+  // L'angle de Talos pendant la figure (en radians), pour le dessin.
+  function angleFigure(f) {
+    var u = Math.min(1, f.t / f.duree);
+    var d = u * u * (3 - 2 * u);
+    return f.sens * f.tours * Math.PI * 2 * d;
+  }
+
+  // Fait avancer la figure en cours ; elle se termine sur la réception.
+  function avancerFigure(etat, dt) {
+    var f = etat.figure, j = etat.joueur;
+    f.t += dt;
+    var u = Math.min(1, f.t / f.duree);
+    var px = j.x, py = j.y;
+    var e = Math.min(1, u / 0.25), reste = 1 - e * e * (3 - 2 * e);
+    j.x = f.x0 + (f.x1 - f.x0) * u + (f.ecartX || 0) * reste;
+    j.y = f.haut + f.k * (u - f.us) * (u - f.us) + (f.ecartY || 0) * reste;
+    j.vx = (j.x - px) / Math.max(dt, 1e-6);
+    j.vy = (j.y - py) / Math.max(dt, 1e-6);
+    j.auSol = false;
+    if (u >= 1) {
+      j.x = f.x1; j.y = f.y1;
+      j.vx = 0; j.vy = 0;
+      j.auSol = true;
+      j.depuisSol = 0;
+      j.sautEnAttente = 0;
+      j.instantAtterrissage = etat.temps;
+      etat.instantReception = etat.temps;
+      etat.derniereFigure = f;
+      etat.figure = null;
+    }
   }
 
   // Numéro de la stèle (ou du philosophe) devant laquelle se tient le personnage, ou -1.
@@ -252,6 +414,18 @@ var Moteur = (function () {
     return -1;
   }
 
+  // La stèle d'Hermès (résolue) dont la réception est sous les pieds de Talos, ou -1.
+  function receptionProche(etat) {
+    var j = etat.joueur;
+    var cx = j.x + j.l / 2, cy = j.y + j.h / 2;
+    for (var i = 0; i < etat.steles.length; i++) {
+      var s = etat.steles[i];
+      if (s.effet !== "figure" || !s.resolue) continue;
+      if (Math.abs(cx - (s.vers.x + 0.5)) < 0.9 && Math.abs(cy - (s.vers.y + 0.5)) < 0.9) return i;
+    }
+    return -1;
+  }
+
   // Met le personnage sur sa case de départ, posé sur le sol de cette case.
   function placerAuDepart(etat) {
     etat.joueur = {
@@ -266,6 +440,7 @@ var Moteur = (function () {
       depuisSol: 0,       // temps écoulé depuis qu'il a quitté le sol
       sautEnAttente: 0    // temps restant pour un appui sur « saut »
     };
+    etat.figure = null;
     etat.instantApparition = etat.temps;  // pour l'animation d'apparition
   }
 
@@ -319,6 +494,12 @@ var Moteur = (function () {
   function avancer(etat, entrees, dt) {
     var j = etat.joueur;
     etat.temps += dt;
+
+    // --- Pendant une figure acrobatique, Talos ne se dirige pas ---
+    if (etat.figure) {
+      avancerFigure(etat, dt);
+      return "rien";
+    }
 
     // --- Direction voulue ---
     var direction = (entrees.droite ? 1 : 0) - (entrees.gauche ? 1 : 0);
@@ -384,15 +565,22 @@ var Moteur = (function () {
   }
 
   return {
+    REGLAGES: REGLAGES,
     chargerSalle: chargerSalle,
     placerAuDepart: placerAuDepart,
     avancer: avancer,
     caseEn: caseEn,
+    estSolide: estSolide,
     nbDallesAllumees: nbDallesAllumees,
     lireNombre: lireNombre,
     proposerReponse: proposerReponse,
+    tempsEcoule: tempsEcoule,
+    resoudre: resoudre,
+    lancerFigure: lancerFigure,
+    angleFigure: angleFigure,
     steleProche: steleProche,
     guideProche: guideProche,
-    inscriptionProche: inscriptionProche
+    inscriptionProche: inscriptionProche,
+    receptionProche: receptionProche
   };
 })();

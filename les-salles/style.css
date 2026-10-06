@@ -441,3 +441,122 @@ kbd {
 
 /* La liste des salles reste étroite, pour que l'en-tête tienne sur une ligne. */
 #choix-salle { max-width: 260px; }
+
+/* ====================================================================
+   Ajouts de l'étape 6 : les combats contre les gardiens des stèles
+   ==================================================================== */
+
+/* ---------- Les cœurs, le rang et le son, dans l'en-tête ---------- */
+.compteur-vie { gap: 2px; letter-spacing: 0; color: #e8463a; border-color: #8a3a2c; }
+.compteur-vie .coeur { font-size: 1rem; line-height: 1; color: rgba(239, 228, 204, 0.25); }
+.compteur-vie .coeur.plein { color: #ff5a46; text-shadow: 0 0 6px rgba(255, 90, 70, 0.45); }
+.compteur-niveau { color: #bfe3ff; border-color: #4b7aa8; background: rgba(90, 150, 220, 0.12); }
+.etoile-rang { color: #8fd0ff; }
+#bouton-son[aria-pressed="false"] { opacity: 0.6; text-decoration: line-through; }
+
+/* ---------- La stèle : l'arène au-dessus du parchemin ---------- */
+.combat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: min(980px, calc(100vw - 32px), calc((100vh - 32px) * 1.2));
+  max-height: calc(100vh - 32px);
+}
+#arene {
+  display: block;
+  width: 100%;
+  aspect-ratio: 12 / 5;
+  max-width: 100%;
+  border: 2px solid var(--or-sombre);
+  border-radius: 6px;
+  background: #120c08;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6), inset 0 0 0 1px rgba(226, 178, 76, 0.25);
+  flex: none;
+}
+.combat .parchemin {
+  max-width: min(760px, 100%);
+  max-height: none;
+  flex: 1 1 auto;
+  min-height: 0;
+  margin-top: -10px;
+  padding: 14px 22px 12px;
+}
+/* Une stèle déjà résolue s'ouvre sans combat */
+#stele.sans-arene #arene { display: none; }
+#stele.sans-arene .combat .parchemin { margin-top: 0; max-width: 560px; }
+.combat .ligne-boutons { align-items: center; justify-content: space-between; }
+.combat .ligne-boutons .discret { margin-left: auto; }
+.regle-combat {
+  margin: 0 !important;
+  font-size: 0.85rem;
+  font-style: italic;
+  color: #6b5532;
+}
+.regle-combat[hidden] { display: none; }
+.voile:not([hidden]) .combat #arene { animation: deplier 0.35s ease-out; }
+
+/* ====================================================================
+   Ajouts de l'étape 7 : les manches, le sablier, le boss, Hermès
+   ==================================================================== */
+
+/* ---------- La manche en cours, et le sablier ---------- */
+.ligne-manche {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 2px 0 8px;
+  font-family: var(--police-titre);
+  font-size: 0.78rem;
+  letter-spacing: 0.02em;
+  color: #6b5532;
+}
+.ligne-manche[hidden] { display: none; }
+#stele-manche { flex: 1 1 auto; min-width: 0; }
+.chrono {
+  flex: none;
+  margin-left: auto;
+  font-family: var(--police-titre);
+  font-variant-numeric: tabular-nums;
+  font-size: 0.95rem;
+  font-weight: 700;
+  padding: 2px 12px;
+  border: 1px solid var(--or-sombre);
+  border-radius: 999px;
+  background: rgba(155, 114, 38, 0.12);
+  color: var(--encre);
+}
+.chrono[hidden] { display: none; }
+.chrono.urgent {
+  color: #fff8ea;
+  background: var(--faux);
+  border-color: var(--faux);
+  animation: urgence 1s ease-in-out infinite;
+}
+@keyframes urgence { 50% { transform: scale(1.07); } }
+
+/* ---------- L'énoncé commun des questions d'un boss ---------- */
+.contexte {
+  border: 1px solid rgba(162, 56, 43, 0.4);
+  border-radius: 4px;
+  background: rgba(162, 56, 43, 0.07);
+  padding: 8px 12px;
+  font-size: 1.05rem;
+}
+.contexte[hidden] { display: none; }
+
+/* ---------- Le boss et la stèle d'Hermès ---------- */
+#stele.boss .parchemin { background: linear-gradient(#f7e8da, #ecd3bf); border-color: #8a3a2c; }
+#stele.hermes .parchemin { background: linear-gradient(#f1f5f9, #dfe8f1); border-color: #6f8296; }
+.note-or.boss { color: #6e2418; border-color: #a2382b; background: rgba(162, 56, 43, 0.1); }
+.note-or.hermes { color: #2f4a66; border-color: #6f8296; background: rgba(111, 130, 150, 0.14); }
+
+/* ---------- Les écrans peu hauts : un parchemin plus serré ---------- */
+@media (max-height: 780px) {
+  .combat .parchemin { padding: 10px 18px 8px; }
+  .combat .parchemin h2 { font-size: 1.1rem; margin-bottom: 6px; }
+  .combat .parchemin p { margin-bottom: 8px; }
+  .combat #stele-enonce { font-size: 1.03rem; }
+  .combat .ligne-reponse { margin: 8px 0 6px; }
+  .combat .contexte { padding: 6px 10px; font-size: 1rem; }
+}

@@ -6,6 +6,7 @@
 //   - la salle où le joueur en est (son nom) ;
 //   - la liste des salles déjà réussies (leurs noms) ;
 //   - les sceaux gagnés (un par stèle résolue) ;
+//   - l'expérience de Talos (XP), gagnée en battant les monstres ;
 //   - les parures que le joueur a choisi de ne pas porter.
 //  Ce texte reste sur l'appareil même si l'on ferme le navigateur.
 //
@@ -29,8 +30,23 @@ var Sauvegarde = (function () {
 
   function progressionVide() {
     // sceaux : les stèles résolues, par exemple { "La dîme de Stevin|s0": true }
-    // pour la première stèle de pierre de cette salle (b0 pour une stèle d'or).
-    return { version: 2, salleCourante: null, reussies: [], sceaux: {}, paruresRetirees: {} };
+    // pour la première stèle de pierre de cette salle (b0 pour une stèle d'or,
+    // h0 pour une stèle d'Hermès).
+    return { version: 2, salleCourante: null, reussies: [], sceaux: {}, paruresRetirees: {}, xp: 0 };
+  }
+
+  // Une sauvegarde d'avant les combats n'a pas d'expérience : on la
+  // calcule d'après les sceaux déjà gagnés (voir les nombres dans rangs.js).
+  function xpDesSceaux(sceaux) {
+    var regles = typeof XP !== "undefined" ? XP : { pierre: 100, or: 80, figure: 60 };
+    var total = 0;
+    for (var cle in sceaux) {
+      if (!sceaux[cle]) continue;
+      if (cle.indexOf("|b") !== -1) total += regles.or;
+      else if (cle.indexOf("|h") !== -1) total += regles.figure || 0;
+      else total += regles.pierre;
+    }
+    return total;
   }
 
   // Lit la progression enregistrée (ou une progression vide).
@@ -45,6 +61,7 @@ var Sauvegarde = (function () {
       if (!p.sceaux || typeof p.sceaux !== "object") p.sceaux = {};
       if (!p.paruresRetirees || typeof p.paruresRetirees !== "object") p.paruresRetirees = {};
       if (typeof p.salleCourante !== "string") p.salleCourante = null;
+      if (typeof p.xp !== "number" || !isFinite(p.xp) || p.xp < 0) p.xp = xpDesSceaux(p.sceaux);
       return p;
     } catch (e) {
       // Stockage indisponible (navigation privée, réglages...) :
@@ -67,6 +84,7 @@ var Sauvegarde = (function () {
     if (p.reussies.indexOf("L'éveil") !== -1) p.reussies.push("La première stèle");
     if (typeof ancien.salleCourante === "number") p.salleCourante = ANCIEN_ORDRE[ancien.salleCourante] || null;
     if (ancien.sceaux && typeof ancien.sceaux === "object") p.sceaux = ancien.sceaux;
+    p.xp = xpDesSceaux(p.sceaux);
     return p;
   }
 

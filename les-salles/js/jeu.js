@@ -6,8 +6,13 @@
 //   - environ 60 fois par seconde (une « image »), il lit le clavier
 //     (commandes.js), fait avancer le temps (moteur.js) et redessine
 //     la salle (dessin.js) ;
-//   - il ouvre les stèles (exercices) et vérifie les réponses ;
+//   - il ouvre les stèles (exercices) et vérifie les réponses, manche
+//     après manche, avec le sablier de chaque manche ;
 //   - il compte les sceaux, débloque les parures et les sanctuaires ;
+//   - il mène les combats : cœurs, expérience et rangs de Talos
+//     (combat.js met en scène, gardiens.js fait rôder les monstres dans
+//     la salle, ce fichier décide) ;
+//   - il lance les figures acrobatiques des stèles d'Hermès ;
 //   - il sauvegarde la progression (sauvegarde.js).
 // =====================================================================
 
@@ -30,7 +35,11 @@
     steleFermer: $("stele-fermer"), steleSurTitre: $("stele-sur-titre"), steleNote: $("stele-note"),
     parures: $("parures"), paruresCompte: $("parures-compte"), paruresListe: $("parures-liste"),
     sanctuairesListe: $("sanctuaires-liste"), paruresFermer: $("parures-fermer"), boutonParures: $("bouton-parures"),
-    ecranTitre: $("ecran-titre"), titreBouton: $("titre-bouton"), titreProgres: $("titre-progres")
+    ecranTitre: $("ecran-titre"), titreBouton: $("titre-bouton"), titreProgres: $("titre-progres"),
+    arene: $("arene"), steleRegle: $("stele-regle"), vie: $("compteur-vie"), niveau: $("compteur-niveau"),
+    niveauTexte: $("texte-niveau"), son: $("bouton-son"),
+    steleMancheLigne: $("stele-manche-ligne"), steleManche: $("stele-manche"), steleChrono: $("stele-chrono"),
+    steleContexte: $("stele-contexte")
   };
 
   var PAS_DE_TEMPS = 1 / 120;   // le moteur avance par petits pas réguliers
@@ -50,6 +59,30 @@
   var paruresPortees = {};
 
   var LISTE_PARURES = typeof PARURES !== "undefined" && Array.isArray(PARURES) ? PARURES : [];
+
+  // Les combats (rangs.js, combat.js) : si un de ces fichiers manque,
+  // le jeu marche quand même, simplement sans les monstres.
+  var LISTE_RANGS = typeof RANGS !== "undefined" && Array.isArray(RANGS) && RANGS.length ? RANGS
+    : [{ xp: 0, titre: "Automate éveillé", coeurs: 3 }];
+  var REGLES_XP = typeof XP !== "undefined" ? XP : { pierre: 100, or: 80, boss: 300, figure: 60, sansFaute: 50, serie: 10, serieMax: 50 };
+  var REGLES_TEMPS = typeof TEMPS_LIMITE !== "undefined" && TEMPS_LIMITE ? TEMPS_LIMITE : { actif: false };
+  var ORDRE_MONSTRES = typeof ORDRE_DES_MONSTRES !== "undefined" && Array.isArray(ORDRE_DES_MONSTRES) && ORDRE_DES_MONSTRES.length
+    ? ORDRE_DES_MONSTRES : ["minotaure"];
+  var combatPossible = typeof Combat !== "undefined" && typeof Monstres !== "undefined" && typeof Heros !== "undefined" && !!el.arene;
+  var gardiensPossibles = combatPossible && typeof Gardiens !== "undefined";
+  var coeurs = 3, coeursMax = 3;   // les cœurs de Talos dans la salle en cours
+  var serie = 0;                    // les bonnes réponses d'affilée
+  var erreursStele = 0;             // les erreurs à la stèle ouverte
+  var dernierCoup = "";             // pour varier les coups de Talos
+  var areneOuverte = false;         // le combat est affiché au-dessus de la stèle
+  var enCombat = false;             // une animation empêche de répondre
+  var koEnAttente = false;          // Talos est à terre : retour au départ en fermant la stèle
+  var mancheEnAttente = false;      // une manche est gagnée : on attend « Manche suivante »
+  var figureEnAttente = -1;         // une stèle d'Hermès vient d'être résolue : la figure part en fermant
+  var dejaResolue = false;          // la stèle ouverte était déjà résolue
+  var parfaits = 0;                 // les combats gagnés sans erreur, d'affilée (la foudre au 3e)
+  var graceChrono = 0;              // le sablier ne peut pas se vider dans la première seconde
+  var dernierTic = -1;
 
   // Les salles sont rangées par chapitres dans niveaux.js. On les met
   // bout à bout dans une seule liste, en retenant le chapitre de chacune.
@@ -128,17 +161,17 @@
   // ---------------------------------------------------------------
   // Chaque sceau est rangé sous le nom de sa salle : « Le repère de Descartes|s0 »
   // pour la première stèle de pierre, « Le repère de Descartes|b0 » pour la
-  // première stèle d'or.
-  function cleSceau(niveau, bonus, numero) {
-    return niveau.nom + "|" + (bonus ? "b" : "s") + numero;
-  }
+  // première stèle d'or, « La relation de Chasles|h0 » pour la première
+  // stèle d'Hermès (elle ne compte pas parmi les sceaux affichés).
+  function sorteDe(stele) { return stele.effet === "figure" ? "h" : (stele.bonus ? "b" : "s"); }
+  function cleSceau(niveau, stele) { return niveau.nom + "|" + sorteDe(stele) + stele.numero; }
   function compterSceaux(bonus) {
     var total = 0, gagnes = 0;
     NIVEAUX.forEach(function (niv) {
       var liste = (bonus ? niv.bonus : niv.steles) || [];
       for (var i = 0; i < liste.length; i++) {
         total++;
-        if (progression.sceaux[cleSceau(niv, bonus, i)]) gagnes++;
+        if (progression.sceaux[niv.nom + "|" + (bonus ? "b" : "s") + i]) gagnes++;
       }
     });
     return { gagnes: gagnes, total: total };
@@ -149,7 +182,7 @@
     var n = 0;
     NIVEAUX.forEach(function (niv) {
       if (niv.numeroChapitre !== c || niv.secrete) return;
-      (niv.bonus || []).forEach(function (b, k) { if (progression.sceaux[cleSceau(niv, true, k)]) n++; });
+      (niv.bonus || []).forEach(function (b, k) { if (progression.sceaux[niv.nom + "|b" + k]) n++; });
     });
     return n;
   }
@@ -209,6 +242,115 @@
   }
 
   // ---------------------------------------------------------------
+  //  Les combats : cœurs, expérience et rangs de Talos
+  // ---------------------------------------------------------------
+  function rangDe(xp) {
+    var r = 0;
+    for (var i = 0; i < LISTE_RANGS.length; i++) if (xp >= LISTE_RANGS[i].xp) r = i;
+    return r;
+  }
+  function coeursDuRang() { return LISTE_RANGS[rangDe(progression.xp)].coeurs || 3; }
+
+  function majCompteursCombat() {
+    if (!el.vie || !el.niveau) return;
+    el.vie.hidden = !combatPossible;
+    el.niveau.hidden = !combatPossible;
+    el.vie.innerHTML = "";
+    for (var i = 0; i < coeursMax; i++) {
+      var c = document.createElement("span");
+      c.className = i < coeurs ? "coeur plein" : "coeur";
+      c.textContent = "♥";
+      el.vie.appendChild(c);
+    }
+    el.vie.title = "Les cœurs de Talos : " + coeurs + " / " + coeursMax + ". Une erreur (ou un sablier vide) en fait perdre un, " +
+      "chaque combat gagné en rend un. Sans cœur, Talos revient au départ de la salle.";
+    el.vie.setAttribute("aria-label", "Cœurs de Talos : " + coeurs + " sur " + coeursMax);
+    var r = rangDe(progression.xp), rang = LISTE_RANGS[r], suivant = LISTE_RANGS[r + 1];
+    el.niveauTexte.textContent = rang.titre + " · " + progression.xp + " XP";
+    el.niveau.title = "Le rang de Talos : " + rang.titre + " (" + progression.xp + " XP). " +
+      (suivant ? "Rang suivant : " + suivant.titre + ", à " + suivant.xp + " XP." : "C'est le rang le plus haut !");
+  }
+
+  // Le monstre qui garde une stèle : celui choisi dans niveaux.js (monstre: "hydre"),
+  // sinon les oiseaux de Stymphale pour une stèle d'or, le Sphinx dans un
+  // sanctuaire, et pour les autres stèles de pierre, chacun son tour (rangs.js).
+  function monstreDe(stele) {
+    if (stele.monstre && Monstres.existe(stele.monstre)) return stele.monstre;
+    if (stele.bonus) return "stymphale";
+    if (NIVEAUX[numeroSalle].secrete) return "sphinx";
+    var n = stele.numero || 0;
+    for (var i = 0; i < numeroSalle; i++) if (!NIVEAUX[i].secrete) n += (NIVEAUX[i].steles || []).length;
+    var id = ORDRE_MONSTRES[n % ORDRE_MONSTRES.length];
+    return Monstres.existe(id) ? id : "minotaure";
+  }
+
+  // Talos gagne de l'expérience : son rang peut monter, et avec lui
+  // le nombre de ses cœurs.
+  function gagnerExperience(xp) {
+    var rangAvant = rangDe(progression.xp);
+    progression.xp += xp;
+    var rangApres = rangDe(progression.xp);
+    var nouveauMax = LISTE_RANGS[rangApres].coeurs || coeursMax;
+    if (nouveauMax > coeursMax) { coeurs += nouveauMax - coeursMax; coeursMax = nouveauMax; }
+    return { rangMonte: rangApres > rangAvant, rang: LISTE_RANGS[rangApres] };
+  }
+
+  // Le dernier coup du combat : la série continue, Talos regagne un cœur, et
+  // l'expérience monte (la première fois que la stèle est résolue).
+  function victoireCombat(stele, nouveauSceau) {
+    serie += 1;
+    var sansFaute = !(stele.erreurs > 0);
+    parfaits = sansFaute ? parfaits + 1 : 0;
+    var xp = 0, details = [];
+    if (nouveauSceau) {
+      xp = stele.boss ? (REGLES_XP.boss || REGLES_XP.pierre) : (stele.bonus ? REGLES_XP.or : REGLES_XP.pierre);
+      if (sansFaute && REGLES_XP.sansFaute) {
+        xp += REGLES_XP.sansFaute;
+        details.push("Sans aucune erreur : +" + REGLES_XP.sansFaute);
+      }
+      var bonusSerie = Math.min(REGLES_XP.serieMax || 0, (REGLES_XP.serie || 0) * (serie - 1));
+      if (bonusSerie > 0) {
+        xp += bonusSerie;
+        details.push("Série ×" + serie + " : +" + bonusSerie);
+      }
+    }
+    var rang = gagnerExperience(xp);
+    var soin = coeurs < coeursMax;
+    if (soin) coeurs += 1;
+    // Le coup final de Talos : la foudre d'Athéna tous les 3 combats gagnés sans
+    // erreur d'affilée, le tir à l'arc contre les oiseaux des stèles d'or,
+    // sinon un coup au hasard.
+    var coup;
+    if (parfaits > 0 && parfaits % 3 === 0) coup = "foudre";
+    else if (stele.bonus) coup = "arc";
+    else {
+      var possibles = ["pirouette", "fente", "arc"].filter(function (c) { return c !== dernierCoup; });
+      coup = possibles[Math.floor(Math.random() * possibles.length)];
+    }
+    dernierCoup = coup;
+    majCompteursCombat();
+    return { coup: coup, xp: xp, details: details, soin: soin, sansFaute: sansFaute, rangMonte: rang.rangMonte, rang: rang.rang };
+  }
+
+  function majBoutonSon() {
+    if (!el.son) return;
+    var actif = typeof Sons !== "undefined" && Sons.estActif();
+    el.son.hidden = !combatPossible;
+    el.son.textContent = actif ? "♪ Son" : "♪ Son coupé";
+    el.son.setAttribute("aria-pressed", actif ? "true" : "false");
+  }
+  if (el.son) {
+    el.son.addEventListener("click", function (e) {
+      if (typeof Sons === "undefined") return;
+      Sons.activer(!Sons.estActif());
+      majBoutonSon();
+      if (Sons.estActif()) Sons.jouer("sceau");
+      e.currentTarget.blur();
+    });
+  }
+  majBoutonSon();
+
+  // ---------------------------------------------------------------
   //  Démarrer une salle
   // ---------------------------------------------------------------
   // Entre dans une salle. Au début d'un chapitre, Athéna le présente d'abord.
@@ -242,6 +384,11 @@
 
     progression.salleCourante = niveau.nom;
     Sauvegarde.enregistrer(progression);
+    // Les gardiens prennent leur place près de leurs stèles
+    if (gardiensPossibles) {
+      try { Gardiens.preparer(etat, monstreDe); } catch (err) { etat.gardiens = []; if (window.console) console.error(err); }
+    }
+    figureEnAttente = -1;
 
     var chap = LISTE_CHAPITRES[niveau.numeroChapitre];
     el.titre.textContent = niveau.secrete ? "Sanctuaire secret · " + niveau.nom
@@ -249,6 +396,10 @@
     el.athena.textContent = niveau.athena || niveau.message || "";
     remplirChoixSalles();
     afficherSceaux();
+    // Talos entre dans la salle avec tous ses cœurs
+    coeursMax = coeursDuRang();
+    coeurs = coeursMax;
+    majCompteursCombat();
     bulleAffichee = "";
     el.bulle.hidden = true;
     Dessin.ajuster(canvas, etat);
@@ -273,20 +424,28 @@
         var entrees = Commandes.lire();
         reserve += dt;
         while (reserve >= PAS_DE_TEMPS && !enPause) {
-          var resultat = Moteur.avancer(etat, entrees, PAS_DE_TEMPS);
+          // pendant qu'un gardien bondit sur lui, Talos ne se dirige plus
+          var bondit = gardiensPossibles && Gardiens.enAttaque(etat);
+          var resultat = Moteur.avancer(etat, bondit ? {} : entrees, PAS_DE_TEMPS);
           entrees.saut = false; // l'appui sur « saut » ne compte qu'une fois
           reserve -= PAS_DE_TEMPS;
           if (resultat === "chute") chute();
           if (resultat === "sortie") salleReussie();
+          if (gardiensPossibles && !enPause) {
+            var attaquant = Gardiens.mettreAJour(etat, PAS_DE_TEMPS);
+            if (attaquant >= 0) ouvrirStele(attaquant);
+          }
         }
       } else {
         Commandes.lire();
         reserve = 0;
       }
+      avancerChronos();
       var infos = {
         steleProche: Moteur.steleProche(etat),
         guideProche: Moteur.guideProche(etat),
         inscriptionProche: Moteur.inscriptionProche(etat),
+        receptionProche: Moteur.receptionProche(etat),
         parures: paruresPortees,
         tps: mouvementReduit ? 8 : instant / 1000,
         mouvementReduit: mouvementReduit
@@ -295,7 +454,8 @@
       else afficherBulle(-1, -1);
       el.dalles.textContent = etat.nbDalles > 0
         ? "Dalles : " + Moteur.nbDallesAllumees(etat) + " / " + etat.nbDalles : "";
-      Dessin.dessiner(canvas, etat, infos);
+      // Pendant un combat, la salle (cachée derrière) ne se redessine pas.
+      if (!areneOuverte) Dessin.dessiner(canvas, etat, infos);
     }
     window.requestAnimationFrame(boucle);
   }
@@ -327,23 +487,52 @@
   // ---------------------------------------------------------------
   //  Stèles : les exercices
   // ---------------------------------------------------------------
+  // La touche E : lire la stèle toute proche, ou refaire la figure
+  // acrobatique d'une stèle d'Hermès déjà résolue (depuis la stèle ou
+  // depuis sa réception, le cercle ailé).
   function quandInteragir() {
-    if (enPause || !etat || etat.erreur) return;
+    if (enPause || !etat || etat.erreur || etat.figure) return;
+    if (gardiensPossibles && Gardiens.enAttaque(etat)) return;
     var i = Moteur.steleProche(etat);
-    if (i >= 0) ouvrirStele(i);
+    if (i >= 0) {
+      if (etat.steles[i].effet === "figure" && etat.steles[i].resolue) lancerFigure(i, false);
+      else ouvrirStele(i);
+      return;
+    }
+    var r = Moteur.receptionProche(etat);
+    if (r >= 0) lancerFigure(r, true);
   }
 
-  function ouvrirStele(i) {
-    var s = etat.steles[i];
-    var ex = s.exercice;
-    steleOuverte = i;
-    enPause = true;
-    Commandes.relacherTout();
+  function lancerFigure(i, retour) {
+    if (!Moteur.lancerFigure(etat, i, retour)) return;
+    if (typeof Sons !== "undefined") Sons.jouer("envol");
+    afficherAvis(etat.steles[i].nomFigure + " !");
+  }
 
-    el.steleSurTitre.textContent = s.bonus ? "Stèle d'or · automatisme" : "Stèle de pierre · exercice";
-    el.steleNote.hidden = !s.bonus;
-    el.steleNote.textContent = s.bonus ? "Facultatif : cette stèle n'ouvre pas la porte. Son sceau d'or fait gagner des parures à Talos et ouvre le sanctuaire secret du chapitre." : "";
-    el.steleTitre.textContent = ex.titre || (s.bonus ? "Automatisme" : "Exercice");
+  // ---------------------------------------------------------------
+  //  Les manches d'un combat
+  // ---------------------------------------------------------------
+  // Avec 3 exercices : l'attaque, l'esquive, le coup final.
+  // Avec 5 (un boss) : attaque, esquive, attaque, esquive, coup final.
+  function typeManche(k, n) { return k >= n - 1 ? "final" : (k % 2 === 0 ? "attaque" : "esquive"); }
+  var NOMS_MANCHES = { attaque: "L'attaque", esquive: "L'esquive", final: "Le coup final" };
+  var CONSIGNES_MANCHES = {
+    attaque: "une bonne réponse, et Talos frappe.",
+    esquive: "QUI va frapper ; une bonne réponse, et Talos esquive.",
+    final: "une bonne réponse, et QUI est changé en pierre."
+  };
+
+  function enMinutes(sec) {
+    sec = Math.max(0, Math.round(sec));
+    var m = Math.floor(sec / 60), r = sec % 60;
+    return m > 0 ? m + " min" + (r ? " " + r + " s" : "") : r + " s";
+  }
+
+  // Remplit le parchemin avec l'exercice en cours de la stèle
+  function remplirExercice(s) {
+    var ex = s.exercice;
+    var n = s.exercices.length, k = s.manche || 0;
+    el.steleTitre.textContent = ex.titre || (s.effet === "figure" ? "Le problème d'Hermès" : (s.bonus ? "Automatisme" : "Exercice"));
     el.steleEnonce.textContent = ex.enonce || "";
     el.steleUnite.textContent = ex.unite || "";
     el.steleIndice.hidden = true;
@@ -352,7 +541,68 @@
     el.steleExplication.textContent = ex.explication ? "Correction : " + ex.explication : "";
     el.steleRetour.textContent = "";
     el.steleRetour.className = "retour";
+    el.steleContexte.hidden = !s.contexte;
+    el.steleContexte.textContent = s.contexte ? "Le problème : " + s.contexte : "";
+    // La ligne de la manche (et le sablier, à droite)
+    var texte = "";
+    if (!s.resolue) {
+      if (s.effet === "figure") texte = "Récompense : " + (s.nomFigure || "une figure acrobatique").toLowerCase() + " jusqu'au cercle ailé";
+      else if (n > 1) {
+        var type = typeManche(k, n);
+        texte = (s.boss ? "Question " : "Manche ") + (k + 1) + " / " + n + " · " + NOMS_MANCHES[type] +
+          (areneOuverte ? " : " + CONSIGNES_MANCHES[type].replace("QUI", s.boss ? "le boss" : "le gardien") : "");
+      }
+    }
+    el.steleManche.textContent = texte;
+    el.steleMancheLigne.hidden = !texte && !s.chrono;
+    el.steleValider.textContent = "Graver";
+  }
+
+  function ouvrirStele(i) {
+    var s = etat.steles[i];
+    var ex = s.exercice;
+    steleOuverte = i;
+    enPause = true;
+    Commandes.relacherTout();
+    dejaResolue = !!s.resolue;
+    mancheEnAttente = false;
+
+    // Le combat : une stèle pas encore résolue est gardée par un monstre
+    // (pas les stèles d'Hermès)
+    areneOuverte = combatPossible && !s.resolue && s.effet !== "figure";
+    enCombat = false;
+    koEnAttente = false;
+    erreursStele = 0;
+
+    var n = s.exercices.length;
     el.stele.classList.toggle("doree", !!s.bonus);
+    el.stele.classList.toggle("boss", !!s.boss);
+    el.stele.classList.toggle("hermes", s.effet === "figure");
+    el.steleNote.className = "note-or" + (s.boss ? " boss" : (s.effet === "figure" ? " hermes" : ""));
+    if (s.effet === "figure") {
+      el.steleSurTitre.textContent = "Stèle d'Hermès · figure acrobatique";
+      el.steleNote.textContent = "Résous ce problème, et les sandales d'Hermès permettront à Talos de franchir l'obstacle d'un " +
+        (s.nomFigure || "salto").toLowerCase() + ". Ici, une erreur ne coûte pas de cœur.";
+    } else if (s.boss) {
+      el.steleSurTitre.textContent = "Le boss du chapitre · " + s.boss;
+      el.steleNote.textContent = "";
+    } else if (s.bonus) {
+      el.steleSurTitre.textContent = "Stèle d'or · automatisme";
+      el.steleNote.textContent = "Facultatif : cette stèle n'ouvre pas la porte. Son sceau d'or fait gagner des parures à Talos et ouvre le sanctuaire secret du chapitre.";
+    } else {
+      el.steleSurTitre.textContent = "Stèle de pierre · exercice";
+      el.steleNote.textContent = "";
+    }
+    el.steleNote.hidden = !el.steleNote.textContent || s.resolue;
+    el.steleRegle.textContent = s.boss ? "Un problème type contrôle en " + n + " questions" +
+        (dureeManche(s) ? ", " + enMinutes(dureeManche(s)) + " par question" : "") + ". Erreur ou sablier vide : Talos perd un cœur."
+      : n >= 5 ? "Chaque bonne réponse frappe le gardien ou esquive ses coups. Erreur ou sablier vide : Talos perd un cœur."
+      : (n > 1 ? "En " + n + " manches : l'attaque, l'esquive, puis le coup final. Erreur ou sablier vide : Talos perd un cœur."
+      : "Bonne réponse : Talos terrasse le gardien. Erreur ou sablier vide : il perd un cœur.");
+
+    // Le sablier : il reprend là où il en était si l'on avait fui ce combat
+    if (!s.resolue) lancerChrono(s, false);
+    remplirExercice(s);
 
     if (s.resolue) {
       el.steleReponse.value = String(ex.reponse).replace(".", ",");
@@ -366,22 +616,207 @@
       el.steleReponse.disabled = false;
       el.steleValider.disabled = false;
     }
+    el.stele.classList.toggle("sans-arene", !areneOuverte);
+    el.steleRegle.hidden = !areneOuverte;
     el.stele.hidden = false;
+    if (areneOuverte) {
+      try {
+        Combat.ouvrir(el.arene, {
+          monstre: monstreDe(s), bonus: !!s.bonus, parures: paruresPortees, coeurs: coeurs, coeursMax: coeursMax,
+          rangs: LISTE_RANGS, xp: progression.xp, serie: serie, reduit: mouvementReduit,
+          manches: n, manche: s.manche || 0, boss: s.boss || ""
+        });
+      } catch (err) {
+        // Si l'arène ne s'ouvre pas, la stèle marche comme avant.
+        areneOuverte = false;
+        el.stele.classList.add("sans-arene");
+        el.steleRegle.hidden = true;
+        remplirExercice(s);
+        if (window.console) console.error(err);
+      }
+    }
+    if (gardiensPossibles && !dejaResolue) Gardiens.commencerCombat(etat, i);
+    afficherChrono();
     if (!s.resolue) el.steleReponse.focus(); else el.steleFermer.focus();
   }
 
+  // ---------------------------------------------------------------
+  //  Le sablier : le temps pour répondre à chaque manche (rangs.js)
+  // ---------------------------------------------------------------
+  // Chaque stèle garde son sablier (stele.chrono) : il continue de couler
+  // quand on fuit le combat, et même quand l'onglet du navigateur est caché
+  // (on compte avec l'horloge de l'ordinateur). Il s'arrête seulement
+  // pendant les animations du combat.
+  function dureeManche(s) {
+    if (!REGLES_TEMPS.actif) return 0;
+    var ex = s.exercice || {};
+    var coef = typeof REGLES_TEMPS.coefficient === "number" && REGLES_TEMPS.coefficient > 0 ? REGLES_TEMPS.coefficient : 1;
+    var sec;
+    if (typeof ex.temps === "number" && ex.temps > 0) sec = ex.temps;
+    else if (s.effet === "figure") sec = REGLES_TEMPS.hermes;
+    else if (s.boss) sec = REGLES_TEMPS.boss;
+    else if (s.bonus) sec = REGLES_TEMPS.automatisme;
+    else {
+      var type = typeManche(s.manche || 0, s.exercices.length);
+      sec = type === "final" ? REGLES_TEMPS.coupFinal : REGLES_TEMPS[type];
+    }
+    sec = Number(sec) || 0;
+    return sec > 0 ? sec * coef : 0;
+  }
+
+  // Un sablier plein (neuf) ou, s'il coulait déjà pour cette manche, on le reprend.
+  function lancerChrono(s, neuf) {
+    var duree = dureeManche(s);
+    if (!duree) { s.chrono = null; return; }
+    if (neuf || !s.chrono || s.chrono.manche !== (s.manche || 0)) {
+      s.chrono = { manche: s.manche || 0, duree: duree, restant: duree * 1000, dernier: Date.now() };
+    }
+    graceChrono = Date.now() + 900;
+    dernierTic = -1;
+  }
+
+  function avancerChronos() {
+    if (!etat || etat.erreur) return;
+    var maintenant = Date.now();
+    for (var i = 0; i < etat.steles.length; i++) {
+      var c = etat.steles[i].chrono;
+      if (!c) continue;
+      var ecoule = maintenant - c.dernier;
+      c.dernier = maintenant;
+      // pendant une animation du combat, le sable ne coule pas
+      if (i === steleOuverte && (enCombat || mancheEnAttente || koEnAttente)) continue;
+      c.restant -= ecoule;
+    }
+    if (steleOuverte < 0) return;
+    afficherChrono();
+    var s = etat.steles[steleOuverte];
+    if (s.chrono && !s.resolue && s.chrono.restant <= 0 && maintenant >= graceChrono &&
+        !enCombat && !mancheEnAttente && !koEnAttente) sablierVide();
+  }
+
+  function afficherChrono() {
+    var s = steleOuverte >= 0 ? etat.steles[steleOuverte] : null;
+    var c = s && !s.resolue ? s.chrono : null;
+    if (!c) {
+      el.steleChrono.hidden = true;
+      el.steleMancheLigne.hidden = !el.steleManche.textContent;
+      if (areneOuverte) Combat.chrono(null);
+      return;
+    }
+    var sec = Math.max(0, Math.ceil(c.restant / 1000));
+    var texte = Math.floor(sec / 60) + ":" + ("0" + (sec % 60)).slice(-2);
+    el.steleMancheLigne.hidden = false;
+    el.steleChrono.hidden = false;
+    if (el.steleChrono.textContent !== "⏳ " + texte) el.steleChrono.textContent = "⏳ " + texte;
+    el.steleChrono.classList.toggle("urgent", sec <= 15);
+    el.steleChrono.title = "Le temps pour répondre à cette manche (" + enMinutes(c.duree) + ").";
+    if (areneOuverte) Combat.chrono(Math.max(0, Math.min(1, c.restant / (c.duree * 1000))), sec, texte);
+    // les dernières secondes : un petit tic à chaque seconde
+    if (sec <= 10 && sec > 0 && sec !== dernierTic && !enCombat && !mancheEnAttente) {
+      dernierTic = sec;
+      if (typeof Sons !== "undefined") Sons.jouer("tic");
+    }
+  }
+
+  // Le sablier est vide : cela compte comme une erreur, puis la manche
+  // recommence avec un sablier plein.
+  function sablierVide() {
+    var i = steleOuverte, stele = etat.steles[i];
+    Moteur.tempsEcoule(etat, i);
+    stele.chrono = null;
+    var texte = "Le sablier est vide !";
+    if (areneOuverte) {
+      erreursStele += 1;
+      serie = 0;
+      coeurs = Math.max(0, coeurs - 1);
+      var ko = coeurs === 0;
+      majCompteursCombat();
+      if (ko) {
+        koEnAttente = true;
+        texte += " Le gardien frappe, et Talos n'a plus de cœur ! Athéna le ramène au départ de la salle. Les stèles déjà résolues le restent.";
+        el.steleReponse.disabled = true;
+      } else {
+        texte += " Le gardien frappe : Talos perd un cœur (il lui en reste " + coeurs + "). Un nouveau sablier commence.";
+      }
+      enCombat = true;
+      el.steleValider.disabled = true;
+      Combat.degat({ coeurs: coeurs, ko: ko, tempsEcoule: true }, function () {
+        enCombat = false;
+        if (ko) { fermerStele(); return; }
+        if (steleOuverte !== i) return;
+        lancerChrono(stele, true);
+        el.steleValider.disabled = false;
+        el.steleReponse.focus();
+        el.steleReponse.select();
+      });
+    } else {
+      if (typeof Sons !== "undefined") Sons.jouer("gong");
+      texte += " Un nouveau sablier commence : relis l'indice et réessaie.";
+      lancerChrono(stele, true);
+    }
+    el.steleRetour.textContent = texte;
+    el.steleRetour.className = "retour faux";
+    if (stele.exercice.indice) el.steleIndice.hidden = false;
+  }
+
+  // Ferme l'arène (sans rien décider)
+  function cacherArene() {
+    if (combatPossible) Combat.fermer();
+    areneOuverte = false;
+    enCombat = false;
+  }
+
+  // Fermer la stèle. Si le combat n'est pas fini, c'est une fuite : le
+  // monstre garde ses blessures, et le sablier continue de couler.
   function fermerStele() {
+    var i = steleOuverte;
+    var s = i >= 0 && etat ? etat.steles[i] : null;
+    cacherArene();
     el.stele.hidden = true;
     steleOuverte = -1;
+    mancheEnAttente = false;
     el.steleReponse.blur();
     Commandes.relacherTout();
     enPause = false;
+    if (s && gardiensPossibles && !dejaResolue) Gardiens.apresCombat(etat, i, s.resolue ? "victoire" : (koEnAttente ? "ko" : "fuite"));
+    if (koEnAttente) {
+      // Talos était à terre : Athéna le ramène au départ, avec tous ses cœurs.
+      koEnAttente = false;
+      if (s) s.chrono = null;
+      Moteur.placerAuDepart(etat);
+      if (gardiensPossibles) Gardiens.reinitialiser(etat);
+      coeurs = coeursMax;
+      majCompteursCombat();
+      afficherAvis("Talos est à terre ! Athéna le ramène au départ de la salle, avec tous ses cœurs.");
+    }
+    // Une stèle d'Hermès vient d'être résolue : Talos s'élance
+    if (figureEnAttente >= 0) {
+      var k = figureEnAttente;
+      figureEnAttente = -1;
+      lancerFigure(k, false);
+    }
+  }
+
+  // La manche suivante : le nouvel exercice, et un sablier plein
+  function mancheSuivante() {
+    var stele = etat.steles[steleOuverte];
+    mancheEnAttente = false;
+    lancerChrono(stele, true);
+    remplirExercice(stele);
+    el.steleReponse.value = "";
+    el.steleReponse.disabled = false;
+    el.steleValider.disabled = false;
+    if (areneOuverte) Combat.annoncerManche();
+    afficherChrono();
+    el.steleReponse.focus();
   }
 
   el.steleForm.addEventListener("submit", function (e) {
     e.preventDefault();
-    if (steleOuverte < 0) return;
+    if (steleOuverte < 0 || enCombat || koEnAttente) return;
+    if (mancheEnAttente) { mancheSuivante(); return; }
     var stele = etat.steles[steleOuverte];
+    if (stele.resolue) return;
     var ex = stele.exercice;
     var r = Moteur.proposerReponse(etat, steleOuverte, el.steleReponse.value);
 
@@ -391,32 +826,140 @@
       return;
     }
 
+    // Une manche gagnée, mais le combat continue : Talos frappe ou esquive
+    if (r.juste && !r.finie) {
+      serie += 1;
+      stele.chrono = null;
+      mancheEnAttente = true;
+      var typeGagne = typeManche(r.manche, r.total);
+      el.steleRetour.textContent = typeGagne === "esquive" ? (stele.boss ? "Juste ! Talos esquive l'attaque du boss." : "Juste ! Talos esquive l'attaque du gardien.") :
+        (stele.boss ? "Juste ! Talos frappe le boss." : "Juste ! Talos frappe le gardien.");
+      el.steleRetour.className = "retour juste";
+      el.steleExplication.hidden = !ex.explication;
+      el.steleIndice.hidden = true;
+      el.steleReponse.disabled = true;
+      el.steleValider.textContent = (stele.boss ? "Question suivante" : "Manche suivante") + " (Entrée)";
+      el.steleChrono.hidden = true;
+      if (areneOuverte) {
+        Combat.chrono(null);
+        enCombat = true;
+        el.steleValider.disabled = true;
+        Combat.manche({ serie: serie }, function () {
+          enCombat = false;
+          if (steleOuverte < 0 || !mancheEnAttente) return;
+          el.steleValider.disabled = false;
+          el.steleValider.focus();
+        });
+      } else {
+        el.steleValider.disabled = false;
+        el.steleValider.focus();
+      }
+      return;
+    }
+
+    // Une stèle d'Hermès résolue : la figure acrobatique part quand on ferme
+    if (r.juste && stele.effet === "figure") {
+      var niv = NIVEAUX[numeroSalle];
+      var cleH = cleSceau(niv, stele);
+      var premiere = !progression.sceaux[cleH];
+      progression.sceaux[cleH] = true;
+      var xpH = premiere ? (REGLES_XP.figure || 0) : 0;
+      var rangH = gagnerExperience(xpH);
+      Sauvegarde.enregistrer(progression);
+      majCompteursCombat();
+      stele.chrono = null;
+      figureEnAttente = steleOuverte;
+      el.steleRetour.textContent = "Juste ! Les ailes d'Hermès s'éveillent." + (xpH ? " Talos gagne " + xpH + " XP." : "") +
+        (rangH.rangMonte ? " Nouveau rang : " + rangH.rang.titre + " !" : "") +
+        " Fermez la stèle : Talos s'élance (" + (stele.nomFigure || "salto").toLowerCase() + "). Ensuite, la touche E devant la stèle ou sur le cercle ailé refait la figure, à l'aller comme au retour.";
+      el.steleRetour.className = "retour juste";
+      el.steleExplication.hidden = !ex.explication;
+      el.steleIndice.hidden = true;
+      el.steleReponse.disabled = true;
+      el.steleValider.disabled = true;
+      afficherChrono();
+      if (typeof Sons !== "undefined") Sons.jouer("sceau");
+      el.steleFermer.focus();
+      return;
+    }
+
     if (r.juste) {
       var niveau = NIVEAUX[numeroSalle];
+      var cle = cleSceau(niveau, stele);
+      var nouveauSceau = !progression.sceaux[cle];
       var orAvant = compterSceaux(true).gagnes, chapAvant = sceauxOrDuChapitre(niveau.numeroChapitre);
-      progression.sceaux[cleSceau(niveau, stele.bonus, stele.numero)] = true;
+      progression.sceaux[cle] = true;
+      var gain = areneOuverte ? victoireCombat(stele, nouveauSceau) : null;
       Sauvegarde.enregistrer(progression);
       afficherSceaux();
       if (stele.bonus) annoncerRecompenses(orAvant, chapAvant, niveau);
-      var effet = stele.bonus ? "" : (ex.effet === "passerelle" ? " La passerelle se construit." :
+      stele.chrono = null;
+      var effet = stele.bonus ? "" : (stele.effet === "passerelle" ? " La passerelle se construit." :
                   (etat.porteOuverte ? " La porte s'ouvre." : ""));
-      el.steleRetour.textContent = (stele.bonus ? "Juste ! Vous gagnez un sceau d'or." : "Juste ! Vous gagnez un sceau de pierre.") + effet;
+      var debut = !areneOuverte ? "Juste !" : (stele.boss ? "Juste ! Le boss est changé en pierre, et sa stèle s'allume." :
+                  (stele.bonus ? "Juste ! Les oiseaux de bronze sont changés en pierre, et la stèle d'or s'allume." :
+                  "Juste ! Le gardien est changé en pierre, et sa stèle s'allume."));
+      var texteSceau = !nouveauSceau ? debut + " (Le sceau de cette stèle était déjà à vous.)"
+        : debut + (stele.bonus ? " Vous gagnez un sceau d'or." : " Vous gagnez un sceau de pierre.");
+      var texteXP = gain && gain.xp ? " Talos gagne " + gain.xp + " XP." : "";
+      var texteRang = gain && gain.rangMonte ? " Nouveau rang : " + gain.rang.titre + " !" : "";
+      el.steleRetour.textContent = texteSceau + texteXP + texteRang + effet;
       el.steleRetour.className = "retour juste";
+      if (gain) {
+        enCombat = true;
+        Combat.victoire({
+          coup: gain.coup, xpApres: progression.xp, coeurs: coeurs, coeursMax: coeursMax, soin: gain.soin,
+          serie: serie, sansFaute: gain.sansFaute, details: gain.details, nouveauSceau: nouveauSceau
+        }, function () { enCombat = false; });
+      }
       el.steleExplication.hidden = !ex.explication;
+      el.steleIndice.hidden = true;
       el.steleReponse.disabled = true;
       el.steleValider.disabled = true;
+      afficherChrono();
       el.steleFermer.focus();
       return;
     }
 
     var texte = "Ce n'est pas la bonne réponse.";
+    var iErreur = steleOuverte;
     if (ex.effet === "passerelle" && !stele.bonus) {
       texte += " Une passerelle de " + Math.round(r.valeur) + " case(s) ne relierait pas les deux bords : fermez la stèle pour la voir.";
+    }
+    if (areneOuverte) {
+      // Le gardien frappe : Talos perd un cœur
+      erreursStele += 1;
+      serie = 0;
+      coeurs = Math.max(0, coeurs - 1);
+      var ko = coeurs === 0;
+      majCompteursCombat();
+      if (ko) {
+        koEnAttente = true;
+        texte = "Ce n'est pas la bonne réponse, et Talos n'a plus de cœur ! Athéna le ramène au départ de la salle. " +
+          "Les stèles déjà résolues le restent.";
+        el.steleReponse.disabled = true;
+      } else {
+        texte += " Le gardien frappe : Talos perd un cœur (il lui en reste " + coeurs + ").";
+      }
+      enCombat = true;
+      el.steleValider.disabled = true;
+      Combat.degat({ coeurs: coeurs, ko: ko }, function () {
+        enCombat = false;
+        if (ko) { fermerStele(); return; }
+        if (steleOuverte !== iErreur) return;
+        lancerChrono(stele, true);    // un nouvel essai : un sablier plein
+        el.steleValider.disabled = false;
+        el.steleReponse.focus();
+        el.steleReponse.select();
+      });
+    } else {
+      lancerChrono(stele, true);
+      if (stele.effet === "figure") texte += " Ici, une erreur ne coûte pas de cœur : relis l'indice et réessaie.";
     }
     el.steleRetour.textContent = texte;
     el.steleRetour.className = "retour faux";
     if (ex.indice) el.steleIndice.hidden = false;
-    el.steleReponse.select();
+    if (!koEnAttente) el.steleReponse.select();
   });
 
   el.steleFermer.addEventListener("click", fermerStele);
@@ -674,6 +1217,10 @@
   }
 
   el.choix.addEventListener("change", function () {
+    cacherArene();
+    koEnAttente = false;
+    mancheEnAttente = false;
+    steleOuverte = -1;
     el.stele.hidden = true;
     el.fenetre.hidden = true;
     el.parures.hidden = true;
@@ -696,6 +1243,12 @@
       attenteConfirmation = null;
       boutonEffacer.textContent = "Effacer la progression";
       progression = Sauvegarde.effacer();
+      cacherArene();
+      koEnAttente = false;
+      mancheEnAttente = false;
+      parfaits = 0;
+      serie = 0;
+      steleOuverte = -1;
       el.stele.hidden = true;
       el.fenetre.hidden = true;
       el.parures.hidden = true;
@@ -712,6 +1265,7 @@
 
   window.addEventListener("resize", function () {
     if (etat && !etat.erreur) Dessin.ajuster(canvas, etat);
+    if (areneOuverte) Combat.redimensionner();
   });
 
   // ---------------------------------------------------------------
@@ -722,9 +1276,10 @@
   function afficherTitre() {
     var s = compterSceaux(false), b = compterSceaux(true);
     el.titreBouton.textContent = partieNeuve ? "Commencer" : "Continuer";
-    el.titreProgres.textContent = partieNeuve ? "Clavier : flèches ou Q, D pour courir, Espace pour sauter, E pour lire une stèle."
+    el.titreProgres.textContent = (partieNeuve ? "Clavier : flèches ou Q, D pour courir, Espace pour sauter, E pour lire une stèle."
       : "Reprise : « " + NIVEAUX[salleDeDepart()].nom + " » · sceaux de pierre " + s.gagnes + " / " + s.total +
-        " · sceaux d'or " + b.gagnes + " / " + b.total;
+        " · sceaux d'or " + b.gagnes + " / " + b.total) +
+      " Les monstres gardent les stèles : chaque combat se joue en trois manches, avec un sablier, et un boss attend à la fin de chaque chapitre.";
     el.ecranTitre.hidden = false;
     enPause = true;
     el.titreBouton.focus();

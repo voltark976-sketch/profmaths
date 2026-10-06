@@ -25,7 +25,13 @@
           <svg class="sceau" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8.5" fill="#e2b24c" stroke="#9b7226" stroke-width="1.5"/><text x="10" y="14" text-anchor="middle" font-size="10" font-weight="700" fill="#7a471c">Ω</text></svg>
           <span id="texte-bonus"></span>
         </span>
+        <span class="compteur compteur-vie" id="compteur-vie" title="Les cœurs de Talos"></span>
+        <span class="compteur compteur-niveau" id="compteur-niveau" title="Le rang de Talos et son expérience">
+          <span class="etoile-rang" aria-hidden="true">✦</span>
+          <span id="texte-niveau"></span>
+        </span>
         <button id="bouton-parures" title="Les ornements de Talos, gagnés avec les sceaux d'or">✦ Parures</button>
+        <button id="bouton-son" title="Couper ou remettre les bruitages des combats" aria-pressed="true">♪ Son</button>
         <select id="choix-salle" aria-label="Aller à la salle"></select>
         <button id="bouton-recommencer" title="Recommencer la salle (touche R)">↺ Recommencer</button>
       </div>
@@ -46,7 +52,7 @@
     <span class="aide">
       <kbd>←</kbd> <kbd>→</kbd> ou <kbd>Q</kbd> <kbd>D</kbd> courir ·
       <kbd>Espace</kbd>, <kbd>↑</kbd> ou <kbd>Z</kbd> sauter ·
-      <kbd>E</kbd> lire une stèle ·
+      <kbd>E</kbd> lire une stèle (ou refaire un salto) ·
       <kbd>R</kbd> recommencer ·
       si le clavier ne répond pas, cliquez une fois sur le jeu
     </span>
@@ -59,9 +65,19 @@
 
   <!-- La stèle : la fenêtre où l'on résout un exercice -->
   <div id="stele" class="voile" hidden>
+    <div class="combat">
+    <!-- L'arène : le combat contre le gardien de la stèle (dessiné par combat.js) -->
+    <canvas id="arene" aria-hidden="true"></canvas>
     <form class="parchemin" id="stele-formulaire" autocomplete="off">
       <p class="sur-titre" id="stele-sur-titre">Stèle</p>
       <p class="note-or" id="stele-note" hidden></p>
+      <!-- La manche du combat, et le sablier (le temps pour répondre) -->
+      <div class="ligne-manche" id="stele-manche-ligne" hidden>
+        <span id="stele-manche"></span>
+        <span id="stele-chrono" class="chrono" hidden></span>
+      </div>
+      <!-- L'énoncé commun aux questions d'un boss -->
+      <p id="stele-contexte" class="contexte" hidden></p>
       <h2 id="stele-titre"></h2>
       <p id="stele-enonce"></p>
       <div class="ligne-reponse">
@@ -70,13 +86,15 @@
         <span id="stele-unite"></span>
         <button type="submit" id="stele-valider">Graver</button>
       </div>
-      <p id="stele-retour" class="retour"></p>
+      <p id="stele-retour" class="retour" aria-live="polite"></p>
       <p id="stele-indice" class="indice" hidden></p>
       <p id="stele-explication" class="explication" hidden></p>
       <div class="ligne-boutons">
+        <p class="regle-combat" id="stele-regle" hidden>En 3 manches : l'attaque, l'esquive, puis le coup final. Erreur ou sablier vide : Talos perd un cœur.</p>
         <button type="button" id="stele-fermer" class="discret">Fermer (Échap)</button>
       </div>
     </form>
+    </div>
   </div>
 
   <!-- Fenêtre de message (salle réussie, chapitre, erreurs...) -->
@@ -120,6 +138,7 @@
   <!-- L'ordre compte : les niveaux d'abord, le chef d'orchestre (jeu.js) en dernier. -->
   <script src="niveaux/niveaux.js"></script>
   <script src="niveaux/parures.js"></script>
+  <script src="niveaux/rangs.js"></script>
   <script src="js/sauvegarde.js"></script>
   <script src="js/moteur.js"></script>
   <script src="js/decor.js"></script>
@@ -128,6 +147,11 @@
   <script src="js/ambiances3.js"></script>
   <script src="js/dessin.js"></script>
   <script src="js/commandes.js"></script>
+  <script src="js/sons.js"></script>
+  <script src="js/heros.js"></script>
+  <script src="js/monstres.js"></script>
+  <script src="js/gardiens.js"></script>
+  <script src="js/combat.js"></script>
   <script src="js/jeu.js"></script>
 </body>
 </html>
