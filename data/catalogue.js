@@ -98,6 +98,13 @@ window.CATALOGUE = {
           titre: "Droites du plan",
           statut: "disponible",
           drive: ""
+        },
+        {
+          id: "seconde-fonctions-reference",
+          numero: 13,
+          titre: "Fonctions de référence : inverse, racine carrée, cube",
+          statut: "disponible",
+          drive: ""
         }
       ]
     },

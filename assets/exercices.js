@@ -4533,6 +4533,76 @@
   };
 
 
+  /* ---------- Seconde, chapitre 13 : fonctions inverse, racine carrée, cube (préfixe fr-) ---------- */
+  GEN["fr-comparer"] = refRestreint("var-ref-comparer", ["inverse", "inverse", "racine", "cube"]);
+  GEN["fr-equation"] = refRestreint("var-ref-equation", null, [2, 3, 4, 4]);
+
+  GEN["fr-position"] = function () {
+    const petit = Math.random() < 0.5;
+    const x = petit ? pick([0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]) : pick([1.1, 1.2, 1.5, 2, 2.5, 3]);
+    const xt = nb(x);
+    const bonne = petit ? `${xt}^3 < ${xt}^2 < ${xt}` : `${xt} < ${xt}^2 < ${xt}^3`;
+    const faux = petit ? [`${xt} < ${xt}^2 < ${xt}^3`, `${xt}^2 < ${xt}^3 < ${xt}`, `${xt}^2 < ${xt} < ${xt}^3`] : [`${xt}^3 < ${xt}^2 < ${xt}`, `${xt}^2 < ${xt} < ${xt}^3`, `${xt} < ${xt}^3 < ${xt}^2`];
+    const ch = melangeChoix(`$${bonne}$`, faux.map((f) => `$${f}$`));
+    return {
+      enonce: `Sans calculatrice, range dans l'ordre croissant $${xt}$, $${xt}^2$ et $${xt}^3$.`,
+      mode: "choix", choix: ch.choix, attendu: ch.attendu,
+      aides: ["Tout dépend de la position de $x$ par rapport à $1$.", "Pour $0 < x < 1$, multiplier par $x$ fait **diminuer** un nombre positif. Pour $x > 1$, cela le fait augmenter.", `Ici $x = ${xt}$ est ${petit ? "entre $0$ et $1$" : "supérieur à $1$"}.`],
+      solution: petit ? `$0 < ${xt} < 1$ : chaque multiplication par $${xt}$ fait diminuer. Donc $${bonne}$ (en effet $${nb(+(x ** 3).toFixed(4))} < ${nb(+(x ** 2).toFixed(4))} < ${xt}$).` : `$${xt} > 1$ : chaque multiplication par $${xt}$ fait augmenter. Donc $${bonne}$ (en effet $${xt} < ${nb(+(x ** 2).toFixed(4))} < ${nb(+(x ** 3).toFixed(4))}$).`
+    };
+  };
+
+  GEN["fr-inequation"] = function () {
+    const t = rand(0, 2);
+    if (t === 0) {
+      // 1/x > k ou < k sur ]0 ; +∞[
+      const k = pick([2, 4, 5, 10, 0.5]), sup = Math.random() < 0.5, b = nb(1 / k);
+      const bonne = sup ? `]0\\,;${b}[` : `]${b}\\,;+\\infty[`;
+      const ch = melangeChoix(`$${bonne}$`, [sup ? `]${b}\\,;+\\infty[` : `]0\\,;${b}[`, sup ? `]0\\,;${nb(k)}[` : `]${nb(k)}\\,;+\\infty[`, `]-\\infty\\,;${b}[`].map((f) => `$${f}$`));
+      return {
+        enonce: `Résous sur $]0\\,;+\\infty[$ l'inéquation $\\dfrac{1}{x} ${sup ? ">" : "<"} ${nb(k)}$.`,
+        mode: "choix", choix: ch.choix, attendu: ch.attendu,
+        aides: [`Résous d'abord $\\dfrac{1}{x} = ${nb(k)}$ : $x = \\dfrac{1}{${nb(k)}} = ${b}$.`, "La fonction inverse est **décroissante** sur $]0\\,;+\\infty[$ : l'ordre s'inverse.", `$\\dfrac{1}{x} ${sup ? ">" : "<"} \\dfrac{1}{${b}} \\iff x ${sup ? "<" : ">"} ${b}$ (pour $x > 0$).`],
+        solution: `Sur $]0\\,;+\\infty[$, la fonction inverse est décroissante : $\\dfrac{1}{x} ${sup ? ">" : "<"} ${nb(k)} \\iff x ${sup ? "<" : ">"} ${b}$. Donc $S = ${bonne}$.`
+      };
+    }
+    if (t === 1) {
+      // √x < k ou > k
+      const k = rand(2, 9), sup = Math.random() < 0.5, bonne = sup ? `]${k * k}\\,;+\\infty[` : `[0\\,;${k * k}[`;
+      const ch = melangeChoix(`$${bonne}$`, [sup ? `]${k}\\,;+\\infty[` : `[0\\,;${k}[`, sup ? `[0\\,;${k * k}[` : `]${k * k}\\,;+\\infty[`, sup ? `]-\\infty\\,;${k * k}[` : `]-\\infty\\,;${k * k}[`].map((f) => `$${f}$`));
+      return {
+        enonce: `Résous l'inéquation $\\sqrt{x} ${sup ? ">" : "<"} ${k}$.`,
+        mode: "choix", choix: ch.choix, attendu: ch.attendu,
+        aides: ["$\\sqrt{x}$ n'existe que pour $x \\geqslant 0$.", `$\\sqrt{x} = ${k} \\iff x = ${k * k}$.`, "La fonction racine carrée est **croissante** : l'ordre est conservé."],
+        solution: `La racine carrée est croissante sur $[0\\,;+\\infty[$ : $\\sqrt{x} ${sup ? ">" : "<"} ${k} \\iff ${sup ? `x > ${k * k}` : `0 \\leqslant x < ${k * k}`}$. Donc $S = ${bonne}$.`
+      };
+    }
+    // x³ < k
+    const c = randNZ(-4, 4), k = c ** 3, sup = Math.random() < 0.5, bonne = sup ? `]${c}\\,;+\\infty[` : `]-\\infty\\,;${c}[`;
+    const ch = melangeChoix(`$${bonne}$`, [sup ? `]-\\infty\\,;${c}[` : `]${c}\\,;+\\infty[`, sup ? `]${k}\\,;+\\infty[` : `]-\\infty\\,;${k}[`, `]${-Math.abs(c)}\\,;${Math.abs(c)}[`].map((f) => `$${f}$`));
+    return {
+      enonce: `Résous dans $\\mathbb{R}$ l'inéquation $x^3 ${sup ? ">" : "<"} ${k}$.`,
+      mode: "choix", choix: ch.choix, attendu: ch.attendu,
+      aides: [`Cherche le nombre dont le cube vaut $${k}$ : c'est $${c}$.`, "La fonction cube est **croissante** sur $\\mathbb{R}$ : l'ordre est conservé.", `$x^3 ${sup ? ">" : "<"} ${par(c)}^3 \\iff x ${sup ? ">" : "<"} ${c}$.`],
+      solution: `$${par(c)}^3 = ${k}$ et la fonction cube est croissante sur $\\mathbb{R}$, donc $x^3 ${sup ? ">" : "<"} ${k} \\iff x ${sup ? ">" : "<"} ${c}$. $S = ${bonne}$.`
+    };
+  };
+
+  GEN["fr-python"] = function () {
+    const k = pick([2, 3, 5, 6, 7, 10, 11]), n = rand(1, 2), pas = 10 ** -n;
+    // première valeur x = 1, 1 + pas, … telle que x² ≥ k (calculée en entiers pour éviter les arrondis)
+    let i = Math.round(10 ** n); while (i * i < k * 10 ** (2 * n)) i++;
+    const r = i / 10 ** n, deb = Math.floor(Math.sqrt(k));
+    return {
+      enonce: "On considère la fonction Python :\n\n```python\ndef encadrement(k, pas):\n    x = " + deb + "\n    while x * x < k:\n        x = x + pas\n    return x - pas, x\n```\n\n" + `Que renvoie $\\texttt{encadrement(${k}, ${n === 1 ? "0.1" : "0.01"})}$ ? Donne la **seconde** valeur (arrondie à $10^{-${n}}$).`,
+      mode: "nombre", prefixe: "Réponse :", attendu: r, tolerance: pas / 2,
+      erreurs: [{ valeur: r - pas, message: "Ça, c'est la première valeur (la borne inférieure)." }],
+      aides: [`La boucle augmente $x$ de $${nb(pas)}$ tant que $x^2 < ${k}$ : elle s'arrête dès que $x^2 \\geqslant ${k}$.`, `On cherche donc le premier nombre de la forme $${deb} + ${nb(pas)} \\times \\ldots$ dont le carré dépasse $${k}$.`, `$\\sqrt{${k}} \\approx ${nb(+Math.sqrt(k).toFixed(4))}$.`],
+      solution: `$${nb(+(r - pas).toFixed(n))}^2 < ${k} \\leqslant ${nb(r)}^2$ : la fonction renvoie $(${nb(+(r - pas).toFixed(n))}\\,;${nb(r)})$, un encadrement de $\\sqrt{${k}}$ d'amplitude $10^{-${n}}$ : $${nb(+(r - pas).toFixed(n))} < \\sqrt{${k}} \\leqslant ${nb(r)}$.\n\nEn pratique, Python peut afficher des valeurs comme $\\texttt{1.4000000000000001}$ : c'est l'arrondi de la machine.`
+    };
+  };
+
+
   /* Séries « flash » d'un thème : mélange de ses générateurs */
   const THEMES = {
     "am-flash-cn": ["am-comparer", "am-fractions", "am-puissances", "am-ecritures", "am-ordre-grandeur", "am-coherence", "auto-conversions"],
@@ -4549,7 +4619,7 @@
 
 
   /* Une « erreur connue » ne doit jamais coïncider avec la bonne réponse (à la tolérance près) */
-  Object.keys(GEN).filter((k) => /^(ld|am|cd|ar|cl|fa|ve|st|vx|tc|co|dr)-/.test(k)).forEach((k) => {
+  Object.keys(GEN).filter((k) => /^(ld|am|cd|ar|cl|fa|ve|st|vx|tc|co|dr|fr)-/.test(k)).forEach((k) => {
     const g = GEN[k];
     GEN[k] = (i) => { const q = g(i); if (q.erreurs) q.erreurs = q.erreurs.filter((e) => Math.abs(e.valeur - q.attendu) >= (q.tolerance || 1e-9)); return q; };
   });
