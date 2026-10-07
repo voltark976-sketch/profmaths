@@ -84,6 +84,13 @@ window.CATALOGUE = {
           titre: "Tableaux croisés, fréquences conditionnelles, probabilités 1",
           statut: "disponible",
           drive: ""
+        },
+        {
+          id: "seconde-colinearite",
+          numero: 11,
+          titre: "Vecteurs 2 : colinéarité et déterminant",
+          statut: "disponible",
+          drive: ""
         }
       ]
     },

@@ -4313,6 +4313,123 @@
   };
 
 
+  /* ---------- Seconde, chapitre 11 : vecteurs 2, colinéarité et déterminant (préfixe co-) ---------- */
+  const col = (x, y) => `\\begin{pmatrix} ${nb(x)} \\\\ ${nb(y)} \\end{pmatrix}`;
+  const det = (u, v) => u[0] * v[1] - u[1] * v[0];
+  const detTex = (u, v) => `${par(u[0])} \\times ${par(v[1])} - ${par(u[1])} \\times ${par(v[0])}`;
+  // Deux vecteurs colinéaires (ou non) à coordonnées entières
+  function paireVecteurs(colin) {
+    let u, v;
+    do {
+      u = [randNZ(-6, 6), rand(-6, 6)];
+      if (colin) { const k = pick([-3, -2, -0.5, 0.5, 2, 3, 1.5]); v = [u[0] * k, u[1] * k]; if (!Number.isInteger(v[0]) || !Number.isInteger(v[1])) v = [u[0] * 2, u[1] * 2]; }
+      else v = [rand(-6, 6), randNZ(-6, 6)];
+    } while (colin === (det(u, v) !== 0));
+    return [u, v];
+  }
+
+  GEN["co-produit"] = function () {
+    const u = [randNZ(-5, 5), randNZ(-5, 5)], v = [randNZ(-5, 5), randNZ(-5, 5)], a = randNZ(-3, 3), b = randNZ(-3, 3), q = rand(0, 1);
+    const w = [a * u[0] + b * v[0], a * u[1] + b * v[1]];
+    const expr = `${a === 1 ? "" : a === -1 ? "-" : a}\\vec{u} ${b < 0 ? "-" : "+"} ${Math.abs(b) === 1 ? "" : Math.abs(b)}\\vec{v}`;
+    return {
+      enonce: `$\\vec{u}${col(...u)}$ et $\\vec{v}${col(...v)}$. Calcule ${q ? "l'ordonnée" : "l'abscisse"} du vecteur $\\vec{w} = ${expr}$.`,
+      mode: "nombre", prefixe: `${q ? "y" : "x"} =`, attendu: w[q],
+      aides: ["$k\\vec{u}$ a pour coordonnées $(kx\\,;ky)$ : on multiplie chaque coordonnée par $k$.", `${q ? "Ordonnées" : "Abscisses"} : $${a} \\times ${par(u[q])}$ et $${b} \\times ${par(v[q])}$.`, "Additionne les deux résultats."],
+      solution: `${q ? "Ordonnée" : "Abscisse"} de $\\vec{w}$ : $${a} \\times ${par(u[q])} + ${par(b)} \\times ${par(v[q])} = ${a * u[q]} + ${par(b * v[q])} = ${w[q]}$.\n\n$\\vec{w}${col(...w)}$.`
+    };
+  };
+
+  GEN["co-determinant"] = function () {
+    const u = [rand(-7, 7), rand(-7, 7)], v = [rand(-7, 7), rand(-7, 7)], d = det(u, v);
+    return {
+      enonce: `Calcule le déterminant $\\det(\\vec{u}, \\vec{v})$ avec $\\vec{u}${col(...u)}$ et $\\vec{v}${col(...v)}$.`,
+      mode: "nombre", prefixe: "det =", attendu: d,
+      erreurs: [{ valeur: -d, message: "Respecte l'ordre : $xy' - yx'$ (le produit « en diagonale descendante » en premier)." }, { valeur: u[0] * v[1] + u[1] * v[0], message: "C'est une **différence** de deux produits, pas une somme." }],
+      aides: ["$\\det(\\vec{u}, \\vec{v}) = \\begin{vmatrix} x & x' \\\\ y & y' \\end{vmatrix} = xy' - yx'$.", `$x y' = ${par(u[0])} \\times ${par(v[1])} = ${u[0] * v[1]}$.`, `$y x' = ${par(u[1])} \\times ${par(v[0])} = ${u[1] * v[0]}$.`],
+      solution: `$\\det(\\vec{u}, \\vec{v}) = ${detTex(u, v)} = ${u[0] * v[1]} - ${par(u[1] * v[0])} = ${d}$.` + (d === 0 ? " Le déterminant est nul : les vecteurs sont colinéaires." : "")
+    };
+  };
+
+  GEN["co-colineaires"] = function () {
+    const colin = Math.random() < 0.5, [u, v] = paireVecteurs(colin), d = det(u, v);
+    return {
+      enonce: `Les vecteurs $\\vec{u}${col(...u)}$ et $\\vec{v}${col(...v)}$ sont-ils colinéaires ?`,
+      mode: "choix", choix: ["Oui", "Non"], attendu: colin ? 0 : 1,
+      aides: ["Deux vecteurs sont colinéaires si et seulement si leur déterminant est nul.", "$\\det(\\vec{u}, \\vec{v}) = xy' - yx'$.", `Calcule $${detTex(u, v)}$.`],
+      solution: `$\\det(\\vec{u}, \\vec{v}) = ${detTex(u, v)} = ${d}$.\n\n` + (colin ? `Le déterminant est nul : $\\vec{u}$ et $\\vec{v}$ sont **colinéaires**${u[0] ? ` ($\\vec{v} = ${nb(v[0] / u[0])}\\vec{u}$)` : ""}.` : "Le déterminant n'est pas nul : les vecteurs ne sont **pas** colinéaires.")
+    };
+  };
+
+  GEN["co-parametre"] = function () {
+    let u, v, m;
+    do { u = [randNZ(-6, 6), randNZ(-6, 6)]; v = [randNZ(-6, 6), 0]; m = (u[1] * v[0]) / u[0]; } while (!Number.isInteger(m) || m === 0);
+    // v = (v0 ; m) colinéaire à u
+    return {
+      enonce: `Trouve le réel $m$ pour que $\\vec{u}${col(...u)}$ et $\\vec{v}\\begin{pmatrix} ${v[0]} \\\\ m \\end{pmatrix}$ soient colinéaires.`,
+      mode: "nombre", prefixe: "m =", attendu: m,
+      aides: ["Colinéaires $\\iff \\det(\\vec{u}, \\vec{v}) = 0$.", `$\\det(\\vec{u}, \\vec{v}) = ${par(u[0])} \\times m - ${par(u[1])} \\times ${par(v[0])}$.`, `Résous $${u[0]}m - ${par(u[1] * v[0])} = 0$.`],
+      solution: `$${par(u[0])}m - ${par(u[1])} \\times ${par(v[0])} = 0 \\iff ${u[0]}m = ${u[1] * v[0]} \\iff m = ${m}$.\n\nVérification : $\\vec{v} = ${nb(v[0] / u[0])}\\vec{u}$.`
+    };
+  };
+
+  GEN["co-alignes"] = function () {
+    const align = Math.random() < 0.5;
+    let A, B, C;
+    do {
+      A = [rand(-6, 6), rand(-6, 6)]; const d = [randNZ(-4, 4), rand(-4, 4)];
+      B = [A[0] + d[0], A[1] + d[1]];
+      const k = pick([-2, -1, 2, 3]);
+      C = align ? [A[0] + k * d[0], A[1] + k * d[1]] : [A[0] + k * d[0] + randNZ(-2, 2), A[1] + k * d[1]];
+    } while (Math.max(...C.map(Math.abs)) > 15 || (det([B[0] - A[0], B[1] - A[1]], [C[0] - A[0], C[1] - A[1]]) === 0) !== align);
+    const AB = [B[0] - A[0], B[1] - A[1]], AC = [C[0] - A[0], C[1] - A[1]], d = det(AB, AC);
+    const para = Math.random() < 0.4;
+    if (para) {
+      const D = [C[0] + (align ? 0 : 1), C[1] + 3], CD = [D[0] - C[0], D[1] - C[1]];
+      // (AB) et (CD) parallèles ? On choisit D pour que la réponse varie
+      const Dp = align ? [C[0] + 2 * AB[0], C[1] + 2 * AB[1]] : D, CDp = [Dp[0] - C[0], Dp[1] - C[1]], dd = det(AB, CDp);
+      return {
+        enonce: `$A${pt(...A)}$, $B${pt(...B)}$, $C${pt(...C)}$ et $D${pt(...Dp)}$. Les droites $(AB)$ et $(CD)$ sont-elles parallèles ?`,
+        mode: "choix", choix: ["Oui", "Non"], attendu: dd === 0 ? 0 : 1,
+        aides: ["$(AB) \\parallel (CD)$ si et seulement si $\\overrightarrow{AB}$ et $\\overrightarrow{CD}$ sont colinéaires.", `$\\overrightarrow{AB}${col(...AB)}$ et $\\overrightarrow{CD}${col(...CDp)}$.`, "Calcule leur déterminant."],
+        solution: `$\\det(\\overrightarrow{AB}, \\overrightarrow{CD}) = ${detTex(AB, CDp)} = ${dd}$. ` + (dd === 0 ? "Il est nul : les vecteurs sont colinéaires, les droites sont **parallèles**." : "Il n'est pas nul : les droites ne sont **pas** parallèles.")
+      };
+    }
+    return {
+      enonce: `Les points $A${pt(...A)}$, $B${pt(...B)}$ et $C${pt(...C)}$ sont-ils alignés ?`,
+      mode: "choix", choix: ["Oui", "Non"], attendu: align ? 0 : 1,
+      aides: ["$A$, $B$, $C$ sont alignés si et seulement si $\\overrightarrow{AB}$ et $\\overrightarrow{AC}$ sont colinéaires.", `$\\overrightarrow{AB}${col(...AB)}$ et $\\overrightarrow{AC}${col(...AC)}$.`, "Calcule $\\det(\\overrightarrow{AB}, \\overrightarrow{AC})$."],
+      solution: `$\\det(\\overrightarrow{AB}, \\overrightarrow{AC}) = ${detTex(AB, AC)} = ${d}$. ` + (d === 0 ? "Il est nul : les vecteurs sont colinéaires, les points sont **alignés**." : "Il n'est pas nul : les points ne sont **pas** alignés.")
+    };
+  };
+
+  GEN["co-combinaison"] = function () {
+    let u, v;
+    do { u = [randNZ(-4, 4), rand(-4, 4)]; v = [rand(-4, 4), randNZ(-4, 4)]; } while (det(u, v) === 0);
+    const a = randNZ(-3, 3), b = randNZ(-3, 3), w = [a * u[0] + b * v[0], a * u[1] + b * v[1]], q = Math.random() < 0.5;
+    return {
+      enonce: `$\\vec{u}${col(...u)}$, $\\vec{v}${col(...v)}$ et $\\vec{w}${col(...w)}$. On cherche les réels $a$ et $b$ tels que $\\vec{w} = a\\vec{u} + b\\vec{v}$. Que vaut $${q ? "a" : "b"}$ ?`,
+      mode: "nombre", prefixe: `${q ? "a" : "b"} =`, attendu: q ? a : b,
+      erreurs: [{ valeur: q ? b : a, message: `Ça, c'est $${q ? "b" : "a"}$.` }],
+      aides: ["Écris l'égalité coordonnée par coordonnée : deux équations, deux inconnues $a$ et $b$.", `$${u[0]}a ${v[0] < 0 ? "-" : "+"} ${Math.abs(v[0])}b = ${w[0]}$ et $${u[1]}a ${v[1] < 0 ? "-" : "+"} ${Math.abs(v[1])}b = ${w[1]}$.`, `Teste des petites valeurs entières : par exemple $a = ${a}$.`],
+      solution: `$${a}\\vec{u} + ${par(b)}\\vec{v}${col(a * u[0] + b * v[0], a * u[1] + b * v[1])} = \\vec{w}$. Donc $a = ${a}$ et $b = ${b}$.\n\nComme $\\vec{u}$ et $\\vec{v}$ ne sont pas colinéaires ($\\det = ${det(u, v)} \\neq 0$), cette écriture est **unique**.`
+    };
+  };
+
+  GEN["co-python"] = function () {
+    const align = Math.random() < 0.5;
+    let A, B, C;
+    do { A = [rand(-5, 5), rand(-5, 5)]; const d = [randNZ(-3, 3), rand(-3, 3)]; B = [A[0] + d[0], A[1] + d[1]]; C = align ? [A[0] - d[0], A[1] - d[1]] : [B[0] + randNZ(-3, 3), B[1] + rand(-3, 3)]; }
+    while ((det([B[0] - A[0], B[1] - A[1]], [C[0] - A[0], C[1] - A[1]]) === 0) !== align);
+    return {
+      enonce: "On considère la fonction Python :\n\n```python\ndef alignes(xA, yA, xB, yB, xC, yC):\n    x1, y1 = xB - xA, yB - yA\n    x2, y2 = xC - xA, yC - yA\n    return x1 * y2 - y1 * x2 == 0\n```\n\n" + `Que renvoie $\\texttt{alignes(${A.join(", ")}, ${B.join(", ")}, ${C.join(", ")})}$ ?`,
+      mode: "choix", choix: ["True", "False"], attendu: align ? 0 : 1,
+      aides: ["$(x_1\\,;y_1)$ sont les coordonnées de $\\overrightarrow{AB}$, $(x_2\\,;y_2)$ celles de $\\overrightarrow{AC}$.", "La fonction teste si le déterminant $x_1y_2 - y_1x_2$ est nul.", "Calcule ce déterminant."],
+      solution: `$\\overrightarrow{AB}${col(B[0] - A[0], B[1] - A[1])}$, $\\overrightarrow{AC}${col(C[0] - A[0], C[1] - A[1])}$, déterminant $= ${det([B[0] - A[0], B[1] - A[1]], [C[0] - A[0], C[1] - A[1]])}$. La fonction renvoie **${align ? "True" : "False"}** : les points ${align ? "sont" : "ne sont pas"} alignés.`
+    };
+  };
+
+
   /* Séries « flash » d'un thème : mélange de ses générateurs */
   const THEMES = {
     "am-flash-cn": ["am-comparer", "am-fractions", "am-puissances", "am-ecritures", "am-ordre-grandeur", "am-coherence", "auto-conversions"],
@@ -4329,7 +4446,7 @@
 
 
   /* Une « erreur connue » ne doit jamais coïncider avec la bonne réponse (à la tolérance près) */
-  Object.keys(GEN).filter((k) => /^(ld|am|cd|ar|cl|fa|ve|st|vx|tc)-/.test(k)).forEach((k) => {
+  Object.keys(GEN).filter((k) => /^(ld|am|cd|ar|cl|fa|ve|st|vx|tc|co)-/.test(k)).forEach((k) => {
     const g = GEN[k];
     GEN[k] = (i) => { const q = g(i); if (q.erreurs) q.erreurs = q.erreurs.filter((e) => Math.abs(e.valeur - q.attendu) >= (q.tolerance || 1e-9)); return q; };
   });
