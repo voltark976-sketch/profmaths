@@ -10,7 +10,7 @@ def font(m):
 katex_css = re.sub(r"src:url\(fonts/(KaTeX_[\w-]+)\.woff2\)[^;}]*", font, katex_css)
 index = lire("index.html")
 corps = index.split("<!--CORPS-->")[1].split("<!--/CORPS-->")[0]
-scripts = re.findall(r'<script src="((?:data|assets/(?!katex))[^"]+)"></script>', index)
+scripts = re.findall(r'<script src="((?:data|assets/(?!katex))[^"?]+)(?:?[^"]*)?"></script>', index)
 js = "\n".join(f"<script>\n{lire(s)}\n</script>" for s in scripts)
 out = f"""<title>ProfMaths</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bricolage+Grotesque:opsz,wght@12..96,800&display=swap">

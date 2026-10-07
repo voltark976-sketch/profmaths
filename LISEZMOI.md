@@ -31,6 +31,9 @@ Les niveaux du catalogue sont Seconde, Automatismes, Première spécialité, Ter
 2. Ajouter une ligne `<script src="data/...">` dans `index.html`.
 3. Passer le chapitre en `statut: "disponible"` dans `data/catalogue.js`.
 
+## Version des fichiers (à chaque mise en ligne)
+Les liens de `index.html` finissent par `?v=...` (par exemple `?v=20261007b`). À chaque mise en ligne, remplacer cette valeur partout dans `index.html` par une nouvelle (la date, plus une lettre). Sinon, les navigateurs des élèves peuvent garder l'ancienne version des fichiers jusqu'à 10 minutes, même après avoir rechargé la page.
+
 ## Le jeu « Les Salles »
 Le jeu est dans le dossier `les-salles/` (page `les-salles/index.html`). La page **Jeu** du site (lien « Jeu » en haut, adresse `#jeu`) l'affiche dans un cadre ; le code de cette page est la fonction `pageJeu` de `assets/app.js`. La sauvegarde du jeu reste dans le navigateur de chaque élève.
 
