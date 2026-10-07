@@ -9,6 +9,9 @@
     node outils/comptes/creer-comptes.js --prof prenom.nom --prenom Prénom --nom NOM
         Crée (ou réinitialise) un compte professeur, qui voit la page « Suivi des élèves ».
         Son mot de passe est écrit dans Documents\Gestion site lycée\compte-professeur-<identifiant>.txt.
+        --groupes "Terminale SPE,204" : classes qu'il suit (sans cette option : toutes les classes).
+    node outils/comptes/creer-comptes.js --rattacher prenom.nom --groupes "204,207" [--defaut]
+        Change les classes suivies par un professeur. --defaut : il reçoit aussi les nouvelles classes créées.
 
   Option --classe "Première spécialité" : classe affichée sur le site et dans le classement
     (par défaut, devinée d'après le nom de la feuille : « 2xx » Seconde, « 1SPE » Première spécialité,
@@ -169,20 +172,41 @@ const listes = args.includes("--listes") && args.splice(args.indexOf("--listes")
 const resync = args.includes("--resynchroniser") && args.splice(args.indexOf("--resynchroniser"), 1);
 const feuilles = (opt("--feuilles") || "").split(",").map((x) => x.trim()).filter(Boolean);
 const classe = opt("--classe"), reinit = opt("--nouveau-mdp"), prof = opt("--prof");
-const sauver = () => { fs.writeFileSync(REGISTRE, JSON.stringify(reg, null, 1)); ecrireListes(reg); };
+const rattacher = opt("--rattacher"), parDefaut = args.includes("--defaut") && args.splice(args.indexOf("--defaut"), 1);
+const optGroupes = opt("--groupes"), groupesProf = optGroupes ? optGroupes.split(",").map((x) => x.trim()).filter(Boolean) : null;
+// Professeurs : mot de passe gardé dans le registre (pour pouvoir changer leurs classes sans le changer)
+let profs = reg.profs || (reg.prof ? [reg.prof] : []);
+delete reg.prof;
+profs.forEach((p) => {
+  const f = path.join(DOSSIER, `compte-professeur-${p.identifiant}.txt`);
+  if (!p.mdp && fs.existsSync(f)) p.mdp = (fs.readFileSync(f, "utf8").match(/Mot de passe : (\S+)/) || [])[1];
+});
+const sauver = () => { reg.profs = profs; fs.writeFileSync(REGISTRE, JSON.stringify(reg, null, 1)); ecrireListes(reg); };
+// Un professeur sans liste de classes suit toutes les classes
+const envoyerProf = (p) => importer([compteImport(p, p.mdp, Object.assign({ prof: true, prenom: p.prenom || "Professeur", nom: p.nom || "" }, p.groupes ? { groupes: p.groupes } : {}))]);
 
 if (prof) {
-  // Plusieurs comptes professeurs possibles (ex. --prof louise.macron --prenom Louise --nom MACRON)
+  // Plusieurs comptes professeurs possibles (ex. --prof louise.macron --prenom Louise --nom MACRON --groupes "Terminale SPE")
   const mdp = motDePasse(5), prenomProf = opt("--prenom") || "Professeur", nomProf = (opt("--nom") || "").toUpperCase();
   const idProf = prof.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9._-]/g, "") || "prof";
-  const p = { identifiant: idProf, uid: "prof-" + norm(prof), prenom: prenomProf, nom: nomProf };
-  reg.profs = (reg.profs || (reg.prof ? [reg.prof] : [])).filter((x) => x.uid !== p.uid).concat(p);
-  delete reg.prof;
-  if (!importer([compteImport(p, mdp, { prof: true, prenom: prenomProf, nom: nomProf })])) { console.error("Échec de l'envoi à Firebase."); process.exit(1); }
+  const p = { identifiant: idProf, uid: "prof-" + norm(prof), prenom: prenomProf, nom: nomProf, mdp };
+  if (groupesProf) p.groupes = groupesProf;
+  if (parDefaut) p.defaut = true;
+  profs = profs.filter((x) => x.uid !== p.uid).concat(p);
+  if (!envoyerProf(p)) { console.error("Échec de l'envoi à Firebase."); process.exit(1); }
   sauver();
   const fichier = path.join(DOSSIER, `compte-professeur-${idProf}.txt`);
   fs.writeFileSync(fichier, `Identifiant : ${idProf}\r\nMot de passe : ${mdp}\r\n`);
   console.log(`\nCompte professeur ${idProf} : mot de passe dans ${fichier}`);
+} else if (rattacher) {
+  // Classes suivies par un professeur (sans changer son mot de passe)
+  const p = profs.find((x) => x.identifiant === rattacher);
+  if (!p) { console.error("Professeur inconnu : " + rattacher); process.exit(1); }
+  if (groupesProf) p.groupes = groupesProf;
+  if (parDefaut) { profs.forEach((x) => delete x.defaut); p.defaut = true; }
+  if (!envoyerProf(p)) { console.error("Échec de l'envoi à Firebase."); process.exit(1); }
+  sauver();
+  console.log(`${p.identifiant} suit : ${(p.groupes || ["toutes les classes"]).join(", ")}${p.defaut ? " (et les nouvelles classes)" : ""}`);
 } else if (reinit) {
   const c = reg.eleves.find((x) => x.identifiant === reinit);
   if (!c) { console.error("Identifiant inconnu : " + reinit); process.exit(1); }
@@ -228,6 +252,14 @@ if (prof) {
     (importer(lot.map((c) => compteImport(c, c.mdp, claimsEleve(c)))) ? crees : rates).push(...lot);
   }
   reg.eleves.push(...crees);
+  // Nouvelles classes : rattachées au professeur par défaut (--defaut)
+  const suivies = new Set(profs.flatMap((p) => p.groupes || []));
+  const neuves = [...new Set(crees.map((c) => c.groupe))].filter((g) => !suivies.has(g));
+  profs.filter((p) => p.defaut && p.groupes).forEach((p) => {
+    if (!neuves.length) return;
+    p.groupes.push(...neuves);
+    console.log(envoyerProf(p) ? `${neuves.join(", ")} rattaché(s) à ${p.identifiant}` : `Échec du rattachement à ${p.identifiant} : utiliser --rattacher`);
+  });
   sauver();
   console.log(`\n${crees.length} comptes créés. Identifiants dans ${DOSSIER}`);
   if (rates.length) console.log(`${rates.length} comptes NON créés (relancer la même commande) : ${rates.map((c) => c.identifiant).join(", ")}`);

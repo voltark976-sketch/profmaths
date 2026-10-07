@@ -430,7 +430,8 @@
   }
   function afficherSuivi() {
     const eleves = suiviCache || [];
-    const groupes = [...new Set(eleves.map((x) => x.groupe || x.classe || "?"))].sort();
+    // Classes du professeur (même sans élève encore connecté) et classes présentes dans les données
+    const groupes = [...new Set(((Compte.eleve() || {}).groupes || []).concat(eleves.map((x) => x.groupe || x.classe || "?")))].sort();
     if (!groupes.includes(suiviChoix.groupe)) suiviChoix.groupe = groupes[0] || "";
     const chaps = [];
     CATALOGUE.niveaux.forEach((n) => n.chapitres.forEach((ch) => { if (window.CHAPITRES && CHAPITRES[ch.id]) chaps.push({ id: ch.id, titre: ch.titre, niveau: n.nom }); }));

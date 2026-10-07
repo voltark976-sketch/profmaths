@@ -67,7 +67,7 @@ Le fichier Excel (export Pronote) a une feuille par classe ou groupe, nommée pa
 Les identifiants arrivent dans `Documents\Gestion site lycée` : `identifiants.csv` (Excel) et `identifiants.html` (étiquettes à imprimer et découper). **Ces fichiers ne doivent jamais aller dans le dossier du site**, qui est public.
 
 - Mot de passe oublié : `node outils/comptes/creer-comptes.js --nouveau-mdp prenom.nom` (la progression est gardée).
-- Compte professeur : `node outils/comptes/creer-comptes.js --prof prenom.nom --prenom Prénom --nom NOM` (crée ou réinitialise le compte ; mot de passe dans `Documents\Gestion site lycée\compte-professeur-prenom.nom.txt`). Chaque compte professeur voit le suivi de tous les élèves.
+- Compte professeur : `node outils/comptes/creer-comptes.js --prof prenom.nom --prenom Prénom --nom NOM` (crée ou réinitialise le compte ; mot de passe dans `Documents\Gestion site lycée\compte-professeur-prenom.nom.txt`). Avec `--groupes "Terminale SPE"`, le professeur ne voit que ces classes (sans l'option : toutes). Pour changer ses classes sans toucher à son mot de passe : `--rattacher prenom.nom --groupes "204,207"` ; `--defaut` lui donne aussi les nouvelles classes créées ensuite.
 - Voir tous les comptes : console Firebase > Authentication > Utilisateurs (les élèves ont un UID qui commence par `eleve-`, les professeurs par `prof-`), ou `identifiants.csv`.
 
 ### Suivi des devoirs

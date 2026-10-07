@@ -14,7 +14,9 @@ service cloud.firestore {
     }
 
     match /eleves/{uid} {
-      allow read: if (eleve() && request.auth.uid == uid) || prof();
+      // Un professeur ne lit que les élèves de ses classes (marque « groupes » ; sans elle, toutes les classes)
+      allow read: if (eleve() && request.auth.uid == uid)
+        || (prof() && (!('groupes' in request.auth.token) || resource.data.groupe in request.auth.token.groupes));
       allow create, update: if eleve() && request.auth.uid == uid
         && request.resource.data.keys().hasOnly(['identifiant', 'prenom', 'nom', 'classe', 'groupe', 'xp', 'exo', 'qcm', 'jeux', 'avatar', 'quand', 'creeLe', 'majLe'])
         && profilDuCompte(request.resource.data);

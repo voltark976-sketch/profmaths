@@ -60,7 +60,7 @@
       let c;
       try { c = (await u.getIdTokenResult()).claims; }
       catch (e) { c = null; }
-      if (c && c.prof) { eleve = { uid: u.uid, identifiant: idTech, prenom: c.prenom || "Professeur", classe: "", prof: true }; ecouteur(eleve, null); return; }
+      if (c && c.prof) { eleve = { uid: u.uid, identifiant: idTech, prenom: c.prenom || "Professeur", classe: "", prof: true, groupes: Array.isArray(c.groupes) ? c.groupes : null }; ecouteur(eleve, null); return; }
       if (c && !c.eleve) {
         // Compte qui n'a pas été créé par le professeur : refusé
         erreurCompte = "Ce compte n'existe plus. Demande tes identifiants à ton professeur.";
@@ -197,8 +197,10 @@
     // Professeur : fiches de tous les élèves (progression et dates des derniers essais)
     async suivi() {
       if (!fb || !eleve || !eleve.prof) return null;
-      const snap = await fb.db.collection("eleves").get();
-      return snap.docs.map((d) => Object.assign({ uid: d.id }, d.data()));
+      const col = fb.db.collection("eleves"), g = eleve.groupes;
+      // Professeur rattaché à certaines classes : on ne demande que celles-là (les règles refusent le reste)
+      const snaps = !g ? [await col.get()] : await Promise.all(Array.from({ length: Math.ceil(g.length / 30) }, (_, i) => col.where("groupe", "in", g.slice(i * 30, i * 30 + 30)).get()));
+      return snaps.flatMap((snap) => snap.docs.map((d) => Object.assign({ uid: d.id }, d.data())));
     },
 
     // Enregistre la progression (regroupe les envois rapprochés pour économiser le réseau)
