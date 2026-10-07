@@ -218,7 +218,7 @@ pre.code code { font: inherit; }
 /* QCM */
 .q { border: 0; border-top: 1px solid var(--trait); margin: 0; padding: 18px 0; min-width: 0; }
 .q legend { display: block; font-weight: 700; padding: 0; float: left; width: 100%; }
-.q legend .n { display: inline-block; margin-right: 6px; }
+.q legend .n { display: inline-grid; vertical-align: middle; margin: -2px 8px 0 0; }
 .q legend + * { clear: both; }
 .q .choix { clear: both; padding-top: 6px; }
 .q-bon .opt-bonne, .q-faux .opt-bonne { border-color: var(--bon); background: var(--bon-pale); }
