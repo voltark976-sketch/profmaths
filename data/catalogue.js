@@ -150,7 +150,7 @@ window.CATALOGUE = {
       chapitres: [
         {
           id: "terminale-spe-denombrement",
-          numero: 1,
+          numero: 14,
           titre: "Combinatoire et dénombrement",
           statut: "disponible",
           drive: ""

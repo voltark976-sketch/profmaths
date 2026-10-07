@@ -11,7 +11,7 @@
 window.CHAPITRES = window.CHAPITRES || {};
 window.CHAPITRES["terminale-spe-denombrement"] = {
   niveau: "Terminale spécialité",
-  numero: 1,
+  numero: 14,
   titre: "Combinatoire et dénombrement",
   accroche: "Compter sans tout écrire : se demander si l'ordre compte et si les répétitions sont permises, puis choisir le bon outil.",
 
