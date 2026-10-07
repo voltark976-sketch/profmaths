@@ -27,10 +27,7 @@ window.CONFIG_COMPTES = {
     messagingSenderId: "830391678944",
     appId: "1:830391678944:web:f472650d4f317277c41d85"
   },
-  // Connexion avec un compte Google ou Apple (true = bouton affiché).
-  // À activer seulement après avoir activé le fournisseur dans Firebase > Authentication > Méthodes de connexion.
-  // Apple demande en plus un compte Apple Developer payant (voir LISEZMOI.md).
-  connexions: { google: true, apple: false },
-  // Classes proposées à la création du compte (modifiable)
+  // Les comptes sont créés par le professeur (outils/comptes/creer-comptes.js) : pas d'inscription ni de connexion Google.
+  // Classes (filtres du classement du Défi chrono)
   classes: ["Seconde", "Première spécialité", "Terminale spécialité", "Terminale maths complémentaires"]
 };

@@ -1,0 +1,31 @@
+rules_version = '2';
+// Règles Firestore du site (publiées avec : firebase deploy --only firestore:rules)
+// Seuls les comptes créés par le professeur (outils/comptes) portent les marques « eleve » ou « prof » :
+// un compte créé autrement (inscription, Google…) ne peut rien lire ni écrire.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function eleve() { return request.auth != null && request.auth.token.eleve == true; }
+    function prof() { return request.auth != null && request.auth.token.prof == true; }
+    // Le prénom, le nom, la classe et le groupe viennent du compte : l'élève ne peut pas les changer
+    function profilDuCompte(d) {
+      return d.identifiant == request.auth.token.email.split('@')[0]
+        && d.prenom == request.auth.token.prenom && d.nom == request.auth.token.nom
+        && d.classe == request.auth.token.classe && d.groupe == request.auth.token.groupe;
+    }
+
+    match /eleves/{uid} {
+      allow read: if (eleve() && request.auth.uid == uid) || prof();
+      allow create, update: if eleve() && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(['identifiant', 'prenom', 'nom', 'classe', 'groupe', 'xp', 'exo', 'qcm', 'jeux', 'avatar', 'quand', 'creeLe', 'majLe'])
+        && profilDuCompte(request.resource.data);
+    }
+    match /classement/{uid} {
+      allow read: if eleve() || prof();
+      allow write: if eleve() && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(['prenom', 'classe', 'points', 'majLe'])
+        && request.resource.data.prenom == request.auth.token.prenom
+        && request.resource.data.classe == request.auth.token.classe
+        && request.resource.data.points is int && request.resource.data.points >= 0;
+    }
+  }
+}

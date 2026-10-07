@@ -629,3 +629,15 @@ a.profil:hover { box-shadow: var(--ombre-haut); }
 @keyframes toast-out { to { opacity: 0; transform: translate(-50%, -12px); } }
 @keyframes toast-in { from { opacity: 0; transform: translate(-50%, -16px) scale(0.96); } to { opacity: 1; transform: translateX(-50%); } }
 @media (prefers-reduced-motion: reduce) { .toast-niv { animation: none; } }
+
+/* Page professeur : suivi des élèves */
+.suivi-choix { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: end; margin: 12px 0; }
+.suivi-choix label { display: grid; gap: 4px; font-weight: 700; font-size: 0.9rem; flex: 1 1 160px; }
+.suivi-choix select, .suivi-choix input { font: 1rem var(--f-texte); padding: 8px 10px; border-radius: 10px; border: 2px solid var(--trait); background: var(--surface); color: var(--encre); min-width: 0; }
+table.suivi { border-collapse: collapse; background: var(--surface); font-variant-numeric: tabular-nums; font-size: 0.95rem; }
+.suivi th, .suivi td { border: 1px solid var(--trait); padding: 6px 8px; text-align: center; white-space: nowrap; }
+.suivi thead th { background: var(--fond); }
+.suivi tbody th { text-align: left; font-weight: 400; position: sticky; left: 0; background: var(--surface); }
+.suivi td.fait { background: var(--bon-pale); color: var(--ylang); }
+.suivi td.qcm { color: var(--encre); }
+.suivi td.vide { color: var(--doux); }

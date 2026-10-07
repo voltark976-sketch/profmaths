@@ -2,9 +2,10 @@
   Comptes élèves : connexion et sauvegarde de la progression.
   - Mode Firebase si data/config-comptes.js contient une configuration.
   - Sinon mode démonstration : comptes gardés sur l'appareil seulement.
-  Les élèves n'ont pas besoin d'adresse e-mail : ils choisissent un identifiant et un mot de passe.
-  Ils peuvent aussi se connecter avec Google ou Apple si c'est activé dans data/config-comptes.js
-  (l'adresse e-mail du compte Google ou Apple n'est jamais enregistrée par le site).
+  Les comptes sont créés par le professeur (outils/comptes/LISEZMOI.md) : identifiant et mot de passe,
+  sans adresse e-mail. Le prénom, la classe et le groupe sont inscrits dans le compte lui-même
+  (« custom claims ») : les règles Firestore refusent tout compte qui n'a pas été créé ainsi.
+  Le compte du professeur (claim prof) lit la progression de tous les élèves (page #suivi).
 */
 (function () {
   "use strict";
@@ -12,7 +13,7 @@
   const DOMAINE = "profmaths.example.com"; // identifiant -> adresse technique, aucun e-mail n'est envoyé
   const FB_VERSION = "10.14.1";
   let ecouteur = () => {};
-  let eleve = null; // { uid, identifiant, prenom, classe, fournisseur, aCompleter }
+  let eleve = null; // { uid, identifiant, prenom, nom, classe, groupe, prof }
   let fb = null; // { auth, db }
   let minuterie = null;
   let dernierClassement = ""; // évite de renvoyer la même ligne du classement
@@ -27,10 +28,12 @@
 
   function fusion(a, b) {
     a = a || {}; b = b || {};
-    const out = { xp: Math.max(a.xp || 0, b.xp || 0), exo: Object.assign({}, a.exo), qcm: Object.assign({}, a.qcm), jeux: Object.assign({}, a.jeux) };
+    const out = { xp: Math.max(a.xp || 0, b.xp || 0), exo: Object.assign({}, a.exo), qcm: Object.assign({}, a.qcm), jeux: Object.assign({}, a.jeux), quand: Object.assign({}, a.quand) };
     for (const k in b.exo || {}) out.exo[k] = Math.max(out.exo[k] || 0, b.exo[k]);
     for (const k in b.qcm || {}) out.qcm[k] = Math.max(out.qcm[k] ?? 0, b.qcm[k]);
     for (const k in b.jeux || {}) out.jeux[k] = Math.max(out.jeux[k] || 0, b.jeux[k]);
+    // Date du dernier essai de chaque série et de chaque QCM (pour le suivi des devoirs)
+    for (const k in b.quand || {}) out.quand[k] = Math.max(out.quand[k] || 0, b.quand[k]);
     // Avatar : on garde le plus récemment modifié
     const av = [a.avatar, b.avatar].filter((x) => x && typeof x === "object").sort((x, y) => (y.t || 0) - (x.t || 0))[0];
     if (av) out.avatar = Object.assign({}, av);
@@ -51,27 +54,35 @@
     await Promise.all([chargerScript(base + "firebase-auth-compat.js"), chargerScript(base + "firebase-firestore-compat.js")]);
     firebase.initializeApp(CFG.firebase);
     fb = { auth: firebase.auth(), db: firebase.firestore() };
-    // Retour d'une connexion Google/Apple faite par redirection (si la fenêtre surgissante était bloquée)
-    fb.auth.getRedirectResult().catch((e) => { erreurRedirection = messageFirebase(e); });
     fb.auth.onAuthStateChanged(async (u) => {
       if (!u) { eleve = null; ecouteur(null, null); return; }
-      const p = fournisseurDe(u);
-      const idTech = p ? "" : (u.email || "").split("@")[0];
+      const idTech = (u.email || "").split("@")[0];
+      let c;
+      try { c = (await u.getIdTokenResult()).claims; }
+      catch (e) { c = null; }
+      if (c && c.prof) { eleve = { uid: u.uid, identifiant: idTech, prenom: c.prenom || "Professeur", classe: "", prof: true }; ecouteur(eleve, null); return; }
+      if (c && !c.eleve) {
+        // Compte qui n'a pas été créé par le professeur : refusé
+        erreurCompte = "Ce compte n'existe plus. Demande tes identifiants à ton professeur.";
+        fb.auth.signOut(); return;
+      }
+      const profil = c ? { identifiant: idTech, prenom: c.prenom || "", nom: c.nom || "", classe: c.classe || "", groupe: c.groupe || "" } : { identifiant: idTech, prenom: "", classe: "" };
       try {
-        const snap = await fb.db.collection("eleves").doc(u.uid).get();
+        const ref = fb.db.collection("eleves").doc(u.uid);
+        const snap = await ref.get();
         const d = snap.exists ? snap.data() : {};
-        // Premier passage avec Google/Apple : on propose le prénom du compte, l'élève le confirme
-        const prenom = d.prenom || (p ? String(u.displayName || "").trim().split(/\s+/)[0] : "");
-        eleve = { uid: u.uid, identifiant: d.identifiant || idTech, prenom, classe: d.classe || "", fournisseur: p, aCompleter: !!p && !d.prenom };
-        ecouteur(eleve, { xp: d.xp || 0, exo: d.exo || {}, qcm: d.qcm || {}, jeux: d.jeux || {}, avatar: d.avatar || null });
+        // Première connexion : la fiche de l'élève est créée à partir de son compte
+        if (!snap.exists) await ref.set(Object.assign({}, profil, { xp: 0, exo: {}, qcm: {}, creeLe: firebase.firestore.FieldValue.serverTimestamp() }));
+        eleve = Object.assign({ uid: u.uid }, profil);
+        ecouteur(eleve, { xp: d.xp || 0, exo: d.exo || {}, qcm: d.qcm || {}, jeux: d.jeux || {}, avatar: d.avatar || null, quand: d.quand || {} });
       } catch (e) {
         // Lecture impossible (réseau) : on n'écrase pas le compte avec la copie de l'appareil, on relira plus tard
-        eleve = { uid: u.uid, identifiant: idTech, prenom: "", classe: "", fournisseur: p, aCompleter: false, lectureEchouee: true };
+        eleve = Object.assign({ uid: u.uid, lectureEchouee: true }, profil);
         ecouteur(eleve, null);
       }
     });
   }
-  let erreurRedirection = "";
+  let erreurCompte = "";
   // Nouvel essai de lecture du compte après un échec ; la fusion se fait dans l'écouteur, qui enregistre ensuite
   let relectureEnCours = false;
   function relire() {
@@ -82,16 +93,8 @@
       if (eleve !== e) return;
       const d = snap.exists ? snap.data() : {};
       e.lectureEchouee = false;
-      Object.assign(e, { identifiant: d.identifiant || e.identifiant, prenom: d.prenom || e.prenom, classe: d.classe || e.classe });
-      ecouteur(e, { xp: d.xp || 0, exo: d.exo || {}, qcm: d.qcm || {}, jeux: d.jeux || {}, avatar: d.avatar || null });
+      ecouteur(e, { xp: d.xp || 0, exo: d.exo || {}, qcm: d.qcm || {}, jeux: d.jeux || {}, avatar: d.avatar || null, quand: d.quand || {} });
     }).catch(() => {}).then(() => { relectureEnCours = false; });
-  }
-  const NOMS = { google: "Google", apple: "Apple" };
-  function fournisseurDe(u) {
-    const ids = (u.providerData || []).map((x) => x && x.providerId);
-    if (ids.includes("google.com")) return "google";
-    if (ids.includes("apple.com")) return "apple";
-    return "";
   }
   function messageFirebase(e) {
     const c = (e && e.code) || "";
@@ -99,10 +102,7 @@
     if (c.includes("weak-password")) return "Le mot de passe doit faire au moins 6 caractères.";
     if (c.includes("invalid-credential") || c.includes("wrong-password") || c.includes("user-not-found") || c.includes("invalid-email")) return "Identifiant ou mot de passe incorrect.";
     if (c.includes("too-many-requests")) return "Trop d'essais. Attends quelques minutes puis réessaie.";
-    if (c.includes("account-exists-with-different-credential")) return "Un compte existe déjà avec cette adresse, créé avec un autre moyen de connexion. Utilise celui-là.";
-    if (c.includes("operation-not-allowed")) return "Ce moyen de connexion n'est pas encore activé. Utilise ton identifiant et ton mot de passe.";
-    if (c.includes("unauthorized-domain")) return "Connexion impossible depuis cette adresse du site. Préviens ton professeur.";
-    if (c.includes("web-storage-unsupported") || c.includes("disallowed")) return "Ouvre le site dans Chrome ou Safari (pas dans une application de messagerie) pour te connecter.";
+    if (c.includes("user-disabled")) return "Ce compte est désactivé. Parles-en à ton professeur.";
     if (c.includes("network")) return "Pas de connexion internet. Réessaie quand le réseau revient.";
     return "La connexion a échoué. Réessaie dans un instant.";
   }
@@ -117,10 +117,7 @@
   window.PM_COMPTE = {
     demo: !CFG.firebase,
     classes: CFG.classes || [],
-    // Boutons « Continuer avec Google / Apple » affichés seulement si activés dans la configuration
-    fournisseurs: CFG.firebase ? ["google", "apple"].filter((p) => (CFG.connexions || {})[p]) : [],
-    nomFournisseur: (p) => NOMS[p] || p,
-    erreurRedirection: () => { const m = erreurRedirection; erreurRedirection = ""; return m; },
+    erreurCompte: () => { const m = erreurCompte; erreurCompte = ""; return m; },
     eleve: () => eleve,
     fusion,
 
@@ -140,25 +137,15 @@
       }
     },
 
+    // Mode démonstration seulement
     async creer({ identifiant, prenom, classe, mdp }) {
       const id = normId(identifiant);
       const err = verifId(id);
       if (err) throw new Error(err);
       if (!prenom.trim()) throw new Error("Indique ton prénom.");
       if (String(mdp).length < 6) throw new Error("Le mot de passe doit faire au moins 6 caractères.");
-      if (fb) {
-        try {
-          const r = await fb.auth.createUserWithEmailAndPassword(`${id}@${DOMAINE}`, mdp);
-          await fb.db.collection("eleves").doc(r.user.uid).set({
-            identifiant: id, prenom: prenom.trim(), classe, xp: 0, exo: {}, qcm: {},
-            creeLe: firebase.firestore.FieldValue.serverTimestamp()
-          });
-          eleve = { uid: r.user.uid, identifiant: id, prenom: prenom.trim(), classe };
-          ecouteur(eleve, { xp: 0, exo: {}, qcm: {} });
-        } catch (e) { throw new Error(e.code ? messageFirebase(e) : e.message); }
-        return;
-      }
-      if (CFG.firebase) throw new Error("Le service de comptes ne répond pas. Vérifie ta connexion internet.");
+      // Avec Firebase, seuls les comptes créés par le professeur existent
+      if (CFG.firebase) throw new Error("Les comptes sont créés par ton professeur.");
       const comptes = lireJSON(DEMO, {});
       if (comptes[id]) throw new Error("Cet identifiant est déjà pris. Choisis-en un autre.");
       comptes[id] = { mdp: empreinte(mdp), prenom: prenom.trim(), classe, prog: null };
@@ -180,39 +167,6 @@
       ecrireJSON(SESSION, id);
       eleve = { uid: id, identifiant: id, prenom: c.prenom, classe: c.classe };
       ecouteur(eleve, c.prog || null);
-    },
-
-    // Connexion avec Google ou Apple (crée le compte au premier passage)
-    async connecterAvec(p) {
-      if (!fb) throw new Error("Le service de comptes ne répond pas. Vérifie ta connexion internet.");
-      let prov;
-      if (p === "google") { prov = new firebase.auth.GoogleAuthProvider(); prov.setCustomParameters({ prompt: "select_account" }); }
-      else if (p === "apple") { prov = new firebase.auth.OAuthProvider("apple.com"); prov.addScope("name"); }
-      else throw new Error("Moyen de connexion inconnu.");
-      fb.auth.languageCode = "fr";
-      try {
-        await fb.auth.signInWithPopup(prov); // onAuthStateChanged prend le relais
-      } catch (e) {
-        const c = e.code || "";
-        if (c.includes("popup-closed-by-user") || c.includes("cancelled-popup-request")) return; // l'élève a fermé la fenêtre
-        if (c.includes("popup-blocked") || c.includes("operation-not-supported-in-this-environment")) {
-          try { await fb.auth.signInWithRedirect(prov); return; } catch (e2) { throw new Error(messageFirebase(e2)); }
-        }
-        throw new Error(messageFirebase(e));
-      }
-    },
-
-    // Après une première connexion Google/Apple : prénom et classe
-    async completer({ prenom, classe }) {
-      if (!eleve || !fb) return;
-      if (!String(prenom).trim()) throw new Error("Indique ton prénom.");
-      try {
-        await fb.db.collection("eleves").doc(eleve.uid).set({
-          prenom: prenom.trim(), classe, fournisseur: eleve.fournisseur,
-          creeLe: firebase.firestore.FieldValue.serverTimestamp()
-        }, { merge: true });
-      } catch (e) { throw new Error("L'enregistrement a échoué. Vérifie ta connexion internet."); }
-      Object.assign(eleve, { prenom: prenom.trim(), classe, aCompleter: false });
     },
 
     async deconnecter() {
@@ -240,11 +194,19 @@
     },
     pointsJeux,
 
+    // Professeur : fiches de tous les élèves (progression et dates des derniers essais)
+    async suivi() {
+      if (!fb || !eleve || !eleve.prof) return null;
+      const snap = await fb.db.collection("eleves").get();
+      return snap.docs.map((d) => Object.assign({ uid: d.id }, d.data()));
+    },
+
     // Enregistre la progression (regroupe les envois rapprochés pour économiser le réseau)
     sauver(prog) {
       if (!eleve) return;
       clearTimeout(minuterie);
-      const copie = { xp: prog.xp, exo: Object.assign({}, prog.exo), qcm: Object.assign({}, prog.qcm), jeux: Object.assign({}, prog.jeux) };
+      if (eleve.prof) return; // le compte du professeur n'enregistre pas de progression
+      const copie = { xp: prog.xp, exo: Object.assign({}, prog.exo), qcm: Object.assign({}, prog.qcm), jeux: Object.assign({}, prog.jeux), quand: Object.assign({}, prog.quand) };
       if (prog.avatar) copie.avatar = Object.assign({}, prog.avatar);
       minuterie = setTimeout(() => {
         if (fb && eleve.lectureEchouee) { relire(); return; }

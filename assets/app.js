@@ -10,7 +10,7 @@
 
   /* ---------- Progression (gardée dans le navigateur de l'élève) ---------- */
   const CLE = "profmaths:v1";
-  let prog = { xp: 0, exo: {}, qcm: {}, jeux: {} };
+  let prog = { xp: 0, exo: {}, qcm: {}, jeux: {}, quand: {} };
   try { prog = Object.assign(prog, JSON.parse(localStorage.getItem(CLE) || "{}")); } catch (e) {}
   const Compte = window.PM_COMPTE;
   const save = () => { try { localStorage.setItem(CLE, JSON.stringify(prog)); } catch (e) {} majXP(); Compte.sauver(prog); };
@@ -28,7 +28,7 @@
   majXP();
   window.addEventListener("storage", (ev) => {
     if (ev.key !== CLE || !ev.newValue) return;
-    try { prog = Object.assign({ xp: 0, exo: {}, qcm: {}, jeux: {} }, Compte.fusion(prog, JSON.parse(ev.newValue))); majXP(); } catch (e) {}
+    try { prog = Object.assign({ xp: 0, exo: {}, qcm: {}, jeux: {}, quand: {} }, Compte.fusion(prog, JSON.parse(ev.newValue))); majXP(); } catch (e) {}
   });
   // Ajoute des XP (nombre entier) et annonce un passage de niveau
   function gagnerXP(pts) {
@@ -90,7 +90,7 @@
       save();
     } else if (etaitConnecte) {
       // Déconnexion : on efface la progression de l'appareil (téléphone partagé)
-      prog = { xp: 0, exo: {}, qcm: {}, jeux: {} };
+      prog = { xp: 0, exo: {}, qcm: {}, jeux: {}, quand: {} };
       try { localStorage.removeItem(CLE); } catch (e) {}
       etaitConnecte = false;
       majXP();
@@ -189,6 +189,7 @@
     document.getElementById("jeu-btn").toggleAttribute("aria-current", chap === "jeu");
     $xpLien.toggleAttribute("aria-current", chap === "avatar");
     if (chap === "compte") pageCompte();
+    else if (chap === "suivi") pageSuivi();
     else if (chap === "avatar") pageAvatar();
     else if (chap === "jeu") pageJeu();
     else if (chap && window.CHAPITRES && CHAPITRES[chap]) pageChapitre(chap, onglet || "cours");
@@ -348,28 +349,12 @@
     document.title = "Mon compte · ProfMaths";
     const e = Compte.eleve();
     const demo = Compte.demo ? `<p class="demo">Mode démonstration : le compte n'est gardé que sur cet appareil. Les vrais comptes, accessibles partout, seront activés à la mise en ligne.</p>` : "";
-    const classes = Compte.classes.map((c) => `<option${e && c === e.classe ? " selected" : ""}>${esc(c)}</option>`).join("");
-    if (e && e.aCompleter) {
-      // Première connexion avec Google/Apple : on demande le prénom et la classe
-      $app.innerHTML = `<section class="page-compte"><p class="eyebrow">Mon compte</p><h1>Encore une étape</h1>
-        <p class="lead">Tu es connecté avec ${esc(Compte.nomFournisseur(e.fournisseur))}. Vérifie ton prénom et choisis ta classe.</p>
-        <form id="f-fin" class="formulaire">
-          <label for="fin-prenom">Prénom</label><input id="fin-prenom" autocomplete="given-name" value="${esc(e.prenom)}" required>
-          <label for="fin-classe">Classe</label><select id="fin-classe">${classes}</select>
-          <p class="note">N'écris pas ton nom de famille en entier. Seul ton professeur peut voir ta progression.</p>
-          <p class="erreur" role="alert"></p><button class="btn" type="submit">C'est parti</button>
-        </form>
-        <button class="btn-sec" id="deco">Annuler et me déconnecter</button></section>`;
-      const f = document.getElementById("f-fin");
-      f.addEventListener("submit", async (ev) => {
-        ev.preventDefault();
-        const err = f.querySelector(".erreur"), b = f.querySelector("button[type=submit]");
-        err.textContent = ""; b.disabled = true;
-        try {
-          await Compte.completer({ prenom: document.getElementById("fin-prenom").value, classe: document.getElementById("fin-classe").value });
-          majBoutonCompte(); pageCompte();
-        } catch (x) { err.textContent = x.message; b.disabled = false; }
-      });
+    const classes = Compte.classes.map((c) => `<option>${esc(c)}</option>`).join("");
+    if (e && e.prof) {
+      $app.innerHTML = `<section class="page-compte"><p class="eyebrow">Compte professeur</p><h1>Bonjour !</h1>
+        <p class="lead">Identifiant : <strong>${esc(e.identifiant)}</strong></p>
+        <p><a class="btn" href="#suivi">Suivi des élèves</a></p>
+        <button class="btn-sec" id="deco">Se déconnecter</button></section>`;
       document.getElementById("deco").addEventListener("click", () => Compte.deconnecter().then(() => { location.hash = ""; }));
       return;
     }
@@ -381,7 +366,7 @@
         lignes += `<li><a class="chap" href="#${ch.id}"><span class="chap-t"><strong>${esc(ch.titre)}</strong><span class="meta">${esc(n.nom)} · ${b.got}/${b.total} étoiles${b.qcm !== undefined ? ` · QCM ${b.qcm}/${CHAPITRES[ch.id].qcm.length}` : ""}</span><span class="barre"><span style="width:${Math.round((b.got / b.total) * 100)}%"></span></span></span></a></li>`;
       }));
       $app.innerHTML = `<section class="page-compte"><p class="eyebrow">Mon compte</p><h1>Bonjour ${esc(e.prenom || e.identifiant)} !</h1>
-        <p class="lead">${e.fournisseur ? `Connecté avec <strong>${esc(Compte.nomFournisseur(e.fournisseur))}</strong>` : `Identifiant : <strong>${esc(e.identifiant)}</strong>`}${e.classe ? ` · ${esc(e.classe)}` : ""}</p>${demo}
+        <p class="lead">Identifiant : <strong>${esc(e.identifiant)}</strong>${e.classe ? ` · ${esc(e.classe)}${e.groupe ? " " + esc(e.groupe) : ""}` : ""}</p>${demo}
         ${carteProfil()}
         <h2>Ma progression</h2><ol class="chapitres">${lignes}</ol>
         <p class="muted">Ta progression est enregistrée automatiquement après chaque exercice et chaque QCM.</p>
@@ -390,53 +375,110 @@
       document.getElementById("deco").addEventListener("click", () => Compte.deconnecter().then(() => { location.hash = ""; }));
       return;
     }
-    const LOGOS = {
-      google: `<svg viewBox="0 0 48 48" width="20" height="20" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.6 5.4 2.7 13.3l7.9 6.1C12.5 13.6 17.8 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.7 6c4.5-4.2 6.9-10.3 6.9-17.7z"/><path fill="#FBBC05" d="M10.5 28.6c-.5-1.4-.8-3-.8-4.6s.3-3.2.8-4.6l-7.9-6.1C1 16.5 0 20.1 0 24s1 7.5 2.7 10.7l7.8-6.1z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.7-6c-2.2 1.5-5 2.3-8.2 2.3-6.2 0-11.5-4.2-13.4-9.9l-7.9 6.1C6.6 42.6 14.6 48 24 48z"/></svg>`,
-      apple: `<svg viewBox="0 0 384 512" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 59 126.7 107.2 125.2 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.9 48.6-.7 90.4-82.5 102.6-119.3-65.2-30.7-61.7-90-61.7-91.9zm-56.6-164.2c27.3-32.4 24.8-61.9 24-72.5-24.1 1.4-52 16.4-67.9 34.9-17.5 19.8-27.8 44.3-25.6 71.9 26.1 2 49.9-11.4 69.5-34.3z"/></svg>`
-    };
-    const sociaux = Compte.fournisseurs.length ? `<div class="sociaux">${Compte.fournisseurs.map((p) =>
-      `<button type="button" class="btn-social ${p}" data-p="${p}">${LOGOS[p]}<span>Continuer avec ${esc(Compte.nomFournisseur(p))}</span></button>`).join("")}
-      <p class="erreur" role="alert" id="err-social">${esc(Compte.erreurRedirection())}</p></div>
-      <p class="separateur"><span>ou avec un identifiant</span></p>` : "";
+    // Les comptes sont créés par le professeur ; la création n'existe qu'en mode démonstration
+    const creation = Compte.demo;
     $app.innerHTML = `<section class="page-compte"><p class="eyebrow">Mon compte</p><h1>Garde ta progression partout</h1>
-      <p class="lead">Avec un compte, ton niveau, ton avatar et tes étoiles te suivent sur tous tes appareils. Pas besoin d'adresse e-mail.</p>${demo}${sociaux}
-      <div class="bascule" role="tablist"><button role="tab" id="t-co" aria-selected="true">J'ai déjà un compte</button><button role="tab" id="t-cr" aria-selected="false">Créer mon compte</button></div>
+      <p class="lead">Connecte-toi avec l'identifiant et le mot de passe donnés par ton professeur : ton niveau, ton avatar et tes étoiles te suivent sur tous tes appareils.</p>${demo}
+      ${creation ? `<div class="bascule" role="tablist"><button role="tab" id="t-co" aria-selected="true">J'ai déjà un compte</button><button role="tab" id="t-cr" aria-selected="false">Créer mon compte</button></div>` : ""}
       <form id="f-co" class="formulaire" autocomplete="on">
-        <label for="co-id">Identifiant</label><input id="co-id" name="username" autocomplete="username" autocapitalize="none" spellcheck="false" required>
+        <label for="co-id">Identifiant <span class="aide-champ">ex. : prenom.nom</span></label><input id="co-id" name="username" autocomplete="username" autocapitalize="none" spellcheck="false" required>
         <label for="co-mdp">Mot de passe</label><input id="co-mdp" name="password" type="password" autocomplete="current-password" required>
-        <p class="erreur" role="alert"></p><button class="btn" type="submit">Me connecter</button>
-        <p class="muted">Mot de passe oublié ? Demande à ton professeur de le réinitialiser.</p>
+        <p class="erreur" role="alert">${esc(Compte.erreurCompte())}</p><button class="btn" type="submit">Me connecter</button>
+        <p class="muted">Pas encore d'identifiant, ou mot de passe oublié ? Demande à ton professeur.</p>
       </form>
-      <form id="f-cr" class="formulaire" autocomplete="on" hidden>
+      ${creation ? `<form id="f-cr" class="formulaire" autocomplete="on" hidden>
         <label for="cr-prenom">Prénom</label><input id="cr-prenom" autocomplete="given-name" required>
         <label for="cr-classe">Classe</label><select id="cr-classe">${classes}</select>
         <label for="cr-id">Identifiant <span class="aide-champ">ex. : prenom.n2</span></label><input id="cr-id" name="username" autocomplete="username" autocapitalize="none" spellcheck="false" required>
         <label for="cr-mdp">Mot de passe <span class="aide-champ">6 caractères minimum</span></label><input id="cr-mdp" name="password" type="password" autocomplete="new-password" minlength="6" required>
-        <p class="note">N'écris pas ton nom de famille en entier. Seul ton professeur peut voir ta progression.</p>
         <p class="erreur" role="alert"></p><button class="btn" type="submit">Créer mon compte</button>
-      </form></section>`;
-    const fco = document.getElementById("f-co"), fcr = document.getElementById("f-cr");
-    const tco = document.getElementById("t-co"), tcr = document.getElementById("t-cr");
-    const montrer = (cr) => { fco.hidden = cr; fcr.hidden = !cr; tco.setAttribute("aria-selected", !cr); tcr.setAttribute("aria-selected", cr); };
-    document.querySelectorAll(".btn-social").forEach((b) => b.addEventListener("click", async () => {
-      const err = document.getElementById("err-social");
-      err.textContent = ""; b.disabled = true;
-      try { await Compte.connecterAvec(b.dataset.p); } catch (x) { err.textContent = x.message; }
-      b.disabled = false;
-    }));
-    tco.addEventListener("click", () => montrer(false));
-    tcr.addEventListener("click", () => montrer(true));
+      </form>` : ""}</section>`;
     const envoyer = (form, action) => form.addEventListener("submit", async (ev) => {
       ev.preventDefault();
       const err = form.querySelector(".erreur"), b = form.querySelector("button[type=submit]");
       err.textContent = ""; b.disabled = true;
       try { await action(); } catch (x) { err.textContent = x.message; b.disabled = false; }
     });
+    const fco = document.getElementById("f-co");
     envoyer(fco, () => Compte.connecter(document.getElementById("co-id").value, document.getElementById("co-mdp").value));
+    if (!creation) return;
+    const fcr = document.getElementById("f-cr"), tco = document.getElementById("t-co"), tcr = document.getElementById("t-cr");
+    const montrer = (cr) => { fco.hidden = cr; fcr.hidden = !cr; tco.setAttribute("aria-selected", !cr); tcr.setAttribute("aria-selected", cr); };
+    tco.addEventListener("click", () => montrer(false));
+    tcr.addEventListener("click", () => montrer(true));
     envoyer(fcr, () => Compte.creer({
       prenom: document.getElementById("cr-prenom").value, classe: document.getElementById("cr-classe").value,
       identifiant: document.getElementById("cr-id").value, mdp: document.getElementById("cr-mdp").value
     }));
+  }
+
+  /* ---------- Page professeur : qui a fait quoi (devoirs) ---------- */
+  let suiviCache = null;
+  const suiviChoix = { groupe: "", chap: "", depuis: "" };
+  async function pageSuivi() {
+    document.title = "Suivi des élèves · ProfMaths";
+    const e = Compte.eleve();
+    if (!e || !e.prof) {
+      $app.innerHTML = `<section class="page-compte"><p class="eyebrow">Suivi des élèves</p><h1>Page réservée au professeur</h1><p><a class="btn" href="#compte">Se connecter</a></p></section>`;
+      return;
+    }
+    $app.innerHTML = `<section class="page-suivi"><p class="eyebrow">Compte professeur</p><h1>Suivi des élèves</h1><p class="muted" id="suivi-etat">Chargement…</p></section>`;
+    try { suiviCache = await Compte.suivi(); }
+    catch (x) { document.getElementById("suivi-etat").textContent = "Lecture impossible. Vérifie la connexion internet puis recharge la page."; return; }
+    if (location.hash !== "#suivi") return;
+    afficherSuivi();
+  }
+  function afficherSuivi() {
+    const eleves = suiviCache || [];
+    const groupes = [...new Set(eleves.map((x) => x.groupe || x.classe || "?"))].sort();
+    if (!groupes.includes(suiviChoix.groupe)) suiviChoix.groupe = groupes[0] || "";
+    const chaps = [];
+    CATALOGUE.niveaux.forEach((n) => n.chapitres.forEach((ch) => { if (window.CHAPITRES && CHAPITRES[ch.id]) chaps.push({ id: ch.id, titre: ch.titre, niveau: n.nom }); }));
+    if (!chaps.some((c) => c.id === suiviChoix.chap)) {
+      // Par défaut : le chapitre travaillé le plus récemment
+      let recent = 0;
+      eleves.forEach((x) => Object.entries(x.quand || {}).forEach(([k, t]) => { if (t > recent) { recent = t; suiviChoix.chap = k.replace(/^qcm:/, "").split(":")[0]; } }));
+      if (!chaps.some((c) => c.id === suiviChoix.chap)) suiviChoix.chap = (chaps[0] || {}).id;
+    }
+    const c = CHAPITRES[suiviChoix.chap];
+    const depuis = suiviChoix.depuis ? new Date(suiviChoix.depuis + "T00:00").getTime() : 0;
+    const date = (t) => new Date(t).toLocaleDateString("fr-FR", { day: "numeric", month: "short" });
+    const liste = eleves.filter((x) => (x.groupe || x.classe || "?") === suiviChoix.groupe).sort((a, b) => (a.nom || "").localeCompare(b.nom || "") || (a.prenom || "").localeCompare(b.prenom || ""));
+    let faits = 0;
+    const lignes = liste.map((x) => {
+      const q = x.quand || {};
+      // Fait = essayé (depuis la date choisie, si elle est indiquée)
+      const fait = (k, existe) => (depuis ? (q[k] || 0) >= depuis : existe);
+      let aFait = false, dernier = 0;
+      const cases = c.exercices.map((ex) => {
+        const k = suiviChoix.chap + ":" + ex.type, st = (x.exo || {})[k];
+        if (q[k]) dernier = Math.max(dernier, q[k]);
+        if (!fait(k, st !== undefined)) return `<td class="vide">·</td>`;
+        aFait = true;
+        return `<td class="fait" title="${q[k] ? "le " + date(q[k]) : ""}">${"★".repeat(st || 0)}${st ? "" : "0"}</td>`;
+      }).join("");
+      const kq = "qcm:" + suiviChoix.chap, sq = (x.qcm || {})[suiviChoix.chap];
+      if (q[kq]) dernier = Math.max(dernier, q[kq]);
+      const qcm = fait(kq, sq !== undefined) ? `<td class="fait qcm">${sq}/${c.qcm.length}</td>` : `<td class="vide">·</td>`;
+      if (fait(kq, sq !== undefined)) aFait = true;
+      if (aFait) faits++;
+      return `<tr><th scope="row">${esc(x.nom || "")} ${esc(x.prenom || x.identifiant || "")}</th>${cases}${qcm}<td>${dernier ? date(dernier) : "–"}</td><td>${x.xp || 0}</td></tr>`;
+    }).join("");
+    $app.innerHTML = `<section class="page-suivi"><p class="eyebrow">Compte professeur</p><h1>Suivi des élèves</h1>
+      <div class="suivi-choix">
+        <label>Classe <select id="s-groupe">${groupes.map((g) => `<option${g === suiviChoix.groupe ? " selected" : ""}>${esc(g)}</option>`).join("")}</select></label>
+        <label>Chapitre <select id="s-chap">${chaps.map((ch) => `<option value="${esc(ch.id)}"${ch.id === suiviChoix.chap ? " selected" : ""}>${esc(ch.niveau)} · ${esc(ch.titre)}</option>`).join("")}</select></label>
+        <label>Fait depuis le <input type="date" id="s-depuis" value="${esc(suiviChoix.depuis)}"></label>
+        <button class="btn-sec" id="s-maj" type="button">Actualiser</button>
+      </div>
+      <p class="lead"><strong>${faits}/${liste.length}</strong> élèves ont fait au moins une série ou le QCM${depuis ? ` depuis le ${new Date(depuis).toLocaleDateString("fr-FR", { day: "numeric", month: "long" })}` : ""}.</p>
+      <p class="muted">${c.exercices.map((ex, i) => `S${i + 1} : ${esc(ex.titre)}`).join(" · ")}. Étoiles = meilleur résultat (0 à 3), « · » = pas fait. Un élève n'apparaît qu'après sa première connexion.</p>
+      <div class="scroll-x"><table class="suivi"><thead><tr><th>Élève</th>${c.exercices.map((ex, i) => `<th title="${esc(ex.titre)}">S${i + 1}</th>`).join("")}<th>QCM</th><th>Dernier essai</th><th>XP</th></tr></thead><tbody>${lignes || `<tr><td colspan="${c.exercices.length + 4}">Aucun élève connecté pour l'instant.</td></tr>`}</tbody></table></div></section>`;
+    const maj = (cle, el) => el.addEventListener("change", () => { suiviChoix[cle] = el.value; afficherSuivi(); });
+    maj("groupe", document.getElementById("s-groupe"));
+    maj("chap", document.getElementById("s-chap"));
+    maj("depuis", document.getElementById("s-depuis"));
+    document.getElementById("s-maj").addEventListener("click", pageSuivi);
   }
 
   /* ---------- Page chapitre ---------- */
@@ -624,6 +666,7 @@
       // Les XP de la série sont comptés ici, à la fin : rejouer sans progresser rapporte beaucoup moins
       const coef = coefRejeu(premiere, record, avant >= 3);
       prog.exo[k] = Math.max(avant, st);
+      prog.quand = Object.assign({}, prog.quand, { [k]: Date.now() }); // suivi des devoirs par le professeur
       const xpSerie = gagnerXP(score * (XP.question / 10) * coef);
       save();
       const noteCoef = coef < 1 ? `Série ${texteCoef(coef, true)}.` : "";
@@ -677,6 +720,7 @@
       const record = avant === undefined || bon > avant;
       const coef = coefRejeu(avant === undefined, bon > avant, avant >= tot);
       prog.qcm[id] = Math.max(avant || 0, bon);
+      prog.quand = Object.assign({}, prog.quand, { ["qcm:" + id]: Date.now() });
       const gain = gagnerXP(bon * XP.bonneReponseQcm * coef);
       save();
       form.dataset.corrige = "1";

@@ -25,6 +25,8 @@ Les niveaux du catalogue sont Seconde, Automatismes, Première spécialité, Ter
 - `assets/style.css` : mise en page, thème clair et sombre.
 - `assets/katex/` : affichage des formules, hébergé avec le site (pas de dépendance externe).
 - `outils/apercu.py` : assemble le site en un seul fichier HTML pour l'aperçu.
+- `outils/comptes/creer-comptes.js` : création des comptes élèves et du compte professeur (voir « Comptes élèves »).
+- `firestore.rules` et `firebase.json` : règles de sécurité des comptes dans Firebase.
 
 ## Ajouter un chapitre
 1. Copier `data/seconde/fonctions.js` sous un nouveau nom et remplacer le contenu.
@@ -47,52 +49,40 @@ Sur GitHub, le plus simple est de demander à Claude de le faire : il remplace l
 Voir `MISE-EN-LIGNE.md` (GitHub Pages, gratuit, sans rien installer).
 
 ## Comptes élèves
-Les élèves créent un compte avec prénom, classe, identifiant et mot de passe (pas d'e-mail), ou se connectent avec Google ou Apple si c'est activé (voir plus bas).
-Leur progression (points, étoiles, meilleur QCM) est enregistrée après chaque exercice.
-Sans compte, la progression reste sur l'appareil ; elle rejoint le compte à la création.
+Les comptes sont **créés par le professeur** : les élèves ne peuvent plus s'inscrire. Chaque élève se connecte avec l'identifiant (`prenom.nom`) et le mot de passe qu'on lui a remis.
+Leur progression (points, étoiles, meilleur QCM, date du dernier essai de chaque série) est enregistrée après chaque exercice.
+Sans compte, la progression reste sur l'appareil ; elle rejoint le compte à la connexion.
 À la déconnexion, la progression est effacée de l'appareil (utile sur un téléphone partagé) mais reste dans le compte.
 
-Tant que `firebase` vaut `null` dans `data/config-comptes.js`, c'est un **mode démonstration** (comptes gardés sur l'appareil).
+Tant que `firebase` vaut `null` dans `data/config-comptes.js`, c'est un **mode démonstration** (comptes gardés sur l'appareil, création possible).
 
-### Activer les vrais comptes (gratuit, une seule fois)
+### Créer les comptes d'une classe
+Sur l'ordinateur où `firebase login` a été fait, dans le dossier du site :
+```
+node outils/comptes/creer-comptes.js "C:\chemin\Comptes classe.xlsx"
+```
+Le fichier Excel (export Pronote) a une feuille par classe, nommée par le groupe (ex. `204`), et une colonne « Élève » au format « NOM Prénom ». Les élèves sortis et ceux qui ont déjà un compte sont ignorés : on peut relancer la commande avec un fichier complété.
+`--classe "Première spécialité"` change la classe affichée (Seconde par défaut), `--essai` montre ce qui serait créé sans rien créer.
+
+Les identifiants arrivent dans `Documents\profmaths-comptes` : `identifiants.csv` (Excel) et `identifiants.html` (étiquettes à imprimer et découper). **Ces fichiers ne doivent jamais aller dans le dossier du site**, qui est public.
+
+- Mot de passe oublié : `node outils/comptes/creer-comptes.js --nouveau-mdp prenom.nom` (la progression est gardée).
+- Compte professeur : `node outils/comptes/creer-comptes.js --prof prof.maths` (crée ou réinitialise le compte et affiche son mot de passe).
+
+### Suivi des devoirs
+Connecté avec le compte professeur, la page **Suivi des élèves** (`#suivi`, lien sur la page Mon compte) montre, par classe et par chapitre, les étoiles de chaque série, le score au QCM et la date du dernier essai. Le champ « Fait depuis le » ne compte que ce qui a été fait après la date donnée (le jour où le devoir a été donné, par exemple).
+Un élève n'apparaît qu'après sa première connexion.
+
+### Sécurité (Firebase)
+Le prénom, le nom, la classe et le groupe sont inscrits dans le compte lui-même au moment de la création. Les règles `firestore.rules` n'acceptent que ces comptes : un compte créé autrement ne peut rien lire ni écrire, et un élève ne peut ni changer son nom ni lire la progression des autres. Après une modification des règles :
+```
+firebase deploy --only firestore:rules --project profmaths-ca535
+```
+Dans la console Firebase, Authentication > Méthode de connexion : seul **Adresse e-mail/Mot de passe** reste activé (Google désactivé).
+
+### Installer Firebase sur un nouveau projet (une seule fois)
 1. Aller sur https://console.firebase.google.com avec votre compte Google, « Créer un projet » (Google Analytics inutile).
 2. Menu **Authentication** > Commencer > activer **Adresse e-mail/Mot de passe**.
-3. Menu **Firestore Database** > Créer une base (région europe-west), mode production.
-4. Onglet **Règles** de Firestore, coller puis publier :
-```
-rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
-    match /eleves/{uid} {
-      allow read, write: if request.auth != null && request.auth.uid == uid;
-    }
-    match /classement/{uid} {
-      allow read: if request.auth != null;
-      allow write: if request.auth != null && request.auth.uid == uid
-        && request.resource.data.keys().hasOnly(['prenom', 'classe', 'points', 'majLe'])
-        && request.resource.data.points is int && request.resource.data.points >= 0;
-    }
-  }
-}
-```
-5. Paramètres du projet > Vos applications > icône Web `</>` : copier l'objet `firebaseConfig` dans `data/config-comptes.js`.
-6. Authentication > Paramètres > Domaines autorisés : ajouter l'adresse du site (ex. `xxx.github.io`).
-
-### Connexion avec Google ou Apple (facultatif)
-Les élèves peuvent aussi se connecter avec leur compte Google ou Apple. Au premier passage, le site leur demande seulement leur prénom et leur classe. L'adresse e-mail du compte n'est pas enregistrée dans Firestore (Firebase la garde dans Authentication).
-Les boutons ne s'affichent que si `connexions` les active dans `data/config-comptes.js`.
-
-**Google** (gratuit) :
-1. Console Firebase > Authentication > **Méthode de connexion** > Ajouter un fournisseur > **Google** > Activer.
-2. Choisir l'adresse e-mail d'assistance (la vôtre), puis Enregistrer.
-3. Dans `data/config-comptes.js`, mettre `google: true`.
-
-**Apple** : il faut un compte **Apple Developer** payant (99 $ par an).
-1. Sur developer.apple.com : créer un App ID, un Services ID (domaine `profmaths-ca535.firebaseapp.com`, URL de retour `https://profmaths-ca535.firebaseapp.com/__/auth/handler`) et une clé « Sign in with Apple ».
-2. Console Firebase > Authentication > Méthode de connexion > **Apple** > Activer, et coller le Services ID, l'identifiant d'équipe, l'identifiant de la clé et la clé privée.
-3. Dans `data/config-comptes.js`, mettre `apple: true`.
-
-Un élève qui ouvre le site depuis une application de messagerie (WhatsApp, Instagram…) peut être refusé par Google : il suffit d'ouvrir le lien dans Chrome ou Safari.
-
-Mot de passe oublié : la console Firebase ne permet pas de choisir un nouveau mot de passe ; le plus simple est de supprimer le compte dans Authentication pour que l'élève en recrée un (la progression repart de zéro). Un outil de réinitialisation pour le professeur pourra être ajouté.
-La progression de chaque élève se lit dans Firestore, collection `eleves` (un tableau de bord professeur pourra être ajouté ensuite).
+3. Menu **Firestore Database** > Créer une base (région europe-west), mode production, puis publier les règles avec la commande ci-dessus.
+4. Paramètres du projet > Vos applications > icône Web `</>` : copier l'objet `firebaseConfig` dans `data/config-comptes.js`.
+5. Authentication > Paramètres > Domaines autorisés : ajouter l'adresse du site (ex. `xxx.github.io`).
