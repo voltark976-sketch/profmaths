@@ -19,7 +19,7 @@
   --r: 12px;
 }
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
+  :root:not([data-theme="light"]):not([data-theme="image"]) {
     --fond: #0c1a1c; --surface: #132629; --encre: #e2eeef; --doux: #8fa9ac; --trait: #24403f;
     --lagon: #3cc2b6; --lagon-pale: #123a38; --ylang: #f0b93a; --ylang-pale: #3a2f12;
     --bon: #5fd18a; --bon-pale: #14331f; --faux: #ff8a78; --faux-pale: #3d1c17; --courbe2: #ff9a62;
@@ -375,11 +375,11 @@ pre.code code { font: inherit; }
 [data-niv="terminale"] { --ac: #1e63b8; --ac-pale: #e1ecfa; }
 [data-niv="terminale-spe"] { --ac: #b3345e; --ac-pale: #fbe4eb; }
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) { --ombre: 0 1px 2px rgba(0, 0, 0, 0.3); --ombre-haut: 0 10px 26px rgba(0, 0, 0, 0.45); --hero-a: #0b5e5a; --hero-b: #123f63; }
-  :root:not([data-theme="light"]) [data-niv="automatismes"] { --ac: #f3a24b; --ac-pale: #3a2611; }
-  :root:not([data-theme="light"]) [data-niv="premiere"] { --ac: #b19dff; --ac-pale: #2a2148; }
-  :root:not([data-theme="light"]) [data-niv="terminale"] { --ac: #7fb3ff; --ac-pale: #172c47; }
-  :root:not([data-theme="light"]) [data-niv="terminale-spe"] { --ac: #ff8fb1; --ac-pale: #43192a; }
+  :root:not([data-theme="light"]):not([data-theme="image"]) { --ombre: 0 1px 2px rgba(0, 0, 0, 0.3); --ombre-haut: 0 10px 26px rgba(0, 0, 0, 0.45); --hero-a: #0b5e5a; --hero-b: #123f63; }
+  :root:not([data-theme="light"]):not([data-theme="image"]) [data-niv="automatismes"] { --ac: #f3a24b; --ac-pale: #3a2611; }
+  :root:not([data-theme="light"]):not([data-theme="image"]) [data-niv="premiere"] { --ac: #b19dff; --ac-pale: #2a2148; }
+  :root:not([data-theme="light"]):not([data-theme="image"]) [data-niv="terminale"] { --ac: #7fb3ff; --ac-pale: #172c47; }
+  :root:not([data-theme="light"]):not([data-theme="image"]) [data-niv="terminale-spe"] { --ac: #ff8fb1; --ac-pale: #43192a; }
 }
 :root[data-theme="dark"] { --ombre: 0 1px 2px rgba(0, 0, 0, 0.3); --ombre-haut: 0 10px 26px rgba(0, 0, 0, 0.45); --hero-a: #0b5e5a; --hero-b: #123f63; }
 :root[data-theme="dark"] [data-niv="automatismes"] { --ac: #f3a24b; --ac-pale: #3a2611; }
@@ -465,7 +465,7 @@ a.chap:hover .go { transform: translateX(3px); }
 .onglets a:hover { background: var(--ac-pale); color: var(--ac); }
 .onglets a[aria-current="page"] { background: var(--ac); color: #fff; box-shadow: 0 3px 10px color-mix(in srgb, var(--ac) 40%, transparent); }
 :root[data-theme="dark"] .onglets a[aria-current="page"] { color: var(--fond); }
-@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .onglets a[aria-current="page"] { color: var(--fond); } }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]):not([data-theme="image"]) .onglets a[aria-current="page"] { color: var(--fond); } }
 
 /* Cours */
 .pdf { box-shadow: var(--ombre); transition: transform 0.15s, box-shadow 0.15s; }
@@ -509,3 +509,26 @@ a.chap:hover .go { transform: translateX(3px); }
   .chapitres > li, .series > li, .methode, .hero, .invite, .retour-rep { animation: none; }
   a.chap:hover, .serie:hover, .invite:hover, .pdf:hover { transform: none; }
 }
+
+/* ==========================================================================
+   Apparence au choix sur ordinateur : clair, sombre ou imagé
+   ========================================================================== */
+.theme-choix { display: none; }
+@media (min-width: 760px) {
+  .theme-choix { display: flex; padding: 3px; gap: 2px; border-radius: 999px; background: color-mix(in srgb, var(--trait) 55%, transparent); margin-right: 6px; }
+  .theme-choix button { font: 700 0.78rem/1 var(--f-texte); padding: 6px 10px; border: 0; border-radius: 999px; background: transparent; color: var(--doux); cursor: pointer; transition: background-color 0.15s, color 0.15s; }
+  .theme-choix button:hover { color: var(--encre); }
+  .theme-choix button[aria-pressed="true"] { background: var(--surface); color: var(--lagon); box-shadow: var(--ombre); }
+}
+/* Thème imagé : base claire, fond de sable et de lagon, courbes et symboles très discrets */
+:root[data-theme="image"] { --fond: #eef5f1; --trait: #cfe0dc; }
+:root[data-theme="image"] body {
+  background-color: var(--fond);
+  background-image:
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='560' height='560' viewBox='0 0 560 560'><g fill='none' stroke='%230a7c76' stroke-opacity='.11' stroke-width='1.6' stroke-linecap='round'><path d='M20 130 Q95 20 170 130 T320 130'/><path d='M380 50 Q440 210 500 50'/><circle cx='440' cy='350' r='36'/><path d='M404 350h72M440 314v72'/><path d='M60 360 l64 -74 l42 74 z'/><path d='M230 450 c30 -42 62 42 92 0 s62 42 92 0'/><path d='M36 500 h74 M73 463 v74'/></g><g fill='%23c98a08' fill-opacity='.17' font-family='Georgia,serif' font-style='italic' font-size='34'><text x='262' y='62'>%CF%80</text><text x='196' y='272'>x%C2%B2</text><text x='462' y='500'>%E2%88%9A2</text><text x='22' y='240'>%E2%88%9E</text><text x='312' y='346'>%CE%94</text></g></svg>"),
+    radial-gradient(70rem 45rem at -10% -10%, rgba(60, 194, 182, 0.22), transparent 62%),
+    radial-gradient(60rem 45rem at 110% 110%, rgba(240, 185, 58, 0.2), transparent 60%),
+    radial-gradient(40rem 30rem at 100% 0%, rgba(13, 90, 140, 0.1), transparent 60%);
+  background-attachment: fixed;
+}
+:root[data-theme="image"] .chap-off { background: color-mix(in srgb, var(--surface) 70%, transparent); }

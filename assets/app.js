@@ -43,6 +43,21 @@
   });
   majBoutonCompte();
 
+  /* ---------- Apparence : clair, sombre ou imagé (sur ordinateur) ---------- */
+  // Sans choix enregistré, le site suit le réglage clair/sombre de l'appareil.
+  const CLE_THEME = "profmaths:theme";
+  const boutonsTheme = document.querySelectorAll("[data-theme-choix]");
+  function majTheme() {
+    const t = document.documentElement.dataset.theme || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    boutonsTheme.forEach((b) => b.setAttribute("aria-pressed", b.dataset.themeChoix === t));
+  }
+  boutonsTheme.forEach((b) => b.addEventListener("click", () => {
+    document.documentElement.dataset.theme = b.dataset.themeChoix;
+    try { localStorage.setItem(CLE_THEME, b.dataset.themeChoix); } catch (e) {}
+    majTheme();
+  }));
+  majTheme();
+
   /* ---------- Mise en forme du texte : $maths$, **gras**, puces ---------- */
   const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
   function tex(src, display) {
