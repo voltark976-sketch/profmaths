@@ -119,6 +119,13 @@ window.CATALOGUE = {
           titre: "Probabilités conditionnelles et arbres pondérés",
           statut: "disponible",
           drive: ""
+        },
+        {
+          id: "seconde-statistiques-2",
+          numero: 16,
+          titre: "Statistiques 2 et échantillonnage",
+          statut: "disponible",
+          drive: ""
         }
       ]
     },

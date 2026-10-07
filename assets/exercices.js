@@ -4825,6 +4825,116 @@
   };
 
 
+  /* ---------- Seconde, chapitre 16 : statistiques 2 et échantillonnage (préfixe ec-) ---------- */
+  // Figures du cours du chapitre 16 : 40 tortues, classes [60 ; 70[ … [100 ; 110[
+  const TORTUES = [4, 10, 14, 8, 4];
+  FIGURES["histogramme-tortues"] = () => graph({ xmin: 55, xmax: 115, ymin: -1, ymax: 16, xstep: 5, ystep: 1, xetiq: 10, yetiq: 2, h: 230, padL: 24, padB: 22, rects: TORTUES.map((e, k) => ({ a: 60 + 10 * k, b: 70 + 10 * k, h: e })), xlabel: "kg", aria: "Histogramme des masses de 40 tortues" });
+  FIGURES["polygone-tortues"] = () => {
+    const P = [[60, 0], [70, 10], [80, 35], [90, 70], [100, 90], [110, 100]];
+    const f = (x) => { for (let i = 1; i < P.length; i++) if (x <= P[i][0]) return P[i - 1][1] + ((x - P[i - 1][0]) / (P[i][0] - P[i - 1][0])) * (P[i][1] - P[i - 1][1]); return 100; };
+    return graph({ xmin: 55, xmax: 115, ymin: -5, ymax: 105, xstep: 5, ystep: 10, xetiq: 10, yetiq: 20, h: 240, padL: 28, padB: 22, curves: [{ f, a: 60, b: 110, closed: false }], hlines: [{ y: 50, label: "50 %" }], points: P.map(([x, y]) => ({ x, y })), xlabel: "kg", aria: "Polygone des fréquences cumulées croissantes" });
+  };
+
+  // Série regroupée en classes de même amplitude : masses de tortues vertes (kg)
+  function serieClasses() {
+    const a0 = pick([60, 80, 100]), amp = pick([10, 20]), k = rand(4, 5);
+    const bornes = Array.from({ length: k + 1 }, (_, i) => a0 + i * amp);
+    const eff = Array.from({ length: k }, (_, i) => rand(2, 12) + (i === 1 || i === 2 ? rand(4, 10) : 0));
+    const N = eff.reduce((s, x) => s + x, 0);
+    const cum = eff.reduce((t, x) => (t.push((t[t.length - 1] || 0) + x), t), []);
+    const classes = bornes.slice(0, -1).map((b, i) => `[${b}\\,;${bornes[i + 1]}[`);
+    const centres = bornes.slice(0, -1).map((b) => b + amp / 2);
+    const tableau = { lignes: [["\\text{Masse (kg)}", ...classes], ["\\text{Effectif}", ...eff]] };
+    return { a0, amp, k, bornes, eff, N, cum, classes, centres, tableau };
+  }
+
+  GEN["ec-moyenne"] = function () {
+    const S = serieClasses(), m = S.centres.reduce((s, c, i) => s + c * S.eff[i], 0) / S.N, r = Math.round(m * 10) / 10;
+    return {
+      enonce: "Masses (en kg) de tortues vertes mesurées sur une plage de Mayotte, regroupées en classes. Estime la masse moyenne en utilisant le centre de chaque classe (arrondis au dixième).",
+      tableau: S.tableau,
+      mode: "nombre", prefixe: "Moyenne ≈", suffixe: "kg", attendu: r, tolerance: 0.051,
+      aides: [`Le centre de la classe $[a\\,;b[$ est $\\dfrac{a + b}{2}$ : ici $${S.centres.join("\\,;\\,")}$.`, "Moyenne pondérée : $\\dfrac{\\text{somme des (centre} \\times \\text{effectif)}}{\\text{effectif total}}$.", `Effectif total : $${S.N}$.`],
+      solution: `$\\bar{x} \\approx \\dfrac{${S.centres.map((c, i) => `${c} \\times ${S.eff[i]}`).join(" + ")}}{${S.N}} = \\dfrac{${S.centres.reduce((s, c, i) => s + c * S.eff[i], 0)}}{${S.N}} \\approx ${nb(r)}$ kg.\n\nC'est une **estimation** : on suppose que toutes les tortues d'une classe ont la masse du centre.`
+    };
+  };
+
+  GEN["ec-cumul"] = function () {
+    const S = serieClasses(), i = rand(0, S.k - 2), freq = Math.random() < 0.4;
+    return {
+      enonce: `Masses (en kg) de tortues vertes regroupées en classes. ${freq ? `Quelle est la **fréquence cumulée croissante** (en %, arrondie à l'unité) des tortues de moins de $${S.bornes[i + 1]}$ kg ?` : `Combien de tortues pèsent moins de $${S.bornes[i + 1]}$ kg (effectif cumulé croissant) ?`}`,
+      tableau: S.tableau,
+      mode: "nombre", prefixe: freq ? "Fréquence (%) :" : "Effectif cumulé :", attendu: freq ? Math.round((S.cum[i] / S.N) * 100) : S.cum[i], tolerance: freq ? 0.51 : 1e-9,
+      aides: ["L'effectif cumulé croissant d'une classe est la somme des effectifs de cette classe et de toutes celles d'avant.", `Additionne les effectifs des classes jusqu'à $[${S.bornes[i]}\\,;${S.bornes[i + 1]}[$.`, freq ? `Puis divise par l'effectif total $${S.N}$ et multiplie par $100$.` : "Moins de $" + S.bornes[i + 1] + "$ kg : toutes les classes à gauche de cette borne."],
+      solution: `$${S.eff.slice(0, i + 1).join(" + ")} = ${S.cum[i]}$ tortues pèsent moins de $${S.bornes[i + 1]}$ kg.` + (freq ? ` Fréquence cumulée : $\\dfrac{${S.cum[i]}}{${S.N}} \\approx ${Math.round((S.cum[i] / S.N) * 100)}\\,\\%$.` : "")
+    };
+  };
+
+  GEN["ec-classe-mediane"] = function () {
+    const S = serieClasses(), j = S.cum.findIndex((c) => c >= S.N / 2);
+    return {
+      enonce: "Masses (en kg) de tortues vertes regroupées en classes. Quelle est la **classe médiane** ?",
+      tableau: S.tableau,
+      mode: "choix", choix: S.classes.map((c) => `$${c}$`), attendu: j,
+      aides: [`Effectif total : $${S.N}$. La moitié : $${nb(S.N / 2)}$.`, `Effectifs cumulés croissants : $${S.cum.join("\\,;\\,")}$.`, `La classe médiane est la première dont l'effectif cumulé atteint $${nb(S.N / 2)}$.`],
+      solution: `Effectifs cumulés : $${S.cum.join("\\,;\\,")}$. On atteint $\\dfrac{${S.N}}{2} = ${nb(S.N / 2)}$ dans la classe $${S.classes[j]}$ : c'est la classe médiane.`
+    };
+  };
+
+  GEN["ec-mediane"] = function () {
+    const S = serieClasses(), j = S.cum.findIndex((c) => c >= S.N / 2), avant = j ? S.cum[j - 1] : 0;
+    const med = S.bornes[j] + ((S.N / 2 - avant) / S.eff[j]) * S.amp, r = Math.round(med * 10) / 10;
+    return {
+      enonce: "Masses (en kg) de tortues vertes regroupées en classes. On suppose que les tortues d'une classe sont réparties **uniformément**. Estime la médiane (arrondie au dixième).",
+      tableau: S.tableau,
+      mode: "nombre", prefixe: "Médiane ≈", suffixe: "kg", attendu: r, tolerance: 0.051,
+      aides: [`Classe médiane : $${S.classes[j]}$ (effectifs cumulés $${S.cum.join("\\,;\\,")}$).`, `Avant cette classe : $${avant}$ tortues. Il en manque $${nb(S.N / 2)} - ${avant} = ${nb(S.N / 2 - avant)}$ pour arriver à la moitié.`, `Ces $${nb(S.N / 2 - avant)}$ tortues occupent la fraction $\\dfrac{${nb(S.N / 2 - avant)}}{${S.eff[j]}}$ de la classe, d'amplitude $${S.amp}$.`],
+      solution: `$Me \\approx ${S.bornes[j]} + \\dfrac{${nb(S.N / 2 - avant)}}{${S.eff[j]}} \\times ${S.amp} \\approx ${nb(r)}$ kg.\n\nC'est ce qu'on lit sur le polygone des fréquences cumulées croissantes, à l'ordonnée $50\\,\\%$.`
+    };
+  };
+
+  GEN["ec-histogramme"] = function () {
+    const S = serieClasses(), i = rand(0, S.k - 1), maxE = Math.max(...S.eff);
+    return {
+      enonce: `L'histogramme représente les masses (en kg) de tortues vertes ; les classes ont toutes la même amplitude, la hauteur des rectangles est l'effectif. Combien de tortues ont une masse dans $${S.classes[i]}$ ?`,
+      figure: graph({ xmin: S.a0 - S.amp / 2, xmax: S.bornes[S.k] + S.amp / 2, ymin: -1, ymax: maxE + 3, xstep: S.amp / 2, ystep: 1, xetiq: S.amp, yetiq: maxE > 15 ? 4 : 2, h: 240, padL: 24, padB: 22, rects: S.eff.map((e, k) => ({ a: S.bornes[k], b: S.bornes[k + 1], h: e })), aria: "Histogramme des masses" }),
+      mode: "nombre", prefixe: "Effectif :", attendu: S.eff[i],
+      aides: [`Repère le rectangle entre $${S.bornes[i]}$ et $${S.bornes[i + 1]}$ sur l'axe horizontal.`, "Lis sa hauteur sur l'axe vertical.", "Toutes les classes ont la même amplitude : la hauteur est directement l'effectif."],
+      solution: `Le rectangle au-dessus de $${S.classes[i]}$ monte jusqu'à $${S.eff[i]}$ : $${S.eff[i]}$ tortues.`
+    };
+  };
+
+  GEN["ec-lgn"] = function () {
+    const T = [
+      { q: "On lance $10$ fois une pièce équilibrée et on obtient $7$ fois « pile ». Que peut-on dire ?", b: "Rien d'anormal : sur $10$ lancers, la fréquence fluctue beaucoup", f: ["La pièce est truquée", "La probabilité de « pile » est $0{,}7$", "Au prochain lancer, on aura sûrement « face »"], s: "Sur un petit échantillon, la fréquence observée **fluctue** : $7$ « pile » sur $10$ arrive assez souvent. Seule une très longue série permettrait de douter. Et la pièce n'a pas de mémoire." },
+      { q: "On lance un dé équilibré un très grand nombre de fois. Vers quoi se rapproche la fréquence d'apparition du $6$ ?", b: "$\\dfrac{1}{6}$", f: ["$6$", "$0{,}6$", "Elle ne se stabilise pas"], s: "**Loi des grands nombres** : quand on répète une expérience un grand nombre de fois, la fréquence observée se rapproche de la probabilité, ici $\\dfrac{1}{6} \\approx 0{,}167$." },
+      { q: "Deux élèves simulent $100$ lancers d'une pièce équilibrée. L'un obtient $46$ « pile », l'autre $55$. Pourquoi ?", b: "C'est la fluctuation d'échantillonnage", f: ["L'un des deux s'est trompé", "La pièce change de probabilité", "Il fallait obtenir exactement $50$"], s: "Deux échantillons de même taille ne donnent pas la même fréquence : c'est la **fluctuation d'échantillonnage**. Plus l'échantillon est grand, plus elle est faible." },
+      { q: "Sur $10\\,000$ naissances à Mayotte, on observe une fréquence de garçons de $0{,}51$. Que peut-on dire ?", b: "$0{,}51$ est une estimation de la probabilité qu'un bébé soit un garçon", f: ["La probabilité est exactement $0{,}5$", "La probabilité est exactement $0{,}51$", "Une naissance sur deux est forcément un garçon"], s: "Un modèle probabiliste ne décrit pas exactement la réalité : sur un grand échantillon, la fréquence observée **estime** la probabilité, sans l'égaler forcément." }
+    ];
+    const t = pick(T), ch = melangeChoix(t.b, t.f);
+    return {
+      enonce: t.q, mode: "choix", choix: ch.choix, attendu: ch.attendu,
+      aides: ["Sur un petit nombre d'expériences, la fréquence observée varie beaucoup.", "Sur un très grand nombre d'expériences, elle se rapproche de la probabilité (loi des grands nombres).", "Un modèle (une probabilité) et une observation (une fréquence) sont deux choses différentes."],
+      solution: t.s
+    };
+  };
+
+  GEN["ec-python"] = function () {
+    const t = rand(0, 2);
+    const P = [
+      ["from random import randint\n\ndef experience():\n    return randint(1, 6) == 6", "1/6", 1 / 6, "$\\texttt{randint(1, 6)}$ donne un entier au hasard de $1$ à $6$ : la probabilité d'obtenir $6$ est $\\dfrac{1}{6}$."],
+      ["from random import randint\n\ndef experience():\n    return randint(1, 6) % 2 == 0", "1/2", 1 / 2, "Le résultat est pair ($2$, $4$ ou $6$) avec la probabilité $\\dfrac{3}{6} = \\dfrac{1}{2}$."],
+      ["from random import randint\n\ndef experience():\n    return randint(1, 6) + randint(1, 6) == 7", "1/6", 1 / 6, "Avec deux dés, $36$ couples équiprobables, dont $6$ de somme $7$ : $\\dfrac{6}{36} = \\dfrac{1}{6}$."]
+    ][t];
+    return {
+      enonce: "On considère le programme :\n\n```python\n" + P[0] + "\n\ndef frequence(n):\n    c = 0\n    for i in range(n):\n        if experience():\n            c = c + 1\n    return c / n\n```\n\nPour $n$ très grand, vers quelle valeur $\\texttt{frequence(n)}$ se rapproche-t-elle ? (Fraction ou décimal à $0{,}01$ près.)",
+      mode: "nombre", prefixe: "Valeur :", attendu: P[2], tolerance: 0.006,
+      aides: ["$\\texttt{frequence(n)}$ répète $n$ fois l'expérience et renvoie la fréquence des succès.", "D'après la loi des grands nombres, cette fréquence se rapproche de la probabilité de succès.", "Calcule la probabilité que $\\texttt{experience()}$ renvoie $\\texttt{True}$."],
+      solution: `${P[3]}\n\nPour $n$ grand, $\\texttt{frequence(n)}$ se rapproche de $\\dfrac{${P[1].split("/").join("}{")}} \\approx ${nb(+P[2].toFixed(3))}$.`
+    };
+  };
+
+
   /* Séries « flash » d'un thème : mélange de ses générateurs */
   const THEMES = {
     "am-flash-cn": ["am-comparer", "am-fractions", "am-puissances", "am-ecritures", "am-ordre-grandeur", "am-coherence", "auto-conversions"],
@@ -4841,7 +4951,7 @@
 
 
   /* Une « erreur connue » ne doit jamais coïncider avec la bonne réponse (à la tolérance près) */
-  Object.keys(GEN).filter((k) => /^(ld|am|cd|ar|cl|fa|ve|st|vx|tc|co|dr|fr|sg|pc)-/.test(k)).forEach((k) => {
+  Object.keys(GEN).filter((k) => /^(ld|am|cd|ar|cl|fa|ve|st|vx|tc|co|dr|fr|sg|pc|ec)-/.test(k)).forEach((k) => {
     const g = GEN[k];
     GEN[k] = (i) => { const q = g(i); if (q.erreurs) q.erreurs = q.erreurs.filter((e) => Math.abs(e.valeur - q.attendu) >= (q.tolerance || 1e-9)); return q; };
   });
