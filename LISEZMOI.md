@@ -67,7 +67,8 @@ Le fichier Excel (export Pronote) a une feuille par classe ou groupe, nommée pa
 Les identifiants arrivent dans `Documents\Gestion site lycée` : `identifiants.csv` (Excel) et `identifiants.html` (étiquettes à imprimer et découper). **Ces fichiers ne doivent jamais aller dans le dossier du site**, qui est public.
 
 - Mot de passe oublié : `node outils/comptes/creer-comptes.js --nouveau-mdp prenom.nom` (la progression est gardée).
-- Compte professeur : `node outils/comptes/creer-comptes.js --prof prof.maths` (crée ou réinitialise le compte ; mot de passe dans `Documents\Gestion site lycée\compte-professeur.txt`).
+- Compte professeur : `node outils/comptes/creer-comptes.js --prof prenom.nom --prenom Prénom --nom NOM` (crée ou réinitialise le compte ; mot de passe dans `Documents\Gestion site lycée\compte-professeur-prenom.nom.txt`). Chaque compte professeur voit le suivi de tous les élèves.
+- Voir tous les comptes : console Firebase > Authentication > Utilisateurs (les élèves ont un UID qui commence par `eleve-`, les professeurs par `prof-`), ou `identifiants.csv`.
 
 ### Suivi des devoirs
 Connecté avec le compte professeur, la page **Suivi des élèves** (`#suivi`, lien sur la page Mon compte) montre, par classe et par chapitre, les étoiles de chaque série, le score au QCM et la date du dernier essai. Le champ « Fait depuis le » ne compte que ce qui a été fait après la date donnée (le jour où le devoir a été donné, par exemple).

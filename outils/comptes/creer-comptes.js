@@ -6,9 +6,9 @@
         « NOM Prénom » (export Pronote). Les élèves déjà créés sont ignorés, ceux marqués « Sortie » aussi.
     node outils/comptes/creer-comptes.js --nouveau-mdp prenom.nom
         Donne un nouveau mot de passe à un élève (sa progression est gardée).
-    node outils/comptes/creer-comptes.js --prof identifiant
-        Crée (ou réinitialise) le compte du professeur, qui voit la page « Suivi des élèves ».
-        Son mot de passe est écrit dans Documents\Gestion site lycée\compte-professeur.txt.
+    node outils/comptes/creer-comptes.js --prof prenom.nom --prenom Prénom --nom NOM
+        Crée (ou réinitialise) un compte professeur, qui voit la page « Suivi des élèves ».
+        Son mot de passe est écrit dans Documents\Gestion site lycée\compte-professeur-<identifiant>.txt.
 
   Option --classe "Première spécialité" : classe affichée sur le site et dans le classement
     (par défaut, devinée d'après le nom de la feuille : « 2xx » Seconde, « 1SPE » Première spécialité,
@@ -150,13 +150,17 @@ const classe = opt("--classe"), reinit = opt("--nouveau-mdp"), prof = opt("--pro
 const sauver = () => { fs.writeFileSync(REGISTRE, JSON.stringify(reg, null, 1)); ecrireListes(reg); };
 
 if (prof) {
-  const mdp = motDePasse(5);
+  // Plusieurs comptes professeurs possibles (ex. --prof louise.macron --prenom Louise --nom MACRON)
+  const mdp = motDePasse(5), prenomProf = opt("--prenom") || "Professeur", nomProf = (opt("--nom") || "").toUpperCase();
   const idProf = prof.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9._-]/g, "") || "prof";
-  reg.prof = { identifiant: idProf, uid: "prof-" + norm(prof) };
-  importer([compteImport(Object.assign({ prenom: "Professeur" }, reg.prof), mdp, { prof: true, prenom: "Professeur" })]);
+  const p = { identifiant: idProf, uid: "prof-" + norm(prof), prenom: prenomProf, nom: nomProf };
+  reg.profs = (reg.profs || (reg.prof ? [reg.prof] : [])).filter((x) => x.uid !== p.uid).concat(p);
+  delete reg.prof;
+  if (!importer([compteImport(p, mdp, { prof: true, prenom: prenomProf, nom: nomProf })])) { console.error("Échec de l'envoi à Firebase."); process.exit(1); }
   sauver();
-  fs.writeFileSync(path.join(DOSSIER, "compte-professeur.txt"), `Identifiant : ${reg.prof.identifiant}\r\nMot de passe : ${mdp}\r\n`);
-  console.log(`\nCompte professeur ${reg.prof.identifiant} : mot de passe dans ${path.join(DOSSIER, "compte-professeur.txt")}`);
+  const fichier = path.join(DOSSIER, `compte-professeur-${idProf}.txt`);
+  fs.writeFileSync(fichier, `Identifiant : ${idProf}\r\nMot de passe : ${mdp}\r\n`);
+  console.log(`\nCompte professeur ${idProf} : mot de passe dans ${fichier}`);
 } else if (reinit) {
   const c = reg.eleves.find((x) => x.identifiant === reinit);
   if (!c) { console.error("Identifiant inconnu : " + reinit); process.exit(1); }
