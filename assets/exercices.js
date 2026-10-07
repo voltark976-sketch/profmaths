@@ -101,6 +101,15 @@
         s += `<text class="g-clabel g-curve-${i}" x="${X(lx) + (c.dx || -4)}" y="${Y(c.f(lx)) + (c.dy || -8)}" text-anchor="end">${c.label}</text>`;
       }
     });
+    // vecteurs : flèches de (x1 ; y1) à (x2 ; y2), couleur c (0 ou 1), nom affiché au milieu
+    (o.fleches || []).forEach((f) => {
+      const c = f.c || 0, ax = X(f.x1), ay = Y(f.y1), bx = X(f.x2), by = Y(f.y2), t = Math.atan2(by - ay, bx - ax);
+      const pt = (r, a) => `${+(bx - r * Math.cos(t + a)).toFixed(1)} ${+(by - r * Math.sin(t + a)).toFixed(1)}`;
+      s += `<path class="g-curve g-curve-${c}" d="M${ax} ${ay}L${pt(6, 0)}"/><path class="g-end g-curve-${c}" d="M${bx} ${by}L${pt(11, 0.4)}L${pt(11, -0.4)}Z"/>`;
+      if (f.label) s += `<text class="g-clabel g-curve-${c}" x="${+((ax + bx) / 2 + 9 * Math.sin(t)).toFixed(1)}" y="${+((ay + by) / 2 - 9 * Math.cos(t) + 4).toFixed(1)}" text-anchor="middle">${f.label}</text>`;
+      // petite flèche au-dessus du nom du vecteur
+      if (f.label) s += `<text class="g-clabel g-curve-${c}" style="font-size:10px" x="${+((ax + bx) / 2 + 9 * Math.sin(t)).toFixed(1)}" y="${+((ay + by) / 2 - 9 * Math.cos(t) - 7).toFixed(1)}" text-anchor="middle">→</text>`;
+    });
     (o.points || []).forEach((p) => {
       s += `<circle class="g-point" cx="${X(p.x)}" cy="${Y(p.y)}" r="3.5"/>`;
       if (p.label) s += p.gauche
@@ -3520,6 +3529,502 @@
   };
 
 
+  /* ---------- Seconde, chapitre 5 : calcul littéral et équations (préfixe cl-) ---------- */
+  const expTex = (n) => (n < 0 ? `{${n}}` : `${n}`);
+
+  GEN["cl-puissances"] = function () {
+    const a = pick([2, 3, 5, 7, 10, 11]), t = rand(0, 4);
+    const n = randNZ(-6, 9), p = randNZ(-6, 9);
+    if (t === 4) {
+      // Attention aux signes : (−3)^n et −3^n
+      const b = rand(2, 5), m = rand(2, 4), avec = Math.random() < 0.5;
+      const v = avec ? (-b) ** m : -(b ** m);
+      return {
+        enonce: `Calcule $${avec ? `(-${b})^${m}` : `-${b}^${m}`}$.`,
+        mode: "nombre", prefixe: "Résultat :", attendu: v,
+        erreurs: [{ valeur: -v, message: "Attention au signe : la puissance porte-t-elle sur le signe moins ?" }],
+        aides: [avec ? `Les parenthèses sont là : on multiplie $${m}$ fois le nombre $(-${b})$.` : `Sans parenthèses, la puissance ne porte que sur $${b}$ : $-${b}^${m} = -(${b}^${m})$.`, `$${b}^${m} = ${b ** m}$.`, "Règle des signes : un nombre pair de facteurs négatifs donne un résultat positif."],
+        solution: avec ? `$(-${b})^${m} = ${Array(m).fill(`(-${b})`).join(" \\times ")} = ${v}$ (${m % 2 ? "nombre impair de signes moins : négatif" : "nombre pair de signes moins : positif"}).` : `$-${b}^${m} = -(${Array(m).fill(b).join(" \\times ")}) = ${v}$.`
+      };
+    }
+    const F = [
+      [`${a}^${expTex(n)} \\times ${a}^${expTex(p)}`, n + p, `$a^n \\times a^p = a^{n+p}$ : on **additionne** les exposants. $${n} + ${par(p)} = ${n + p}$.`],
+      [`\\dfrac{${a}^${expTex(n)}}{${a}^${expTex(p)}}`, n - p, `$\\dfrac{a^n}{a^p} = a^{n-p}$ : on **soustrait** les exposants. $${n} - ${par(p)} = ${n - p}$.`],
+      [`\\left(${a}^${expTex(n)}\\right)^${expTex(p)}`, n * p, `$(a^n)^p = a^{n \\times p}$ : on **multiplie** les exposants. $${n} \\times ${par(p)} = ${n * p}$.`],
+      [`\\dfrac{1}{${a}^${expTex(n)}}`, -n, `$\\dfrac{1}{a^n} = a^{-n}$. Donc l'exposant est $${-n}$.`]
+    ][t];
+    return {
+      enonce: `Écris $${F[0]}$ sous la forme $${a}^{n}$. Que vaut $n$ ?`,
+      mode: "nombre", prefixe: "n =", attendu: F[1],
+      erreurs: t === 0 ? [{ valeur: n * p, message: "Pour un produit de puissances, on additionne les exposants (on ne les multiplie pas)." }] : t === 2 ? [{ valeur: n + p, message: "Pour une puissance de puissance, on multiplie les exposants." }] : [],
+      aides: ["Les règles : $a^n \\times a^p = a^{n+p}$ ; $\\dfrac{a^n}{a^p} = a^{n-p}$ ; $(a^n)^p = a^{np}$ ; $\\dfrac{1}{a^n} = a^{-n}$.", ["Produit : on additionne les exposants.", "Quotient : exposant du haut moins exposant du bas.", "Puissance d'une puissance : on multiplie les exposants.", "Inverse : on change le signe de l'exposant."][t], "Attention aux exposants négatifs : mets-les entre parenthèses dans ton calcul."],
+      solution: `${F[2]}\n\nDonc $${F[0]} = ${a}^{${F[1]}}$.`
+    };
+  };
+
+  GEN["cl-racines"] = function () {
+    const t = rand(0, 2);
+    if (t === 0) {
+      // Extraire un carré parfait : √(k²m) = k√m
+      const k = rand(2, 9), m = pick([2, 3, 5, 6, 7, 10]), n = k * k * m;
+      return {
+        enonce: `Écris $\\sqrt{${n}}$ sous la forme $a\\sqrt{${m}}$, avec $a$ entier. Que vaut $a$ ?`,
+        mode: "nombre", prefixe: "a =", attendu: k,
+        erreurs: [{ valeur: k * k, message: `$${k * k}$ est le carré parfait ; on garde sa racine carrée.` }],
+        aides: [`Fais apparaître un carré parfait dans $${n}$ : $${n} = \\ldots \\times ${m}$.`, `$${n} = ${k * k} \\times ${m}$.`, `$\\sqrt{${k * k} \\times ${m}} = \\sqrt{${k * k}} \\times \\sqrt{${m}}$.`],
+        solution: `$\\sqrt{${n}} = \\sqrt{${k * k} \\times ${m}} = \\sqrt{${k * k}} \\times \\sqrt{${m}} = ${k}\\sqrt{${m}}$. Donc $a = ${k}$.`
+      };
+    }
+    if (t === 1) {
+      // √a × √b = √(ab) avec un produit carré parfait
+      const [x, y] = pick([[2, 8], [3, 12], [2, 18], [3, 27], [5, 20], [2, 32], [6, 24], [7, 28], [5, 45], [2, 50], [3, 48], [10, 40]]);
+      const v = Math.sqrt(x * y);
+      return {
+        enonce: `Calcule $\\sqrt{${x}} \\times \\sqrt{${y}}$.`,
+        mode: "nombre", prefixe: "Résultat :", attendu: v,
+        aides: ["Pour $a$ et $b$ positifs : $\\sqrt{a} \\times \\sqrt{b} = \\sqrt{a \\times b}$.", `$${x} \\times ${y} = ${x * y}$.`, `$${x * y}$ est un carré parfait : $${v}^2 = ${x * y}$.`],
+        solution: `$\\sqrt{${x}} \\times \\sqrt{${y}} = \\sqrt{${x} \\times ${y}} = \\sqrt{${x * y}} = ${v}$.`
+      };
+    }
+    // √(a²) = |a|
+    const a = randNZ(-12, 12);
+    return {
+      enonce: `Calcule $\\sqrt{${par(a)}^2}$.`,
+      mode: "nombre", prefixe: "Résultat :", attendu: Math.abs(a),
+      erreurs: a < 0 ? [{ valeur: a, message: "Une racine carrée n'est jamais négative." }] : [],
+      aides: [`Calcule d'abord le carré : $${par(a)}^2 = ${a * a}$.`, `Quel nombre **positif** a pour carré $${a * a}$ ?`, "Retiens : $\\sqrt{a^2} = |a|$, la valeur absolue de $a$."],
+      solution: `$\\sqrt{${par(a)}^2} = \\sqrt{${a * a}} = ${Math.abs(a)}$. C'est la règle $\\sqrt{a^2} = |a|$ : ${a < 0 ? `ici $|${a}| = ${-a}$` : "ici $a$ est positif, $|a| = a$"}.`
+    };
+  };
+
+  // Polynôme de degré 2 en x écrit proprement : [a, b, c] → « ax^2 + bx + c »
+  const p2 = (a, b, c) => poly([a, b, c]);
+
+  GEN["cl-developper"] = function () {
+    const t = rand(0, 3);
+    let tex, A, B, C, aide2;
+    if (t === 0) { const a = randNZ(-4, 4), b = randNZ(-7, 7), c = randNZ(-4, 4), d = randNZ(-7, 7); tex = `(${poly([a, b])})(${poly([c, d])})`; A = a * c; B = a * d + b * c; C = b * d; aide2 = `$(${poly([a, b])})(${poly([c, d])}) = ${a === 1 ? "" : a === -1 ? "-" : a}x \\times (${poly([c, d])}) ${sg(b)} \\times (${poly([c, d])})$.`; }
+    else if (t === 1) { const a = rand(1, 5), b = rand(1, 9); tex = `(${poly([a, b])})^2`; A = a * a; B = 2 * a * b; C = b * b; aide2 = `$(a + b)^2 = a^2 + 2ab + b^2$ avec $a = ${a === 1 ? "" : a}x$ et $b = ${b}$.`; }
+    else if (t === 2) { const a = rand(1, 5), b = rand(1, 9); tex = `(${poly([a, -b])})^2`; A = a * a; B = -2 * a * b; C = b * b; aide2 = `$(a - b)^2 = a^2 - 2ab + b^2$ avec $a = ${a === 1 ? "" : a}x$ et $b = ${b}$.`; }
+    else { const a = rand(1, 5), b = rand(1, 9); tex = `(${poly([a, b])})(${poly([a, -b])})`; A = a * a; B = 0; C = -b * b; aide2 = `$(a + b)(a - b) = a^2 - b^2$ avec $a = ${a === 1 ? "" : a}x$ et $b = ${b}$.`; }
+    const bonne = p2(A, B, C);
+    const faux = [p2(A, 0, C), p2(A, -B, C), p2(A, B, -C), p2(A + (A > 0 ? 1 : -1), B, C), p2(A, B ? B / 2 : 2 * Math.abs(C), C)];
+    const m = melangeChoix(`$${bonne}$`, shuffle(faux).map((f) => `$${f}$`));
+    return {
+      enonce: `Développe et réduis $${tex}$.`,
+      mode: "choix", choix: m.choix, attendu: m.attendu,
+      aides: [t === 0 ? "Double distributivité : chaque terme de la première parenthèse multiplie chaque terme de la seconde." : "Reconnais une identité remarquable.", aide2, t === 1 || t === 2 ? "N'oublie pas le double produit $2ab$ !" : "Fais attention aux signes, puis regroupe les termes en $x$."],
+      solution: `$${tex} = ${bonne}$.` + (t === 1 || t === 2 ? " Le terme du milieu est le double produit $2ab$." : t === 3 ? " Les termes en $x$ s'annulent : c'est $a^2 - b^2$." : "")
+    };
+  };
+
+  GEN["cl-factoriser"] = function () {
+    const t = rand(0, 2);
+    let tex, bonne, faux, aide2, sol;
+    if (t === 0) {
+      // facteur commun entre parenthèses : (x + a)(bx + c) + (x + a)(dx + e)
+      const a = randNZ(-6, 6), b = rand(1, 4), c = randNZ(-6, 6), d = rand(1, 4), e = randNZ(-6, 6);
+      const f = `(${poly([1, a])})`;
+      tex = `${f}(${poly([b, c])}) + ${f}(${poly([d, e])})`;
+      bonne = `${f}(${poly([b + d, c + e])})`;
+      faux = [`${f}(${poly([b - d, c - e])})`, `${f}^2(${poly([b + d, c + e])})`, `(${poly([1, 2 * a])})(${poly([b + d, c + e])})`];
+      aide2 = `Le facteur commun est $${f}$.`;
+      sol = `$${tex} = ${f}\\big[(${poly([b, c])}) + (${poly([d, e])})\\big] = ${bonne}$.`;
+    } else if (t === 1) {
+      // a²x² − b² = (ax − b)(ax + b)
+      const a = rand(1, 5), b = rand(1, 9);
+      tex = p2(a * a, 0, -b * b);
+      bonne = `(${poly([a, -b])})(${poly([a, b])})`;
+      faux = [`(${poly([a, -b])})^2`, `(${poly([a, b])})^2`, `(${poly([a * a, -b])})(${poly([a * a, b])})`];
+      aide2 = `$${tex} = (${a === 1 ? "" : a}x)^2 - ${b}^2$ : c'est $a^2 - b^2$.`;
+      sol = `$${tex} = (${a === 1 ? "" : a}x)^2 - ${b}^2 = ${bonne}$, d'après $a^2 - b^2 = (a - b)(a + b)$.`;
+    } else {
+      // a²x² ± 2abx + b² = (ax ± b)²
+      const a = rand(1, 4), b = rand(1, 8), s = pick([1, -1]);
+      tex = p2(a * a, 2 * a * b * s, b * b);
+      bonne = `(${poly([a, s * b])})^2`;
+      faux = [`(${poly([a, -s * b])})^2`, `(${poly([a, s * b])})(${poly([a, -s * b])})`, `(${poly([a * a, s * b])})^2`];
+      aide2 = `Le premier terme est $(${a === 1 ? "" : a}x)^2$, le dernier est $${b}^2$. Vérifie le double produit : $2 \\times ${a === 1 ? "" : a}x \\times ${b} = ${2 * a * b}x$.`;
+      sol = `$${tex} = (${a === 1 ? "" : a}x)^2 ${s > 0 ? "+" : "-"} 2 \\times ${a === 1 ? "" : a}x \\times ${b} + ${b}^2 = ${bonne}$.`;
+    }
+    const m = melangeChoix(`$${bonne}$`, faux.map((f) => `$${f}$`));
+    return {
+      enonce: `Factorise $${tex}$.`,
+      mode: "choix", choix: m.choix, attendu: m.attendu,
+      aides: ["Factoriser, c'est écrire sous forme d'un **produit**. Cherche d'abord un facteur commun, sinon une identité remarquable.", aide2, "Pour vérifier, développe ta réponse : tu dois retrouver l'expression de départ."],
+      solution: sol
+    };
+  };
+
+  GEN["cl-equation"] = function () {
+    let a, b, c, d;
+    do { a = randNZ(-9, 9); c = randNZ(-9, 9); b = randNZ(-12, 12); d = randNZ(-12, 12); } while (a === c);
+    const num = d - b, den = a - c, sol = num / den;
+    const solTex = frac(num, den);
+    return {
+      enonce: `Résous l'équation $${poly([a, b])} = ${poly([c, d])}$.` + (Number.isInteger(sol) ? "" : " Donne la solution sous forme de fraction, par exemple $7/3$."),
+      mode: "nombre", prefixe: "x =", attendu: sol,
+      erreurs: [{ valeur: -sol, message: "Erreur de signe : quand un terme change de membre, il change de signe." }, { valeur: den / num, message: "Tu as divisé dans le mauvais sens : $x = \\dfrac{\\ldots}{\\text{coefficient de } x}$." }].filter((e) => isFinite(e.valeur)),
+      aides: [`Regroupe les $x$ à gauche : retire $${c === 1 ? "" : c === -1 ? "-" : c}x$ des deux côtés.`, `On obtient $${den === 1 ? "" : den === -1 ? "-" : den}x ${sg(b)} = ${d}$, puis $${den === 1 ? "" : den === -1 ? "-" : den}x = ${num}$.`, `Divise par $${den}$.`],
+      solution: `$${poly([a, b])} = ${poly([c, d])} \\iff ${poly([den, 0])} = ${d} ${b > 0 ? "-" : "+"} ${Math.abs(b)} \\iff ${poly([den, 0])} = ${num} \\iff x = ${solTex}$.\n\nChaque étape est une **équivalence** ($\\iff$) : l'équation a une seule solution, $${solTex}$.`
+    };
+  };
+
+  GEN["cl-carre"] = function () {
+    const t = rand(0, 5);
+    let k, kTex, sol, expl;
+    if (t === 0) { k = -rand(1, 30); kTex = `${k}`; sol = []; expl = `Un carré n'est jamais négatif : $x^2 = ${k}$ n'a **aucune** solution.`; }
+    else if (t === 1) { k = 0; kTex = "0"; sol = [0]; expl = "$x^2 = 0$ a une seule solution : $0$."; }
+    else if (t <= 3) { const r = rand(1, 15); k = r * r; kTex = `${k}`; sol = [-r, r]; expl = `$${k} > 0$ : deux solutions, $-\\sqrt{${k}} = -${r}$ et $\\sqrt{${k}} = ${r}$.`; }
+    else { let p, q; do { p = rand(1, 9); q = rand(2, 9); } while (pgcd(p, q) !== 1); k = (p * p) / (q * q); kTex = `\\dfrac{${p * p}}{${q * q}}`; sol = [-p / q, p / q]; expl = `$${kTex} > 0$ : deux solutions, $-\\sqrt{${kTex}} = -\\dfrac{${p}}{${q}}$ et $\\dfrac{${p}}{${q}}$. Écris-les $-${p}/${q}$ et $${p}/${q}$.`; }
+    return {
+      enonce: `Résous dans $\\mathbb{R}$ l'équation $x^2 = ${kTex}$. Écris les solutions séparées par « ; », ou « aucune ».`,
+      mode: "ensemble", prefixe: "Solution(s) :", attendu: sol,
+      aides: ["Trois cas : si $k < 0$, aucune solution ; si $k = 0$, une seule solution ; si $k > 0$, deux solutions $-\\sqrt{k}$ et $\\sqrt{k}$.", `Ici $k = ${kTex}$.`, "N'oublie pas la solution **négative** : $(-3)^2 = 9$ aussi."],
+      solution: expl
+    };
+  };
+
+  GEN["cl-fraction"] = function () {
+    // a/(x + c) + b  ou  a/x − b/(x + c), mis au même dénominateur
+    const t = rand(0, 1);
+    if (t === 0) {
+      const a = randNZ(-7, 7), b = randNZ(-5, 5), c = randNZ(-6, 6);
+      const den = poly([1, c]), num = poly([b, a + b * c]);
+      const bonne = `\\dfrac{${num}}{${den}}`;
+      const faux = [`\\dfrac{${a + b}}{${den}}`, `\\dfrac{${poly([b, a + c])}}{${den}}`, `\\dfrac{${poly([b, a - b * c])}}{${den}}`];
+      const m = melangeChoix(`$${bonne}$`, faux.map((f) => `$${f}$`));
+      return {
+        enonce: `Pour $x \\neq ${-c}$, écris $\\dfrac{${a}}{${den}} ${sg(b)}$ sous la forme d'un seul quotient.`,
+        mode: "choix", choix: m.choix, attendu: m.attendu,
+        aides: [`Écris $${b}$ avec le dénominateur $${den}$ : $${b} = \\dfrac{${b}(${den})}{${den}}$.`, `Développe le numérateur : $${b}(${den}) = ${poly([b, b * c])}$.`, `Additionne les numérateurs : $${a} + ${par(b)}(${den})$.`],
+        solution: `$\\dfrac{${a}}{${den}} ${sg(b)} = \\dfrac{${a}}{${den}} + \\dfrac{${b}(${den})}{${den}} = \\dfrac{${a} ${sg(b * c)} ${b < 0 ? "-" : "+"} ${Math.abs(b) === 1 ? "" : Math.abs(b)}x}{${den}} = ${bonne}$.`
+      };
+    }
+    const a = rand(1, 6), b = rand(1, 6), c = randNZ(-5, 5);
+    const den = `x(${poly([1, c])})`, numA = a - b, numB = a * c;
+    const num = poly([numA, numB]) || "0";
+    const bonne = `\\dfrac{${num}}{${den}}`;
+    const faux = [`\\dfrac{${a - b}}{${den}}`, `\\dfrac{${a - b}}{${poly([2, c])}}`, `\\dfrac{${poly([a + b, numB])}}{${den}}`];
+    const m = melangeChoix(`$${bonne}$`, faux.map((f) => `$${f}$`));
+    return {
+      enonce: `Pour $x \\neq 0$ et $x \\neq ${-c}$, écris $\\dfrac{${a}}{x} - \\dfrac{${b}}{${poly([1, c])}}$ sous la forme d'un seul quotient.`,
+      mode: "choix", choix: m.choix, attendu: m.attendu,
+      aides: [`Le dénominateur commun est $x(${poly([1, c])})$.`, `$\\dfrac{${a}}{x} = \\dfrac{${a}(${poly([1, c])})}{x(${poly([1, c])})}$ et $\\dfrac{${b}}{${poly([1, c])}} = \\dfrac{${b}x}{x(${poly([1, c])})}$.`, `Numérateur : $${a}(${poly([1, c])}) - ${b}x$. Développe et réduis.`],
+      solution: `$\\dfrac{${a}}{x} - \\dfrac{${b}}{${poly([1, c])}} = \\dfrac{${a}(${poly([1, c])}) - ${b}x}{${den}} = \\dfrac{${poly([a, a * c])} - ${b}x}{${den}} = ${bonne}$.`
+    };
+  };
+
+  GEN["cl-python"] = function () {
+    const a = pick([2, 3, 5, 10]), s = pick([50, 100, 200, 500, 1000, 5000, 10000, 100000]);
+    let n = 0, p = 1; while (p <= s) { p *= a; n++; }
+    return {
+      enonce: "On considère la fonction Python :\n\n```python\ndef premiere_puissance(a, s):\n    n = 0\n    p = 1\n    while p <= s:\n        p = p * a\n        n = n + 1\n    return n\n```\n\n" + `Que renvoie $\\texttt{premiere\\_puissance(${a}, ${s})}$ ?`,
+      mode: "nombre", prefixe: "Résultat :", attendu: n,
+      erreurs: [{ valeur: n - 1, message: `$${a}^{${n - 1}} = ${nb(a ** (n - 1))}$ ne dépasse pas $${nb(s)}$ : la boucle continue encore une fois.` }],
+      aides: [`$p$ prend les valeurs $1$, $${a}$, $${a * a}$… : les puissances de $${a}$. $n$ compte les tours.`, "La boucle **while** s'arrête dès que $p$ dépasse strictement $s$.", `Cherche la première puissance de $${a}$ strictement supérieure à $${nb(s)}$.`],
+      solution: `$${a}^{${n - 1}} = ${nb(a ** (n - 1))} \\leqslant ${nb(s)}$ mais $${a}^{${n}} = ${nb(a ** n)} > ${nb(s)}$. La fonction renvoie $${n}$ : c'est le plus petit entier $n$ tel que $${a}^n > ${nb(s)}$.`
+    };
+  };
+
+
+  /* ---------- Seconde, chapitre 6 : fonctions affines, inégalités, inéquations (préfixe fa-) ---------- */
+  const affTex = (m, p) => poly([m, p]);
+
+  GEN["fa-taux"] = function () {
+    const m = randNZ(-6, 6), p = randNZ(-9, 9);
+    let a = rand(-5, 3), b; do { b = rand(-3, 8); } while (b === a);
+    if (a > b) [a, b] = [b, a];
+    const fa = m * a + p, fb = m * b + p;
+    const ctx = Math.random() < 0.5;
+    return {
+      enonce: ctx
+        ? `$f$ est une fonction affine telle que $f(${a}) = ${fa}$ et $f(${b}) = ${fb}$. Calcule son taux d'accroissement $m$.`
+        : `La droite représentant la fonction affine $f$ passe par $A(${a}\\,;${fa})$ et $B(${b}\\,;${fb})$. Quel est le coefficient directeur $m$ ?`,
+      mode: "nombre", prefixe: "m =", attendu: m,
+      erreurs: [{ valeur: (b - a) / (fb - fa), message: "Tu as inversé : c'est la variation des **images** divisée par la variation des $x$." }, { valeur: -m, message: "Erreur de signe : fais bien $f(b) - f(a)$ et $b - a$ dans le même ordre." }].filter((e) => isFinite(e.valeur)),
+      aides: ["$m = \\dfrac{f(b) - f(a)}{b - a}$ : la variation des images divisée par la variation des $x$.", `$f(${b}) - f(${a}) = ${fb} - ${par(fa)} = ${fb - fa}$.`, `$${b} - ${par(a)} = ${b - a}$.`],
+      solution: `$m = \\dfrac{${fb} - ${par(fa)}}{${b} - ${par(a)}} = \\dfrac{${fb - fa}}{${b - a}} = ${m}$. Quand $x$ augmente de $1$, $f(x)$ ${m > 0 ? "augmente" : "diminue"} de $${Math.abs(m)}$.`
+    };
+  };
+
+  GEN["fa-expression"] = function () {
+    const m = randNZ(-5, 5), p = randNZ(-9, 9);
+    let a = rand(-4, 2), b; do { b = rand(-2, 6); } while (b === a);
+    const fa = m * a + p, fb = m * b + p;
+    const bonne = affTex(m, p);
+    const faux = [affTex(m, fa), affTex(-m, p), affTex(m, -p), affTex(m, p + m)];
+    const ch = melangeChoix(`$f(x) = ${bonne}$`, faux.map((f) => `$f(x) = ${f}$`));
+    return {
+      enonce: `$f$ est une fonction affine telle que $f(${a}) = ${fa}$ et $f(${b}) = ${fb}$. Quelle est son expression ?`,
+      mode: "choix", choix: ch.choix, attendu: ch.attendu,
+      aides: [`Calcule d'abord $m = \\dfrac{f(${b}) - f(${a})}{${b} - ${par(a)}}$.`, `$m = \\dfrac{${fb - fa}}{${b - a}} = ${m}$. Puis $f(x) = ${m}x + p$.`, `Trouve $p$ avec $f(${a}) = ${fa}$ : $${m} \\times ${par(a)} + p = ${fa}$.`],
+      solution: `$m = \\dfrac{${fb} - ${par(fa)}}{${b} - ${par(a)}} = ${m}$.\n\n$f(${a}) = ${fa}$ donne $${m * a} + p = ${fa}$, donc $p = ${p}$.\n\n$f(x) = ${bonne}$. Vérification : $f(${b}) = ${m} \\times ${par(b)} ${sg(p)} = ${fb}$.`
+    };
+  };
+
+  GEN["fa-variations"] = function () {
+    const m = randNZ(-7, 7), p = randNZ(-9, 9), t = rand(0, 3);
+    let tex, coef = m;
+    if (t === 0) tex = affTex(m, p);
+    else if (t === 1) tex = `${p} ${m < 0 ? "-" : "+"} ${Math.abs(m) === 1 ? "" : Math.abs(m)}x`; // p + mx
+    else if (t === 2) { const d = rand(2, 5); coef = m / d; tex = `\\dfrac{${poly([m, p])}}{${d}}`; }
+    else { tex = `${m === 1 ? "" : m === -1 ? "-" : m}(x ${sg(p)})`; }
+    const rep = coef > 0 ? 0 : 1;
+    return {
+      enonce: `Quel est le sens de variation de la fonction $f$ définie sur $\\mathbb{R}$ par $f(x) = ${tex}$ ?`,
+      mode: "choix", choix: ["Croissante sur $\\mathbb{R}$", "Décroissante sur $\\mathbb{R}$", "Constante sur $\\mathbb{R}$"], attendu: rep,
+      aides: ["Écris $f(x)$ sous la forme $mx + p$.", "Seul le signe de $m$, le coefficient de $x$, compte.", "$m > 0$ : croissante. $m < 0$ : décroissante. $m = 0$ : constante."],
+      solution: `$f(x) = ${tex}$ s'écrit $mx + p$ avec $m = ${t === 2 ? `\\dfrac{${m}}{${Math.round(m / coef)}}` : m}$. ${coef > 0 ? "$m > 0$, donc $f$ est **croissante** sur $\\mathbb{R}$." : "$m < 0$, donc $f$ est **décroissante** sur $\\mathbb{R}$."}`
+    };
+  };
+
+  GEN["fa-signe"] = function () {
+    // Tableau de signes : à droite de x0, quel signe ?
+    let m = randNZ(-6, 6), x0 = rand(-6, 6);
+    const p = -m * x0;
+    const cote = Math.random() < 0.5 ? "gauche" : "droite";
+    const positif = (m > 0) === (cote === "droite");
+    return {
+      enonce: `Soit $f(x) = ${affTex(m, p)}$. Dans le tableau de signes de $f$, quel est le signe de $f(x)$ ${cote === "droite" ? `pour $x > ${x0}$` : `pour $x < ${x0}$`} ?`,
+      mode: "choix", choix: ["$+$ (positif)", "$-$ (négatif)"], attendu: positif ? 0 : 1,
+      aides: [`Cherche d'abord où $f$ s'annule : $${affTex(m, p)} = 0 \\iff x = ${x0}$.`, `$m = ${m}$ : ${m > 0 ? "$f$ est croissante, elle passe du négatif au positif" : "$f$ est décroissante, elle passe du positif au négatif"}.`, `Tu peux aussi tester une valeur : $f(${cote === "droite" ? x0 + 1 : x0 - 1}) = ${m * (cote === "droite" ? x0 + 1 : x0 - 1) + p}$.`],
+      solution: `$f(x) = 0 \\iff x = ${x0}$. Comme $m = ${m} ${m > 0 ? "> 0" : "< 0"}$, $f(x)$ est ${m > 0 ? "négatif avant" : "positif avant"} $${x0}$ et ${m > 0 ? "positif après" : "négatif après"}.\n\nDonc pour $x ${cote === "droite" ? ">" : "<"} ${x0}$, $f(x)$ est **${positif ? "positif" : "négatif"}**.`
+    };
+  };
+
+  GEN["fa-inegalite"] = function () {
+    const t = rand(0, 2);
+    if (t === 0) {
+      const k = randNZ(-6, 6), s = pick(["<", "\\leqslant"]);
+      const inv = k < 0, s2 = inv ? (s === "<" ? ">" : "\\geqslant") : s;
+      const ch = ["<", ">", "\\leqslant", "\\geqslant"];
+      return {
+        enonce: `On sait que $a ${s} b$. Quel symbole compléter : $${k}a \\;\\;?\\;\\; ${k}b$ ?`,
+        mode: "choix", choix: ch.map((c) => `$${c}$`), attendu: ch.indexOf(s2),
+        aides: ["On multiplie les deux membres d'une inégalité par un même nombre.", `Le nombre est $${k}$ : est-il positif ou négatif ?`, "Par un nombre **positif**, le sens est conservé. Par un nombre **négatif**, il change."],
+        solution: `$${k}$ est ${inv ? "**négatif** : le sens de l'inégalité **change**" : "**positif** : le sens est **conservé**"}. Donc $${k}a ${s2} ${k}b$.` + (inv ? " Exemple : $1 < 2$ mais $-1 > -2$." : "")
+      };
+    }
+    if (t === 1) {
+      const a = rand(-5, 5), b = rand(-5, 5);
+      return {
+        enonce: `On sait que $x \\leqslant ${a}$ et $y \\leqslant ${b}$. Quel est le plus petit nombre $c$ dont on est sûr que $x + y \\leqslant c$ ?`,
+        mode: "nombre", prefixe: "c =", attendu: a + b,
+        aides: ["On peut additionner membre à membre deux inégalités **de même sens**.", `$x + y \\leqslant ${a} + ${par(b)}$.`, "Attention : on n'a pas le droit de soustraire des inégalités membre à membre."],
+        solution: `On additionne membre à membre : $x + y \\leqslant ${a} + ${par(b)} = ${a + b}$. Donc $c = ${a + b}$.`
+      };
+    }
+    const lo = rand(-4, 2), hi = lo + rand(2, 6), k = randNZ(-4, 4), q = randNZ(-6, 6);
+    const v1 = k * lo + q, v2 = k * hi + q, mn = Math.min(v1, v2), mx = Math.max(v1, v2);
+    const demandeMin = Math.random() < 0.5;
+    return {
+      enonce: `On sait que $${lo} \\leqslant x \\leqslant ${hi}$. On encadre $${affTex(k, q)}$ : $\\alpha \\leqslant ${affTex(k, q)} \\leqslant \\beta$. Que vaut $${demandeMin ? "\\alpha" : "\\beta"}$ ?`,
+      mode: "nombre", prefixe: demandeMin ? "α =" : "β =", attendu: demandeMin ? mn : mx,
+      erreurs: [{ valeur: demandeMin ? mx : mn, message: k < 0 ? "Tu as oublié de changer le sens en multipliant par un nombre négatif." : "Ça, c'est l'autre borne." }],
+      aides: [`Multiplie chaque membre par $${k}$${k < 0 ? " : attention, le sens change !" : "."}`, `Tu obtiens ${k > 0 ? `$${k * lo} \\leqslant ${k}x \\leqslant ${k * hi}$` : `$${k * hi} \\leqslant ${k}x \\leqslant ${k * lo}$`}.`, `Ajoute $${q}$ à chaque membre.`],
+      solution: `${k > 0 ? `$${k * lo} \\leqslant ${k}x \\leqslant ${k * hi}$` : `On multiplie par $${k} < 0$, le sens change : $${k * hi} \\leqslant ${k}x \\leqslant ${k * lo}$`}, puis on ajoute $${q}$ : $${mn} \\leqslant ${affTex(k, q)} \\leqslant ${mx}$.`
+    };
+  };
+
+  GEN["fa-inequation"] = function () {
+    let a, b, c, d;
+    do { a = randNZ(-7, 7); c = randNZ(-7, 7); } while (a === c);
+    const x0 = rand(-6, 6); b = randNZ(-9, 9); d = (a - c) * x0 + b;
+    const op = pick(OPS), A = a - c;
+    const opF = A < 0 ? OPS_INV[op] : op; // sens final x opF x0
+    const large = op === "\\geqslant" || op === "\\leqslant";
+    const I = (sens, lg) => (sens === ">" || sens === "\\geqslant") ? `${lg ? "[" : "]"}${x0}\\,;+\\infty[` : `]-\\infty\\,;${x0}${lg ? "]" : "["}`;
+    const bonne = I(opF, large), oubli = I(A < 0 ? op : OPS_INV[op], large), crochet = I(opF, !large), autre = `]-\\infty\\,;${-x0}${large ? "]" : "["}`;
+    const ch = melangeChoix(`$${bonne}$`, [oubli, crochet, autre].map((f) => `$${f}$`));
+    return {
+      enonce: `Résous l'inéquation $${affTex(a, b)} ${op} ${affTex(c, d)}$. Quel est l'ensemble des solutions ?`,
+      mode: "choix", choix: ch.choix, attendu: ch.attendu,
+      aides: ["Regroupe les $x$ d'un côté et les nombres de l'autre, comme pour une équation.", `On obtient $${affTex(A, 0)} ${op} ${d - b}$.`, A < 0 ? `On divise par $${A}$, un nombre **négatif** : le sens de l'inégalité change !` : `On divise par $${A}$, un nombre positif : le sens ne change pas.`],
+      solution: `$${affTex(a, b)} ${op} ${affTex(c, d)} \\iff ${affTex(A, 0)} ${op} ${d - b} \\iff x ${opF} ${x0}$${A < 0 ? " (division par un négatif : le sens change)" : ""}.\n\nL'ensemble des solutions est $S = ${bonne}$.`
+    };
+  };
+
+  GEN["fa-modele"] = function () {
+    // Deux tarifs de taxi : prise en charge + prix au km
+    let pA, mA, pB, mB, x0;
+    do { mA = rand(2, 6); mB = mA + rand(1, 3); x0 = rand(3, 15); pA = rand(2, 9) + (mB - mA) * x0; pB = pA - (mB - mA) * x0; } while (pB < 1);
+    return {
+      enonce: `Deux taxis : le taxi A prend $${pA}$ € de prise en charge puis $${mA}$ € par km ; le taxi B prend $${pB}$ € puis $${mB}$ € par km. On note $x$ la distance en km. À partir de quelle distance $d$ le taxi A est-il **moins cher** que B ? (A est moins cher pour $x > d$.)`,
+      mode: "nombre", prefixe: "d =", suffixe: "km", attendu: x0,
+      aides: [`Prix du taxi A : $${affTex(mA, pA)}$. Prix du taxi B : $${affTex(mB, pB)}$.`, `Résous l'inéquation $${affTex(mA, pA)} < ${affTex(mB, pB)}$.`, `$${pA} - ${pB} < ${mB}x - ${mA}x$, soit $${pA - pB} < ${affTex(mB - mA, 0)}$.`],
+      solution: `$${affTex(mA, pA)} < ${affTex(mB, pB)} \\iff ${pA - pB} < ${affTex(mB - mA, 0)} \\iff x > ${x0}$.\n\nLe taxi A est moins cher dès que la course dépasse $${x0}$ km (à $${x0}$ km, les deux coûtent $${mA * x0 + pA}$ €).`
+    };
+  };
+
+  GEN["fa-negation"] = function () {
+    const t = rand(0, 2), a = rand(-6, 6), b = a + rand(2, 6);
+    let enonce, bonne, faux, sol;
+    if (t === 0) {
+      const op = pick(OPS);
+      const neg = { "<": "\\geqslant", "\\leqslant": ">", ">": "\\leqslant", "\\geqslant": "<" }[op];
+      enonce = `Quelle est la négation de la proposition « $x ${op} ${a}$ » ?`;
+      bonne = `x ${neg} ${a}`; faux = [`x ${OPS_INV[op]} ${a}`, `x ${op} ${-a}`, `x ${neg} ${-a}`];
+      sol = `Le contraire de « $x ${op} ${a}$ » est « $x ${neg} ${a}$ » : ${op === "<" || op === ">" ? `le nombre $${a}$ lui-même change de camp, il fait partie de la négation` : `le nombre $${a}$ n'est plus dans la négation`}.`;
+    } else if (t === 1) {
+      enonce = `Quelle est la négation de « $x > ${a}$ **et** $x < ${b}$ » ?`;
+      bonne = `x \\leqslant ${a} \\text{ ou } x \\geqslant ${b}`; faux = [`x \\leqslant ${a} \\text{ et } x \\geqslant ${b}`, `x < ${a} \\text{ ou } x > ${b}`, `x > ${b} \\text{ et } x < ${a}`];
+      sol = `La négation de « A **et** B » est « non A **ou** non B ». Non ($x > ${a}$) : $x \\leqslant ${a}$. Non ($x < ${b}$) : $x \\geqslant ${b}$.`;
+    } else {
+      enonce = `« $x > ${a}$ et $x \\leqslant ${b}$ » s'écrit avec un intervalle :`;
+      bonne = `x \\in \\,]${a}\\,;${b}]`; faux = [`x \\in [${a}\\,;${b}[`, `x \\in \\,]${a}\\,;${b}[`, `x \\in \\,]-\\infty\\,;${a}[ \\cup \\,]${b}\\,;+\\infty[`];
+      sol = `« et » : les deux conditions à la fois, c'est l'intersection. $${a}$ est exclu (inégalité stricte), $${b}$ est inclus : $x \\in \\,]${a}\\,;${b}]$.`;
+    }
+    const ch = melangeChoix(`$${bonne}$`, faux.map((f) => `$${f}$`));
+    return {
+      enonce, mode: "choix", choix: ch.choix, attendu: ch.attendu,
+      aides: ["La négation d'une proposition est vraie exactement quand la proposition est fausse.", "Le contraire de « $<$ » est « $\\geqslant$ » (pas « $>$ ») : la borne change de camp.", "La négation de « et » est « ou », et inversement."],
+      solution: sol
+    };
+  };
+
+  GEN["fa-python"] = function () {
+    const m = randNZ(-4, 5), p = randNZ(-6, 6), d = rand(-3, 0), f = d + rand(4, 7), k = rand(2, f - d);
+    const vals = []; for (let x = d; x < f; x++) vals.push(m * x + p);
+    const q = Math.random() < 0.5;
+    return {
+      enonce: "On considère le programme Python :\n\n```python\nfor x in range(" + d + ", " + f + "):\n    print(" + (m === 1 ? "" : m === -1 ? "-" : m + " * ") + "x" + (p ? (p > 0 ? " + " + p : " - " + -p) : "") + ")\n```\n\n" + (q ? "Combien de nombres ce programme affiche-t-il ?" : `Quel est le ${k === 1 ? "premier" : k + "e"} nombre affiché ?`),
+      mode: "nombre", prefixe: "Réponse :", attendu: q ? vals.length : vals[k - 1],
+      erreurs: q ? [{ valeur: vals.length + 1, message: `$\\texttt{range(${d}, ${f})}$ s'arrête **avant** $${f}$.` }] : [],
+      aides: [`$\\texttt{range(${d}, ${f})}$ donne les entiers de $${d}$ à $${f - 1}$ (le $${f}$ est exclu).`, "La boucle **for** fait un tour pour chaque valeur de $x$ et affiche $f(x)$.", q ? `Compte les entiers de $${d}$ à $${f - 1}$.` : `Le ${k === 1 ? "premier" : k + "e"} tour correspond à $x = ${d + k - 1}$.`],
+      solution: `$x$ prend les valeurs $${Array.from({ length: f - d }, (_, i) => d + i).join("\\,;\\,")}$. Le programme affiche le tableau de valeurs : $${vals.join("\\,;\\,")}$.\n\n` + (q ? `Il affiche $${vals.length}$ nombres.` : `Le ${k === 1 ? "premier" : k + "e"} nombre est $f(${d + k - 1}) = ${vals[k - 1]}$.`)
+    };
+  };
+
+
+  /* ---------- Seconde, chapitre 7 : vecteurs, translation et coordonnées (préfixe ve-) ---------- */
+  const vec = (n) => `\\overrightarrow{${n}}`;
+  const pt = (x, y) => `(${nb(x)}\\,;${nb(y)})`;
+  const deuxPoints = (lim) => { let A, B; do { A = [rand(-lim, lim), rand(-lim, lim)]; B = [rand(-lim, lim), rand(-lim, lim)]; } while (A[0] === B[0] && A[1] === B[1]); return [A, B]; };
+
+  GEN["ve-lire"] = function () {
+    let x1, y1, dx, dy;
+    do { x1 = rand(-4, 2); y1 = rand(-3, 2); dx = randNZ(-4, 4); dy = rand(-3, 3); } while (x1 + dx < -5 || x1 + dx > 5 || y1 + dy < -4 || y1 + dy > 4);
+    const q = Math.random() < 0.5 ? "x" : "y";
+    return {
+      enonce: `Le vecteur $\\vec{u}$ est représenté dans le repère orthonormé ci-dessous. Lis son ${q === "x" ? "abscisse $x$" : "ordonnée $y$"} : $\\vec{u}\\begin{pmatrix} x \\\\ y \\end{pmatrix}$.`,
+      figure: graph({ xmin: -5, xmax: 5, ymin: -4, ymax: 4, fleches: [{ x1, y1, x2: x1 + dx, y2: y1 + dy, label: "u" }], aria: "Un vecteur u dans un repère quadrillé" }),
+      mode: "nombre", prefixe: `${q} =`, attendu: q === "x" ? dx : dy,
+      erreurs: [{ valeur: q === "x" ? x1 + dx : y1 + dy, message: "Ça, c'est la coordonnée du point d'arrivée. On compte le **déplacement** depuis l'origine de la flèche." }, { valeur: q === "x" ? -dx : -dy, message: "Attention au sens : vers la gauche ou vers le bas, c'est négatif." }],
+      aides: ["Pars de l'**origine** de la flèche et va jusqu'à son **extrémité** (la pointe).", q === "x" ? "Compte les carreaux horizontalement : vers la droite c'est positif, vers la gauche négatif." : "Compte les carreaux verticalement : vers le haut c'est positif, vers le bas négatif.", `La flèche part du point $${pt(x1, y1)}$.`],
+      solution: `La flèche va de $${pt(x1, y1)}$ à $${pt(x1 + dx, y1 + dy)}$ : déplacement de $${dx}$ en abscisse et de $${dy}$ en ordonnée.\n\n$\\vec{u}\\begin{pmatrix} ${dx} \\\\ ${dy} \\end{pmatrix}$, donc $${q} = ${q === "x" ? dx : dy}$.`
+    };
+  };
+
+  GEN["ve-coord"] = function () {
+    const [A, B] = deuxPoints(9), q = Math.random() < 0.5 ? 0 : 1, l = q ? "y" : "x";
+    const v = B[q] - A[q];
+    return {
+      enonce: `Dans un repère, $A${pt(...A)}$ et $B${pt(...B)}$. Calcule ${q ? "l'ordonnée" : "l'abscisse"} du vecteur $${vec("AB")}$.`,
+      mode: "nombre", prefixe: `${l} =`, attendu: v,
+      erreurs: [{ valeur: -v, message: "C'est « arrivée moins départ » : $x_B - x_A$, pas l'inverse." }, { valeur: A[q] + B[q], message: "On soustrait les coordonnées, on ne les additionne pas." }],
+      aides: [`$${vec("AB")}\\begin{pmatrix} x_B - x_A \\\\ y_B - y_A \\end{pmatrix}$ : arrivée moins départ.`, `Ici : $${l}_B - ${l}_A = ${B[q]} - ${par(A[q])}$.`, "Attention aux doubles signes moins : $-(-3) = +3$."],
+      solution: `$${l}_B - ${l}_A = ${B[q]} - ${par(A[q])} = ${v}$.\n\n$${vec("AB")}\\begin{pmatrix} ${B[0] - A[0]} \\\\ ${B[1] - A[1]} \\end{pmatrix}$.`
+    };
+  };
+
+  GEN["ve-norme"] = function () {
+    const [a, b, c] = pick([[3, 4, 5], [6, 8, 10], [5, 12, 13], [8, 6, 10], [4, 3, 5], [12, 5, 13], [9, 12, 15], [8, 15, 17], [0, 7, 7], [6, 0, 6]]);
+    const sx = pick([1, -1]), sy = pick([1, -1]);
+    if (Math.random() < 0.5) {
+      return {
+        enonce: `Calcule la norme du vecteur $\\vec{u}\\begin{pmatrix} ${sx * a} \\\\ ${sy * b} \\end{pmatrix}$ dans un repère orthonormé.`,
+        mode: "nombre", prefixe: "‖u‖ =", attendu: c,
+        aides: ["Dans un repère orthonormé : $\\|\\vec{u}\\| = \\sqrt{x^2 + y^2}$.", `$${par(sx * a)}^2 + ${par(sy * b)}^2 = ${a * a} + ${b * b}$.`, `$\\sqrt{${a * a + b * b}} = ?$`],
+        solution: `$\\|\\vec{u}\\| = \\sqrt{${par(sx * a)}^2 + ${par(sy * b)}^2} = \\sqrt{${a * a} + ${b * b}} = \\sqrt{${a * a + b * b}} = ${c}$.`
+      };
+    }
+    const A = [rand(-6, 6), rand(-6, 6)], B = [A[0] + sx * a, A[1] + sy * b];
+    return {
+      enonce: `Dans un repère orthonormé, $A${pt(...A)}$ et $B${pt(...B)}$. Calcule la distance $AB$.`,
+      mode: "nombre", prefixe: "AB =", attendu: c,
+      erreurs: [{ valeur: a + b, message: "On n'additionne pas les écarts : on utilise Pythagore, $\\sqrt{x^2 + y^2}$." }, { valeur: c * c, message: "N'oublie pas la racine carrée." }],
+      aides: ["$AB = \\sqrt{(x_B - x_A)^2 + (y_B - y_A)^2}$ : c'est le théorème de Pythagore.", `$x_B - x_A = ${sx * a}$ et $y_B - y_A = ${sy * b}$.`, `$${par(sx * a)}^2 + ${par(sy * b)}^2 = ${a * a + b * b}$.`],
+      solution: `$AB = \\sqrt{(${B[0]} - ${par(A[0])})^2 + (${B[1]} - ${par(A[1])})^2} = \\sqrt{${par(sx * a)}^2 + ${par(sy * b)}^2} = \\sqrt{${a * a + b * b}} = ${c}$.`
+    };
+  };
+
+  GEN["ve-milieu"] = function () {
+    const [A, B] = deuxPoints(9), q = Math.random() < 0.5 ? 0 : 1, l = q ? "y" : "x";
+    const v = (A[q] + B[q]) / 2;
+    return {
+      enonce: `Dans un repère, $A${pt(...A)}$ et $B${pt(...B)}$. Calcule ${q ? "l'ordonnée" : "l'abscisse"} du milieu $I$ de $[AB]$.`,
+      mode: "nombre", prefixe: `${l}_I =`, attendu: v,
+      erreurs: [{ valeur: (B[q] - A[q]) / 2, message: "Pour le milieu, on **additionne** les coordonnées, puis on divise par $2$." }, { valeur: A[q] + B[q], message: "N'oublie pas de diviser par $2$." }],
+      aides: [`$${l}_I = \\dfrac{${l}_A + ${l}_B}{2}$ : la moyenne des deux coordonnées.`, `$${l}_A + ${l}_B = ${A[q]} + ${par(B[q])} = ${A[q] + B[q]}$.`, "Divise par $2$. Le résultat peut être un nombre décimal, comme $2{,}5$."],
+      solution: `$${l}_I = \\dfrac{${A[q]} + ${par(B[q])}}{2} = \\dfrac{${A[q] + B[q]}}{2} = ${nb(v)}$.\n\n$I${pt((A[0] + B[0]) / 2, (A[1] + B[1]) / 2)}$.`
+    };
+  };
+
+  GEN["ve-chasles"] = function () {
+    const L = shuffle(["A", "B", "C", "D", "E", "M"]).slice(0, 4);
+    const t = rand(0, 3);
+    let gauche, bonne, faux, expl;
+    if (t === 0) { gauche = `${vec(L[0] + L[1])} + ${vec(L[1] + L[2])}`; bonne = vec(L[0] + L[2]); faux = [vec(L[2] + L[0]), vec(L[0] + L[1]), vec(L[1] + L[2])]; expl = `Relation de Chasles : l'extrémité du premier vecteur est l'origine du second ($${L[1]}$). On « saute » $${L[1]}$ : $${bonne}$.`; }
+    else if (t === 1) { gauche = `${vec(L[0] + L[1])} + ${vec(L[1] + L[2])} + ${vec(L[2] + L[3])}`; bonne = vec(L[0] + L[3]); faux = [vec(L[3] + L[0]), vec(L[0] + L[2]), vec(L[1] + L[3])]; expl = `Chasles deux fois : $${vec(L[0] + L[1])} + ${vec(L[1] + L[2])} = ${vec(L[0] + L[2])}$, puis $${vec(L[0] + L[2])} + ${vec(L[2] + L[3])} = ${bonne}$.`; }
+    else if (t === 2) { gauche = `${vec(L[0] + L[1])} + ${vec(L[1] + L[0])}`; bonne = "\\vec{0}"; faux = [`2${vec(L[0] + L[1])}`, vec(L[0] + L[1]), vec(L[1] + L[0])]; expl = `$${vec(L[1] + L[0])}$ est l'**opposé** de $${vec(L[0] + L[1])}$ : aller de $${L[0]}$ à $${L[1]}$ puis revenir. $${gauche} = ${vec(L[0] + L[0])} = \\vec{0}$.`; }
+    else { gauche = `${vec(L[2] + L[1])} + ${vec(L[0] + L[2])}`; bonne = vec(L[0] + L[1]); faux = [vec(L[1] + L[0]), vec(L[2] + L[2]), vec(L[0] + L[2])]; expl = `On change l'ordre de la somme pour enchaîner : $${vec(L[0] + L[2])} + ${vec(L[2] + L[1])} = ${bonne}$.`; }
+    const ch = melangeChoix(`$${bonne}$`, faux.map((f) => `$${f}$`));
+    return {
+      enonce: `Simplifie $${gauche}$.`,
+      mode: "choix", choix: ch.choix, attendu: ch.attendu,
+      aides: ["Relation de Chasles : $\\overrightarrow{AB} + \\overrightarrow{BC} = \\overrightarrow{AC}$. La lettre du milieu doit être la même.", "On peut changer l'ordre d'une somme de vecteurs pour enchaîner les lettres.", "$\\overrightarrow{BA}$ est l'opposé de $\\overrightarrow{AB}$, et $\\overrightarrow{AA} = \\vec{0}$."],
+      solution: expl
+    };
+  };
+
+  GEN["ve-somme"] = function () {
+    const u = [randNZ(-7, 7), randNZ(-7, 7)], v = [randNZ(-7, 7), randNZ(-7, 7)], q = Math.random() < 0.5 ? 0 : 1;
+    const moins = Math.random() < 0.3, r = moins ? u[q] - v[q] : u[q] + v[q];
+    return {
+      enonce: `On donne $\\vec{u}\\begin{pmatrix} ${u[0]} \\\\ ${u[1]} \\end{pmatrix}$ et $\\vec{v}\\begin{pmatrix} ${v[0]} \\\\ ${v[1]} \\end{pmatrix}$. Calcule ${q ? "l'ordonnée" : "l'abscisse"} du vecteur $\\vec{u} ${moins ? "-" : "+"} \\vec{v}$.`,
+      mode: "nombre", prefixe: `${q ? "y" : "x"} =`, attendu: r,
+      erreurs: [{ valeur: moins ? u[q] + v[q] : u[q] - v[q], message: moins ? "On soustrait les coordonnées, on ne les additionne pas." : "On additionne les coordonnées." }],
+      aides: [`Les coordonnées de $\\vec{u} ${moins ? "-" : "+"} \\vec{v}$ s'obtiennent en ${moins ? "soustrayant" : "additionnant"} celles de $\\vec{u}$ et de $\\vec{v}$, coordonnée par coordonnée.`, `${q ? "Ordonnées" : "Abscisses"} : $${u[q]}$ et $${v[q]}$.`, `$${u[q]} ${moins ? "-" : "+"} ${par(v[q])}$.`],
+      solution: `$\\vec{u} ${moins ? "-" : "+"} \\vec{v}\\begin{pmatrix} ${u[0]} ${moins ? "-" : "+"} ${par(v[0])} \\\\ ${u[1]} ${moins ? "-" : "+"} ${par(v[1])} \\end{pmatrix}$, soit $\\begin{pmatrix} ${moins ? u[0] - v[0] : u[0] + v[0]} \\\\ ${moins ? u[1] - v[1] : u[1] + v[1]} \\end{pmatrix}$.`
+    };
+  };
+
+  GEN["ve-parallelogramme"] = function () {
+    let A, B, C;
+    do { A = [rand(-6, 4), rand(-6, 4)]; B = [A[0] + randNZ(-5, 6), A[1] + rand(-3, 5)]; C = [B[0] + rand(-4, 4), B[1] + randNZ(-5, 6)]; }
+    while ((B[0] - A[0]) * (C[1] - B[1]) - (B[1] - A[1]) * (C[0] - B[0]) === 0);
+    const D = [A[0] + C[0] - B[0], A[1] + C[1] - B[1]], q = Math.random() < 0.5 ? 0 : 1, l = q ? "y" : "x";
+    return {
+      enonce: `$A${pt(...A)}$, $B${pt(...B)}$ et $C${pt(...C)}$. On cherche $D$ tel que $ABCD$ soit un parallélogramme. Calcule ${q ? "l'ordonnée" : "l'abscisse"} de $D$.`,
+      mode: "nombre", prefixe: `${l}_D =`, attendu: D[q],
+      erreurs: [{ valeur: B[q] + C[q] - A[q], message: "Ça, c'est le point tel que $ABDC$ est un parallélogramme. Respecte l'ordre des lettres : $\\overrightarrow{AB} = \\overrightarrow{DC}$." }],
+      aides: [`$ABCD$ est un parallélogramme si et seulement si $${vec("AB")} = ${vec("DC")}$.`, `$${vec("AB")}\\begin{pmatrix} ${B[0] - A[0]} \\\\ ${B[1] - A[1]} \\end{pmatrix}$ et $${vec("DC")}\\begin{pmatrix} ${C[0]} - x_D \\\\ ${C[1]} - y_D \\end{pmatrix}$.`, `Résous $${C[q]} - ${l}_D = ${B[q] - A[q]}$.`],
+      solution: `$${vec("AB")} = ${vec("DC")}$ donne $${C[q]} - ${l}_D = ${B[q]} - ${par(A[q])} = ${B[q] - A[q]}$, donc $${l}_D = ${C[q]} - ${par(B[q] - A[q])} = ${D[q]}$.\n\n$D${pt(...D)}$.`
+    };
+  };
+
+  GEN["ve-python"] = function () {
+    const [A, B] = deuxPoints(6), t = Math.random() < 0.5;
+    if (t) {
+      return {
+        enonce: "On considère la fonction Python :\n\n```python\ndef milieu(xA, yA, xB, yB):\n    return (xA + xB) / 2, (yA + yB) / 2\n```\n\n" + `Que renvoie $\\texttt{milieu(${A[0]}, ${A[1]}, ${B[0]}, ${B[1]})}$ ? Donne la **première** valeur.`,
+        mode: "nombre", prefixe: "Réponse :", attendu: (A[0] + B[0]) / 2,
+        aides: ["La fonction a **quatre** arguments : les coordonnées de $A$, puis celles de $B$.", "Elle renvoie deux nombres : l'abscisse puis l'ordonnée du milieu.", `Première valeur : $\\dfrac{${A[0]} + ${par(B[0])}}{2}$.`],
+        solution: `$\\dfrac{${A[0]} + ${par(B[0])}}{2} = ${nb((A[0] + B[0]) / 2)}$ et $\\dfrac{${A[1]} + ${par(B[1])}}{2} = ${nb((A[1] + B[1]) / 2)}$. La fonction renvoie $(${nb((A[0] + B[0]) / 2)}\\,;${nb((A[1] + B[1]) / 2)})$ : la première valeur est $${nb((A[0] + B[0]) / 2)}$.`
+      };
+    }
+    const [a, b, c] = pick([[3, 4, 5], [6, 8, 10], [5, 12, 13], [4, 3, 5], [8, 6, 10]]);
+    const P = [rand(-5, 5), rand(-5, 5)], Q = [P[0] + pick([1, -1]) * a, P[1] + pick([1, -1]) * b];
+    return {
+      enonce: "On considère la fonction Python :\n\n```python\nfrom math import sqrt\n\ndef distance(xA, yA, xB, yB):\n    return sqrt((xB - xA)**2 + (yB - yA)**2)\n```\n\n" + `Que renvoie $\\texttt{distance(${P[0]}, ${P[1]}, ${Q[0]}, ${Q[1]})}$ ?`,
+      mode: "nombre", prefixe: "Réponse :", attendu: c,
+      aides: ["$\\texttt{**2}$ est le carré, $\\texttt{sqrt}$ la racine carrée.", `$x_B - x_A = ${Q[0] - P[0]}$ et $y_B - y_A = ${Q[1] - P[1]}$.`, `Calcule $\\sqrt{${par(Q[0] - P[0])}^2 + ${par(Q[1] - P[1])}^2}$.`],
+      solution: `$\\sqrt{${par(Q[0] - P[0])}^2 + ${par(Q[1] - P[1])}^2} = \\sqrt{${a * a + b * b}} = ${c}$. La fonction renvoie $${c}$ (Python affiche $\\texttt{${c}.0}$).`
+    };
+  };
+
+
   /* Séries « flash » d'un thème : mélange de ses générateurs */
   const THEMES = {
     "am-flash-cn": ["am-comparer", "am-fractions", "am-puissances", "am-ecritures", "am-ordre-grandeur", "am-coherence", "auto-conversions"],
@@ -3536,7 +4041,7 @@
 
 
   /* Une « erreur connue » ne doit jamais coïncider avec la bonne réponse (à la tolérance près) */
-  Object.keys(GEN).filter((k) => /^(ld|am|cd|ar)-/.test(k)).forEach((k) => {
+  Object.keys(GEN).filter((k) => /^(ld|am|cd|ar|cl|fa|ve)-/.test(k)).forEach((k) => {
     const g = GEN[k];
     GEN[k] = (i) => { const q = g(i); if (q.erreurs) q.erreurs = q.erreurs.filter((e) => Math.abs(e.valeur - q.attendu) >= (q.tolerance || 1e-9)); return q; };
   });

@@ -44,6 +44,27 @@ window.CATALOGUE = {
           drive: ""
         },
         {
+          id: "seconde-calcul-litteral",
+          numero: 5,
+          titre: "Calcul littéral et équations",
+          statut: "disponible",
+          drive: ""
+        },
+        {
+          id: "seconde-fonctions-affines",
+          numero: 6,
+          titre: "Fonctions affines, inégalités et inéquations",
+          statut: "disponible",
+          drive: ""
+        },
+        {
+          id: "seconde-vecteurs",
+          numero: 7,
+          titre: "Vecteurs 1 : translation et coordonnées",
+          statut: "disponible",
+          drive: ""
+        },
+        {
           id: "seconde-variations",
           numero: 9,
           titre: "Variations et fonctions de référence",
