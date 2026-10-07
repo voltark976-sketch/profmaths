@@ -333,7 +333,7 @@
       h += `</aside></article>`;
     });
     if (c.videos && c.videos.length) {
-      h += `<section class="videos"><h2>Les ${c.videos.length} exercices corrigés en vidéo</h2><p class="muted">Énoncés et corrigés dans les PDF ci-dessus.</p><div class="video-grille">`;
+      h += `<section class="videos"><h2>Les ${c.videos.length} exercices corrigés en vidéo</h2><p class="muted">${esc(c.videosNote || "Énoncés et corrigés dans les PDF ci-dessus.")}</p><div class="video-grille">`;
       c.videos.forEach((v) => { h += `<div class="video-carte">${video(v)}<p><span class="tag">${esc(v.type)}</span> ${esc(v.titre)}</p></div>`; });
       h += `</div></section>`;
     }

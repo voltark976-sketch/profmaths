@@ -3,7 +3,8 @@
   ---------------------------------------------------
   Mêmes règles d'écriture que data/seconde/fonctions.js (formules entre $...$, antislash doublé,
   **gras**, "- " pour une puce). Dans les formules, la virgule décimale s'écrit {,} : $0{,}35$.
-  video : vidéo d'aide affichée sous une notion (vidéos d'Yvan Monka citées dans le dossier élève).
+  video : vidéo d'aide affichée sous une notion (cours de ta chaîne, sinon vidéo d'Yvan Monka citée dans le dossier élève).
+  videos : exercices corrigés en vidéo (playlist de la chaîne), avec le numéro de l'exercice du dossier élève.
   Le corrigé détaillé du Drive est réservé au professeur : il n'est pas lié ici.
 */
 window.CHAPITRES = window.CHAPITRES || {};
@@ -13,7 +14,7 @@ window.CHAPITRES["premiere-suites"] = {
   titre: "Suites numériques",
   accroche: "Calculer des termes, reconnaître une suite arithmétique ou géométrique, étudier ses variations et chercher un seuil, avec le lagon propre en fil rouge.",
 
-  playlist: "",
+  playlist: "https://www.youtube.com/playlist?list=PLUTXHp2G5xZ4",
   drive: "https://drive.google.com/drive/folders/1Ymru1W2dLIhiEgpawEdchTrVvaK8Q3n6",
   pdfs: [
     {
@@ -31,7 +32,7 @@ window.CHAPITRES["premiere-suites"] = {
         "- **Formule explicite** : $u_n$ s'exprime directement en fonction de $n$, par exemple $u_n = 3n^2 - 1$. On calcule n'importe quel terme d'un coup.\n" +
         "- **Relation de récurrence** : on donne le premier terme et le moyen de passer d'un terme au suivant, par exemple $u_0 = 5$ et $u_{n+1} = 2u_n - 3$. On calcule les termes **de proche en proche**.\n\n" +
         "Attention à ne pas confondre $u_{n+1}$ (le terme suivant) et $u_n + 1$ (le terme plus un).",
-      video: { titre: "Vidéo d'Yvan Monka : calculer les termes d'une suite (formule explicite)", youtube: "https://youtu.be/HacflVQ7DIE" },
+      video: { titre: "Vidéo de ton prof : notion de suite, formule explicite et récurrence (cours 1/6)", youtube: "https://youtu.be/sVkYEQQWvDo" },
       exemple: {
         enonce: "On définit $u_0 = 5$ et $u_{n+1} = 2u_n - 3$. Calcule $u_1$, $u_2$ et $u_3$.",
         solution: "$u_1 = 2 \\times 5 - 3 = 7$, $u_2 = 2 \\times 7 - 3 = 11$, $u_3 = 2 \\times 11 - 3 = 19$."
@@ -45,7 +46,7 @@ window.CHAPITRES["premiere-suites"] = {
         "- Méthode : on étudie le **signe de $u_{n+1} - u_n$**.\n" +
         "- Si $u_n = f(n)$ et que $f$ est monotone sur $[0\\,;+\\infty[$, la suite a le même sens de variation que $f$.",
       figure: "suite-nuage",
-      video: { titre: "Vidéo d'Yvan Monka : étudier les variations d'une suite", youtube: "https://youtu.be/DFz8LDKCw9Y" },
+      video: { titre: "Vidéo de ton prof : sens de variation d'une suite, trois méthodes (cours 2/6)", youtube: "https://youtu.be/jpI-dQAsU24" },
       exemple: {
         enonce: "Étudie le sens de variation de $u_n = n^2 - 4n$ à partir du rang $2$.",
         solution: "$u_{n+1} - u_n = (n+1)^2 - 4(n+1) - n^2 + 4n = 2n - 3$. Pour $n \\geqslant 2$, $2n - 3 > 0$ : la suite est croissante à partir du rang $2$, comme on le voit sur le nuage."
@@ -59,7 +60,7 @@ window.CHAPITRES["premiere-suites"] = {
         "- Elle est croissante si $r > 0$, décroissante si $r < 0$.\n" +
         "- Ses points sont **alignés** : c'est l'équivalent discret d'une fonction affine.\n" +
         "- Pour la reconnaître : on vérifie que $u_{n+1} - u_n$ est constant.",
-      video: { titre: "Vidéo d'Yvan Monka : déterminer une suite arithmétique", youtube: "https://youtu.be/YCokWYcBBOk" },
+      video: { titre: "Vidéo de ton prof : suites arithmétiques, raison et terme général (cours 3/6)", youtube: "https://youtu.be/nFBjpbUaTrM" },
       exemple: {
         enonce: "Un club de plongée ramasse $40$ kg de déchets la première semaine, puis $6$ kg de plus chaque semaine. On note $u_1 = 40$. Combien ramasse-t-il la semaine $10$ ?",
         solution: "$(u_n)$ est arithmétique de raison $6$ : $u_{10} = u_1 + 9 \\times 6 = 40 + 54 = 94$ kg."
@@ -73,7 +74,7 @@ window.CHAPITRES["premiere-suites"] = {
         "- Une évolution de $t\\,\\%$ à chaque étape donne une suite géométrique de raison $q = 1 + \\dfrac{t}{100}$.\n" +
         "- Avec $u_0 > 0$ : croissante si $q > 1$, décroissante si $0 < q < 1$. Si $q < 0$, elle n'est pas monotone.\n" +
         "- Pour la reconnaître : on vérifie que $\\dfrac{u_{n+1}}{u_n}$ est constant.",
-      video: { titre: "Vidéo d'Yvan Monka : déterminer une suite géométrique", youtube: "https://youtu.be/YPbEHxuMaeQ" },
+      video: { titre: "Vidéo de ton prof : suites géométriques, raison et terme général (cours 4/6)", youtube: "https://youtu.be/Nx56kUnM1oI" },
       exemple: {
         enonce: "Grâce aux campagnes de nettoyage, la masse de plastique sur une plage diminue de $15\\,\\%$ par an. Elle est de $800$ kg en 2026. Exprime $u_n$, la masse $n$ années après 2026.",
         solution: "Baisser de $15\\,\\%$, c'est multiplier par $0{,}85$ : $u_n = 800 \\times 0{,}85^n$. En 2029 : $u_3 = 800 \\times 0{,}85^3 \\approx 491$ kg."
@@ -87,7 +88,7 @@ window.CHAPITRES["premiere-suites"] = {
         "- **Puissances** ($q \\neq 1$) : $1 + q + q^2 + \\dots + q^n = \\dfrac{1 - q^{n+1}}{1 - q}$.\n" +
         "- **Suite géométrique** : $S = \\text{premier terme} \\times \\dfrac{1 - q^{\\text{nombre de termes}}}{1 - q}$.\n\n" +
         "Compter les termes : de $u_0$ à $u_n$, il y en a $n + 1$.",
-      video: { titre: "Vidéo d'Yvan Monka : calculer la somme des termes d'une suite arithmétique", youtube: "https://youtu.be/WeDtB9ZUTHs" },
+      video: { titre: "Vidéo de ton prof : sommes de termes consécutifs (cours 5/6)", youtube: "https://youtu.be/vP3Ts0VRPd4" },
       exemple: {
         enonce: "Le club de plongée de l'exemple précédent ramasse $40$, $46$, $52$… kg. Quelle masse totale en $10$ semaines ?",
         solution: "Dernier terme : $u_{10} = 94$. $S = 10 \\times \\dfrac{40 + 94}{2} = 670$ kg."
@@ -136,7 +137,18 @@ window.CHAPITRES["premiere-suites"] = {
     }
   ],
 
-  videos: [],
+  videosNote: "Énoncés dans le dossier élève ci-dessus (numéros des exercices du dossier).",
+  videos: [
+    { titre: "Exercice 1 · Calculer des termes avec une formule explicite", type: "Notion de suite", youtube: "https://youtu.be/fDxBIGzwXzc" },
+    { titre: "Exercice 4 · Un motif d'allumettes : récurrence et formule", type: "Notion de suite", youtube: "https://youtu.be/8xREkcpiSrg" },
+    { titre: "Exercice 6 · Représenter, conjecturer, puis démontrer", type: "Sens de variation", youtube: "https://youtu.be/sY5T06fwq1E" },
+    { titre: "Exercice 11 · Calculer avec le terme général", type: "Arithmétique", youtube: "https://youtu.be/lcNbml_x86s" },
+    { titre: "Exercice 13 · Croissance linéaire : la mangrove", type: "Arithmétique", youtube: "https://youtu.be/1UcA3wiJL4w" },
+    { titre: "Exercice 17 · Évolution à taux constant : la valeur d'un scooter", type: "Géométrique", youtube: "https://youtu.be/l5z9ZUXsDFA" },
+    { titre: "Exercice 18 · Une suite auxiliaire : la plage", type: "Géométrique", youtube: "https://youtu.be/9a9eqhi2VxE" },
+    { titre: "Exercice 20 · Calculer des sommes : Gauss et puissances", type: "Sommes", youtube: "https://youtu.be/HvTkzP61KcI" },
+    { titre: "Exercice 22 · Les gradins du stade : somme et seuil", type: "Sommes", youtube: "https://youtu.be/-cmCL0ZkKzo" }
+  ],
 
   /* ---------- 2. EXERCICES INTERACTIFS ---------- */
   exercices: [
