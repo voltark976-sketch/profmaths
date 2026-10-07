@@ -65,12 +65,27 @@
         eleve = { uid: u.uid, identifiant: d.identifiant || idTech, prenom, classe: d.classe || "", fournisseur: p, aCompleter: !!p && !d.prenom };
         ecouteur(eleve, { xp: d.xp || 0, exo: d.exo || {}, qcm: d.qcm || {}, jeux: d.jeux || {}, avatar: d.avatar || null });
       } catch (e) {
-        eleve = { uid: u.uid, identifiant: idTech, prenom: "", classe: "", fournisseur: p, aCompleter: false };
+        // Lecture impossible (réseau) : on n'écrase pas le compte avec la copie de l'appareil, on relira plus tard
+        eleve = { uid: u.uid, identifiant: idTech, prenom: "", classe: "", fournisseur: p, aCompleter: false, lectureEchouee: true };
         ecouteur(eleve, null);
       }
     });
   }
   let erreurRedirection = "";
+  // Nouvel essai de lecture du compte après un échec ; la fusion se fait dans l'écouteur, qui enregistre ensuite
+  let relectureEnCours = false;
+  function relire() {
+    if (relectureEnCours || !eleve) return;
+    relectureEnCours = true;
+    const e = eleve;
+    fb.db.collection("eleves").doc(e.uid).get().then((snap) => {
+      if (eleve !== e) return;
+      const d = snap.exists ? snap.data() : {};
+      e.lectureEchouee = false;
+      Object.assign(e, { identifiant: d.identifiant || e.identifiant, prenom: d.prenom || e.prenom, classe: d.classe || e.classe });
+      ecouteur(e, { xp: d.xp || 0, exo: d.exo || {}, qcm: d.qcm || {}, jeux: d.jeux || {}, avatar: d.avatar || null });
+    }).catch(() => {}).then(() => { relectureEnCours = false; });
+  }
   const NOMS = { google: "Google", apple: "Apple" };
   function fournisseurDe(u) {
     const ids = (u.providerData || []).map((x) => x && x.providerId);
@@ -232,6 +247,7 @@
       const copie = { xp: prog.xp, exo: Object.assign({}, prog.exo), qcm: Object.assign({}, prog.qcm), jeux: Object.assign({}, prog.jeux) };
       if (prog.avatar) copie.avatar = Object.assign({}, prog.avatar);
       minuterie = setTimeout(() => {
+        if (fb && eleve.lectureEchouee) { relire(); return; }
         if (fb) {
           fb.db.collection("eleves").doc(eleve.uid)
             .set(Object.assign(copie, { majLe: firebase.firestore.FieldValue.serverTimestamp() }), { merge: true })

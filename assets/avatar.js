@@ -11,10 +11,16 @@
   /* ---------- Niveaux et rangs ---------- */
   // XP total pour atteindre le niveau n : chaque niveau coûte un peu plus que le précédent
   const xpPour = (n) => N.xpPremierNiveau * (n - 1) + N.hausseParNiveau * (n - 1) * (n - 2) / 2;
+  const NIV_MAX = 999;
   function niveau(xp) {
-    xp = Math.max(0, Math.floor(+xp || 0));
-    let n = 1;
-    while (xpPour(n + 1) <= xp) n++;
+    xp = Number.isFinite(+xp) ? Math.max(0, Math.floor(+xp)) : 0;
+    xp = Math.min(xp, xpPour(NIV_MAX + 1) - 1);
+    // Résolution directe de xpPour(n) ≤ xp (second degré en m = n − 1), puis ajustement
+    const P = N.xpPremierNiveau, H = N.hausseParNiveau, B = P - H / 2;
+    let n = H > 0 ? 1 + Math.floor((-B + Math.sqrt(B * B + 2 * H * xp)) / H) : 1 + Math.floor(xp / P);
+    n = Math.max(1, Math.min(NIV_MAX, n || 1));
+    while (n > 1 && xpPour(n) > xp) n--;
+    while (n < NIV_MAX && xpPour(n + 1) <= xp) n++;
     const debut = xpPour(n), fin = xpPour(n + 1);
     return { niveau: n, rang: rang(n), xp, dans: xp - debut, besoin: fin - debut, reste: fin - xp };
   }

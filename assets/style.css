@@ -618,11 +618,12 @@ a.profil:hover { box-shadow: var(--ombre-haut); }
 
 /* Annonce de passage de niveau */
 .toast-niv { position: fixed; z-index: 50; left: 50%; bottom: calc(16px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); width: min(26rem, calc(100% - 24px)); display: flex; align-items: center; gap: 12px; padding: 12px 40px 12px 12px; border-radius: 18px; color: #fff; background: linear-gradient(135deg, var(--hero-a), var(--hero-b)); box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3); animation: toast-in 0.35s ease both; }
-.toast-niv.sort { opacity: 0; transform: translate(-50%, 12px); transition: opacity 0.25s, transform 0.25s; }
+.toast-niv.sort { animation: toast-out 0.25s ease forwards; }
 .toast-av { flex: none; }
 .toast-t { display: grid; gap: 2px; font-size: 0.9rem; }
 .toast-t strong { font: 800 1.25rem/1.1 var(--f-titre); color: #ffe08a; }
 .toast-t a { color: #fff; font-weight: 700; margin-top: 2px; }
 .toast-x { position: absolute; top: 6px; right: 8px; border: 0; background: transparent; color: #fff; font-size: 1.4rem; line-height: 1; cursor: pointer; padding: 4px; }
+@keyframes toast-out { to { opacity: 0; transform: translate(-50%, 12px); } }
 @keyframes toast-in { from { opacity: 0; transform: translate(-50%, 16px) scale(0.96); } to { opacity: 1; transform: translateX(-50%); } }
 @media (prefers-reduced-motion: reduce) { .toast-niv { animation: none; } }

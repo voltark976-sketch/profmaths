@@ -4,9 +4,10 @@
 */
 window.NIVEAUX = {
   // XP pour passer du niveau 1 au niveau 2, puis hausse à chaque niveau :
-  // 1 → 2 : 60 XP, 2 → 3 : 80 XP, 3 → 4 : 100 XP… (niveau 10 vers 1 260 XP, niveau 30 vers 9 860 XP)
+  // 1 → 2 : 60 XP, 2 → 3 : 120 XP, 3 → 4 : 180 XP…
+  // Total : niveau 5 à 600 XP (environ un chapitre), niveau 10 à 2 700 XP, niveau 20 à 11 400 XP, niveau 30 à 26 100 XP
   xpPremierNiveau: 60,
-  hausseParNiveau: 20,
+  hausseParNiveau: 60,
 
   // Un rang tous les 5 niveaux (noms valables au féminin comme au masculin)
   rangs: [
@@ -24,13 +25,13 @@ window.NIVEAUX = {
     question: 10,            // question d'exercice réussie du premier coup (moins avec indices ou erreurs, 2 au minimum)
     bonneReponseQcm: 5,      // par bonne réponse au QCM
     bonneReponseDefi: 3,     // par bonne réponse au défi chrono
-    // Ce qui est déjà maîtrisé rapporte beaucoup moins
-    serie3Etoiles: 0.1,      // série déjà à 3 étoiles : XP divisés par 10
-    serie2Etoiles: 0.5,      // série déjà à 2 étoiles : XP divisés par 2
-    qcmParfait: 0.1,         // QCM déjà réussi à 100 % : XP divisés par 10
-    qcmBon: 0.5,             // QCM déjà réussi à 70 % ou plus : XP divisés par 2
-    defisPleinTarif: 2,      // parties d'un même défi par jour qui rapportent tous leurs XP
-    defiApres: 0.25          // ensuite, ce défi rapporte 4 fois moins jusqu'au lendemain
+    // Les XP d'une série sont comptés au bilan, à la fin de la série.
+    // Première fois, ou record battu (plus d'étoiles, meilleur score au QCM, record au défi) : XP complets.
+    // Sinon, ce qui est déjà fait rapporte beaucoup moins :
+    rejeuSansProgres: 0.25,  // rejouer sans battre son record : XP divisés par 4
+    dejaParfait: 0.1,        // série déjà à 3 étoiles ou QCM déjà à 100 % : XP divisés par 10
+    defisPleinTarif: 3,      // défis par jour (tous chapitres confondus) qui rapportent tous leurs XP
+    defiApres: 0.25          // ensuite, les défis sans nouveau record rapportent 4 fois moins jusqu'au lendemain
   },
 
   /*

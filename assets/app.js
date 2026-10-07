@@ -26,6 +26,10 @@
     $xpLien.title = `Niveau ${n.niveau} · ${n.rang} · ${prog.xp} XP`;
   }
   majXP();
+  window.addEventListener("storage", (ev) => {
+    if (ev.key !== CLE || !ev.newValue) return;
+    try { prog = Object.assign({ xp: 0, exo: {}, qcm: {}, jeux: {} }, Compte.fusion(prog, JSON.parse(ev.newValue))); majXP(); } catch (e) {}
+  });
   // Ajoute des XP (nombre entier) et annonce un passage de niveau
   function gagnerXP(pts) {
     pts = Math.max(0, Math.round(pts));
@@ -51,15 +55,19 @@
     t.querySelector("a").addEventListener("click", fermer);
     setTimeout(fermer, 8000);
   }
-  // Défis : au-delà de quelques parties du même défi dans la journée, les XP diminuent
-  const CLE_JOUR = "profmaths:defis-jour";
-  function partieDuJour(k) {
+  // Coefficient d'XP quand on rejoue : record battu = XP complets, sinon beaucoup moins
+  const coefRejeu = (premiere, progres, parfait) => (premiere || progres ? 1 : parfait ? XP.dejaParfait : XP.rejeuSansProgres);
+  const divise = (c) => `XP divisés par ${String(Math.round((1 / c) * 10) / 10).replace(".", ",")}`;
+  const texteCoef = (c) => (c === XP.dejaParfait ? "déjà réussi parfaitement : " : "rejoué sans battre ton record : ") + divise(c);
+  // Défis : au-delà de quelques parties dans la journée (tous chapitres confondus), les XP diminuent
+  function partieDuJour() {
+    const e = Compte.eleve(), cle = "profmaths:defis-jour:" + (e ? e.uid : "anonyme");
     const auj = new Date().toLocaleDateString("fr-CA");
-    let j = { d: auj, n: {} };
-    try { const l = JSON.parse(localStorage.getItem(CLE_JOUR) || "null"); if (l && l.d === auj && l.n) j = l; } catch (e) {}
-    const deja = j.n[k] || 0;
-    j.n[k] = deja + 1;
-    try { localStorage.setItem(CLE_JOUR, JSON.stringify(j)); } catch (e) {}
+    let j = { d: auj, n: 0 };
+    try { const l = JSON.parse(localStorage.getItem(cle) || "null"); if (l && l.d === auj && Number.isFinite(l.n)) j = l; } catch (e2) {}
+    const deja = j.n;
+    j.n = deja + 1;
+    try { localStorage.setItem(cle, JSON.stringify(j)); } catch (e2) {}
     return deja;
   }
 
@@ -289,10 +297,11 @@
       <div class="cats" role="tablist" aria-label="Parties de l'avatar">${AV.CATEGORIES.map((c) => `<button type="button" role="tab" data-cat="${c.id}" aria-selected="${c.id === catAvatar}">${esc(c.nom)}</button>`).join("")}</div>
       <div id="options" class="options" role="tabpanel"></div>
       <details class="regles"><summary>Comment gagner des XP ?</summary>
-        <ul><li><strong>Exercices :</strong> jusqu'à ${XP.question} XP par question réussie (moins avec des indices ou des erreurs).</li>
+        <ul><li><strong>Exercices :</strong> jusqu'à ${XP.question} XP par question réussie (moins avec des indices ou des erreurs), comptés au bilan à la fin de la série.</li>
         <li><strong>QCM :</strong> ${XP.bonneReponseQcm} XP par bonne réponse.</li>
         <li><strong>Défis chrono :</strong> ${XP.bonneReponseDefi} XP par bonne réponse.</li>
-        <li><strong>Ce que tu maîtrises déjà rapporte moins :</strong> une série à 3 étoiles ou un QCM déjà réussi à 100 % donne 10 fois moins d'XP, une série à 2 étoiles ou un QCM réussi à 70 % ou plus, 2 fois moins. Un même défi rejoué plus de ${XP.defisPleinTarif} fois dans la journée rapporte 4 fois moins jusqu'au lendemain.</li>
+        <li><strong>Bats tes records :</strong> la première fois, ou quand tu fais mieux qu'avant (plus d'étoiles, meilleur score au QCM, record au défi), tu gagnes tous les XP. Rejouer sans faire mieux : ${divise(XP.rejeuSansProgres)}, et ${divise(XP.dejaParfait)} si tu avais déjà 3 étoiles ou 100 % au QCM.</li>
+        <li><strong>Défis :</strong> après ${XP.defisPleinTarif} défis dans la journée, ceux sans nouveau record ont leurs ${divise(XP.defiApres)} jusqu'au lendemain.</li>
         <li>Chaque niveau demande un peu plus d'XP que le précédent : ${AV.xpPour(2)} XP pour le niveau 2, ${AV.xpPour(3) - AV.xpPour(2)} de plus pour le niveau 3, et ainsi de suite.</li></ul>
       </details></section>`;
     $app.querySelectorAll(".cats button").forEach((b) => b.addEventListener("click", () => {
@@ -514,20 +523,8 @@
 
   function lancerSerie(p, c, id, ex) {
     const gen = GEN[ex.type];
-    let i = 0, score = 0, xpSerie = 0, resteXP = 0;
+    let i = 0, score = 0;
     const max = ex.nb * 10;
-    // Série déjà maîtrisée : elle rapporte beaucoup moins d'XP
-    const etoilesAvant = prog.exo[id + ":" + ex.type] || 0;
-    const coef = etoilesAvant >= 3 ? XP.serie3Etoiles : etoilesAvant === 2 ? XP.serie2Etoiles : 1;
-    const noteCoef = coef < 1 ? `Série déjà à ${etoilesAvant} étoiles : XP ${coef <= 0.1 ? "divisés par 10" : "divisés par 2"}.` : "";
-    function crediter(x) {
-      resteXP += x;
-      const e = Math.floor(resteXP + 1e-9);
-      resteXP -= e;
-      const g = gagnerXP(e);
-      xpSerie += g;
-      return g;
-    }
 
     function question() {
       const q = gen(i);
@@ -551,13 +548,12 @@
 
       function terminer(gagne, montrer) {
         fini = true;
-        const pts = gagne ? Math.max(2, XP.question - 3 * aides - 2 * erreurs) : 0;
+        const pts = gagne ? Math.max(2, 10 - 3 * aides - 2 * erreurs) : 0;
         score += pts;
-        const xpQ = gagne ? crediter(pts * coef) : 0;
         p.querySelector(".pts").textContent = `${score} pts`;
         fb.className = "retour-rep " + (gagne ? "bon" : "info");
         fb.innerHTML = gagne
-          ? `<strong>Bravo !</strong> +${pts} points${coef < 1 ? ` (+${xpQ} XP)` : ""}.${aides === 0 && erreurs === 0 ? " Du premier coup !" : ""}`
+          ? `<strong>Bravo !</strong> +${pts} points.${aides === 0 && erreurs === 0 ? " Du premier coup !" : ""}`
           : `<strong>Voici la solution.</strong> Lis-la bien, la prochaine sera pour toi.`;
         if (montrer || !gagne) {
           fb.innerHTML += `<div class="solution">${md(q.solution)}</div>`;
@@ -617,8 +613,14 @@
       const r = score / max;
       const st = r >= 0.9 ? 3 : r >= 0.7 ? 2 : r >= 0.4 ? 1 : 0;
       const k = id + ":" + ex.type;
-      const record = st > (prog.exo[k] || 0);
-      prog.exo[k] = Math.max(prog.exo[k] || 0, st); save();
+      const premiere = !(k in prog.exo), avant = prog.exo[k] || 0;
+      const record = st > avant;
+      // Les XP de la série sont comptés ici, à la fin : rejouer sans progresser rapporte beaucoup moins
+      const coef = coefRejeu(premiere, record, avant >= 3);
+      prog.exo[k] = Math.max(avant, st);
+      const xpSerie = gagnerXP(score * (XP.question / 10) * coef);
+      save();
+      const noteCoef = coef < 1 ? `Série ${texteCoef(coef)}.` : "";
       const msg = st === 3 ? "Série maîtrisée. Tu peux passer à la suivante." : st === 2 ? "Très bien ! Encore un essai pour la troisième étoile ?" : st === 1 ? "C'est un bon début. Relis la fiche méthode puis recommence." : "Pas de panique : regarde la vidéo et le cours, puis réessaie.";
       p.innerHTML = `<div class="bilan"><p class="eyebrow">Bilan · ${esc(ex.titre)}</p><p class="gros">${score}<span>/${max} pts</span></p>${etoiles(st, 3)}${record ? `<p class="record">Nouveau record !</p>` : ""}<p>${msg}</p><p class="gain-xp">+${xpSerie} XP${noteCoef ? ` · <span>${noteCoef}</span>` : ""}</p>
         <div class="exo-actions"><button class="btn" id="encore">Recommencer</button><button class="btn-sec" id="retour">Autres séries</button></div></div>`;
@@ -666,14 +668,14 @@
       });
       // QCM déjà bien réussi : il rapporte beaucoup moins d'XP
       const avant = prog.qcm[id], tot = qs.length;
-      const coef = avant === undefined ? 1 : avant >= tot ? XP.qcmParfait : avant >= 0.7 * tot ? XP.qcmBon : 1;
       const record = avant === undefined || bon > avant;
+      const coef = coefRejeu(avant === undefined, bon > avant, avant >= tot);
       prog.qcm[id] = Math.max(avant || 0, bon);
       const gain = gagnerXP(bon * XP.bonneReponseQcm * coef);
       save();
       form.dataset.corrige = "1";
       const fin = p.querySelector(".qcm-fin");
-      fin.innerHTML = `<div class="bilan"><p class="eyebrow">Ton score</p><p class="gros">${bon}<span>/${qs.length}</span></p>${record && bon ? `<p class="record">Nouveau record !</p>` : ""}<p>+${gain} XP${coef < 1 ? ` (QCM déjà réussi à ${Math.round((avant / tot) * 100)} % : XP ${coef <= 0.1 ? "divisés par 10" : "divisés par 2"})` : ""}. ${bon >= 8 ? "Excellent, le chapitre est bien compris." : bon >= 5 ? "Bien. Relis les explications des questions ratées." : "Revois le cours et la fiche méthode, puis retente ta chance."}</p><button class="btn" type="submit">Nouveau QCM</button></div>`;
+      fin.innerHTML = `<div class="bilan"><p class="eyebrow">Ton score</p><p class="gros">${bon}<span>/${qs.length}</span></p>${record && bon ? `<p class="record">Nouveau record !</p>` : ""}<p>+${gain} XP${coef < 1 ? ` (QCM ${texteCoef(coef)})` : ""}. ${bon >= 8 ? "Excellent, le chapitre est bien compris." : bon >= 5 ? "Bien. Relis les explications des questions ratées." : "Revois le cours et la fiche méthode, puis retente ta chance."}</p><button class="btn" type="submit">Nouveau QCM</button></div>`;
       fin.scrollIntoView({ behavior: "smooth", block: "center" });
     });
   }
@@ -824,13 +826,13 @@
       const k = "chrono:" + theme.id;
       const ancien = prog.jeux[k] || 0;
       const record = score > ancien;
-      const deja = partieDuJour(k);
-      const coef = deja < XP.defisPleinTarif ? 1 : XP.defiApres;
+      const deja = partieDuJour();
+      const coef = record || deja < XP.defisPleinTarif ? 1 : XP.defiApres;
       prog.jeux[k] = Math.max(ancien, score);
       const gain = gagnerXP(bonnes * XP.bonneReponseDefi * coef);
       save();
       $c.innerHTML = `<div class="bilan"><p class="eyebrow">${esc(J.titre)} · ${esc(o.libelle)}</p><p>${esc(raison)}</p><p class="gros">${score}<span> pts</span></p>${record && score ? `<p class="record">Nouveau record !</p>` : ancien ? `<p class="muted">Ton record : ${ancien} pts</p>` : ""}
-        <p>${bonnes} bonne${bonnes > 1 ? "s" : ""} réponse${bonnes > 1 ? "s" : ""} sur ${n}. +${gain} XP${coef < 1 ? " (défi déjà joué plusieurs fois aujourd'hui : XP réduits jusqu'à demain)" : ""}.</p>
+        <p>${bonnes} bonne${bonnes > 1 ? "s" : ""} réponse${bonnes > 1 ? "s" : ""} sur ${n}. +${gain} XP${coef < 1 ? ` (déjà ${XP.defisPleinTarif} défis aujourd'hui sans nouveau record : ${divise(coef)} jusqu'à demain)` : ""}.</p>
         <div class="exo-actions"><button class="btn" id="rejouer">Rejouer</button><button class="btn-sec" id="themes">${esc(o.retourTexte || "Changer de thème")}</button></div></div>`;
       $c.querySelector("#rejouer").addEventListener("click", () => lancerChrono(J, theme, o));
       $c.querySelector("#themes").addEventListener("click", o.retour);
