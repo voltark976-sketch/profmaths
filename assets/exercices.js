@@ -4692,6 +4692,139 @@
   };
 
 
+  /* ---------- Seconde, chapitre 15 : probabilités conditionnelles et arbres pondérés (préfixe pc-) ---------- */
+  // Arbre pondéré à deux épreuves. n : noms [A, ~A, B, ~B] (« ~ » : barre au-dessus) ;
+  // p : textes des 6 branches [A, non A, B sachant A, non B sachant A, B sachant non A, non B sachant non A] ("?" possible)
+  function arbre(n, p) {
+    const W = 320, H = 200, x0 = 14, x1 = 120, x2 = 270, yA = 55, yN = 145, d = 30;
+    const ys = [yA - d, yA + d, yN - d, yN + d];
+    let s = `<svg class="graph" viewBox="0 0 ${W} ${H}" role="img" aria-label="Arbre pondéré à deux épreuves">`;
+    const nom = (t) => (t[0] === "~" ? `<tspan style="text-decoration:overline">${t.slice(1)}</tspan>` : t);
+    const br = (xa, ya, xb, yb, t) => {
+      s += `<line x1="${xa}" y1="${ya}" x2="${xb - 14}" y2="${yb}" style="stroke:var(--doux);stroke-width:1.6"/>`;
+      s += `<text class="g-label" x="${(xa + xb - 14) / 2}" y="${(ya + yb) / 2 - 5}" text-anchor="middle" style="fill:${t === "?" ? "var(--ylang)" : "var(--encre)"}">${t}</text>`;
+    };
+    br(x0, H / 2, x1, yA, p[0]); br(x0, H / 2, x1, yN, p[1]);
+    br(x1 + 10, yA, x2, ys[0], p[2]); br(x1 + 10, yA, x2, ys[1], p[3]);
+    br(x1 + 10, yN, x2, ys[2], p[4]); br(x1 + 10, yN, x2, ys[3], p[5]);
+    s += `<text class="g-clabel" x="${x1 - 8}" y="${yA + 4}">${nom(n[0])}</text><text class="g-clabel" x="${x1 - 8}" y="${yN + 4}">${nom(n[1])}</text>`;
+    ys.forEach((y, i) => { s += `<text class="g-clabel" x="${x2 - 8}" y="${y + 4}">${nom(n[2 + (i % 2)])}</text>`; });
+    return s + `</svg>`;
+  }
+  const NOMS_ARBRE = ["A", "~A", "B", "~B"];
+  const dec2 = (x) => nb(+x.toFixed(4));
+  FIGURES["arbre-depistage"] = () => arbre(["M", "~M", "T", "~T"], ["0,02", "0,98", "0,95", "0,05", "0,1", "0,9"]);
+
+  GEN["pc-formule"] = function () {
+    const pA = pick([0.2, 0.25, 0.4, 0.5, 0.6, 0.8]), pBA = pick([0.1, 0.2, 0.25, 0.3, 0.5, 0.6, 0.75]), inter = +(pA * pBA).toFixed(4);
+    const t = Math.random() < 0.5;
+    if (t) return {
+      enonce: `On donne $P(A) = ${dec2(pA)}$ et $P(A \\cap B) = ${dec2(inter)}$. Calcule $P_A(B)$.`,
+      mode: "nombre", prefixe: "P_A(B) =", attendu: pBA,
+      erreurs: [{ valeur: inter * pA, message: "On **divise** par $P(A)$ : $P_A(B) = \\dfrac{P(A \\cap B)}{P(A)}$." }],
+      aides: ["$P_A(B)$ est la probabilité de $B$ **sachant** $A$.", "$P_A(B) = \\dfrac{P(A \\cap B)}{P(A)}$.", `Calcule $\\dfrac{${dec2(inter)}}{${dec2(pA)}}$.`],
+      solution: `$P_A(B) = \\dfrac{P(A \\cap B)}{P(A)} = \\dfrac{${dec2(inter)}}{${dec2(pA)}} = ${dec2(pBA)}$.`
+    };
+    return {
+      enonce: `On donne $P(A) = ${dec2(pA)}$ et $P_A(B) = ${dec2(pBA)}$. Calcule $P(A \\cap B)$.`,
+      mode: "nombre", prefixe: "P(A ∩ B) =", attendu: inter,
+      erreurs: [{ valeur: pBA / pA, message: "On **multiplie** : $P(A \\cap B) = P(A) \\times P_A(B)$." }],
+      aides: ["Sur un arbre, on multiplie les probabilités le long d'un chemin.", "$P(A \\cap B) = P(A) \\times P_A(B)$.", `Calcule $${dec2(pA)} \\times ${dec2(pBA)}$.`],
+      solution: `$P(A \\cap B) = P(A) \\times P_A(B) = ${dec2(pA)} \\times ${dec2(pBA)} = ${dec2(inter)}$.`
+    };
+  };
+
+  GEN["pc-arbre"] = function () {
+    const pA = pick([0.1, 0.2, 0.3, 0.4, 0.6, 0.7]), b1 = pick([0.2, 0.3, 0.4, 0.6, 0.8, 0.9]), b2 = pick([0.1, 0.2, 0.5, 0.7]);
+    const P = [pA, 1 - pA, b1, 1 - b1, b2, 1 - b2].map((x) => +x.toFixed(2));
+    const k = rand(1, 5), lab = P.map((x) => String(x).replace(".", ","));
+    const t = rand(0, 1);
+    if (t === 0) {
+      // branche manquante
+      const shown = lab.slice(); shown[k] = "?";
+      const nomsB = ["P(\\overline{A})", "P_A(B)", "P_A(\\overline{B})", "P_{\\overline{A}}(B)", "P_{\\overline{A}}(\\overline{B})"][k - 1];
+      const paire = k === 1 ? 0 : k % 2 === 0 ? k + 1 : k - 1;
+      return {
+        enonce: "Complète la branche marquée d'un **?** dans l'arbre pondéré.",
+        figure: arbre(NOMS_ARBRE, shown),
+        mode: "nombre", prefixe: "? =", attendu: P[k],
+        aides: ["La somme des probabilités des branches qui partent d'un même nœud vaut $1$.", `Repère l'autre branche qui part du même nœud.`, `$1 - ${dec2(P[paire])}$.`],
+        solution: `Les deux branches qui partent du même nœud ont pour somme $1$ : $${nomsB} = 1 - ${dec2(P[paire])} = ${dec2(P[k])}$.`
+      };
+    }
+    const chemin = rand(0, 3), probas = [P[0] * P[2], P[0] * P[3], P[1] * P[4], P[1] * P[5]], ev = ["A \\cap B", "A \\cap \\overline{B}", "\\overline{A} \\cap B", "\\overline{A} \\cap \\overline{B}"][chemin];
+    const facteurs = [[P[0], P[2]], [P[0], P[3]], [P[1], P[4]], [P[1], P[5]]][chemin];
+    return {
+      enonce: `D'après l'arbre pondéré, calcule $P(${ev})$.`,
+      figure: arbre(NOMS_ARBRE, lab),
+      mode: "nombre", prefixe: "Probabilité :", attendu: +probas[chemin].toFixed(4),
+      erreurs: [{ valeur: facteurs[0] + facteurs[1], message: "Le long d'un chemin, on **multiplie** les probabilités (on n'additionne pas)." }],
+      aides: [`Repère le chemin qui mène à $${ev}$.`, "On multiplie les probabilités rencontrées le long du chemin.", `$${dec2(facteurs[0])} \\times ${dec2(facteurs[1])}$.`],
+      solution: `$P(${ev}) = ${dec2(facteurs[0])} \\times ${dec2(facteurs[1])} = ${dec2(probas[chemin])}$.`
+    };
+  };
+
+  GEN["pc-traduire"] = function () {
+    const T = [
+      ["la probabilité qu'une personne ait un test positif **sachant** qu'elle est malade", "P_M(T)", ["P_T(M)", "P(M \\cap T)", "P(T)"]],
+      ["la probabilité qu'une personne soit malade **sachant** que son test est positif", "P_T(M)", ["P_M(T)", "P(M \\cap T)", "P(M)"]],
+      ["la probabilité qu'une personne soit malade **et** ait un test positif", "P(M \\cap T)", ["P_M(T)", "P_T(M)", "P(M) + P(T)"]],
+      ["la probabilité qu'une personne saine ait un test négatif (la **spécificité**)", "P_{\\overline{M}}(\\overline{T})", ["P_{\\overline{T}}(\\overline{M})", "P(\\overline{M} \\cap \\overline{T})", "P_M(\\overline{T})"]],
+      ["la probabilité qu'une personne saine ait un test positif (un **faux positif**)", "P_{\\overline{M}}(T)", ["P_T(\\overline{M})", "P_M(\\overline{T})", "P(\\overline{M})"]]
+    ];
+    const [txt, bonne, faux] = pick(T);
+    const ch = melangeChoix(`$${bonne}$`, faux.map((f) => `$${f}$`));
+    return {
+      enonce: `Test de dépistage au dispensaire. $M$ : « la personne est malade », $T$ : « le test est positif ». Comment note-t-on ${txt} ?`,
+      mode: "choix", choix: ch.choix, attendu: ch.attendu,
+      aides: ["« Sachant que … » : ce qui est connu va en **indice**.", "« … et … » : c'est une intersection $\\cap$.", "Malade : $M$ ; sain : $\\overline{M}$ ; test positif : $T$ ; test négatif : $\\overline{T}$."],
+      solution: `C'est $${bonne}$. Attention : $P_M(T)$ et $P_T(M)$ sont des probabilités **différentes**.`
+    };
+  };
+
+  GEN["pc-depistage"] = function () {
+    const prev = pick([0.01, 0.02, 0.05, 0.1]), se = pick([0.9, 0.95, 0.99]), sp = pick([0.9, 0.95, 0.98]);
+    const N = 10000, M = Math.round(N * prev), S = N - M, VP = Math.round(M * se), FP = Math.round(S * (1 - sp)), Tpos = VP + FP;
+    const q = rand(0, 2);
+    const ctx = `Un test de dépistage est utilisé au dispensaire. $${nb(prev * 100)}\\,\\%$ de la population est malade. Si la personne est malade, le test est positif dans $${nb(se * 100)}\\,\\%$ des cas (sensibilité) ; si elle est saine, il est négatif dans $${nb(sp * 100)}\\,\\%$ des cas (spécificité). On imagine $10\\,000$ personnes.`;
+    if (q === 0) return {
+      enonce: `${ctx} Combien de **faux positifs** (personnes saines avec un test positif) ?`,
+      mode: "nombre", prefixe: "Faux positifs :", attendu: FP,
+      aides: [`Malades : $${nb(M)}$ ; saines : $${nb(S)}$.`, `Une personne saine a un test positif avec la probabilité $1 - ${dec2(sp)} = ${dec2(1 - sp)}$.`, `Calcule $${nb(S)} \\times ${dec2(1 - sp)}$.`],
+      solution: `Saines : $10\\,000 - ${nb(M)} = ${nb(S)}$. Faux positifs : $${nb(S)} \\times ${dec2(1 - sp)} = ${nb(FP)}$.`
+    };
+    const rep = +(VP / Tpos).toFixed(2);
+    if (q === 1) return {
+      enonce: `${ctx} Une personne a un test **positif**. Quelle est la probabilité qu'elle soit malade, $P_T(M)$ ? (Arrondis au centième.)`,
+      mode: "nombre", prefixe: "P_T(M) ≈", attendu: rep, tolerance: 0.006,
+      erreurs: [{ valeur: se, message: "Ça, c'est $P_M(T)$ (la sensibilité). On demande $P_T(M)$ : on inverse le conditionnement." }],
+      aides: [`Dresse le tableau : malades positifs $${nb(M)} \\times ${dec2(se)} = ${nb(VP)}$ ; sains positifs $${nb(S)} \\times ${dec2(1 - sp)} = ${nb(FP)}$.`, `Nombre total de tests positifs : $${nb(VP)} + ${nb(FP)} = ${nb(Tpos)}$.`, `$P_T(M) = \\dfrac{${nb(VP)}}{${nb(Tpos)}}$.`],
+      solution: `Parmi les $${nb(Tpos)}$ tests positifs, $${nb(VP)}$ concernent des malades : $P_T(M) = \\dfrac{${nb(VP)}}{${nb(Tpos)}} \\approx ${dec2(rep)}$.\n\n${rep < 0.5 ? "Moins d'une chance sur deux, alors que le test est « fiable » : c'est parce que la maladie est rare, et les faux positifs nombreux." : "On inverse le conditionnement : $P_T(M)$ est bien différent de $P_M(T)$."}`
+    };
+    return {
+      enonce: `${ctx} Combien de personnes ont un test **positif** au total ?`,
+      mode: "nombre", prefixe: "Tests positifs :", attendu: Tpos,
+      erreurs: [{ valeur: VP, message: "N'oublie pas les faux positifs : des personnes saines peuvent aussi avoir un test positif." }],
+      aides: [`Malades positifs : $${nb(M)} \\times ${dec2(se)}$.`, `Sains positifs : $${nb(S)} \\times ${dec2(1 - sp)}$.`, "Additionne."],
+      solution: `$${nb(M)} \\times ${dec2(se)} + ${nb(S)} \\times ${dec2(1 - sp)} = ${nb(VP)} + ${nb(FP)} = ${nb(Tpos)}$ tests positifs.`,
+
+    };
+  };
+
+  GEN["pc-python"] = function () {
+    const p1 = pick([0.2, 0.3, 0.4, 0.5, 0.6]), p2 = pick([0.1, 0.25, 0.5, 0.7, 0.8]);
+    const t = rand(0, 1);
+    const prog = "```python\nfrom random import random\n\ndef experience():\n    a = random() < " + p1 + "\n    b = random() < " + p2 + "\n    return a and " + (t ? "not b" : "b") + "\n```";
+    const r = +(p1 * (t ? 1 - p2 : p2)).toFixed(4);
+    return {
+      enonce: `$\\texttt{random()}$ renvoie un nombre au hasard dans $[0\\,;1[$ : $\\texttt{random() < p}$ est vrai avec la probabilité $p$. On considère :\n\n${prog}\n\nOn répète l'expérience un grand nombre de fois. Vers quelle valeur la fréquence de $\\texttt{True}$ se rapproche-t-elle ?`,
+      mode: "nombre", prefixe: "Probabilité :", attendu: r,
+      aides: [`$\\texttt{a}$ est vrai avec la probabilité $${dec2(p1)}$, $\\texttt{b}$ avec la probabilité $${dec2(p2)}$, indépendamment.`, `La fonction renvoie vrai quand $\\texttt{a}$ est vrai **et** $\\texttt{b}$ est ${t ? "faux" : "vrai"}.`, "Sur l'arbre, on multiplie le long du chemin."],
+      solution: `$P = ${dec2(p1)} \\times ${dec2(t ? 1 - p2 : p2)} = ${dec2(r)}$. D'après la loi des grands nombres, la fréquence observée se rapproche de $${dec2(r)}$.`
+    };
+  };
+
+
   /* Séries « flash » d'un thème : mélange de ses générateurs */
   const THEMES = {
     "am-flash-cn": ["am-comparer", "am-fractions", "am-puissances", "am-ecritures", "am-ordre-grandeur", "am-coherence", "auto-conversions"],
@@ -4708,7 +4841,7 @@
 
 
   /* Une « erreur connue » ne doit jamais coïncider avec la bonne réponse (à la tolérance près) */
-  Object.keys(GEN).filter((k) => /^(ld|am|cd|ar|cl|fa|ve|st|vx|tc|co|dr|fr|sg)-/.test(k)).forEach((k) => {
+  Object.keys(GEN).filter((k) => /^(ld|am|cd|ar|cl|fa|ve|st|vx|tc|co|dr|fr|sg|pc)-/.test(k)).forEach((k) => {
     const g = GEN[k];
     GEN[k] = (i) => { const q = g(i); if (q.erreurs) q.erreurs = q.erreurs.filter((e) => Math.abs(e.valeur - q.attendu) >= (q.tolerance || 1e-9)); return q; };
   });

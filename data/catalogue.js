@@ -112,6 +112,13 @@ window.CATALOGUE = {
           titre: "Signes d'expressions et équations quotients",
           statut: "disponible",
           drive: ""
+        },
+        {
+          id: "seconde-probabilites-conditionnelles",
+          numero: 15,
+          titre: "Probabilités conditionnelles et arbres pondérés",
+          statut: "disponible",
+          drive: ""
         }
       ]
     },
