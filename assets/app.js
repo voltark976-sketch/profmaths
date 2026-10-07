@@ -150,10 +150,17 @@
     const nbQcm = dispos.reduce((s, k) => s + CHAPITRES[k].qcm.length, 0);
     let h = `<section class="hero"><div class="hero-in"><p class="eyebrow">Maths au lycée · Mayotte</p><h1>Une vidéo, un cours, des exercices. À ton rythme.</h1><p class="lead">Choisis ton niveau puis ton chapitre. Les chapitres suivent l'ordre des playlists de la chaîne.</p>
       <ul class="chiffres"><li><b>${dispos.length}</b> chapitres</li><li><b>${nbSeries}</b> séries d'exercices</li><li><b>${nbQcm}</b> questions de QCM</li></ul></div>${DECOR_HERO}</section>`;
+    // Accès direct par niveau (affiché sur grand écran) : tous les niveaux d'un coup d'œil
+    h += `<nav class="acces-niv" aria-label="Niveaux">`;
+    CATALOGUE.niveaux.forEach((n) => {
+      const nb = n.chapitres.filter((ch) => ch.statut === "disponible" && window.CHAPITRES && CHAPITRES[ch.id]).length;
+      h += `<button type="button" data-niv="${esc(n.id)}" data-cible="niv-${esc(n.id)}"><span class="pastille-niv" aria-hidden="true"></span><strong>${esc(n.nom)}</strong><span class="meta">${nb} chapitre${nb > 1 ? "s" : ""} en ligne</span></button>`;
+    });
+    h += `</nav>`;
     if (!Compte.eleve()) h += `<a class="invite" href="#compte"><strong>Crée ton compte</strong><span>pour retrouver tes points et tes étoiles sur n'importe quel téléphone ou ordinateur.</span></a>`;
     h += `<div class="niveaux">`;
     CATALOGUE.niveaux.forEach((n) => {
-      h += `<section class="niveau" data-niv="${esc(n.id)}"><h2><span class="pastille-niv" aria-hidden="true"></span>${esc(n.nom)}</h2>${n.intro ? `<p class="muted niveau-intro">${esc(n.intro)}</p>` : ""}<ol class="chapitres">`;
+      h += `<section class="niveau" id="niv-${esc(n.id)}" data-niv="${esc(n.id)}"><h2><span class="pastille-niv" aria-hidden="true"></span>${esc(n.nom)}</h2>${n.intro ? `<p class="muted niveau-intro">${esc(n.intro)}</p>` : ""}<ol class="chapitres">`;
       n.chapitres.forEach((ch) => {
         const dispo = ch.statut === "disponible" && window.CHAPITRES && CHAPITRES[ch.id];
         const num = ch.code ? `<span class="num num-a">${esc(ch.code)}</span>` : ch.numero ? `<span class="num">${ch.numero}</span>` : `<span class="num num-a">A</span>`;
@@ -169,6 +176,9 @@
     });
     h += `</div><footer class="pied"><a href="https://www.youtube.com/@Profmaths-q1p" target="_blank" rel="noopener">Chaîne YouTube</a><a href="https://drive.google.com/drive/folders/1mTeWgDGTv4hNYrD_ozxN9-cSDDGH_Oqn" target="_blank" rel="noopener">Cours et corrigés (Drive)</a></footer>`;
     $app.innerHTML = h;
+    $app.querySelectorAll(".acces-niv button").forEach((b) => b.addEventListener("click", () => {
+      document.getElementById(b.dataset.cible).scrollIntoView({ behavior: "smooth", block: "start" });
+    }));
   }
 
   /* ---------- Page jeu : « Les Salles », dans le dossier les-salles/ ---------- */

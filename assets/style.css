@@ -432,6 +432,17 @@ a.chap:hover .go { transform: translateX(3px); }
 .pied { align-items: center; }
 .pied::before { content: "π ProfMaths"; font: 800 1rem var(--f-titre); color: var(--encre); margin-right: auto; }
 
+/* Accès direct par niveau : seulement sur grand écran (le téléphone garde la liste) */
+.acces-niv { display: none; }
+@media (min-width: 760px) {
+  .acces-niv { display: grid; grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr)); gap: 12px; margin-top: 22px; }
+  .acces-niv button { display: grid; grid-template-columns: auto 1fr; align-items: center; column-gap: 10px; row-gap: 2px; padding: 14px 16px; text-align: left; font: inherit; color: var(--encre); background: var(--surface); border: 1px solid color-mix(in srgb, var(--trait) 70%, transparent); border-top: 4px solid var(--ac); border-radius: 16px; box-shadow: var(--ombre); cursor: pointer; transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s; }
+  .acces-niv button:hover, .acces-niv button:focus-visible { transform: translateY(-2px); box-shadow: var(--ombre-haut); border-color: var(--ac); }
+  .acces-niv strong { color: var(--ac); font-size: 1rem; line-height: 1.2; }
+  .acces-niv .meta { grid-column: 2; font-size: 0.82rem; color: var(--doux); }
+  .niveau { scroll-margin-top: 80px; }
+}
+
 /* Apparition douce des cartes */
 @keyframes monte { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 .chapitres > li, .series > li, .methode, .hero, .invite { animation: monte 0.4s ease both; }
