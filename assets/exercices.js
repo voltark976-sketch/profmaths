@@ -3292,6 +3292,234 @@
   };
 
 
+  /* ---------- Seconde, chapitre 4 : arithmétique (préfixe ar-) ---------- */
+  const diviseurs = (n) => { const d = []; for (let k = 1; k <= n; k++) if (n % k === 0) d.push(k); return d; };
+  const facteursPremiers = (n) => { const f = []; let m = n; for (let p = 2; m > 1; p++) while (m % p === 0) { f.push(p); m /= p; } return f; };
+  // [2, 2, 3, 5] → « 2^2 \times 3 \times 5 »
+  const produitTex = (f) => { const c = {}; f.forEach((p) => { c[p] = (c[p] || 0) + 1; }); return Object.keys(c).map(Number).sort((a, b) => a - b).map((p) => (c[p] > 1 ? `${p}^${c[p]}` : `${p}`)).join(" \\times "); };
+
+  GEN["ar-multiple"] = function () {
+    const b = rand(3, 15), vrai = Math.random() < 0.5;
+    let a;
+    if (vrai) a = b * rand(4, 15);
+    else do { a = rand(30, 200); } while (a % b === 0);
+    const forme = rand(0, 2);
+    const phrase = [`$${a}$ est un multiple de $${b}$`, `$${b}$ est un diviseur de $${a}$`, `$${a}$ est divisible par $${b}$`][forme];
+    const q = Math.floor(a / b), r = a - q * b;
+    return {
+      enonce: `Vrai ou faux : ${phrase}.`,
+      mode: "choix", choix: ["Vrai", "Faux"], attendu: vrai ? 0 : 1,
+      aides: [
+        `« $${a}$ est un multiple de $${b}$ », « $${b}$ est un diviseur de $${a}$ », « $${a}$ est divisible par $${b}$ » : ces trois phrases disent la même chose. Il existe un entier $k$ tel que $${a} = k \\times ${b}$.`,
+        `Calcule $${a} \\div ${b}$.`,
+        "Si le quotient est un entier, c'est vrai. Sinon, c'est faux."
+      ],
+      solution: vrai
+        ? `$${a} = ${q} \\times ${b}$ avec $k = ${q}$ entier : **vrai**.`
+        : `$${q} \\times ${b} = ${q * b}$ et $${q + 1} \\times ${b} = ${(q + 1) * b}$ : $${a}$ tombe entre les deux, avec un reste de $${r}$. Il n'existe pas d'entier $k$ tel que $${a} = k \\times ${b}$ : **faux**.`
+    };
+  };
+
+  GEN["ar-k"] = function () {
+    const b = rand(4, 19), k = rand(6, 40), a = b * k;
+    const ctx = pick([
+      [`$${a}$ est un multiple de $${b}$ : trouve l'entier $k$ tel que $${a} = k \\times ${b}$.`, "k ="],
+      [`On range $${a}$ cartons en piles de $${b}$ cartons. Combien de piles complètes obtient-on, sans carton restant ?`, "Piles :"],
+      [`La barge fait une rotation toutes les $${b}$ minutes. Combien de rotations fait-elle en $${a}$ minutes ?`, "Rotations :"]
+    ]);
+    return {
+      enonce: ctx[0], mode: "nombre", prefixe: ctx[1], attendu: k,
+      aides: [`Cherche combien de fois $${b}$ « rentre » dans $${a}$ : c'est l'entier $k$ tel que $${a} = k \\times ${b}$.`, `Calcule $${a} \\div ${b}$.`, `Vérifie : $k \\times ${b}$ doit redonner $${a}$.`],
+      solution: `$${a} \\div ${b} = ${k}$, donc $${a} = ${k} \\times ${b}$ : la réponse est $${k}$.`
+    };
+  };
+
+  GEN["ar-diviseurs"] = function () {
+    const n = pick([12, 18, 20, 28, 30, 32, 36, 40, 42, 44, 45, 50, 52, 54, 56, 63, 66, 70, 75, 78, 98, 99, 100]);
+    const d = diviseurs(n), paires = d.filter((k) => k * k <= n).map((k) => `${k} \\times ${n / k}`);
+    return {
+      enonce: `Donne **tous** les diviseurs positifs de $${n}$, séparés par « ; ».`,
+      mode: "ensemble", prefixe: "Diviseurs :", attendu: d,
+      aides: [
+        `$1$ et $${n}$ sont toujours des diviseurs de $${n}$.`,
+        `Cherche les produits qui donnent $${n}$ : $1 \\times ${n}$, puis teste $2$, $3$, $4$… Chaque produit donne **deux** diviseurs.`,
+        `Tu peux t'arrêter quand le premier facteur dépasse le second : ici, après $${d.filter((k) => k * k <= n).pop()}$.`
+      ],
+      solution: `$${n} = ${paires.join(" = ")}$.\n\nLes diviseurs de $${n}$ sont : $${d.join("\\,;\\,")}$ (${d.length} diviseurs).`
+    };
+  };
+
+  GEN["ar-premier"] = function () {
+    const premiers = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97];
+    const pieges = [1, 9, 15, 21, 27, 33, 39, 49, 51, 57, 63, 69, 77, 81, 87, 91, 93, 95, 99];
+    const n = Math.random() < 0.5 ? pick(premiers) : pick(pieges);
+    const premier = premiers.includes(n);
+    const p = n > 1 && !premier ? diviseurs(n)[1] : 0;
+    let sol;
+    if (n === 1) sol = "$1$ n'a qu'**un seul** diviseur positif (lui-même). Un nombre premier en a exactement deux : $1$ **n'est pas premier**.";
+    else if (premier) sol = `On teste les nombres premiers $2$, $3$, $5$, $7$ : aucun ne divise $${n}$ (sauf $${n}$ lui-même). Inutile d'aller plus loin, car $11 \\times 11 = 121 > ${n}$. Ses seuls diviseurs sont $1$ et $${n}$ : $${n}$ **est premier**.`;
+    else sol = `$${n} = ${p} \\times ${n / p}$ : $${p}$ est un diviseur de $${n}$, autre que $1$ et $${n}$. Donc $${n}$ **n'est pas premier**.`;
+    return {
+      enonce: `Le nombre $${n}$ est-il premier ?`,
+      mode: "choix", choix: ["Oui, il est premier", "Non, il n'est pas premier"], attendu: premier ? 0 : 1,
+      aides: [
+        "Un nombre premier a **exactement deux** diviseurs positifs : $1$ et lui-même.",
+        "Teste la division par $2$, $3$, $5$ et $7$ (critères : dernier chiffre pair, somme des chiffres multiple de $3$, dernier chiffre $0$ ou $5$…).",
+        "Attention aux pièges : $91 = 7 \\times 13$, $51 = 3 \\times 17$, et $1$ n'est pas premier."
+      ],
+      solution: sol
+    };
+  };
+
+  GEN["ar-decomposer"] = function () {
+    const n = pick([12, 18, 20, 24, 28, 36, 40, 45, 48, 50, 54, 60, 63, 72, 75, 84, 90, 96, 98, 100, 108, 120, 126, 150, 180]);
+    const f = facteursPremiers(n), bonne = produitTex(f);
+    const faux = [];
+    // un facteur qui n'est pas premier (on regroupe les deux premiers)
+    faux.push([f[0] * f[1]].concat(f.slice(2)).join(" \\times "));
+    // un facteur premier de trop : le produit ne redonne plus n
+    faux.push(produitTex(f.concat([f[f.length - 1]])));
+    // un facteur oublié
+    faux.push(produitTex(f.slice(1)));
+    // deux nombres non premiers
+    const d = diviseurs(n).filter((k) => k > 3 && n / k > 3 && facteursPremiers(k).length > 1 && facteursPremiers(n / k).length > 1);
+    if (d.length) { const k = pick(d); faux.push(`${k} \\times ${n / k}`); }
+    const m = melangeChoix(`$${bonne}$`, shuffle(faux).map((t) => `$${t}$`));
+    return {
+      enonce: `Quelle est la décomposition de $${n}$ en produit de facteurs **premiers** ?`,
+      mode: "choix", choix: m.choix, attendu: m.attendu,
+      aides: [
+        `Divise $${n}$ par $2$ autant de fois que possible, puis par $3$, puis par $5$…`,
+        "Chaque facteur doit être un nombre premier : $4$, $6$, $9$, $10$… ne sont pas premiers.",
+        `Vérifie que le produit redonne bien $${n}$.`
+      ],
+      solution: `${f.map((p, i) => `$${f.slice(i).reduce((a, b) => a * b, 1)} \\div ${p} = ${f.slice(i + 1).reduce((a, b) => a * b, 1)}$`).join(" ; ")}.\n\nDonc $${n} = ${bonne}$.`
+    };
+  };
+
+  GEN["ar-irreductible"] = function () {
+    let a, b;
+    do { a = rand(1, 15); b = rand(2, 19); } while (pgcd(a, b) !== 1 || a === b);
+    const g = pick([4, 6, 8, 9, 10, 12, 14, 15, 18]), p = a * g, q = b * g;
+    const sp = facteursPremiers(g)[0], demande = Math.random() < 0.5 ? "num" : "den";
+    const attendu = demande === "num" ? a : b;
+    const partiel = demande === "num" ? p / sp : q / sp;
+    return {
+      enonce: `On écrit $\\dfrac{${p}}{${q}}$ sous forme **irréductible** $\\dfrac{a}{b}$. Que vaut ${demande === "num" ? "le numérateur $a$" : "le dénominateur $b$"} ?`,
+      mode: "nombre", prefixe: demande === "num" ? "a =" : "b =", attendu,
+      erreurs: [{ valeur: partiel, message: `Ta fraction $\\dfrac{${p / sp}}{${q / sp}}$ se simplifie encore : ${p / sp} et ${q / sp} ont un diviseur commun.` }],
+      aides: [
+        "Une fraction est irréductible quand le numérateur et le dénominateur n'ont plus de diviseur commun autre que $1$.",
+        `Divise le numérateur et le dénominateur par un même nombre : ici, ils sont tous les deux divisibles par $${sp}$.`,
+        `Recommence jusqu'à ne plus pouvoir simplifier. Tu peux aussi décomposer : $${p} = ${produitTex(facteursPremiers(p))}$ et $${q} = ${produitTex(facteursPremiers(q))}$.`
+      ],
+      solution: `$${p}$ et $${q}$ sont tous les deux divisibles par $${g}$ : $\\dfrac{${p}}{${q}} = \\dfrac{${p} \\div ${g}}{${q} \\div ${g}} = \\dfrac{${a}}{${b}}$.\n\n$${a}$ et $${b}$ n'ont pas de diviseur commun autre que $1$ : la fraction est irréductible. Donc $${demande === "num" ? "a" : "b"} = ${attendu}$.`
+    };
+  };
+
+  GEN["ar-parite"] = function () {
+    const P = 0, I = 1, D = 2;
+    const big = rand(10000, 999999), bigTex = nb(big), bigPair = big % 2 === 0;
+    const T = [
+      () => { const k = rand(1, 9); return [`2n + ${2 * k}`, P, `$2n + ${2 * k} = 2(n + ${k})$ : c'est $2$ fois un entier, donc un nombre **pair**.`]; },
+      () => { const k = rand(0, 9); return [`2n + ${2 * k + 1}`, I, `$2n + ${2 * k + 1} = 2(n + ${k}) + 1$ : de la forme $2k' + 1$, donc **impair**.`]; },
+      () => { const m = pick([4, 6, 8, 10]); return [`${m}n`, P, `$${m}n = 2 \\times ${m / 2}n$ : c'est un multiple de $2$, donc **pair**.`]; },
+      () => { const m = pick([4, 6, 8]); return [`${m}n + 1`, I, `$${m}n + 1 = 2 \\times ${m / 2}n + 1$ : de la forme $2k + 1$, donc **impair**.`]; },
+      () => ["n(n + 1)", P, "Deux entiers consécutifs : l'un des deux est pair. On raisonne par **disjonction des cas** : si $n$ est pair, $n(n+1)$ est pair ; si $n$ est impair, $n + 1$ est pair, donc $n(n+1)$ est pair. Dans tous les cas, **pair**."],
+      () => ["n^2 + n", P, "$n^2 + n = n(n + 1)$ : le produit de deux entiers consécutifs, l'un des deux est pair. Donc **pair**."],
+      () => ["(2n + 1)^2", I, "$2n + 1$ est impair, et le carré d'un nombre impair est impair : $(2n+1)^2 = 4n^2 + 4n + 1 = 2(2n^2 + 2n) + 1$. Donc **impair**."],
+      () => ["2n^2 + 1", I, "$2n^2 + 1 = 2 \\times n^2 + 1$ : de la forme $2k + 1$, donc **impair**."],
+      () => ["n + (n + 1)", I, "$n + (n + 1) = 2n + 1$ : la somme de deux entiers consécutifs est toujours **impaire**."],
+      () => { const k = rand(1, 9); return [`n + ${k}`, D, `Ça dépend de $n$ : avec $n = 0$, on obtient $${k}$ ; avec $n = 1$, on obtient $${k + 1}$. L'un est pair, l'autre impair.`]; },
+      () => { const m = pick([3, 5, 7]); return [`${m}n`, D, `Ça dépend de $n$ : avec $n = 1$, on obtient $${m}$ (impair) ; avec $n = 2$, on obtient $${2 * m}$ (pair).`]; },
+      () => [`${bigTex}^2 + 1`, bigPair ? I : P, bigPair
+        ? `$${bigTex}$ est pair (dernier chiffre pair), donc son carré est pair : $${bigTex}^2 = 2k$. Alors $${bigTex}^2 + 1 = 2k + 1$ est **impair**.`
+        : `$${bigTex}$ est impair, donc son carré est impair : $${bigTex}^2 = 2k + 1$. Alors $${bigTex}^2 + 1 = 2k + 2 = 2(k + 1)$ est **pair**.`]
+    ];
+    const [tex, rep, expl] = pick(T)();
+    const numerique = tex.includes("^2 + 1") && !tex.includes("n");
+    return {
+      enonce: numerique ? `Le nombre $${tex}$ est-il pair ou impair ?` : `$n$ désigne un entier naturel. Le nombre $${tex}$ est-il pair ou impair ?`,
+      mode: "choix", choix: numerique ? ["Pair", "Impair"] : ["Toujours pair", "Toujours impair", "Ça dépend de $n$"], attendu: rep,
+      aides: [
+        "Un nombre pair s'écrit $2k$, un nombre impair s'écrit $2k + 1$, avec $k$ entier.",
+        numerique ? "Pair × pair donne pair ; impair × impair donne impair. Puis : pair + $1$ donne impair, impair + $1$ donne pair." : "Essaie d'écrire l'expression sous la forme $2 \\times (\\ldots)$ ou $2 \\times (\\ldots) + 1$.",
+        numerique ? "Regarde d'abord le dernier chiffre du nombre." : "Teste avec $n = 0$, $n = 1$, $n = 2$ : si les résultats n'ont pas tous la même parité, ça dépend de $n$."
+      ],
+      solution: expl
+    };
+  };
+
+  GEN["ar-python"] = function () {
+    const t = rand(0, 2);
+    if (t === 0) {
+      const b = rand(3, 9), a = rand(20, 99);
+      return {
+        enonce: `En Python, l'opérateur $\\texttt{\\%}$ donne le reste de la division euclidienne. Que vaut $\\texttt{${a} \\% ${b}}$ ?`,
+        mode: "nombre", prefixe: "Résultat :", attendu: a % b,
+        erreurs: [{ valeur: Math.floor(a / b), message: "Ça, c'est le quotient ($\\texttt{//}$ en Python). On demande le reste." }],
+        aides: [`Cherche le plus grand multiple de $${b}$ inférieur ou égal à $${a}$.`, `$${Math.floor(a / b)} \\times ${b} = ${Math.floor(a / b) * b}$.`, `Le reste, c'est ce qu'il manque pour arriver à $${a}$ : $${a} - ${Math.floor(a / b) * b}$.`],
+        solution: `$${a} = ${Math.floor(a / b)} \\times ${b} + ${a % b}$ avec $${a % b} < ${b}$. Donc $\\texttt{${a} \\% ${b}}$ vaut $${a % b}$.` + (a % b === 0 ? ` Le reste est nul : $${a}$ est un multiple de $${b}$.` : "")
+      };
+    }
+    if (t === 1) {
+      const b = rand(3, 13), vrai = Math.random() < 0.5;
+      let a; if (vrai) a = b * rand(5, 15); else do { a = rand(40, 180); } while (a % b === 0);
+      return {
+        enonce: "On considère la fonction Python :\n\n```python\ndef est_multiple(a, b):\n    return a % b == 0\n```\n\n" + `Que renvoie $\\texttt{est\\_multiple(${a}, ${b})}$ ?`,
+        mode: "choix", choix: ["True", "False"], attendu: vrai ? 0 : 1,
+        aides: ["$\\texttt{a \\% b}$ est le reste de la division de $a$ par $b$.", "$\\texttt{a \\% b == 0}$ vaut $\\texttt{True}$ quand le reste est nul, c'est-à-dire quand $a$ est un multiple de $b$.", `Calcule le reste de la division de $${a}$ par $${b}$.`],
+        solution: `$${a} = ${Math.floor(a / b)} \\times ${b} + ${a % b}$ : le reste vaut $${a % b}$. ` + (vrai ? "Il est nul, la fonction renvoie **True** : $" + a + "$ est un multiple de $" + b + "$." : "Il n'est pas nul, la fonction renvoie **False**.")
+      };
+    }
+    const a = rand(4, 13), b = rand(40, 150), m = Math.floor(b / a) * a;
+    return {
+      enonce: "On considère la fonction Python :\n\n```python\ndef plus_grand_multiple(a, b):\n    m = 0\n    while m + a <= b:\n        m = m + a\n    return m\n```\n\n" + `Que renvoie $\\texttt{plus\\_grand\\_multiple(${a}, ${b})}$ ?`,
+      mode: "nombre", prefixe: "Résultat :", attendu: m,
+      erreurs: [{ valeur: m + a, message: `$${m + a}$ dépasse $${b}$ : la boucle s'arrête avant.` }],
+      aides: [`$m$ prend les valeurs $0$, $${a}$, $${2 * a}$, $${3 * a}$… : les multiples de $${a}$.`, `La boucle continue tant que $m + ${a} \\leqslant ${b}$.`, `Cherche le plus grand multiple de $${a}$ inférieur ou égal à $${b}$.`],
+      solution: `$${m} = ${m / a} \\times ${a} \\leqslant ${b}$, mais $${m + a} > ${b}$. La fonction renvoie le plus grand multiple de $${a}$ inférieur ou égal à $${b}$ : $${m}$.`
+    };
+  };
+
+  GEN["ar-probleme"] = function () {
+    const t = rand(0, 2);
+    if (t === 0) {
+      // Deux barges qui partent ensemble
+      const [x, y] = pick([[15, 20], [20, 30], [12, 18], [10, 25], [15, 25], [20, 45], [30, 45], [18, 24]]);
+      const ppcm = (x * y) / pgcd(x, y);
+      const mx = []; for (let k = x; k <= ppcm; k += x) mx.push(k);
+      const my = []; for (let k = y; k <= ppcm; k += y) my.push(k);
+      return {
+        enonce: `À Mamoudzou, une barge part toutes les $${x}$ minutes et une autre toutes les $${y}$ minutes. Elles partent ensemble à 6 h. Au bout de combien de minutes repartent-elles ensemble pour la première fois ?`,
+        mode: "nombre", prefixe: "Réponse :", suffixe: "min", attendu: ppcm,
+        erreurs: [{ valeur: x * y, message: `$${x * y}$ convient, mais ce n'est pas la **première** fois : cherche plus petit.` }],
+        aides: [`Les départs de la première barge ont lieu après $${x}$, $${2 * x}$, $${3 * x}$… minutes : les multiples de $${x}$.`, `Écris aussi les multiples de $${y}$.`, "Cherche le plus petit nombre commun aux deux listes."],
+        solution: `Multiples de $${x}$ : $${mx.join("\\,;\\,")}$.\n\nMultiples de $${y}$ : $${my.join("\\,;\\,")}$.\n\nLe premier nombre commun est $${ppcm}$ : elles repartent ensemble au bout de $${ppcm}$ minutes.`
+      };
+    }
+    if (t === 1) {
+      // Piles égales de cartons
+      const n = pick([24, 30, 36, 40, 42, 48, 60, 72]), d = diviseurs(n).filter((k) => k > 1 && k < n);
+      return {
+        enonce: `On veut ranger $${n}$ cartons en piles **égales**, avec au moins $2$ piles et au moins $2$ cartons par pile. Combien de rangements différents sont possibles ?`,
+        mode: "nombre", prefixe: "Rangements :", attendu: d.length,
+        erreurs: [{ valeur: d.length + 2, message: "Tu as compté $1$ pile, ou $1$ carton par pile : c'est interdit ici." }],
+        aides: [`Le nombre de piles doit être un **diviseur** de $${n}$.`, `Liste les diviseurs de $${n}$.`, `Enlève $1$ (une seule pile) et $${n}$ (un carton par pile).`],
+        solution: `Diviseurs de $${n}$ : $${diviseurs(n).join("\\,;\\,")}$. On enlève $1$ et $${n}$ : il reste $${d.join("\\,;\\,")}$, soit $${d.length}$ rangements possibles.`
+      };
+    }
+    // Somme d'entiers consécutifs
+    const k = pick([3, 5]), n = rand(10, 60), S = k === 3 ? 3 * n + 3 : 5 * n + 10;
+    return {
+      enonce: `La somme de ${k === 3 ? "trois" : "cinq"} entiers consécutifs vaut $${S}$. Quel est le plus petit de ces entiers ?`,
+      mode: "nombre", prefixe: "Le plus petit :", attendu: n,
+      aides: [`Appelle $n$ le plus petit : les entiers sont $${k === 3 ? "n,\\ n+1,\\ n+2" : "n,\\ n+1,\\ n+2,\\ n+3,\\ n+4"}$.`, `Leur somme vaut $${k === 3 ? "3n + 3" : "5n + 10"}$.`, `Résous $${k === 3 ? "3n + 3" : "5n + 10"} = ${S}$.`],
+      solution: `$${k === 3 ? "n + (n+1) + (n+2) = 3n + 3" : "n + (n+1) + \\ldots + (n+4) = 5n + 10"} = ${S}$, donc $${k}n = ${S - (k === 3 ? 3 : 10)}$ et $n = ${n}$.\n\nVérification : $${Array.from({ length: k }, (_, i) => n + i).join(" + ")} = ${S}$. Remarque : $${k === 3 ? "3n + 3 = 3(n + 1)" : "5n + 10 = 5(n + 2)"}$, cette somme est toujours un multiple de $${k}$.`
+    };
+  };
+
+
   /* Séries « flash » d'un thème : mélange de ses générateurs */
   const THEMES = {
     "am-flash-cn": ["am-comparer", "am-fractions", "am-puissances", "am-ecritures", "am-ordre-grandeur", "am-coherence", "auto-conversions"],
@@ -3308,7 +3536,7 @@
 
 
   /* Une « erreur connue » ne doit jamais coïncider avec la bonne réponse (à la tolérance près) */
-  Object.keys(GEN).filter((k) => k.startsWith("ld-") || k.startsWith("am-") || k.startsWith("cd-")).forEach((k) => {
+  Object.keys(GEN).filter((k) => /^(ld|am|cd|ar)-/.test(k)).forEach((k) => {
     const g = GEN[k];
     GEN[k] = (i) => { const q = g(i); if (q.erreurs) q.erreurs = q.erreurs.filter((e) => Math.abs(e.valeur - q.attendu) >= (q.tolerance || 1e-9)); return q; };
   });

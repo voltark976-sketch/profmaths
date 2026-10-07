@@ -37,8 +37,15 @@ window.CATALOGUE = {
           drive: "https://drive.google.com/drive/folders/153RvVVumMoWU_bPz6w6RypIZVkocK6Pb"
         },
         {
-          id: "seconde-variations",
+          id: "seconde-arithmetique",
           numero: 4,
+          titre: "Arithmétique",
+          statut: "disponible",
+          drive: ""
+        },
+        {
+          id: "seconde-variations",
+          numero: 9,
           titre: "Variations et fonctions de référence",
           statut: "disponible",
           drive: ""

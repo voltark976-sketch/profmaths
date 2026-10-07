@@ -8,6 +8,8 @@ Site statique : aucune base de données, aucun compte élève. Ouvrir `index.htm
 - `data/config-comptes.js` : activation des comptes élèves (Firebase) et liste des classes.
 - `data/seconde/ensembles.js` : chapitre 1 de Seconde (ensembles de nombres, intervalles, valeur absolue). Les générateurs d'exercices correspondants commencent par `ens-`, `int-` et `abs-` dans `assets/exercices.js`.
 - `data/seconde/information-chiffree.js` : chapitre 3 de Seconde.
+- `data/seconde/arithmetique.js` : chapitre 4 de Seconde (multiples, diviseurs, parité, nombres premiers, fractions irréductibles). Générateurs `ar-` dans `assets/exercices.js`.
+- `data/seconde/variations.js` : variations et fonctions de référence (numéroté 9 en attendant d'être réparti entre les chapitres 6, 9 et 13 de la progression).
 - `data/seconde/automatismes.js` : automatismes de Seconde (10 fiches, séries flash, test).
 - `data/automatismes/*.js` : partie Automatismes, un fichier par thème officiel de l'épreuve anticipée (calcul numérique, calcul algébrique, proportions, évolutions, fonctions, statistiques, probabilités). Les générateurs d'exercices correspondants commencent par `am-` dans `assets/exercices.js`.
 - `data/premiere/suites.js` et `data/premiere/second-degre.js` : chapitres 1 et 2 de Première spécialité.

@@ -11,7 +11,7 @@
 window.CHAPITRES = window.CHAPITRES || {};
 window.CHAPITRES["seconde-variations"] = {
   niveau: "Seconde",
-  numero: 4,
+  numero: 9,
   titre: "Variations et fonctions de référence",
   accroche: "Une courbe qui monte, qui descend, un maximum, un minimum : décrire une fonction en un coup d'œil, puis connaître par cœur les cinq fonctions de référence.",
 
