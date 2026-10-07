@@ -65,6 +65,13 @@ window.CATALOGUE = {
           drive: ""
         },
         {
+          id: "seconde-statistiques",
+          numero: 8,
+          titre: "Statistiques 1 : indicateurs",
+          statut: "disponible",
+          drive: ""
+        },
+        {
           id: "seconde-variations",
           numero: 9,
           titre: "Variations et fonctions de référence",

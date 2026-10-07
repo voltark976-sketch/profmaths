@@ -4025,6 +4025,131 @@
   };
 
 
+  /* ---------- Seconde, chapitre 8 : statistiques 1 (préfixe st-) ---------- */
+  const serie = (n, a, b) => Array.from({ length: n }, () => rand(a, b));
+  const moy = (L) => L.reduce((s, x) => s + x, 0) / L.length;
+  const ecType = (L) => { const m = moy(L); return Math.sqrt(L.reduce((s, x) => s + (x - m) ** 2, 0) / L.length); };
+  const listeTex = (L) => L.map((x) => nb(x)).join("\\,;\\,");
+  const quartile = (L, k) => { const T = L.slice().sort((a, b) => a - b); return T[Math.ceil((k * T.length) / 4) - 1]; };
+
+  GEN["st-moyenne"] = function () {
+    const n = rand(5, 8), L = serie(n, 4, 20), s = L.reduce((a, b) => a + b, 0), m = Math.round((s / n) * 10) / 10;
+    return {
+      enonce: `Notes d'un élève de Sada : $${listeTex(L)}$. Calcule sa moyenne (arrondie au dixième si besoin).`,
+      mode: "nombre", prefixe: "Moyenne :", attendu: m, tolerance: 0.051,
+      aides: ["Moyenne $=$ somme des valeurs $\\div$ nombre de valeurs.", `Somme : $${L.join(" + ")} = ${s}$.`, `Il y a $${n}$ valeurs : calcule $${s} \\div ${n}$.`],
+      solution: `$\\bar{x} = \\dfrac{${s}}{${n}} ${Number.isInteger(s / n) ? "=" : "\\approx"} ${nb(m)}$.`
+    };
+  };
+
+  GEN["st-linearite"] = function () {
+    const m = rand(8, 15) + pick([0, 0.5]), a = pick([1, 1, 2, 3, 0.5, 1.1, 1.2]), b = pick([0, 1, 2, -1, 5, -3]);
+    const r = Math.round((a * m + b) * 1000) / 1000;
+    const ctx = a === 1 ? `on ajoute $${b}$ point${Math.abs(b) > 1 ? "s" : ""} à chaque note` : b === 0 ? `on multiplie chaque valeur par $${nb(a)}$` : `chaque valeur $x$ est remplacée par $${nb(a)}x ${sg(b)}$`;
+    if (a === 1 && b === 0) return GEN["st-linearite"]();
+    return {
+      enonce: `Une série statistique a pour moyenne $${nb(m)}$. Si ${ctx}, quelle est la nouvelle moyenne ?`,
+      mode: "nombre", prefixe: "Moyenne :", attendu: r,
+      aides: ["**Linéarité de la moyenne** : si chaque valeur $x$ devient $ax + b$, la moyenne $\\bar{x}$ devient $a\\bar{x} + b$.", `Ici $a = ${nb(a)}$ et $b = ${nb(b)}$.`, `Calcule $${nb(a)} \\times ${nb(m)} ${sg(b)}$.`],
+      solution: `La nouvelle moyenne est $${nb(a)} \\times ${nb(m)} ${sg(b)} = ${nb(r)}$. Pas besoin de connaître les valeurs une par une.`
+    };
+  };
+
+  GEN["st-ecart-type"] = function () {
+    const n = rand(4, 6), L = serie(n, 2, 18), s = Math.round(ecType(L) * 100) / 100;
+    return {
+      enonce: `Série : $${listeTex(L)}$. À l'aide de la calculatrice, donne l'écart type $\\sigma$ de cette série, arrondi au centième.`,
+      mode: "nombre", prefixe: "σ ≈", attendu: s, tolerance: 0.006,
+      erreurs: [{ valeur: Math.round(ecType(L) ** 2 * 100) / 100, message: "Ça, c'est la **variance**. L'écart type est sa racine carrée." }],
+      aides: ["Calculatrice : mode statistiques, entre la liste, puis lis $\\sigma$ (ou $\\sigma_x$), pas $s$.", `La moyenne vaut $${nb(Math.round(moy(L) * 100) / 100)}$.`, "À la main : $\\sigma = \\sqrt{\\dfrac{(x_1 - \\bar{x})^2 + \\ldots + (x_n - \\bar{x})^2}{n}}$."],
+      solution: `$\\bar{x} = ${nb(Math.round(moy(L) * 1000) / 1000)}$ et la variance vaut $V \\approx ${nb(Math.round(ecType(L) ** 2 * 1000) / 1000)}$. Donc $\\sigma = \\sqrt{V} \\approx ${nb(s)}$.\n\nL'écart type mesure la **dispersion** des valeurs autour de la moyenne.`
+    };
+  };
+
+  GEN["st-interquartile"] = function () {
+    const n = pick([8, 9, 11, 12, 15]), L = serie(n, 1, 20), q1 = quartile(L, 1), q3 = quartile(L, 3);
+    const T = L.slice().sort((a, b) => a - b);
+    return {
+      enonce: `Série : $${listeTex(L)}$. Calcule l'écart interquartile $Q_3 - Q_1$.`,
+      mode: "nombre", prefixe: "Q₃ − Q₁ =", attendu: q3 - q1,
+      erreurs: [{ valeur: T[n - 1] - T[0], message: "Ça, c'est l'**étendue** (max − min). On demande $Q_3 - Q_1$." }],
+      aides: ["Range d'abord les valeurs dans l'ordre croissant.", `$Q_1$ est la valeur de rang $\\dfrac{${n}}{4}$ arrondi à l'entier supérieur, soit le rang $${Math.ceil(n / 4)}$. $Q_3$ : rang $${Math.ceil((3 * n) / 4)}$.`, `Série rangée : $${listeTex(T)}$.`],
+      solution: `Série rangée : $${listeTex(T)}$.\n\n$Q_1 = ${q1}$ (rang $${Math.ceil(n / 4)}$) et $Q_3 = ${q3}$ (rang $${Math.ceil((3 * n) / 4)}$). Écart interquartile : $${q3} - ${q1} = ${q3 - q1}$.\n\nAu moins la moitié des valeurs sont entre $Q_1$ et $Q_3$.`
+    };
+  };
+
+  GEN["st-influence"] = function () {
+    const n = rand(5, 9), m = rand(9, 14), v = pick([rand(0, 5), rand(16, 20)]);
+    const ajout = Math.random() < 0.6, total = n * m;
+    if (ajout) {
+      const r = Math.round(((total + v) / (n + 1)) * 100) / 100;
+      return {
+        enonce: `Un élève a $${n}$ notes, de moyenne $${m}$. Il obtient une nouvelle note : $${v}$. Quelle est sa nouvelle moyenne (arrondie au centième) ?`,
+        mode: "nombre", prefixe: "Moyenne :", attendu: r, tolerance: 0.006,
+        erreurs: [{ valeur: (m + v) / 2, message: "On ne fait pas la moyenne de l'ancienne moyenne et de la nouvelle note : l'ancienne moyenne « pèse » $" + n + "$ notes." }],
+        aides: [`La somme des $${n}$ notes vaut $${n} \\times ${m} = ${total}$.`, `Nouvelle somme : $${total} + ${v}$.`, `Divise par le nouveau nombre de notes : $${n + 1}$.`],
+        solution: `Somme : $${n} \\times ${m} + ${v} = ${total + v}$ pour $${n + 1}$ notes. Moyenne : $\\dfrac{${total + v}}{${n + 1}} \\approx ${nb(r)}$.\n\n${v > m ? "La note est au-dessus de la moyenne : la moyenne augmente." : v < m ? "La note est en dessous de la moyenne : la moyenne baisse." : "La moyenne ne change pas."} Une valeur extrême influence la moyenne, beaucoup moins la médiane.`
+      };
+    }
+    const r = Math.round(((total - v) / (n - 1)) * 100) / 100;
+    return {
+      enonce: `Une série de $${n}$ valeurs a pour moyenne $${m}$. On retire la valeur $${v}$. Quelle est la nouvelle moyenne (arrondie au centième) ?`,
+      mode: "nombre", prefixe: "Moyenne :", attendu: r, tolerance: 0.006,
+      aides: [`La somme des $${n}$ valeurs vaut $${n} \\times ${m} = ${total}$.`, `Nouvelle somme : $${total} - ${v}$.`, `Il reste $${n - 1}$ valeurs.`],
+      solution: `$\\dfrac{${total} - ${v}}{${n - 1}} = \\dfrac{${total - v}}{${n - 1}} \\approx ${nb(r)}$.`
+    };
+  };
+
+  GEN["st-comparer"] = function () {
+    const t = rand(0, 2);
+    const m = rand(9, 13), d = rand(1, 3), s1 = rand(10, 25) / 10, s2 = s1 + rand(10, 30) / 10;
+    if (t === 0) {
+      const homog = Math.random() < 0.5 ? "A" : "B", sA = homog === "A" ? s1 : s2, sB = homog === "A" ? s2 : s1;
+      return {
+        enonce: `Classe A : moyenne $${m}$, écart type $${nb(sA)}$. Classe B : moyenne $${m}$, écart type $${nb(sB)}$. Quelle classe a les notes les plus **homogènes** (les moins dispersées) ?`,
+        mode: "choix", choix: ["La classe A", "La classe B", "On ne peut pas savoir"], attendu: homog === "A" ? 0 : 1,
+        aides: ["L'écart type mesure la dispersion autour de la moyenne.", "Plus l'écart type est petit, plus les valeurs sont regroupées.", "Compare les deux écarts types."],
+        solution: `Même moyenne, mais l'écart type de la classe ${homog} est plus petit ($${nb(Math.min(sA, sB))} < ${nb(Math.max(sA, sB))}$) : ses notes sont plus **homogènes**.`
+      };
+    }
+    if (t === 1) {
+      const meA = m + d, meB = m, eA = rand(3, 6), eB = eA + rand(2, 4);
+      return {
+        enonce: `Masses de tortues vertes (en kg) sur deux plages. Plage 1 : médiane $${meA * 10}$, écart interquartile $${eA * 10}$. Plage 2 : médiane $${meB * 10}$, écart interquartile $${eB * 10}$. Quelle affirmation est vraie ?`,
+        ...((c) => ({ mode: "choix", choix: c.choix, attendu: c.attendu }))(melangeChoix("Les tortues de la plage 1 sont en général plus lourdes et leurs masses moins dispersées" , ["Les tortues de la plage 2 sont en général plus lourdes", "Les masses de la plage 1 sont plus dispersées", "Toutes les tortues de la plage 1 sont plus lourdes que celles de la plage 2"])),
+        aides: ["La médiane donne le « centre » de la série : la moitié des valeurs est en dessous.", "L'écart interquartile $Q_3 - Q_1$ mesure la dispersion.", "Attention aux affirmations trop fortes (« toutes ») : les indicateurs ne disent rien de chaque valeur."],
+        solution: `Médiane plus grande sur la plage 1 ($${meA * 10} > ${meB * 10}$) : les tortues y sont en général plus lourdes. Écart interquartile plus petit ($${eA * 10} < ${eB * 10}$) : masses moins dispersées. Mais on ne peut pas dire que **toutes** sont plus lourdes.`
+      };
+    }
+    return {
+      enonce: `Pour comparer deux séries, quel couple d'indicateurs va avec la médiane ?`,
+      ...((c) => ({ mode: "choix", choix: c.choix, attendu: c.attendu }))(melangeChoix("La médiane et l'écart interquartile", ["La médiane et l'écart type", "La médiane et la moyenne", "La médiane et l'effectif total"])),
+      aides: ["On associe un indicateur de position et un indicateur de dispersion qui « vont ensemble ».", "La moyenne va avec l'écart type (tous deux calculés avec toutes les valeurs).", "La médiane va avec les quartiles."],
+      solution: "On compare avec les couples (moyenne ; écart type) ou (médiane ; écart interquartile). La médiane et l'écart interquartile sont peu sensibles aux valeurs extrêmes."
+    };
+  };
+
+  GEN["st-python"] = function () {
+    const n = rand(3, 5), L = serie(n, 2, 15), s = L.reduce((a, b) => a + b, 0);
+    const t = Math.random() < 0.5;
+    if (t) {
+      return {
+        enonce: "On considère la fonction Python :\n\n```python\ndef moyenne(L):\n    s = 0\n    for x in L:\n        s = s + x\n    return s / len(L)\n```\n\n" + `Que renvoie $\\texttt{moyenne([${L.join(", ")}])}$ ? (Arrondis au centième si besoin.)`,
+        mode: "nombre", prefixe: "Résultat :", attendu: Math.round((s / n) * 100) / 100, tolerance: 0.006,
+        aides: ["$\\texttt{s}$ accumule la somme des valeurs de la liste.", "$\\texttt{len(L)}$ est le nombre de valeurs de la liste.", `Somme : $${s}$ ; nombre de valeurs : $${n}$.`],
+        solution: `La boucle calcule $s = ${L.join(" + ")} = ${s}$, puis la fonction renvoie $\\dfrac{${s}}{${n}} ${Number.isInteger(s / n) ? "=" : "\\approx"} ${nb(Math.round((s / n) * 100) / 100)}$ : c'est la moyenne.`
+      };
+    }
+    return {
+      enonce: "On considère la fonction Python :\n\n```python\ndef mystere(L):\n    s = 0\n    for x in L:\n        s = s + x\n    return s\n```\n\n" + `Que renvoie $\\texttt{mystere([${L.join(", ")}])}$ ?`,
+      mode: "nombre", prefixe: "Résultat :", attendu: s,
+      erreurs: [{ valeur: Math.round((s / n) * 100) / 100, message: "La fonction ne divise pas par $\\texttt{len(L)}$ : elle renvoie la somme." }],
+      aides: ["La boucle parcourt chaque valeur $x$ de la liste.", "À chaque tour, $x$ est ajouté à $s$.", "Que vaut $s$ à la fin ?"],
+      solution: `$s$ vaut successivement ${L.map((_, i) => `$${L.slice(0, i + 1).reduce((a, b) => a + b, 0)}$`).join(", ")}. La fonction renvoie la **somme** des valeurs : $${s}$.`
+    };
+  };
+
+
   /* Séries « flash » d'un thème : mélange de ses générateurs */
   const THEMES = {
     "am-flash-cn": ["am-comparer", "am-fractions", "am-puissances", "am-ecritures", "am-ordre-grandeur", "am-coherence", "auto-conversions"],
@@ -4041,7 +4166,7 @@
 
 
   /* Une « erreur connue » ne doit jamais coïncider avec la bonne réponse (à la tolérance près) */
-  Object.keys(GEN).filter((k) => /^(ld|am|cd|ar|cl|fa|ve)-/.test(k)).forEach((k) => {
+  Object.keys(GEN).filter((k) => /^(ld|am|cd|ar|cl|fa|ve|st)-/.test(k)).forEach((k) => {
     const g = GEN[k];
     GEN[k] = (i) => { const q = g(i); if (q.erreurs) q.erreurs = q.erreurs.filter((e) => Math.abs(e.valeur - q.attendu) >= (q.tolerance || 1e-9)); return q; };
   });
