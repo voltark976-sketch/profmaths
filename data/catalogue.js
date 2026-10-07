@@ -126,6 +126,13 @@ window.CATALOGUE = {
           titre: "Statistiques 2 et échantillonnage",
           statut: "disponible",
           drive: ""
+        },
+        {
+          id: "seconde-synthese",
+          numero: 17,
+          titre: "Problèmes de synthèse",
+          statut: "disponible",
+          drive: ""
         }
       ]
     },

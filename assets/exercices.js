@@ -4935,6 +4935,95 @@
   };
 
 
+  /* ---------- Seconde, chapitre 17 : problèmes de synthèse (préfixe sy-) ---------- */
+  GEN["sy-boite"] = function () {
+    const c = pick([12, 18, 24, 30, 36]), xs = c / 6, t = rand(0, 1);
+    const V = (x) => x * (c - 2 * x) ** 2;
+    if (t === 0) {
+      const x = rand(1, c / 2 - 1);
+      return {
+        enonce: `Dans une plaque de carton carrée de $${c}$ cm de côté, on découpe un carré de côté $x$ cm à chaque coin, puis on replie les bords pour faire une boîte sans couvercle. Calcule le volume (en cm³) pour $x = ${x}$.`,
+        mode: "nombre", prefixe: "V =", suffixe: "cm³", attendu: V(x),
+        aides: [`Le fond de la boîte est un carré de côté $${c} - 2x$ (on enlève $x$ de chaque côté).`, `La hauteur de la boîte est $x$. Donc $V(x) = x(${c} - 2x)^2$.`, `Pour $x = ${x}$ : fond de côté $${c - 2 * x}$ cm.`],
+        solution: `$V(${x}) = ${x} \\times (${c} - 2 \\times ${x})^2 = ${x} \\times ${c - 2 * x}^2 = ${x} \\times ${(c - 2 * x) ** 2} = ${V(x)}$ cm³.`
+      };
+    }
+    const vals = Array.from({ length: c / 2 - 1 }, (_, i) => i + 1);
+    return {
+      enonce: `Dans une plaque de carton carrée de $${c}$ cm de côté, on découpe un carré de côté $x$ cm à chaque coin pour faire une boîte sans couvercle, de volume $V(x) = x(${c} - 2x)^2$. Pour quelle valeur **entière** de $x$ le volume est-il maximal ?`,
+      mode: "nombre", prefixe: "x =", suffixe: "cm", attendu: xs,
+      erreurs: [{ valeur: c / 4, message: `$V(${c / 4}) = ${nb(V(c / 4))}$ : ce n'est pas le maximum, compare avec les valeurs voisines.` }],
+      aides: [`$x$ est compris entre $0$ et $${c / 2}$.`, "Fais un tableau de valeurs de $V(x)$ pour $x = 1, 2, 3$… (calculatrice ou Python).", `Compare : $V(${xs - 1}) = ${V(xs - 1)}$, $V(${xs}) = ${V(xs)}$, $V(${xs + 1}) = ${V(xs + 1)}$.`],
+      solution: `Tableau de valeurs : ${vals.slice(0, Math.min(vals.length, 8)).map((x) => `$V(${x}) = ${V(x)}$`).join(" ; ")}${vals.length > 8 ? "…" : ""}\n\nLe volume est maximal pour $x = ${xs}$ cm : $V(${xs}) = ${V(xs)}$ cm³.`
+    };
+  };
+
+  GEN["sy-triangle"] = function () {
+    // Triangle rectangle (ou non) en un sommet, coordonnées entières
+    const O = [rand(-4, 2), rand(-4, 2)], rect = Math.random() < 0.7;
+    let u, v;
+    do { u = [randNZ(-4, 4), randNZ(-4, 4)]; const k = pick([1, 2]); v = rect ? [-u[1] * k, u[0] * k] : [-u[1] * k + randNZ(-2, 2), u[0] * k]; } while (det(u, v) === 0);
+    const [A, B, C] = shuffle([O, [O[0] + u[0], O[1] + u[1]], [O[0] + v[0], O[1] + v[1]]]);
+    const d2 = (P, Q) => (P[0] - Q[0]) ** 2 + (P[1] - Q[1]) ** 2;
+    const AB = d2(A, B), AC = d2(A, C), BC = d2(B, C);
+    const sommet = AB + AC === BC ? 0 : AB + BC === AC ? 1 : AC + BC === AB ? 2 : 3;
+    return {
+      enonce: `Dans un repère orthonormé : $A(${A[0]}\\,;${A[1]})$, $B(${B[0]}\\,;${B[1]})$, $C(${C[0]}\\,;${C[1]})$. Le triangle $ABC$ est-il rectangle ?`,
+      mode: "choix", choix: ["Oui, rectangle en $A$", "Oui, rectangle en $B$", "Oui, rectangle en $C$", "Non"], attendu: sommet,
+      aides: ["Calcule les carrés des longueurs : $AB^2 = (x_B - x_A)^2 + (y_B - y_A)^2$, etc.", `$AB^2 = ${AB}$, $AC^2 = ${AC}$, $BC^2 = ${BC}$.`, "Réciproque de Pythagore : le triangle est rectangle si le plus grand carré est égal à la somme des deux autres."],
+      solution: `$AB^2 = ${AB}$, $AC^2 = ${AC}$, $BC^2 = ${BC}$.\n\n` + (sommet < 3 ? `$${["AB^2 + AC^2", "AB^2 + BC^2", "AC^2 + BC^2"][sommet]} = ${[AB + AC, AB + BC, AC + BC][sommet]} = ${["BC", "AC", "AB"][sommet]}^2$ : d'après la réciproque du théorème de Pythagore, le triangle est rectangle en $${"ABC"[sommet]}$.` : `Le plus grand carré n'est pas la somme des deux autres : le triangle n'est **pas** rectangle.`)
+    };
+  };
+
+  GEN["sy-suite"] = function () {
+    const t = rand(0, 2), n = rand(3, 12);
+    const F = [
+      () => { const a = randNZ(-5, 6), b = rand(-9, 9); return [`u(n) = ${poly([a, b], "n")}`, a * n + b, `$u(${n}) = ${a} \\times ${n} ${sg(b)} = ${a * n + b}$.`]; },
+      () => { const b = rand(-9, 9); return [`u(n) = n^2 ${sg(b)}`.replace(" + 0", "").replace(" - 0", ""), n * n + b, `$u(${n}) = ${n}^2 ${sg(b)} = ${n * n + b}$.`]; },
+      () => { const q = pick([2, 3]); return [`u(n) = ${q}^n`, q ** n, `$u(${n}) = ${q}^{${n}} = ${q ** n}$.`]; }
+    ];
+    const [def, v, sol] = F[t]();
+    return {
+      enonce: `On définit, pour tout entier naturel $n$, $${def}$. Calcule $u(${n})$.`,
+      mode: "nombre", prefixe: `u(${n}) =`, attendu: v,
+      aides: ["$u$ est une fonction définie sur $\\mathbb{N}$ : on ne la calcule que pour des entiers.", `Remplace $n$ par $${n}$.`, "Respecte les priorités : la puissance d'abord."],
+      solution: sol + " Ces fonctions définies sur $\\mathbb{N}$ s'appellent des **suites** : on les étudiera en Première."
+    };
+  };
+
+  GEN["sy-raisonnement"] = function () {
+    const T = [
+      ["Pour montrer que « tout nombre premier est impair » est faux, on cite $2$.", "Un contre-exemple"],
+      ["On suppose que $\\sqrt{2} = \\dfrac{p}{q}$ irréductible, et on aboutit à une contradiction.", "Un raisonnement par l'absurde"],
+      ["Pour montrer que $n(n + 1)$ est pair, on traite le cas $n$ pair puis le cas $n$ impair.", "Une disjonction des cas"],
+      ["Pour montrer que deux vecteurs ne sont pas colinéaires, on montre que leur déterminant n'est pas nul.", "La contraposée d'une implication"],
+      ["On résout $3x + 1 = 7 \\iff 3x = 6 \\iff x = 2$.", "Une suite d'équivalences"],
+      ["Pour montrer que la somme de deux multiples de $3$ est un multiple de $3$, on écrit $3k_1 + 3k_2 = 3(k_1 + k_2)$.", "Une démonstration directe dans le cas général"]
+    ];
+    const noms = T.map((t) => t[1]), i = rand(0, T.length - 1);
+    const ch = melangeChoix(noms[i], shuffle(noms.filter((_, k) => k !== i)).slice(0, 3));
+    return {
+      enonce: `Quel type de raisonnement est utilisé ? ${T[i][0]}`,
+      mode: "choix", choix: ch.choix, attendu: ch.attendu,
+      aides: ["Contre-exemple : un seul cas suffit pour montrer qu'une affirmation générale est fausse.", "Absurde : on suppose le contraire et on trouve une contradiction. Disjonction des cas : on sépare les cas possibles.", "Contraposée : « si non Q, alors non P » démontre « si P, alors Q »."],
+      solution: `C'est **${noms[i].toLowerCase()}**.`
+    };
+  };
+
+  GEN["sy-longueur"] = function () {
+    const n = pick([1, 2, 4]), t = rand(0, 1);
+    const f = t ? (x) => x * x : (x) => Math.sqrt(x), ftex = t ? "x**2" : "sqrt(x)";
+    let L = 0; for (let i = 0; i < n; i++) { const a = i / n, b = (i + 1) / n; L += Math.hypot(b - a, f(b) - f(a)); }
+    const r = Math.round(L * 1000) / 1000;
+    return {
+      enonce: "On approche la longueur de la courbe de $f$ sur $[0\\,;1]$ par une ligne brisée de $n$ segments :\n\n```python\nfrom math import sqrt\n\ndef f(x):\n    return " + ftex + "\n\ndef longueur(n):\n    L = 0\n    for i in range(n):\n        a, b = i / n, (i + 1) / n\n        L = L + sqrt((b - a)**2 + (f(b) - f(a))**2)\n    return L\n```\n\n" + `Que renvoie $\\texttt{longueur(${n})}$ ? (Arrondis au millième.)`,
+      mode: "nombre", prefixe: "Longueur ≈", attendu: r, tolerance: 0.0011,
+      aides: [`On découpe $[0\\,;1]$ en $${n}$ morceaux de largeur $${nb(1 / n)}$.`, "Chaque segment relie $(a\\,;f(a))$ et $(b\\,;f(b))$ ; sa longueur se calcule avec la formule de la distance (chapitre 7).", n === 1 ? "Un seul segment, de $(0\\,;0)$ à $(1\\,;1)$." : "Additionne les longueurs des segments."],
+      solution: (n === 1 ? "Un seul segment de $(0\\,;0)$ à $(1\\,;1)$ : $\\sqrt{1^2 + 1^2} = \\sqrt{2}$" : `Somme des longueurs des $${n}$ segments`) + ` $\\approx ${nb(r)}$.\n\nPlus $n$ est grand, plus la ligne brisée « colle » à la courbe et plus l'approximation est bonne.`
+    };
+  };
+
+
   /* Séries « flash » d'un thème : mélange de ses générateurs */
   const THEMES = {
     "am-flash-cn": ["am-comparer", "am-fractions", "am-puissances", "am-ecritures", "am-ordre-grandeur", "am-coherence", "auto-conversions"],
@@ -4951,7 +5040,7 @@
 
 
   /* Une « erreur connue » ne doit jamais coïncider avec la bonne réponse (à la tolérance près) */
-  Object.keys(GEN).filter((k) => /^(ld|am|cd|ar|cl|fa|ve|st|vx|tc|co|dr|fr|sg|pc|ec)-/.test(k)).forEach((k) => {
+  Object.keys(GEN).filter((k) => /^(ld|am|cd|ar|cl|fa|ve|st|vx|tc|co|dr|fr|sg|pc|ec|sy)-/.test(k)).forEach((k) => {
     const g = GEN[k];
     GEN[k] = (i) => { const q = g(i); if (q.erreurs) q.erreurs = q.erreurs.filter((e) => Math.abs(e.valeur - q.attendu) >= (q.tolerance || 1e-9)); return q; };
   });
