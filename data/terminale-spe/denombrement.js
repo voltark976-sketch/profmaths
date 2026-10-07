@@ -5,7 +5,7 @@
   **gras**, "- " pour une puce). Dans les formules, la virgule décimale s'écrit {,} : $0{,}35$
   et les milliers s'écrivent avec \\, : $30\\,000$.
   Programme officiel de Terminale spécialité (Algèbre et géométrie : combinatoire et dénombrement).
-  Aucune vidéo n'est liée pour l'instant : ajouter video: { titre: "...", youtube: "..." } sous une notion.
+  video : vidéo d'aide sous une notion (vidéos d'Yvan Monka, en attendant celles de la chaîne).
   Les générateurs d'exercices de ce chapitre commencent par cd- dans assets/exercices.js.
 */
 window.CHAPITRES = window.CHAPITRES || {};
@@ -23,6 +23,7 @@ window.CHAPITRES["terminale-spe-denombrement"] = {
   cours: [
     {
       titre: "Cardinal et principe additif",
+      video: { titre: "Vidéo d'Yvan Monka : dénombrer en utilisant un diagramme", youtube: "https://youtu.be/xwRvGbbu7PY" },
       texte:
         "Le nombre d'éléments d'un ensemble fini $E$ s'appelle son **cardinal**, noté $\\text{Card}(E)$.\n\n" +
         "- **Principe additif** : si $A$ et $B$ sont **disjoints** ($A \\cap B = \\varnothing$), alors $\\text{Card}(A \\cup B) = \\text{Card}(A) + \\text{Card}(B)$. Cela reste vrai pour plusieurs ensembles deux à deux disjoints.\n" +
@@ -36,6 +37,7 @@ window.CHAPITRES["terminale-spe-denombrement"] = {
     },
     {
       titre: "Principe multiplicatif et k-uplets",
+      video: { titre: "Vidéo d'Yvan Monka : appliquer le principe multiplicatif pour dénombrer", youtube: "https://youtu.be/wzo1XXXaaqY" },
       texte:
         "Le **produit cartésien** $A \\times B$ est l'ensemble des couples $(a\\,;b)$ avec $a \\in A$ et $b \\in B$ : $\\text{Card}(A \\times B) = \\text{Card}(A) \\times \\text{Card}(B)$.\n\n" +
         "- **Principe multiplicatif** : un choix en plusieurs étapes, avec $n_1$ possibilités puis $n_2$ possibilités, etc., donne $n_1 \\times n_2 \\times \\dots$ résultats. L'arbre le montre : chaque branche se divise de la même façon.\n" +
@@ -50,6 +52,7 @@ window.CHAPITRES["terminale-spe-denombrement"] = {
     },
     {
       titre: "Les parties d'un ensemble",
+      video: { titre: "Vidéo d'Yvan Monka : démonstration du nombre de parties d'un ensemble", youtube: "https://youtu.be/8MVCbhQF2ak" },
       texte:
         "Une **partie** (ou sous-ensemble) de $E$ est un ensemble d'éléments pris dans $E$ : **sans ordre** et **sans répétition**. L'ensemble vide $\\varnothing$ et $E$ lui-même sont des parties de $E$.\n\n" +
         "**Un ensemble à $n$ éléments a $2^n$ parties.**\n\n" +
@@ -61,6 +64,7 @@ window.CHAPITRES["terminale-spe-denombrement"] = {
     },
     {
       titre: "Factorielle, arrangements et permutations",
+      video: { titre: "Vidéo d'Yvan Monka : utiliser les arrangements pour dénombrer", youtube: "https://youtu.be/2fKdO9t8wfo" },
       texte:
         "Pour un entier $n \\geqslant 1$, **factorielle** $n$ vaut $n! = 1 \\times 2 \\times \\dots \\times n$, et par convention $0! = 1$.\n\n" +
         "- Un **k-uplet d'éléments distincts** (ordre important, **sans répétition**) d'un ensemble à $n$ éléments : il y en a $n \\times (n - 1) \\times \\dots \\times (n - k + 1) = \\dfrac{n!}{(n - k)!}$, pour $k \\leqslant n$.\n" +
@@ -74,6 +78,7 @@ window.CHAPITRES["terminale-spe-denombrement"] = {
     },
     {
       titre: "Combinaisons",
+      video: { titre: "Vidéo d'Yvan Monka : utiliser les combinaisons pour dénombrer", youtube: "https://youtu.be/_ip2dV_BUTM" },
       texte:
         "Une **combinaison** de $k$ éléments de $E$ est une **partie** de $E$ à $k$ éléments : **pas d'ordre**, **pas de répétition**. Leur nombre est le coefficient binomial $\\dbinom{n}{k}$ (« $k$ parmi $n$ »).\n\n" +
         "$\\dbinom{n}{k} = \\dfrac{n!}{k!\\,(n - k)!} = \\dfrac{n \\times (n - 1) \\times \\dots \\times (n - k + 1)}{k!}$\n\n" +
@@ -87,6 +92,7 @@ window.CHAPITRES["terminale-spe-denombrement"] = {
     },
     {
       titre: "Propriétés des coefficients binomiaux",
+      video: { titre: "Vidéo d'Yvan Monka : démonstration de la formule du triangle de Pascal", youtube: "https://youtu.be/xVNjVABYOno" },
       texte:
         "- **Symétrie** : $\\dbinom{n}{k} = \\dbinom{n}{n - k}$. Choisir les $k$ éléments que l'on prend, c'est choisir les $n - k$ que l'on laisse.\n" +
         "- **Relation de Pascal** : $\\dbinom{n}{k} + \\dbinom{n}{k + 1} = \\dbinom{n + 1}{k + 1}$ pour $0 \\leqslant k \\leqslant n - 1$.\n" +
@@ -103,6 +109,7 @@ window.CHAPITRES["terminale-spe-denombrement"] = {
     },
     {
       titre: "Choisir le bon outil",
+      video: { titre: "Vidéo d'Yvan Monka : arrangement, permutation, combinaison : lequel choisir ?", youtube: "https://youtu.be/hWkIwXXEECc" },
       texte:
         "Avant de calculer, deux questions : **l'ordre compte-t-il ?** **Les répétitions sont-elles possibles ?**\n\n" +
         "- Ordre important, répétitions possibles : **k-uplets**, $n^k$ (codes, tirages successifs avec remise).\n" +
