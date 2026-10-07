@@ -32,5 +32,5 @@ window.CONFIG_COMPTES = {
   // Apple demande en plus un compte Apple Developer payant (voir LISEZMOI.md).
   connexions: { google: true, apple: false },
   // Classes proposées à la création du compte (modifiable)
-  classes: ["Seconde", "Première spécialité", "Terminale maths complémentaires"]
+  classes: ["Seconde", "Première spécialité", "Terminale spécialité", "Terminale maths complémentaires"]
 };

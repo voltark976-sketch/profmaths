@@ -145,6 +145,19 @@ window.CATALOGUE = {
       ]
     },
     {
+      id: "terminale-spe",
+      nom: "Terminale spécialité",
+      chapitres: [
+        {
+          id: "terminale-spe-denombrement",
+          numero: 1,
+          titre: "Combinatoire et dénombrement",
+          statut: "disponible",
+          drive: ""
+        }
+      ]
+    },
+    {
       id: "terminale",
       nom: "Terminale maths complémentaires",
       chapitres: [

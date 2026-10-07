@@ -555,7 +555,7 @@
       <p class="defi-rec">${rec ? `Ton record sur ce chapitre : <strong>${rec} pts</strong>` : "Tu n'as pas encore joué sur ce chapitre."}</p>
       <button class="btn" id="go">Lancer le défi</button></div>
       <section class="classement"><h2 class="jeu-choix-t">Classement général</h2>
-        <div class="filtres" role="group" aria-label="Classement">${[""].concat(Compte.classes).map((cl) => `<button class="filtre" data-c="${esc(cl)}" aria-pressed="${cl === filtreClassement}">${cl ? esc(cl.split(" ")[0]) : "Tous"}</button>`).join("")}</div>
+        <div class="filtres" role="group" aria-label="Classement">${[""].concat(Compte.classes).map((cl) => `<button class="filtre" data-c="${esc(cl)}" aria-pressed="${cl === filtreClassement}">${cl ? esc(classeCourte(cl)) : "Tous"}</button>`).join("")}</div>
         <ol class="top" id="top"></ol>
         <p class="muted">Les points de classement sont la somme des records sur les défis de tous les chapitres${Compte.eleve() ? ` (toi : <strong>${Compte.pointsJeux(prog.jeux)} pts</strong>)` : ""}. Seul le top 10 s'affiche.</p></section>`;
     p.querySelectorAll(".filtre").forEach((b) => b.addEventListener("click", () => {
@@ -568,6 +568,9 @@
   }
 
   let filtreClassement = "";
+  // Nom court d'une classe dans le classement : les deux Terminales doivent rester distinctes
+  const COURTES = { "Terminale spécialité": "Tle spé", "Terminale maths complémentaires": "Tle compl." };
+  const classeCourte = (cl) => COURTES[cl] || cl.split(" ")[0];
   function afficherClassement() {
     const $top = document.getElementById("top");
     if (!$top) return;
@@ -577,7 +580,7 @@
       if (demande !== filtreClassement || !$top.isConnected) return;
       if (l === null) { $top.innerHTML = `<li class="top-vide"><a href="#compte">Connecte-toi</a> pour voir le classement et y apparaître.</li>`; return; }
       if (!l.length) { $top.innerHTML = `<li class="top-vide">Personne pour l'instant. Lance un défi pour être le premier !</li>`; return; }
-      $top.innerHTML = l.map((x, k) => `<li class="${x.moi ? "moi" : ""}"><span class="rang">${["🥇", "🥈", "🥉"][k] || k + 1}</span><span class="top-nom"><strong>${esc(x.prenom)}</strong>${!demande && x.classe ? `<span class="meta">${esc(x.classe.split(" ")[0])}</span>` : ""}</span><span class="top-pts">${x.points} pts</span></li>`).join("");
+      $top.innerHTML = l.map((x, k) => `<li class="${x.moi ? "moi" : ""}"><span class="rang">${["🥇", "🥈", "🥉"][k] || k + 1}</span><span class="top-nom"><strong>${esc(x.prenom)}</strong>${!demande && x.classe ? `<span class="meta">${esc(classeCourte(x.classe))}</span>` : ""}</span><span class="top-pts">${x.points} pts</span></li>`).join("");
     }).catch(() => {
       if ($top.isConnected) $top.innerHTML = `<li class="top-vide">Classement indisponible pour le moment.</li>`;
     });

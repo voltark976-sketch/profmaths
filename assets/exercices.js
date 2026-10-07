@@ -2993,6 +2993,305 @@
   };
 
 
+  /* ---------- Terminale spécialité : combinatoire et dénombrement ---------- */
+  const fact = (n) => { let r = 1; for (let i = 2; i <= n; i++) r *= i; return r; };
+  const arrang = (n, k) => { let r = 1; for (let i = 0; i < k; i++) r *= n - i; return r; };
+  const ent = (n) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, "\\,"); // 30000 -> 30\,000
+  const prodDesc = (n, k) => Array.from({ length: k }, (_, i) => n - i).join(" \\times "); // 8 × 7 × 6
+
+  GEN["cd-additif"] = function () {
+    const t = pick(["deux", "deux", "multiples", "complement"]);
+    if (t === "deux") {
+      const [a, b, l1, l2, deux] = pick([["font du sport en club", "jouent d'un instrument", "S", "M", "font les deux"], ["parlent shimaoré", "parlent kibushi", "S", "K", "parlent les deux langues"], ["ont un vélo", "ont un scooter", "V", "T", "ont les deux"]]);
+      const total = rand(28, 36), nA = rand(10, 18), nB = rand(6, 12), nAB = rand(2, Math.min(nA, nB) - 2);
+      const union = nA + nB - nAB;
+      return {
+        enonce: `Dans une classe de $${total}$ élèves, $${nA}$ élèves ${a}, $${nB}$ ${b} et $${nAB}$ ${deux}. Combien d'élèves ne sont dans **aucun des deux cas** ?`,
+        mode: "nombre", prefixe: "Nombre d'élèves :", attendu: total - union,
+        erreurs: [{ valeur: total - nA - nB, message: `Les $${nAB}$ élèves qui sont dans les deux cas ont été retirés deux fois.` }, { valeur: union, message: "Ça, c'est le nombre d'élèves qui sont dans au moins un des deux cas." }],
+        aides: ["Commence par compter les élèves qui sont dans **au moins** un des deux cas.", `Ceux qui sont dans les deux cas sont comptés deux fois dans $${nA} + ${nB}$ : $\\text{Card}(${l1} \\cup ${l2}) = ${nA} + ${nB} - ${nAB}$.`, "Les autres forment le complémentaire : soustrais au total."],
+        solution: `$\\text{Card}(${l1} \\cup ${l2}) = ${nA} + ${nB} - ${nAB} = ${union}$, donc $${total} - ${union} = ${total - union}$ élèves ne sont dans aucun des deux cas.`
+      };
+    }
+    if (t === "multiples") {
+      const N = pick([60, 100, 120, 200, 300]), [a, b] = pick([[2, 5], [3, 5], [2, 3], [4, 5], [3, 10]]);
+      const na = Math.floor(N / a), nb2 = Math.floor(N / b), nab = Math.floor(N / (a * b / pgcd(a, b))), ppcm = a * b / pgcd(a, b);
+      return {
+        enonce: `Combien d'entiers compris entre $1$ et $${N}$ sont multiples de $${a}$ **ou** de $${b}$ ?`,
+        mode: "nombre", prefixe: "Nombre d'entiers :", attendu: na + nb2 - nab,
+        erreurs: [{ valeur: na + nb2, message: `Les multiples de $${ppcm}$ sont à la fois multiples de $${a}$ et de $${b}$ : tu les as comptés deux fois.` }],
+        aides: [`Entre $1$ et $${N}$, il y a $${na}$ multiples de $${a}$ et $${nb2}$ multiples de $${b}$.`, `Les nombres multiples des deux sont les multiples de $${ppcm}$ : il y en a $${nab}$.`, "$\\text{Card}(A \\cup B) = \\text{Card}(A) + \\text{Card}(B) - \\text{Card}(A \\cap B)$."],
+        solution: `$${na} + ${nb2} - ${nab} = ${na + nb2 - nab}$ entiers.`
+      };
+    }
+    const n = rand(4, 7);
+    return {
+      enonce: `Un code est formé de $${n}$ chiffres de $0$ à $9$. Combien de codes contiennent **au moins un** chiffre $0$ ?`,
+      mode: "nombre", prefixe: "Nombre de codes :", attendu: 10 ** n - 9 ** n,
+      erreurs: [{ valeur: 9 ** n, message: "Ça, c'est le nombre de codes **sans** aucun $0$ : il reste à le retirer du total." }],
+      aides: ["« Au moins un $0$ » : le contraire, « aucun $0$ », est plus simple à compter.", `Il y a $10^{${n}}$ codes en tout, et $9^{${n}}$ codes sans $0$ ($9$ choix par chiffre).`, `Réponse : $10^{${n}} - 9^{${n}}$.`],
+      solution: `$10^{${n}} - 9^{${n}} = ${ent(10 ** n)} - ${ent(9 ** n)} = ${ent(10 ** n - 9 ** n)}$ codes.`
+    };
+  };
+
+  GEN["cd-multiplicatif"] = function () {
+    const T = pick([
+      () => { const a = rand(2, 5), b = rand(3, 6), c = rand(2, 5); return [`Un restaurant propose $${a}$ entrées, $${b}$ plats et $${c}$ desserts. Combien de menus « entrée, plat, dessert » différents peut-on composer ?`, [a, b, c], "menus"]; },
+      () => { const a = rand(3, 7), b = rand(2, 5), c = rand(2, 4); return [`Pour s'habiller, Nassim choisit un t-shirt parmi $${a}$, un pantalon parmi $${b}$ et une paire de chaussures parmi $${c}$. Combien de tenues différentes ?`, [a, b, c], "tenues"]; },
+      () => { const a = rand(3, 6), b = rand(4, 8); return [`$A$ a $${a}$ éléments et $B$ en a $${b}$. Combien d'éléments a le produit cartésien $A \\times B$ ?`, [a, b], "couples"]; },
+      () => { const a = rand(2, 4), b = rand(3, 5), c = rand(2, 3); return [`Pour aller du lycée au marché, il y a $${a}$ routes jusqu'au rond-point, puis $${b}$ jusqu'à la mosquée, puis $${c}$ jusqu'au marché. Combien de trajets différents ?`, [a, b, c], "trajets"]; }
+    ])();
+    const [enonce, f, mot] = T, prod = f.reduce((s, x) => s * x, 1), somme = f.reduce((s, x) => s + x, 0);
+    return {
+      enonce, mode: "nombre", prefixe: `Nombre de ${mot} :`, attendu: prod,
+      erreurs: [{ valeur: somme, message: "Les choix se font les uns **après** les autres : on multiplie, on n'additionne pas." }],
+      aides: ["Les choix se font en plusieurs étapes successives.", "Imagine l'arbre : chaque branche se divise en autant de branches que de possibilités à l'étape suivante.", `Principe multiplicatif : $${f.join(" \\times ")}$.`],
+      solution: `$${f.join(" \\times ")} = ${prod}$ ${mot}.`
+    };
+  };
+
+  GEN["cd-k-uplets"] = function () {
+    const T = pick([
+      () => { const k = rand(3, 6); return [`Combien de codes de $${k}$ chiffres (de $0$ à $9$, répétitions permises) peut-on former ?`, 10, k, "chiffres"]; },
+      () => { const q = rand(4, 8), c = rand(3, 4); return [`Un QCM compte $${q}$ questions ; chacune a $${c}$ réponses possibles et on en coche une seule. Combien de grilles de réponses différentes ?`, c, q, "réponses"]; },
+      () => { const k = rand(5, 10); return [`Combien de mots binaires (formés de $0$ et de $1$) de longueur $${k}$ existe-t-il ?`, 2, k, "bits"]; },
+      () => { const k = rand(2, 5); return [`On lance $${k}$ fois de suite un dé à $6$ faces et on note la suite des résultats. Combien de suites possibles ?`, 6, k, "lancers"]; },
+      () => { const n = rand(5, 9), k = rand(2, 4); return [`Une urne contient $${n}$ boules numérotées. On tire successivement $${k}$ boules **avec remise** et on note les numéros dans l'ordre. Combien de tirages possibles ?`, n, k, "tirages"]; }
+    ])();
+    const [enonce, n, k] = T, v = n ** k;
+    return {
+      enonce, mode: "nombre", prefixe: "Nombre :", attendu: v,
+      erreurs: [{ valeur: k ** n, message: `Tu as inversé : il y a $${n}$ choix pour chacune des $${k}$ positions, donc $${n}^{${k}}$.` }, { valeur: n * k, message: "On ne multiplie pas $n$ par $k$ : on multiplie $n$ par lui-même $k$ fois." }],
+      aides: ["L'ordre compte et les répétitions sont permises : on compte des k-uplets.", `Combien de choix à chaque position ? Ici $${n}$.`, `Il y a $${k}$ positions : $${n}^{${k}}$.`],
+      solution: `$${n}$ choix pour chacune des $${k}$ positions : $${n}^{${k}} = ${ent(v)}$.`
+    };
+  };
+
+  GEN["cd-parties"] = function () {
+    const n = rand(3, 10), t = pick(["toutes", "toutes", "nonvide", "contient"]);
+    if (t === "toutes") return {
+      enonce: pick([`Combien de parties possède un ensemble à $${n}$ éléments ?`, `Une pizzeria propose $${n}$ garnitures. On en choisit autant qu'on veut (éventuellement aucune). Combien de pizzas différentes ?`]),
+      mode: "nombre", prefixe: "Nombre :", attendu: 2 ** n,
+      erreurs: [{ valeur: 2 ** n - 1, message: "N'oublie pas l'ensemble vide (aucune garniture) : il compte aussi." }, { valeur: n * n, message: `Ce n'est pas $${n}^2$, mais $2^{${n}}$ : deux possibilités pour chaque élément.` }],
+      aides: ["Pour chaque élément, deux possibilités : dedans ou pas dedans.", `Une partie correspond à un $${n}$-uplet de $\\{0\\,;1\\}$.`, `Il y en a $2^{${n}}$.`],
+      solution: `Chaque élément est pris ou non : $2^{${n}} = ${2 ** n}$.`
+    };
+    if (t === "nonvide") return {
+      enonce: `Combien de parties **non vides** possède un ensemble à $${n}$ éléments ?`,
+      mode: "nombre", prefixe: "Nombre :", attendu: 2 ** n - 1,
+      erreurs: [{ valeur: 2 ** n, message: "Il faut retirer la partie vide." }],
+      aides: [`Un ensemble à $${n}$ éléments a $2^{${n}}$ parties.`, "Une seule d'entre elles est vide.", `$2^{${n}} - 1$.`],
+      solution: `$2^{${n}} - 1 = ${2 ** n - 1}$ parties non vides.`
+    };
+    return {
+      enonce: `$E$ est un ensemble à $${n}$ éléments et $a$ est un élément de $E$. Combien de parties de $E$ **contiennent** $a$ ?`,
+      mode: "nombre", prefixe: "Nombre :", attendu: 2 ** (n - 1),
+      erreurs: [{ valeur: 2 ** n, message: "Ça, c'est le nombre total de parties." }],
+      aides: ["$a$ est forcément dedans : il ne reste à décider que pour les autres éléments.", `Il reste $${n - 1}$ éléments, chacun dedans ou pas.`, `$2^{${n - 1}}$.`],
+      solution: `On choisit librement parmi les $${n - 1}$ autres éléments : $2^{${n - 1}} = ${2 ** (n - 1)}$ parties (la moitié du total).`
+    };
+  };
+
+  GEN["cd-factorielle"] = function () {
+    const t = pick(["simple", "quotient", "quotient", "suivant"]);
+    if (t === "simple") { const n = rand(0, 8); return {
+      enonce: `Calcule $${n}!$.`, mode: "nombre", prefixe: `${n}! =`, attendu: fact(n),
+      erreurs: n === 0 ? [{ valeur: 0, message: "Par convention, $0! = 1$." }] : [],
+      aides: ["$n! = 1 \\times 2 \\times \\dots \\times n$.", n === 0 ? "Attention : la convention pour $0!$ n'est pas $0$." : `$${n}! = ${n === 1 ? "1" : Array.from({ length: n }, (_, i) => i + 1).join(" \\times ")}$.`, "On peut aussi utiliser $n! = n \\times (n - 1)!$."],
+      solution: n === 0 ? "Par convention, $0! = 1$." : `$${n}! = ${n === 1 ? "1" : Array.from({ length: n }, (_, i) => i + 1).join(" \\times ")} = ${ent(fact(n))}$`
+    }; }
+    if (t === "quotient") { const n = rand(6, 15), k = rand(2, 3); return {
+      enonce: `Calcule $\\dfrac{${n}!}{${n - k}!}$ sans calculer les factorielles.`, mode: "nombre", prefixe: "Résultat :", attendu: arrang(n, k),
+      aides: [`$${n}! = ${prodDesc(n, k)} \\times ${n - k}!$.`, `Le facteur $${n - k}!$ se simplifie.`, `Il reste $${prodDesc(n, k)}$.`],
+      solution: `$\\dfrac{${n}!}{${n - k}!} = ${prodDesc(n, k)} = ${ent(arrang(n, k))}$`
+    }; }
+    const n = rand(10, 40); return {
+      enonce: `Calcule $\\dfrac{${n + 1}!}{${n}!}$.`, mode: "nombre", prefixe: "Résultat :", attendu: n + 1,
+      erreurs: [{ valeur: 1, message: `$${n + 1}!$ et $${n}!$ ne sont pas égaux : $${n + 1}! = ${n + 1} \\times ${n}!$.` }],
+      aides: ["$(n + 1)! = (n + 1) \\times n!$.", `$${n + 1}! = ${n + 1} \\times ${n}!$.`, `Le facteur $${n}!$ se simplifie.`],
+      solution: `$\\dfrac{${n + 1}!}{${n}!} = \\dfrac{${n + 1} \\times ${n}!}{${n}!} = ${n + 1}$`
+    };
+  };
+
+  GEN["cd-permutations"] = function () {
+    const T = pick([
+      () => { const m = pick(["LAGON", "PLAGE", "CHIEN", "MANGUE", "DAUPHIN", "PIROGUE", "MAORE", "BANC"]); return [`Combien d'anagrammes (avec ou sans signification) peut-on former avec les lettres du mot ${m} ?`, m.length, "Les lettres sont toutes différentes : une anagramme est une façon de les ranger toutes."]; },
+      () => { const n = rand(4, 9); return [`$${n}$ élèves passent un par un à l'oral. Combien d'ordres de passage possibles ?`, n, "On range tous les élèves : c'est une permutation."]; },
+      () => { const n = rand(4, 8); return [`On range $${n}$ livres différents côte à côte sur une étagère. De combien de façons ?`, n, "On range tous les livres : c'est une permutation."]; }
+    ])();
+    const [enonce, n, a1] = T;
+    return {
+      enonce, mode: "nombre", prefixe: "Nombre :", attendu: fact(n),
+      erreurs: [{ valeur: n ** n, message: "Un élément déjà placé ne peut plus être choisi : le nombre de choix diminue à chaque place." }],
+      aides: [a1, `$${n}$ choix pour la première place, $${n - 1}$ pour la deuxième, etc.`, `$${n}! = ${Array.from({ length: n }, (_, i) => n - i).join(" \\times ")}$.`],
+      solution: `$${n}! = ${Array.from({ length: n }, (_, i) => n - i).join(" \\times ")} = ${ent(fact(n))}$`
+    };
+  };
+
+  GEN["cd-arrangements"] = function () {
+    const T = pick([
+      () => { const n = rand(6, 12); return [`$${n}$ coureurs participent à une course. Combien de podiums (or, argent, bronze) sont possibles ?`, n, 3]; },
+      () => { const n = rand(8, 20); return [`Une association de $${n}$ membres élit un président, un secrétaire et un trésorier, trois personnes différentes. Combien de bureaux possibles ?`, n, 3]; },
+      () => { const n = rand(5, 10), k = rand(2, 3); return [`Une urne contient $${n}$ boules numérotées. On tire successivement $${k}$ boules **sans remise** en notant l'ordre. Combien de tirages possibles ?`, n, k]; },
+      () => { const k = rand(3, 4); return [`Combien de codes de $${k}$ chiffres (de $0$ à $9$) ont tous leurs chiffres **différents** ?`, 10, k]; }
+    ])();
+    const [enonce, n, k] = T, v = arrang(n, k);
+    return {
+      enonce, mode: "nombre", prefixe: "Nombre :", attendu: v,
+      erreurs: [{ valeur: C(n, k), message: "Ici l'ordre compte (places ou postes différents) : on ne divise pas par $k!$." }, { valeur: n ** k, message: "Les répétitions sont interdites : le nombre de choix diminue de $1$ à chaque étape." }],
+      aides: ["L'ordre compte, et un même élément ne peut pas être choisi deux fois.", `$${n}$ choix pour le premier, $${n - 1}$ pour le deuxième…`, `$${prodDesc(n, k)}$, soit $\\dfrac{${n}!}{${n - k}!}$.`],
+      solution: `$${prodDesc(n, k)} = ${ent(v)}$`
+    };
+  };
+
+  GEN["cd-combinaisons"] = function () {
+    const T = pick([
+      () => { const n = rand(20, 35), k = 2; return [`Une classe de $${n}$ élèves choisit $${k}$ délégués. Combien de choix possibles ?`, n, k]; },
+      () => { const n = rand(8, 15), k = 3; return [`On choisit $${k}$ joueurs parmi $${n}$ pour former une équipe (sans rôle particulier). Combien d'équipes possibles ?`, n, k]; },
+      () => { const n = 32, k = pick([2, 3, 4]); return [`Combien de mains de $${k}$ cartes peut-on former avec un jeu de $32$ cartes ?`, n, k]; },
+      () => { const n = rand(6, 12), k = rand(2, 4); return [`On tire **simultanément** $${k}$ boules d'une urne qui en contient $${n}$. Combien de tirages possibles ?`, n, k]; },
+      () => { const n = rand(5, 9); return [`$${n}$ amis se serrent la main une fois chacun avec chacun. Combien de poignées de main ?`, n, 2]; }
+    ])();
+    const [enonce, n, k] = T, v = C(n, k);
+    return {
+      enonce, mode: "nombre", prefixe: "Nombre :", attendu: v,
+      erreurs: [{ valeur: arrang(n, k), message: `Tu as compté l'ordre : chaque groupe est compté $${k}! = ${fact(k)}$ fois. Divise par $${k}!$.` }, { valeur: n ** k, message: "Pas de répétition ni d'ordre ici : ce n'est pas $n^k$." }],
+      aides: ["L'ordre ne compte pas et pas de répétition : on compte des combinaisons $\\dbinom{n}{k}$.", `Ici $n = ${n}$ et $k = ${k}$.`, `$\\dbinom{${n}}{${k}} = \\dfrac{${prodDesc(n, k)}}{${k}!}$.`],
+      solution: `$\\dbinom{${n}}{${k}} = \\dfrac{${prodDesc(n, k)}}{${k === 2 ? "2" : prodDesc(k, k)}} = ${ent(v)}$`
+    };
+  };
+
+  GEN["cd-pascal"] = function () {
+    const t = pick(["pascal", "symetrie", "deux", "somme"]);
+    if (t === "pascal") { const n = rand(6, 12), k = rand(2, n - 3), a = C(n, k), b = C(n, k + 1); return {
+      enonce: `On sait que $\\dbinom{${n}}{${k}} = ${a}$ et $\\dbinom{${n}}{${k + 1}} = ${b}$. Calcule $\\dbinom{${n + 1}}{${k + 1}}$.`,
+      mode: "nombre", prefixe: "Résultat :", attendu: a + b,
+      aides: ["Utilise la relation de Pascal.", "$\\dbinom{n}{k} + \\dbinom{n}{k + 1} = \\dbinom{n + 1}{k + 1}$.", `$${a} + ${b}$.`],
+      solution: `Relation de Pascal : $\\dbinom{${n + 1}}{${k + 1}} = \\dbinom{${n}}{${k}} + \\dbinom{${n}}{${k + 1}} = ${a} + ${b} = ${a + b}$.`
+    }; }
+    if (t === "symetrie") { const n = rand(10, 30), k = rand(2, 3); return {
+      enonce: `Calcule $\\dbinom{${n}}{${n - k}}$ sans calculatrice.`,
+      mode: "nombre", prefixe: "Résultat :", attendu: C(n, k),
+      aides: ["Utilise la symétrie $\\dbinom{n}{k} = \\dbinom{n}{n - k}$.", `$\\dbinom{${n}}{${n - k}} = \\dbinom{${n}}{${k}}$.`, `$\\dbinom{${n}}{${k}} = \\dfrac{${prodDesc(n, k)}}{${k}!}$.`],
+      solution: `$\\dbinom{${n}}{${n - k}} = \\dbinom{${n}}{${k}} = \\dfrac{${prodDesc(n, k)}}{${fact(k)}} = ${ent(C(n, k))}$`
+    }; }
+    if (t === "deux") { const n = rand(8, 60); return {
+      enonce: `Calcule $\\dbinom{${n}}{2}$.`,
+      mode: "nombre", prefixe: "Résultat :", attendu: C(n, 2),
+      erreurs: [{ valeur: n * (n - 1), message: "N'oublie pas de diviser par $2! = 2$." }],
+      aides: ["$\\dbinom{n}{2} = \\dfrac{n(n - 1)}{2}$.", `$\\dbinom{${n}}{2} = \\dfrac{${n} \\times ${n - 1}}{2}$.`, "Simplifie par $2$ avant de multiplier."],
+      solution: `$\\dbinom{${n}}{2} = \\dfrac{${n} \\times ${n - 1}}{2} = ${ent(C(n, 2))}$`
+    }; }
+    const n = rand(4, 12); return {
+      enonce: `Calcule $\\dbinom{${n}}{0} + \\dbinom{${n}}{1} + \\dots + \\dbinom{${n}}{${n}}$.`,
+      mode: "nombre", prefixe: "Somme :", attendu: 2 ** n,
+      aides: ["Cette somme compte les parties d'un ensemble à $n$ éléments, rangées selon leur nombre d'éléments.", "Un ensemble à $n$ éléments a $2^n$ parties.", `La somme vaut $2^{${n}}$.`],
+      solution: `$\\displaystyle\\sum_{k = 0}^{${n}} \\dbinom{${n}}{k} = 2^{${n}} = ${ent(2 ** n)}$`
+    };
+  };
+
+  GEN["cd-chemins"] = function () {
+    const t = pick(["mot", "grille", "pile"]);
+    if (t === "mot") { const n = rand(5, 10), k = rand(2, n - 2); return {
+      enonce: `Combien de mots de $${n}$ lettres peut-on écrire avec exactement $${k}$ lettres A et $${n - k}$ lettres B ?`,
+      mode: "nombre", prefixe: "Nombre de mots :", attendu: C(n, k),
+      erreurs: [{ valeur: 2 ** n, message: "Ça, c'est le nombre de mots avec un nombre **quelconque** de A." }, { valeur: fact(n), message: "Les A sont identiques entre eux : échanger deux A donne le même mot." }],
+      aides: ["Un mot est entièrement déterminé par les positions des lettres A.", `On choisit $${k}$ positions parmi $${n}$, sans ordre.`, `$\\dbinom{${n}}{${k}}$.`],
+      solution: `On choisit les $${k}$ positions des A parmi $${n}$ : $\\dbinom{${n}}{${k}} = ${C(n, k)}$ mots.`
+    }; }
+    if (t === "grille") { const a = rand(2, 5), b = rand(2, 4); return {
+      enonce: `Sur un quadrillage, on va du point $(0\\,;0)$ au point $(${a}\\,;${b})$ en ne faisant que des pas d'une case vers la **droite** (D) ou vers le **haut** (H). Combien de chemins différents ?`,
+      mode: "nombre", prefixe: "Nombre de chemins :", attendu: C(a + b, a),
+      erreurs: [{ valeur: 2 ** (a + b), message: `Le nombre de D est imposé : il en faut exactement $${a}$.` }],
+      aides: [`Un chemin est un mot de $${a + b}$ lettres avec $${a}$ lettres D et $${b}$ lettres H.`, `On choisit les positions des $${a}$ lettres D parmi $${a + b}$.`, `$\\dbinom{${a + b}}{${a}}$.`],
+      solution: `Un chemin est un mot de $${a + b}$ lettres contenant $${a}$ fois D : $\\dbinom{${a + b}}{${a}} = ${C(a + b, a)}$ chemins.`
+    }; }
+    const n = rand(5, 10), k = rand(1, n - 1); return {
+      enonce: `On lance $${n}$ fois une pièce et on note la suite des résultats. Combien de suites contiennent exactement $${k}$ fois PILE ?`,
+      mode: "nombre", prefixe: "Nombre de suites :", attendu: C(n, k),
+      erreurs: [{ valeur: 2 ** n, message: "Ça, c'est le nombre total de suites." }],
+      aides: ["Une suite est déterminée par les numéros des lancers qui donnent PILE.", `On choisit $${k}$ lancers parmi $${n}$.`, `$\\dbinom{${n}}{${k}}$, comme les chemins à $${k}$ succès dans l'arbre de la loi binomiale.`],
+      solution: `$\\dbinom{${n}}{${k}} = ${C(n, k)}$ suites.`
+    };
+  };
+
+  GEN["cd-modele"] = function () {
+    const n = rand(6, 12), k = rand(2, 4);
+    const S = [
+      [`On forme un code de $${k}$ symboles choisis parmi $${n}$ (un symbole peut se répéter).`, 0, "L'ordre compte et les répétitions sont permises."],
+      [`On tire successivement et avec remise $${k}$ boules dans une urne de $${n}$ boules numérotées.`, 0, "Successivement : l'ordre compte. Avec remise : répétitions possibles."],
+      [`On attribue $${k}$ prix différents (${["1er", "2e", "3e", "4e"].slice(0, k).join(", ")}) à $${k}$ candidats distincts choisis parmi $${n}$.`, 1, "Les prix sont différents : l'ordre compte. Un candidat ne reçoit qu'un prix."],
+      [`On tire successivement et sans remise $${k}$ boules dans une urne de $${n}$ boules numérotées.`, 1, "Successivement : l'ordre compte. Sans remise : pas de répétition."],
+      [`On choisit $${k}$ élèves parmi $${n}$ pour former un groupe de travail.`, 2, "Un groupe n'a pas d'ordre et un élève n'y figure qu'une fois."],
+      [`On tire simultanément $${k}$ boules dans une urne de $${n}$ boules.`, 2, "Simultanément : pas d'ordre, pas de répétition."],
+      [`On range les $${n}$ élèves d'un groupe en file indienne.`, 3, "On range tous les éléments : c'est une permutation."]
+    ];
+    const [sit, j, expl] = pick(S);
+    const formules = [`$${n}^{${k}}$`, `$\\dfrac{${n}!}{${n - k}!}$`, `$\\dbinom{${n}}{${k}}$`, `$${n}!$`];
+    const ms = melangeChoix(formules[j], formules.filter((_, i) => i !== j));
+    return {
+      enonce: `${sit} Quel calcul donne le nombre de résultats possibles ?`,
+      mode: "choix", choix: ms.choix, attendu: ms.attendu,
+      aides: ["L'ordre compte-t-il ? Échanger deux éléments donne-t-il un autre résultat ?", "Les répétitions sont-elles possibles ?", "Ordre et répétitions : $n^k$. Ordre sans répétition : $\\dfrac{n!}{(n - k)!}$. Ni ordre ni répétition : $\\dbinom{n}{k}$. Tout ranger : $n!$."],
+      solution: `${expl} Le nombre de résultats est ${formules[j]}.`
+    };
+  };
+
+  GEN["cd-proba"] = function () {
+    const t = pick(["urne2", "urne3", "mixte", "code"]);
+    if (t === "code") { const k = rand(3, 4), v = arrang(10, k) / 10 ** k; return {
+      enonce: `Un code de $${k}$ chiffres (de $0$ à $9$) est choisi au hasard. Quelle est la probabilité que ses chiffres soient tous **différents** ? Donne une fraction ou une valeur arrondie au millième.`,
+      mode: "nombre", prefixe: "P =", attendu: v, tolerance: 0.0006,
+      aides: [`Tous les codes sont équiprobables : $\\text{Card}(\\Omega) = 10^{${k}}$.`, `Codes à chiffres distincts : $${prodDesc(10, k)}$.`, "$P = \\dfrac{\\text{Card}(A)}{\\text{Card}(\\Omega)}$."],
+      solution: `$P = \\dfrac{${prodDesc(10, k)}}{10^{${k}}} = \\dfrac{${ent(arrang(10, k))}}{${ent(10 ** k)}} = ${fr(v)}$`
+    }; }
+    const r = rand(3, 7), b = rand(3, 7), N = r + b;
+    if (t === "mixte") { const v = (r * b) / C(N, 2); return {
+      enonce: `Une urne contient $${r}$ boules rouges et $${b}$ boules vertes. On tire simultanément $2$ boules. Quelle est la probabilité d'obtenir **une rouge et une verte** ? Donne une fraction ou une valeur arrondie au millième.`,
+      mode: "nombre", prefixe: "P =", attendu: v, tolerance: 0.0006,
+      erreurs: [{ valeur: (2 * r * b) / C(N, 2), message: "Avec des tirages simultanés, on ne multiplie pas par $2$ : une paire n'a pas d'ordre." }],
+      aides: [`Tirage simultané : $\\text{Card}(\\Omega) = \\dbinom{${N}}{2} = ${C(N, 2)}$.`, `Une rouge parmi $${r}$ et une verte parmi $${b}$ : principe multiplicatif.`, `$\\text{Card}(A) = ${r} \\times ${b} = ${r * b}$.`],
+      solution: `$P = \\dfrac{${r} \\times ${b}}{\\binom{${N}}{2}} = \\dfrac{${r * b}}{${C(N, 2)}} = ${frac(r * b, C(N, 2))} \\approx ${fr(arr(v, 3))}$`
+    }; }
+    const k = t === "urne2" ? 2 : 3, v = C(r, k) / C(N, k);
+    return {
+      enonce: `Une urne contient $${r}$ boules rouges et $${b}$ boules vertes. On tire simultanément $${k}$ boules. Quelle est la probabilité qu'elles soient **toutes rouges** ? Donne une fraction ou une valeur arrondie au millième.`,
+      mode: "nombre", prefixe: "P =", attendu: v, tolerance: 0.0006,
+      erreurs: [{ valeur: (r / N) ** k, message: "Ce calcul correspond à des tirages avec remise. Ici, compte des combinaisons." }],
+      aides: [`Tirage simultané : $\\text{Card}(\\Omega) = \\dbinom{${N}}{${k}} = ${C(N, k)}$.`, `Issues favorables : $${k}$ rouges parmi $${r}$, soit $\\dbinom{${r}}{${k}}= ${C(r, k)}$.`, "$P = \\dfrac{\\text{Card}(A)}{\\text{Card}(\\Omega)}$."],
+      solution: `$P = \\dfrac{\\binom{${r}}{${k}}}{\\binom{${N}}{${k}}} = \\dfrac{${C(r, k)}}{${C(N, k)}} = ${frac(C(r, k), C(N, k))} \\approx ${fr(arr(v, 3))}$`
+    };
+  };
+
+  // Arbre du principe multiplicatif : 2 t-shirts, puis 3 pantalons
+  FIGURES["arbre-produit"] = () => {
+    let s = `<svg class="graph" viewBox="0 0 320 220" role="img" aria-label="Arbre : 2 choix de t-shirt, puis 3 choix de pantalon pour chacun, soit 6 tenues"><g class="g-axis">`;
+    const n1 = [[110, 58, "B"], [110, 162, "R"]];
+    let t = "";
+    n1.forEach(([x, y, l]) => {
+      s += `<line x1="22" y1="110" x2="${x - 10}" y2="${y}"/>`;
+      t += `<text class="g-clabel" x="${x}" y="${y + 4}" text-anchor="middle">${l}</text>`;
+      [-30, 0, 30].forEach((d, i) => {
+        s += `<line x1="${x + 10}" y1="${y}" x2="190" y2="${y + d}"/>`;
+        t += `<text class="g-clabel" x="204" y="${y + d + 4}" text-anchor="middle">P${i + 1}</text><text class="g-label" x="234" y="${y + d + 4}">(${l} ; P${i + 1})</text>`;
+      });
+    });
+    return s + `</g><circle class="g-rect" cx="16" cy="110" r="5"/>${t}<text class="g-label" x="110" y="214" text-anchor="middle">2 t-shirts × 3 pantalons = 6 tenues</text></svg>`;
+  };
+
+  // Triangle de Pascal, lignes 0 à 6, avec la relation 10 + 10 = 20 mise en évidence
+  FIGURES["triangle-pascal"] = () => {
+    let s = `<svg class="graph" viewBox="0 0 320 230" role="img" aria-label="Triangle de Pascal des lignes 0 à 6 ; 10 plus 10 donne 20">`;
+    const pos = (n, k) => [172 + (k - n / 2) * 40, 22 + n * 30];
+    [[5, 2], [5, 3], [6, 3]].forEach(([n, k]) => { const [x, y] = pos(n, k); s += `<circle class="g-rect" cx="${x}" cy="${y - 4}" r="13"/>`; });
+    for (let n = 0; n <= 6; n++) {
+      s += `<text class="g-tick" x="8" y="${22 + n * 30}" style="fill:var(--doux);font-size:10px">n = ${n}</text>`;
+      for (let k = 0; k <= n; k++) { const [x, y] = pos(n, k); s += `<text class="g-clabel" x="${x}" y="${y}" text-anchor="middle">${C(n, k)}</text>`; }
+    }
+    return s + `<text class="g-label" x="172" y="226" text-anchor="middle">10 + 10 = 20</text></svg>`;
+  };
+
+
   /* Séries « flash » d'un thème : mélange de ses générateurs */
   const THEMES = {
     "am-flash-cn": ["am-comparer", "am-fractions", "am-puissances", "am-ecritures", "am-ordre-grandeur", "am-coherence", "auto-conversions"],
@@ -3009,7 +3308,7 @@
 
 
   /* Une « erreur connue » ne doit jamais coïncider avec la bonne réponse (à la tolérance près) */
-  Object.keys(GEN).filter((k) => k.startsWith("ld-") || k.startsWith("am-")).forEach((k) => {
+  Object.keys(GEN).filter((k) => k.startsWith("ld-") || k.startsWith("am-") || k.startsWith("cd-")).forEach((k) => {
     const g = GEN[k];
     GEN[k] = (i) => { const q = g(i); if (q.erreurs) q.erreurs = q.erreurs.filter((e) => Math.abs(e.valeur - q.attendu) >= (q.tolerance || 1e-9)); return q; };
   });
