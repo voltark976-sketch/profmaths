@@ -8,7 +8,7 @@
         Donne un nouveau mot de passe à un élève (sa progression est gardée).
     node outils/comptes/creer-comptes.js --prof identifiant
         Crée (ou réinitialise) le compte du professeur, qui voit la page « Suivi des élèves ».
-        Son mot de passe est écrit dans Documents\profmaths-comptes\compte-professeur.txt.
+        Son mot de passe est écrit dans Documents\Gestion site lycée\compte-professeur.txt.
 
   Option --classe "Première spécialité" : classe affichée sur le site et dans le classement
     (par défaut, devinée d'après le nom de la feuille : « 2xx » Seconde, « 1SPE » Première spécialité,
@@ -20,7 +20,7 @@
         Renvoie à Firebase tous les comptes de comptes.json (mots de passe et classes de la liste).
   Option --essai : affiche les comptes qui seraient créés, sans rien créer.
 
-  Les identifiants et mots de passe sont écrits dans Documents\profmaths-comptes (hors du dépôt public) :
+  Les identifiants et mots de passe sont écrits dans Documents\Gestion site lycée (hors du dépôt public) :
   identifiants.csv (ouvrable dans Excel) et identifiants.html (étiquettes à imprimer et découper).
   Ne jamais copier ces fichiers dans le dossier du site.
 */
@@ -29,7 +29,7 @@ const fs = require("fs"), path = require("path"), zlib = require("zlib"), crypto
 const { execFileSync } = require("child_process");
 
 const PROJET = "profmaths-ca535", DOMAINE = "profmaths.example.com";
-const DOSSIER = path.join(os.homedir(), "Documents", "profmaths-comptes");
+const DOSSIER = path.join(os.homedir(), "Documents", "Gestion site lycée");
 const REGISTRE = path.join(DOSSIER, "comptes.json");
 // Paramètres scrypt du fichier d'import (Firebase les convertit à la première connexion)
 const SCRYPT = { N: 16384, r: 8, p: 1, dkLen: 64 };
