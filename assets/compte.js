@@ -125,7 +125,7 @@
     init(onChange) {
       ecouteur = onChange;
       if (CFG.firebase) {
-        initFirebase().catch(() => { console.warn("Firebase indisponible"); ecouteur(null, null); });
+        initFirebase().catch(() => { console.warn("Firebase indisponible"); ecouteur(null, null, true); });
       } else {
         const id = lireJSON(SESSION, null);
         const comptes = lireJSON(DEMO, {});

@@ -51,7 +51,7 @@ Voir `MISE-EN-LIGNE.md` (GitHub Pages, gratuit, sans rien installer).
 ## Comptes élèves
 Les comptes sont **créés par le professeur** : les élèves ne peuvent plus s'inscrire. Chaque élève se connecte avec l'identifiant (`prenom.nom`) et le mot de passe qu'on lui a remis.
 Leur progression (points, étoiles, meilleur QCM, date du dernier essai de chaque série) est enregistrée après chaque exercice.
-Sans compte, la progression reste sur l'appareil ; elle rejoint le compte à la connexion.
+Sans compte, la progression reste sur l'appareil mais ne rejoint pas le compte : chaque compte commence au niveau 1 et ne retrouve que sa propre progression.
 À la déconnexion, la progression est effacée de l'appareil (utile sur un téléphone partagé) mais reste dans le compte.
 
 Tant que `firebase` vaut `null` dans `data/config-comptes.js`, c'est un **mode démonstration** (comptes gardés sur l'appareil, création possible).

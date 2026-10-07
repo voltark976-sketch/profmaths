@@ -13,6 +13,10 @@
   let prog = { xp: 0, exo: {}, qcm: {}, jeux: {}, quand: {} };
   try { prog = Object.assign(prog, JSON.parse(localStorage.getItem(CLE) || "{}")); } catch (e) {}
   const Compte = window.PM_COMPTE;
+  // Compte auquel appartient la progression gardée dans ce navigateur (vide = sans compte)
+  const CLE_PROPRIO = "profmaths:proprio";
+  let proprio = null;
+  try { proprio = localStorage.getItem(CLE_PROPRIO); } catch (e) {}
   const save = () => { try { localStorage.setItem(CLE, JSON.stringify(prog)); } catch (e) {} majXP(); Compte.sauver(prog); };
 
   /* ---------- Niveau, rang et avatar ---------- */
@@ -82,16 +86,22 @@
     $compteBtn.textContent = e ? (e.prenom || e.identifiant) : "Connexion";
     $compteBtn.classList.toggle("connecte", !!e);
   }
-  Compte.init((eleve, distant) => {
+  const progVide = () => ({ xp: 0, exo: {}, qcm: {}, jeux: {}, quand: {} });
+  Compte.init((eleve, distant, indisponible) => {
     if (eleve) {
-      // La progression faite sans compte sur cet appareil rejoint le compte
+      // La progression appartient au compte : celle d'un autre compte ou faite sans compte sur cet appareil
+      // est écartée ; seule la copie locale du même compte (essais faits hors ligne) est fusionnée.
+      if (proprio !== eleve.uid) prog = progVide();
       prog = Compte.fusion(prog, distant);
+      proprio = eleve.uid;
+      try { localStorage.setItem(CLE_PROPRIO, proprio); } catch (e) {}
       etaitConnecte = true;
       save();
-    } else if (etaitConnecte) {
-      // Déconnexion : on efface la progression de l'appareil (téléphone partagé)
-      prog = { xp: 0, exo: {}, qcm: {}, jeux: {}, quand: {} };
-      try { localStorage.removeItem(CLE); } catch (e) {}
+    } else if ((etaitConnecte || proprio) && !indisponible) {
+      // Déconnexion (ou session terminée) : on efface la progression de l'appareil (téléphone partagé)
+      prog = progVide();
+      proprio = null;
+      try { localStorage.removeItem(CLE); localStorage.removeItem(CLE_PROPRIO); } catch (e) {}
       etaitConnecte = false;
       majXP();
     }
