@@ -564,3 +564,65 @@ a.chap:hover .go { transform: translateX(3px); }
   background-attachment: fixed;
 }
 :root[data-theme="image"] .chap-off { background: color-mix(in srgb, var(--surface) 70%, transparent); }
+
+/* ==========================================================================
+   Niveau, rang et avatar
+   ========================================================================== */
+.xp { display: inline-flex; align-items: center; gap: 6px; padding: 3px 11px 3px 3px; text-decoration: none; }
+.xp:hover { background: color-mix(in srgb, var(--ylang-pale) 70%, var(--ylang) 18%); }
+.xp[aria-current] { box-shadow: 0 0 0 2px var(--ylang); }
+.xp-av { display: grid; width: 26px; height: 26px; }
+.xp-av svg { display: block; }
+.xp-niv b { color: var(--encre); font-family: var(--f-titre); }
+svg.avatar { display: block; max-width: 100%; height: auto; }
+
+/* Carte profil (page compte et page avatar) */
+.profil { display: flex; align-items: center; gap: 16px; margin: 18px 0; padding: 16px; border-radius: 18px; background: var(--surface); border: 1px solid color-mix(in srgb, var(--trait) 70%, transparent); box-shadow: var(--ombre); color: var(--encre); text-decoration: none; }
+a.profil:hover { box-shadow: var(--ombre-haut); }
+.profil-av { flex: none; }
+.profil-t { display: grid; gap: 5px; min-width: 0; flex: 1; }
+.profil-t strong { font: 800 1.5rem/1.1 var(--f-titre); }
+.profil-t .eyebrow { color: var(--ylang); }
+.barre-xp { display: block; height: 10px; border-radius: 999px; background: var(--trait); overflow: hidden; }
+.barre-xp span { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--lagon), var(--ylang)); }
+.profil .prochaine { color: var(--encre); }
+.profil-grand { background: linear-gradient(135deg, color-mix(in srgb, var(--lagon-pale) 80%, var(--surface)), var(--surface) 70%); }
+@media (max-width: 480px) { .profil-grand { flex-direction: column; text-align: center; } .profil-grand .barre-xp { width: 100%; } }
+
+/* Échelle des rangs */
+.rangs { list-style: none; padding: 0; margin: 0 0 8px; display: flex; gap: 6px; overflow-x: auto; scrollbar-width: thin; padding-bottom: 4px; }
+.rangs li { flex: none; display: grid; gap: 1px; padding: 7px 11px; border-radius: 12px; border: 1px solid var(--trait); background: var(--surface); font-size: 0.8rem; color: var(--doux); }
+.rangs li strong { font-size: 0.9rem; color: var(--doux); }
+.rangs li.fait strong { color: var(--encre); }
+.rangs li.ici { border-color: var(--ylang); background: var(--ylang-pale); box-shadow: 0 0 0 1px var(--ylang); }
+.rangs li.ici strong { color: var(--encre); }
+
+/* Personnalisation */
+.page-avatar h2 { margin-top: 26px; }
+.cats { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 6px; scrollbar-width: thin; }
+.cats button { flex: none; padding: 8px 13px; border-radius: 999px; border: 1px solid var(--trait); background: var(--surface); color: var(--encre); font: 700 0.85rem/1 var(--f-texte); cursor: pointer; }
+.cats button[aria-selected="true"] { background: var(--lagon); border-color: var(--lagon); color: var(--fond); }
+.options { display: grid; grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: 10px; margin-top: 10px; }
+.opt-av { display: grid; justify-items: center; gap: 5px; padding: 10px 6px; border-radius: 14px; border: 2px solid transparent; background: var(--surface); box-shadow: var(--ombre); cursor: pointer; font: inherit; color: var(--encre); transition: transform 0.12s, border-color 0.12s; }
+.opt-av:hover:not([disabled]) { transform: translateY(-2px); border-color: color-mix(in srgb, var(--lagon) 50%, transparent); }
+.opt-av[aria-pressed="true"] { border-color: var(--lagon); background: var(--lagon-pale); }
+.opt-nom { font-size: 0.78rem; line-height: 1.2; text-align: center; }
+.opt-av.verrou { cursor: not-allowed; box-shadow: none; border: 1px dashed var(--trait); background: transparent; }
+.opt-av.verrou svg { filter: grayscale(1); opacity: 0.45; }
+.opt-niv { font: 700 0.72rem/1 var(--f-texte); color: var(--ylang); }
+.regles { margin-top: 26px; padding: 12px 16px; border-radius: var(--r); background: var(--surface); border: 1px solid var(--trait); }
+.regles summary { font-weight: 700; cursor: pointer; }
+.regles li { margin: 6px 0; font-size: 0.93rem; }
+.gain-xp { font-weight: 700; color: var(--lagon); }
+.gain-xp span { font-weight: 400; color: var(--doux); font-size: 0.9rem; }
+
+/* Annonce de passage de niveau */
+.toast-niv { position: fixed; z-index: 50; left: 50%; bottom: calc(16px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); width: min(26rem, calc(100% - 24px)); display: flex; align-items: center; gap: 12px; padding: 12px 40px 12px 12px; border-radius: 18px; color: #fff; background: linear-gradient(135deg, var(--hero-a), var(--hero-b)); box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3); animation: toast-in 0.35s ease both; }
+.toast-niv.sort { opacity: 0; transform: translate(-50%, 12px); transition: opacity 0.25s, transform 0.25s; }
+.toast-av { flex: none; }
+.toast-t { display: grid; gap: 2px; font-size: 0.9rem; }
+.toast-t strong { font: 800 1.25rem/1.1 var(--f-titre); color: #ffe08a; }
+.toast-t a { color: #fff; font-weight: 700; margin-top: 2px; }
+.toast-x { position: absolute; top: 6px; right: 8px; border: 0; background: transparent; color: #fff; font-size: 1.4rem; line-height: 1; cursor: pointer; padding: 4px; }
+@keyframes toast-in { from { opacity: 0; transform: translate(-50%, 16px) scale(0.96); } to { opacity: 1; transform: translateX(-50%); } }
+@media (prefers-reduced-motion: reduce) { .toast-niv { animation: none; } }

@@ -14,8 +14,54 @@
   try { prog = Object.assign(prog, JSON.parse(localStorage.getItem(CLE) || "{}")); } catch (e) {}
   const Compte = window.PM_COMPTE;
   const save = () => { try { localStorage.setItem(CLE, JSON.stringify(prog)); } catch (e) {} majXP(); Compte.sauver(prog); };
-  const majXP = () => { $xp.textContent = prog.xp; };
+
+  /* ---------- Niveau, rang et avatar ---------- */
+  const AV = window.PM_AVATAR, XP = window.NIVEAUX.xp;
+  const $xpAv = document.getElementById("xp-avatar"), $xpLien = document.getElementById("xp-lien");
+  const monAvatar = (niv) => AV.normaliser(prog.avatar, niv === undefined ? AV.niveau(prog.xp).niveau : niv);
+  function majXP() {
+    const n = AV.niveau(prog.xp);
+    $xp.textContent = n.niveau;
+    $xpAv.innerHTML = AV.dessin(monAvatar(n.niveau), 26);
+    $xpLien.title = `Niveau ${n.niveau} · ${n.rang} · ${prog.xp} XP`;
+  }
   majXP();
+  // Ajoute des XP (nombre entier) et annonce un passage de niveau
+  function gagnerXP(pts) {
+    pts = Math.max(0, Math.round(pts));
+    if (!pts) return 0;
+    const avant = AV.niveau(prog.xp).niveau;
+    prog.xp += pts; save();
+    const apres = AV.niveau(prog.xp).niveau;
+    if (apres > avant) annoncerNiveau(avant, apres);
+    return pts;
+  }
+  function annoncerNiveau(avant, apres) {
+    const nouveautes = [];
+    for (let n = avant + 1; n <= apres; n++) nouveautes.push(...AV.recompenses(n));
+    const rangChange = AV.rang(apres) !== AV.rang(avant);
+    document.querySelectorAll(".toast-niv").forEach((t) => t.remove());
+    const t = document.createElement("div");
+    t.className = "toast-niv";
+    t.setAttribute("role", "status");
+    t.innerHTML = `<span class="toast-av">${AV.dessin(monAvatar(apres), 48)}</span><span class="toast-t"><strong>Niveau ${apres} !</strong>${rangChange ? `<span>Nouveau rang : <b>${esc(AV.rang(apres))}</b></span>` : ""}${nouveautes.length ? `<span>Débloqué : ${nouveautes.map((r) => esc(r.nom)).join(", ")}</span>` : ""}<a href="#avatar">Voir mon avatar →</a></span><button type="button" class="toast-x" aria-label="Fermer">×</button>`;
+    document.body.appendChild(t);
+    const fermer = () => { t.classList.add("sort"); setTimeout(() => t.remove(), 300); };
+    t.querySelector(".toast-x").addEventListener("click", fermer);
+    t.querySelector("a").addEventListener("click", fermer);
+    setTimeout(fermer, 8000);
+  }
+  // Défis : au-delà de quelques parties du même défi dans la journée, les XP diminuent
+  const CLE_JOUR = "profmaths:defis-jour";
+  function partieDuJour(k) {
+    const auj = new Date().toLocaleDateString("fr-CA");
+    let j = { d: auj, n: {} };
+    try { const l = JSON.parse(localStorage.getItem(CLE_JOUR) || "null"); if (l && l.d === auj && l.n) j = l; } catch (e) {}
+    const deja = j.n[k] || 0;
+    j.n[k] = deja + 1;
+    try { localStorage.setItem(CLE_JOUR, JSON.stringify(j)); } catch (e) {}
+    return deja;
+  }
 
   /* ---------- Compte élève ---------- */
   const $compteBtn = document.getElementById("compte-btn");
@@ -130,7 +176,9 @@
     const [chap, onglet] = h.split(".");
     if (minuterieJeu) { clearInterval(minuterieJeu); minuterieJeu = null; }
     document.getElementById("jeu-btn").toggleAttribute("aria-current", chap === "jeu");
+    $xpLien.toggleAttribute("aria-current", chap === "avatar");
     if (chap === "compte") pageCompte();
+    else if (chap === "avatar") pageAvatar();
     else if (chap === "jeu") pageJeu();
     else if (chap && window.CHAPITRES && CHAPITRES[chap]) pageChapitre(chap, onglet || "cours");
     else if (chap && CATALOGUE.niveaux.some((n) => "niveau-" + n.id === chap)) pageNiveau(CATALOGUE.niveaux.find((n) => "niveau-" + n.id === chap));
@@ -190,7 +238,7 @@
       <a class="promo promo-yt" href="${YT_PROF}?sub_confirmation=1" target="_blank" rel="noopener"><span class="promo-ico" aria-hidden="true">▶</span><span class="promo-t"><span class="eyebrow">Ma chaîne YouTube</span><strong>Profmaths</strong><span>Toutes les vidéos de cours et les corrections d'exercices de ce site. Abonne-toi pour ne rater aucune nouvelle vidéo !</span><span class="promo-btn">S'abonner à la chaîne</span></span></a>
       <a class="promo promo-monka" href="${YT_MONKA}" target="_blank" rel="noopener"><span class="promo-ico" aria-hidden="true">▶</span><span class="promo-t"><span class="eyebrow">En complément</span><strong>Yvan Monka</strong><span>Une autre explication, pas à pas, de chaque notion du lycée. Pratique pour revoir une méthode autrement.</span><span class="promo-btn">Voir sa chaîne →</span></span></a>
     </div>`;
-    if (!Compte.eleve()) h += `<a class="invite" href="#compte"><strong>Crée ton compte</strong><span>pour retrouver tes points et tes étoiles sur n'importe quel téléphone ou ordinateur.</span></a>`;
+    if (!Compte.eleve()) h += `<a class="invite" href="#compte"><strong>Crée ton compte</strong><span>pour retrouver ton niveau, ton avatar et tes étoiles sur n'importe quel téléphone ou ordinateur.</span></a>`;
     h += piedDePage();
     $app.innerHTML = h;
   }
@@ -215,6 +263,59 @@
     });
     h += `</ol>` + piedDePage();
     $app.innerHTML = h;
+  }
+
+  /* ---------- Niveau et avatar ---------- */
+  // Carte résumé : avatar, niveau, rang et barre d'XP (page compte et page avatar)
+  function carteProfil(grand) {
+    const n = AV.niveau(prog.xp), suiv = AV.prochaine(n.niveau);
+    return `<${grand ? "div" : "a href=\"#avatar\""} class="profil${grand ? " profil-grand" : ""}"><span class="profil-av">${AV.dessin(monAvatar(n.niveau), grand ? 132 : 72, "Ton avatar")}</span>
+      <span class="profil-t"><span class="eyebrow">Rang ${esc(n.rang)}</span><strong>Niveau ${n.niveau}</strong>
+      <span class="barre-xp" role="progressbar" aria-valuemin="0" aria-valuemax="${n.besoin}" aria-valuenow="${n.dans}" aria-label="XP vers le niveau suivant"><span style="width:${Math.round((n.dans / n.besoin) * 100)}%"></span></span>
+      <span class="meta">${n.dans} / ${n.besoin} XP · encore ${n.reste} XP pour le niveau ${n.niveau + 1}</span>
+      ${suiv ? `<span class="meta prochaine">Prochaine récompense au niveau ${suiv.niveau} : ${suiv.recompenses.map((r) => esc(r.nom)).join(", ")}</span>` : ""}</span></${grand ? "div" : "a"}>`;
+  }
+
+  let catAvatar = "cheveux";
+  function pageAvatar() {
+    document.title = "Mon avatar · ProfMaths";
+    const n = AV.niveau(prog.xp);
+    const rangs = window.NIVEAUX.rangs;
+    $app.innerHTML = `<section class="page-avatar"><p class="eyebrow">Mon profil</p><h1>Mon avatar</h1>
+      <p class="lead">Gagne des XP avec les exercices, les QCM et les défis. À chaque niveau, de nouveaux éléments se débloquent pour ton avatar.</p>
+      <div id="profil">${carteProfil(true)}</div>
+      <ol class="rangs" aria-label="Rangs">${rangs.map((r, k) => { const fin = rangs[k + 1] ? rangs[k + 1].des - 1 : null; const ici = n.niveau >= r.des && (fin === null || n.niveau <= fin); return `<li class="${ici ? "ici" : n.niveau > (fin || Infinity) ? "fait" : ""}"><strong>${esc(r.nom)}</strong><span>niv. ${r.des}${fin ? `–${fin}` : " et +"}</span></li>`; }).join("")}</ol>
+      <h2>Personnaliser</h2>
+      <div class="cats" role="tablist" aria-label="Parties de l'avatar">${AV.CATEGORIES.map((c) => `<button type="button" role="tab" data-cat="${c.id}" aria-selected="${c.id === catAvatar}">${esc(c.nom)}</button>`).join("")}</div>
+      <div id="options" class="options" role="tabpanel"></div>
+      <details class="regles"><summary>Comment gagner des XP ?</summary>
+        <ul><li><strong>Exercices :</strong> jusqu'à ${XP.question} XP par question réussie (moins avec des indices ou des erreurs).</li>
+        <li><strong>QCM :</strong> ${XP.bonneReponseQcm} XP par bonne réponse.</li>
+        <li><strong>Défis chrono :</strong> ${XP.bonneReponseDefi} XP par bonne réponse.</li>
+        <li><strong>Ce que tu maîtrises déjà rapporte moins :</strong> une série à 3 étoiles ou un QCM déjà réussi à 100 % donne 10 fois moins d'XP, une série à 2 étoiles ou un QCM réussi à 70 % ou plus, 2 fois moins. Un même défi rejoué plus de ${XP.defisPleinTarif} fois dans la journée rapporte 4 fois moins jusqu'au lendemain.</li>
+        <li>Chaque niveau demande un peu plus d'XP que le précédent : ${AV.xpPour(2)} XP pour le niveau 2, ${AV.xpPour(3) - AV.xpPour(2)} de plus pour le niveau 3, et ainsi de suite.</li></ul>
+      </details></section>`;
+    $app.querySelectorAll(".cats button").forEach((b) => b.addEventListener("click", () => {
+      catAvatar = b.dataset.cat;
+      $app.querySelectorAll(".cats button").forEach((x) => x.setAttribute("aria-selected", x === b));
+      afficherOptions();
+    }));
+    afficherOptions();
+  }
+  function afficherOptions() {
+    const n = AV.niveau(prog.xp).niveau, av = monAvatar(n);
+    const $o = document.getElementById("options");
+    $o.innerHTML = window.NIVEAUX.avatar[catAvatar].map((e) => {
+      const ok = AV.debloque(e, n), choisi = av[catAvatar] === e.id;
+      const apercu = AV.dessin(Object.assign({}, av, { [catAvatar]: e.id }), 64);
+      return `<button type="button" class="opt-av${ok ? "" : " verrou"}" data-id="${e.id}" aria-pressed="${choisi}"${ok ? "" : " disabled"}>${apercu}<span class="opt-nom">${esc(e.nom)}</span>${ok ? "" : `<span class="opt-niv">🔒 Niveau ${e.niveau}</span>`}</button>`;
+    }).join("");
+    $o.querySelectorAll(".opt-av:not([disabled])").forEach((b) => b.addEventListener("click", () => {
+      prog.avatar = Object.assign(monAvatar(), { [catAvatar]: b.dataset.id, t: Date.now() });
+      save();
+      document.getElementById("profil").innerHTML = carteProfil(true);
+      afficherOptions();
+    }));
   }
 
   /* ---------- Page jeu : « Les Salles », dans le dossier les-salles/ ---------- */
@@ -266,7 +367,7 @@
       }));
       $app.innerHTML = `<section class="page-compte"><p class="eyebrow">Mon compte</p><h1>Bonjour ${esc(e.prenom || e.identifiant)} !</h1>
         <p class="lead">${e.fournisseur ? `Connecté avec <strong>${esc(Compte.nomFournisseur(e.fournisseur))}</strong>` : `Identifiant : <strong>${esc(e.identifiant)}</strong>`}${e.classe ? ` · ${esc(e.classe)}` : ""}</p>${demo}
-        <div class="stat"><span class="gros">${prog.xp}</span><span>points gagnés</span></div>
+        ${carteProfil()}
         <h2>Ma progression</h2><ol class="chapitres">${lignes}</ol>
         <p class="muted">Ta progression est enregistrée automatiquement après chaque exercice et chaque QCM.</p>
         <button class="btn-sec" id="deco">Se déconnecter</button>
@@ -283,7 +384,7 @@
       <p class="erreur" role="alert" id="err-social">${esc(Compte.erreurRedirection())}</p></div>
       <p class="separateur"><span>ou avec un identifiant</span></p>` : "";
     $app.innerHTML = `<section class="page-compte"><p class="eyebrow">Mon compte</p><h1>Garde ta progression partout</h1>
-      <p class="lead">Avec un compte, tes points et tes étoiles te suivent sur tous tes appareils. Pas besoin d'adresse e-mail.</p>${demo}${sociaux}
+      <p class="lead">Avec un compte, ton niveau, ton avatar et tes étoiles te suivent sur tous tes appareils. Pas besoin d'adresse e-mail.</p>${demo}${sociaux}
       <div class="bascule" role="tablist"><button role="tab" id="t-co" aria-selected="true">J'ai déjà un compte</button><button role="tab" id="t-cr" aria-selected="false">Créer mon compte</button></div>
       <form id="f-co" class="formulaire" autocomplete="on">
         <label for="co-id">Identifiant</label><input id="co-id" name="username" autocomplete="username" autocapitalize="none" spellcheck="false" required>
@@ -413,8 +514,20 @@
 
   function lancerSerie(p, c, id, ex) {
     const gen = GEN[ex.type];
-    let i = 0, score = 0;
+    let i = 0, score = 0, xpSerie = 0, resteXP = 0;
     const max = ex.nb * 10;
+    // Série déjà maîtrisée : elle rapporte beaucoup moins d'XP
+    const etoilesAvant = prog.exo[id + ":" + ex.type] || 0;
+    const coef = etoilesAvant >= 3 ? XP.serie3Etoiles : etoilesAvant === 2 ? XP.serie2Etoiles : 1;
+    const noteCoef = coef < 1 ? `Série déjà à ${etoilesAvant} étoiles : XP ${coef <= 0.1 ? "divisés par 10" : "divisés par 2"}.` : "";
+    function crediter(x) {
+      resteXP += x;
+      const e = Math.floor(resteXP + 1e-9);
+      resteXP -= e;
+      const g = gagnerXP(e);
+      xpSerie += g;
+      return g;
+    }
 
     function question() {
       const q = gen(i);
@@ -438,13 +551,13 @@
 
       function terminer(gagne, montrer) {
         fini = true;
-        const pts = gagne ? Math.max(2, 10 - 3 * aides - 2 * erreurs) : 0;
+        const pts = gagne ? Math.max(2, XP.question - 3 * aides - 2 * erreurs) : 0;
         score += pts;
-        prog.xp += pts; save();
+        const xpQ = gagne ? crediter(pts * coef) : 0;
         p.querySelector(".pts").textContent = `${score} pts`;
         fb.className = "retour-rep " + (gagne ? "bon" : "info");
         fb.innerHTML = gagne
-          ? `<strong>Bravo !</strong> +${pts} points.${aides === 0 && erreurs === 0 ? " Du premier coup !" : ""}`
+          ? `<strong>Bravo !</strong> +${pts} points${coef < 1 ? ` (+${xpQ} XP)` : ""}.${aides === 0 && erreurs === 0 ? " Du premier coup !" : ""}`
           : `<strong>Voici la solution.</strong> Lis-la bien, la prochaine sera pour toi.`;
         if (montrer || !gagne) {
           fb.innerHTML += `<div class="solution">${md(q.solution)}</div>`;
@@ -507,7 +620,7 @@
       const record = st > (prog.exo[k] || 0);
       prog.exo[k] = Math.max(prog.exo[k] || 0, st); save();
       const msg = st === 3 ? "Série maîtrisée. Tu peux passer à la suivante." : st === 2 ? "Très bien ! Encore un essai pour la troisième étoile ?" : st === 1 ? "C'est un bon début. Relis la fiche méthode puis recommence." : "Pas de panique : regarde la vidéo et le cours, puis réessaie.";
-      p.innerHTML = `<div class="bilan"><p class="eyebrow">Bilan · ${esc(ex.titre)}</p><p class="gros">${score}<span>/${max} pts</span></p>${etoiles(st, 3)}${record ? `<p class="record">Nouveau record !</p>` : ""}<p>${msg}</p>
+      p.innerHTML = `<div class="bilan"><p class="eyebrow">Bilan · ${esc(ex.titre)}</p><p class="gros">${score}<span>/${max} pts</span></p>${etoiles(st, 3)}${record ? `<p class="record">Nouveau record !</p>` : ""}<p>${msg}</p><p class="gain-xp">+${xpSerie} XP${noteCoef ? ` · <span>${noteCoef}</span>` : ""}</p>
         <div class="exo-actions"><button class="btn" id="encore">Recommencer</button><button class="btn-sec" id="retour">Autres séries</button></div></div>`;
       p.querySelector("#encore").addEventListener("click", () => lancerSerie(p, c, id, ex));
       p.querySelector("#retour").addEventListener("click", () => vueExercices(p, c, id));
@@ -551,13 +664,16 @@
         ex.hidden = false;
         ex.innerHTML = `<strong>${ok ? "Juste." : choisi ? "Faux." : "Sans réponse."}</strong> ${md(q.explication)}`;
       });
-      const gain = bon * 5;
-      const record = prog.qcm[id] === undefined || bon > prog.qcm[id];
-      prog.qcm[id] = Math.max(prog.qcm[id] || 0, bon);
-      prog.xp += gain; save();
+      // QCM déjà bien réussi : il rapporte beaucoup moins d'XP
+      const avant = prog.qcm[id], tot = qs.length;
+      const coef = avant === undefined ? 1 : avant >= tot ? XP.qcmParfait : avant >= 0.7 * tot ? XP.qcmBon : 1;
+      const record = avant === undefined || bon > avant;
+      prog.qcm[id] = Math.max(avant || 0, bon);
+      const gain = gagnerXP(bon * XP.bonneReponseQcm * coef);
+      save();
       form.dataset.corrige = "1";
       const fin = p.querySelector(".qcm-fin");
-      fin.innerHTML = `<div class="bilan"><p class="eyebrow">Ton score</p><p class="gros">${bon}<span>/${qs.length}</span></p>${record && bon ? `<p class="record">Nouveau record !</p>` : ""}<p>+${gain} points. ${bon >= 8 ? "Excellent, le chapitre est bien compris." : bon >= 5 ? "Bien. Relis les explications des questions ratées." : "Revois le cours et la fiche méthode, puis retente ta chance."}</p><button class="btn" type="submit">Nouveau QCM</button></div>`;
+      fin.innerHTML = `<div class="bilan"><p class="eyebrow">Ton score</p><p class="gros">${bon}<span>/${qs.length}</span></p>${record && bon ? `<p class="record">Nouveau record !</p>` : ""}<p>+${gain} XP${coef < 1 ? ` (QCM déjà réussi à ${Math.round((avant / tot) * 100)} % : XP ${coef <= 0.1 ? "divisés par 10" : "divisés par 2"})` : ""}. ${bon >= 8 ? "Excellent, le chapitre est bien compris." : bon >= 5 ? "Bien. Relis les explications des questions ratées." : "Revois le cours et la fiche méthode, puis retente ta chance."}</p><button class="btn" type="submit">Nouveau QCM</button></div>`;
       fin.scrollIntoView({ behavior: "smooth", block: "center" });
     });
   }
@@ -708,11 +824,13 @@
       const k = "chrono:" + theme.id;
       const ancien = prog.jeux[k] || 0;
       const record = score > ancien;
-      const gain = bonnes * 3;
+      const deja = partieDuJour(k);
+      const coef = deja < XP.defisPleinTarif ? 1 : XP.defiApres;
       prog.jeux[k] = Math.max(ancien, score);
-      prog.xp += gain; save();
+      const gain = gagnerXP(bonnes * XP.bonneReponseDefi * coef);
+      save();
       $c.innerHTML = `<div class="bilan"><p class="eyebrow">${esc(J.titre)} · ${esc(o.libelle)}</p><p>${esc(raison)}</p><p class="gros">${score}<span> pts</span></p>${record && score ? `<p class="record">Nouveau record !</p>` : ancien ? `<p class="muted">Ton record : ${ancien} pts</p>` : ""}
-        <p>${bonnes} bonne${bonnes > 1 ? "s" : ""} réponse${bonnes > 1 ? "s" : ""} sur ${n}. +${gain} points ajoutés à ton total.</p>
+        <p>${bonnes} bonne${bonnes > 1 ? "s" : ""} réponse${bonnes > 1 ? "s" : ""} sur ${n}. +${gain} XP${coef < 1 ? " (défi déjà joué plusieurs fois aujourd'hui : XP réduits jusqu'à demain)" : ""}.</p>
         <div class="exo-actions"><button class="btn" id="rejouer">Rejouer</button><button class="btn-sec" id="themes">${esc(o.retourTexte || "Changer de thème")}</button></div></div>`;
       $c.querySelector("#rejouer").addEventListener("click", () => lancerChrono(J, theme, o));
       $c.querySelector("#themes").addEventListener("click", o.retour);
