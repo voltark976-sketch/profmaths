@@ -13,7 +13,7 @@ Site statique : aucune base de données, aucun compte élève. Ouvrir `index.htm
 - `data/seconde/fonctions-affines.js` : chapitre 6 de Seconde (fonctions affines, inégalités, inéquations). Générateurs `fa-`.
 - `data/seconde/vecteurs.js` : chapitre 7 de Seconde (translation, coordonnées, milieu, distance). Générateurs `ve-` ; les figures de vecteurs utilisent l'option `fleches` de `graph()`.
 - `data/seconde/statistiques.js` : chapitre 8 de Seconde (moyenne, médiane, quartiles, écart type). Générateurs `st-`.
-- `data/seconde/variations.js` : variations et fonctions de référence (numéroté 9 en attendant d'être réparti entre les chapitres 6, 9 et 13 de la progression).
+- `data/seconde/variations.js` : chapitre 9 de Seconde (variations, extremums, fonctions carré et valeur absolue, optimisation). Générateurs `var-` et `vx-`.
 - `data/seconde/automatismes.js` : automatismes de Seconde (10 fiches, séries flash, test).
 - `data/automatismes/*.js` : partie Automatismes, un fichier par thème officiel de l'épreuve anticipée (calcul numérique, calcul algébrique, proportions, évolutions, fonctions, statistiques, probabilités). Les générateurs d'exercices correspondants commencent par `am-` dans `assets/exercices.js`.
 - `data/premiere/suites.js` et `data/premiere/second-degre.js` : chapitres 1 et 2 de Première spécialité.

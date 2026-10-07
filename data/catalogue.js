@@ -74,7 +74,7 @@ window.CATALOGUE = {
         {
           id: "seconde-variations",
           numero: 9,
-          titre: "Variations et fonctions de référence",
+          titre: "Variations et extremums ; fonctions carré et valeur absolue",
           statut: "disponible",
           drive: ""
         }

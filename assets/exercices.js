@@ -2947,8 +2947,12 @@
   FIGURES["courbe-racine-cube"] = () => graph({ xmin: -2.4, xmax: 4.6, ymin: -3.6, ymax: 3.6, curves: [{ f: (x) => Math.sqrt(x), a: 0, b: 4.4, closed: false, label: lab("y = √x"), lx: 4.2, dx: -4, dy: -8 }, { f: (x) => x ** 3, a: -1.5, b: 1.5, closed: false, label: lab("y = x³"), lx: 1.45, dx: -8, dy: 4 }], aria: "Courbes de la racine carrée et de la fonction cube" });
   FIGURES["x-et-x2"] = () => graph({ xmin: -0.3, xmax: 2.2, ymin: -0.3, ymax: 2.6, xstep: 0.5, ystep: 0.5, h: 280, curves: [{ f: (x) => x, a: 0, b: 2.1, closed: false, label: lab("y = x"), lx: 2.1, dx: -4, dy: 16 }, { f: (x) => x * x, a: 0, b: 1.58, closed: false, label: lab("y = x²"), lx: 1.55, dx: -8, dy: 2 }], points: [{ x: 1, y: 1, label: "(1 ; 1)" }], aria: "Sur [0 ; 1] la droite y = x est au-dessus de la parabole, après 1 elle est en dessous" });
 
+  // Restriction facultative des fonctions de référence (chapitres 9 et 13 de Seconde) : voir refRestreint
+  let REF_CLES = null, REF_EQ = null;
+  const refRestreint = (gen, cles, eq) => (i) => { REF_CLES = cles; REF_EQ = eq; try { return GEN[gen](i); } finally { REF_CLES = REF_EQ = null; } };
+
   GEN["var-ref-comparer"] = function () {
-    const cle = pick(["carre", "carre", "inverse", "absolue", "cube", "racine"]), R = REF[cle];
+    const cle = pick(REF_CLES || ["carre", "carre", "inverse", "absolue", "cube", "racine"]), R = REF[cle];
     const dec = () => rand(1, 49) / 10;
     let a, b;
     if (cle === "racine") { a = dec(); b = dec(); }
@@ -2974,7 +2978,7 @@
       () => { const k = pick([-2, 0, 1, 2, 3, 5, 0.5]); return [`\\sqrt{x} = ${fr(k)}`, k < 0 ? [] : [k * k], "Une racine carrée est toujours positive ou nulle.", k < 0 ? "Une racine carrée ne peut pas être négative." : `$\\sqrt{x} = ${fr(k)}$ donne $x = ${fr(k)}^2$.`]; },
       () => { const k = pick([2, -2, 4, -4, 0.5, -0.5, 0.25, 5, 0]); return [`\\dfrac{1}{x} = ${fr(k)}`, k === 0 ? [] : [1 / k], "La fonction inverse ne s'annule jamais.", k === 0 ? "$\\dfrac{1}{x}$ n'est jamais égal à $0$." : `$\\dfrac{1}{x} = ${fr(k)}$ donne $x = \\dfrac{1}{${fr(k)}}$.`]; }
     ];
-    const [eq, sol, a1, a2] = pick(T)();
+    const [eq, sol, a1, a2] = (REF_EQ ? T[pick(REF_EQ)] : pick(T))();
     return {
       enonce: `Résous dans $\\mathbb{R}$ l'équation $${eq}$.`,
       mode: "ensemble", prefixe: "Solution(s) :", attendu: sol,
@@ -2984,7 +2988,7 @@
   };
 
   GEN["var-ref-courbe"] = function () {
-    const cle = pick(Object.keys(REF)), R = REF[cle];
+    const cle = pick(REF_CLES || Object.keys(REF)), R = REF[cle];
     const curves = cle === "inverse" ? [{ f: R.f, a: -4.5, b: -0.22, closed: false }, { f: R.f, a: 0.22, b: 4.5, closed: false }]
       : cle === "racine" ? [{ f: R.f, a: 0, b: 4.5, closed: false }]
       : cle === "cube" ? [{ f: R.f, a: -1.65, b: 1.65, closed: false }]
@@ -4150,6 +4154,74 @@
   };
 
 
+  /* ---------- Seconde, chapitre 9 : variations, extremums, carré et valeur absolue (préfixe vx-) ---------- */
+  GEN["vx-comparer"] = refRestreint("var-ref-comparer", ["carre", "carre", "absolue"]);
+  GEN["vx-equation"] = refRestreint("var-ref-equation", null, [0, 0, 1]);
+
+  GEN["vx-inequation-carre"] = function () {
+    const r = rand(1, 9), k = r * r, op = pick(OPS), neg = Math.random() < 0.15;
+    const kk = neg ? -k : k;
+    let bonne, faux, expl;
+    const large = op === "\\leqslant" || op === "\\geqslant", o = large ? "[" : "]", f = large ? "]" : "[";
+    const dedans = `${o}-${r}\\,;${r}${f}`, dehors = `]-\\infty\\,;-${r}${f} \\cup ${o}${r}\\,;+\\infty[`;
+    if (neg) {
+      const tout = op === ">" || op === "\\geqslant";
+      bonne = tout ? "\\mathbb{R}" : "\\varnothing"; faux = [tout ? "\\varnothing" : "\\mathbb{R}", `]-\\infty\\,;-${r}[`, `[${r}\\,;+\\infty[`];
+      expl = `Un carré est toujours positif ou nul, donc toujours supérieur à $${kk}$. ` + (tout ? "Tous les réels sont solutions : $S = \\mathbb{R}$." : "Aucun réel n'est solution : $S = \\varnothing$.");
+    } else if (op === "<" || op === "\\leqslant") {
+      bonne = dedans; faux = [dehors, `${o}-\\infty\\,;${r}${f}`.replace("[-\\infty", "]-\\infty"), `${o}0\\,;${r}${f}`];
+      expl = `Sur la parabole, $x^2 ${op} ${k}$ là où la courbe est ${op === "<" ? "strictement " : ""}sous la droite $y = ${k}$ : entre $-${r}$ et $${r}$. $S = ${dedans}$.`;
+    } else {
+      bonne = dehors; faux = [dedans, `${o}${r}\\,;+\\infty[`, `]-\\infty\\,;-${r}${f}`];
+      expl = `$x^2 ${op} ${k}$ là où la parabole est au-dessus de la droite $y = ${k}$ : avant $-${r}$ et après $${r}$. $S = ${dehors}$.`;
+    }
+    const ch = melangeChoix(`$${bonne}$`, faux.map((t) => `$${t}$`));
+    return {
+      enonce: `Résous dans $\\mathbb{R}$ l'inéquation $x^2 ${op} ${kk}$.`,
+      figure: neg ? undefined : graph({ xmin: -(r + 2), xmax: r + 2, ymin: -((r + 2) ** 2) / 10, ymax: (r + 2) ** 2, ystep: (r + 2) ** 2 > 40 ? 10 : (r + 2) ** 2 > 15 ? 5 : 1, xetiq: r > 4 ? 2 : 1, yetiq: (r + 2) ** 2 > 40 ? 20 : (r + 2) ** 2 > 15 ? 5 : 2, h: 260, curves: [{ f: (x) => x * x, a: -(r + 2), b: r + 2, closed: false }], hlines: [{ y: k, label: `y = ${k}` }], aria: "Parabole y = x² et droite horizontale" }),
+      mode: "choix", choix: ch.choix, attendu: ch.attendu,
+      aides: [neg ? "Un carré peut-il être négatif ?" : `Résous d'abord l'équation $x^2 = ${k}$ : deux solutions, $-${r}$ et $${r}$.`, "Sur la figure, repère où la parabole est sous (ou au-dessus de) la droite horizontale.", "Attention : $x^2 < 9$ ne donne pas seulement $x < 3$ ; il faut aussi $x > -3$."],
+      solution: expl
+    };
+  };
+
+  GEN["vx-optimisation"] = function () {
+    const mur = Math.random() < 0.5, P = mur ? 4 * rand(5, 20) : 4 * rand(5, 25);
+    const demandeAire = Math.random() < 0.5;
+    if (mur) {
+      // trois côtés : x, P − 2x, x ; aire x(P − 2x), maximale en x = P/4
+      const x0 = P / 4, A = x0 * (P - 2 * x0);
+      return {
+        enonce: `On construit un enclos rectangulaire pour les cabris le long d'un mur, avec $${P}$ m de grillage pour les trois autres côtés. On note $x$ la largeur (les deux côtés perpendiculaires au mur). L'aire est $A(x) = x(${P} - 2x)$. ${demandeAire ? "Quelle est l'aire maximale (en m²) ?" : "Pour quelle largeur $x$ l'aire est-elle maximale ?"}`,
+        mode: "nombre", prefixe: demandeAire ? "Aire max :" : "x =", suffixe: demandeAire ? "m²" : "m", attendu: demandeAire ? A : x0,
+        erreurs: demandeAire ? [{ valeur: x0, message: "Ça, c'est la largeur optimale ; on demande l'aire." }] : [{ valeur: A, message: "Ça, c'est l'aire maximale ; on demande la largeur." }],
+        aides: [`$A(x) = ${P}x - 2x^2$. Tableau de valeurs à la calculatrice pour $x$ entre $0$ et $${P / 2}$.`, `$A$ s'annule en $x = 0$ et en $x = ${P / 2}$ ; par symétrie de la parabole, le maximum est au milieu.`, `Le maximum est atteint en $x = ${nb(x0)}$.`],
+        solution: `$A(x) = x(${P} - 2x)$ s'annule en $0$ et en $${P / 2}$. Le sommet de la parabole est au milieu : $x = ${nb(x0)}$ m.\n\n$A(${nb(x0)}) = ${nb(x0)} \\times ${nb(P - 2 * x0)} = ${nb(A)}$ m². L'aire maximale est $${nb(A)}$ m², pour un enclos de $${nb(x0)}$ m sur $${nb(P - 2 * x0)}$ m.`
+      };
+    }
+    const c = P / 4, A = c * c;
+    return {
+      enonce: `Un enclos rectangulaire a un périmètre de $${P}$ m. On note $x$ sa largeur ; sa longueur vaut $${P / 2} - x$ et son aire $A(x) = x(${P / 2} - x)$. ${demandeAire ? "Quelle est l'aire maximale (en m²) ?" : "Pour quelle largeur $x$ l'aire est-elle maximale ?"}`,
+      mode: "nombre", prefixe: demandeAire ? "Aire max :" : "x =", suffixe: demandeAire ? "m²" : "m", attendu: demandeAire ? A : c,
+      erreurs: demandeAire ? [{ valeur: c, message: "Ça, c'est la largeur optimale ; on demande l'aire." }] : [{ valeur: A, message: "Ça, c'est l'aire maximale ; on demande la largeur." }],
+      aides: [`$A(x)$ s'annule en $x = 0$ et en $x = ${P / 2}$.`, "La courbe est une parabole « tournée vers le bas » : son maximum est au milieu des deux zéros.", `Le maximum est atteint en $x = ${nb(c)}$ : l'enclos est alors un carré.`],
+      solution: `Le maximum est au milieu de $0$ et $${P / 2}$ : $x = ${nb(c)}$ m. L'enclos est un **carré** de côté $${nb(c)}$ m, d'aire $${nb(c)}^2 = ${nb(A)}$ m².`
+    };
+  };
+
+  GEN["vx-python"] = function () {
+    const P = 4 * rand(2, 6), b = P / 2;
+    const pas = pick([1, 0.5]);
+    return {
+      enonce: "On cherche le maximum de $A(x) = x(" + b + " - x)$ sur $[0\\,;" + b + "]$ par **balayage** :\n\n```python\ndef balayage(pas):\n    x = 0\n    meilleur_x = 0\n    meilleur_A = 0\n    while x <= " + b + ":\n        A = x * (" + b + " - x)\n        if A > meilleur_A:\n            meilleur_x = x\n            meilleur_A = A\n        x = x + pas\n    return meilleur_x\n```\n\n" + `Que renvoie $\\texttt{balayage(${pas === 1 ? "1" : "0.5"})}$ ?`,
+      mode: "nombre", prefixe: "Résultat :", attendu: b / 2,
+      erreurs: [{ valeur: (b / 2) * (b / 2), message: "La fonction renvoie $\\texttt{meilleur\\_x}$, l'abscisse du maximum, pas l'aire." }],
+      aides: ["Le programme calcule $A(x)$ pour $x = 0$, puis $x = 0 + \\text{pas}$, etc.", "Il garde en mémoire le $x$ qui donne la plus grande aire rencontrée.", `$A$ est maximale au milieu de $0$ et $${b}$.`],
+      solution: `Les valeurs de $A$ augmentent jusqu'à $x = ${nb(b / 2)}$ (où $A = ${nb((b / 2) ** 2)}$), puis diminuent. Le test $\\texttt{A > meilleur\\_A}$ n'est plus vrai ensuite : la fonction renvoie $${nb(b / 2)}$.`
+    };
+  };
+
+
   /* Séries « flash » d'un thème : mélange de ses générateurs */
   const THEMES = {
     "am-flash-cn": ["am-comparer", "am-fractions", "am-puissances", "am-ecritures", "am-ordre-grandeur", "am-coherence", "auto-conversions"],
@@ -4166,7 +4238,7 @@
 
 
   /* Une « erreur connue » ne doit jamais coïncider avec la bonne réponse (à la tolérance près) */
-  Object.keys(GEN).filter((k) => /^(ld|am|cd|ar|cl|fa|ve|st)-/.test(k)).forEach((k) => {
+  Object.keys(GEN).filter((k) => /^(ld|am|cd|ar|cl|fa|ve|st|vx)-/.test(k)).forEach((k) => {
     const g = GEN[k];
     GEN[k] = (i) => { const q = g(i); if (q.erreurs) q.erreurs = q.erreurs.filter((e) => Math.abs(e.valeur - q.attendu) >= (q.tolerance || 1e-9)); return q; };
   });
