@@ -91,6 +91,13 @@ window.CATALOGUE = {
           titre: "Vecteurs 2 : colinéarité et déterminant",
           statut: "disponible",
           drive: ""
+        },
+        {
+          id: "seconde-droites",
+          numero: 12,
+          titre: "Droites du plan",
+          statut: "disponible",
+          drive: ""
         }
       ]
     },

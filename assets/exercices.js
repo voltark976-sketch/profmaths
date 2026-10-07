@@ -4430,6 +4430,109 @@
   };
 
 
+  /* ---------- Seconde, chapitre 12 : droites du plan (préfixe dr-) ---------- */
+  // « ax + by + c = 0 » proprement écrit
+  function cartTex(a, b, c) {
+    let s = "";
+    [[a, "x"], [b, "y"], [c, ""]].forEach(([k, v]) => {
+      if (k === 0) return;
+      const abs = Math.abs(k), coef = v && abs === 1 ? "" : `${abs}`;
+      s += s === "" ? `${k < 0 ? "-" : ""}${coef}${v}` : ` ${k < 0 ? "-" : "+"} ${coef}${v}`;
+    });
+    return `${s || "0"} = 0`;
+  }
+  const reduiteTex = (m, p) => `y = ${poly([m, p]).replace(/^0$/, "0")}`.replace("y = 0x", "y = ");
+  const fracTex = (n, d) => frac(n, d);
+
+  GEN["dr-vecteur-directeur"] = function () {
+    const a = randNZ(-6, 6), b = randNZ(-6, 6), c = rand(-9, 9);
+    const faux = [[a, b], [b, a], [a, -b], [-a, -b], [2 * a, b]].filter((w) => det(w, [-b, a]) !== 0).slice(0, 3);
+    const ch = melangeChoix(`$\\vec{u}${col(-b, a)}$`, faux.map((w) => `$\\vec{u}${col(...w)}$`));
+    return {
+      enonce: `Quel vecteur est un vecteur directeur de la droite $d$ d'équation $${cartTex(a, b, c)}$ ?`,
+      mode: "choix", choix: ch.choix, attendu: ch.attendu,
+      aides: ["Une droite d'équation $ax + by + c = 0$ a pour vecteur directeur $\\vec{u}\\begin{pmatrix} -b \\\\ a \\end{pmatrix}$.", `Ici $a = ${a}$ et $b = ${b}$.`, `Donc $-b = ${-b}$ et $a = ${a}$.`],
+      solution: `$a = ${a}$, $b = ${b}$ : un vecteur directeur est $\\vec{u}${col(-b, a)}$. Tout vecteur colinéaire à celui-ci (et non nul) convient aussi.`
+    };
+  };
+
+  GEN["dr-cartesienne"] = function () {
+    const A = [rand(-5, 5), rand(-5, 5)], u = [randNZ(-5, 5), randNZ(-5, 5)];
+    const a = u[1], b = -u[0], c = -(a * A[0] + b * A[1]);
+    const bonne = cartTex(a, b, c);
+    const memeDroite = (t) => t[0] * b - t[1] * a === 0 && t[0] * c - t[2] * a === 0 && t[1] * c - t[2] * b === 0;
+    const faux = [[u[0], u[1], -(u[0] * A[0] + u[1] * A[1])], [a, b, -c], [-b, a, b * A[0] - a * A[1]], [a, b, c + 1]].filter((t) => !memeDroite(t)).slice(0, 3).map((t) => cartTex(...t));
+    const ch = melangeChoix(`$${bonne}$`, faux.map((f) => `$${f}$`));
+    return {
+      enonce: `Quelle est une équation cartésienne de la droite passant par $A(${A[0]}\\,;${A[1]})$ et de vecteur directeur $\\vec{u}${col(...u)}$ ?`,
+      mode: "choix", choix: ch.choix, attendu: ch.attendu,
+      aides: ["$M(x\\,;y)$ est sur la droite si et seulement si $\\overrightarrow{AM}$ et $\\vec{u}$ sont colinéaires : $\\det(\\overrightarrow{AM}, \\vec{u}) = 0$.", `$\\overrightarrow{AM}\\begin{pmatrix} x ${sg(-A[0])} \\\\ y ${sg(-A[1])} \\end{pmatrix}$.`, `$\\det = (x ${sg(-A[0])}) \\times ${par(u[1])} - (y ${sg(-A[1])}) \\times ${par(u[0])}$. Développe.`],
+      solution: `$\\det(\\overrightarrow{AM}, \\vec{u}) = (x ${sg(-A[0])}) \\times ${par(u[1])} - (y ${sg(-A[1])}) \\times ${par(u[0])} = 0$, soit $${bonne}$.\n\nVérification : $A$ vérifie l'équation, et un vecteur directeur est $(-b\\,;a) = (${u[0]}\\,;${u[1]})$.`
+    };
+  };
+
+  GEN["dr-reduite-2pts"] = function () {
+    let A, B, m, p;
+    do { m = pick([-3, -2, -1, -0.5, 0.5, 1, 2, 3, 4]); p = rand(-6, 6); const xa = rand(-4, 2), xb = xa + pick([2, 4]); A = [xa, m * xa + p]; B = [xb, m * xb + p]; } while (!Number.isInteger(A[1]) || !Number.isInteger(B[1]));
+    const q = Math.random() < 0.5;
+    return {
+      enonce: `La droite $(AB)$ passe par $A(${A[0]}\\,;${A[1]})$ et $B(${B[0]}\\,;${B[1]})$. Son équation réduite est $y = mx + p$. Que vaut $${q ? "m" : "p"}$ ?`,
+      mode: "nombre", prefixe: `${q ? "m" : "p"} =`, attendu: q ? m : p,
+      erreurs: q ? [{ valeur: 1 / m, message: "Pente $= \\dfrac{y_B - y_A}{x_B - x_A}$ : les $y$ en haut." }, { valeur: -m, message: "Garde le même ordre en haut et en bas : $y_B - y_A$ et $x_B - x_A$." }] : [{ valeur: m, message: "Ça, c'est la pente $m$ ; on demande l'ordonnée à l'origine $p$." }],
+      aides: ["La pente est $m = \\dfrac{y_B - y_A}{x_B - x_A}$.", `$m = \\dfrac{${B[1]} - ${par(A[1])}}{${B[0]} - ${par(A[0])}} = ${nb(m)}$.`, `Puis $p$ : $${A[1]} = ${nb(m)} \\times ${par(A[0])} + p$.`],
+      solution: `$m = \\dfrac{${B[1] - A[1]}}{${B[0] - A[0]}} = ${nb(m)}$. Puis $${A[1]} = ${nb(m)} \\times ${par(A[0])} + p$, donc $p = ${p}$.\n\n$(AB) : y = ${poly([m, p]).replace(/(\d)\.(\d)/g, "$1{,}$2")}$.`
+    };
+  };
+
+  GEN["dr-reduite"] = function () {
+    // ax + by + c = 0 avec b ≠ 0 → y = (−a/b)x − c/b, coefficients « jolis »
+    let a, b, c;
+    do { b = randNZ(-4, 4); a = b * randNZ(-3, 3) * pick([1, 1, 0.5]); c = b * rand(-5, 5); } while (!Number.isInteger(a) || a === 0);
+    const m = -a / b, p = -c / b;
+    const bonne = `y = ${poly([m, p]).replace(/(\d)\.(\d)/g, "$1{,}$2")}`;
+    const faux = [`y = ${poly([a / b, -p]).replace(/(\d)\.(\d)/g, "$1{,}$2")}`, `y = ${poly([-a, -c]).replace(/(\d)\.(\d)/g, "$1{,}$2")}`, `y = ${poly([m, -p]).replace(/(\d)\.(\d)/g, "$1{,}$2")}`];
+    const ch = melangeChoix(`$${bonne}$`, faux.map((f) => `$${f}$`));
+    return {
+      enonce: `Quelle est l'équation réduite de la droite d'équation cartésienne $${cartTex(a, b, c)}$ ?`,
+      mode: "choix", choix: ch.choix, attendu: ch.attendu,
+      aides: ["On isole $y$ : on laisse le terme en $y$ seul d'un côté.", `$${b === 1 ? "" : b === -1 ? "-" : b}y = ${poly([-a, -c])}$.`, `Divise par $${b}$.`],
+      solution: `$${cartTex(a, b, c)} \\iff ${b === 1 ? "" : b === -1 ? "-" : b}y = ${poly([-a, -c])} \\iff ${bonne}$.`
+    };
+  };
+
+  GEN["dr-position"] = function () {
+    const m1 = randNZ(-4, 4), p1 = rand(-8, 8), para = Math.random() < 0.35;
+    let m2, p2, x0;
+    if (para) { m2 = m1; do { p2 = rand(-8, 8); } while (p2 === p1); }
+    else { do { m2 = randNZ(-4, 4); } while (m2 === m1); x0 = rand(-5, 5); p2 = m1 * x0 + p1 - m2 * x0; }
+    if (para || Math.random() < 0.4) {
+      return {
+        enonce: `Les droites $d_1 : ${reduiteTex(m1, p1)}$ et $d_2 : ${reduiteTex(m2, p2)}$ sont-elles parallèles ou sécantes ?`,
+        mode: "choix", choix: ["Parallèles", "Sécantes"], attendu: para ? 0 : 1,
+        aides: ["Deux droites d'équations réduites sont parallèles si et seulement si elles ont la **même pente**.", `Pentes : $${m1}$ et $${m2}$.`, "Si les pentes sont différentes, les droites se coupent en un point."],
+        solution: para ? `Même pente $${m1}$ (et ordonnées à l'origine différentes) : les droites sont **parallèles** (strictement).` : `Pentes différentes ($${m1} \\neq ${m2}$) : les droites sont **sécantes**.`
+      };
+    }
+    return {
+      enonce: `Les droites $d_1 : ${reduiteTex(m1, p1)}$ et $d_2 : ${reduiteTex(m2, p2)}$ sont sécantes. Calcule l'abscisse de leur point d'intersection.`,
+      mode: "nombre", prefixe: "x =", attendu: x0,
+      aides: ["Au point d'intersection, les deux $y$ sont égaux.", `Résous $${poly([m1, p1])} = ${poly([m2, p2])}$.`, `$${poly([m1 - m2, 0])} = ${p2 - p1}$.`],
+      solution: `$${poly([m1, p1])} = ${poly([m2, p2])} \\iff ${poly([m1 - m2, 0])} = ${p2 - p1} \\iff x = ${x0}$.\n\nPuis $y = ${m1} \\times ${par(x0)} ${sg(p1)} = ${m1 * x0 + p1}$ : le point d'intersection est $(${x0}\\,;${m1 * x0 + p1})$.`
+    };
+  };
+
+  GEN["dr-python"] = function () {
+    const m = randNZ(-4, 4), p = rand(-5, 5), xa = rand(-4, 1), xb = xa + rand(1, 4);
+    const A = [xa, m * xa + p], B = [xb, m * xb + p], q = Math.random() < 0.5;
+    return {
+      enonce: "On considère la fonction Python :\n\n```python\ndef droite(xA, yA, xB, yB):\n    m = (yB - yA) / (xB - xA)\n    p = yA - m * xA\n    return m, p\n```\n\n" + `Que renvoie $\\texttt{droite(${A.join(", ")}, ${B.join(", ")})}$ ? Donne la ${q ? "première" : "seconde"} valeur.`,
+      mode: "nombre", prefixe: "Réponse :", attendu: q ? m : p,
+      aides: ["La fonction calcule la pente $m$, puis l'ordonnée à l'origine $p$.", `$m = \\dfrac{${B[1]} - ${par(A[1])}}{${B[0]} - ${par(A[0])}}$.`, `$p = y_A - m \\times x_A$.`],
+      solution: `$m = \\dfrac{${B[1] - A[1]}}{${B[0] - A[0]}} = ${m}$ et $p = ${A[1]} - ${par(m)} \\times ${par(A[0])} = ${p}$. La fonction renvoie $(${m}\\,;${p})$ : la droite $(AB)$ a pour équation $${reduiteTex(m, p)}$.`
+    };
+  };
+
+
   /* Séries « flash » d'un thème : mélange de ses générateurs */
   const THEMES = {
     "am-flash-cn": ["am-comparer", "am-fractions", "am-puissances", "am-ecritures", "am-ordre-grandeur", "am-coherence", "auto-conversions"],
@@ -4446,7 +4549,7 @@
 
 
   /* Une « erreur connue » ne doit jamais coïncider avec la bonne réponse (à la tolérance près) */
-  Object.keys(GEN).filter((k) => /^(ld|am|cd|ar|cl|fa|ve|st|vx|tc|co)-/.test(k)).forEach((k) => {
+  Object.keys(GEN).filter((k) => /^(ld|am|cd|ar|cl|fa|ve|st|vx|tc|co|dr)-/.test(k)).forEach((k) => {
     const g = GEN[k];
     GEN[k] = (i) => { const q = g(i); if (q.erreurs) q.erreurs = q.erreurs.filter((e) => Math.abs(e.valeur - q.attendu) >= (q.tolerance || 1e-9)); return q; };
   });
