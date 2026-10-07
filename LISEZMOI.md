@@ -18,6 +18,7 @@ Site statique : aucune base de données, aucun compte élève. Ouvrir `index.htm
 - `data/seconde/colinearite.js` : chapitre 11 de Seconde (colinéarité, déterminant, alignement). Générateurs `co-`.
 - `data/seconde/droites.js` : chapitre 12 de Seconde (vecteur directeur, équations cartésienne et réduite, intersection). Générateurs `dr-`.
 - `data/seconde/fonctions-reference.js` : chapitre 13 de Seconde (inverse, racine carrée, cube, √2 irrationnel). Générateurs `fr-`.
+- `data/seconde/signes.js` : chapitre 14 de Seconde (tableaux de signes, inéquations et équations quotients). Générateurs `sg-`.
 - `data/seconde/automatismes.js` : automatismes de Seconde (10 fiches, séries flash, test).
 - `data/automatismes/*.js` : partie Automatismes, un fichier par thème officiel de l'épreuve anticipée (calcul numérique, calcul algébrique, proportions, évolutions, fonctions, statistiques, probabilités). Les générateurs d'exercices correspondants commencent par `am-` dans `assets/exercices.js`.
 - `data/premiere/suites.js` et `data/premiere/second-degre.js` : chapitres 1 et 2 de Première spécialité.

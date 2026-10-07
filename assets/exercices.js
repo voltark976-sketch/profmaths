@@ -4603,6 +4603,95 @@
   };
 
 
+  /* ---------- Seconde, chapitre 14 : signes d'expressions et équations quotients (préfixe sg-) ---------- */
+  // Deux facteurs affines x − r1 et x − r2 (r1 < r2), éventuellement multipliés par un coefficient
+  function deuxRacines() { let a, b; do { a = rand(-6, 6); b = rand(-6, 6); } while (a === b); return a < b ? [a, b] : [b, a]; }
+  const fx1 = (r) => (r === 0 ? "x" : `x ${r > 0 ? "-" : "+"} ${Math.abs(r)}`);
+
+  GEN["sg-tableau"] = function () {
+    const [r1, r2] = deuxRacines(), quot = Math.random() < 0.4, zone = rand(0, 2);
+    const s = [1, -1, 1][zone]; // signe de (x − r1)(x − r2) : + − +
+    const ordre = Math.random() < 0.5; // facteur en r1 au numérateur ou non
+    const expr = quot ? `\\dfrac{${fx1(ordre ? r1 : r2)}}{${fx1(ordre ? r2 : r1)}}` : `(${fx1(r1)})(${fx1(r2)})`;
+    const zt = [`x < ${r1}`, `${r1} < x < ${r2}`, `x > ${r2}`][zone];
+    return {
+      enonce: `Dans le tableau de signes de $${expr}$, quel est le signe ${zone === 1 ? "entre" : zone === 0 ? "avant" : "après"} les valeurs remarquables, c'est-à-dire pour $${zt}$ ?`,
+      mode: "choix", choix: ["$+$", "$-$"], attendu: s > 0 ? 0 : 1,
+      aides: [`Les facteurs s'annulent en $${r1}$ et en $${r2}$.`, "$x - a$ est négatif avant $a$ et positif après.", quot ? "Pour un quotient, la règle des signes est la même que pour un produit." : "Règle des signes : deux facteurs de même signe donnent $+$, de signes contraires donnent $-$."],
+      solution: `Pour $${zt}$ : $${fx1(r1)}$ est ${zone === 0 ? "négatif" : "positif"} et $${fx1(r2)}$ est ${zone === 2 ? "positif" : "négatif"}. ${s > 0 ? "Même signe" : "Signes contraires"} : le ${quot ? "quotient" : "produit"} est **${s > 0 ? "positif" : "négatif"}**.` + (quot ? `\n\nAttention : en $${ordre ? r2 : r1}$, le dénominateur s'annule : **valeur interdite** (double barre dans le tableau).` : "")
+    };
+  };
+
+  GEN["sg-quotient"] = function () {
+    const [r1, r2] = deuxRacines(), op = pick(OPS), numR = Math.random() < 0.5 ? r1 : r2, denR = numR === r1 ? r2 : r1;
+    const large = op === "\\geqslant" || op === "\\leqslant", veutPos = op === ">" || op === "\\geqslant";
+    // le quotient est positif à l'extérieur de [r1 ; r2], négatif à l'intérieur
+    const cr = (r) => (r === numR && large ? "[" : "]"), cl = (r) => (r === numR && large ? "]" : "[");
+    const ext = `]-\\infty\\,;${r1}${cl(r1)} \\cup ${cr(r2)}${r2}\\,;+\\infty[`;
+    const int = `${cr(r1)}${r1}\\,;${r2}${cl(r2)}`;
+    const bonne = veutPos ? ext : int;
+    const faux = [veutPos ? int : ext, veutPos ? `]-\\infty\\,;${r1}] \\cup [${r2}\\,;+\\infty[` : `[${r1}\\,;${r2}]`, veutPos ? `]${r2}\\,;+\\infty[` : `]-\\infty\\,;${r2}[`].filter((f) => f !== bonne);
+    const ch = melangeChoix(`$${bonne}$`, faux.map((f) => `$${f}$`));
+    return {
+      enonce: `Résous l'inéquation $\\dfrac{${fx1(numR)}}{${fx1(denR)}} ${op} 0$.`,
+      mode: "choix", choix: ch.choix, attendu: ch.attendu,
+      aides: [`Valeur interdite : $${denR}$ (le dénominateur s'annule). Le numérateur s'annule en $${numR}$.`, `Dresse le tableau de signes : le quotient est positif pour $x < ${r1}$ et $x > ${r2}$, négatif entre $${r1}$ et $${r2}$.`, `La valeur interdite $${denR}$ est **toujours exclue**${large ? `, mais $${numR}$ est inclus car l'inégalité est large` : ""}.`],
+      solution: `Le quotient s'annule en $${numR}$ et n'existe pas en $${denR}$. Il est ${veutPos ? "positif" : "négatif"} ${veutPos ? `pour $x < ${r1}$ ou $x > ${r2}$` : `entre $${r1}$ et $${r2}$`}.\n\n$S = ${bonne}$ (crochet ouvert en $${denR}$, valeur interdite).`
+    };
+  };
+
+  GEN["sg-eq-quotient"] = function () {
+    // (ax + b)/(x + c) = k, solution unique entière différente de la valeur interdite
+    let a, b, c, k, x0;
+    do { a = randNZ(-4, 4); c = rand(-6, 6); k = randNZ(-4, 4); x0 = rand(-6, 6); b = k * (x0 + c) - a * x0; } while (a === k || x0 === -c || Math.abs(b) > 20);
+    const num = poly([a, b]), den = poly([1, c]);
+    if (Math.random() < 0.35) {
+      // A(x)/B(x) = 0
+      const r = rand(-6, 6), interdite = Math.random() < 0.3 ? r : rand(-6, 6);
+      const sol = r === interdite ? [] : [r];
+      return {
+        enonce: `Résous l'équation $\\dfrac{${fx1(r)}}{${fx1(interdite)}} = 0$. (Écris « aucune » s'il n'y a pas de solution.)`,
+        mode: "ensemble", prefixe: "Solution(s) :", attendu: sol,
+        aides: ["Un quotient est nul si et seulement si son **numérateur** est nul **et** son dénominateur ne l'est pas.", `Valeur interdite : $${interdite}$.`, `Le numérateur s'annule en $${r}$.`],
+        solution: r === interdite ? `Le numérateur s'annule en $${r}$, mais c'est aussi la valeur interdite. **Aucune** solution.` : `Le numérateur s'annule en $${r}$, qui n'est pas la valeur interdite ($${interdite}$). Solution : $${r}$.`
+      };
+    }
+    return {
+      enonce: `Résous l'équation $\\dfrac{${num}}{${den}} = ${k}$ (pour $x \\neq ${-c}$).`,
+      mode: "nombre", prefixe: "x =", attendu: x0,
+      aides: [`Pour $x \\neq ${-c}$, on multiplie les deux membres par $${den}$ : $${num} = ${k}(${den})$.`, `Développe : $${num} = ${poly([k, k * c])}$.`, "Résous cette équation du premier degré, puis vérifie que la solution n'est pas la valeur interdite."],
+      solution: `$\\dfrac{${num}}{${den}} = ${k} \\iff ${num} = ${poly([k, k * c])}$ (avec $x \\neq ${-c}$) $\\iff ${poly([a - k, 0])} = ${k * c - b} \\iff x = ${x0}$.\n\n$${x0} \\neq ${-c}$ : la solution est $${x0}$.`
+    };
+  };
+
+  GEN["sg-difference"] = function () {
+    const t = rand(0, 2);
+    const T = [
+      { q: "Pour $x > 0$, compare $x + \\dfrac{1}{x}$ et $2$.", rep: "$x + \\dfrac{1}{x} \\geqslant 2$", faux: ["$x + \\dfrac{1}{x} \\leqslant 2$", "Ça dépend de $x$", "$x + \\dfrac{1}{x} = 2$"], diff: "$x + \\dfrac{1}{x} - 2 = \\dfrac{x^2 - 2x + 1}{x} = \\dfrac{(x - 1)^2}{x}$", sol: "Un carré est positif et $x > 0$ : la différence est positive ou nulle. Donc $x + \\dfrac{1}{x} \\geqslant 2$ (égalité pour $x = 1$)." },
+      { q: "Pour tout réel $x$, compare $(x + 3)^2$ et $x^2 + 9$.", rep: "Ça dépend du signe de $x$", faux: ["$(x + 3)^2 \\geqslant x^2 + 9$ toujours", "$(x + 3)^2 \\leqslant x^2 + 9$ toujours", "Ils sont toujours égaux"], diff: "$(x + 3)^2 - (x^2 + 9) = 6x$", sol: "$6x$ est positif si $x > 0$, négatif si $x < 0$, nul si $x = 0$ : la comparaison dépend du signe de $x$." },
+      { q: "Pour $x \\geqslant 0$, compare $\\sqrt{x}$ et $x$ quand $0 \\leqslant x \\leqslant 1$.", rep: "$x \\leqslant \\sqrt{x}$", faux: ["$x \\geqslant \\sqrt{x}$", "Ils sont égaux", "On ne peut pas comparer"], diff: "$\\sqrt{x} - x = \\sqrt{x}(1 - \\sqrt{x})$", sol: "Pour $0 \\leqslant x \\leqslant 1$, $\\sqrt{x} \\geqslant 0$ et $1 - \\sqrt{x} \\geqslant 0$ : la différence est positive, donc $x \\leqslant \\sqrt{x}$ (par exemple $0{,}25 < 0{,}5$)." }
+    ][t];
+    const ch = melangeChoix(T.rep, T.faux);
+    return {
+      enonce: T.q,
+      mode: "choix", choix: ch.choix, attendu: ch.attendu,
+      aides: ["Pour comparer $A$ et $B$, on étudie le **signe de la différence** $A - B$.", `Ici : ${T.diff}.`, "Étudie le signe de cette expression."],
+      solution: `${T.diff}.\n\n${T.sol}`
+    };
+  };
+
+  GEN["sg-python"] = function () {
+    const a = randNZ(-4, 4), b = randNZ(-6, 6), c = randNZ(-3, 3), d = randNZ(-6, 6), x = rand(-5, 5);
+    const v = (a * x + b) * (c * x + d);
+    return {
+      enonce: "On considère le programme Python :\n\n```python\ndef signe(v):\n    if v > 0:\n        return \"+\"\n    elif v < 0:\n        return \"-\"\n    else:\n        return \"0\"\n\nx = " + x + "\nprint(signe((" + a + " * x " + (b < 0 ? "- " + -b : "+ " + b) + ") * (" + c + " * x " + (d < 0 ? "- " + -d : "+ " + d) + ")))\n```\n\nQu'affiche ce programme ?",
+      mode: "choix", choix: ["$\\texttt{+}$", "$\\texttt{-}$", "$\\texttt{0}$"], attendu: v > 0 ? 0 : v < 0 ? 1 : 2,
+      aides: [`Calcule chaque facteur pour $x = ${x}$.`, `$${a} \\times ${par(x)} + ${par(b)} = ${a * x + b}$ et $${c} \\times ${par(x)} + ${par(d)} = ${c * x + d}$.`, "Applique la règle des signes au produit."],
+      solution: `$(${a * x + b}) \\times (${c * x + d}) = ${v}$ : le programme affiche $\\texttt{${v > 0 ? "+" : v < 0 ? "-" : "0"}}$.`
+    };
+  };
+
+
   /* Séries « flash » d'un thème : mélange de ses générateurs */
   const THEMES = {
     "am-flash-cn": ["am-comparer", "am-fractions", "am-puissances", "am-ecritures", "am-ordre-grandeur", "am-coherence", "auto-conversions"],
@@ -4619,7 +4708,7 @@
 
 
   /* Une « erreur connue » ne doit jamais coïncider avec la bonne réponse (à la tolérance près) */
-  Object.keys(GEN).filter((k) => /^(ld|am|cd|ar|cl|fa|ve|st|vx|tc|co|dr|fr)-/.test(k)).forEach((k) => {
+  Object.keys(GEN).filter((k) => /^(ld|am|cd|ar|cl|fa|ve|st|vx|tc|co|dr|fr|sg)-/.test(k)).forEach((k) => {
     const g = GEN[k];
     GEN[k] = (i) => { const q = g(i); if (q.erreurs) q.erreurs = q.erreurs.filter((e) => Math.abs(e.valeur - q.attendu) >= (q.tolerance || 1e-9)); return q; };
   });

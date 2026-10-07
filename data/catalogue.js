@@ -105,6 +105,13 @@ window.CATALOGUE = {
           titre: "Fonctions de référence : inverse, racine carrée, cube",
           statut: "disponible",
           drive: ""
+        },
+        {
+          id: "seconde-signes",
+          numero: 14,
+          titre: "Signes d'expressions et équations quotients",
+          statut: "disponible",
+          drive: ""
         }
       ]
     },
