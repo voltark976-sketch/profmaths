@@ -432,15 +432,47 @@ a.chap:hover .go { transform: translateX(3px); }
 .pied { align-items: center; }
 .pied::before { content: "π ProfMaths"; font: 800 1rem var(--f-titre); color: var(--encre); margin-right: auto; }
 
-/* Accès direct par niveau : seulement sur grand écran (le téléphone garde la liste) */
-.acces-niv { display: none; }
+/* Accueil : choix du niveau, puis le jeu et les chaînes YouTube */
+.titre-bloc { margin: 30px 0 12px; font-size: 1.25rem; }
+.cartes-niv { display: grid; gap: 10px; }
+.carte-niv { display: flex; align-items: center; gap: 14px; padding: 16px; background: var(--surface); border: 1px solid color-mix(in srgb, var(--trait) 70%, transparent); border-left: 5px solid var(--ac); border-radius: 16px; box-shadow: var(--ombre); color: var(--encre); text-decoration: none; transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s; animation: monte 0.4s ease both; }
+.carte-niv:hover { transform: translateY(-2px); box-shadow: var(--ombre-haut); border-color: var(--ac); }
+.carte-niv .pastille-niv { width: 14px; height: 14px; }
+.carte-niv-t { display: grid; gap: 2px; flex: 1; min-width: 0; }
+.carte-niv strong { font: 800 1.15rem/1.2 var(--f-titre); color: var(--ac); }
+.carte-niv .accroche { font-size: 0.92rem; }
+.carte-niv .go { color: var(--ac); }
+.decouvrir { display: grid; gap: 12px; }
+.promo { display: flex; gap: 14px; align-items: flex-start; padding: 18px; border-radius: 18px; text-decoration: none; color: var(--encre); background: var(--surface); border: 1px solid color-mix(in srgb, var(--trait) 70%, transparent); box-shadow: var(--ombre); transition: transform 0.15s, box-shadow 0.15s; animation: monte 0.4s ease both; }
+.promo:hover { transform: translateY(-2px); box-shadow: var(--ombre-haut); }
+.promo-ico { flex: none; width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center; font-size: 1.3rem; color: #fff; background: linear-gradient(135deg, var(--hero-a), var(--hero-b)); }
+.promo-t { display: grid; gap: 4px; min-width: 0; }
+.promo-t strong { font: 800 1.2rem/1.2 var(--f-titre); }
+.promo-t > span:not(.eyebrow):not(.promo-btn) { font-size: 0.93rem; color: var(--doux); }
+.promo-btn { justify-self: start; margin-top: 6px; padding: 8px 14px; border-radius: 999px; font: 700 0.88rem/1 var(--f-texte); background: var(--lagon-pale); color: var(--lagon); }
+.promo-jeu { background: linear-gradient(135deg, var(--ylang-pale), var(--surface) 70%); border-color: color-mix(in srgb, var(--ylang) 35%, transparent); }
+.promo-jeu .promo-ico { background: linear-gradient(135deg, #e0a526, #c2501f); }
+.promo-jeu .eyebrow { color: var(--ylang); }
+.promo-jeu .promo-btn { background: var(--ylang); color: #fff; }
+.promo-yt .promo-ico { background: #e62117; }
+.promo-yt .eyebrow { color: #d1291f; }
+.promo-yt .promo-btn { background: #e62117; color: #fff; }
+.promo-monka .promo-ico { background: #8a9ba0; }
+.promo-monka .eyebrow { color: var(--doux); }
+/* Page d'un niveau */
+.niv-head { padding: 6px 0 4px; }
+.niv-head h1 { display: flex; align-items: center; gap: 12px; color: var(--ac); }
+.niv-head h1 .pastille-niv { width: 16px; height: 16px; }
+.niv-head .eyebrow { color: var(--ac); }
+.chapitres-niv { margin-top: 20px; }
 @media (min-width: 760px) {
-  .acces-niv { display: grid; grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr)); gap: 12px; margin-top: 22px; }
-  .acces-niv button { display: grid; grid-template-columns: auto 1fr; align-items: center; column-gap: 10px; row-gap: 2px; padding: 14px 16px; text-align: left; font: inherit; color: var(--encre); background: var(--surface); border: 1px solid color-mix(in srgb, var(--trait) 70%, transparent); border-top: 4px solid var(--ac); border-radius: 16px; box-shadow: var(--ombre); cursor: pointer; transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s; }
-  .acces-niv button:hover, .acces-niv button:focus-visible { transform: translateY(-2px); box-shadow: var(--ombre-haut); border-color: var(--ac); }
-  .acces-niv strong { color: var(--ac); font-size: 1rem; line-height: 1.2; }
-  .acces-niv .meta { grid-column: 2; font-size: 0.82rem; color: var(--doux); }
-  .niveau { scroll-margin-top: 80px; }
+  .cartes-niv { grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr)); gap: 12px; }
+  .carte-niv { flex-direction: column; align-items: stretch; gap: 8px; border-left-width: 1px; border-top: 5px solid var(--ac); padding: 16px; }
+  .carte-niv .carte-niv-t { gap: 4px; }
+  .carte-niv .go { align-self: flex-end; margin-top: auto; }
+  .decouvrir { grid-template-columns: 1.15fr 1fr 1fr; align-items: stretch; }
+  @media (min-width: 1000px) { .cartes-niv { grid-template-columns: repeat(5, minmax(0, 1fr)); } }
+  .chapitres-niv { grid-template-columns: repeat(auto-fill, minmax(22rem, 1fr)); gap: 12px; }
 }
 
 /* Apparition douce des cartes */

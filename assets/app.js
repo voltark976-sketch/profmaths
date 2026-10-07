@@ -133,9 +133,10 @@
     if (chap === "compte") pageCompte();
     else if (chap === "jeu") pageJeu();
     else if (chap && window.CHAPITRES && CHAPITRES[chap]) pageChapitre(chap, onglet || "cours");
+    else if (chap && CATALOGUE.niveaux.some((n) => "niveau-" + n.id === chap)) pageNiveau(CATALOGUE.niveaux.find((n) => "niveau-" + n.id === chap));
     else pageAccueil();
-    // Couleur du niveau (Seconde, Première...) pour habiller la page chapitre
-    const niv = CATALOGUE.niveaux.find((n) => n.chapitres.some((ch) => ch.id === chap));
+    // Couleur du niveau (Seconde, Première...) pour habiller la page niveau et la page chapitre
+    const niv = CATALOGUE.niveaux.find((n) => "niveau-" + n.id === chap || n.chapitres.some((ch) => ch.id === chap));
     if (niv) $app.dataset.niv = niv.id; else delete $app.dataset.niv;
   }
   window.addEventListener("hashchange", () => { route(); window.scrollTo(0, 0); });
@@ -158,42 +159,62 @@
     <circle class="d-point" cx="160" cy="180" r="6"/>
     <text x="34" y="214">π</text><text x="236" y="72" class="t2">x²</text><text x="252" y="214" class="t3">√2</text><text x="96" y="64" class="t3">Δ</text>
   </svg>`;
+  const YT_PROF = "https://www.youtube.com/@Profmaths-q1p";
+  const YT_MONKA = "https://www.youtube.com/@YMONKA";
+  const ACCROCHES = {
+    seconde: "Les bases solides du lycée",
+    automatismes: "Calcul et réflexes, pour l'épreuve anticipée",
+    premiere: "Suites, second degré et plus",
+    "terminale-spe": "Vers le bac et le supérieur",
+    terminale: "Option maths complémentaires"
+  };
+  const chapitresEnLigne = (n) => n.chapitres.filter((ch) => ch.statut === "disponible" && window.CHAPITRES && CHAPITRES[ch.id]).length;
+
   function pageAccueil() {
     document.title = "ProfMaths";
     const dispos = Object.keys(window.CHAPITRES || {});
     const nbSeries = dispos.reduce((s, k) => s + CHAPITRES[k].exercices.length, 0);
     const nbQcm = dispos.reduce((s, k) => s + CHAPITRES[k].qcm.length, 0);
-    let h = `<section class="hero"><div class="hero-in"><p class="eyebrow">Maths au lycée · Mayotte</p><h1>Une vidéo, un cours, des exercices. À ton rythme.</h1><p class="lead">Choisis ton niveau puis ton chapitre. Les chapitres suivent l'ordre des playlists de la chaîne.</p>
+    let h = `<section class="hero"><div class="hero-in"><p class="eyebrow">Maths au lycée · Mayotte</p><h1>Une vidéo, un cours, des exercices. À ton rythme.</h1><p class="lead">Choisis ton niveau : tous ses chapitres s'affichent, dans l'ordre des playlists de la chaîne.</p>
       <ul class="chiffres"><li><b>${dispos.length}</b> chapitres</li><li><b>${nbSeries}</b> séries d'exercices</li><li><b>${nbQcm}</b> questions de QCM</li></ul></div>${DECOR_HERO}</section>`;
-    // Accès direct par niveau (affiché sur grand écran) : tous les niveaux d'un coup d'œil
-    h += `<nav class="acces-niv" aria-label="Niveaux">`;
+    // Choix du niveau : chaque carte ouvre la page du niveau avec tous ses chapitres
+    h += `<h2 class="titre-bloc">Choisis ton niveau</h2><nav class="cartes-niv" aria-label="Niveaux">`;
     CATALOGUE.niveaux.forEach((n) => {
-      const nb = n.chapitres.filter((ch) => ch.statut === "disponible" && window.CHAPITRES && CHAPITRES[ch.id]).length;
-      h += `<button type="button" data-niv="${esc(n.id)}" data-cible="niv-${esc(n.id)}"><span class="pastille-niv" aria-hidden="true"></span><strong>${esc(n.nom)}</strong><span class="meta">${nb} chapitre${nb > 1 ? "s" : ""} en ligne</span></button>`;
+      const nb = chapitresEnLigne(n);
+      h += `<a class="carte-niv" href="#niveau-${esc(n.id)}" data-niv="${esc(n.id)}"><span class="pastille-niv" aria-hidden="true"></span><span class="carte-niv-t"><strong>${esc(n.nom)}</strong>${ACCROCHES[n.id] ? `<span class="accroche">${esc(ACCROCHES[n.id])}</span>` : ""}<span class="meta">${nb} chapitre${nb > 1 ? "s" : ""} en ligne</span></span><span class="go" aria-hidden="true">→</span></a>`;
     });
     h += `</nav>`;
+    // À découvrir : le jeu et les chaînes YouTube
+    h += `<h2 class="titre-bloc">À découvrir</h2><div class="decouvrir">
+      <a class="promo promo-jeu" href="#jeu"><span class="promo-ico" aria-hidden="true">🏛️</span><span class="promo-t"><span class="eyebrow">Le jeu · Seconde</span><strong>Les Salles</strong><span>Explore un temple grec et résous les exercices gravés sur les stèles pour ouvrir les portes. Se joue au clavier, sur ordinateur.</span><span class="promo-btn">Découvrir le jeu →</span></span></a>
+      <a class="promo promo-yt" href="${YT_PROF}?sub_confirmation=1" target="_blank" rel="noopener"><span class="promo-ico" aria-hidden="true">▶</span><span class="promo-t"><span class="eyebrow">Ma chaîne YouTube</span><strong>Profmaths</strong><span>Toutes les vidéos de cours et les corrections d'exercices de ce site. Abonne-toi pour ne rater aucune nouvelle vidéo !</span><span class="promo-btn">S'abonner à la chaîne</span></span></a>
+      <a class="promo promo-monka" href="${YT_MONKA}" target="_blank" rel="noopener"><span class="promo-ico" aria-hidden="true">▶</span><span class="promo-t"><span class="eyebrow">En complément</span><strong>Yvan Monka</strong><span>Une autre explication, pas à pas, de chaque notion du lycée. Pratique pour revoir une méthode autrement.</span><span class="promo-btn">Voir sa chaîne →</span></span></a>
+    </div>`;
     if (!Compte.eleve()) h += `<a class="invite" href="#compte"><strong>Crée ton compte</strong><span>pour retrouver tes points et tes étoiles sur n'importe quel téléphone ou ordinateur.</span></a>`;
-    h += `<div class="niveaux">`;
-    CATALOGUE.niveaux.forEach((n) => {
-      h += `<section class="niveau" id="niv-${esc(n.id)}" data-niv="${esc(n.id)}"><h2><span class="pastille-niv" aria-hidden="true"></span>${esc(n.nom)}</h2>${n.intro ? `<p class="muted niveau-intro">${esc(n.intro)}</p>` : ""}<ol class="chapitres">`;
-      n.chapitres.forEach((ch) => {
-        const dispo = ch.statut === "disponible" && window.CHAPITRES && CHAPITRES[ch.id];
-        const num = ch.code ? `<span class="num num-a">${esc(ch.code)}</span>` : ch.numero ? `<span class="num">${ch.numero}</span>` : `<span class="num num-a">A</span>`;
-        if (dispo) {
-          const b = bilanChapitre(ch.id);
-          const pct = Math.round((b.got / b.total) * 100);
-          h += `<li><a class="chap" href="#${ch.id}">${num}<span class="chap-t"><strong>${esc(ch.titre)}</strong><span class="meta">Cours · ${CHAPITRES[ch.id].exercices.length} séries d'exercices · QCM${b.qcm !== undefined ? ` · meilleur score ${b.qcm}/${CHAPITRES[ch.id].qcm.length}` : ""}</span><span class="barre"><span style="width:${pct}%"></span></span></span><span class="go" aria-hidden="true">→</span></a></li>`;
-        } else {
-          h += `<li><div class="chap chap-off">${num}<span class="chap-t"><strong>${esc(ch.titre)}</strong><span class="meta">En préparation${ch.drive ? ` · <a href="${ch.drive}" target="_blank" rel="noopener">documents sur le Drive</a>` : ""}</span></span></div></li>`;
-        }
-      });
-      h += `</ol></section>`;
-    });
-    h += `</div><footer class="pied"><a href="https://www.youtube.com/@Profmaths-q1p" target="_blank" rel="noopener">Chaîne YouTube</a><a href="https://drive.google.com/drive/folders/1mTeWgDGTv4hNYrD_ozxN9-cSDDGH_Oqn" target="_blank" rel="noopener">Cours et corrigés (Drive)</a></footer>`;
+    h += piedDePage();
     $app.innerHTML = h;
-    $app.querySelectorAll(".acces-niv button").forEach((b) => b.addEventListener("click", () => {
-      document.getElementById(b.dataset.cible).scrollIntoView({ behavior: "smooth", block: "start" });
-    }));
+  }
+  const piedDePage = () => `<footer class="pied"><a href="${YT_PROF}" target="_blank" rel="noopener">Chaîne YouTube</a><a href="https://drive.google.com/drive/folders/1mTeWgDGTv4hNYrD_ozxN9-cSDDGH_Oqn" target="_blank" rel="noopener">Cours et corrigés (Drive)</a></footer>`;
+
+  /* ---------- Page d'un niveau : tous ses chapitres ---------- */
+  function pageNiveau(n) {
+    document.title = `${n.nom} · ProfMaths`;
+    let h = `<a class="retour" href="#">← Accueil</a>
+      <header class="niv-head"><p class="eyebrow">Niveau</p><h1><span class="pastille-niv" aria-hidden="true"></span>${esc(n.nom)}</h1>${n.intro ? `<p class="lead">${esc(n.intro)}</p>` : `<p class="lead">Choisis ton chapitre. Ils sont rangés dans l'ordre de la playlist.</p>`}</header>
+      <ol class="chapitres chapitres-niv">`;
+    n.chapitres.forEach((ch) => {
+      const dispo = ch.statut === "disponible" && window.CHAPITRES && CHAPITRES[ch.id];
+      const num = ch.code ? `<span class="num num-a">${esc(ch.code)}</span>` : ch.numero ? `<span class="num">${ch.numero}</span>` : `<span class="num num-a">A</span>`;
+      if (dispo) {
+        const b = bilanChapitre(ch.id);
+        const pct = Math.round((b.got / b.total) * 100);
+        h += `<li><a class="chap" href="#${ch.id}">${num}<span class="chap-t"><strong>${esc(ch.titre)}</strong><span class="meta">Cours · ${CHAPITRES[ch.id].exercices.length} séries d'exercices · QCM${b.qcm !== undefined ? ` · meilleur score ${b.qcm}/${CHAPITRES[ch.id].qcm.length}` : ""}</span><span class="barre"><span style="width:${pct}%"></span></span></span><span class="go" aria-hidden="true">→</span></a></li>`;
+      } else {
+        h += `<li><div class="chap chap-off">${num}<span class="chap-t"><strong>${esc(ch.titre)}</strong><span class="meta">En préparation${ch.drive ? ` · <a href="${ch.drive}" target="_blank" rel="noopener">documents sur le Drive</a>` : ""}</span></span></div></li>`;
+      }
+    });
+    h += `</ol>` + piedDePage();
+    $app.innerHTML = h;
   }
 
   /* ---------- Page jeu : « Les Salles », dans le dossier les-salles/ ---------- */
@@ -308,7 +329,8 @@
     document.title = `${c.titre} · ProfMaths`;
     if (!ONGLETS.some((o) => o.id === onglet)) onglet = "cours";
     const b = bilanChapitre(id);
-    let h = `<a class="retour" href="#">← Tous les chapitres</a>
+    const nivChap = CATALOGUE.niveaux.find((n) => n.chapitres.some((ch) => ch.id === id));
+    let h = `<a class="retour" href="#${nivChap ? "niveau-" + esc(nivChap.id) : ""}">← ${nivChap ? esc(nivChap.nom) : "Accueil"} : tous les chapitres</a>
       <header class="chap-head">${c.numero ? `<span class="chap-filigrane" aria-hidden="true">${c.numero}</span>` : ""}<p class="eyebrow">${esc(c.niveau)} · ${c.numero ? `Chapitre ${c.numero}` : esc(c.periode || "Toute l'année")}</p><h1>${esc(c.titre)}</h1><p class="lead">${inline(c.accroche)}</p>
       <p class="score-chap">${etoiles(Math.round((b.got / b.total) * 5), 5)} <span>${b.got}/${b.total} étoiles d'exercices</span></p></header>
       <nav class="onglets" aria-label="Parties du chapitre">${ONGLETS.map((o) => `<a href="#${id}.${o.id}" ${o.id === onglet ? 'aria-current="page"' : ""}>${o.nom}</a>`).join("")}</nav>
