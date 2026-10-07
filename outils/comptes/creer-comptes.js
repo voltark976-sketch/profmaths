@@ -8,8 +8,16 @@
         Donne un nouveau mot de passe à un élève (sa progression est gardée).
     node outils/comptes/creer-comptes.js --prof identifiant
         Crée (ou réinitialise) le compte du professeur, qui voit la page « Suivi des élèves ».
+        Son mot de passe est écrit dans Documents\profmaths-comptes\compte-professeur.txt.
 
-  Option --classe "Seconde" (par défaut) : classe affichée sur le site et dans le classement.
+  Option --classe "Première spécialité" : classe affichée sur le site et dans le classement
+    (par défaut, devinée d'après le nom de la feuille : « 2xx » Seconde, « 1SPE » Première spécialité,
+    « Terminale SPE », « Terminale MATHS COMP »).
+  Option --feuilles "204,207" : ne lire que ces feuilles.
+    node outils/comptes/creer-comptes.js --desactiver-inconnus
+        Désactive les comptes élèves présents dans Firebase mais absents de comptes.json.
+    node outils/comptes/creer-comptes.js --resynchroniser
+        Renvoie à Firebase tous les comptes de comptes.json (mots de passe et classes de la liste).
   Option --essai : affiche les comptes qui seraient créés, sans rien créer.
 
   Les identifiants et mots de passe sont écrits dans Documents\profmaths-comptes (hors du dépôt public) :
@@ -83,14 +91,38 @@ function compteImport(c, mdp, claims) {
     salt: sel.toString("base64"), customAttributes: JSON.stringify(claims)
   };
 }
+const FIREBASE = process.platform === "win32" ? "firebase.cmd" : "firebase";
 function importer(comptes) {
   const tmp = path.join(os.tmpdir(), `profmaths-import-${Date.now()}.json`);
   fs.writeFileSync(tmp, JSON.stringify({ users: comptes }));
   try {
-    execFileSync(process.platform === "win32" ? "firebase.cmd" : "firebase", ["auth:import", tmp, "--project", PROJET,
-      "--hash-algo=STANDARD_SCRYPT", `--mem-cost=${SCRYPT.N}`, `--block-size=${SCRYPT.r}`, `--parallelization=${SCRYPT.p}`, `--dk-len=${SCRYPT.dkLen}`],
-    { stdio: "inherit", shell: process.platform === "win32" });
+    // Trois essais (réseau instable) ; renvoie true si l'envoi a réussi
+    for (let essai = 1; essai <= 3; essai++) {
+      try {
+        const sortie = execFileSync(FIREBASE, ["auth:import", tmp, "--project", PROJET,
+          "--hash-algo=STANDARD_SCRYPT", `--mem-cost=${SCRYPT.N}`, `--block-size=${SCRYPT.r}`, `--parallelization=${SCRYPT.p}`, `--dk-len=${SCRYPT.dkLen}`],
+        { stdio: "pipe", encoding: "utf8", shell: process.platform === "win32" });
+        if (/Imported successfully/.test(sortie) && !/problems/i.test(sortie)) return true;
+        console.warn(sortie);
+      } catch (e) { console.warn(`Envoi à Firebase échoué (essai ${essai}/3)`); }
+    }
+    return false;
   } finally { fs.rmSync(tmp, { force: true }); }
+}
+// Liste des comptes existants dans Firebase (sans les mots de passe)
+function comptesFirebase() {
+  const tmp = path.join(os.tmpdir(), `profmaths-export-${Date.now()}.json`);
+  try {
+    execFileSync(FIREBASE, ["auth:export", tmp, "--format=json", "--project", PROJET], { stdio: "ignore", shell: process.platform === "win32" });
+    return JSON.parse(fs.readFileSync(tmp, "utf8")).users || [];
+  } finally { fs.rmSync(tmp, { force: true }); }
+}
+// Classe affichée sur le site, d'après le nom de la feuille (ex. « 204 », « 1SPE G2 », « Terminale SPE »)
+function classeDeFeuille(nom) {
+  const n = norm(nom.replace(/\s+/g, ""));
+  if (/^term/.test(n) || /^t/.test(n)) return /comp/.test(n) ? "Terminale maths complémentaires" : "Terminale spécialité";
+  if (/^1|^prem/.test(n)) return "Première spécialité";
+  return "Seconde";
 }
 const claimsEleve = (c) => ({ eleve: true, prenom: c.prenom, nom: c.nom, classe: c.classe, groupe: c.groupe });
 
@@ -111,15 +143,20 @@ fs.mkdirSync(DOSSIER, { recursive: true });
 const reg = fs.existsSync(REGISTRE) ? JSON.parse(fs.readFileSync(REGISTRE, "utf8")) : { eleves: [], prof: null };
 const args = process.argv.slice(2), opt = (n) => { const i = args.indexOf(n); return i < 0 ? null : args.splice(i, 2)[1]; };
 const essai = args.includes("--essai") && args.splice(args.indexOf("--essai"), 1);
-const classe = opt("--classe") || "Seconde", reinit = opt("--nouveau-mdp"), prof = opt("--prof");
+const desactiver = args.includes("--desactiver-inconnus") && args.splice(args.indexOf("--desactiver-inconnus"), 1);
+const resync = args.includes("--resynchroniser") && args.splice(args.indexOf("--resynchroniser"), 1);
+const feuilles = (opt("--feuilles") || "").split(",").map((x) => x.trim()).filter(Boolean);
+const classe = opt("--classe"), reinit = opt("--nouveau-mdp"), prof = opt("--prof");
 const sauver = () => { fs.writeFileSync(REGISTRE, JSON.stringify(reg, null, 1)); ecrireListes(reg); };
 
 if (prof) {
   const mdp = motDePasse(5);
-  reg.prof = { identifiant: norm(prof.replace(/\s+/g, ".")) || "prof", uid: "prof-" + norm(prof) };
+  const idProf = prof.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9._-]/g, "") || "prof";
+  reg.prof = { identifiant: idProf, uid: "prof-" + norm(prof) };
   importer([compteImport(Object.assign({ prenom: "Professeur" }, reg.prof), mdp, { prof: true, prenom: "Professeur" })]);
   sauver();
-  console.log(`\nCompte professeur : identifiant ${reg.prof.identifiant}, mot de passe ${mdp} (à noter, il n'est enregistré nulle part).`);
+  fs.writeFileSync(path.join(DOSSIER, "compte-professeur.txt"), `Identifiant : ${reg.prof.identifiant}\r\nMot de passe : ${mdp}\r\n`);
+  console.log(`\nCompte professeur ${reg.prof.identifiant} : mot de passe dans ${path.join(DOSSIER, "compte-professeur.txt")}`);
 } else if (reinit) {
   const c = reg.eleves.find((x) => x.identifiant === reinit);
   if (!c) { console.error("Identifiant inconnu : " + reinit); process.exit(1); }
@@ -129,29 +166,60 @@ if (prof) {
   console.log(`\n${c.prenom} ${c.nom} : nouveau mot de passe ${c.mdp}`);
 } else if (args[0]) {
   const pris = new Set(reg.eleves.map((c) => c.identifiant)), nouveaux = [];
+  const vus = new Map(reg.eleves.map((c) => [c.nom + "|" + c.prenom, c.groupe]));
   for (const [groupe, lignes] of Object.entries(lireXlsx(args[0]))) {
-    const tete = lignes[0] || [], col = (t) => tete.findIndex((x) => x && x.startsWith(t));
-    const cEleve = Math.max(0, col("Élève")), cSortie = col("Sortie");
+    if (feuilles.length && !feuilles.includes(groupe)) continue;
+    const cl = classe || classeDeFeuille(groupe);
+    const tete = lignes[0] || [], col = (t) => tete.findIndex((x) => x && x.trim().startsWith(t));
+    // Deux formats Pronote : « Élève » = « NOM Prénom », ou deux colonnes « Nom » et « Prénom »
+    const cEleve = col("Élève"), cNom = col("Nom"), cPrenom = col("Prénom"), cSortie = col("Sortie");
+    if (cEleve < 0 && (cNom < 0 || cPrenom < 0)) { console.log(`Feuille « ${groupe} » ignorée : pas de colonne Élève ni Nom/Prénom`); continue; }
     for (const l of lignes.slice(1)) {
-      const brut = l && l[cEleve] && l[cEleve].trim();
-      if (!brut) continue;
-      if (cSortie >= 0 && l[cSortie]) { console.log(`Ignoré (sorti) : ${brut}`); continue; }
-      const mots = brut.split(/\s+/), nom = mots.filter(majuscules).join(" "), prenom = mots.filter((w) => !majuscules(w)).join(" ") || nom;
-      if (reg.eleves.some((c) => c.groupe === groupe && c.nom === nom && c.prenom === prenom)) continue;
+      if (!l) continue;
+      let nom, prenom;
+      if (cEleve >= 0) {
+        const mots = String(l[cEleve] || "").trim().split(/\s+/).filter(Boolean);
+        nom = mots.filter(majuscules).join(" "); prenom = mots.filter((w) => !majuscules(w)).join(" ") || nom;
+      } else { nom = String(l[cNom] || "").trim().toUpperCase(); prenom = String(l[cPrenom] || "").trim(); }
+      if (!nom || !prenom) continue;
+      if (cSortie >= 0 && l[cSortie]) { console.log(`Ignoré (sorti) : ${nom} ${prenom}`); continue; }
+      const cle = nom + "|" + prenom;
+      if (vus.has(cle)) { if (vus.get(cle) !== groupe) console.log(`Déjà dans « ${vus.get(cle)} », ignoré dans « ${groupe} » : ${nom} ${prenom}`); continue; }
+      vus.set(cle, groupe);
       const base = (norm(prenom.split(/\s/)[0]) + "." + norm(nom.split(/\s/)[0])).slice(0, 27);
       let id = base, k = 2;
       while (pris.has(id)) id = base + k++;
       pris.add(id);
-      const c = { groupe, classe, nom, prenom, identifiant: id, uid: "eleve-" + id, mdp: motDePasse() };
-      nouveaux.push(c);
+      nouveaux.push({ groupe, classe: cl, nom, prenom, identifiant: id, uid: "eleve-" + id, mdp: motDePasse() });
     }
   }
   if (!nouveaux.length) { console.log("Aucun nouvel élève."); process.exit(0); }
-  if (essai) { nouveaux.forEach((c) => console.log(`${c.groupe}  ${c.identifiant.padEnd(28)} ${c.prenom} | ${c.nom}`)); console.log(`${nouveaux.length} comptes à créer (essai : rien n'est créé)`); process.exit(0); }
-  for (let i = 0; i < nouveaux.length; i += 500) importer(nouveaux.slice(i, i + 500).map((c) => compteImport(c, c.mdp, claimsEleve(c))));
-  reg.eleves.push(...nouveaux);
+  if (essai) { nouveaux.forEach((c) => console.log(`${c.groupe.padEnd(22)} ${c.classe.padEnd(32)} ${c.identifiant.padEnd(28)} ${c.prenom} | ${c.nom}`)); console.log(`${nouveaux.length} comptes à créer (essai : rien n'est créé)`); process.exit(0); }
+  // On ne garde que les comptes des envois réussis
+  const crees = [], rates = [];
+  for (let i = 0; i < nouveaux.length; i += 50) {
+    const lot = nouveaux.slice(i, i + 50);
+    (importer(lot.map((c) => compteImport(c, c.mdp, claimsEleve(c)))) ? crees : rates).push(...lot);
+  }
+  reg.eleves.push(...crees);
   sauver();
-  console.log(`\n${nouveaux.length} comptes créés. Identifiants dans ${DOSSIER}`);
+  console.log(`\n${crees.length} comptes créés. Identifiants dans ${DOSSIER}`);
+  if (rates.length) console.log(`${rates.length} comptes NON créés (relancer la même commande) : ${rates.map((c) => c.identifiant).join(", ")}`);
+} else if (resync) {
+  // Renvoie à Firebase tous les comptes du registre, avec leurs mots de passe et leur classe
+  let ok = 0;
+  for (let i = 0; i < reg.eleves.length; i += 50) {
+    const lot = reg.eleves.slice(i, i + 50);
+    if (importer(lot.map((c) => compteImport(c, c.mdp, claimsEleve(c))))) ok += lot.length;
+  }
+  console.log(`${ok}/${reg.eleves.length} comptes renvoyés à Firebase.`);
+} else if (desactiver) {
+  // Comptes élèves présents dans Firebase mais absents du registre : désactivés, sans accès au site
+  const connus = new Set(reg.eleves.map((c) => c.uid));
+  const inconnus = comptesFirebase().filter((u) => u.localId.startsWith("eleve-") && !connus.has(u.localId));
+  if (!inconnus.length) { console.log("Aucun compte élève inconnu."); process.exit(0); }
+  importer(inconnus.map((u) => ({ localId: u.localId, email: u.email, disabled: true, customAttributes: "{}" })));
+  console.log(`${inconnus.length} comptes désactivés : ${inconnus.map((u) => u.email.split("@")[0]).join(", ")}`);
 } else {
   console.log(fs.readFileSync(__filename, "utf8").split("*/")[0]);
 }

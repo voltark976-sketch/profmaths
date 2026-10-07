@@ -61,13 +61,13 @@ Sur l'ordinateur où `firebase login` a été fait, dans le dossier du site :
 ```
 node outils/comptes/creer-comptes.js "C:\chemin\Comptes classe.xlsx"
 ```
-Le fichier Excel (export Pronote) a une feuille par classe, nommée par le groupe (ex. `204`), et une colonne « Élève » au format « NOM Prénom ». Les élèves sortis et ceux qui ont déjà un compte sont ignorés : on peut relancer la commande avec un fichier complété.
-`--classe "Première spécialité"` change la classe affichée (Seconde par défaut), `--essai` montre ce qui serait créé sans rien créer.
+Le fichier Excel (export Pronote) a une feuille par classe ou groupe, nommée par exemple `204`, `1SPE G2`, `Terminale SPE` ou `Terminale MATHS COMP`, avec soit une colonne « Élève » (« NOM Prénom »), soit deux colonnes « Nom » et « Prénom ». La classe affichée sur le site est déduite du nom de la feuille. Les élèves sortis, ceux qui ont déjà un compte et ceux déjà présents dans une autre feuille sont ignorés : on peut relancer la commande avec un fichier complété.
+`--feuilles "204,207"` ne lit que ces feuilles, `--classe "Première spécialité"` impose la classe, `--essai` montre ce qui serait créé sans rien créer.
 
 Les identifiants arrivent dans `Documents\profmaths-comptes` : `identifiants.csv` (Excel) et `identifiants.html` (étiquettes à imprimer et découper). **Ces fichiers ne doivent jamais aller dans le dossier du site**, qui est public.
 
 - Mot de passe oublié : `node outils/comptes/creer-comptes.js --nouveau-mdp prenom.nom` (la progression est gardée).
-- Compte professeur : `node outils/comptes/creer-comptes.js --prof prof.maths` (crée ou réinitialise le compte et affiche son mot de passe).
+- Compte professeur : `node outils/comptes/creer-comptes.js --prof prof.maths` (crée ou réinitialise le compte ; mot de passe dans `Documentsprofmaths-comptesmpte-professeur.txt`).
 
 ### Suivi des devoirs
 Connecté avec le compte professeur, la page **Suivi des élèves** (`#suivi`, lien sur la page Mon compte) montre, par classe et par chapitre, les étoiles de chaque série, le score au QCM et la date du dernier essai. Le champ « Fait depuis le » ne compte que ce qui a été fait après la date donnée (le jour où le devoir a été donné, par exemple).
