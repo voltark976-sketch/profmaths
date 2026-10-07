@@ -40,6 +40,9 @@
     if (apres > avant) annoncerNiveau(avant, apres);
     return pts;
   }
+  const $annonce = document.createElement("div");
+  $annonce.className = "sr-only"; $annonce.setAttribute("role", "status"); $annonce.setAttribute("aria-live", "polite");
+  document.body.appendChild($annonce);
   function annoncerNiveau(avant, apres) {
     const nouveautes = [];
     for (let n = avant + 1; n <= apres; n++) nouveautes.push(...AV.recompenses(n));
@@ -47,9 +50,9 @@
     document.querySelectorAll(".toast-niv").forEach((t) => t.remove());
     const t = document.createElement("div");
     t.className = "toast-niv";
-    t.setAttribute("role", "status");
     t.innerHTML = `<span class="toast-av">${AV.dessin(monAvatar(apres), 48)}</span><span class="toast-t"><strong>Niveau ${apres} !</strong>${rangChange ? `<span>Nouveau rang : <b>${esc(AV.rang(apres))}</b></span>` : ""}${nouveautes.length ? `<span>Débloqué : ${nouveautes.map((r) => esc(r.nom)).join(", ")}</span>` : ""}<a href="#avatar">Voir mon avatar →</a></span><button type="button" class="toast-x" aria-label="Fermer">×</button>`;
     document.body.appendChild(t);
+    $annonce.textContent = `Niveau ${apres} !${rangChange ? ` Nouveau rang : ${AV.rang(apres)}.` : ""}${nouveautes.length ? ` Débloqué : ${nouveautes.map((r) => r.nom).join(", ")}.` : ""}`;
     const fermer = () => { t.classList.add("sort"); setTimeout(() => t.remove(), 300); };
     t.querySelector(".toast-x").addEventListener("click", fermer);
     t.querySelector("a").addEventListener("click", fermer);
@@ -58,7 +61,7 @@
   // Coefficient d'XP quand on rejoue : record battu = XP complets, sinon beaucoup moins
   const coefRejeu = (premiere, progres, parfait) => (premiere || progres ? 1 : parfait ? XP.dejaParfait : XP.rejeuSansProgres);
   const divise = (c) => `XP divisés par ${String(Math.round((1 / c) * 10) / 10).replace(".", ",")}`;
-  const texteCoef = (c) => (c === XP.dejaParfait ? "déjà réussi parfaitement : " : "rejoué sans battre ton record : ") + divise(c);
+  const texteCoef = (c, fem) => (c === XP.dejaParfait ? `déjà réussi${fem ? "e" : ""} parfaitement : ` : `rejoué${fem ? "e" : ""} sans battre ton record : `) + divise(c);
   // Défis : au-delà de quelques parties dans la journée (tous chapitres confondus), les XP diminuent
   function partieDuJour() {
     const e = Compte.eleve(), cle = "profmaths:defis-jour:" + (e ? e.uid : "anonyme");
@@ -296,7 +299,7 @@
       <h2>Personnaliser</h2>
       <div class="cats" role="tablist" aria-label="Parties de l'avatar">${AV.CATEGORIES.map((c) => `<button type="button" role="tab" data-cat="${c.id}" aria-selected="${c.id === catAvatar}">${esc(c.nom)}</button>`).join("")}</div>
       <div id="options" class="options" role="tabpanel"></div>
-      <details class="regles"><summary>Comment gagner des XP ?</summary>
+      <details class="regles-xp"><summary>Comment gagner des XP ?</summary>
         <ul><li><strong>Exercices :</strong> jusqu'à ${XP.question} XP par question réussie (moins avec des indices ou des erreurs), comptés au bilan à la fin de la série.</li>
         <li><strong>QCM :</strong> ${XP.bonneReponseQcm} XP par bonne réponse.</li>
         <li><strong>Défis chrono :</strong> ${XP.bonneReponseDefi} XP par bonne réponse.</li>
@@ -323,7 +326,10 @@
       prog.avatar = Object.assign(monAvatar(), { [catAvatar]: b.dataset.id, t: Date.now() });
       save();
       document.getElementById("profil").innerHTML = carteProfil(true);
+      const choisi = b.dataset.id;
       afficherOptions();
+      const nb = document.querySelector(`#options [data-id="${choisi}"]`);
+      if (nb) nb.focus();
     }));
   }
 
@@ -620,7 +626,7 @@
       prog.exo[k] = Math.max(avant, st);
       const xpSerie = gagnerXP(score * (XP.question / 10) * coef);
       save();
-      const noteCoef = coef < 1 ? `Série ${texteCoef(coef)}.` : "";
+      const noteCoef = coef < 1 ? `Série ${texteCoef(coef, true)}.` : "";
       const msg = st === 3 ? "Série maîtrisée. Tu peux passer à la suivante." : st === 2 ? "Très bien ! Encore un essai pour la troisième étoile ?" : st === 1 ? "C'est un bon début. Relis la fiche méthode puis recommence." : "Pas de panique : regarde la vidéo et le cours, puis réessaie.";
       p.innerHTML = `<div class="bilan"><p class="eyebrow">Bilan · ${esc(ex.titre)}</p><p class="gros">${score}<span>/${max} pts</span></p>${etoiles(st, 3)}${record ? `<p class="record">Nouveau record !</p>` : ""}<p>${msg}</p><p class="gain-xp">+${xpSerie} XP${noteCoef ? ` · <span>${noteCoef}</span>` : ""}</p>
         <div class="exo-actions"><button class="btn" id="encore">Recommencer</button><button class="btn-sec" id="retour">Autres séries</button></div></div>`;
