@@ -4222,6 +4222,97 @@
   };
 
 
+  /* ---------- Seconde, chapitre 10 : tableaux croisés, fréquences conditionnelles, probabilités (préfixe tc-) ---------- */
+  // Tableau croisé de l'exemple du cours
+  FIGURES["tableau-transport"] = () => `<div class="scroll-x"><table class="valeurs croise">${[["", "2de", "1re", "Total"], ["Bus", "70", "?", "120"], ["À pied", "30", "50", "80"], ["Total", "100", "100", "200"]].map((l, i) => `<tr>${l.map((v, j) => (i === 0 || j === 0 ? `<th>${v}</th>` : `<td>${v}</td>`)).join("")}</tr>`).join("")}</table></div>`;
+  // Enquête du lycée : mode de transport × niveau. Renvoie les effectifs et le tableau complet avec totaux.
+  function enqueteLycee() {
+    const L = ["\\text{Bus}", "\\text{À pied}", "\\text{Voiture}"], C = ["\\text{2de}", "\\text{1re}", "\\text{Tle}"];
+    const N = L.map(() => C.map(() => 5 * rand(4, 30)));
+    const totL = N.map((r) => r.reduce((a, b) => a + b, 0)), totC = C.map((_, j) => N.reduce((a, r) => a + r[j], 0)), tot = totL.reduce((a, b) => a + b, 0);
+    const lignes = (cache) => [["", ...C, "\\text{Total}"], ...L.map((l, i) => [l, ...N[i].map((v, j) => (cache && cache[0] === i && cache[1] === j ? "?" : v)), totL[i]]), ["\\text{Total}", ...totC, tot]];
+    return { L, C, N, totL, totC, tot, lignes, noms: ["en bus", "à pied", "en voiture"], niv: ["de Seconde", "de Première", "de Terminale"] };
+  }
+  const fracDec = (n, d) => `\\dfrac{${n}}{${d}} \\approx ${nb(Math.round((n / d) * 100) / 100)}`;
+
+  GEN["tc-completer"] = function () {
+    const E = enqueteLycee(), i = rand(0, 2), j = rand(0, 2);
+    return {
+      enonce: `Enquête sur le mode de transport des élèves du lycée. Retrouve l'effectif manquant.`,
+      tableau: { lignes: E.lignes([i, j]) },
+      mode: "nombre", prefixe: "? =", attendu: E.N[i][j],
+      aides: ["Dans un tableau croisé, chaque total est la somme de sa ligne (ou de sa colonne).", `Utilise la ligne « ${E.noms[i]} » : total $${E.totL[i]}$.`, `Soustrais du total les deux autres effectifs de la ligne.`],
+      solution: `Sur la ligne « ${E.noms[i]} » : $${E.totL[i]} - ${E.N[i].filter((_, k) => k !== j).join(" - ")} = ${E.N[i][j]}$. On peut vérifier avec la colonne : total $${E.totC[j]}$.`
+    };
+  };
+
+  GEN["tc-frequence"] = function () {
+    const E = enqueteLycee(), i = rand(0, 2), j = rand(0, 2), t = rand(0, 2);
+    let enonce, n, d, sol;
+    if (t === 0) { enonce = `Quelle est la fréquence **marginale** des élèves qui viennent ${E.noms[i]} ?`; n = E.totL[i]; d = E.tot; sol = `On divise le total de la ligne « ${E.noms[i]} » par l'effectif total.`; }
+    else if (t === 1) { enonce = `Parmi les élèves ${E.niv[j]}, quelle est la fréquence de ceux qui viennent ${E.noms[i]} ?`; n = E.N[i][j]; d = E.totC[j]; sol = `C'est une fréquence **conditionnelle** : on se restreint à la colonne « ${E.niv[j].replace("de ", "")} » (total $${d}$).`; }
+    else { enonce = `Parmi les élèves qui viennent ${E.noms[i]}, quelle est la fréquence de ceux ${E.niv[j]} ?`; n = E.N[i][j]; d = E.totL[i]; sol = `C'est une fréquence **conditionnelle** : on se restreint à la ligne « ${E.noms[i]} » (total $${d}$).`; }
+    return {
+      enonce: `Enquête sur le mode de transport des élèves du lycée (tableau ci-dessous). ${enonce} Donne une fraction ou un arrondi au centième.`,
+      tableau: { lignes: E.lignes() },
+      mode: "nombre", prefixe: "Fréquence :", attendu: n / d, tolerance: 0.0051,
+      erreurs: t ? [{ valeur: n / E.tot, message: "Tu as divisé par l'effectif total : ici on ne regarde qu'une partie des élèves (« parmi … »)." }, { valeur: n / (t === 1 ? E.totL[i] : E.totC[j]), message: "Tu t'es trompé de sous-population : relis bien ce qui suit « parmi »." }] : [],
+      aides: ["Fréquence $=$ effectif $\\div$ effectif de la population de référence.", t ? "« Parmi les … » indique la population de référence : c'est par son total qu'on divise." : "Fréquence marginale : on utilise un total de ligne ou de colonne, divisé par l'effectif total.", `Ici : $\\dfrac{${n}}{${d}}$.`],
+      solution: `${sol}\n\n$f = ${fracDec(n, d)}$.`
+    };
+  };
+
+  GEN["tc-medias"] = function () {
+    const T = [
+      ["« $40\\,\\%$ des filles du lycée font du sport. »", "F", "S", "fille", "fait du sport"],
+      ["« Parmi les élèves qui viennent en bus, $25\\,\\%$ sont en Terminale. »", "B", "T", "vient en bus", "est en Terminale"],
+      ["« $15\\,\\%$ des fumeurs ont une maladie respiratoire. »", "F", "M", "fumeur", "a une maladie respiratoire"],
+      ["« $60\\,\\%$ des personnes vaccinées n'ont pas eu la grippe. »", "V", "\\overline{G}", "vacciné", "n'a pas eu la grippe"]
+    ];
+    const [phr, A, B] = pick(T);
+    const ch = melangeChoix(`$f_{${A}}(${B})$`, [`$f_{${B}}(${A})$`, `$f(${A} \\cap ${B})$`, `$f(${B})$`]);
+    return {
+      enonce: `Comment traduire l'information ${phr} ? ($f_X(Y)$ est la fréquence de $Y$ parmi les $X$.)`,
+      mode: "choix", choix: ch.choix, attendu: ch.attendu,
+      aides: ["Cherche la population de référence : « des … », « parmi les … ».", `La population de référence est $${A}$ : elle va en indice.`, "$f_A(B)$ : parmi les $A$, la part de $B$."],
+      solution: `La population de référence est $${A}$ ; on regarde la part de $${B}$ parmi eux : $f_{${A}}(${B})$. Attention, $f_{${B}}(${A})$ serait la part de $${A}$ parmi les $${B}$ : ce n'est pas la même chose.`
+    };
+  };
+
+  GEN["tc-evenement"] = function () {
+    const E = enqueteLycee(), i = rand(0, 2), j = rand(0, 2), t = rand(0, 2);
+    const A = `A`, B = `B`;
+    const dA = `$A$ : « l'élève vient ${E.noms[i]} » et $B$ : « l'élève est ${E.niv[j].replace("de ", "en ")} »`;
+    let n, q, sol;
+    if (t === 0) { n = E.N[i][j]; q = "P(A \\cap B)"; sol = `$A \\cap B$ : vient ${E.noms[i]} **et** est ${E.niv[j].replace("de ", "en ")}. Case du tableau : $${n}$. $P(A \\cap B) = ${fracDec(n, E.tot)}$.`; }
+    else if (t === 1) { n = E.totL[i] + E.totC[j] - E.N[i][j]; q = "P(A \\cup B)"; sol = `$A \\cup B$ : vient ${E.noms[i]} **ou** est ${E.niv[j].replace("de ", "en ")} (ou les deux). $\\text{Card}(A \\cup B) = ${E.totL[i]} + ${E.totC[j]} - ${E.N[i][j]} = ${n}$ (on enlève la case commune, comptée deux fois). $P(A \\cup B) = ${fracDec(n, E.tot)}$.`; }
+    else { n = E.tot - E.totL[i]; q = "P(\\overline{A})"; sol = `$\\overline{A}$ : l'élève ne vient **pas** ${E.noms[i]}. $P(\\overline{A}) = 1 - P(A) = 1 - \\dfrac{${E.totL[i]}}{${E.tot}} = ${fracDec(n, E.tot)}$.`; }
+    return {
+      enonce: `On choisit un élève au hasard dans l'enquête ci-dessous. ${dA}. Calcule $${q}$ (fraction ou arrondi au centième).`,
+      tableau: { lignes: E.lignes() },
+      mode: "nombre", prefixe: `${q.replace(/\\cap/, "∩").replace(/\\cup/, "∪").replace("\\overline{A}", "Ā")} =`, attendu: n / E.tot, tolerance: 0.0051,
+      erreurs: t === 1 ? [{ valeur: (E.totL[i] + E.totC[j]) / E.tot, message: "La case commune a été comptée deux fois : il faut la retirer une fois." }] : [],
+      aides: ["Situation d'équiprobabilité : $P(E) = \\dfrac{\\text{Card}(E)}{\\text{Card}(\\Omega)}$, avec $\\text{Card}(\\Omega) = " + E.tot + "$.", "$\\cap$ se lit « et » (les deux à la fois), $\\cup$ se lit « ou » (au moins l'un des deux), $\\overline{A}$ « non $A$ ».", t === 1 ? "$\\text{Card}(A \\cup B) = \\text{Card}(A) + \\text{Card}(B) - \\text{Card}(A \\cap B)$." : "Repère les cases du tableau qui correspondent à l'événement."],
+      solution: sol
+    };
+  };
+
+  GEN["tc-python"] = function () {
+    const n = rand(6, 8), noms = ["bus", "pied", "voiture"], niv = ["2de", "1re", "Tle"];
+    const L = Array.from({ length: n }, () => [pick(noms), pick(niv)]);
+    const t = rand(0, 2), a = pick(noms), b = pick(niv);
+    const cond = [`transport == "${a}" and niveau == "${b}"`, `transport == "${a}" or niveau == "${b}"`, `not transport == "${a}"`][t];
+    const test = [(e) => e[0] === a && e[1] === b, (e) => e[0] === a || e[1] === b, (e) => e[0] !== a][t];
+    const c = L.filter(test).length;
+    return {
+      enonce: "On considère le programme Python :\n\n```python\neleves = [\n    " + L.map((e) => `("${e[0]}", "${e[1]}")`).join(",\n    ") + "\n]\nc = 0\nfor (transport, niveau) in eleves:\n    if " + cond + ":\n        c = c + 1\nprint(c)\n```\n\nQuel nombre affiche-t-il ?",
+      mode: "nombre", prefixe: "Affichage :", attendu: c,
+      aides: ["La boucle parcourt chaque élève de la liste ; $c$ compte ceux qui vérifient la condition.", ["$\\texttt{and}$ : les **deux** conditions doivent être vraies.", "$\\texttt{or}$ : **au moins une** des deux conditions doit être vraie.", "$\\texttt{not}$ : la condition doit être **fausse**."][t], "Passe les élèves en revue un par un."],
+      solution: `Les élèves qui vérifient la condition sont : ${L.map((e, k) => (test(e) ? `n°${k + 1} (${e[0]}, ${e[1]})` : null)).filter(Boolean).join(", ") || "aucun"}. Le programme affiche $${c}$.`
+    };
+  };
+
+
   /* Séries « flash » d'un thème : mélange de ses générateurs */
   const THEMES = {
     "am-flash-cn": ["am-comparer", "am-fractions", "am-puissances", "am-ecritures", "am-ordre-grandeur", "am-coherence", "auto-conversions"],
@@ -4238,7 +4329,7 @@
 
 
   /* Une « erreur connue » ne doit jamais coïncider avec la bonne réponse (à la tolérance près) */
-  Object.keys(GEN).filter((k) => /^(ld|am|cd|ar|cl|fa|ve|st|vx)-/.test(k)).forEach((k) => {
+  Object.keys(GEN).filter((k) => /^(ld|am|cd|ar|cl|fa|ve|st|vx|tc)-/.test(k)).forEach((k) => {
     const g = GEN[k];
     GEN[k] = (i) => { const q = g(i); if (q.erreurs) q.erreurs = q.erreurs.filter((e) => Math.abs(e.valeur - q.attendu) >= (q.tolerance || 1e-9)); return q; };
   });

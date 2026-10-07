@@ -77,6 +77,13 @@ window.CATALOGUE = {
           titre: "Variations et extremums ; fonctions carré et valeur absolue",
           statut: "disponible",
           drive: ""
+        },
+        {
+          id: "seconde-tableaux-croises",
+          numero: 10,
+          titre: "Tableaux croisés, fréquences conditionnelles, probabilités 1",
+          statut: "disponible",
+          drive: ""
         }
       ]
     },
