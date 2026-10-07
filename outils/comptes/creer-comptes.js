@@ -21,7 +21,8 @@
   Option --essai : affiche les comptes qui seraient créés, sans rien créer.
 
   Les identifiants et mots de passe sont écrits dans Documents\Gestion site lycée (hors du dépôt public) :
-  identifiants.csv (ouvrable dans Excel) et identifiants.html (étiquettes à imprimer et découper).
+  identifiants.csv (ouvrable dans Excel), identifiants.html (étiquettes à imprimer et découper)
+  et identifiants-par-classe.pdf (une page par classe ou groupe). --listes les régénère.
   Ne jamais copier ces fichiers dans le dossier du site.
 */
 "use strict";
@@ -136,6 +137,26 @@ function ecrireListes(reg) {
   fs.writeFileSync(path.join(DOSSIER, "identifiants.html"), `<!doctype html><meta charset="utf-8"><title>Identifiants ProfMaths</title>
 <style>body{font:14px system-ui,sans-serif;margin:1cm}.g{display:grid;grid-template-columns:1fr 1fr;gap:0}.e{border:1px dashed #999;padding:.45cm;line-height:1.6;break-inside:avoid}code{font-size:16px}small{color:#666}</style>
 <p>Identifiants des élèves : imprimer, découper et distribuer. Ne pas publier.</p><div class="g">${etiquettes}</div>`);
+  // Une page par classe ou groupe, en PDF
+  const groupes = [...new Set(eleves.map((c) => c.groupe))];
+  const pages = groupes.map((g) => {
+    const liste = eleves.filter((c) => c.groupe === g);
+    return `<section><h1>${esc(g)} <small>${esc(liste[0].classe)} · ${liste.length} élèves</small></h1>
+<p>Site : <b>voltark976-sketch.github.io/profmaths</b> · bouton « Connexion »</p>
+<table><tr><th>Nom</th><th>Prénom</th><th>Identifiant</th><th>Mot de passe</th></tr>${liste.map((c) => `<tr><td>${esc(c.nom)}</td><td>${esc(c.prenom)}</td><td><code>${esc(c.identifiant)}</code></td><td><code>${esc(c.mdp)}</code></td></tr>`).join("")}</table></section>`;
+  }).join("");
+  const html = path.join(DOSSIER, "identifiants-par-classe.html");
+  fs.writeFileSync(html, `<!doctype html><meta charset="utf-8"><title>Identifiants par classe</title>
+<style>@page{size:A4;margin:12mm}body{font:11px system-ui,sans-serif;margin:0}section{break-after:page}section:last-child{break-after:auto}h1{font-size:18px;margin:0 0 4px}h1 small{font-size:12px;color:#555;font-weight:400}p{margin:0 0 8px}table{width:100%;border-collapse:collapse}th,td{border:1px solid #bbb;padding:3.5px 6px;text-align:left}th{background:#eee}code{font-size:12px}</style>${pages}`);
+  imprimerPdf(html, path.join(DOSSIER, "identifiants-par-classe.pdf"));
+}
+// Conversion en PDF avec Edge ou Chrome (déjà installés sous Windows)
+function imprimerPdf(html, pdf) {
+  const nav = ["C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe", "C:/Program Files/Microsoft/Edge/Application/msedge.exe", "C:/Program Files/Google/Chrome/Application/chrome.exe"].find((f) => fs.existsSync(f));
+  if (!nav) { console.warn("Pas de navigateur pour créer le PDF : ouvrir " + html + " et l'imprimer en PDF."); return; }
+  try {
+    execFileSync(nav, ["--headless", "--disable-gpu", "--no-pdf-header-footer", `--user-data-dir=${path.join(os.tmpdir(), "profmaths-pdf")}`, `--print-to-pdf=${pdf}`, require("url").pathToFileURL(html).href], { stdio: "pipe", timeout: 60000 });
+  } catch (e) { console.warn(String(e.stderr || e.message).slice(0, 300)); console.warn("PDF non créé : ouvrir " + html + " et l'imprimer en PDF."); }
 }
 
 /* ---------- Programme ---------- */
@@ -144,6 +165,7 @@ const reg = fs.existsSync(REGISTRE) ? JSON.parse(fs.readFileSync(REGISTRE, "utf8
 const args = process.argv.slice(2), opt = (n) => { const i = args.indexOf(n); return i < 0 ? null : args.splice(i, 2)[1]; };
 const essai = args.includes("--essai") && args.splice(args.indexOf("--essai"), 1);
 const desactiver = args.includes("--desactiver-inconnus") && args.splice(args.indexOf("--desactiver-inconnus"), 1);
+const listes = args.includes("--listes") && args.splice(args.indexOf("--listes"), 1);
 const resync = args.includes("--resynchroniser") && args.splice(args.indexOf("--resynchroniser"), 1);
 const feuilles = (opt("--feuilles") || "").split(",").map((x) => x.trim()).filter(Boolean);
 const classe = opt("--classe"), reinit = opt("--nouveau-mdp"), prof = opt("--prof");
@@ -209,6 +231,9 @@ if (prof) {
   sauver();
   console.log(`\n${crees.length} comptes créés. Identifiants dans ${DOSSIER}`);
   if (rates.length) console.log(`${rates.length} comptes NON créés (relancer la même commande) : ${rates.map((c) => c.identifiant).join(", ")}`);
+} else if (listes) {
+  ecrireListes(reg);
+  console.log("Listes et PDF régénérés dans " + DOSSIER);
 } else if (resync) {
   // Renvoie à Firebase tous les comptes du registre, avec leurs mots de passe et leur classe
   let ok = 0;
