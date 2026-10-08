@@ -295,6 +295,13 @@ window.CATALOGUE = {
           titre: "Produit scalaire 1",
           statut: "disponible",
           drive: ""
+        },
+        {
+          id: "premiere-exponentielle",
+          numero: 12,
+          titre: "Fonction exponentielle",
+          statut: "disponible",
+          drive: ""
         }
       ]
     },

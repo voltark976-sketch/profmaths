@@ -7158,6 +7158,189 @@
   };
 
 
+  /* ---------- Première, chapitre 12 : fonction exponentielle (préfixe ex-) ---------- */
+  // Courbe de exp, tangente en 0 (y = x + 1) et point (1 ; e)
+  FIGURES["exp-courbe"] = () => tiret(graph({ xmin: -3.4, xmax: 2.4, ymin: -1.2, ymax: 7.6, h: 300, curves: [{ f: Math.exp, a: -3.3, b: 2.02, closed: false, label: "y = eˣ", lx: 1.95, dx: -8, dy: 6 }, { f: (x) => x + 1, a: -2.1, b: 2.3, closed: false, label: "y = x + 1", lx: 2.3, dx: -2, dy: 18 }], points: [{ x: 0, y: 1, label: "(0 ; 1)", gauche: true }, { x: 1, y: Math.E, label: "(1 ; e)", gauche: true }], aria: "Courbe de la fonction exponentielle, toujours au-dessus de l'axe des abscisses, passant par (0 ; 1) avec une tangente de pente 1, et par (1 ; e)" }), 1);
+  // e^{kt} : croissance (k > 0) et décroissance (k < 0)
+  FIGURES["exp-kt"] = () => graph({ xmin: -0.4, xmax: 4.4, ymin: -0.4, ymax: 4.6, h: 280, curves: [{ f: (t) => Math.exp(t), a: 0, b: 1.5, closed: false, label: "e^t", lx: 1.5, dx: -6, dy: 4 }, { f: (t) => Math.exp(0.4 * t), a: 0, b: 3.8, closed: false, label: "e^0,4t", lx: 3.5, dx: -8, dy: 4 }, { f: (t) => Math.exp(-t), a: 0, b: 4.3, closed: false, label: "e^−t", lx: 1.2, dx: 24, dy: 8 }, { f: (t) => Math.exp(-0.4 * t), a: 0, b: 4.3, closed: false, label: "e^−0,4t", lx: 4.2, dx: 0, dy: -8 }], points: [{ x: 0, y: 1 }], aria: "Pour k > 0, t ↦ e^kt croît d'autant plus vite que k est grand ; t ↦ e^−kt décroît vers 0" }).replace(/>e\^([^<]+)</g, (_, e) => `>e<tspan dy="-5" style="font-size:9px">${e}</tspan><`);
+  // Refroidissement d'un café : T(t) = 28 + 62 e^{−0,08t}
+  FIGURES["refroidissement"] = () => graph({ xmin: -3, xmax: 62, ymin: -6, ymax: 114, xstep: 5, xetiq: 10, ystep: 10, yetiq: 20, h: 260, padL: 26, xlabel: "t (min)", ylabel: "°C", curves: [{ f: (t) => 28 + 62 * Math.exp(-0.08 * t), a: 0, b: 60, closed: false }], hlines: [{ y: 28, label: "28 °C (la pièce)" }], points: [{ x: 0, y: 90, label: "90 °C" }], aria: "La température du café part de 90 °C et se rapproche de 28 °C, la température de la pièce" });
+
+  // e^{…} en TeX à partir d'un exposant affine a x + b (a, b entiers)
+  const exE = (a, b, v) => `e^{${poly([a, b], v || "x")}}`;
+
+  GEN["ex-simplifier"] = function () {
+    const T = [
+      () => { const a = randNZ(-6, 6), b = randNZ(-6, 6); return [`e^{${a}} \\times e^{${b}}`, `e^{${a + b}}`, [`e^{${a * b}}`, `e^{${a - b}}`, `2e^{${a + b}}`], `$e^{a} \\times e^{b} = e^{a + b}$ : $e^{${a} ${sg(b)}} = e^{${a + b}}$.`]; },
+      () => { const a = randNZ(-6, 8), b = randNZ(-6, 6); return [`\\dfrac{e^{${a}}}{e^{${b}}}`, `e^{${a - b}}`, [`e^{${a + b}}`, `e^{${b - a}}`, `e^{${a * b}}`], `$\\dfrac{e^{a}}{e^{b}} = e^{a - b}$ : $e^{${a} - ${par(b)}} = e^{${a - b}}$.`]; },
+      () => { const a = randNZ(-4, 4), n = rand(2, 4); return [`\\left(e^{${a}}\\right)^{${n}}`, `e^{${a * n}}`, [`e^{${a + n}}`, `e^{${a}^{${n}}}`, `${n}e^{${a}}`], `$\\left(e^{a}\\right)^{n} = e^{na}$ : $e^{${n} \\times ${par(a)}} = e^{${a * n}}$.`]; },
+      () => { const a = rand(2, 5), b = randNZ(-4, 4); return [`e^{${a}x} \\times e^{${b}x}`, exE(a + b, 0), [exE(a * b, 0).replace("x}", "x^2}"), exE(a - b, 0), `e^{${a}x^{${b}}}`.replace("x^{1}", "x")], `$e^{${a}x} \\times e^{${b}x} = e^{${a}x ${sg(b)}x} = ${exE(a + b, 0)}$.`]; },
+      () => { const a = rand(2, 4), b = randNZ(-5, 5), c = rand(1, 3), d = randNZ(-5, 5); return [`\\dfrac{${exE(a, b)}}{${exE(c, d)}}`, exE(a - c, b - d), [exE(a + c, b + d), exE(a - c, b + d), exE(a, b - d)], `$\\dfrac{e^{A}}{e^{B}} = e^{A - B}$ : $(${poly([a, b])}) - (${poly([c, d])}) = ${poly([a - c, b - d])}$.`]; },
+      () => { const a = rand(2, 5); return [`e^{${a}x} \\times e^{-${a}x}`, "1", ["0", `e^{${2 * a}x}`, `e^{-${a * a}x^2}`], `$e^{${a}x} \\times e^{-${a}x} = e^{0} = 1$ : $e^{x}$ et $e^{-x}$ sont inverses l'un de l'autre.`]; }
+    ];
+    const [expr, bonne, fausses, sol] = pick(T)();
+    const nettoie = (s) => s.replace(/e\^\{0x\}|e\^\{0\}/g, "1").replace(/e\^\{1\}/g, "e").replace(/\{1x/g, "{x").replace(/\{-1x/g, "{-x");
+    const b2 = nettoie(bonne), c = melangeChoix(`$${b2}$`, [...new Set(fausses.map(nettoie))].filter((f) => f !== b2).map((f) => `$${f}$`));
+    return {
+      enonce: `Simplifie $${nettoie(expr)}$.`,
+      mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: ["$e^{a} \\times e^{b} = e^{a + b}$ et $\\dfrac{e^{a}}{e^{b}} = e^{a - b}$.", "$\\left(e^{a}\\right)^{n} = e^{na}$ et $e^{-a} = \\dfrac{1}{e^{a}}$.", "Les mêmes règles que pour les puissances : on ajoute ou on soustrait les **exposants**."],
+      solution: nettoie(sol)
+    };
+  };
+
+  GEN["ex-equation"] = function () {
+    let a, b, c, d; do { a = randNZ(-4, 4); c = randNZ(-4, 4); b = rand(-6, 6); d = rand(-6, 6); } while (a === c || (d - b) % (a - c) !== 0);
+    const x = (d - b) / (a - c);
+    if (Math.random() < 0.6) {
+      return {
+        enonce: `Résous dans $\\mathbb{R}$ l'équation $${exE(a, b)} = ${exE(c, d)}$.`,
+        mode: "nombre", prefixe: "$x =$", attendu: x,
+        erreurs: [{ valeur: -x, message: "Attention au signe en isolant $x$." }].filter((e) => e.valeur !== x),
+        aides: ["La fonction exponentielle est strictement croissante : $e^{A} = e^{B} \\iff A = B$.", `On résout donc $${poly([a, b])} = ${poly([c, d])}$.`, `$${poly([a - c, 0])} = ${d - b}$.`],
+        solution: `$${exE(a, b)} = ${exE(c, d)} \\iff ${poly([a, b])} = ${poly([c, d])} \\iff ${poly([a - c, 0])} = ${d - b} \\iff x = ${x}$.`
+      };
+    }
+    const op = pick(["<", ">"]), sens = (a - c > 0) === (op === "<"), bonne = sens ? `]-\\infty\\,;${x}[` : `]${x}\\,;+\\infty[`;
+    const ch = melangeChoix(`$S = ${bonne}$`, [`$S = ${sens ? `]${x}\\,;+\\infty[` : `]-\\infty\\,;${x}[`}$`, `$S = \\{${x}\\}$`, "$S = \\varnothing$"]);
+    return {
+      enonce: `Résous dans $\\mathbb{R}$ l'inéquation $${exE(a, b)} ${op} ${exE(c, d)}$.`,
+      mode: "choix", choix: ch.choix, attendu: ch.attendu,
+      aides: ["La fonction exponentielle est strictement croissante : $e^{A} < e^{B} \\iff A < B$ (le sens est conservé).", `On résout donc $${poly([a, b])} ${op} ${poly([c, d])}$.`, `$${poly([a - c, 0])} ${op} ${d - b}$ : attention si le coefficient de $x$ est négatif.`],
+      solution: `$${exE(a, b)} ${op} ${exE(c, d)} \\iff ${poly([a, b])} ${op} ${poly([c, d])} \\iff ${poly([a - c, 0])} ${op} ${d - b}$, donc $S = ${bonne}$.`
+    };
+  };
+
+  GEN["ex-derivee"] = function () {
+    const T = [
+      () => { const k = randNZ(-4, 5), m = rand(-5, 5); return [`e^{${k === 1 ? "" : k === -1 ? "-" : k}x}${m ? ` ${sg(m)}x` : ""}`, k + m, `$f'(x) = ${k === 1 ? "" : k === -1 ? "-" : k}e^{${k === 1 ? "" : k === -1 ? "-" : k}x}${m ? ` ${sg(m)}` : ""}$, donc $f'(0) = ${k} \\times 1 ${sg(m)} = ${k + m}$.`, 1 + m]; },
+      () => { const a = randNZ(-3, 4), b = rand(-4, 4); return [`(${poly([a, b])})e^{x}`, a + b, `Produit : $f'(x) = ${a}e^{x} + (${poly([a, b])})e^{x} = (${poly([a, a + b])})e^{x}$, donc $f'(0) = ${a + b}$.`, a]; },
+      () => { const c = pick([2, 3, 5, -2]), k = randNZ(-3, 3); return [`${c}e^{${k === 1 ? "" : k === -1 ? "-" : k}x}`, c * k, `$(e^{kx})' = ke^{kx}$ : $f'(x) = ${c * k}e^{${k === 1 ? "" : k === -1 ? "-" : k}x}$, donc $f'(0) = ${c * k}$.`, c]; },
+      () => { const k = randNZ(-3, 3); return [`xe^{${k === 1 ? "" : k === -1 ? "-" : k}x}`, 1, `Produit : $f'(x) = e^{${k === 1 ? "" : k === -1 ? "-" : k}x} + x \\times ${par(k)}e^{${k === 1 ? "" : k === -1 ? "-" : k}x} = (${poly([k, 1])})e^{${k === 1 ? "" : k === -1 ? "-" : k}x}$, donc $f'(0) = 1$.`, k]; }
+    ];
+    const [f, rep, sol, err] = pick(T)();
+    return {
+      enonce: `$f(x) = ${f}$. Calcule $f'(0)$.`,
+      mode: "nombre", prefixe: "$f'(0) =$", attendu: rep,
+      erreurs: [{ valeur: err, message: "Revois la formule : $(e^{kx})' = ke^{kx}$, et pour un produit $(uv)' = u'v + uv'$." }].filter((e) => e.valeur !== rep),
+      aides: ["$(e^{x})' = e^{x}$ et, plus généralement, $(e^{kx})' = ke^{kx}$.", "Pour un produit : $(uv)' = u'v + uv'$.", "En $0$ : $e^{0} = 1$."],
+      solution: sol
+    };
+  };
+
+  GEN["ex-variations"] = function () {
+    if (Math.random() < 0.5) {
+      const a = rand(-3, 3), q = Math.random() < 0.5;
+      return {
+        enonce: `$f(x) = ${a ? `(${poly([1, -a])})` : "x"}e^{x}$. ${q ? "En quelle valeur de $x$ la fonction $f$ atteint-elle son minimum ?" : "Sur quel intervalle $f$ est-elle croissante ?"}`,
+        ...(q ? { mode: "nombre", prefixe: "$x =$", attendu: a - 1, erreurs: [{ valeur: a, message: `En $x = ${a}$, c'est $f$ qui s'annule, pas $f'$.` }] } : (() => { const c = melangeChoix(`$[${a - 1}\\,;+\\infty[$`, [`$]-\\infty\\,;${a - 1}]$`, `$[${a}\\,;+\\infty[$`, "$\\mathbb{R}$"]); return { mode: "choix", choix: c.choix, attendu: c.attendu }; })()),
+        aides: [`Produit : $f'(x) = 1 \\times e^{x} + ${a ? `(${poly([1, -a])})` : "x"}e^{x}$.`, `$f'(x) = (${poly([1, 1 - a])})e^{x}$, et $e^{x} > 0$.`, `$f'(x)$ a le signe de $${poly([1, 1 - a])}$ : négatif avant $${a - 1}$, positif après.`],
+        solution: `$f'(x) = (${poly([1, 1 - a])})e^{x}$ a le signe de $${poly([1, 1 - a])}$ car $e^{x} > 0$. Donc $f$ décroît sur $]-\\infty\\,;${a - 1}]$ et croît sur $[${a - 1}\\,;+\\infty[$ : minimum en $x = ${a - 1}$.`,
+        figure: tabSV(["−∞", "?", "+∞"], ["?", "", "?"], ["", "", ""]),
+        figureSolution: tabSV(["−∞", nbSvg(a - 1), "+∞"], ["-", "0", "+"], ["", `≈ ${nbSvg(+(-Math.exp(a - 1)).toFixed(2))}`, ""])
+      };
+    }
+    const k = pick([0.5, 1, 2, 0.1, 0.3]), signe = pick([1, -1]), c = pick([2, 5, 100]);
+    const ch = melangeChoix(signe > 0 ? "Strictement croissante" : "Strictement décroissante", [signe > 0 ? "Strictement décroissante" : "Strictement croissante", "Constante", "Croissante puis décroissante"]);
+    return {
+      enonce: `Quel est le sens de variation sur $\\mathbb{R}$ de $f(t) = ${c}e^{${signe < 0 ? "-" : ""}${k === 1 ? "" : nb(k)}t}$ ?`,
+      mode: "choix", choix: ch.choix, attendu: ch.attendu,
+      aides: ["$(e^{kt})' = ke^{kt}$.", `$f'(t) = ${nb(c * k * signe)}e^{${signe < 0 ? "-" : ""}${k === 1 ? "" : nb(k)}t}$.`, "Une exponentielle est toujours strictement positive : le signe de $f'$ est celui du coefficient devant."],
+      solution: `$f'(t) = ${nb(c * k * signe)}e^{${signe < 0 ? "-" : ""}${k === 1 ? "" : nb(k)}t}$ est ${signe > 0 ? "strictement positive" : "strictement négative"} : $f$ est strictement ${signe > 0 ? "croissante (croissance exponentielle)" : "décroissante (décroissance exponentielle)"}.`
+    };
+  };
+
+  // Logique : raisonnement par l'absurde, contre-exemples
+  GEN["ex-logique"] = function () {
+    const T = [
+      ["Il existe un réel $x$ tel que $e^{x} = 0$.", 1, "**Faux**, par l'absurde : si $e^{a} = 0$, alors $e^{a} \\times e^{-a} = 0$, alors que ce produit vaut toujours $e^{0} = 1$. Contradiction : l'exponentielle ne s'annule jamais."],
+      ["Pour tout réel $x$, $e^{x} > 0$.", 0, "**Vrai** : $e^{x} = \\left(e^{\\frac{x}{2}}\\right)^2 \\geqslant 0$, et $e^{x} \\neq 0$, donc $e^{x} > 0$."],
+      ["Si $x > 0$, alors $e^{-x} < 0$.", 1, "**Faux** : une exponentielle est toujours strictement positive. Par exemple $e^{-1} \\approx 0{,}37 > 0$."],
+      ["Pour tous réels $a$ et $b$, $e^{a + b} = e^{a} + e^{b}$.", 1, "**Faux**. Contre-exemple : $a = b = 0$ donne $e^{0} = 1$ à gauche et $1 + 1 = 2$ à droite. La bonne formule est $e^{a + b} = e^{a} \\times e^{b}$."],
+      ["Pour tout réel $x$, $\\left(e^{x}\\right)^2 = e^{x^2}$.", 1, "**Faux**. Contre-exemple : pour $x = 1$, $\\left(e^{1}\\right)^2 = e^{2}$ mais $e^{1^2} = e^{1}$. La bonne formule est $\\left(e^{x}\\right)^2 = e^{2x}$."],
+      ["Si $e^{a} = e^{b}$, alors $a = b$.", 0, "**Vrai** : l'exponentielle est strictement croissante, donc deux réels différents ont des images différentes."],
+      ["Pour tout réel $x$, $e^{x} \\geqslant x + 1$.", 0, "**Vrai** : la courbe de l'exponentielle est au-dessus de sa tangente en $0$ (on le démontre en étudiant $e^{x} - x - 1$, dont le minimum vaut $0$)."]
+    ];
+    const [aff, rep, sol] = pick(T);
+    return {
+      enonce: `Vrai ou faux : « ${aff} »`,
+      mode: "choix", choix: ["Vrai", "Faux"], attendu: rep,
+      aides: ["Raisonnement par l'absurde : on suppose le contraire et on aboutit à une contradiction.", "Pour réfuter une égalité « pour tout », un contre-exemple suffit (essaie $0$ ou $1$).", "Retiens : $e^{x} > 0$, $e^{a + b} = e^{a}e^{b}$, $e^{-a} = \\dfrac{1}{e^{a}}$."],
+      solution: sol
+    };
+  };
+
+  GEN["ex-suite"] = function () {
+    const a = pick([-1, -0.5, -0.2, 0.1, 0.2, 0.5]), c = pick([1, 2, 3, 5, 10]), q = Math.exp(a), Q = +q.toFixed(3);
+    const at = a === -1 ? "-" : nb(a);
+    return {
+      enonce: `Pour tout entier $n$, $u_n = ${c === 1 ? "" : c}e^{${at}n}$. La suite $(u_n)$ est géométrique. Donne sa raison, arrondie au millième.`,
+      mode: "nombre", prefixe: "$q \\approx$", attendu: Q, tolerance: 0.0006,
+      erreurs: [{ valeur: a, message: `La raison n'est pas l'exposant : $u_{n+1} = u_n \\times e^{${at}}$.` }, { valeur: +(c * q).toFixed(3), message: "Ça, c'est $u_1$. La raison est le quotient $\\dfrac{u_{n+1}}{u_n}$." }].filter((e) => Math.abs(e.valeur - Q) > 0.0006),
+      aides: ["$u_{n+1} = " + (c === 1 ? "" : c) + "e^{" + at + "(n + 1)}$.", `$e^{${at}(n + 1)} = e^{${at}n} \\times e^{${at}}$.`, `Donc $u_{n+1} = u_n \\times e^{${at}}$ : calcule $e^{${at}}$ à la calculatrice.`],
+      solution: `$u_{n+1} = ${c === 1 ? "" : c}e^{${at}n} \\times e^{${at}} = u_n \\times e^{${at}}$ : $(u_n)$ est géométrique de raison $q = e^{${at}} \\approx ${nb(Q)}$, ${a > 0 ? "supérieure à $1$ : croissance exponentielle" : "comprise entre $0$ et $1$ : décroissance exponentielle"}.`
+    };
+  };
+
+  GEN["ex-modele"] = function () {
+    if (Math.random() < 0.5) {
+      const C0 = pick([10, 20, 40]), k = pick([0.1, 0.2, 0.3, 0.5]), t = pick([1, 2, 4, 5, 10]), v = +(C0 * Math.exp(-k * t)).toFixed(2), q = Math.random() < 0.6;
+      if (!q) return {
+        enonce: `Au dispensaire, la concentration d'un médicament dans le sang (en mg/L) est $C(t) = ${C0}e^{-${nb(k)}t}$, $t$ en heures. Quelle est la vitesse d'élimination $C'(0)$ à l'instant de l'injection ?`,
+        mode: "nombre", prefixe: "$C'(0) =$", suffixe: "mg/L par heure", attendu: +(-k * C0).toFixed(4), tolerance: 1e-6,
+        erreurs: [{ valeur: k * C0, message: "La concentration diminue : la dérivée est négative." }],
+        aides: ["$(e^{kt})' = ke^{kt}$.", `$C'(t) = ${C0} \\times (-${nb(k)})e^{-${nb(k)}t}$.`, "En $0$ : $e^{0} = 1$."],
+        solution: `$C'(t) = ${nb(-k * C0)}e^{-${nb(k)}t}$, donc $C'(0) = ${nb(-k * C0)}$ mg/L par heure. Remarque : $C'(t) = -${nb(k)}\\,C(t)$, la vitesse d'élimination est proportionnelle à la concentration.`
+      };
+      return {
+        enonce: `Au dispensaire, la concentration d'un médicament dans le sang (en mg/L) est $C(t) = ${C0}e^{-${nb(k)}t}$, $t$ en heures. Calcule $C(${t})$, arrondi au centième.`,
+        mode: "nombre", prefixe: `$C(${t}) \\approx$`, suffixe: "mg/L", attendu: v, tolerance: 0.006,
+        erreurs: [{ valeur: +(C0 * (1 - k * t)).toFixed(2), message: "Ce n'est pas une baisse linéaire : calcule $e^{-" + nb(k) + " \\times " + t + "}$ à la calculatrice." }].filter((e) => Math.abs(e.valeur - v) > 0.006),
+        aides: [`$C(${t}) = ${C0}e^{-${nb(k)} \\times ${t}} = ${C0}e^{-${nb(+(k * t).toFixed(2))}}$.`, `$e^{-${nb(+(k * t).toFixed(2))}} \\approx ${nb(+Math.exp(-k * t).toFixed(4))}$.`, "Multiplie, puis arrondis au centième."],
+        solution: `$C(${t}) = ${C0}e^{-${nb(+(k * t).toFixed(2))}} \\approx ${nb(v)}$ mg/L.`
+      };
+    }
+    const Ta = pick([26, 28, 30]), T0 = pick([80, 90]), k = pick([0.05, 0.08, 0.1]), t = pick([5, 10, 20, 30]), D = T0 - Ta, v = +(Ta + D * Math.exp(-k * t)).toFixed(1);
+    return {
+      enonce: `Un café à $${T0}$ °C refroidit dans une pièce à $${Ta}$ °C. Sa température après $t$ minutes est $T(t) = ${Ta} + ${D}e^{-${nb(k)}t}$. Calcule $T(${t})$, arrondi au dixième.`,
+      mode: "nombre", prefixe: `$T(${t}) \\approx$`, suffixe: "°C", attendu: v, tolerance: 0.051,
+      erreurs: [{ valeur: +(D * Math.exp(-k * t)).toFixed(1), message: `N'oublie pas d'ajouter $${Ta}$, la température de la pièce.` }],
+      aides: [`$T(${t}) = ${Ta} + ${D}e^{-${nb(+(k * t).toFixed(2))}}$.`, `$e^{-${nb(+(k * t).toFixed(2))}} \\approx ${nb(+Math.exp(-k * t).toFixed(4))}$.`, "Calcule le produit, puis ajoute la température de la pièce."],
+      solution: `$T(${t}) = ${Ta} + ${D}e^{-${nb(+(k * t).toFixed(2))}} \\approx ${nb(v)}$ °C. Quand $t$ devient grand, $e^{-${nb(k)}t}$ tend vers $0$ et le café se rapproche de $${Ta}$ °C.`
+    };
+  };
+
+  GEN["ex-python"] = function () {
+    const t = rand(0, 2);
+    if (t === 0) {
+      const n = pick([1, 2, 3, 10]), v = (1 + 1 / n) ** n;
+      return {
+        enonce: "```python\ndef approx_e(n):\n    return (1 + 1/n)**n\n```".replace("approx_e", "approche") + `\n\nQue renvoie approche(${n}) ? (Arrondis au dix-millième si besoin.)`,
+        mode: "nombre", prefixe: "Résultat :", attendu: +v.toFixed(4), tolerance: 0.00006,
+        aides: [`On calcule $\\left(1 + \\dfrac{1}{${n}}\\right)^{${n}}$.`, `$1 + \\dfrac{1}{${n}} = ${nb(+(1 + 1 / n).toFixed(6))}$.`, `Élève ce nombre à la puissance $${n}$.`],
+        solution: `$\\left(1 + \\dfrac{1}{${n}}\\right)^{${n}} = ${nb(+(1 + 1 / n).toFixed(6))}^{${n}} \\approx ${nb(+v.toFixed(4))}$. Quand $n$ devient grand, ce nombre se rapproche de $e \\approx 2{,}718$.`
+      };
+    }
+    const code = "```python\ndef euler(h):\n    x, y = 0, 1\n    while x < 1 - h / 2:\n        y = y + h * y\n        x = x + h\n    return y\n```";
+    if (t === 1) {
+      const h = pick([1, 0.5, 0.25]), v = (1 + h) ** (1 / h);
+      return {
+        enonce: `Méthode d'Euler pour la fonction $f$ telle que $f' = f$ et $f(0) = 1$ :\n\n${code}\n\nQue renvoie euler(${h}) ?`,
+        mode: "nombre", prefixe: "Résultat :", attendu: +v.toFixed(6), tolerance: 1e-5,
+        aides: ["À chaque pas, $y$ est remplacé par $y + h \\times y = (1 + h)y$ : on suit la tangente sur un pas $h$.", `Il y a $${1 / h}$ pas pour aller de $0$ à $1$.`, `Le résultat est $(1 + ${nb(h)})^{${1 / h}}$.`],
+        solution: `On multiplie $${1 / h}$ fois par $1 + ${nb(h)}$ : $(1 + ${nb(h)})^{${1 / h}} = ${nb(+v.toFixed(6))}$. C'est une valeur approchée de $f(1) = e \\approx 2{,}718$ ; plus $h$ est petit, meilleure elle est.`
+      };
+    }
+    const c = melangeChoix("$f(x + h) \\approx f(x) + h f'(x)$, avec $f' = f$", ["$f(x + h) = f(x) \\times h$", "$f(x + h) = e^{h}$", "$f(x + h) \\approx f(x) + h$"]);
+    return {
+      enonce: `${code}\n\nQuelle idée justifie la ligne « y = y + h * y » ?`,
+      mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: ["C'est l'approximation linéaire du chapitre 7 : on remplace la courbe par sa tangente sur un petit pas.", "$f(x + h) \\approx f(x) + f'(x) \\times h$.", "Ici $f'(x) = f(x)$, que le programme appelle y."],
+      solution: "Approximation linéaire : $f(x + h) \\approx f(x) + h f'(x)$. Comme $f' = f$, cela donne $f(x + h) \\approx f(x) + h f(x)$, soit « y = y + h * y » : c'est la **méthode d'Euler**."
+    };
+  };
+
+
   /* Séries « flash » d'un thème : mélange de ses générateurs */
   const THEMES = {
     "am-flash-cn": ["am-comparer", "am-fractions", "am-puissances", "am-ecritures", "am-ordre-grandeur", "am-coherence", "auto-conversions"],
@@ -7174,7 +7357,7 @@
 
 
   /* Une « erreur connue » ne doit jamais coïncider avec la bonne réponse (à la tolérance près) */
-  Object.keys(GEN).filter((k) => /^(ld|am|cd|ar|cl|fa|ve|st|vx|tc|co|dr|fr|sg|pc|ec|sy|su|s2|pi|s5|d1|tr|d2|vr|ps)-/.test(k)).forEach((k) => {
+  Object.keys(GEN).filter((k) => /^(ld|am|cd|ar|cl|fa|ve|st|vx|tc|co|dr|fr|sg|pc|ec|sy|su|s2|pi|s5|d1|tr|d2|vr|ps|ex)-/.test(k)).forEach((k) => {
     const g = GEN[k];
     GEN[k] = (i) => { const q = g(i); if (q.erreurs) q.erreurs = q.erreurs.filter((e) => Math.abs(e.valeur - q.attendu) >= (q.tolerance || 1e-9)); return q; };
   });
