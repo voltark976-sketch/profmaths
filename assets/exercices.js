@@ -34,8 +34,13 @@
   const interv = (a, b, ga, gb) => `${ga ? "[" : "]"}${a}\\,;${b}${gb ? "]" : "["}`;
 
   /* ---------- Graphiques SVG ---------- */
+  // Étiquettes des graphiques : largeur approchée d'un texte et boîtes englobantes, pour éviter les chevauchements
+  const largeurTexte = (t, taille) => String(t).replace(/<[^>]+>/g, "").length * taille * 0.62;
+  const boiteTexte = (x, y, t, taille, ancre) => { const w = largeurTexte(t, taille), x1 = ancre === "end" ? x - w : ancre === "middle" ? x - w / 2 : x; return { x1: x1 - 1, x2: x1 + w + 1, y1: y - taille * 0.95, y2: y + taille * 0.3 + (/<tspan/.test(t) ? 4 : 0) }; };
+  const seCoupent = (a, b) => a.x1 < b.x2 && b.x1 < a.x2 && a.y1 < b.y2 && b.y1 < a.y2;
+
   function graph(o) {
-    const W = 320, pad = 14, padL = o.padL || pad, padB = o.padB || pad; // marges de gauche et du bas, pour les nombres des axes
+    const W = 320, pad = 14, padL = o.padL || pad, padB = o.padB || (o.ymin >= 0 ? 18 : pad); // marges de gauche et du bas (plus grande si l’axe horizontal est tout en bas)
     const xstep = o.xstep || 1, ystep = o.ystep || 1;
     const spanX = o.xmax - o.xmin, spanY = o.ymax - o.ymin;
     const ux = (W - padL - pad) / spanX;
@@ -44,43 +49,99 @@
     const uy = (H - pad - padB) / spanY;
     const X = (x) => +(padL + (x - o.xmin) * ux).toFixed(1);
     const Y = (y) => +(pad + (o.ymax - y) * uy).toFixed(1);
+    const x0 = Math.min(Math.max(0, o.xmin), o.xmax), y0 = Math.min(Math.max(0, o.ymin), o.ymax);
+    const gy = X(x0) - ((o.bars || []).some((b) => b.x === x0) ? 8 : 4); // nombres de l'axe vertical, décalés si un bâton est sur l'axe
+
+    // 1. Places déjà prises par les étiquettes (axes, droites horizontales, courbes, vecteurs, repères)
+    const prises = [];
+    const ronds = (o.points || []).map((p) => ({ x1: X(p.x) - 3.5, x2: X(p.x) + 3.5, y1: Y(p.y) - 3.5, y2: Y(p.y) + 3.5 }));
+    const dansCadre = (b) => b.x1 >= 0 && b.x2 <= W && b.y1 >= 0 && b.y2 <= H;
+    // première position libre parmi des essais [x, y, ancre] ; à défaut, la première
+    const placer = (essais, t, taille) => {
+      const e = essais.find((e) => { const b = boiteTexte(e[0], e[1], t, taille, e[2]); return dansCadre(b) && !ronds.some((r) => seCoupent(b, r)) && !prises.some((q) => seCoupent(b, q)); }) || essais[0];
+      prises.push(boiteTexte(e[0], e[1], t, taille, e[2]));
+      return e;
+    };
+    // nom de l'axe horizontal : au bout de l'axe, au-dessus ; plus haut ou en dessous s'il cacherait un point
+    const placeX = o.xlabel ? placer([[W - pad, Y(y0) - 6, "end"], [W - pad, Y(y0) - 20, "end"], [W - pad, Y(y0) + 26, "end"], [W - pad, Y(y0) - 34, "end"], [W - pad, Y(y0) - 48, "end"]], o.xlabel, 11) : null;
+    if (o.ylabel) prises.push(boiteTexte(X(x0) + 6, pad + 8, o.ylabel, 11, "start"));
+    // nom d'une droite horizontale : à droite, ou à gauche s'il cacherait un point
+    const placesH = (o.hlines || []).map((h) => h.label ? placer([[W - pad - 2, Y(h.y) - 5, "end"], [Math.max(padL, X(x0)) + 4, Y(h.y) - 5, "start"], [W - pad - 2, Y(h.y) + 14, "end"], [Math.max(padL, X(x0)) + 4, Y(h.y) + 14, "start"]], h.label, 11) : null);
+    (o.marques || []).forEach((m) => prises.push(boiteTexte(X(m.x), Y(m.y), m.texte, 11, "middle")));
+    // nom d'une courbe : à l'endroit prévu, décalé vers le bas ou le haut s'il tombe sur un autre nom
+    const placesC = (o.curves || []).map((c) => {
+      if (!c.label) return null;
+      const lx = c.lx !== undefined ? c.lx : c.b, x = X(lx) + (c.dx || -4), y = Y(c.f(lx)) + (c.dy || -8);
+      const essais = [0, 14, -14, 26, -26].map((d) => [x, y + d, "end"]);
+      const e = essais.find((e) => { const b = boiteTexte(e[0], e[1], c.label, 13, "end"); return dansCadre(b) && !prises.some((q) => seCoupent(b, q)) && !ronds.some((r) => seCoupent(b, r)); }) || essais[0];
+      prises.push(boiteTexte(e[0], e[1], c.label, 13, "end"));
+      return e;
+    });
+    // nom d'un vecteur : d'un côté de la flèche, ou de l'autre s'il tombe sur un autre nom
+    const decalF = (o.fleches || []).map((f) => {
+      if (!f.label) return 9;
+      const ax = X(f.x1), ay = Y(f.y1), bx = X(f.x2), by = Y(f.y2), t = Math.atan2(by - ay, bx - ax);
+      const boite = (d) => boiteTexte((ax + bx) / 2 + d * Math.sin(t), (ay + by) / 2 - d * Math.cos(t) + 4, f.label, 13, "middle");
+      const d = [9, -11, 16, -18].find((d) => dansCadre(boite(d)) && !prises.some((q) => seCoupent(boite(d), q))) || 9;
+      prises.push(boite(d));
+      return d;
+    });
+    // 2. Étiquettes des points : à droite au-dessus, sinon à gauche, sinon en dessous, là où la place est libre
+    const placesPoints = (o.points || []).map((p, k) => {
+      if (!p.label) return null;
+      const px = X(p.x), py = Y(p.y);
+      let essais = [[px + 6, py - 6, "start"], [px - 8, py - 6, "end"], [px + 6, py + 15, "start"], [px - 8, py + 15, "end"]];
+      if (p.gauche) essais = [essais[1], essais[0], essais[3], essais[2]];
+      const libre = (e) => { const b = boiteTexte(e[0], e[1], p.label, 11, e[2]); return dansCadre(b) && !prises.some((q) => seCoupent(b, q)) && !ronds.some((r, j) => j !== k && seCoupent(b, r)); };
+      const e = essais.find(libre) || essais[0];
+      prises.push(boiteTexte(e[0], e[1], p.label, 11, e[2]));
+      return e;
+    });
+    // Le 0 de l'origine
+    let zero = null;
+    if (x0 === 0 && y0 === 0) zero = [X(x0) - 4, Y(y0) + 13, "end"];
+    else if (x0 === 0) zero = [X(0), Y(y0) + 13, "middle"];
+    else if (y0 === 0) zero = [gy, Y(0) + 4, "end"];
+    // Un nombre d'axe (y compris le 0) qui tomberait sous une étiquette n'est pas écrit
+    const nombreLibre = (x, y, t, ancre) => { const b = boiteTexte(x, y, t, 10, ancre); return !prises.some((q) => seCoupent(b, q)) && !ronds.some((r) => seCoupent(b, r)); };
+    if (zero && !nombreLibre(zero[0], zero[1], "0", zero[2])) zero = null;
+    if (zero) prises.push(boiteTexte(zero[0], zero[1], "0", 10, zero[2]));
+
     let s = `<svg class="graph" viewBox="0 0 ${W} ${H}" role="img" aria-label="${o.aria || "Courbe dans un repère"}">`;
     // quadrillage
     s += `<g class="g-grid">`;
     for (let x = Math.ceil(o.xmin / xstep) * xstep; x <= o.xmax; x += xstep) s += `<line x1="${X(x)}" y1="${pad}" x2="${X(x)}" y2="${H - padB}"/>`;
     for (let y = Math.ceil(o.ymin / ystep) * ystep; y <= o.ymax; y += ystep) s += `<line x1="${padL}" y1="${Y(y)}" x2="${W - pad}" y2="${Y(y)}"/>`;
     s += `</g>`;
-    // axes
-    const x0 = Math.min(Math.max(0, o.xmin), o.xmax), y0 = Math.min(Math.max(0, o.ymin), o.ymax);
     // histogramme : rectangles de a à b, de hauteur h (sous les axes et les étiquettes)
     (o.rects || []).forEach((r) => { s += `<rect class="g-rect" x="${X(r.a)}" y="${Y(r.h)}" width="${+(X(r.b) - X(r.a)).toFixed(1)}" height="${+(Y(y0) - Y(r.h)).toFixed(1)}"/>`; });
-    // si l'origine n'est pas 0 sur un axe, l'autre axe s'arrête à l'origine
+    // axes ; si l'origine n'est pas 0 sur un axe, l'autre axe s'arrête à l'origine
     const axG = y0 !== 0 && x0 > o.xmin ? X(x0) : padL, axB = x0 !== 0 && y0 > o.ymin ? Y(y0) : H - padB;
     s += `<g class="g-axis"><line x1="${axG}" y1="${Y(y0)}" x2="${W - pad}" y2="${Y(y0)}"/><line x1="${X(x0)}" y1="${pad}" x2="${X(x0)}" y2="${axB}"/>`;
     s += `<path d="M${W - pad} ${Y(y0)} l-6 -3.5 v7z"/><path d="M${X(x0)} ${pad} l-3.5 6 h7z"/></g>`;
     // graduations (xetiq / yetiq : un nombre écrit toutes les k unités, par défaut à chaque graduation)
     const xetiq = o.xetiq || xstep, yetiq = o.yetiq || ystep;
-    const gy = X(x0) - ((o.bars || []).some((b) => b.x === x0) ? 8 : 4); // nombres de l'axe vertical, décalés si un bâton est sur l'axe
     s += `<g class="g-tick">`;
     for (let x = Math.ceil(o.xmin / xetiq) * xetiq; x <= o.xmax - xstep / 2; x += xetiq) {
       if (x === 0) continue;
-      s += `<text x="${X(x)}" y="${Y(y0) + 13}" text-anchor="middle">${String(+x.toFixed(6)).replace("-", "−").replace(".", ",")}</text>`;
+      const t = String(+x.toFixed(6)).replace("-", "−").replace(".", ",");
+      if (nombreLibre(X(x), Y(y0) + 13, t, "middle")) s += `<text x="${X(x)}" y="${Y(y0) + 13}" text-anchor="middle">${t}</text>`;
     }
     for (let y = Math.ceil(o.ymin / yetiq) * yetiq; y <= o.ymax - ystep / 2; y += yetiq) {
       if (y === 0) continue;
-      s += `<text x="${gy}" y="${Y(y) + 4}" text-anchor="end">${String(+y.toFixed(6)).replace("-", "−").replace(".", ",")}</text>`;
+      const t = String(+y.toFixed(6)).replace("-", "−").replace(".", ",");
+      if (nombreLibre(gy, Y(y) + 4, t, "end")) s += `<text x="${gy}" y="${Y(y) + 4}" text-anchor="end">${t}</text>`;
     }
     // le 0 : au coin si l'origine est (0 ; 0), sinon sur l'axe où il se trouve
-    if (x0 === 0 && y0 === 0) s += `<text x="${X(x0) - 4}" y="${Y(y0) + 13}" text-anchor="end">0</text>`;
-    else if (x0 === 0) s += `<text x="${X(0)}" y="${Y(y0) + 13}" text-anchor="middle">0</text>`;
-    else if (y0 === 0) s += `<text x="${gy}" y="${Y(0) + 4}" text-anchor="end">0</text>`;
+    if (zero) s += `<text x="${zero[0]}" y="${zero[1]}" text-anchor="${zero[2]}">0</text>`;
     s += `</g>`;
-    if (o.xlabel) s += `<text class="g-label" x="${W - pad}" y="${Y(y0) - 6}" text-anchor="end">${o.xlabel}</text>`;
+    if (placeX) s += `<text class="g-label" x="${placeX[0]}" y="${+placeX[1].toFixed(1)}" text-anchor="end">${o.xlabel}</text>`;
     if (o.ylabel) s += `<text class="g-label" x="${X(x0) + 6}" y="${pad + 8}">${o.ylabel}</text>`;
     // droites horizontales
-    (o.hlines || []).forEach((h) => {
+    (o.hlines || []).forEach((h, k) => {
       s += `<line class="g-hline" x1="${padL}" y1="${Y(h.y)}" x2="${W - pad}" y2="${Y(h.y)}"/>`;
-      if (h.label) s += `<text class="g-hlabel" x="${W - pad - 2}" y="${Y(h.y) - 5}" text-anchor="end">${h.label}</text>`;
+      const e = placesH[k];
+      if (e) s += `<text class="g-hlabel" x="${+e[0].toFixed(1)}" y="${+e[1].toFixed(1)}" text-anchor="${e[2]}">${h.label}</text>`;
     });
     // diagramme en bâtons
     (o.bars || []).forEach((b) => { s += `<line class="g-bar" x1="${X(b.x)}" y1="${Y(y0)}" x2="${X(b.x)}" y2="${Y(b.y)}"/>`; });
@@ -96,25 +157,22 @@
       if (c.closed !== false) {
         s += `<circle class="g-end g-curve-${i}" cx="${X(c.a)}" cy="${Y(c.f(c.a))}" r="3"/><circle class="g-end g-curve-${i}" cx="${X(c.b)}" cy="${Y(c.f(c.b))}" r="3"/>`;
       }
-      if (c.label) {
-        const lx = c.lx !== undefined ? c.lx : c.b;
-        s += `<text class="g-clabel g-curve-${i}" x="${X(lx) + (c.dx || -4)}" y="${Y(c.f(lx)) + (c.dy || -8)}" text-anchor="end">${c.label}</text>`;
-      }
+      const e = placesC[i];
+      if (e) s += `<text class="g-clabel g-curve-${i}" x="${+e[0].toFixed(1)}" y="${+e[1].toFixed(1)}" text-anchor="end">${c.label}</text>`;
     });
     // vecteurs : flèches de (x1 ; y1) à (x2 ; y2), couleur c (0 ou 1), nom affiché au milieu
-    (o.fleches || []).forEach((f) => {
-      const c = f.c || 0, ax = X(f.x1), ay = Y(f.y1), bx = X(f.x2), by = Y(f.y2), t = Math.atan2(by - ay, bx - ax);
+    (o.fleches || []).forEach((f, k) => {
+      const c = f.c || 0, ax = X(f.x1), ay = Y(f.y1), bx = X(f.x2), by = Y(f.y2), t = Math.atan2(by - ay, bx - ax), dd = decalF[k];
       const pt = (r, a) => `${+(bx - r * Math.cos(t + a)).toFixed(1)} ${+(by - r * Math.sin(t + a)).toFixed(1)}`;
       s += `<path class="g-curve g-curve-${c}" d="M${ax} ${ay}L${pt(6, 0)}"/><path class="g-end g-curve-${c}" d="M${bx} ${by}L${pt(11, 0.4)}L${pt(11, -0.4)}Z"/>`;
-      if (f.label) s += `<text class="g-clabel g-curve-${c}" x="${+((ax + bx) / 2 + 9 * Math.sin(t)).toFixed(1)}" y="${+((ay + by) / 2 - 9 * Math.cos(t) + 4).toFixed(1)}" text-anchor="middle">${f.label}</text>`;
+      if (f.label) s += `<text class="g-clabel g-curve-${c}" x="${+((ax + bx) / 2 + dd * Math.sin(t)).toFixed(1)}" y="${+((ay + by) / 2 - dd * Math.cos(t) + 4).toFixed(1)}" text-anchor="middle">${f.label}</text>`;
       // petite flèche au-dessus du nom du vecteur
-      if (f.label && /^[A-Za-z]{1,2}$/.test(f.label)) s += `<text class="g-clabel g-curve-${c}" style="font-size:10px" x="${+((ax + bx) / 2 + 9 * Math.sin(t)).toFixed(1)}" y="${+((ay + by) / 2 - 9 * Math.cos(t) - 7).toFixed(1)}" text-anchor="middle">→</text>`;
+      if (f.label && /^[A-Za-z]{1,2}$/.test(f.label)) s += `<text class="g-clabel g-curve-${c} g-fleche-nom" style="font-size:10px" x="${+((ax + bx) / 2 + dd * Math.sin(t)).toFixed(1)}" y="${+((ay + by) / 2 - dd * Math.cos(t) - 7).toFixed(1)}" text-anchor="middle">→</text>`;
     });
-    (o.points || []).forEach((p) => {
+    (o.points || []).forEach((p, k) => {
       s += `<circle class="g-point" cx="${X(p.x)}" cy="${Y(p.y)}" r="3.5"/>`;
-      if (p.label) s += p.gauche
-        ? `<text class="g-plabel" x="${X(p.x) - 8}" y="${Y(p.y) - 6}" text-anchor="end">${p.label}</text>`
-        : `<text class="g-plabel" x="${X(p.x) + 6}" y="${Y(p.y) - 6}">${p.label}</text>`;
+      const e = placesPoints[k];
+      if (e) s += `<text class="g-plabel" x="${+e[0].toFixed(1)}" y="${+e[1].toFixed(1)}"${e[2] === "end" ? ' text-anchor="end"' : ""}>${p.label}</text>`;
     });
     return s + `</svg>`;
   }
@@ -707,23 +765,65 @@
   };
 
   GEN["taux-reciproque"] = function () {
-    const exacts = [[25, -20], [-20, 25], [100, -50], [-50, 100], [150, -60], [-60, 150], [300, -75], [-75, 300], [60, -37.5], [-37.5, 60], [400, -80], [-80, 400]];
-    const arrondis = [8, 10, 15, 40, -10, -30, -40, 30];
-    let t, r, tol = 1e-9, exact = Math.random() < 0.6;
-    if (exact) [t, r] = pick(exacts);
-    else { t = pick(arrondis); r = +((100 / (1 + t / 100)) - 100).toFixed(2); tol = 0.006; }
-    const CM = 1 + t / 100;
-    const dire = t > 0 ? `une hausse de $${pc(t)}$` : `une baisse de $${pc(-t)}$`;
+    // Taux dont le taux réciproque tombe juste (au plus deux décimales en %), puis taux à arrondir
+    const exacts = [25, -20, 100, -50, 150, -60, 300, -75, 60, -37.5, 400, -80, -36, 56.25, 220, -68.75, -68, 212.5];
+    const arrondis = [8, 10, 15, 40, -10, -30, -40, 30, 2, 3, 4, 5, 6, 7, 9, 12, 18, 20, 35, 45, 50, 70, 80, -2, -3, -4, -5, -6, -8, -12, -15, -25, -35, -45];
+    const reciproque = (t) => {
+      const CM = +(1 + t / 100).toFixed(6), x = 10000 / (100 + t) - 100;
+      const exact = Math.abs(x * 100 - Math.round(x * 100)) < 1e-6;
+      return { CM, exact, r: exact ? +x.toFixed(4) : +x.toFixed(2), tol: exact ? 1e-9 : 0.006, CMp: +(1 / CM).toFixed(exact ? 6 : 4) };
+    };
+    const ARR = " (arrondi à $0{,}01\\,\\%$)";
+    const dire = (t) => (t > 0 ? `une hausse de $${pc(t)}$` : `une baisse de $${pc(-t)}$`);
+    const erreurs = (t, r) => [{ valeur: -t, message: "Ce n'est pas le taux changé de signe : l'évolution réciproque part de la valeur **déjà modifiée**." }, { valeur: -r, message: `Attention au signe : pour revenir à la valeur de départ, il faut ${r < 0 ? "une **baisse**, donc un taux négatif" : "une **hausse**, donc un taux positif"}.` }];
+    const AIDES = (E) => [
+      `Coefficient de l'évolution : $CM = ${fr(E.CM)}$.`,
+      `Coefficient réciproque : $CM' = \\dfrac{1}{CM} = \\dfrac{1}{${fr(E.CM)}}${E.exact ? ` = ${fr(E.CMp)}` : ` \\approx ${fr(E.CMp)}`}$.`,
+      "Taux réciproque : $t' = CM' - 1$, puis en pourcentage."
+    ];
+    const SOL = (E) => `$CM' = \\dfrac{1}{${fr(E.CM)}} ${E.exact ? "=" : "\\approx"} ${fr(+E.CMp.toFixed(4))}$ donc $t' ${E.exact ? "=" : "\\approx"} ${sgnPc(E.r)}$.`;
+    const genre = pick(["taux", "taux", "taux", "contexte", "contexte", "valeurs", "coef"]);
+    if (genre === "contexte") {
+      const t = Math.random() < 0.5 ? pick(exacts.filter((v) => Math.abs(v) <= 100)) : pick(arrondis), E = reciproque(t);
+      const ctx = pick(["Le prix du kilo de mangues au marché de Mamoudzou", "Le prix d'un régime de bananes", "Le prix du ticket de barge", "La production d'ylang-ylang d'une exploitation de Combani", "Le nombre de touristes venus plonger dans le lagon", "Le loyer d'un appartement à Sada", "Le nombre d'élèves inscrits au club de foot du lycée"]);
+      return {
+        enonce: `${ctx} a ${t > 0 ? "augmenté" : "baissé"} de $${pc(Math.abs(t))}$ en un an. Quel taux d'évolution faudrait-il appliquer ensuite pour revenir à la valeur de départ ?${E.exact ? "" : ARR}`,
+        mode: "nombre", prefixe: "t′ =", suffixe: "%", attendu: E.r, tolerance: E.tol,
+        erreurs: erreurs(t, E.r),
+        aides: AIDES(E),
+        solution: SOL(E) + `\n\nPour annuler ${dire(t)}, il faut ${E.r < 0 ? "une baisse" : "une hausse"} ${E.exact ? "de" : "d'environ"} $${pc(Math.abs(E.r))}$ : ce n'est pas le même pourcentage, car il s'applique à la valeur **modifiée**.`
+      };
+    }
+    if (genre === "valeurs") {
+      // V1 → V2 = V1 × CM, puis retour de V2 à V1
+      let V1, t, V2;
+      do { V1 = pick([20, 40, 50, 60, 80, 100, 120, 150, 200, 250, 400, 500]); t = pick(Math.random() < 0.5 ? exacts : arrondis); V2 = +(V1 * (1 + t / 100)).toFixed(6); } while (Math.abs(t) > 100 || Math.abs(V2 * 100 - Math.round(V2 * 100)) > 1e-6);
+      const E = reciproque(t), d = +(V1 - V2).toFixed(2);
+      return {
+        enonce: `Le prix d'un article passe de $${fr(V1)}$ € à $${fr(V2)}$ €. Quel taux d'évolution permettrait de le ramener de $${fr(V2)}$ € à $${fr(V1)}$ € ?${E.exact ? "" : ARR}`,
+        mode: "nombre", prefixe: "t′ =", suffixe: "%", attendu: E.r, tolerance: E.tol,
+        erreurs: erreurs(t, E.r),
+        aides: [`Pour le retour, la valeur de départ est $${fr(V2)}$ € et la valeur d'arrivée $${fr(V1)}$ €.`, `$t' = \\dfrac{V_{\\text{arrivée}} - V_{\\text{départ}}}{V_{\\text{départ}}} = \\dfrac{${fr(V1)} - ${fr(V2)}}{${fr(V2)}}$.`, "Multiplie le résultat par $100$ pour l'écrire en pourcentage."],
+        solution: `$t' = \\dfrac{${fr(V1)} - ${fr(V2)}}{${fr(V2)}} = \\dfrac{${fr(d)}}{${fr(V2)}} ${E.exact ? "=" : "\\approx"} ${fr(+(E.r / 100).toFixed(4))}$, soit $${E.exact ? "" : "\\approx "}${sgnPc(E.r)}$.\n\nOn peut aussi passer par les coefficients : $CM = \\dfrac{${fr(V2)}}{${fr(V1)}} = ${fr(E.CM)}$ et $CM' = \\dfrac{1}{CM}$.`
+      };
+    }
+    if (genre === "coef") {
+      const t = Math.random() < 0.5 ? pick(exacts) : pick(arrondis), E = reciproque(t);
+      return {
+        enonce: `Une évolution a pour coefficient multiplicateur $CM = ${fr(E.CM)}$. Quel est le coefficient multiplicateur $CM'$ de l'évolution réciproque, celle qui ramène à la valeur de départ ?${E.exact ? "" : " (arrondi à $0{,}0001$)"}`,
+        mode: "nombre", prefixe: "CM′ =", attendu: E.CMp, tolerance: E.exact ? 1e-9 : 0.00006,
+        erreurs: [{ valeur: +(2 - E.CM).toFixed(6), message: `Ce n'est pas $2 - ${fr(E.CM)}$ : on ne change pas simplement le signe du taux. Le coefficient réciproque est l'**inverse** : $CM' = \\dfrac{1}{CM}$.` }],
+        aides: ["Appliquer l'évolution puis sa réciproque ne change rien : $CM \\times CM' = 1$.", "Donc $CM' = \\dfrac{1}{CM}$.", `Calcule $\\dfrac{1}{${fr(E.CM)}}$${E.exact ? "" : " et arrondis à $0{,}0001$"}.`],
+        solution: `$CM' = \\dfrac{1}{${fr(E.CM)}} ${E.exact ? "=" : "\\approx"} ${fr(E.CMp)}$.\n\n${t > 0 ? "Une hausse" : "Une baisse"} de $${pc(Math.abs(t))}$ est donc annulée par ${E.r < 0 ? "une baisse" : "une hausse"} ${E.exact ? "de" : "d'environ"} $${pc(Math.abs(E.r))}$.`
+      };
+    }
+    const exact = Math.random() < 0.6, t = exact ? pick(exacts) : pick(arrondis), E = reciproque(t);
     return {
-      enonce: `Quel taux d'évolution permet d'annuler ${dire} et de revenir à la valeur initiale ?${exact ? "" : " (arrondi à $0{,}01\\,\\%$)"}`,
-      mode: "nombre", prefixe: "t′ =", suffixe: "%", attendu: r, tolerance: tol,
-      erreurs: [{ valeur: -t, message: "Ce n'est pas le taux changé de signe : l'évolution réciproque part de la valeur **déjà modifiée**." }],
-      aides: [
-        `Coefficient de l'évolution : $CM = ${fr(CM)}$.`,
-        `Coefficient réciproque : $CM' = \\dfrac{1}{CM} = \\dfrac{1}{${fr(CM)}}${exact ? ` = ${fr(1 / CM)}` : ` \\approx ${fr(+(1 / CM).toFixed(4))}`}$.`,
-        "Taux réciproque : $t' = CM' - 1$, puis en pourcentage."
-      ],
-      solution: `$CM' = \\dfrac{1}{${fr(CM)}} ${exact ? "=" : "\\approx"} ${fr(+(1 / CM).toFixed(4))}$ donc $t' ${exact ? "=" : "\\approx"} ${sgnPc(r)}$.`
+      enonce: `Quel taux d'évolution permet d'annuler ${dire(t)} et de revenir à la valeur initiale ?${E.exact ? "" : ARR}`,
+      mode: "nombre", prefixe: "t′ =", suffixe: "%", attendu: E.r, tolerance: E.tol,
+      erreurs: erreurs(t, E.r),
+      aides: AIDES(E),
+      solution: SOL(E)
     };
   };
 
@@ -864,31 +964,87 @@
   };
 
   GEN["auto-pythagore"] = function () {
-    const [p, q, r] = pick([[3, 4, 5], [6, 8, 10], [5, 12, 13], [8, 15, 17], [9, 12, 15], [7, 24, 25], [12, 16, 20]]);
-    const mode = pick(["hyp", "hyp", "cote", "reci"]);
+    const entiers = [[3, 4, 5], [6, 8, 10], [5, 12, 13], [8, 15, 17], [9, 12, 15], [7, 24, 25], [12, 16, 20], [15, 20, 25], [10, 24, 26], [20, 21, 29]];
+    const mode = pick(["hyp", "hyp", "cote", "cote", "reci", "reci", "exact", "contexte"]);
+    const c2 = (x) => fr(+(x * x).toFixed(6)); // carré écrit à la française
+    const sansDoublon = (errs, att) => errs.filter((e) => Math.abs(e.valeur - att) > 1e-9);
+    // Triangle rectangle : nom, sommet de l'angle droit, côtés de l'angle droit L1, L2 et hypoténuse H
+    const tri = () => {
+      const N = pick(["ABC", "DEF", "MNP", "RST", "IJK", "EFG", "KLM"]), i = rand(0, 2), R = N[i];
+      const [O1, O2] = N.split("").filter((_, k) => k !== i);
+      const seg = (a, b) => (N.indexOf(a) < N.indexOf(b) ? a + b : b + a);
+      return { N, R, L1: seg(R, O1), L2: seg(R, O2), H: seg(O1, O2) };
+    };
     if (mode === "reci") {
-      const ok = Math.random() < 0.5, c = ok ? r : r + 1;
+      const [p, q, r] = pick(entiers), ok = Math.random() < 0.5;
+      let s = ok ? [p, q, r] : pick([[p, q, r + 1], [p, q, r - 1], [p + 1, q, r], [p, q + 1, r]]);
+      if (s[2] <= Math.max(s[0], s[1])) s = [p, q, r + 1];
+      const L = Math.max(...s), [o1, o2] = s.filter((x, k) => k !== s.indexOf(L));
+      const vrai = L * L === o1 * o1 + o2 * o2;
+      const aff = Math.random() < 0.5 ? s : shuffle(s);
       return {
-        enonce: `Un triangle a pour côtés $${p}$, $${q}$ et $${c}$. Est-il rectangle ?`,
-        mode: "choix", choix: ["Oui", "Non"], attendu: ok ? 0 : 1,
-        aides: ["Compare le carré du plus grand côté à la somme des carrés des deux autres.", `$${c}^2 = ${c * c}$ et $${p}^2 + ${q}^2 = ${p * p + q * q}$.`, "Égalité : rectangle (réciproque de Pythagore). Sinon : pas rectangle."],
-        solution: `$${c}^2 = ${c * c}$ et $${p}^2 + ${q}^2 = ${p * p + q * q}$. ` + (ok ? "Égalité : le triangle est **rectangle**." : "Pas d'égalité : le triangle **n'est pas rectangle**.")
+        enonce: `Un triangle a pour côtés $${aff[0]}$, $${aff[1]}$ et $${aff[2]}$. Est-il rectangle ?`,
+        mode: "choix", choix: ["Oui", "Non"], attendu: vrai ? 0 : 1,
+        aides: ["Compare le carré du plus grand côté à la somme des carrés des deux autres.", `$${L}^2 = ${L * L}$ et $${o1}^2 + ${o2}^2 = ${o1 * o1 + o2 * o2}$.`, "Égalité : rectangle (réciproque de Pythagore). Sinon : pas rectangle."],
+        solution: `Le plus grand côté mesure $${L}$. $${L}^2 = ${L * L}$ et $${o1}^2 + ${o2}^2 = ${o1 * o1 + o2 * o2}$. ` + (vrai ? "Égalité : le triangle est **rectangle** (réciproque du théorème de Pythagore)." : "Pas d'égalité : le triangle **n'est pas rectangle**.")
       };
     }
+    if (mode === "exact") {
+      // valeur exacte sous la forme √n
+      const T = tri(), hyp = Math.random() < 0.6;
+      let a, b, n;
+      if (hyp) { do { a = rand(1, 9); b = rand(1, 9); n = a * a + b * b; } while (Number.isInteger(Math.sqrt(n))); }
+      else { do { b = rand(3, 11); a = rand(1, b - 1); n = b * b - a * a; } while (Number.isInteger(Math.sqrt(n))); }
+      const cherche = hyp ? T.H : T.L2;
+      return {
+        enonce: hyp ? `$${T.N}$ est rectangle en $${T.R}$ avec $${T.L1} = ${a}$ et $${T.L2} = ${b}$. La valeur exacte de $${T.H}$ s'écrit $\\sqrt{n}$. Que vaut $n$ ?` : `$${T.N}$ est rectangle en $${T.R}$ avec $${T.H} = ${b}$ et $${T.L1} = ${a}$. La valeur exacte de $${T.L2}$ s'écrit $\\sqrt{n}$. Que vaut $n$ ?`,
+        mode: "nombre", prefixe: "n =", attendu: n,
+        erreurs: sansDoublon(hyp ? [{ valeur: a + b, message: "On additionne les **carrés** des longueurs, pas les longueurs." }] : [{ valeur: a * a + b * b, message: `$[${T.H}]$ est l'hypoténuse, le plus grand côté : il faut **soustraire** les carrés.` }, { valeur: b - a, message: "On soustrait les **carrés** des longueurs, pas les longueurs." }], n),
+        aides: [`$[${T.H}]$ est l'hypoténuse : $${T.H}^2 = ${T.L1}^2 + ${T.L2}^2$.`, hyp ? `$${T.H}^2 = ${a}^2 + ${b}^2 = ${a * a} + ${b * b}$.` : `$${T.L2}^2 = ${T.H}^2 - ${T.L1}^2 = ${b * b} - ${a * a}$.`, `Si $${cherche}^2 = n$, alors $${cherche} = \\sqrt{n}$ : c'est la valeur exacte, on ne l'arrondit pas.`],
+        solution: `$${cherche}^2 = ${hyp ? `${a}^2 + ${b}^2` : `${b}^2 - ${a}^2`} = ${n}$, donc $${cherche} = \\sqrt{${n}}$ (environ $${fr(+Math.sqrt(n).toFixed(2))}$) : $n = ${n}$.`
+      };
+    }
+    if (mode === "contexte") {
+      const k = pick(["echelle", "terrain", "kayak"]);
+      if (k === "echelle") {
+        const [d, h, L] = pick([[1.5, 2, 2.5], [0.5, 1.2, 1.3], [1, 2.4, 2.6], [1.6, 3, 3.4], [0.9, 1.2, 1.5], [1.2, 1.6, 2], [2.1, 2.8, 3.5], [3, 4, 5]]);
+        return {
+          enonce: `Une échelle de $${fr(L)}$ m est appuyée contre un mur vertical. Son pied est posé sur le sol horizontal, à $${fr(d)}$ m du mur. À quelle hauteur le haut de l'échelle touche-t-il le mur ?`,
+          mode: "nombre", prefixe: "Hauteur :", suffixe: "m", attendu: h,
+          erreurs: sansDoublon([{ valeur: +(L - d).toFixed(6), message: "On ne soustrait pas les longueurs : on soustrait leurs **carrés**." }, { valeur: +(h * h).toFixed(6), message: "Ça, c'est le carré de la hauteur : il reste à prendre la racine carrée." }], h),
+          aides: ["Le mur et le sol forment un angle droit : l'échelle est l'**hypoténuse** du triangle rectangle.", `$h^2 = ${fr(L)}^2 - ${fr(d)}^2 = ${c2(L)} - ${c2(d)} = ${c2(h)}$.`, `$h = \\sqrt{${c2(h)}}$.`],
+          solution: `Le triangle formé par le mur, le sol et l'échelle est rectangle, d'hypoténuse l'échelle. $h^2 = ${fr(L)}^2 - ${fr(d)}^2 = ${c2(h)}$, donc $h = ${fr(h)}$ m.`
+        };
+      }
+      const [a, b, r] = k === "terrain" ? pick([[30, 40, 50], [60, 80, 100], [45, 60, 75], [24, 32, 40], [50, 120, 130], [36, 48, 60], [90, 120, 150]]) : pick([[3, 4, 5], [6, 8, 10], [1.2, 1.6, 2], [0.9, 1.2, 1.5], [5, 12, 13], [1.5, 2, 2.5]]);
+      const u = k === "terrain" ? "m" : "km";
+      return {
+        enonce: k === "terrain" ? `Un terrain de football de Mamoudzou est un rectangle de $${fr(b)}$ m sur $${fr(a)}$ m. Quelle est la longueur de sa diagonale ?` : `Un kayak part de la plage de N'Gouja. Il parcourt $${fr(a)}$ km vers le nord, puis $${fr(b)}$ km vers l'est. À quelle distance de son point de départ se trouve-t-il, à vol d'oiseau ?`,
+        mode: "nombre", prefixe: k === "terrain" ? "Diagonale :" : "Distance :", suffixe: u, attendu: r,
+        erreurs: sansDoublon([{ valeur: +(a + b).toFixed(6), message: "On n'additionne pas les longueurs : on additionne leurs **carrés**." }, { valeur: +(r * r).toFixed(6), message: "Ça, c'est le carré de la distance : il reste à prendre la racine carrée." }], r),
+        aides: [k === "terrain" ? "Les côtés d'un rectangle sont perpendiculaires : la diagonale est l'**hypoténuse** d'un triangle rectangle." : "Le nord et l'est sont perpendiculaires : la distance cherchée est l'**hypoténuse** d'un triangle rectangle.", `$d^2 = ${fr(a)}^2 + ${fr(b)}^2 = ${c2(a)} + ${c2(b)} = ${c2(r)}$.`, `$d = \\sqrt{${c2(r)}}$.`],
+        solution: `D'après le théorème de Pythagore, $d^2 = ${fr(a)}^2 + ${fr(b)}^2 = ${c2(r)}$, donc $d = \\sqrt{${c2(r)}} = ${fr(r)}$ ${u}.`
+      };
+    }
+    // Calcul d'un côté avec les longueurs entières ou décimales d'un triangle « pythagoricien »
+    const [p, q, r] = pick(entiers.concat([[1.5, 2, 2.5], [0.6, 0.8, 1], [0.5, 1.2, 1.3]]));
+    const T = tri();
+    const [a, b] = Math.random() < 0.5 ? [p, q] : [q, p];
     if (mode === "hyp") {
       return {
-        enonce: `$ABC$ est rectangle en $A$ avec $AB = ${p}$ et $AC = ${q}$. Calcule $BC$.`,
-        mode: "nombre", prefixe: "BC =", attendu: r,
-        erreurs: [{ valeur: p + q, message: "On n'additionne pas les longueurs : on additionne leurs **carrés**." }],
-        aides: ["$[BC]$ est l'hypoténuse : $BC^2 = AB^2 + AC^2$.", `$BC^2 = ${p * p} + ${q * q} = ${r * r}$.`, `$BC = \\sqrt{${r * r}}$.`],
-        solution: `$BC^2 = ${p}^2 + ${q}^2 = ${r * r}$, donc $BC = \\sqrt{${r * r}} = ${r}$.`
+        enonce: `$${T.N}$ est rectangle en $${T.R}$ avec $${T.L1} = ${fr(a)}$ et $${T.L2} = ${fr(b)}$. Calcule $${T.H}$.`,
+        mode: "nombre", prefixe: `${T.H} =`, attendu: r,
+        erreurs: sansDoublon([{ valeur: +(a + b).toFixed(6), message: "On n'additionne pas les longueurs : on additionne leurs **carrés**." }, { valeur: +(r * r).toFixed(6), message: `Ça, c'est $${T.H}^2$ : il reste à prendre la racine carrée.` }], r),
+        aides: [`$[${T.H}]$ est l'hypoténuse : $${T.H}^2 = ${T.L1}^2 + ${T.L2}^2$.`, `$${T.H}^2 = ${c2(a)} + ${c2(b)} = ${c2(r)}$.`, `$${T.H} = \\sqrt{${c2(r)}}$.`],
+        solution: `$${T.H}^2 = ${fr(a)}^2 + ${fr(b)}^2 = ${c2(r)}$, donc $${T.H} = \\sqrt{${c2(r)}} = ${fr(r)}$.`
       };
     }
     return {
-      enonce: `$DEF$ est rectangle en $E$ avec $DF = ${r}$ et $DE = ${p}$. Calcule $EF$.`,
-      mode: "nombre", prefixe: "EF =", attendu: q,
-      aides: ["$[DF]$ est l'hypoténuse : $DF^2 = DE^2 + EF^2$.", `$EF^2 = DF^2 - DE^2 = ${r * r} - ${p * p} = ${q * q}$.`, `$EF = \\sqrt{${q * q}}$.`],
-      solution: `$EF^2 = ${r}^2 - ${p}^2 = ${q * q}$, donc $EF = ${q}$.`
+      enonce: `$${T.N}$ est rectangle en $${T.R}$ avec $${T.H} = ${fr(r)}$ et $${T.L1} = ${fr(a)}$. Calcule $${T.L2}$.`,
+      mode: "nombre", prefixe: `${T.L2} =`, attendu: b,
+      erreurs: sansDoublon([{ valeur: +(r - a).toFixed(6), message: "On ne soustrait pas les longueurs : on soustrait leurs **carrés**." }, { valeur: +(b * b).toFixed(6), message: `Ça, c'est $${T.L2}^2$ : il reste à prendre la racine carrée.` }], b),
+      aides: [`$[${T.H}]$ est l'hypoténuse : $${T.H}^2 = ${T.L1}^2 + ${T.L2}^2$.`, `$${T.L2}^2 = ${T.H}^2 - ${T.L1}^2 = ${c2(r)} - ${c2(a)} = ${c2(b)}$.`, `$${T.L2} = \\sqrt{${c2(b)}}$.`],
+      solution: `$${T.L2}^2 = ${fr(r)}^2 - ${fr(a)}^2 = ${c2(b)}$, donc $${T.L2} = ${fr(b)}$.`
     };
   };
 
@@ -1422,14 +1578,74 @@
   };
 
   GEN["ld-bernoulli"] = function () {
-    const p = pick([0.1, 0.2, 0.25, 0.3, 0.4, 0.6, 0.7, 0.8, 0.9]);
-    const q = pick(["E", "V"]);
+    const t = pick(["E", "V", "E", "V", "P0", "s", "ctx", "ctx", "frac", "frac"]);
+    // 1) Paramètre donné directement (les deux questions d'origine, plus P(X = 0) et l'écart type)
+    if (t === "E" || t === "V" || t === "P0" || t === "s") {
+      const p = pick([0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95]);
+      const q = arr(1 - p, 6), V = arr(p * q, 6), s = Math.sqrt(p * q);
+      if (t === "P0") return {
+        enonce: `$X$ suit la loi de Bernoulli de paramètre $p = ${fr(p)}$. Calcule $P(X = 0)$.`,
+        mode: "nombre", prefixe: "P(X = 0) =", attendu: q, tolerance: 1e-6,
+        erreurs: [{ valeur: p, message: "Ça, c'est $P(X = 1)$, la probabilité du succès. $X = 0$ correspond à l'échec." }],
+        aides: ["$X$ vaut $1$ (succès) avec la probabilité $p$, et $0$ (échec) avec la probabilité $1 - p$.", "L'événement $\\{X = 0\\}$ est l'échec.", `$P(X = 0) = 1 - ${fr(p)}$.`],
+        solution: `$\\{X = 0\\}$ est l'échec : $P(X = 0) = 1 - p = 1 - ${fr(p)} = ${fr(q)}$.`
+      };
+      if (t === "s") return {
+        enonce: `$X$ suit la loi de Bernoulli de paramètre $p = ${fr(p)}$. Calcule l'écart type $\\sigma(X)$, arrondi au centième.`,
+        mode: "nombre", prefixe: "σ(X) ≈", attendu: arr(s, 2), tolerance: 0.006,
+        erreurs: [{ valeur: V, message: "Ça, c'est la variance $p(1 - p)$. L'écart type est sa racine carrée." }, { valeur: p, message: "Ça, c'est l'espérance. L'écart type vaut $\\sqrt{p(1 - p)}$." }],
+        aides: ["$V(X) = p(1 - p)$ et $\\sigma(X) = \\sqrt{V(X)}$.", `$V(X) = ${fr(p)} \\times ${fr(q)} = ${fr(V)}$.`, `$\\sigma(X) = \\sqrt{${fr(V)}}$ : arrondis au centième.`],
+        solution: `$V(X) = ${fr(p)} \\times ${fr(q)} = ${fr(V)}$, donc $\\sigma(X) = \\sqrt{${fr(V)}} \\approx ${fr(arr(s, 2))}$.`
+      };
+      return {
+        enonce: `$X$ suit la loi de Bernoulli de paramètre $p = ${fr(p)}$. Calcule ${t === "E" ? "$E(X)$" : "la variance $V(X)$"}.`,
+        mode: "nombre", prefixe: t === "E" ? "E(X) =" : "V(X) =", attendu: t === "E" ? p : V, tolerance: 1e-6,
+        erreurs: t === "V" ? [{ valeur: p, message: "Ça, c'est l'espérance. La variance vaut $p(1 - p)$." }, { valeur: arr(s, 6), message: "Ça, c'est l'écart type. La variance, c'est $p(1 - p)$, sans racine." }] : [{ valeur: q, message: "$1 - p$ est la probabilité de l'échec. L'espérance vaut $p$." }],
+        aides: ["$X$ vaut $1$ (succès) avec la probabilité $p$, et $0$ (échec) avec la probabilité $1 - p$.", "$E(X) = p$ et $V(X) = p(1 - p)$.", t === "E" ? `$E(X) = 1 \\times ${fr(p)} + 0 \\times ${fr(q)}$.` : `$V(X) = ${fr(p)} \\times ${fr(q)}$.`],
+        solution: t === "E" ? `$E(X) = p = ${fr(p)}$` : `$V(X) = p(1 - p) = ${fr(p)} \\times ${fr(q)} = ${fr(V)}$`
+      };
+    }
+    const qq = pick(["E", "V", "V"]);
+    // 2) Une épreuve en contexte, probabilité décimale
+    if (t === "ctx") {
+      const [txt, ps] = pick([
+        [(p) => `Au marché de Mamoudzou, un client pris au hasard achète des bananes avec la probabilité $${fr(p)}$. $X$ vaut $1$ s'il en achète, $0$ sinon.`, [0.3, 0.4, 0.45, 0.6, 0.65]],
+        [(p) => `Un pêcheur de Sada part en mer : il ramène plus de $10$ kg de poissons avec la probabilité $${fr(p)}$. $X$ vaut $1$ dans ce cas, $0$ sinon.`, [0.35, 0.55, 0.6, 0.7, 0.8]],
+        [(p) => `Une tortue observée au hasard à N'Gouja est une tortue verte avec la probabilité $${fr(p)}$. $X$ vaut $1$ si c'est une tortue verte, $0$ sinon.`, [0.75, 0.8, 0.85, 0.9]],
+        [(p) => `Un matin, la barge de Petite-Terre part en retard avec la probabilité $${fr(p)}$. $X$ vaut $1$ si elle part en retard, $0$ sinon.`, [0.1, 0.15, 0.2, 0.25, 0.3]],
+        [(p) => `Une fleur d'ylang-ylang cueillie au hasard est de première qualité avec la probabilité $${fr(p)}$. $X$ vaut $1$ si elle l'est, $0$ sinon.`, [0.4, 0.45, 0.5, 0.55, 0.6]],
+        [(p) => `Un élève de Chirongui oublie sa calculatrice avec la probabilité $${fr(p)}$. $X$ vaut $1$ s'il l'oublie, $0$ sinon.`, [0.05, 0.1, 0.15, 0.2]]
+      ]);
+      const p = pick(ps), q = arr(1 - p, 6), V = arr(p * q, 6);
+      return {
+        enonce: `${txt(p)} Calcule ${qq === "E" ? "son espérance $E(X)$" : "sa variance $V(X)$"}.`,
+        mode: "nombre", prefixe: qq === "E" ? "E(X) =" : "V(X) =", attendu: qq === "E" ? p : V, tolerance: 1e-6,
+        erreurs: qq === "E" ? [{ valeur: q, message: "$1 - p$ est la probabilité de l'échec. L'espérance vaut $p$." }] : [{ valeur: p, message: "Ça, c'est l'espérance. La variance vaut $p(1 - p)$." }, { valeur: arr(Math.sqrt(p * q), 6), message: "Ça, c'est l'écart type. La variance, c'est $p(1 - p)$, sans racine." }],
+        aides: ["Une seule épreuve à deux issues, codée $1$ (succès) ou $0$ (échec) : c'est une loi de Bernoulli.", `Ici le succès a la probabilité $p = ${fr(p)}$.`, qq === "E" ? "$E(X) = p$." : `$V(X) = p(1 - p) = ${fr(p)} \\times ${fr(q)}$.`],
+        solution: `$X$ suit la loi de Bernoulli de paramètre $p = ${fr(p)}$. ${qq === "E" ? `$E(X) = p = ${fr(p)}$.` : `$V(X) = p(1 - p) = ${fr(p)} \\times ${fr(q)} = ${fr(V)}$.`}`
+      };
+    }
+    // 3) Une épreuve équiprobable : p est une fraction
+    const [txt, n, d] = pick([
+      ["On lance un dé équilibré à $6$ faces. $X$ vaut $1$ si on obtient un six, $0$ sinon.", 1, 6],
+      ["On lance un dé équilibré à $6$ faces. $X$ vaut $1$ si on obtient un multiple de $3$, $0$ sinon.", 2, 6],
+      ["On lance un dé équilibré à $6$ faces. $X$ vaut $1$ si on obtient au moins $5$, $0$ sinon.", 2, 6],
+      ["Un élève répond au hasard à une question à $3$ choix, dont un seul est juste. $X$ vaut $1$ si sa réponse est juste, $0$ sinon.", 1, 3],
+      ["On tire une carte au hasard dans un jeu de $32$ cartes. $X$ vaut $1$ si c'est un as, $0$ sinon.", 4, 32],
+      ["On tire une carte au hasard dans un jeu de $32$ cartes. $X$ vaut $1$ si c'est un cœur, $0$ sinon.", 8, 32],
+      ["On tire une boule au hasard dans une urne de $2$ boules rouges et $5$ boules bleues. $X$ vaut $1$ si la boule est rouge, $0$ sinon.", 2, 7],
+      ["Une roue équilibrée est partagée en $8$ secteurs égaux, dont $3$ rouges. On la fait tourner une fois. $X$ vaut $1$ si elle s'arrête sur le rouge, $0$ sinon.", 3, 8],
+      ["Un sac contient $10$ mangues, dont $3$ encore vertes. On en prend une au hasard. $X$ vaut $1$ si elle est verte, $0$ sinon.", 3, 10],
+      ["Dans une classe de $35$ élèves, $14$ prennent la barge chaque matin. On interroge un élève au hasard. $X$ vaut $1$ s'il prend la barge, $0$ sinon.", 14, 35]
+    ]);
+    const g = pgcd(n, d), a = n / g, b = d / g, p = a / b, ptex = frac(a, b), qtex = frac(b - a, b);
+    const Vtex = frac(a * (b - a), b * b), V = (a * (b - a)) / (b * b), dec3 = (x) => Math.abs(x * 1000 - Math.round(x * 1000)) < 1e-9;
     return {
-      enonce: `$X$ suit la loi de Bernoulli de paramètre $p = ${fr(p)}$. Calcule ${q === "E" ? "$E(X)$" : "la variance $V(X)$"}.`,
-      mode: "nombre", prefixe: q === "E" ? "E(X) =" : "V(X) =", attendu: q === "E" ? p : arr(p * (1 - p), 6), tolerance: 1e-6,
-      erreurs: q === "V" ? [{ valeur: p, message: "Ça, c'est l'espérance. La variance vaut $p(1 - p)$." }, { valeur: arr(Math.sqrt(p * (1 - p)), 6), message: "Ça, c'est l'écart type. La variance, c'est $p(1 - p)$, sans racine." }] : [{ valeur: arr(1 - p, 6), message: "$1 - p$ est la probabilité de l'échec. L'espérance vaut $p$." }],
-      aides: ["$X$ vaut $1$ (succès) avec la probabilité $p$, et $0$ (échec) avec la probabilité $1 - p$.", "$E(X) = p$ et $V(X) = p(1 - p)$.", q === "E" ? `$E(X) = 1 \\times ${fr(p)} + 0 \\times ${fr(1 - p)}$.` : `$V(X) = ${fr(p)} \\times ${fr(1 - p)}$.`],
-      solution: q === "E" ? `$E(X) = p = ${fr(p)}$` : `$V(X) = p(1 - p) = ${fr(p)} \\times ${fr(1 - p)} = ${fr(arr(p * (1 - p), 6))}$`
+      enonce: `${txt} Calcule ${qq === "E" ? "$E(X)$" : "$V(X)$"}. (Fraction, ou décimal arrondi au millième.)`,
+      mode: "nombre", prefixe: qq === "E" ? "E(X) =" : "V(X) =", attendu: qq === "E" ? p : V, tolerance: 0.0006,
+      erreurs: qq === "E" ? [{ valeur: 1 - p, message: "$1 - p$ est la probabilité de l'échec. L'espérance vaut $p$." }] : [{ valeur: p, message: "Ça, c'est l'espérance. La variance vaut $p(1 - p)$." }, { valeur: Math.sqrt(V), message: "Ça, c'est l'écart type. La variance, c'est $p(1 - p)$, sans racine." }],
+      aides: ["$X$ suit une loi de Bernoulli : commence par trouver la probabilité $p$ du succès.", `Issues équiprobables : $p = \\dfrac{\\text{nombre d'issues favorables}}{\\text{nombre d'issues}} = \\dfrac{${n}}{${d}}${g > 1 ? ` = ${ptex}` : ""}$.`, qq === "E" ? "$E(X) = p$." : `$V(X) = p(1 - p) = ${ptex} \\times ${qtex}$.`],
+      solution: `$X$ suit la loi de Bernoulli de paramètre $p = ${ptex}$. ${qq === "E" ? `$E(X) = p = ${ptex}${dec3(p) ? ` = ${fr(p)}` : ` \\approx ${fr(arr(p, 3))}`}$.` : `$V(X) = p(1 - p) = ${ptex} \\times ${qtex} = ${Vtex}${dec3(V) ? ` = ${fr(V)}` : ` \\approx ${fr(arr(V, 3))}`}$.`}`
     };
   };
 
@@ -1560,6 +1776,7 @@
   };
 
   GEN["ld-choisir-loi"] = function () {
+    // [situation, loi (0 uniforme, 1 Bernoulli, 2 binomiale, 3 géométrique, 4 aucune), précision facultative pour la correction]
     const S = [
       ["On tire au hasard un numéro parmi $1$, $2$, …, $20$, tous équiprobables. $X$ est le numéro obtenu.", 0],
       ["On choisit au hasard un jour du mois d'avril (du $1$ au $30$). $X$ est le numéro du jour.", 0],
@@ -1571,15 +1788,41 @@
       ["On lance un dé jusqu'à obtenir un six. $X$ est le nombre de lancers effectués.", 3],
       ["Léa tente des carreaux à la pétanque jusqu'au premier réussi ($20\\,\\%$ de réussite à chaque essai). $X$ est le rang du premier carreau réussi.", 3],
       ["Un pêcheur de N'Gouja lance sa ligne jusqu'à la première prise, avec la même chance à chaque lancer. $X$ est le numéro du lancer gagnant.", 3],
-      ["On tire $3$ boules **sans remise** dans une urne de $2$ rouges et $3$ bleues. $X$ compte les rouges.", 4]
+      ["On tire $3$ boules **sans remise** dans une urne de $2$ rouges et $3$ bleues. $X$ compte les rouges.", 4],
+      // Uniforme
+      ["On lance un dé équilibré à $6$ faces. $X$ est le numéro de la face obtenue.", 0, "Chaque face, de $1$ à $6$, a la probabilité $\\dfrac{1}{6}$."],
+      ["Une roue équilibrée est partagée en $8$ secteurs égaux numérotés de $1$ à $8$. On la fait tourner une fois ; $X$ est le numéro du secteur obtenu.", 0, "Les $8$ secteurs sont égaux : chaque numéro a la probabilité $\\dfrac{1}{8}$."],
+      ["Pour l'oral, chaque élève d'une classe de $30$ tire au sort un numéro de passage parmi $1$, $2$, …, $30$. On s'intéresse au numéro $X$ tiré par Nassim.", 0, "Nassim a autant de chances de tirer chacun des $30$ numéros."],
+      ["Au marché de Mamoudzou, un vendeur range $12$ mangues dans des cases numérotées de $1$ à $12$. Un client en prend une au hasard ; $X$ est le numéro de sa case.", 0, "Chaque case a la probabilité $\\dfrac{1}{12}$ d'être choisie."],
+      // Bernoulli
+      ["Une tortue observée au hasard à N'Gouja est baguée avec la probabilité $0{,}3$. $X$ vaut $1$ si la tortue est baguée, $0$ sinon.", 1, "Une seule observation, codée $1$ ou $0$ : loi de Bernoulli de paramètre $0{,}3$."],
+      ["Un matin, la barge de Petite-Terre part en retard avec la probabilité $0{,}2$. $X$ vaut $1$ si elle part en retard ce matin-là, $0$ sinon.", 1, "Un seul matin, deux issues : loi de Bernoulli de paramètre $0{,}2$."],
+      ["On tire une carte au hasard dans un jeu de $32$ cartes. $X$ vaut $1$ si c'est un cœur, $0$ sinon.", 1, "Un seul tirage, codé $1$ ou $0$ : loi de Bernoulli de paramètre $\\dfrac{8}{32} = \\dfrac{1}{4}$."],
+      // Binomiale
+      ["Une distillerie d'ylang-ylang de Combani prélève $20$ flacons dans une très grosse production (prélèvement assimilé à des tirages avec remise). Chaque flacon est mal rempli avec la probabilité $0{,}05$. $X$ est le nombre de flacons mal remplis.", 2, "$20$ épreuves identiques et indépendantes, de succès « flacon mal rempli » : $X$ suit $\\mathcal{B}(20\\,;0{,}05)$."],
+      ["Un QCM compte $10$ questions à $3$ choix. Un élève répond à chacune au hasard. $X$ est son nombre de bonnes réponses.", 2, "$10$ réponses indépendantes, chacune juste avec la probabilité $\\dfrac{1}{3}$ : $X$ suit $\\mathcal{B}\\left(10\\,;\\dfrac{1}{3}\\right)$."],
+      ["$15$ tortues viennent pondre sur la plage de Moya. Chacune, indépendamment des autres, pond plus de $100$ œufs avec la probabilité $0{,}4$. $X$ est le nombre de tortues qui pondent plus de $100$ œufs.", 2, "$15$ épreuves indépendantes de même probabilité de succès $0{,}4$ : $X$ suit $\\mathcal{B}(15\\,;0{,}4)$."],
+      ["Un pêcheur de Sada sort en mer $30$ jours. Chaque jour, indépendamment, il ramène plus de $10$ kg de poissons avec la probabilité $0{,}6$. $X$ est le nombre de jours où il ramène plus de $10$ kg.", 2, "Le nombre de jours est fixé à $30$ : $X$ suit $\\mathcal{B}(30\\,;0{,}6)$."],
+      ["On tire $4$ boules **avec remise** dans une urne de $2$ rouges et $3$ bleues. $X$ compte les rouges.", 2, "Avec remise, la composition ne change pas : $4$ tirages indépendants, rouge avec la probabilité $0{,}4$. $X$ suit $\\mathcal{B}(4\\,;0{,}4)$."],
+      ["On lance $8$ fois une pièce équilibrée. $X$ est le nombre de PILE obtenus.", 2, "$X$ suit $\\mathcal{B}(8\\,;0{,}5)$."],
+      // Géométrique
+      ["Chaque semaine, Ibrahim joue à la tombola de la maison des lycéens ; il gagne avec la probabilité $0{,}1$, indépendamment d'une semaine à l'autre. Il joue jusqu'à sa première victoire. $X$ est le numéro de la semaine où il gagne pour la première fois.", 3, "Le nombre d'essais n'est pas fixé à l'avance : $X$ suit $\\mathcal{G}(0{,}1)$."],
+      ["Mariama appelle la mairie de Mamoudzou. À chaque appel, indépendamment, la ligne est libre avec la probabilité $0{,}3$. Elle rappelle jusqu'à obtenir la ligne. $X$ est le nombre d'appels passés.", 3, "Le nombre d'appels passés est le rang du premier succès : $X$ suit $\\mathcal{G}(0{,}3)$."],
+      ["Une urne contient $1$ boule rouge et $4$ boules bleues. On tire une boule **avec remise** jusqu'à obtenir la rouge. $X$ est le nombre de tirages effectués.", 3, "Avec remise, les tirages sont indépendants et de même probabilité $\\dfrac{1}{5}$ : $X$ suit $\\mathcal{G}(0{,}2)$."],
+      ["On lance deux dés équilibrés jusqu'à obtenir un double. $X$ est le nombre de lancers effectués.", 3, "À chaque lancer, un double sort avec la probabilité $\\dfrac{6}{36} = \\dfrac{1}{6}$ : $X$ suit $\\mathcal{G}\\left(\\dfrac{1}{6}\\right)$."],
+      // Aucune
+      ["On lance deux dés équilibrés. $X$ est la somme des deux numéros.", 4, "Les sommes de $2$ à $12$ ne sont pas équiprobables : $7$ s'obtient de $6$ façons, $2$ d'une seule. Ce n'est pas une loi uniforme."],
+      ["On tire **simultanément** $5$ cartes d'un jeu de $32$. $X$ est le nombre d'as obtenus.", 4, "Un tirage simultané revient à tirer sans remise : les tirages ne sont pas indépendants."],
+      ["Dans une classe de $30$ élèves dont $12$ filles, on choisit au hasard $5$ élèves différents pour représenter la classe. $X$ est le nombre de filles choisies.", 4, "On choisit $5$ élèves **différents** : c'est un tirage sans remise, la proportion de filles change à chaque choix."],
+      ["Un dé est truqué : le six sort une fois sur deux, les autres faces se partagent le reste. On le lance une fois ; $X$ est le numéro obtenu.", 4, "Les faces ne sont pas équiprobables : ce n'est pas une loi uniforme."]
     ];
-    const [txt, rep] = pick(S);
+    const [txt, rep, plus] = pick(S);
     const choix = ["Loi uniforme", "Loi de Bernoulli", "Loi binomiale", "Loi géométrique", "Aucune de ces lois"];
     return {
       enonce: `${txt} Quelle loi suit $X$ ?`,
       mode: "choix", choix, attendu: rep,
       aides: ["Demande-toi ce que **compte** la variable : une valeur, un codage $0$/$1$, un nombre de succès, ou un rang ?", "Binomiale : nombre d'essais **fixé**. Géométrique : on s'arrête au **premier succès**.", "Les essais doivent être indépendants, avec la même probabilité : un tirage sans remise ne convient pas."],
-      solution: ["Les valeurs sont des entiers équiprobables : loi **uniforme**.", "Un seul essai codé $1$ (succès) ou $0$ (échec) : loi de **Bernoulli**.", "On compte les succès dans un nombre fixé d'essais indépendants de même probabilité : loi **binomiale**.", "On répète jusqu'au premier succès et $X$ est son rang : loi **géométrique**.", "Sans remise, la composition de l'urne change : les tirages ne sont pas indépendants, ce n'est pas une loi binomiale."][rep]
+      solution: (rep === 4 && plus ? "**Aucune** des quatre lois du cours ne convient." : ["Les valeurs sont des entiers équiprobables : loi **uniforme**.", "Un seul essai codé $1$ (succès) ou $0$ (échec) : loi de **Bernoulli**.", "On compte les succès dans un nombre fixé d'essais indépendants de même probabilité : loi **binomiale**.", "On répète jusqu'au premier succès et $X$ est son rang : loi **géométrique**.", "Sans remise, la composition de l'urne change : les tirages ne sont pas indépendants, ce n'est pas une loi binomiale."][rep]) + (plus ? ` ${plus}` : "")
     };
   };
 
@@ -1696,22 +1939,114 @@
 
   // CN06 : vraisemblance d'un résultat
   GEN["am-coherence"] = function () {
-    const [q, bonne, fausses, expl] = pick([
-      ["La hauteur d'une porte de maison est d'environ :", "$2$ m", ["$20$ m", "$2$ cm", "$0{,}2$ km"], "Une porte est un peu plus haute qu'une personne : environ $2$ m."],
-      ["Un élève calcule la proportion de filles dans sa classe et trouve $1{,}25$. Que penser ?", "C'est impossible : une proportion est comprise entre $0$ et $1$", ["C'est possible s'il y a beaucoup de filles", "Cela veut dire qu'il y a $125$ filles", "Cela veut dire $1{,}25\\,\\%$ de filles"], "Une proportion (partie ÷ tout) est toujours entre $0$ et $1$, soit entre $0\\,\\%$ et $100\\,\\%$."],
-      ["La masse d'un litre d'eau est d'environ :", "$1$ kg", ["$10$ kg", "$100$ g", "$1$ g"], "Un litre d'eau pèse environ $1$ kg (une grande bouteille de $1{,}5$ L pèse $1{,}5$ kg)."],
-      ["La vitesse d'une voiture sur une route nationale est d'environ :", "$80$ km/h", ["$8$ km/h", "$800$ km/h", "$80$ m/s"], "$80$ m/s, c'est $288$ km/h : beaucoup trop. $8$ km/h, c'est la vitesse d'un piéton qui court doucement."],
-      ["Un article à $40$ € baisse de $25\\,\\%$. Un élève trouve un nouveau prix de $50$ €. Que penser ?", "C'est faux : après une baisse, le prix doit être inférieur à $40$ €", ["C'est juste", "C'est juste si le magasin le décide", "C'est faux : il fallait trouver $65$ €"], "Après une baisse, le nouveau prix est plus petit. Ici : $40 \\times 0{,}75 = 30$ €."],
-      ["La superficie de Mayotte est d'environ :", "$374$ km²", ["$374$ m²", "$37\\,400$ km²", "$3{,}74$ km²"], "Mayotte mesure environ $374$ km² ($374$ m², c'est la taille d'une grande maison)."],
-      ["Un élève trouve une probabilité égale à $-0{,}2$. Que penser ?", "C'est faux : une probabilité est comprise entre $0$ et $1$", ["C'est un événement très rare", "C'est un événement impossible", "Il faut l'écrire $-20\\,\\%$"], "Une probabilité n'est jamais négative : il y a une erreur de calcul."],
-      ["Un triangle rectangle a des côtés de l'angle droit de $3$ cm et $4$ cm. Un élève trouve une hypoténuse de $7$ cm. Que penser ?", "C'est faux : l'hypoténuse est plus courte que la somme des deux autres côtés", ["C'est juste : $3 + 4 = 7$", "C'est juste si le triangle est grand", "C'est faux : elle mesure $12$ cm"], "Dans un triangle, un côté est toujours plus court que la somme des deux autres. Ici $\\sqrt{9 + 16} = 5$ cm."],
-      ["Le volume d'une bouteille d'eau est d'environ :", "$1{,}5$ L", ["$1{,}5$ m³", "$15$ mL", "$150$ L"], "$1$ m³ $= 1\\,000$ L : c'est le volume d'une grande cuve, pas d'une bouteille."],
-      ["Un élève calcule la moyenne de ses notes sur $20$ et trouve $23{,}5$. Que penser ?", "C'est faux : une moyenne est entre la plus petite et la plus grande valeur", ["C'est possible avec des bonus", "C'est juste s'il a beaucoup de notes", "Cela fait $11{,}75$ sur $10$"], "La moyenne est toujours comprise entre la plus petite et la plus grande note, donc ici entre $0$ et $20$."]
-    ]);
+    const AIDES = ["Pense à une situation de la vie courante que tu connais.", "Vérifie l'ordre de grandeur et l'unité.", "Une proportion, une probabilité : entre $0$ et $1$. Une moyenne : entre la plus petite et la plus grande valeur."];
+    const prenom = pick(["Faïza", "Nassim", "Anlia", "Ibrahim", "Zaïnaba", "Kamal", "Chadia", "Soumaïla"]);
+    const t = rand(0, 7);
+    let q, bonne, fausses, expl, aides = AIDES;
+    if (t === 0) {
+      [q, bonne, fausses, expl] = pick([
+        ["La hauteur d'une porte de maison est d'environ :", "$2$ m", ["$20$ m", "$2$ cm", "$0{,}2$ km"], "Une porte est un peu plus haute qu'une personne : environ $2$ m."],
+        ["Un élève calcule la proportion de filles dans sa classe et trouve $1{,}25$. Que penser ?", "C'est impossible : une proportion est comprise entre $0$ et $1$", ["C'est possible s'il y a beaucoup de filles", "Cela veut dire qu'il y a $125$ filles", "Cela veut dire $1{,}25\\,\\%$ de filles"], "Une proportion (partie ÷ tout) est toujours entre $0$ et $1$, soit entre $0\\,\\%$ et $100\\,\\%$."],
+        ["La masse d'un litre d'eau est d'environ :", "$1$ kg", ["$10$ kg", "$100$ g", "$1$ g"], "Un litre d'eau pèse environ $1$ kg (une grande bouteille de $1{,}5$ L pèse $1{,}5$ kg)."],
+        ["La vitesse d'une voiture sur une route nationale est d'environ :", "$80$ km/h", ["$8$ km/h", "$800$ km/h", "$80$ m/s"], "$80$ m/s, c'est $288$ km/h : beaucoup trop. $8$ km/h, c'est la vitesse d'un piéton qui court doucement."],
+        ["Un article à $40$ € baisse de $25\\,\\%$. Un élève trouve un nouveau prix de $50$ €. Que penser ?", "C'est faux : après une baisse, le prix doit être inférieur à $40$ €", ["C'est juste", "C'est juste si le magasin le décide", "C'est faux : il fallait trouver $65$ €"], "Après une baisse, le nouveau prix est plus petit. Ici : $40 \\times 0{,}75 = 30$ €."],
+        ["La superficie de Mayotte est d'environ :", "$374$ km²", ["$374$ m²", "$37\\,400$ km²", "$3{,}74$ km²"], "Mayotte mesure environ $374$ km² ($374$ m², c'est la taille d'une grande maison)."],
+        ["Un élève trouve une probabilité égale à $-0{,}2$. Que penser ?", "C'est faux : une probabilité est comprise entre $0$ et $1$", ["C'est un événement très rare", "C'est un événement impossible", "Il faut l'écrire $-20\\,\\%$"], "Une probabilité n'est jamais négative : il y a une erreur de calcul."],
+        ["Un triangle rectangle a des côtés de l'angle droit de $3$ cm et $4$ cm. Un élève trouve une hypoténuse de $7$ cm. Que penser ?", "C'est faux : l'hypoténuse est plus courte que la somme des deux autres côtés", ["C'est juste : $3 + 4 = 7$", "C'est juste si le triangle est grand", "C'est faux : elle mesure $12$ cm"], "Dans un triangle, un côté est toujours plus court que la somme des deux autres. Ici $\\sqrt{9 + 16} = 5$ cm."],
+        ["Le volume d'une bouteille d'eau est d'environ :", "$1{,}5$ L", ["$1{,}5$ m³", "$15$ mL", "$150$ L"], "$1$ m³ $= 1\\,000$ L : c'est le volume d'une grande cuve, pas d'une bouteille."],
+        ["Un élève calcule la moyenne de ses notes sur $20$ et trouve $23{,}5$. Que penser ?", "C'est faux : une moyenne est entre la plus petite et la plus grande valeur", ["C'est possible avec des bonus", "C'est juste s'il a beaucoup de notes", "Cela fait $11{,}75$ sur $10$"], "La moyenne est toujours comprise entre la plus petite et la plus grande note, donc ici entre $0$ et $20$."]
+      ]);
+    } else if (t === 1) {
+      // ordre de grandeur d'un produit : résultat juste ou décalé d'un facteur 10 ou 100
+      const a = pick([2, 3, 4, 5, 6, 8]), k = rand(2, 3), b = pick([2, 3, 4, 5]), m = rand(1, 2);
+      const A = Math.round(a * 10 ** k * (1 + randNZ(-4, 4) / 100)), B = +(b * 10 ** -m * (1 + randNZ(-4, 4) / 100)).toFixed(m + 2);
+      const fac = pick([1, 1, 10, 0.1, 100]), R = +(A * B * fac).toPrecision(3), est = +(a * 10 ** k * b * 10 ** -m).toFixed(4);
+      const C = ["Plausible : l'ordre de grandeur est bon", "Pas plausible : le résultat est environ $10$ fois trop grand", "Pas plausible : le résultat est environ $10$ fois trop petit", "Pas plausible : le résultat est environ $100$ fois trop grand"];
+      const k0 = { 1: 0, 10: 1, 0.1: 2, 100: 3 }[fac];
+      q = `${prenom} trouve que $${nb(A)} \\times ${nb(B)} \\approx ${nb(R)}$. Est-ce plausible ?`;
+      bonne = C[k0]; fausses = C.filter((_, j) => j !== k0);
+      expl = `Ordre de grandeur : $${nb(A)} \\times ${nb(B)} \\approx ${nb(a * 10 ** k)} \\times ${nb(+(b * 10 ** -m).toFixed(2))} = ${nb(est)}$.` + (fac === 1 ? ` Le résultat $${nb(R)}$ est bien de cet ordre (valeur exacte : $${nb(+(A * B).toFixed(6))}$).` : ` Le résultat $${nb(R)}$ en est loin : il y a une erreur de virgule (valeur exacte : $${nb(+(A * B).toFixed(6))}$).`);
+      aides = ["Arrondis chaque nombre à une valeur simple, avec un seul chiffre non nul.", `$${nb(A)} \\approx ${nb(a * 10 ** k)}$ et $${nb(B)} \\approx ${nb(+(b * 10 ** -m).toFixed(2))}$.`, "Compare l'ordre de grandeur obtenu avec le résultat proposé."];
+    } else if (t === 2) {
+      // proportion : juste ou supérieure à 1 (division à l'envers)
+      const N = rand(24, 36), k = rand(9, N - 6), juste = Math.random() < 0.4;
+      const p = juste ? +(k / N).toFixed(2) : +(N / k).toFixed(2);
+      const qui = pick([["de filles", "filles"], ["d'élèves qui viennent en bus", "élèves qui viennent en bus"], ["d'élèves demi-pensionnaires", "demi-pensionnaires"]]);
+      q = `Dans une classe de $${N}$ élèves, il y a $${k}$ ${qui[1]}. ${prenom} calcule la proportion ${qui[0]} et trouve $${fr(p)}$. Que penser ?`;
+      const C = ["C'est plausible", "C'est impossible : une proportion est comprise entre $0$ et $1$", "C'est impossible : une proportion doit être un nombre entier", "C'est impossible : il fallait trouver plus de $1$"];
+      bonne = juste ? C[0] : C[1]; fausses = C.filter((c) => c !== bonne);
+      expl = juste ? `La proportion vaut $\\dfrac{${k}}{${N}} \\approx ${fr(p)}$ : c'est bien entre $0$ et $1$, et c'est juste.` : `Une proportion (partie ÷ tout) est toujours entre $0$ et $1$. ${prenom} a divisé à l'envers : $\\dfrac{${N}}{${k}} \\approx ${fr(p)}$, au lieu de $\\dfrac{${k}}{${N}} \\approx ${fr(+(k / N).toFixed(2))}$.`;
+    } else if (t === 3) {
+      // évolution en pourcentage : le prix doit baisser (ou augmenter)
+      const [obj, prix] = pick([["Un pagne", [20, 30, 40]], ["Un sac de riz", [20, 30, 40]], ["Un ventilateur", [40, 50, 60, 80]], ["Un téléphone", [120, 150, 200]], ["Un vélo", [120, 150, 200]]]);
+      const P = pick(prix), tx = pick([10, 20, 25, 30, 40, 50].filter((x) => x < P / 2 + 1)), baisse = Math.random() < 0.6, juste = Math.random() < 0.4;
+      const CM = baisse ? 1 - tx / 100 : 1 + tx / 100, ok = +(P * CM).toFixed(2), Q = juste ? ok : +(P * (baisse ? 1 + tx / 100 : 1 - tx / 100)).toFixed(2);
+      q = `${obj} à $${nb(P)}$ € ${baisse ? "baisse" : "augmente"} de $${tx}\\,\\%$. ${prenom} trouve un nouveau prix de $${nb(Q)}$ €. Que penser ?`;
+      const faux = `C'est faux : après ${baisse ? "une baisse" : "une hausse"}, le prix doit être ${baisse ? "inférieur" : "supérieur"} à $${nb(P)}$ €`;
+      bonne = juste ? "C'est juste" : faux;
+      fausses = juste ? [faux, `C'est faux : il fallait trouver $${nb(baisse ? P - tx : P + tx)}$ €`, "On ne peut pas savoir sans calculatrice"] : ["C'est juste", `C'est faux : il fallait trouver $${nb(baisse ? P - tx : P + tx)}$ €`, "C'est juste si le magasin le décide"];
+      expl = `${baisse ? "Après une baisse, le nouveau prix est plus petit" : "Après une hausse, le nouveau prix est plus grand"}. Ici : $${nb(P)} \\times ${fr(CM)} = ${nb(ok)}$ €.` + (juste ? "" : ` ${prenom} a fait ${baisse ? "une hausse" : "une baisse"} au lieu d'${baisse ? "une baisse" : "une hausse"}.`);
+      aides = [`${baisse ? "Une baisse" : "Une hausse"} : le nouveau prix doit-il être plus grand ou plus petit que $${nb(P)}$ € ?`, `Le coefficient multiplicateur est $1 ${baisse ? "-" : "+"} ${fr(tx / 100)} = ${fr(CM)}$.`, `Calcule $${nb(P)} \\times ${fr(CM)}$ et compare avec $${nb(Q)}$ €.`];
+    } else if (t === 4) {
+      // moyenne de notes : entre la plus petite et la plus grande
+      const n = rand(3, 5), notes = Array.from({ length: n }, () => rand(6, 17)), S = notes.reduce((x, y) => x + y, 0);
+      const mn = Math.min(...notes), mx = Math.max(...notes), moy = +(S / n).toFixed(2), juste = Math.random() < 0.4;
+      const fauxM = S / (n - 1) > mx ? +(S / (n - 1)).toFixed(2) : S;
+      const m = juste ? moy : fauxM;
+      q = `Les notes ${/^[AEIOUY]/.test(prenom) ? "d'" : "de "}${prenom} sont $${notes.join("$ ; $")}$. ${prenom} calcule sa moyenne et trouve $${nb(m)}$. Que penser ?`;
+      const C = ["C'est plausible", "C'est faux : une moyenne est entre la plus petite et la plus grande valeur", "C'est faux : une moyenne est toujours un nombre entier", "C'est possible avec des bonus"];
+      bonne = juste ? C[0] : C[1]; fausses = C.filter((c) => c !== bonne);
+      expl = `La moyenne est comprise entre la plus petite note ($${mn}$) et la plus grande ($${mx}$). Ici : $\\dfrac{${notes.join(" + ")}}{${n}} = \\dfrac{${S}}{${n}} ${Number.isInteger((S * 100) / n) ? "=" : "\\approx"} ${nb(moy)}$.` + (juste ? "" : ` ${m === S ? `${prenom} a oublié de diviser par $${n}$.` : `${prenom} a divisé par $${n - 1}$ au lieu de $${n}$.`}`);
+      aides = ["Repère la plus petite et la plus grande note.", "Une moyenne est toujours comprise entre la plus petite et la plus grande valeur.", `Vérifie : $${nb(m)}$ est-il entre $${mn}$ et $${mx}$ ?`];
+    } else if (t === 5) {
+      // conversion km/h → m/s
+      const [veh, vs] = pick([["de la barge", [18]], ["d'un cycliste", [18, 36]], ["d'un scooter", [36, 54, 72]], ["d'un taxi-brousse", [54, 72, 90]], ["d'une voiture sur la route nationale", [72, 90]], ["d'un avion au décollage", [252, 288]]]);
+      const v = pick(vs), juste = Math.random() < 0.45, w = juste ? v / 3.6 : +(v * 3.6).toFixed(1);
+      q = `${prenom} convertit en m/s la vitesse ${veh}, $${v}$ km/h, et trouve $${nb(w)}$ m/s. Que penser ?`;
+      const C = ["C'est plausible", "C'est faux : en m/s, le nombre doit être plus petit qu'en km/h", "C'est faux : en m/s, le nombre doit être plus grand qu'en km/h", "C'est faux : les deux nombres doivent être égaux"];
+      bonne = juste ? C[0] : C[1]; fausses = C.filter((c) => c !== bonne);
+      expl = `$1$ m/s $= 3{,}6$ km/h (en $1$ h, soit $3\\,600$ s, on parcourt $3\\,600$ m, soit $3{,}6$ km). De km/h vers m/s, on **divise** par $3{,}6$ : $${v} \\div 3{,}6 = ${nb(v / 3.6)}$ m/s.` + (juste ? "" : ` ${prenom} a multiplié au lieu de diviser.`);
+      aides = ["$1$ m/s $= 3{,}6$ km/h.", "De km/h vers m/s, on divise par $3{,}6$ : le nombre devient plus petit.", `Calcule $${v} \\div 3{,}6$.`];
+    } else if (t === 6) {
+      // hypoténuse d'un triangle rectangle
+      const [a, b, c] = pick([[3, 4, 5], [6, 8, 10], [5, 12, 13], [8, 15, 17], [9, 12, 15], [12, 16, 20], [7, 24, 25], [20, 21, 29]]);
+      const cas = rand(0, 2), h = [c, a + b, Math.round(Math.sqrt(b * b - a * a) * 10) / 10][cas];
+      q = `Un triangle rectangle a des côtés de l'angle droit de $${a}$ cm et $${b}$ cm. ${prenom} trouve une hypoténuse de $${nb(h)}$ cm. Que penser ?`;
+      // une seule raison « c'est faux » vraie par cas, pour éviter deux réponses défendables
+      [bonne, fausses] = [
+        ["C'est plausible", ["C'est faux : l'hypoténuse est toujours égale à la somme des deux autres côtés", `C'est faux : elle mesure $${a + b}$ cm`, "C'est faux : l'hypoténuse est le plus petit côté"]],
+        ["C'est faux : l'hypoténuse est plus courte que la somme des deux autres côtés", [`C'est juste : $${a} + ${b} = ${a + b}$`, "C'est juste si le triangle est grand", `C'est faux : elle mesure $${a * b}$ cm`]],
+        ["C'est faux : l'hypoténuse est le plus long côté du triangle rectangle", ["C'est plausible", `C'est faux : elle mesure $${a + b}$ cm`, "C'est juste si le triangle est petit"]]
+      ][cas];
+      expl = [`$${a}^2 + ${b}^2 = ${a * a + b * b} = ${c}^2$ : l'hypoténuse mesure bien $${c}$ cm, plus que chaque côté de l'angle droit et moins que leur somme.`, `Dans un triangle, un côté est toujours plus court que la somme des deux autres. Ici $\\sqrt{${a}^2 + ${b}^2} = \\sqrt{${a * a + b * b}} = ${c}$ cm.`, `L'hypoténuse est le plus long côté : elle doit dépasser $${b}$ cm. ${prenom} a soustrait les carrés au lieu de les additionner : $\\sqrt{${a}^2 + ${b}^2} = ${c}$ cm.`][cas];
+      aides = ["Dans un triangle rectangle, l'hypoténuse est le plus long côté.", "Dans un triangle, un côté est toujours plus court que la somme des deux autres.", `Pythagore : l'hypoténuse vaut $\\sqrt{${a}^2 + ${b}^2}$.`];
+    } else {
+      // ordre de grandeur de la vie courante (Mayotte)
+      const [quoi, bon, faux, ex] = pick([
+        ["La longueur d'une pirogue de pêcheur est d'environ :", "$5$ m", ["$5$ km", "$5$ cm", "$50$ m"], "Une pirogue mesure quelques mètres : à peu près la longueur d'une voiture."],
+        ["La masse d'un régime de bananes est d'environ :", "$20$ kg", ["$20$ t", "$20$ g", "$200$ kg"], "Un régime se porte à bout de bras ou sur l'épaule : quelques dizaines de kilogrammes."],
+        ["La durée de la traversée en barge entre Mamoudzou et Dzaoudzi est d'environ :", "$20$ min", ["$20$ h", "$20$ s", "$2$ jours"], "La barge traverse le lagon en un quart d'heure à une demi-heure."],
+        ["La hauteur d'un cocotier adulte est d'environ :", "$20$ m", ["$20$ km", "$20$ cm", "$2$ m"], "Un cocotier adulte est bien plus haut qu'une maison : une vingtaine de mètres."],
+        ["La masse d'une mangue est d'environ :", "$400$ g", ["$400$ kg", "$4$ g", "$40$ kg"], "Une mangue tient dans la main : quelques centaines de grammes."],
+        ["L'aire d'une salle de classe est d'environ :", "$60$ m²", ["$60$ km²", "$60$ cm²", "$6\\,000$ m²"], "Une salle de $8$ m sur $7{,}5$ m a une aire de $60$ m²."],
+        ["La distance par la route entre Mamoudzou et Sada est d'environ :", "$25$ km", ["$25$ m", "$2\\,500$ km", "$250$ km"], "Mayotte est petite : on la traverse en voiture en moins d'une heure, la distance se compte en dizaines de kilomètres."],
+        ["La masse d'une tortue verte adulte est d'environ :", "$100$ kg", ["$100$ g", "$100$ t", "$1$ kg"], "Une tortue verte adulte pèse souvent entre $60$ et $150$ kg."],
+        ["La vitesse d'un scooter en ville est d'environ :", "$40$ km/h", ["$400$ km/h", "$4$ km/h", "$40$ m/s"], "$40$ m/s, c'est $144$ km/h : beaucoup trop en ville. $4$ km/h, c'est la vitesse d'un piéton."],
+        ["La masse d'un sac de riz vendu à la boutique est d'environ :", "$25$ kg", ["$250$ kg", "$25$ g", "$2{,}5$ t"], "Un sac de riz courant pèse quelques kilogrammes ($5$ kg, $25$ kg)."]
+      ]);
+      if (Math.random() < 0.5) { q = quoi; bonne = bon; fausses = faux; expl = ex; }
+      else {
+        const v = pick(faux.slice(0, 2)), sujet = quoi.replace(" est d'environ :", "").replace(/^La /, "la ").replace(/^L'/, "l'");
+        q = `${prenom} trouve que ${sujet} est de ${v}. Est-ce vraisemblable ?`;
+        bonne = `Non : c'est plutôt de l'ordre de ${bon}`; fausses = ["Oui, c'est vraisemblable", `Non : c'est plutôt de l'ordre de ${faux.find((f) => f !== v)}`];
+        expl = ex;
+      }
+      aides = ["Pense à une situation de la vie courante que tu connais.", "Vérifie l'ordre de grandeur et l'unité.", "Compare avec un objet que tu connais bien (ta taille, une bouteille d'eau, une voiture…)."];
+    }
     const m = melangeChoix(bonne, fausses);
     return {
       enonce: q, mode: "choix", choix: m.choix, attendu: m.attendu,
-      aides: ["Pense à une situation de la vie courante que tu connais.", "Vérifie l'ordre de grandeur et l'unité.", "Une proportion, une probabilité : entre $0$ et $1$. Une moyenne : entre la plus petite et la plus grande valeur."],
+      aides,
       solution: `**${bonne}**.\n\n${expl}`
     };
   };
@@ -1773,18 +2108,79 @@
 
   // CA04 : isoler une variable
   GEN["am-isoler"] = function () {
-    const [f, v, bonne, fausses, ex] = pick([
-      ["d = v \\times t", "t", "t = \\dfrac{d}{v}", ["t = \\dfrac{v}{d}", "t = d - v", "t = d \\times v"], "On divise les deux membres par $v$."],
-      ["P = U \\times I", "I", "I = \\dfrac{P}{U}", ["I = \\dfrac{U}{P}", "I = P - U", "I = P \\times U"], "On divise les deux membres par $U$."],
-      ["\\mathcal{A} = \\dfrac{b \\times h}{2}", "h", "h = \\dfrac{2\\mathcal{A}}{b}", ["h = \\dfrac{\\mathcal{A}}{2b}", "h = 2\\mathcal{A} - b", "h = \\dfrac{\\mathcal{A} \\times b}{2}"], "On multiplie par $2$ : $2\\mathcal{A} = b \\times h$, puis on divise par $b$."],
-      ["y = 3x + 5", "x", "x = \\dfrac{y - 5}{3}", ["x = \\dfrac{y}{3} - 5", "x = 3y - 5", "x = \\dfrac{y + 5}{3}"], "On soustrait $5$ : $y - 5 = 3x$, puis on divise par $3$."],
-      ["F = 1{,}8C + 32", "C", "C = \\dfrac{F - 32}{1{,}8}", ["C = \\dfrac{F}{1{,}8} - 32", "C = 1{,}8F - 32", "C = \\dfrac{F + 32}{1{,}8}"], "On soustrait $32$ : $F - 32 = 1{,}8C$, puis on divise par $1{,}8$."],
-      ["E = mc^2", "m", "m = \\dfrac{E}{c^2}", ["m = E - c^2", "m = Ec^2", "m = \\dfrac{c^2}{E}"], "On divise les deux membres par $c^2$."],
-      ["V = \\pi r^2 h", "h", "h = \\dfrac{V}{\\pi r^2}", ["h = V - \\pi r^2", "h = \\dfrac{\\pi r^2}{V}", "h = V \\pi r^2"], "On divise les deux membres par $\\pi r^2$."],
-      ["P = 2(L + \\ell)", "L", "L = \\dfrac{P}{2} - \\ell", ["L = \\dfrac{P - \\ell}{2}", "L = 2P - \\ell", "L = P - 2\\ell"], "On divise par $2$ : $\\dfrac{P}{2} = L + \\ell$, puis on soustrait $\\ell$."],
-      ["v = \\dfrac{d}{t}", "d", "d = v \\times t", ["d = \\dfrac{v}{t}", "d = \\dfrac{t}{v}", "d = v + t"], "On multiplie les deux membres par $t$."],
-      ["v = \\dfrac{d}{t}", "t", "t = \\dfrac{d}{v}", ["t = d \\times v", "t = \\dfrac{v}{d}", "t = d - v"], "On multiplie par $t$ : $vt = d$, puis on divise par $v$."]
-    ]);
+    const t = rand(0, 6);
+    let f, v, bonne, fausses, ex;
+    const ajout = (b, membre) => (b > 0 ? `On soustrait $${b}$ : $${membre}` : `On ajoute $${-b}$ : $${membre}`);
+    if (t === 0) {
+      [f, v, bonne, fausses, ex] = pick([
+        ["d = v \\times t", "t", "t = \\dfrac{d}{v}", ["t = \\dfrac{v}{d}", "t = d - v", "t = d \\times v"], "On divise les deux membres par $v$."],
+        ["P = U \\times I", "I", "I = \\dfrac{P}{U}", ["I = \\dfrac{U}{P}", "I = P - U", "I = P \\times U"], "On divise les deux membres par $U$."],
+        ["\\mathcal{A} = \\dfrac{b \\times h}{2}", "h", "h = \\dfrac{2\\mathcal{A}}{b}", ["h = \\dfrac{\\mathcal{A}}{2b}", "h = 2\\mathcal{A} - b", "h = \\dfrac{\\mathcal{A} \\times b}{2}"], "On multiplie par $2$ : $2\\mathcal{A} = b \\times h$, puis on divise par $b$."],
+        ["y = 3x + 5", "x", "x = \\dfrac{y - 5}{3}", ["x = \\dfrac{y}{3} - 5", "x = 3y - 5", "x = \\dfrac{y + 5}{3}"], "On soustrait $5$ : $y - 5 = 3x$, puis on divise par $3$."],
+        ["F = 1{,}8C + 32", "C", "C = \\dfrac{F - 32}{1{,}8}", ["C = \\dfrac{F}{1{,}8} - 32", "C = 1{,}8F - 32", "C = \\dfrac{F + 32}{1{,}8}"], "On soustrait $32$ : $F - 32 = 1{,}8C$, puis on divise par $1{,}8$."],
+        ["E = mc^2", "m", "m = \\dfrac{E}{c^2}", ["m = E - c^2", "m = Ec^2", "m = \\dfrac{c^2}{E}"], "On divise les deux membres par $c^2$."],
+        ["V = \\pi r^2 h", "h", "h = \\dfrac{V}{\\pi r^2}", ["h = V - \\pi r^2", "h = \\dfrac{\\pi r^2}{V}", "h = V \\pi r^2"], "On divise les deux membres par $\\pi r^2$."],
+        ["P = 2(L + \\ell)", "L", "L = \\dfrac{P}{2} - \\ell", ["L = \\dfrac{P - \\ell}{2}", "L = 2P - \\ell", "L = P - 2\\ell"], "On divise par $2$ : $\\dfrac{P}{2} = L + \\ell$, puis on soustrait $\\ell$."],
+        ["v = \\dfrac{d}{t}", "d", "d = v \\times t", ["d = \\dfrac{v}{t}", "d = \\dfrac{t}{v}", "d = v + t"], "On multiplie les deux membres par $t$."],
+        ["v = \\dfrac{d}{t}", "t", "t = \\dfrac{d}{v}", ["t = d \\times v", "t = \\dfrac{v}{d}", "t = d - v"], "On multiplie par $t$ : $vt = d$, puis on divise par $v$."]
+      ]);
+    } else if (t === 1) {
+      // y = ax + b
+      const a = rand(2, 9), b = randNZ(-12, 12);
+      f = `y = ${a}x ${sg(b)}`; v = "x";
+      bonne = `x = \\dfrac{y ${sg(-b)}}{${a}}`;
+      fausses = [`x = \\dfrac{y}{${a}} ${sg(-b)}`, `x = ${a}y ${sg(-b)}`, `x = \\dfrac{y ${sg(b)}}{${a}}`];
+      ex = `${ajout(b, `y ${sg(-b)} = ${a}x`)}$, puis on divise par $${a}$.`;
+    } else if (t === 2) {
+      // y = a − bx
+      const a = rand(2, 20), b = rand(2, 9);
+      f = `y = ${a} - ${b}x`; v = "x";
+      bonne = `x = \\dfrac{${a} - y}{${b}}`;
+      fausses = [`x = \\dfrac{y - ${a}}{${b}}`, `x = ${a} - \\dfrac{y}{${b}}`, `x = \\dfrac{${a} + y}{${b}}`];
+      ex = `On ajoute $${b}x$ et on soustrait $y$ : $${b}x = ${a} - y$, puis on divise par $${b}$.`;
+    } else if (t === 3) {
+      // ax + by = c
+      const a = rand(2, 9), b = rand(2, 9), c = rand(5, 30), isoY = Math.random() < 0.6;
+      f = `${a}x + ${b}y = ${c}`;
+      if (isoY) {
+        v = "y"; bonne = `y = \\dfrac{${c} - ${a}x}{${b}}`;
+        fausses = [`y = \\dfrac{${c} + ${a}x}{${b}}`, `y = ${c} - ${a}x - ${b}`, `y = \\dfrac{${c}}{${b}} - ${a}x`];
+        ex = `On soustrait $${a}x$ : $${b}y = ${c} - ${a}x$, puis on divise par $${b}$.`;
+      } else {
+        v = "x"; bonne = `x = \\dfrac{${c} - ${b}y}{${a}}`;
+        fausses = [`x = \\dfrac{${c} + ${b}y}{${a}}`, `x = ${c} - ${b}y - ${a}`, `x = \\dfrac{${c}}{${a}} - ${b}y`];
+        ex = `On soustrait $${b}y$ : $${a}x = ${c} - ${b}y$, puis on divise par $${a}$.`;
+      }
+    } else if (t === 4) {
+      // y = x/a + b
+      const a = rand(2, 9), b = randNZ(-9, 9);
+      f = `y = \\dfrac{x}{${a}} ${sg(b)}`; v = "x";
+      bonne = `x = ${a}(y ${sg(-b)})`;
+      fausses = [`x = ${a}y ${sg(-b)}`, `x = \\dfrac{y ${sg(-b)}}{${a}}`, `x = ${a}(y ${sg(b)})`];
+      ex = `${ajout(b, `y ${sg(-b)} = \\dfrac{x}{${a}}`)}$, puis on multiplie par $${a}$.`;
+    } else if (t === 5) {
+      // y = a(x + b)
+      const a = rand(2, 9), b = randNZ(-9, 9);
+      f = `y = ${a}(x ${sg(b)})`; v = "x";
+      bonne = `x = \\dfrac{y}{${a}} ${sg(-b)}`;
+      fausses = [`x = \\dfrac{y ${sg(-b)}}{${a}}`, `x = ${a}y ${sg(-b)}`, `x = \\dfrac{y}{${a}} ${sg(b)}`];
+      ex = `On divise par $${a}$ : $\\dfrac{y}{${a}} = x ${sg(b)}$, puis on ${b > 0 ? `soustrait $${b}$` : `ajoute $${-b}$`}.`;
+    } else {
+      // formules de physique, de géométrie et de la vie courante
+      [f, v, bonne, fausses, ex] = pick([
+        ["U = R \\times I", "R", "R = \\dfrac{U}{I}", ["R = \\dfrac{I}{U}", "R = U - I", "R = U \\times I"], "On divise les deux membres par $I$."],
+        ["U = R \\times I", "I", "I = \\dfrac{U}{R}", ["I = \\dfrac{R}{U}", "I = U - R", "I = U \\times R"], "On divise les deux membres par $R$."],
+        ["P = 2\\pi r", "r", "r = \\dfrac{P}{2\\pi}", ["r = P - 2\\pi", "r = 2\\pi P", "r = \\dfrac{2\\pi}{P}"], "On divise les deux membres par $2\\pi$."],
+        ["m = \\rho \\times V", "V", "V = \\dfrac{m}{\\rho}", ["V = \\dfrac{\\rho}{m}", "V = m - \\rho", "V = m \\times \\rho"], "On divise les deux membres par $\\rho$."],
+        ["\\mathcal{A} = L \\times \\ell", "\\ell", "\\ell = \\dfrac{\\mathcal{A}}{L}", ["\\ell = \\dfrac{L}{\\mathcal{A}}", "\\ell = \\mathcal{A} - L", "\\ell = \\mathcal{A} \\times L"], "On divise les deux membres par $L$."],
+        ["V = \\dfrac{1}{3} \\mathcal{B} h", "h", "h = \\dfrac{3V}{\\mathcal{B}}", ["h = \\dfrac{V}{3\\mathcal{B}}", "h = 3V - \\mathcal{B}", "h = \\dfrac{\\mathcal{B}}{3V}"], "On multiplie par $3$ : $3V = \\mathcal{B} h$, puis on divise par $\\mathcal{B}$."],
+        ["E = P \\times t", "t", "t = \\dfrac{E}{P}", ["t = \\dfrac{P}{E}", "t = E - P", "t = E \\times P"], "On divise les deux membres par $P$."],
+        ["y = mx + p", "p", "p = y - mx", ["p = y + mx", "p = \\dfrac{y}{mx}", "p = mx - y"], "On soustrait $mx$ aux deux membres."],
+        ["y = mx + p", "m", "m = \\dfrac{y - p}{x}", ["m = \\dfrac{y}{x} - p", "m = \\dfrac{y + p}{x}", "m = (y - p)x"], "On soustrait $p$ : $y - p = mx$, puis on divise par $x$ (pour $x \\neq 0$)."],
+        ["P = 2 + 0{,}5d", "d", "d = \\dfrac{P - 2}{0{,}5}", ["d = \\dfrac{P}{0{,}5} - 2", "d = 0{,}5P - 2", "d = \\dfrac{P + 2}{0{,}5}"], "On soustrait $2$ : $P - 2 = 0{,}5d$, puis on divise par $0{,}5$ (ce qui revient à multiplier par $2$)."],
+        ["C = 15n + 40", "n", "n = \\dfrac{C - 40}{15}", ["n = \\dfrac{C}{15} - 40", "n = 15C - 40", "n = \\dfrac{C + 40}{15}"], "On soustrait $40$ : $C - 40 = 15n$, puis on divise par $15$."]
+      ]);
+    }
     const m = melangeChoix(bonne, fausses);
     return {
       enonce: `On donne la formule $${f}$. Exprime $${v}$ en fonction des autres lettres.`,
@@ -2266,10 +2662,19 @@
   };
 
   GEN["am-proba-notation"] = function () {
+    // [contexte, A, B, phrases pour P(A ∩ B), P_A(B), P_B(A), P(A ∪ B)]
     const [ctx, A, B, ph] = pick([
       ["On choisit au hasard un élève du lycée.", "l'élève est une fille", "l'élève fait du sport", ["que l'élève soit une fille qui fait du sport", "sachant que l'élève est une fille, qu'elle fasse du sport", "parmi les élèves qui font du sport, de choisir une fille", "que l'élève soit une fille ou fasse du sport"]],
       ["On choisit au hasard une personne qui a fait un test de dépistage.", "la personne est malade", "le test est positif", ["que la personne soit malade et ait un test positif", "sachant que la personne est malade, que son test soit positif", "sachant que le test est positif, que la personne soit malade", "que la personne soit malade ou ait un test positif"]],
-      ["On choisit au hasard un client d'un magasin.", "le client a une carte de fidélité", "le client achète un produit en promotion", ["que le client ait une carte et achète un produit en promotion", "parmi les clients qui ont une carte, qu'il achète un produit en promotion", "parmi les clients qui achètent un produit en promotion, qu'il ait une carte", "que le client ait une carte ou achète un produit en promotion"]]
+      ["On choisit au hasard un client d'un magasin.", "le client a une carte de fidélité", "le client achète un produit en promotion", ["que le client ait une carte et achète un produit en promotion", "parmi les clients qui ont une carte, qu'il achète un produit en promotion", "parmi les clients qui achètent un produit en promotion, qu'il ait une carte", "que le client ait une carte ou achète un produit en promotion"]],
+      ["On choisit au hasard un passager de la barge.", "le passager est un lycéen", "le passager voyage le matin", ["que le passager soit un lycéen qui voyage le matin", "sachant que le passager est un lycéen, qu'il voyage le matin", "parmi les passagers du matin, de choisir un lycéen", "que le passager soit un lycéen ou voyage le matin"]],
+      ["On choisit au hasard un jour de l'année à Mamoudzou.", "il pleut", "la barge est en retard", ["qu'il pleuve et que la barge soit en retard", "sachant qu'il pleut, que la barge soit en retard", "sachant que la barge est en retard, qu'il pleuve", "qu'il pleuve ou que la barge soit en retard"]],
+      ["On choisit au hasard une mangue sur un étal du marché de Mamoudzou.", "la mangue vient de Sada", "la mangue est mûre", ["que la mangue vienne de Sada et soit mûre", "parmi les mangues venant de Sada, d'en choisir une mûre", "sachant que la mangue est mûre, qu'elle vienne de Sada", "que la mangue vienne de Sada ou soit mûre"]],
+      ["On choisit au hasard un touriste venu à Mayotte.", "le touriste a fait de la plongée", "le touriste a visité l'îlot de sable blanc", ["que le touriste ait fait de la plongée et visité l'îlot de sable blanc", "sachant que le touriste a fait de la plongée, qu'il ait visité l'îlot de sable blanc", "parmi les touristes qui ont visité l'îlot de sable blanc, d'en choisir un qui a fait de la plongée", "que le touriste ait fait de la plongée ou visité l'îlot de sable blanc"]],
+      ["On choisit au hasard un élève de Seconde.", "l'élève a un smartphone", "l'élève utilise un réseau social chaque jour", ["que l'élève ait un smartphone et utilise un réseau social chaque jour", "sachant que l'élève a un smartphone, qu'il utilise un réseau social chaque jour", "sachant que l'élève utilise un réseau social chaque jour, qu'il ait un smartphone", "que l'élève ait un smartphone ou utilise un réseau social chaque jour"]],
+      ["On choisit au hasard un habitant après une campagne de vaccination.", "l'habitant est vacciné", "l'habitant tombe malade dans l'année", ["que l'habitant soit vacciné et tombe malade dans l'année", "parmi les habitants vaccinés, d'en choisir un qui tombe malade dans l'année", "parmi les habitants qui tombent malades dans l'année, d'en choisir un vacciné", "que l'habitant soit vacciné ou tombe malade dans l'année"]],
+      ["On choisit au hasard un plant d'ylang-ylang d'une parcelle.", "le plant a reçu de l'engrais", "le plant donne beaucoup de fleurs", ["que le plant ait reçu de l'engrais et donne beaucoup de fleurs", "sachant que le plant a reçu de l'engrais, qu'il donne beaucoup de fleurs", "sachant que le plant donne beaucoup de fleurs, qu'il ait reçu de l'engrais", "que le plant ait reçu de l'engrais ou donne beaucoup de fleurs"]],
+      ["On choisit au hasard un plongeur du club de Mamoudzou.", "le plongeur a vu une tortue", "le plongeur a vu un dauphin", ["que le plongeur ait vu à la fois une tortue et un dauphin", "parmi les plongeurs qui ont vu une tortue, d'en choisir un qui a vu un dauphin", "parmi les plongeurs qui ont vu un dauphin, d'en choisir un qui a vu une tortue", "que le plongeur ait vu au moins l'un des deux : une tortue ou un dauphin"]]
     ]);
     const nots = ["P(A \\cap B)", "P_A(B)", "P_B(A)", "P(A \\cup B)"];
     const k = rand(0, 3);
@@ -2994,14 +3399,58 @@
       : cle === "cube" ? [{ f: R.f, a: -1.65, b: 1.65, closed: false }]
       : cle === "carre" ? [{ f: R.f, a: -2.15, b: 2.15, closed: false }] : [{ f: R.f, a: -4.5, b: 4.5, closed: false }];
     const exprs = { carre: "x^2", inverse: "\\dfrac{1}{x}", absolue: "|x|", cube: "x^3", racine: "\\sqrt{x}" };
-    const ms = melangeChoix(`$f(x) = ${exprs[cle]}$`, shuffle(Object.keys(exprs).filter((k) => k !== cle)).map((k) => `$f(x) = ${exprs[k]}$`));
     const indices = { carre: "Parabole tournée vers le haut, sommet à l'origine.", inverse: "Deux branches (hyperbole), la courbe ne coupe jamais les axes.", absolue: "Un « V » de sommet l'origine, formé de deux demi-droites.", cube: "La courbe monte toujours et passe par l'origine, avec un replat en $0$.", racine: "La courbe n'existe que pour $x \\geqslant 0$ et monte de plus en plus lentement." };
+    const lab = (x, y) => `(${String(x).replace("-", "−").replace(".", ",")} ; ${String(y).replace("-", "−").replace(".", ",")})`;
+    const fig = (pts, aria) => graph({ xmin: -4.8, xmax: 4.8, ymin: -4.8, ymax: 4.8, curves, points: pts, aria: aria || "Courbe d'une fonction de référence" }).replace(/g-curve-1/g, "g-curve-0");
+    const pt = (x, y) => `$(${nb(x)}\\,;${nb(y)})$`;
+    const t = pick(["identifier", "identifier", "identifier", "point", "point", "sens", "domaine"]);
+    if (t === "point") {
+      // Lequel de ces points est sur la courbe ? (il faut reconnaître la fonction, puis calculer une image)
+      const A = { carre: [-3, -2, -1.5, -0.5, 0.5, 1.5, 2, 3, 4, -4, 10], inverse: [-4, -2, -0.5, -0.25, 0.25, 0.5, 2, 4, 5, -5, 10, 0.1], absolue: [-5, -4, -3, -2, -1.5, -0.5, 1.5, 2, 3, 4, 5, -2.5], cube: [-3, -2, -0.5, 0.5, 2, 3], racine: [0.25, 4, 9, 16, 25, 0.01, 0.09, 2.25, 6.25, 100] }[cle];
+      const a = pick(A), ya = +R.f(a).toFixed(6);
+      const joli = (v) => Number.isFinite(v) && Math.abs(v * 1e4 - Math.round(v * 1e4)) < 1e-9;
+      const surCourbe = (x, y) => { const v = R.f(x); return Number.isFinite(v) && Math.abs(v - y) < 1e-9; };
+      const cands = [];
+      Object.keys(REF).filter((k) => k !== cle).forEach((k) => { const v = REF[k].f(a); if (joli(v)) cands.push([a, +v.toFixed(6)]); });
+      cands.push([ya, a], [a, -ya], [-a, ya], [a, 2 * a]);
+      const fausses = shuffle(cands.filter(([x, y]) => !surCourbe(x, y)).map(([x, y]) => pt(x, y)));
+      const ms = melangeChoix(pt(a, ya), fausses);
+      return {
+        enonce: "Voici la courbe d'une fonction de référence $f$. Parmi ces points, lequel appartient à cette courbe ?",
+        figure: fig(), mode: "choix", choix: ms.choix, attendu: ms.attendu,
+        aides: ["Reconnais d'abord la fonction : la courbe existe-t-elle pour les $x$ négatifs ? A-t-elle une ou deux branches ?", `C'est la fonction ${R.nom} : $f(x) = ${exprs[cle]}$.`, `Un point $(x\\,;y)$ est sur la courbe quand $y = f(x)$. Calcule $f(${fr(a)})$.`],
+        solution: `${indices[cle]} C'est la fonction ${R.nom}, $f(x) = ${exprs[cle]}$.\n\n$f(${fr(a)}) = ${R.tex(a)} = ${fr(ya)}$ : le point ${pt(a, ya)} est sur la courbe. Pour les autres points, l'ordonnée n'est pas l'image de l'abscisse${cle === "racine" ? " (ou l'abscisse, négative, n'a pas d'image)" : ""}.`
+      };
+    }
+    if (t === "sens") {
+      const autres = ["croissante sur $\\mathbb{R}$", "décroissante sur $]-\\infty\\,;0]$ et croissante sur $[0\\,;+\\infty[$", "décroissante sur $]-\\infty\\,;0[$ et décroissante sur $]0\\,;+\\infty[$", "croissante sur $[0\\,;+\\infty[$", "croissante sur $]-\\infty\\,;0]$ et décroissante sur $[0\\,;+\\infty[$", "décroissante sur $\\mathbb{R}$"];
+      const ms = melangeChoix(R.sens, shuffle(autres));
+      return {
+        enonce: "Voici la courbe d'une fonction de référence. Quel est son sens de variation ?",
+        figure: fig(), mode: "choix", choix: ms.choix, attendu: ms.attendu,
+        aides: ["Lis la courbe de gauche à droite : monte-t-elle ? descend-elle ?", "Repère l'endroit où la courbe change de sens, et les valeurs de $x$ où elle n'existe pas.", "Les intervalles se lisent sur l'axe des **abscisses**."],
+        solution: `${indices[cle]} C'est la fonction ${R.nom}, $f(x) = ${exprs[cle]}$ : elle est ${R.sens}.`
+      };
+    }
+    if (t === "domaine") {
+      const D = { carre: "\\mathbb{R}", absolue: "\\mathbb{R}", cube: "\\mathbb{R}", racine: "[0\\,;+\\infty[", inverse: "]-\\infty\\,;0[ \\cup \\,]0\\,;+\\infty[" };
+      const ms = melangeChoix(`$${D[cle]}$`, ["$\\mathbb{R}$", "$[0\\,;+\\infty[$", "$]-\\infty\\,;0[ \\cup \\,]0\\,;+\\infty[$", "$]0\\,;+\\infty[$"]);
+      return {
+        enonce: "Voici la courbe d'une fonction de référence. Sur quel ensemble est-elle définie ?",
+        figure: fig(), mode: "choix", choix: ms.choix, attendu: ms.attendu,
+        aides: ["L'ensemble de définition est formé des abscisses $x$ qui ont une image : là où la courbe existe.", "Regarde si la courbe existe pour les $x$ négatifs, et en $x = 0$.", "Reconnais la fonction : on ne divise jamais par $0$, et on ne prend pas la racine carrée d'un nombre négatif."],
+        solution: `${indices[cle]} C'est la fonction ${R.nom}, $f(x) = ${exprs[cle]}$, définie sur $${D[cle]}$.` + (cle === "inverse" ? " Le nombre $0$ n'a pas d'image." : cle === "racine" ? " Les nombres négatifs n'ont pas d'image." : "")
+      };
+    }
+    // Reconnaître l'expression (avec, une fois sur deux, un point marqué qui permet de vérifier)
+    const ms = melangeChoix(`$f(x) = ${exprs[cle]}$`, shuffle(Object.keys(exprs).filter((k) => k !== cle)).map((k) => `$f(x) = ${exprs[k]}$`));
+    const P = Math.random() < 0.5 ? null : pick({ carre: [[2, 4], [-2, 4], [1.5, 2.25], [-1.5, 2.25], [0.5, 0.25]], inverse: [[2, 0.5], [-2, -0.5], [0.5, 2], [-0.5, -2], [4, 0.25], [0.25, 4], [-4, -0.25]], absolue: [[2, 2], [-2, 2], [3, 3], [-3, 3], [4, 4], [-4, 4]], cube: [[1.5, 3.375], [-1.5, -3.375], [0.5, 0.125], [-0.5, -0.125]], racine: [[4, 2], [0.25, 0.5], [2.25, 1.5]] }[cle]);
+    const figure = P ? fig([{ x: P[0], y: P[1], label: lab(P[0], P[1]), gauche: P[0] > 3 || (P[0] < 0 && P[0] >= -3) }], `Courbe d'une fonction de référence passant par le point ${lab(P[0], P[1])}`) : fig();
     return {
-      enonce: "Quelle fonction de référence a cette courbe ?",
-      figure: graph({ xmin: -4.8, xmax: 4.8, ymin: -4.8, ymax: 4.8, curves, aria: "Courbe d'une fonction de référence" }).replace(/g-curve-1/g, "g-curve-0"),
-      mode: "choix", choix: ms.choix, attendu: ms.attendu,
-      aides: ["Regarde si la courbe existe pour les $x$ négatifs.", "Regarde si elle passe par l'origine et si elle a une ou deux branches.", "Teste un point : que vaut $f(1)$ ? et $f(2)$ ?"],
-      solution: `${indices[cle]} C'est la fonction ${R.nom} : $f(x) = ${exprs[cle]}$.`
+      enonce: P ? `Quelle fonction de référence a cette courbe ? Elle passe par le point ${pt(P[0], P[1])}.` : "Quelle fonction de référence a cette courbe ?",
+      figure, mode: "choix", choix: ms.choix, attendu: ms.attendu,
+      aides: ["Regarde si la courbe existe pour les $x$ négatifs.", "Regarde si elle passe par l'origine et si elle a une ou deux branches.", P ? `Teste le point marqué : quelle expression donne $f(${fr(P[0])}) = ${fr(P[1])}$ ?` : "Teste un point : que vaut $f(1)$ ? et $f(2)$ ?"],
+      solution: `${indices[cle]} C'est la fonction ${R.nom} : $f(x) = ${exprs[cle]}$.` + (P ? ` Vérification : $${R.tex(P[0])} = ${fr(P[1])}$.` : "")
     };
   };
 
@@ -3127,12 +3576,35 @@
   };
 
   GEN["cd-permutations"] = function () {
+    const MOTS = ["LAGON", "PLAGE", "CHIEN", "MANGUE", "DAUPHIN", "PIROGUE", "MAORE", "BANC", "BARGE", "YLANG", "RECIF", "BOUENI", "SABLE", "CRABE", "BOUTRE", "MANIOC", "PIMENT", "MANGROVE", "COMBANI"];
     const T = pick([
-      () => { const m = pick(["LAGON", "PLAGE", "CHIEN", "MANGUE", "DAUPHIN", "PIROGUE", "MAORE", "BANC"]); return [`Combien d'anagrammes (avec ou sans signification) peut-on former avec les lettres du mot ${m} ?`, m.length, "Les lettres sont toutes différentes : une anagramme est une façon de les ranger toutes."]; },
+      () => { const m = pick(MOTS); return [`Combien d'anagrammes (avec ou sans signification) peut-on former avec les lettres du mot ${m} ?`, m.length, "Les lettres sont toutes différentes : une anagramme est une façon de les ranger toutes."]; },
       () => { const n = rand(4, 9); return [`$${n}$ élèves passent un par un à l'oral. Combien d'ordres de passage possibles ?`, n, "On range tous les élèves : c'est une permutation."]; },
-      () => { const n = rand(4, 8); return [`On range $${n}$ livres différents côte à côte sur une étagère. De combien de façons ?`, n, "On range tous les livres : c'est une permutation."]; }
+      () => { const n = rand(4, 8); return [`On range $${n}$ livres différents côte à côte sur une étagère. De combien de façons ?`, n, "On range tous les livres : c'est une permutation."]; },
+      () => { const n = rand(5, 10); return [`$${n}$ pirogues s'affrontent dans une course sur le lagon, sans ex æquo. Combien d'ordres d'arrivée complets sont possibles ?`, n, "Un ordre d'arrivée range toutes les pirogues : c'est une permutation."]; },
+      () => { const n = rand(4, 8); return [`$${n}$ amis s'assoient sur un banc de $${n}$ places, face au lagon. Combien de dispositions différentes ?`, n, "Chaque ami occupe une place, toutes les places sont prises : c'est une permutation."]; },
+      () => { const n = rand(5, 9); return [`Une playlist contient $${n}$ chansons. En mode aléatoire, chaque chanson passe une seule fois. Combien d'ordres d'écoute différents ?`, n, "Un ordre d'écoute range toutes les chansons : c'est une permutation."]; },
+      () => { const V = ["Sada", "Chiconi", "Combani", "Bouéni", "Kani-Kéli", "Dembéni", "Bandraboua", "Acoua"], L = shuffle(V).slice(0, rand(4, 7)).sort((x, y) => V.indexOf(x) - V.indexOf(y)); return [`Un taxi-brousse doit passer une fois par chacun des villages suivants : ${L.join(", ")}. Dans combien d'ordres différents peut-il les visiter ?`, L.length, "On range tous les villages dans un ordre de visite : c'est une permutation."]; },
+      () => { const n = rand(4, 7); return [`Pour une photo de groupe, $${n}$ joueuses d'une équipe de handball se placent en ligne. Combien de photos différentes (selon l'ordre des joueuses) ?`, n, "On range toutes les joueuses : c'est une permutation."]; },
+      () => { const n = rand(5, 8); return [`Combien de nombres de $${n}$ chiffres peut-on écrire en utilisant une fois et une seule chacun des chiffres $1$, $2$, …, $${n}$ ?`, n, "Chaque chiffre est utilisé une fois : on range tous les chiffres, c'est une permutation."]; }
     ])();
     const [enonce, n, a1] = T;
+    // Variante : une contrainte fixe une place, il reste une permutation des autres éléments
+    if (Math.random() < 0.25) {
+      const v = pick([
+        () => { const m = pick(MOTS); return [`Combien d'anagrammes du mot ${m} commencent par la lettre ${m[0]} ?`, m.length, `La première lettre est imposée : il reste à ranger les $${m.length - 1}$ autres lettres.`, "lettres"]; },
+        () => { const m = pick(MOTS); return [`Combien d'anagrammes du mot ${m} se terminent par la lettre ${m[m.length - 1]} ?`, m.length, `La dernière lettre est imposée : il reste à ranger les $${m.length - 1}$ autres lettres.`, "lettres"]; },
+        () => { const n = rand(5, 9); return [`$${n}$ élèves passent un par un à l'oral, et Faïza a demandé à passer en premier. Combien d'ordres de passage possibles ?`, n, `La première place est prise : il reste à ranger les $${n - 1}$ autres élèves.`, "élèves"]; },
+        () => { const n = rand(5, 10); return [`$${n}$ pirogues font une course sur le lagon, sans ex æquo. On sait déjà quelle pirogue a gagné. Combien d'ordres d'arrivée complets restent possibles ?`, n, `La première place est connue : il reste à ranger les $${n - 1}$ autres pirogues.`, "pirogues"]; }
+      ])();
+      const [en2, N, b1, mot] = v, r = fact(N - 1);
+      return {
+        enonce: en2, mode: "nombre", prefixe: "Nombre :", attendu: r,
+        erreurs: [{ valeur: fact(N), message: `Une place est imposée : on ne range plus que $${N - 1}$ ${mot}, pas $${N}$.` }, { valeur: (N - 1) ** (N - 1), message: "Un élément déjà placé ne peut plus être choisi : le nombre de choix diminue à chaque place." }],
+        aides: [b1, `On compte les façons de ranger $${N - 1}$ éléments distincts : il y en a $${N - 1}!$.`, `$${N - 1}! = ${Array.from({ length: N - 1 }, (_, i) => N - 1 - i).join(" \\times ")}$.`],
+        solution: `${b1} $${N - 1}! = ${Array.from({ length: N - 1 }, (_, i) => N - 1 - i).join(" \\times ")} = ${ent(r)}$.`
+      };
+    }
     return {
       enonce, mode: "nombre", prefixe: "Nombre :", attendu: fact(n),
       erreurs: [{ valeur: n ** n, message: "Un élément déjà placé ne peut plus être choisi : le nombre de choix diminue à chaque place." }],
@@ -3348,17 +3820,55 @@
   };
 
   GEN["ar-diviseurs"] = function () {
-    const n = pick([12, 18, 20, 28, 30, 32, 36, 40, 42, 44, 45, 50, 52, 54, 56, 63, 66, 70, 75, 78, 98, 99, 100]);
-    const d = diviseurs(n), paires = d.filter((k) => k * k <= n).map((k) => `${k} \\times ${n / k}`);
+    const t = pick(["liste", "liste", "liste", "contexte", "nombre", "communs"]);
+    // nombres de 12 à 150 qui ont entre 4 et 12 diviseurs
+    const N = []; for (let m = 12; m <= 150; m++) { const c = diviseurs(m).length; if (c >= 4 && c <= 12) N.push(m); }
+    const listeTex = (d) => d.join(" ; ");
+    if (t === "communs") {
+      // a = g × u et b = g × v avec u et v premiers entre eux : les diviseurs communs sont ceux de g
+      let g, u, v;
+      do { g = pick([4, 6, 8, 9, 10, 12, 14, 15, 18]); u = rand(2, 9); v = rand(3, 10); } while (u >= v || pgcd(u, v) !== 1 || g * v > 120);
+      const a = g * u, b = g * v, dc = diviseurs(g);
+      return {
+        enonce: `Donne **tous** les diviseurs positifs **communs** à $${a}$ et à $${b}$, séparés par « ; ».`,
+        mode: "ensemble", prefixe: "Diviseurs communs :", attendu: dc,
+        aides: [`Commence par lister les diviseurs de $${a}$, le plus petit des deux nombres.`, `Diviseurs de $${a}$ : $${listeTex(diviseurs(a))}$.`, `Garde seulement ceux qui divisent aussi $${b}$ (le quotient doit être un entier).`],
+        solution: `Diviseurs de $${a}$ : $${listeTex(diviseurs(a))}$.\n\nDiviseurs de $${b}$ : $${listeTex(diviseurs(b))}$.\n\nDiviseurs communs : $${listeTex(dc)}$. ${dc.length === 1 ? "Le seul diviseur commun est $1$." : `Le plus grand est $${g}$ : on pourrait simplifier la fraction $\\dfrac{${a}}{${b}}$ par $${g}$.`}`
+      };
+    }
+    const n = pick(N), d = diviseurs(n), paires = d.filter((k) => k * k <= n).map((k) => `${k} \\times ${n / k}`), carre = Number.isInteger(Math.sqrt(n));
+    const AIDES = [
+      `$1$ et $${n}$ sont toujours des diviseurs de $${n}$.`,
+      `Cherche les produits qui donnent $${n}$ : $1 \\times ${n}$, puis teste $2$, $3$, $4$… Chaque produit donne **deux** diviseurs.`,
+      `Tu peux t'arrêter quand le premier facteur dépasse le second : ici, après $${d.filter((k) => k * k <= n).pop()}$.`
+    ];
+    const SOL = `$${n} = ${paires.join(" = ")}$.\n\nLes diviseurs de $${n}$ sont : $${listeTex(d)}$ (${d.length} diviseurs).` + (carre ? ` Attention : $${Math.sqrt(n)} \\times ${Math.sqrt(n)}$ ne donne qu'**un** diviseur.` : "");
+    if (t === "nombre") return {
+      enonce: `Combien de diviseurs positifs le nombre $${n}$ possède-t-il ?`,
+      mode: "nombre", prefixe: "Nombre de diviseurs :", attendu: d.length,
+      erreurs: [{ valeur: d.length - 2, message: `N'oublie pas $1$ et $${n}$ lui-même : ce sont aussi des diviseurs de $${n}$.` }].concat(carre ? [{ valeur: d.length + 1, message: `$${n} = ${Math.sqrt(n)} \\times ${Math.sqrt(n)}$ : le diviseur $${Math.sqrt(n)}$ ne compte qu'une fois.` }] : []),
+      aides: AIDES,
+      solution: SOL
+    };
+    if (t === "contexte") {
+      const ctx = pick([
+        `Une commerçante du marché de Mamoudzou veut ranger ses $${n}$ mangues dans des sachets qui contiennent tous le même nombre de mangues, sans qu'il en reste. Quels sont tous les nombres de mangues possibles par sachet ?`,
+        `Un agriculteur de Combani veut planter $${n}$ pieds d'ylang-ylang en rangées qui ont toutes le même nombre de pieds. Quels sont tous les nombres de pieds possibles par rangée ?`,
+        `Pour une sortie au lagon, $${n}$ élèves doivent être répartis en groupes ayant tous le même effectif, sans qu'il reste d'élève. Quels sont tous les effectifs possibles pour un groupe ?`,
+        `Un pêcheur de Sada a ramené $${n}$ poissons qu'il veut partager en lots identiques, sans qu'il en reste. Quels sont tous les nombres de poissons possibles par lot ?`
+      ]);
+      return {
+        enonce: `${ctx}\n\nDonne-les tous, séparés par « ; » (y compris $1$ et $${n}$).`,
+        mode: "ensemble", prefixe: "Possibilités :", attendu: d,
+        aides: [`Un partage en parts égales sans reste correspond à un **diviseur** de $${n}$.`, AIDES[1], AIDES[2]],
+        solution: `Il faut que la taille d'une part divise $${n}$ : on cherche tous les diviseurs de $${n}$.\n\n` + SOL
+      };
+    }
     return {
       enonce: `Donne **tous** les diviseurs positifs de $${n}$, séparés par « ; ».`,
       mode: "ensemble", prefixe: "Diviseurs :", attendu: d,
-      aides: [
-        `$1$ et $${n}$ sont toujours des diviseurs de $${n}$.`,
-        `Cherche les produits qui donnent $${n}$ : $1 \\times ${n}$, puis teste $2$, $3$, $4$… Chaque produit donne **deux** diviseurs.`,
-        `Tu peux t'arrêter quand le premier facteur dépasse le second : ici, après $${d.filter((k) => k * k <= n).pop()}$.`
-      ],
-      solution: `$${n} = ${paires.join(" = ")}$.\n\nLes diviseurs de $${n}$ sont : $${d.join("\\,;\\,")}$ (${d.length} diviseurs).`
+      aides: AIDES,
+      solution: SOL
     };
   };
 
@@ -3508,7 +4018,7 @@
         mode: "nombre", prefixe: "Réponse :", suffixe: "min", attendu: ppcm,
         erreurs: [{ valeur: x * y, message: `$${x * y}$ convient, mais ce n'est pas la **première** fois : cherche plus petit.` }],
         aides: [`Les départs de la première barge ont lieu après $${x}$, $${2 * x}$, $${3 * x}$… minutes : les multiples de $${x}$.`, `Écris aussi les multiples de $${y}$.`, "Cherche le plus petit nombre commun aux deux listes."],
-        solution: `Multiples de $${x}$ : $${mx.join("\\,;\\,")}$.\n\nMultiples de $${y}$ : $${my.join("\\,;\\,")}$.\n\nLe premier nombre commun est $${ppcm}$ : elles repartent ensemble au bout de $${ppcm}$ minutes.`
+        solution: `Multiples de $${x}$ : $${mx.join(" ; ")}$.\n\nMultiples de $${y}$ : $${my.join(" ; ")}$.\n\nLe premier nombre commun est $${ppcm}$ : elles repartent ensemble au bout de $${ppcm}$ minutes.`
       };
     }
     if (t === 1) {
@@ -3519,7 +4029,7 @@
         mode: "nombre", prefixe: "Rangements :", attendu: d.length,
         erreurs: [{ valeur: d.length + 2, message: "Tu as compté $1$ pile, ou $1$ carton par pile : c'est interdit ici." }],
         aides: [`Le nombre de piles doit être un **diviseur** de $${n}$.`, `Liste les diviseurs de $${n}$.`, `Enlève $1$ (une seule pile) et $${n}$ (un carton par pile).`],
-        solution: `Diviseurs de $${n}$ : $${diviseurs(n).join("\\,;\\,")}$. On enlève $1$ et $${n}$ : il reste $${d.join("\\,;\\,")}$, soit $${d.length}$ rangements possibles.`
+        solution: `Diviseurs de $${n}$ : $${diviseurs(n).join(" ; ")}$. On enlève $1$ et $${n}$ : il reste $${d.join(" ; ")}$, soit $${d.length}$ rangements possibles.`
       };
     }
     // Somme d'entiers consécutifs
@@ -3896,7 +4406,7 @@
       mode: "nombre", prefixe: "Réponse :", attendu: q ? vals.length : vals[k - 1],
       erreurs: q ? [{ valeur: vals.length + 1, message: `$\\texttt{range(${d}, ${f})}$ s'arrête **avant** $${f}$.` }] : [],
       aides: [`$\\texttt{range(${d}, ${f})}$ donne les entiers de $${d}$ à $${f - 1}$ (le $${f}$ est exclu).`, "La boucle **for** fait un tour pour chaque valeur de $x$ et affiche $f(x)$.", q ? `Compte les entiers de $${d}$ à $${f - 1}$.` : `Le ${k === 1 ? "premier" : k + "e"} tour correspond à $x = ${d + k - 1}$.`],
-      solution: `$x$ prend les valeurs $${Array.from({ length: f - d }, (_, i) => d + i).join("\\,;\\,")}$. Le programme affiche le tableau de valeurs : $${vals.join("\\,;\\,")}$.\n\n` + (q ? `Il affiche $${vals.length}$ nombres.` : `Le ${k === 1 ? "premier" : k + "e"} nombre est $f(${d + k - 1}) = ${vals[k - 1]}$.`)
+      solution: `$x$ prend les valeurs $${Array.from({ length: f - d }, (_, i) => d + i).join(" ; ")}$. Le programme affiche le tableau de valeurs : $${vals.join(" ; ")}$.\n\n` + (q ? `Il affiche $${vals.length}$ nombres.` : `Le ${k === 1 ? "premier" : k + "e"} nombre est $f(${d + k - 1}) = ${vals[k - 1]}$.`)
     };
   };
 
@@ -4049,7 +4559,7 @@
   const serie = (n, a, b) => Array.from({ length: n }, () => rand(a, b));
   const moy = (L) => L.reduce((s, x) => s + x, 0) / L.length;
   const ecType = (L) => { const m = moy(L); return Math.sqrt(L.reduce((s, x) => s + (x - m) ** 2, 0) / L.length); };
-  const listeTex = (L) => L.map((x) => nb(x)).join("\\,;\\,");
+  const listeTex = (L) => L.map((x) => nb(x)).join(" ; ");
   const quartile = (L, k) => { const T = L.slice().sort((a, b) => a - b); return T[Math.ceil((k * T.length) / 4) - 1]; };
 
   GEN["st-moyenne"] = function () {
@@ -4172,7 +4682,73 @@
 
   /* ---------- Seconde, chapitre 9 : variations, extremums, carré et valeur absolue (préfixe vx-) ---------- */
   GEN["vx-comparer"] = refRestreint("var-ref-comparer", ["carre", "carre", "absolue"]);
-  GEN["vx-equation"] = refRestreint("var-ref-equation", null, [0, 0, 1]);
+  GEN["vx-equation"] = function () {
+    const t = pick(["carre", "carre", "abs", "abs", "etape", "etape", "choix"]);
+    const FORMAT = "Écris les solutions séparées par « ; », ou « aucun » s'il n'y en a pas.";
+    const racine = (k) => +Math.sqrt(k).toFixed(4);
+    const conclure = (eq, sol) => (sol.length ? `$${eq}$ a pour solution${sol.length > 1 ? "s" : ""} $${sol.map(nb).join("$ et $")}$.` : `$${eq}$ n'a **aucune** solution réelle.`);
+    // Solutions de x² = k et de |x| = k, avec la justification
+    const solCarre = (k) => (k < 0 ? [] : k === 0 ? [0] : [-racine(k), racine(k)]);
+    const solAbs = (k) => (k < 0 ? [] : k === 0 ? [0] : [-k, k]);
+    const pourquoiCarre = (k) => (k < 0 ? `Un carré est toujours positif ou nul : il ne peut pas valoir $${fr(k)}$.` : k === 0 ? "Seul $0$ a pour carré $0$." : `$${fr(racine(k))}^2 = ${fr(k)}$ et $(-${fr(racine(k))})^2 = ${fr(k)}$ : deux nombres opposés ont le même carré.`);
+    const pourquoiAbs = (k) => (k < 0 ? `$|x|$ est une distance, toujours positive ou nulle : elle ne peut pas valoir $${fr(k)}$.` : k === 0 ? "Seul $0$ est à la distance $0$ de $0$." : `Les nombres à la distance $${fr(k)}$ de $0$ sont $${fr(k)}$ et $${fr(-k)}$.`);
+    const tireCarre = () => { const u = Math.random(); if (u < 0.55) return rand(1, 12) ** 2; if (u < 0.72) return +(pick([0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.1, 1.2, 1.5, 2.5]) ** 2).toFixed(4); if (u < 0.9) return pick([-1, -2, -3, -4, -5, -9, -10, -16, -25, -36, -49]); return 0; };
+    const tireAbs = () => { const u = Math.random(); if (u < 0.6) return rand(1, 15); if (u < 0.75) return pick([0.5, 1.5, 2.5, 3.5, 4.5, 7.5, 0.2, 0.8]); if (u < 0.9) return -rand(1, 8); return 0; };
+    if (t === "carre") {
+      const k = tireCarre(), eq = `x^2 = ${fr(k)}`, sol = solCarre(k);
+      return {
+        enonce: `Résous dans $\\mathbb{R}$ l'équation $${eq}$.`,
+        mode: "ensemble", prefixe: "Solution(s) :", attendu: sol,
+        aides: ["Un carré est toujours positif ou nul.", k > 0 ? `Deux nombres ont pour carré $${fr(k)}$ : $\\sqrt{${fr(k)}}$ et son opposé.` : k === 0 ? "Seul $0$ a pour carré $0$." : "Aucun nombre réel n'a un carré négatif.", FORMAT],
+        solution: `${pourquoiCarre(k)}\n\n${conclure(eq, sol)}`
+      };
+    }
+    if (t === "abs") {
+      const k = tireAbs(), eq = `|x| = ${fr(k)}`, sol = solAbs(k);
+      return {
+        enonce: `Résous dans $\\mathbb{R}$ l'équation $${eq}$.`,
+        mode: "ensemble", prefixe: "Solution(s) :", attendu: sol,
+        aides: ["$|x|$ est la distance entre $x$ et $0$.", k > 0 ? `Deux nombres sont à la distance $${fr(k)}$ de $0$ : $${fr(k)}$ et $${fr(-k)}$.` : k === 0 ? "Seul $0$ est à la distance $0$ de $0$." : "Une distance n'est jamais négative.", FORMAT],
+        solution: `${pourquoiAbs(k)}\n\n${conclure(eq, sol)}`
+      };
+    }
+    if (t === "etape") {
+      const forme = pick(["moins", "plus0", "plus", "coef", "absplus", "absmoins"]);
+      let eq, k, abs = false, etape;
+      if (forme === "moins") { const r = rand(1, 10); k = r * r; eq = `x^2 - ${k} = 0`; etape = `On ajoute $${k}$ aux deux membres`; }
+      else if (forme === "plus0") { const c = rand(1, 20); k = -c; eq = `x^2 + ${c} = 0`; etape = `On retire $${c}$ aux deux membres`; }
+      else if (forme === "plus") { const a = rand(1, 9); k = pick([rand(1, 8) ** 2, rand(1, 8) ** 2, -rand(1, 5), 0]); eq = `x^2 + ${a} = ${a + k}`; etape = `On retire $${a}$ aux deux membres`; }
+      else if (forme === "coef") { const a = rand(2, 5), r = rand(1, 6); k = r * r; eq = `${a}x^2 = ${a * k}`; etape = `On divise les deux membres par $${a}$`; }
+      else if (forme === "absplus") { const a = rand(1, 9); k = rand(-5, 10); abs = true; eq = `|x| + ${a} = ${a + k}`; etape = `On retire $${a}$ aux deux membres`; }
+      else { const a = rand(1, 6); k = rand(-3, 9); abs = true; eq = `|x| - ${a} = ${k - a}`; etape = `On ajoute $${a}$ aux deux membres`; }
+      const iso = abs ? `|x| = ${k}` : `x^2 = ${k}`, sol = abs ? solAbs(k) : solCarre(k);
+      return {
+        enonce: `Résous dans $\\mathbb{R}$ l'équation $${eq}$.`,
+        mode: "ensemble", prefixe: "Solution(s) :", attendu: sol,
+        aides: [`Commence par isoler $${abs ? "|x|" : "x^2"}$ dans un membre. ${etape}.`, `On obtient $${iso}$. ${abs ? "$|x|$ est la distance entre $x$ et $0$." : "Un carré est toujours positif ou nul."}`, FORMAT],
+        solution: `${etape} : $${eq} \\iff ${iso}$.\n\n${abs ? pourquoiAbs(k) : pourquoiCarre(k)}\n\n${conclure(eq, sol)}`
+      };
+    }
+    // QCM : nombre de solutions, ou solutions avec une racine carrée
+    if (Math.random() < 0.5) {
+      const k = pick([2, 3, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15, 17, 18, 19, 20, 21, 22, 23, 24, 26, 30]);
+      const ms = melangeChoix(`$-\\sqrt{${k}}$ et $\\sqrt{${k}}$`, shuffle([`$\\sqrt{${k}}$ seulement`, `$-\\dfrac{${k}}{2}$ et $\\dfrac{${k}}{2}$`, "Aucune solution", `$-${k * k}$ et $${k * k}$`]));
+      return {
+        enonce: `Quelles sont les solutions dans $\\mathbb{R}$ de l'équation $x^2 = ${k}$ ?`,
+        mode: "choix", choix: ms.choix, attendu: ms.attendu,
+        aides: [`$${k}$ est positif : l'équation a deux solutions, opposées l'une de l'autre.`, `Le nombre positif dont le carré vaut $${k}$ s'appelle $\\sqrt{${k}}$ : ici ce n'est pas un entier, on le laisse sous cette forme.`, `N'oublie pas l'opposé : $(-\\sqrt{${k}})^2 = ${k}$ aussi.`],
+        solution: `$${k} > 0$, donc $x^2 = ${k}$ a deux solutions : $\\sqrt{${k}}$ et $-\\sqrt{${k}}$ (valeurs exactes, environ $${fr(+Math.sqrt(k).toFixed(2))}$ et $${fr(-Math.sqrt(k).toFixed(2))}$).`
+      };
+    }
+    const abs = Math.random() < 0.5, k = pick([rand(-20, -1), rand(1, 30), rand(1, 30), 0, pick([0.5, 2.5, -0.5, 1.2])]);
+    const eq = abs ? `|x| = ${fr(k)}` : `x^2 = ${fr(k)}`, n = k < 0 ? 0 : k === 0 ? 1 : 2;
+    return {
+      enonce: `Combien de solutions réelles l'équation $${eq}$ a-t-elle ?`,
+      mode: "choix", choix: ["Aucune", "Une seule", "Deux"], attendu: n,
+      aides: [abs ? "$|x|$ est la distance entre $x$ et $0$ : elle est toujours positive ou nulle." : "Un carré est toujours positif ou nul.", `Regarde le signe du nombre $${fr(k)}$ : négatif, nul ou positif ?`, abs ? "Un nombre strictement positif est la distance à $0$ de deux nombres opposés ; seul $0$ est à la distance $0$ de $0$." : "Un nombre strictement positif est le carré de deux nombres opposés ; seul $0$ a pour carré $0$."],
+      solution: `${abs ? pourquoiAbs(k) : k > 0 && !Number.isInteger(Math.sqrt(k)) ? `$${fr(k)} > 0$ : les solutions sont $\\sqrt{${fr(k)}}$ et $-\\sqrt{${fr(k)}}$.` : pourquoiCarre(k)}\n\nL'équation a donc **${["aucune solution", "une seule solution", "deux solutions"][n]}**.`
+    };
+  };
 
   GEN["vx-inequation-carre"] = function () {
     const r = rand(1, 9), k = r * r, op = pick(OPS), neg = Math.random() < 0.15;
@@ -4226,14 +4802,66 @@
   };
 
   GEN["vx-python"] = function () {
-    const P = 4 * rand(2, 6), b = P / 2;
-    const pas = pick([1, 0.5]);
+    const t = pick(["x", "x", "aire", "mur", "intervalle", "compte"]);
+    const pt = (p) => (p === 1 ? "1" : "0.5");
+    // Programme de balayage pour A(x) = x(b - x) sur [0 ; b], qui renvoie ret
+    const prog = (b, ret) => "```python\ndef balayage(pas):\n    x = 0\n    meilleur_x = 0\n    meilleur_A = 0\n    while x <= " + b + ":\n        A = x * (" + b + " - x)\n        if A > meilleur_A:\n            meilleur_x = x\n            meilleur_A = A\n        x = x + pas\n    return " + ret + "\n```";
+    // b entre 4 et 20 ; si b est impair, le pas 0,5 permet d'atteindre le milieu b/2
+    const b = rand(4, 20), pas = b % 2 ? 0.5 : pick([1, 0.5]), m = b / 2;
+    if (t === "aire") return {
+      enonce: "On cherche l'aire maximale $A(x) = x(" + b + " - x)$ sur $[0\\,;" + b + "]$ par **balayage** :\n\n" + prog(b, "meilleur_A") + "\n\n" + `Que renvoie $\\texttt{balayage(${pt(pas)})}$ ?`,
+      mode: "nombre", prefixe: "Résultat :", attendu: m * m,
+      erreurs: [{ valeur: m, message: "Ça, c'est la valeur de $x$ où l'aire est maximale. Ici, la fonction renvoie la plus grande **aire** rencontrée." }],
+      aides: ["Le programme calcule $A(x)$ pour $x = 0$, puis $x = 0 + \\text{pas}$, etc., et garde la plus grande aire rencontrée.", `$A$ est maximale au milieu de $0$ et $${b}$, c'est-à-dire en $x = ${nb(m)}$, et cette valeur est bien atteinte avec un pas de $${nb(pas)}$.`, `Calcule $A(${nb(m)}) = ${nb(m)} \\times (${b} - ${nb(m)})$.`],
+      solution: `Les valeurs de $A$ augmentent jusqu'à $x = ${nb(m)}$, puis diminuent. La plus grande aire rencontrée est $A(${nb(m)}) = ${nb(m)} \\times ${nb(b - m)} = ${nb(m * m)}$ : c'est ce que renvoie la fonction.`
+    };
+    if (t === "compte") {
+      const n = b / pas + 1;
+      return {
+        enonce: "On cherche le maximum de $A(x) = x(" + b + " - x)$ sur $[0\\,;" + b + "]$ par **balayage** :\n\n" + prog(b, "meilleur_x") + "\n\n" + `Lors de l'appel $\\texttt{balayage(${pt(pas)})}$, combien de valeurs de $x$ le programme teste-t-il (c'est-à-dire combien de fois calcule-t-il $A$) ?`,
+        mode: "nombre", prefixe: "Nombre de valeurs :", attendu: n,
+        erreurs: [{ valeur: n - 1, message: `Tu en as oublié une : $x = 0$ est testé au début, et $x = ${b}$ aussi, car la boucle continue tant que $x \\leqslant ${b}$.` }],
+        aides: [`$x$ prend les valeurs $0$, puis $${nb(pas)}$, puis $${nb(2 * pas)}$… en avançant de $${nb(pas)}$ à chaque tour.`, `La boucle tourne tant que $x \\leqslant ${b}$ : la dernière valeur testée est $x = ${b}$.`, `De $0$ à $${b}$ avec un pas de $${nb(pas)}$, il y a $${b} \\div ${nb(pas)} = ${b / pas}$ « sauts », donc un nombre de plus de valeurs.`],
+        solution: `$x$ prend les valeurs $0$, $${nb(pas)}$, $${nb(2 * pas)}$, …, $${b}$ : cela fait $${b / pas}$ sauts de $${nb(pas)}$, donc $${b / pas} + 1 = ${n}$ valeurs testées.\n\nPlus le pas est petit, plus le balayage est précis… et plus il demande de calculs.`
+      };
+    }
+    if (t === "mur") {
+      const P = 4 * rand(2, 8), h = P / 2, xm = P / 4, pasM = pick([1, 0.5]);
+      return {
+        enonce: `On construit un enclos rectangulaire pour les cabris le long d'un mur, avec $${P}$ m de grillage pour les trois autres côtés. Sa largeur est $x$ et son aire $A(x) = x(${P} - 2x)$ pour $x$ dans $[0\\,;${h}]$. On cherche la meilleure largeur par **balayage** :\n\n` + "```python\ndef balayage(pas):\n    x = 0\n    meilleur_x = 0\n    meilleur_A = 0\n    while x <= " + h + ":\n        A = x * (" + P + " - 2 * x)\n        if A > meilleur_A:\n            meilleur_x = x\n            meilleur_A = A\n        x = x + pas\n    return meilleur_x\n```\n\n" + `Que renvoie $\\texttt{balayage(${pt(pasM)})}$ ?`,
+        mode: "nombre", prefixe: "Résultat :", attendu: xm,
+        erreurs: [{ valeur: xm * (P - 2 * xm), message: "Ça, c'est l'aire maximale. La fonction renvoie la **largeur** $x$ qui la donne." }, { valeur: h, message: `$${h}$ est la plus grande largeur possible, mais l'aire y vaut $0$.` }],
+        aides: [`$A(x) = x(${P} - 2x)$ s'annule en $x = 0$ et en $x = ${h}$.`, "Sa courbe est une parabole « tournée vers le bas » : le maximum est au milieu des deux valeurs où $A$ s'annule.", `Le milieu de $0$ et $${h}$ est $${nb(xm)}$, qui fait bien partie des valeurs testées.`],
+        solution: `$A$ s'annule en $0$ et en $${h}$, donc son maximum est atteint au milieu : $x = ${nb(xm)}$, avec $A(${nb(xm)}) = ${nb(xm)} \\times ${nb(P - 2 * xm)} = ${nb(xm * (P - 2 * xm))}$ m².\n\nLe balayage teste $x = ${nb(xm)}$ (c'est un multiple du pas) : les aires augmentent jusque-là, puis diminuent. La fonction renvoie $${nb(xm)}$.`
+      };
+    }
+    if (t === "intervalle") {
+      const bb = 2 * rand(4, 10), mm = bb / 2, cas = pick(["gauche", "droite", "dedans", "dedans"]);
+      let a, B;
+      if (cas === "gauche") { a = rand(0, mm - 3); B = rand(a + 2, mm - 1); }
+      else if (cas === "droite") { a = rand(mm + 1, bb - 3); B = rand(a + 2, bb); }
+      else { a = rand(0, mm - 1); B = rand(mm + 1, bb); }
+      const rep = cas === "gauche" ? B : cas === "droite" ? a : mm;
+      const vals = Array.from({ length: B - a + 1 }, (_, j) => `$${a + j}$`);
+      const liste = vals.length <= 5 ? vals.slice(0, -1).join(", ") + " et " + vals[vals.length - 1] : `$${a}$, $${a + 1}$, …, $${B}$`;
+      return {
+        enonce: "On considère le programme Python du cours :\n\n```python\ndef f(x):\n    return x * (" + bb + " - x)\n\ndef balayage(f, a, b, pas):\n    x = a\n    meilleur_x = a\n    while x <= b:\n        if f(x) > f(meilleur_x):\n            meilleur_x = x\n        x = x + pas\n    return meilleur_x\n```\n\n" + `Que renvoie $\\texttt{balayage(f, ${a}, ${B}, 1)}$ ?`,
+        mode: "nombre", prefixe: "Résultat :", attendu: rep,
+        erreurs: cas === "dedans" ? [{ valeur: mm * mm, message: "Ça, c'est la plus grande valeur de $f(x)$. La fonction renvoie la valeur de $x$ où elle est atteinte." }] : [{ valeur: mm, message: `Le sommet de la parabole est en $x = ${mm}$, mais ce nombre n'est pas entre $${a}$ et $${B}$ : le programme ne le teste pas.` }],
+        aides: [`Le programme teste les valeurs ${liste} et garde le $x$ qui donne la plus grande valeur de $f(x)$.`, `$f(x) = x(${bb} - x)$ s'annule en $0$ et en $${bb}$ : $f$ est croissante sur $[0\\,;${mm}]$ et décroissante sur $[${mm}\\,;${bb}]$.`, `Regarde si $${mm}$ est dans l'intervalle $[${a}\\,;${B}]$ balayé. Sinon, le maximum est à une extrémité.`],
+        solution: cas === "dedans"
+          ? `$${mm}$ est dans $[${a}\\,;${B}]$ : les valeurs de $f$ augmentent jusqu'à $f(${mm}) = ${mm * mm}$, puis diminuent. La fonction renvoie $${mm}$.`
+          : cas === "gauche"
+            ? `Sur $[${a}\\,;${B}]$, $f$ est croissante (on est avant $${mm}$) : chaque nouvelle valeur de $f(x)$ est plus grande que la précédente. Le meilleur $x$ est le dernier testé : la fonction renvoie $${B}$.`
+            : `Sur $[${a}\\,;${B}]$, $f$ est décroissante (on est après $${mm}$) : aucune valeur ne dépasse $f(${a})$. Le meilleur $x$ reste le premier : la fonction renvoie $${a}$.`
+      };
+    }
     return {
-      enonce: "On cherche le maximum de $A(x) = x(" + b + " - x)$ sur $[0\\,;" + b + "]$ par **balayage** :\n\n```python\ndef balayage(pas):\n    x = 0\n    meilleur_x = 0\n    meilleur_A = 0\n    while x <= " + b + ":\n        A = x * (" + b + " - x)\n        if A > meilleur_A:\n            meilleur_x = x\n            meilleur_A = A\n        x = x + pas\n    return meilleur_x\n```\n\n" + `Que renvoie $\\texttt{balayage(${pas === 1 ? "1" : "0.5"})}$ ?`,
-      mode: "nombre", prefixe: "Résultat :", attendu: b / 2,
-      erreurs: [{ valeur: (b / 2) * (b / 2), message: "La fonction renvoie $\\texttt{meilleur\\_x}$, l'abscisse du maximum, pas l'aire." }],
+      enonce: "On cherche le maximum de $A(x) = x(" + b + " - x)$ sur $[0\\,;" + b + "]$ par **balayage** :\n\n" + prog(b, "meilleur_x") + "\n\n" + `Que renvoie $\\texttt{balayage(${pt(pas)})}$ ?`,
+      mode: "nombre", prefixe: "Résultat :", attendu: m,
+      erreurs: [{ valeur: m * m, message: "La fonction renvoie la valeur de $x$ qui donne la plus grande aire, pas l'aire elle-même." }],
       aides: ["Le programme calcule $A(x)$ pour $x = 0$, puis $x = 0 + \\text{pas}$, etc.", "Il garde en mémoire le $x$ qui donne la plus grande aire rencontrée.", `$A$ est maximale au milieu de $0$ et $${b}$.`],
-      solution: `Les valeurs de $A$ augmentent jusqu'à $x = ${nb(b / 2)}$ (où $A = ${nb((b / 2) ** 2)}$), puis diminuent. Le test $\\texttt{A > meilleur\\_A}$ n'est plus vrai ensuite : la fonction renvoie $${nb(b / 2)}$.`
+      solution: `Les valeurs de $A$ augmentent jusqu'à $x = ${nb(m)}$ (où $A = ${nb(m * m)}$), puis diminuent. Ensuite, $A$ ne dépasse plus la meilleure aire enregistrée : la fonction renvoie $${nb(m)}$.`
     };
   };
 
@@ -4279,19 +4907,50 @@
   };
 
   GEN["tc-medias"] = function () {
+    // Chaque contexte : lettres A et B, légende, puis les phrases selon la population de référence
+    // (cA : parmi les A → f_A(B) ; cB : parmi les B → f_B(A) ; I : toute la population → f(A ∩ B)), p = pourcentage
     const T = [
-      ["« $40\\,\\%$ des filles du lycée font du sport. »", "F", "S", "fille", "fait du sport"],
-      ["« Parmi les élèves qui viennent en bus, $25\\,\\%$ sont en Terminale. »", "B", "T", "vient en bus", "est en Terminale"],
-      ["« $15\\,\\%$ des fumeurs ont une maladie respiratoire. »", "F", "M", "fumeur", "a une maladie respiratoire"],
-      ["« $60\\,\\%$ des personnes vaccinées n'ont pas eu la grippe. »", "V", "\\overline{G}", "vacciné", "n'a pas eu la grippe"]
+      { A: "F", B: "S", leg: "$F$ : « l'élève est une fille » et $S$ : « l'élève fait du sport »", p0: 40,
+        cA: (P) => `« ${P} des filles du lycée font du sport. »`, cB: (P) => `« Parmi les élèves du lycée qui font du sport, ${P} sont des filles. »`, I: (P) => `« ${P} des élèves du lycée sont des filles qui font du sport. »` },
+      { A: "B", B: "T", leg: "$B$ : « l'élève vient en bus » et $T$ : « l'élève est en Terminale »", p0: 25,
+        cA: (P) => `« Parmi les élèves qui viennent en bus, ${P} sont en Terminale. »`, cB: (P) => `« ${P} des élèves de Terminale viennent en bus. »`, I: (P) => `« ${P} des élèves du lycée sont en Terminale et viennent en bus. »` },
+      { A: "F", B: "M", leg: "$F$ : « la personne fume » et $M$ : « la personne a une maladie respiratoire »", p0: 15,
+        cA: (P) => `« ${P} des fumeurs ont une maladie respiratoire. »`, cB: (P) => `« Parmi les personnes qui ont une maladie respiratoire, ${P} sont des fumeurs. »`, I: (P) => `« ${P} des habitants sont des fumeurs atteints d'une maladie respiratoire. »` },
+      { A: "V", B: "\\overline{G}", leg: "$V$ : « la personne est vaccinée » et $G$ : « la personne a eu la grippe »", p0: 60,
+        cA: (P) => `« ${P} des personnes vaccinées n'ont pas eu la grippe. »`, cB: (P) => `« Parmi les personnes qui n'ont pas eu la grippe cet hiver, ${P} étaient vaccinées. »`, I: (P) => `« ${P} des habitants ont été vaccinés et n'ont pas eu la grippe. »` },
+      { A: "M", B: "L", leg: "$M$ : « le passager voyage le matin » et $L$ : « le passager est un lycéen »",
+        cA: (P) => `« ${P} des passagers de la barge du matin sont des lycéens. »`, cB: (P) => `« Parmi les lycéens qui prennent la barge, ${P} voyagent le matin. »`, I: (P) => `« ${P} des passagers de la barge sont des lycéens qui voyagent le matin. »` },
+      { A: "J", B: "P", leg: "$J$ : « le touriste est venu en juillet » et $P$ : « le touriste a fait de la plongée »",
+        cA: (P) => `« Parmi les touristes venus à Mayotte en juillet, ${P} ont fait de la plongée dans le lagon. »`, cB: (P) => `« ${P} des touristes qui ont plongé dans le lagon de Mayotte sont venus en juillet. »`, I: (P) => `« ${P} des touristes venus à Mayotte cette année sont venus en juillet et ont fait de la plongée. »` },
+      { A: "I", B: "S", leg: "$I$ : « l'élève est interne » et $S$ : « l'élève est en Seconde »",
+        cA: (P) => `« ${P} des internes du lycée sont en Seconde. »`, cB: (P) => `« Parmi les élèves de Seconde, ${P} sont internes. »`, I: (P) => `« ${P} des élèves du lycée sont des internes de Seconde. »` },
+      { A: "A", B: "M", leg: "$A$ : « la mangue est abîmée » et $M$ : « la mangue est trop mûre »",
+        cA: (P) => `« Au marché de Mamoudzou, ${P} des mangues abîmées sont trop mûres. »`, cB: (P) => `« Au marché de Mamoudzou, parmi les mangues trop mûres, ${P} sont abîmées. »`, I: (P) => `« Au marché de Mamoudzou, ${P} des mangues sont à la fois trop mûres et abîmées. »` },
+      { A: "A", B: "S", leg: "$A$ : « le conducteur a eu un accident » et $S$ : « le conducteur n'a pas de permis »",
+        cA: (P) => `« ${P} des conducteurs de scooter accidentés n'avaient pas de permis. »`, cB: (P) => `« Parmi les conducteurs de scooter sans permis, ${P} ont eu un accident. »` },
+      { A: "E", B: "V", leg: "$E$ : « la personne est un enfant » et $V$ : « la personne est vaccinée contre la rougeole »",
+        cA: (P) => `« À Mamoudzou, ${P} des enfants sont vaccinés contre la rougeole. »`, cB: (P) => `« À Mamoudzou, parmi les personnes vaccinées contre la rougeole, ${P} sont des enfants. »`, I: (P) => `« ${P} des habitants de Mamoudzou sont des enfants vaccinés contre la rougeole. »` }
     ];
-    const [phr, A, B] = pick(T);
-    const ch = melangeChoix(`$f_{${A}}(${B})$`, [`$f_{${B}}(${A})$`, `$f(${A} \\cap ${B})$`, `$f(${B})$`]);
+    const c = pick(T), types = ["cA", "cB", "I"].filter((k) => c[k]);
+    const typ = c.p0 && Math.random() < 0.25 ? "cA" : pick(types);
+    const p = typ === "cA" && c.p0 && Math.random() < 0.3 ? c.p0 : typ === "I" ? 5 * rand(1, 8) : 5 * rand(2, 18), P = `$${p}\\,\\%$`;
+    const phr = c[typ](P), A = c.A, B = c.B, val = fr(p / 100);
+    let bonne, faux, aides, sol;
+    if (typ === "I") {
+      bonne = `$f(${A} \\cap ${B})$`; faux = [`$f_{${A}}(${B})$`, `$f_{${B}}(${A})$`, `$f(${B})$`];
+      aides = ["Cherche la population de référence : « des … », « parmi les … ».", "Ici, la population de référence est la population **tout entière** : pas d'indice.", `On compte ceux qui vérifient les deux conditions à la fois : c'est l'intersection $${A} \\cap ${B}$.`];
+      sol = `La phrase parle de **toute** la population (pas d'une sous-population) et de ceux qui sont à la fois $${A}$ et $${B}$ : c'est $f(${A} \\cap ${B}) = ${val}$. Ce n'est ni $f_{${A}}(${B})$ ni $f_{${B}}(${A})$, qui se calculent seulement parmi une partie de la population.`;
+    } else {
+      const R = typ === "cA" ? A : B, S = typ === "cA" ? B : A;
+      bonne = `$f_{${R}}(${S})$`; faux = [`$f_{${S}}(${R})$`, `$f(${A} \\cap ${B})$`, `$f(${S})$`];
+      aides = ["Cherche la population de référence : « des … », « parmi les … ».", `La population de référence est $${R}$ : elle va en indice.`, "$f_X(Y)$ : parmi les $X$, la part de $Y$."];
+      sol = `La population de référence est $${R}$ ; on regarde la part de $${S}$ parmi eux : $f_{${R}}(${S}) = ${val}$. Attention, $f_{${S}}(${R})$ serait la part de $${R}$ parmi les $${S}$ : ce n'est pas la même chose.`;
+    }
+    const ch = melangeChoix(bonne, faux);
     return {
-      enonce: `Comment traduire l'information ${phr} ? ($f_X(Y)$ est la fréquence de $Y$ parmi les $X$.)`,
+      enonce: `Comment traduire l'information ${phr} ? On note ${c.leg}. ($f_X(Y)$ est la fréquence de $Y$ parmi les $X$.)`,
       mode: "choix", choix: ch.choix, attendu: ch.attendu,
-      aides: ["Cherche la population de référence : « des … », « parmi les … ».", `La population de référence est $${A}$ : elle va en indice.`, "$f_A(B)$ : parmi les $A$, la part de $B$."],
-      solution: `La population de référence est $${A}$ ; on regarde la part de $${B}$ parmi eux : $f_{${A}}(${B})$. Attention, $f_{${B}}(${A})$ serait la part de $${A}$ parmi les $${B}$ : ce n'est pas la même chose.`
+      aides, solution: sol
     };
   };
 
@@ -4551,20 +5210,111 @@
 
   /* ---------- Seconde, chapitre 13 : fonctions inverse, racine carrée, cube (préfixe fr-) ---------- */
   GEN["fr-comparer"] = refRestreint("var-ref-comparer", ["inverse", "inverse", "racine", "cube"]);
-  GEN["fr-equation"] = refRestreint("var-ref-equation", null, [2, 3, 4, 4]);
+  GEN["fr-equation"] = function () {
+    const t = pick(["cube", "racine", "inverse", "inverse", "etape", "etape"]);
+    const FORMAT = "Écris les solutions séparées par « ; », ou « aucun » s'il n'y en a pas.";
+    const dec = (v) => +(+v).toFixed(6);
+    const decimal = (v) => Math.abs(v * 1e4 - Math.round(v * 1e4)) < 1e-9; // au plus 4 chiffres après la virgule
+    const p3 = (c) => (c < 0 ? `(${fr(c)})^3` : `${fr(c)}^3`);
+    // Les trois équations de base : x³ = k, √x = k, 1/x = k
+    const cube = (c) => { const k = dec(c ** 3); return { iso: `x^3 = ${fr(k)}`, sol: [c], solTex: [fr(c)], regle: "La fonction cube est croissante sur $\\mathbb{R}$ : l'équation a une seule solution.", aide: `Cherche le nombre dont le cube vaut $${fr(k)}$ (attention au signe).`, justif: `$${p3(c)} = ${fr(k)}$, et la fonction cube est croissante sur $\\mathbb{R}$ : c'est le seul nombre dont le cube vaut $${fr(k)}$.` }; };
+    const racine = (k) => ({ iso: `\\sqrt{x} = ${fr(k)}`, sol: k < 0 ? [] : [dec(k * k)], solTex: k < 0 ? [] : [fr(dec(k * k))], regle: "Une racine carrée est toujours positive ou nulle.", aide: k < 0 ? "Une racine carrée ne peut pas être négative." : `$\\sqrt{x} = ${fr(k)}$ donne $x = ${fr(k)}^2$.`, justif: k < 0 ? `Une racine carrée est toujours positive ou nulle : elle ne peut pas valoir $${fr(k)}$.` : `$\\sqrt{x} = ${fr(k)} \\iff x = ${fr(k)}^2 = ${fr(dec(k * k))}$. Vérification : $\\sqrt{${fr(dec(k * k))}} = ${fr(k)}$.` });
+    const inverse = (k) => {
+      if (k === 0) return { iso: "\\dfrac{1}{x} = 0", sol: [], solTex: [], regle: "La fonction inverse ne s'annule jamais.", aide: "$\\dfrac{1}{x}$ n'est jamais égal à $0$.", justif: "Un quotient de numérateur $1$ n'est jamais nul : $\\dfrac{1}{x}$ ne vaut jamais $0$." };
+      const v = 1 / k, joli = decimal(v), tex = joli ? fr(dec(v)) : `${k < 0 ? "-" : ""}\\dfrac{1}{${fr(Math.abs(k))}}`;
+      return { iso: `\\dfrac{1}{x} = ${fr(k)}`, sol: [v], solTex: [tex], fraction: !joli, regle: "La fonction inverse ne s'annule jamais.", aide: `$\\dfrac{1}{x} = ${fr(k)}$ donne $x = \\dfrac{1}{${fr(k)}}$.`, justif: `$\\dfrac{1}{x} = ${fr(k)} \\iff x = \\dfrac{1}{${fr(k)}}${joli || k < 0 ? ` = ${tex}` : ""}$ (on a bien $x \\neq 0$).` };
+    };
+    const conclure = (eq, B) => (B.sol.length ? `$${eq}$ a pour solution $${B.solTex[0]}$.` : `$${eq}$ n'a **aucune** solution réelle.`);
+    const format = (B) => FORMAT + (B.fraction ? ` Ici, la solution n'est pas un décimal simple : tape-la sous forme de fraction avec le signe « / » (par exemple « 2/7 » pour deux septièmes).` : "");
+    if (t !== "etape") {
+      const B = t === "cube" ? cube(pick([rand(-5, 5), rand(-5, 5), pick([0.1, 0.2, 0.5, -0.5, -0.2, 10, -10])]))
+        : t === "racine" ? racine(pick([rand(1, 12), rand(1, 12), -rand(1, 3), 0, pick([0.5, 1.5, 2.5, 0.1, 0.3, 1.2])]))
+        : inverse(pick([randNZ(-10, 10), randNZ(-10, 10), pick([0.5, -0.5, 0.25, -0.25, 0.2, -0.2, 0.1, -0.1]), 0]));
+      return {
+        enonce: `Résous dans $\\mathbb{R}$ l'équation $${B.iso}$.`,
+        mode: "ensemble", prefixe: "Solution(s) :", attendu: B.sol,
+        aides: [B.regle, B.aide, format(B)],
+        solution: `${B.justif}\n\n${conclure(B.iso, B)}`
+      };
+    }
+    // Équations en deux étapes : on isole d'abord x³, √x ou 1/x
+    const forme = pick(["cubeplus", "cubemoins", "coefcube", "racplus", "racmoins", "coefrac", "invplus", "invmoins"]);
+    const a = rand(1, 9), b2 = rand(2, 5);
+    let B, eq, etape, quoi;
+    if (forme === "cubeplus") { const c = randNZ(-4, 4); B = cube(c); eq = `x^3 + ${a} = ${c ** 3 + a}`; etape = `On retire $${a}$ aux deux membres`; quoi = "x^3"; }
+    else if (forme === "cubemoins") { const c = randNZ(-4, 4); B = cube(c); eq = `x^3 - ${a} = ${c ** 3 - a}`; etape = `On ajoute $${a}$ aux deux membres`; quoi = "x^3"; }
+    else if (forme === "coefcube") { const c = randNZ(-3, 3); B = cube(c); eq = `${b2}x^3 = ${b2 * c ** 3}`; etape = `On divise les deux membres par $${b2}$`; quoi = "x^3"; }
+    else if (forme === "racplus") { const k = rand(-3, 9); B = racine(k); eq = `\\sqrt{x} + ${a} = ${k + a}`; etape = `On retire $${a}$ aux deux membres`; quoi = "\\sqrt{x}"; }
+    else if (forme === "racmoins") { const k = rand(-2, 9); B = racine(k); eq = `\\sqrt{x} - ${a} = ${k - a}`; etape = `On ajoute $${a}$ aux deux membres`; quoi = "\\sqrt{x}"; }
+    else if (forme === "coefrac") { const k = rand(1, 6); B = racine(k); eq = `${b2}\\sqrt{x} = ${b2 * k}`; etape = `On divise les deux membres par $${b2}$`; quoi = "\\sqrt{x}"; }
+    else if (forme === "invplus") { const k = pick([1, -1, 2, -2, 4, -4, 5, -5, 0, 3]); B = inverse(k); eq = `\\dfrac{1}{x} + ${a} = ${k + a}`; etape = `On retire $${a}$ aux deux membres`; quoi = "\\dfrac{1}{x}"; }
+    else { const k = pick([1, -1, 2, -2, 4, -4, 5, 0, 10]); B = inverse(k); eq = `\\dfrac{1}{x} - ${a} = ${k - a}`; etape = `On ajoute $${a}$ aux deux membres`; quoi = "\\dfrac{1}{x}"; }
+    return {
+      enonce: `Résous dans $\\mathbb{R}$ l'équation $${eq}$.`,
+      mode: "ensemble", prefixe: "Solution(s) :", attendu: B.sol,
+      aides: [`Commence par isoler $${quoi}$ dans un membre. ${etape}.`, `On obtient $${B.iso}$. ${B.regle}`, format(B)],
+      solution: `${etape} : $${eq} \\iff ${B.iso}$.\n\n${B.justif}\n\n${conclure(eq, B)}`
+    };
+  };
 
   GEN["fr-position"] = function () {
-    const petit = Math.random() < 0.5;
-    const x = petit ? pick([0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]) : pick([1.1, 1.2, 1.5, 2, 2.5, 3]);
-    const xt = nb(x);
-    const bonne = petit ? `${xt}^3 < ${xt}^2 < ${xt}` : `${xt} < ${xt}^2 < ${xt}^3`;
-    const faux = petit ? [`${xt} < ${xt}^2 < ${xt}^3`, `${xt}^2 < ${xt}^3 < ${xt}`, `${xt}^2 < ${xt} < ${xt}^3`] : [`${xt}^3 < ${xt}^2 < ${xt}`, `${xt}^2 < ${xt} < ${xt}^3`, `${xt} < ${xt}^3 < ${xt}^2`];
-    const ch = melangeChoix(`$${bonne}$`, faux.map((f) => `$${f}$`));
+    const t = pick(["ranger", "ranger", "decroissant", "comparer", "comparer", "intervalle"]);
+    const AIDES = (xt, petit) => ["Tout dépend de la position de $x$ par rapport à $1$.", "Pour $0 < x < 1$, multiplier par $x$ fait **diminuer** un nombre positif. Pour $x > 1$, cela le fait augmenter.", `Ici $x = ${xt}$ est ${petit ? "entre $0$ et $1$" : "supérieur à $1$"}.`];
+    if (t === "intervalle") {
+      // x^a comparé à x^b (a > b) pour x > 0 : même signe que x - 1
+      const [a, b, diff, fact] = pick([[2, 1, "x^2 - x", "x(x - 1)"], [3, 2, "x^3 - x^2", "x^2(x - 1)"], [3, 1, "x^3 - x", "x(x - 1)(x + 1)"]]);
+      const rel = pick(["<", ">"]), inv = { "<": ">", ">": "<" }[rel];
+      const pw = (e) => (e === 1 ? "x" : `x^${e}`);
+      const ineg = Math.random() < 0.5 ? `${pw(a)} ${rel} ${pw(b)}` : `${pw(b)} ${inv} ${pw(a)}`;
+      const bonne = rel === "<" ? "]0\\,;1[" : "]1\\,;+\\infty[";
+      const ms = melangeChoix(`$${bonne}$`, ["]0\\,;1[", "]1\\,;+\\infty[", "]0\\,;+\\infty[", "]-\\infty\\,;1[", "[1\\,;+\\infty["].map((s) => `$${s}$`));
+      return {
+        enonce: `Pour quels réels $x > 0$ a-t-on $${ineg}$ ?`,
+        mode: "choix", choix: ms.choix, attendu: ms.attendu,
+        aides: ["Étudie le signe de la différence, comme dans la démonstration du cours.", `$${diff} = ${fact}$ : pour $x > 0$, tous les facteurs sont positifs sauf peut-être $x - 1$.`, "Vérifie avec deux valeurs : $x = 0{,}5$, puis $x = 2$."],
+        solution: `Pour $x > 0$ : $${diff} = ${fact}$ a le signe de $x - 1$.\n\nDonc $${pw(a)} ${rel} ${pw(b)} \\iff x - 1 ${rel} 0 \\iff x ${rel} 1$. Avec $x > 0$ : $S = ${bonne}$.\n\nVérification : pour $x = 0{,}5$, $${pw(a)} = ${fr(0.5 ** a)}$ et $${pw(b)} = ${fr(0.5 ** b)}$ ; pour $x = 2$, $${pw(a)} = ${2 ** a}$ et $${pw(b)} = ${2 ** b}$.`
+      };
+    }
+    // x décimal entre 0 et 1, décimal supérieur à 1, ou fraction
+    let x, xt, pw, val;
+    const u = Math.random();
+    if (u < 0.8) {
+      x = u < 0.4 ? pick([0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.05, 0.15, 0.25, 0.35, 0.45, 0.55, 0.65, 0.75, 0.85, 0.95, 0.99])
+        : pick([1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2, 2.5, 3, 4, 5, 1.01, 1.05, 10]);
+      xt = nb(x); pw = (e) => (e === 1 ? xt : `${xt}^${e}`); val = (e) => nb(+(x ** e).toFixed(6));
+    } else {
+      const [p, q] = pick([[1, 2], [1, 3], [2, 3], [3, 4], [1, 4], [2, 5], [3, 5], [4, 5], [5, 6], [3, 2], [4, 3], [5, 4], [5, 3], [7, 4], [7, 5]]);
+      x = p / q; xt = `\\dfrac{${p}}{${q}}`; pw = (e) => (e === 1 ? xt : `\\left(${xt}\\right)^${e}`); val = (e) => `\\dfrac{${p ** e}}{${q ** e}}`;
+    }
+    const petit = x < 1;
+    const croiss = petit ? [3, 2, 1] : [1, 2, 3]; // exposants rangés dans l'ordre croissant des valeurs
+    const ordre = petit ? `${pw(3)} < ${pw(2)} < ${xt}` : `${xt} < ${pw(2)} < ${pw(3)}`;
+    const preuve = petit ? `$0 < ${xt} < 1$ : chaque multiplication par $${xt}$ fait diminuer` : `$${xt} > 1$ : chaque multiplication par $${xt}$ fait augmenter`;
+    const enEffet = petit ? `${val(3)} < ${val(2)} < ${xt}` : `${xt} < ${val(2)} < ${val(3)}`;
+    if (t === "comparer") {
+      let [e1, e2] = pick([[1, 2], [2, 3], [1, 3]]);
+      if (Math.random() < 0.5) [e1, e2] = [e2, e1];
+      const A = pw(e1), B = pw(e2), inf = petit ? e1 > e2 : e1 < e2;
+      return {
+        enonce: `Sans calculatrice, compare $${A}$ et $${B}$.`,
+        mode: "choix", choix: [`$${A} < ${B}$`, `$${A} > ${B}$`, `$${A} = ${B}$`], attendu: inf ? 0 : 1,
+        aides: AIDES(xt, petit),
+        solution: `${preuve}, donc $${ordre}$. En particulier $${A} ${inf ? "<" : ">"} ${B}$ (en effet $${val(e1)} ${inf ? "<" : ">"} ${val(e2)}$).`
+      };
+    }
+    // ranger dans l'ordre croissant (ou décroissant) : les mauvais ordres sont les autres permutations
+    const dec = t === "decroissant", op = dec ? ">" : "<";
+    const juste = dec ? croiss.slice().reverse() : croiss;
+    const perms = [[1, 2, 3], [1, 3, 2], [2, 1, 3], [2, 3, 1], [3, 1, 2], [3, 2, 1]];
+    const chaine = (pm) => pm.map(pw).join(` ${op} `);
+    const autres = shuffle(perms.filter((pm) => pm.join() !== juste.join() && pm.join() !== juste.slice().reverse().join()));
+    const bonne = chaine(juste);
+    const ch = melangeChoix(`$${bonne}$`, [chaine(juste.slice().reverse()), ...autres.slice(0, 2).map(chaine)].map((f) => `$${f}$`));
     return {
-      enonce: `Sans calculatrice, range dans l'ordre croissant $${xt}$, $${xt}^2$ et $${xt}^3$.`,
+      enonce: `Sans calculatrice, range dans l'ordre ${dec ? "décroissant" : "croissant"} $${xt}$, $${pw(2)}$ et $${pw(3)}$.`,
       mode: "choix", choix: ch.choix, attendu: ch.attendu,
-      aides: ["Tout dépend de la position de $x$ par rapport à $1$.", "Pour $0 < x < 1$, multiplier par $x$ fait **diminuer** un nombre positif. Pour $x > 1$, cela le fait augmenter.", `Ici $x = ${xt}$ est ${petit ? "entre $0$ et $1$" : "supérieur à $1$"}.`],
-      solution: petit ? `$0 < ${xt} < 1$ : chaque multiplication par $${xt}$ fait diminuer. Donc $${bonne}$ (en effet $${nb(+(x ** 3).toFixed(4))} < ${nb(+(x ** 2).toFixed(4))} < ${xt}$).` : `$${xt} > 1$ : chaque multiplication par $${xt}$ fait augmenter. Donc $${bonne}$ (en effet $${xt} < ${nb(+(x ** 2).toFixed(4))} < ${nb(+(x ** 3).toFixed(4))}$).`
+      aides: AIDES(xt, petit),
+      solution: `${preuve}. Donc $${bonne}$ (en effet $${dec ? enEffet.split(" < ").reverse().join(" > ") : enEffet}$).`
     };
   };
 
@@ -4605,16 +5355,50 @@
   };
 
   GEN["fr-python"] = function () {
-    const k = pick([2, 3, 5, 6, 7, 10, 11]), n = rand(1, 2), pas = 10 ** -n;
-    // première valeur x = 1, 1 + pas, … telle que x² ≥ k (calculée en entiers pour éviter les arrondis)
-    let i = Math.round(10 ** n); while (i * i < k * 10 ** (2 * n)) i++;
-    const r = i / 10 ** n, deb = Math.floor(Math.sqrt(k));
+    const t = pick(["seconde", "seconde", "premiere", "tours", "cube"]);
+    const n = rand(1, 2), pas = 10 ** -n, P = 10 ** n, pasTxt = n === 1 ? "0.1" : "0.01";
+    if (t === "cube") {
+      // encadrer la solution de x³ = k (k entier qui n'est pas un cube)
+      const k = pick([2, 3, 4, 5, 6, 7, 9, 10, 11, 12, 15, 20, 25, 30, 40, 50, 60, 100]);
+      let deb = 1; while ((deb + 1) ** 3 <= k) deb++;
+      let i = deb * P; while (i ** 3 < k * P ** 3) i++;
+      const r = i / P, lo = +(r - pas).toFixed(n);
+      return {
+        enonce: "L'équation $x^3 = " + k + "$ a une seule solution, car la fonction cube est croissante sur $\\mathbb{R}$. Pour l'encadrer, on utilise la fonction Python :\n\n```python\ndef encadrement(k, pas):\n    x = " + deb + "\n    while x * x * x < k:\n        x = x + pas\n    return x - pas, x\n```\n\n" + `Que renvoie $\\texttt{encadrement(${k}, ${pasTxt})}$ ? Donne la **seconde** valeur (arrondie à $10^{-${n}}$).`,
+        mode: "nombre", prefixe: "Réponse :", attendu: r, tolerance: pas / 2,
+        erreurs: [{ valeur: lo, message: "Ça, c'est la première valeur (la borne inférieure)." }],
+        aides: [`La boucle augmente $x$ de $${nb(pas)}$ tant que $x^3 < ${k}$ : elle s'arrête dès que $x^3 \\geqslant ${k}$.`, `On cherche donc le premier nombre de la forme $${deb} + ${nb(pas)} \\times \\ldots$ dont le cube dépasse $${k}$. Teste à la calculatrice $${nb(lo)}^3$ et $${nb(r)}^3$.`, `La solution de $x^3 = ${k}$ vaut environ $${nb(+Math.cbrt(k).toFixed(4))}$.`],
+        solution: `$${nb(lo)}^3 \\approx ${nb(+(lo ** 3).toFixed(4))} < ${k}$ et $${nb(r)}^3 \\approx ${nb(+(r ** 3).toFixed(4))} \\geqslant ${k}$ : la boucle s'arrête à $x = ${nb(r)}$ et la fonction renvoie $(${nb(lo)}\\,;${nb(r)})$.\n\nLa fonction cube étant croissante, la solution de $x^3 = ${k}$ est comprise entre $${nb(lo)}$ et $${nb(r)}$ : un encadrement d'amplitude $10^{-${n}}$.`
+      };
+    }
+    // encadrer √k (k entier qui n'est pas un carré)
+    const k = pick([2, 3, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15, 17, 18, 19, 20, 21, 22, 23, 24, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 50]);
+    // première valeur x = deb, deb + pas, … telle que x² ≥ k (calculée en entiers pour éviter les arrondis)
+    const deb = Math.floor(Math.sqrt(k));
+    let i = deb * P; while (i * i < k * P * P) i++;
+    const r = i / P, lo = +(r - pas).toFixed(n), tours = i - deb * P;
+    const code = "```python\ndef encadrement(k, pas):\n    x = " + deb + "\n    while x * x < k:\n        x = x + pas\n    return x - pas, x\n```";
+    const fin = `\n\nEn pratique, Python peut afficher des valeurs comme $\\texttt{1.4000000000000001}$ : c'est l'arrondi de la machine.`;
+    if (t === "tours") return {
+      enonce: "On considère la fonction Python :\n\n" + code + "\n\n" + `Lors de l'appel $\\texttt{encadrement(${k}, ${pasTxt})}$, combien de fois l'instruction $\\texttt{x = x + pas}$ est-elle exécutée ?`,
+      mode: "nombre", prefixe: "Nombre de fois :", attendu: tours,
+      erreurs: [{ valeur: tours + 1, message: `La boucle s'arrête dès que $x^2 \\geqslant ${k}$ : quand $x = ${nb(r)}$, on n'ajoute plus le pas.` }, { valeur: r, message: "Ça, c'est la valeur finale de $x$. On demande le nombre de passages dans la boucle." }],
+      aides: [`$x$ part de $${deb}$ et augmente de $${nb(pas)}$ tant que $x^2 < ${k}$.`, `Cherche la valeur finale de $x$ : le premier nombre de la forme $${deb} + ${nb(pas)} \\times \\ldots$ dont le carré dépasse $${k}$ (ici $\\sqrt{${k}} \\approx ${nb(+Math.sqrt(k).toFixed(4))}$).`, `Le nombre de passages est le nombre de pas de $${nb(pas)}$ pour aller de $${deb}$ à cette valeur finale.`],
+      solution: `$${nb(lo)}^2 < ${k} \\leqslant ${nb(r)}^2$ : la boucle s'arrête à $x = ${nb(r)}$.\n\nPour aller de $${deb}$ à $${nb(r)}$ par pas de $${nb(pas)}$, il faut $\\dfrac{${nb(r)} - ${deb}}{${nb(pas)}} = ${tours}$ passages dans la boucle.`
+    };
+    if (t === "premiere") return {
+      enonce: "On considère la fonction Python :\n\n" + code + "\n\n" + `Que renvoie $\\texttt{encadrement(${k}, ${pasTxt})}$ ? Donne la **première** valeur (arrondie à $10^{-${n}}$).`,
+      mode: "nombre", prefixe: "Réponse :", attendu: lo, tolerance: pas / 2,
+      erreurs: [{ valeur: r, message: "Ça, c'est la seconde valeur (la borne supérieure)." }],
+      aides: [`La boucle augmente $x$ de $${nb(pas)}$ tant que $x^2 < ${k}$ : elle s'arrête dès que $x^2 \\geqslant ${k}$.`, `La première valeur renvoyée est $x - \\text{pas}$ : le dernier nombre testé dont le carré était encore inférieur à $${k}$.`, `$\\sqrt{${k}} \\approx ${nb(+Math.sqrt(k).toFixed(4))}$.`],
+      solution: `$${nb(lo)}^2 < ${k} \\leqslant ${nb(r)}^2$ : la boucle s'arrête à $x = ${nb(r)}$ et la fonction renvoie $(${nb(lo)}\\,;${nb(r)})$. La première valeur est $${nb(lo)}$, et $${nb(lo)} < \\sqrt{${k}} < ${nb(r)}$.` + fin
+    };
     return {
-      enonce: "On considère la fonction Python :\n\n```python\ndef encadrement(k, pas):\n    x = " + deb + "\n    while x * x < k:\n        x = x + pas\n    return x - pas, x\n```\n\n" + `Que renvoie $\\texttt{encadrement(${k}, ${n === 1 ? "0.1" : "0.01"})}$ ? Donne la **seconde** valeur (arrondie à $10^{-${n}}$).`,
+      enonce: "On considère la fonction Python :\n\n" + code + "\n\n" + `Que renvoie $\\texttt{encadrement(${k}, ${pasTxt})}$ ? Donne la **seconde** valeur (arrondie à $10^{-${n}}$).`,
       mode: "nombre", prefixe: "Réponse :", attendu: r, tolerance: pas / 2,
-      erreurs: [{ valeur: r - pas, message: "Ça, c'est la première valeur (la borne inférieure)." }],
+      erreurs: [{ valeur: lo, message: "Ça, c'est la première valeur (la borne inférieure)." }],
       aides: [`La boucle augmente $x$ de $${nb(pas)}$ tant que $x^2 < ${k}$ : elle s'arrête dès que $x^2 \\geqslant ${k}$.`, `On cherche donc le premier nombre de la forme $${deb} + ${nb(pas)} \\times \\ldots$ dont le carré dépasse $${k}$.`, `$\\sqrt{${k}} \\approx ${nb(+Math.sqrt(k).toFixed(4))}$.`],
-      solution: `$${nb(+(r - pas).toFixed(n))}^2 < ${k} \\leqslant ${nb(r)}^2$ : la fonction renvoie $(${nb(+(r - pas).toFixed(n))}\\,;${nb(r)})$, un encadrement de $\\sqrt{${k}}$ d'amplitude $10^{-${n}}$ : $${nb(+(r - pas).toFixed(n))} < \\sqrt{${k}} \\leqslant ${nb(r)}$.\n\nEn pratique, Python peut afficher des valeurs comme $\\texttt{1.4000000000000001}$ : c'est l'arrondi de la machine.`
+      solution: `$${nb(lo)}^2 < ${k} \\leqslant ${nb(r)}^2$ : la fonction renvoie $(${nb(lo)}\\,;${nb(r)})$, un encadrement de $\\sqrt{${k}}$ d'amplitude $10^{-${n}}$ : $${nb(lo)} < \\sqrt{${k}} \\leqslant ${nb(r)}$.` + fin
     };
   };
 
@@ -4685,17 +5469,109 @@
   };
 
   GEN["sg-difference"] = function () {
-    const t = rand(0, 2);
-    const T = [
-      { q: "Pour $x > 0$, compare $x + \\dfrac{1}{x}$ et $2$.", rep: "$x + \\dfrac{1}{x} \\geqslant 2$", faux: ["$x + \\dfrac{1}{x} \\leqslant 2$", "Ça dépend de $x$", "$x + \\dfrac{1}{x} = 2$"], diff: "$x + \\dfrac{1}{x} - 2 = \\dfrac{x^2 - 2x + 1}{x} = \\dfrac{(x - 1)^2}{x}$", sol: "Un carré est positif et $x > 0$ : la différence est positive ou nulle. Donc $x + \\dfrac{1}{x} \\geqslant 2$ (égalité pour $x = 1$)." },
-      { q: "Pour tout réel $x$, compare $(x + 3)^2$ et $x^2 + 9$.", rep: "Ça dépend du signe de $x$", faux: ["$(x + 3)^2 \\geqslant x^2 + 9$ toujours", "$(x + 3)^2 \\leqslant x^2 + 9$ toujours", "Ils sont toujours égaux"], diff: "$(x + 3)^2 - (x^2 + 9) = 6x$", sol: "$6x$ est positif si $x > 0$, négatif si $x < 0$, nul si $x = 0$ : la comparaison dépend du signe de $x$." },
-      { q: "Pour $x \\geqslant 0$, compare $\\sqrt{x}$ et $x$ quand $0 \\leqslant x \\leqslant 1$.", rep: "$x \\leqslant \\sqrt{x}$", faux: ["$x \\geqslant \\sqrt{x}$", "Ils sont égaux", "On ne peut pas comparer"], diff: "$\\sqrt{x} - x = \\sqrt{x}(1 - \\sqrt{x})$", sol: "Pour $0 \\leqslant x \\leqslant 1$, $\\sqrt{x} \\geqslant 0$ et $1 - \\sqrt{x} \\geqslant 0$ : la différence est positive, donc $x \\leqslant \\sqrt{x}$ (par exemple $0{,}25 < 0{,}5$)." }
-    ][t];
+    const t = rand(0, 6);
+    const ax = (k) => (k === 1 ? "x" : k === -1 ? "-x" : `${k}x`); // k x sans « 1x »
+    let T;
+    if (t === 0) {
+      // x + a²/x et 2a (x > 0), ou x + a²/x et −2a (x < 0)
+      const a = rand(1, 6), a2 = a * a, neg = Math.random() < 0.3, E = `x + \\dfrac{${a2}}{x}`;
+      if (!neg) T = {
+        q: `Pour $x > 0$, compare $${E}$ et $${2 * a}$.`,
+        rep: `$${E} \\geqslant ${2 * a}$`, faux: [`$${E} \\leqslant ${2 * a}$`, "Ça dépend de $x$", `$${E} = ${2 * a}$`],
+        diff: `$${E} - ${2 * a} = \\dfrac{x^2 - ${ax(2 * a)} + ${a2}}{x} = \\dfrac{(x - ${a})^2}{x}$`,
+        sol: `Un carré est positif et $x > 0$ : la différence est positive ou nulle. Donc $${E} \\geqslant ${2 * a}$ (égalité pour $x = ${a}$).`
+      };
+      else T = {
+        q: `Pour $x < 0$, compare $${E}$ et $${-2 * a}$.`,
+        rep: `$${E} \\leqslant ${-2 * a}$`, faux: [`$${E} \\geqslant ${-2 * a}$`, "Ça dépend de $x$", `$${E} = ${-2 * a}$`],
+        diff: `$${E} - (${-2 * a}) = \\dfrac{x^2 + ${ax(2 * a)} + ${a2}}{x} = \\dfrac{(x + ${a})^2}{x}$`,
+        sol: `Un carré est positif ou nul et $x < 0$ : la différence est négative ou nulle. Donc $${E} \\leqslant ${-2 * a}$ (égalité pour $x = ${-a}$).`
+      };
+    } else if (t === 1) {
+      // (x ± a)² et x² + a² : la différence vaut ±2ax
+      const a = rand(1, 9), s = Math.random() < 0.6 ? 1 : -1, dom = rand(0, 2);
+      const E = `(x ${s > 0 ? "+" : "-"} ${a})^2`, F = `x^2 + ${a * a}`, d = ax(2 * s * a);
+      const diff = `$${E} - (${F}) = ${d}$`;
+      if (dom === 0) T = {
+        q: `Pour tout réel $x$, compare $${E}$ et $${F}$.`,
+        rep: "Ça dépend du signe de $x$", faux: [`$${E} \\geqslant ${F}$ toujours`, `$${E} \\leqslant ${F}$ toujours`, "Ils sont toujours égaux"], diff,
+        sol: s > 0 ? `$${d}$ est positif si $x > 0$, négatif si $x < 0$, nul si $x = 0$ : la comparaison dépend du signe de $x$.` : `$${d}$ est négatif si $x > 0$, positif si $x < 0$, nul si $x = 0$ : la comparaison dépend du signe de $x$.`
+      };
+      else {
+        const pos = dom === 1, signe = pos ? s : -s; // signe de la différence sur le domaine
+        T = {
+          q: `Pour $x ${pos ? ">" : "<"} 0$, compare $${E}$ et $${F}$.`,
+          rep: `$${E} ${signe > 0 ? ">" : "<"} ${F}$`, faux: [`$${E} ${signe > 0 ? "<" : ">"} ${F}$`, `$${E} = ${F}$`, "Ça dépend de $x$"], diff,
+          sol: `Pour $x ${pos ? ">" : "<"} 0$, $${d}$ est strictement ${signe > 0 ? "positif" : "négatif"} (${s > 0 ? "même signe que $x$" : "signe contraire de $x$"}). Donc $${E} ${signe > 0 ? ">" : "<"} ${F}$.\n\nAttention : $${E}$ n'est **pas** égal à $${F}$, il manque le double produit.`
+        };
+      }
+    } else if (t === 2) {
+      // Positions relatives de fonctions de référence
+      T = pick([
+        { q: "Pour $x \\geqslant 0$, compare $\\sqrt{x}$ et $x$ quand $0 \\leqslant x \\leqslant 1$.", rep: "$x \\leqslant \\sqrt{x}$", faux: ["$x \\geqslant \\sqrt{x}$", "Ils sont égaux", "On ne peut pas comparer"], diff: "$\\sqrt{x} - x = \\sqrt{x}(1 - \\sqrt{x})$", sol: "Pour $0 \\leqslant x \\leqslant 1$, $\\sqrt{x} \\geqslant 0$ et $1 - \\sqrt{x} \\geqslant 0$ : la différence est positive, donc $x \\leqslant \\sqrt{x}$ (par exemple $0{,}25 < 0{,}5$)." },
+        { q: "Compare $\\sqrt{x}$ et $x$ quand $x \\geqslant 1$.", rep: "$x \\geqslant \\sqrt{x}$", faux: ["$x \\leqslant \\sqrt{x}$", "Ils sont égaux", "On ne peut pas comparer"], diff: "$\\sqrt{x} - x = \\sqrt{x}(1 - \\sqrt{x})$", sol: "Pour $x \\geqslant 1$, $\\sqrt{x} \\geqslant 1$, donc $1 - \\sqrt{x} \\leqslant 0$, et $\\sqrt{x} \\geqslant 0$ : la différence est négative ou nulle. Donc $\\sqrt{x} \\leqslant x$ (par exemple $\\sqrt{4} = 2 < 4$)." },
+        { q: "Compare $x^3$ et $x^2$ quand $0 \\leqslant x \\leqslant 1$.", rep: "$x^3 \\leqslant x^2$", faux: ["$x^3 \\geqslant x^2$", "Ils sont égaux", "On ne peut pas comparer"], diff: "$x^3 - x^2 = x^2(x - 1)$", sol: "$x^2 \\geqslant 0$ et, pour $x \\leqslant 1$, $x - 1 \\leqslant 0$ : la différence est négative ou nulle. Donc $x^3 \\leqslant x^2$ (par exemple $0{,}125 < 0{,}25$ pour $x = 0{,}5$)." },
+        { q: "Compare $x^3$ et $x^2$ quand $x \\geqslant 1$.", rep: "$x^3 \\geqslant x^2$", faux: ["$x^3 \\leqslant x^2$", "Ils sont égaux", "On ne peut pas comparer"], diff: "$x^3 - x^2 = x^2(x - 1)$", sol: "$x^2 \\geqslant 0$ et, pour $x \\geqslant 1$, $x - 1 \\geqslant 0$ : la différence est positive ou nulle. Donc $x^3 \\geqslant x^2$ (par exemple $8 > 4$ pour $x = 2$)." },
+        { q: "Compare $x^3$ et $x^2$ quand $x \\leqslant 0$.", rep: "$x^3 \\leqslant x^2$", faux: ["$x^3 \\geqslant x^2$", "Ils sont égaux", "On ne peut pas comparer"], diff: "$x^3 - x^2 = x^2(x - 1)$", sol: "$x^2 \\geqslant 0$ et, pour $x \\leqslant 0$, $x - 1 < 0$ : la différence est négative ou nulle. Donc $x^3 \\leqslant x^2$ (par exemple $-8 < 4$ pour $x = -2$)." },
+        { q: "Compare $\\dfrac{1}{x}$ et $x$ quand $0 < x \\leqslant 1$.", rep: "$\\dfrac{1}{x} \\geqslant x$", faux: ["$\\dfrac{1}{x} \\leqslant x$", "Ils sont égaux", "On ne peut pas comparer"], diff: "$\\dfrac{1}{x} - x = \\dfrac{1 - x^2}{x} = \\dfrac{(1 - x)(1 + x)}{x}$", sol: "Pour $0 < x \\leqslant 1$ : $1 - x \\geqslant 0$, $1 + x > 0$ et $x > 0$, donc la différence est positive ou nulle. Donc $\\dfrac{1}{x} \\geqslant x$ (par exemple $2 > 0{,}5$ pour $x = 0{,}5$)." },
+        { q: "Compare $\\dfrac{1}{x}$ et $x$ quand $x \\geqslant 1$.", rep: "$\\dfrac{1}{x} \\leqslant x$", faux: ["$\\dfrac{1}{x} \\geqslant x$", "Ils sont égaux", "On ne peut pas comparer"], diff: "$\\dfrac{1}{x} - x = \\dfrac{1 - x^2}{x} = \\dfrac{(1 - x)(1 + x)}{x}$", sol: "Pour $x \\geqslant 1$ : $1 - x \\leqslant 0$, $1 + x > 0$ et $x > 0$, donc la différence est négative ou nulle. Donc $\\dfrac{1}{x} \\leqslant x$ (par exemple $0{,}5 < 2$ pour $x = 2$)." }
+      ]);
+    } else if (t === 3) {
+      // x² et kx : la différence x(x − k) se lit dans un tableau de signes
+      const k = rand(1, 9), dom = rand(0, 3), K = ax(k), xk = `x - ${k}`;
+      const D = [`$0 \\leqslant x \\leqslant ${k}$`, `$x \\geqslant ${k}$`, "$x \\leqslant 0$", "tout réel $x$"][dom];
+      const choix = [`$x^2 \\leqslant ${K}$`, `$x^2 \\geqslant ${K}$`, "Ça dépend de $x$", `$x^2 = ${K}$`], bon = [0, 1, 1, 2][dom];
+      T = {
+        q: `Pour ${D}, compare $x^2$ et $${K}$.`,
+        rep: choix[bon], faux: choix.filter((_, j) => j !== bon),
+        diff: `$x^2 - ${K} = x(${xk})$`,
+        sol: [
+          `Pour $0 \\leqslant x \\leqslant ${k}$ : $x \\geqslant 0$ et $${xk} \\leqslant 0$, donc le produit est négatif ou nul. Donc $x^2 \\leqslant ${K}$.`,
+          `Pour $x \\geqslant ${k}$ : $x > 0$ et $${xk} \\geqslant 0$, donc le produit est positif ou nul. Donc $x^2 \\geqslant ${K}$.`,
+          `Pour $x \\leqslant 0$ : $x \\leqslant 0$ et $${xk} < 0$, donc le produit est positif ou nul (deux facteurs négatifs). Donc $x^2 \\geqslant ${K}$.`,
+          `Le produit $x(${xk})$ s'annule en $0$ et en $${k}$ : il est positif à l'extérieur de $[0\\,;${k}]$ et négatif entre $0$ et $${k}$. La comparaison dépend donc de $x$ (par exemple $x^2 \\leqslant ${K}$ pour $x = ${k === 1 ? "0{,}5" : 1}$, mais $x^2 \\geqslant ${K}$ pour $x = ${k + 1}$).`
+        ][dom]
+      };
+    } else if (t === 4) {
+      // Deux fonctions affines : f(x) − g(x) = m(x − x0)
+      let a, b, c, d, m, x0;
+      do { a = rand(-5, 5); c = rand(-5, 5); x0 = rand(-4, 4); d = rand(-6, 6); m = a - c; b = d - m * x0; } while (m === 0 || Math.abs(b) > 15 || (a === 0 && b === 0) || (c === 0 && d === 0));
+      const apres = Math.random() < 0.5, signe = apres ? Math.sign(m) : -Math.sign(m);
+      const choix = ["$f(x) \\geqslant g(x)$", "$f(x) \\leqslant g(x)$", "Ça dépend de $x$", "$f(x) = g(x)$"], bon = signe > 0 ? 0 : 1;
+      const dif = poly([m, -m * x0]);
+      T = {
+        q: `On donne $f(x) = ${poly([a, b])}$ et $g(x) = ${poly([c, d])}$. Pour $x ${apres ? "\\geqslant" : "\\leqslant"} ${x0}$, compare $f(x)$ et $g(x)$.`,
+        rep: choix[bon], faux: choix.filter((_, j) => j !== bon),
+        diff: `$f(x) - g(x) = ${poly([a, b])} - (${poly([c, d])}) = ${dif}$`,
+        sol: `$${dif}$ est une expression affine qui s'annule en $${x0}$, de coefficient $${m}$ ${m > 0 ? "positif" : "négatif"} : elle est ${m > 0 ? "négative avant" : "positive avant"} $${x0}$ et ${m > 0 ? "positive après" : "négative après"}.\n\nPour $x ${apres ? "\\geqslant" : "\\leqslant"} ${x0}$, $f(x) - g(x) ${signe > 0 ? "\\geqslant" : "\\leqslant"} 0$, donc ${choix[bon]}.`
+      };
+    } else if (t === 5) {
+      // (x + p)/(x + q) et 1 : la différence vaut (p − q)/(x + q)
+      let p, q; do { p = rand(-6, 6); q = rand(-6, 6); } while (p === q);
+      const N = poly([1, p]), Dn = poly([1, q]), Q = `\\dfrac{${N}}{${Dn}}`, sup = p > q;
+      T = {
+        q: `Pour $x > ${-q}$, compare $${Q}$ et $1$.`,
+        rep: `$${Q} ${sup ? ">" : "<"} 1$`, faux: [`$${Q} ${sup ? "<" : ">"} 1$`, `$${Q} = 1$`, "Ça dépend de $x$"],
+        diff: `$${Q} - 1 = \\dfrac{${N} - (${Dn})}{${Dn}} = \\dfrac{${p - q}}{${Dn}}$`,
+        sol: `Pour $x > ${-q}$, le dénominateur $${Dn}$ est strictement positif, et le numérateur $${p - q}$ est ${sup ? "positif" : "négatif"} : la différence est strictement ${sup ? "positive" : "négative"}. Donc $${Q} ${sup ? ">" : "<"} 1$.`
+      };
+    } else {
+      // Coût moyen de fabrication d'objets artisanaux (quotient) : question numérique
+      const obj = pick([["paniers tressés", "panier"], ["colliers de coquillages", "collier"], ["savons à l'ylang-ylang", "savon"], ["pots de confiture de mangue", "pot"]]);
+      const a = rand(3, 12), dd = rand(1, 5), b = 5 * rand(4, 24), k = a + dd, n = Math.ceil(b / dd), entier = b % dd === 0, S = dd === 1 ? `${b}` : `\\dfrac{${b}}{${dd}}`;
+      return {
+        enonce: `Un artisan de Mamoudzou fabrique des ${obj[0]}. Le coût moyen de fabrication d'un ${obj[1]}, en euros, quand il en fabrique $x$, est $C(x) = \\dfrac{${a}x + ${b}}{x}$ (pour $x > 0$). À partir de combien de ${obj[0].split(" ")[0]} le coût moyen est-il **inférieur ou égal** à $${k}$ € ?`,
+        mode: "nombre", prefixe: "À partir de", suffixe: obj[0].split(" ")[0], attendu: n,
+        erreurs: entier ? [{ valeur: n + 1, message: `Pour $x = ${n}$, $C(${n}) = ${k}$ exactement : « inférieur ou égal » inclut l'égalité.` }] : [{ valeur: Math.floor(b / dd), message: `Pour $x = ${Math.floor(b / dd)}$, le coût moyen dépasse encore $${k}$ € : il faut $x \\geqslant \\dfrac{${b}}{${dd}}$, donc l'entier **supérieur**.` }],
+        aides: [`Pour comparer $C(x)$ et $${k}$, étudie le **signe de la différence** $C(x) - ${k}$.`, `$C(x) - ${k} = \\dfrac{${a}x + ${b} - ${k}x}{x} = \\dfrac{${b} - ${ax(dd)}}{x}$.`, `Pour $x > 0$, cette différence a le signe de $${b} - ${ax(dd)}$ : elle est négative ou nulle quand $x \\geqslant ${S}$.`],
+        solution: `$C(x) - ${k} = \\dfrac{${b} - ${ax(dd)}}{x}$. Comme $x > 0$, $C(x) \\leqslant ${k} \\iff ${b} - ${ax(dd)} \\leqslant 0 \\iff x \\geqslant ${S}${dd === 1 ? "" : entier ? ` = ${b / dd}` : ` \\approx ${fr(+(b / dd).toFixed(2))}`}$.\n\n$x$ est un nombre entier d'objets : à partir de $${n}$ ${obj[0].split(" ")[0]}, le coût moyen est inférieur ou égal à $${k}$ €.`
+      };
+    }
     const ch = melangeChoix(T.rep, T.faux);
     return {
       enonce: T.q,
       mode: "choix", choix: ch.choix, attendu: ch.attendu,
-      aides: ["Pour comparer $A$ et $B$, on étudie le **signe de la différence** $A - B$.", `Ici : ${T.diff}.`, "Étudie le signe de cette expression."],
+      aides: ["Pour comparer $A$ et $B$, on étudie le **signe de la différence** $A - B$.", `Ici : ${T.diff}.`, "Étudie le signe de cette expression (tableau de signes si besoin)."],
       solution: `${T.diff}.\n\n${T.sol}`
     };
   };
@@ -4785,20 +5661,74 @@
   };
 
   GEN["pc-traduire"] = function () {
-    const T = [
-      ["la probabilité qu'une personne ait un test positif **sachant** qu'elle est malade", "P_M(T)", ["P_T(M)", "P(M \\cap T)", "P(T)"]],
-      ["la probabilité qu'une personne soit malade **sachant** que son test est positif", "P_T(M)", ["P_M(T)", "P(M \\cap T)", "P(M)"]],
-      ["la probabilité qu'une personne soit malade **et** ait un test positif", "P(M \\cap T)", ["P_M(T)", "P_T(M)", "P(M) + P(T)"]],
-      ["la probabilité qu'une personne saine ait un test négatif (la **spécificité**)", "P_{\\overline{M}}(\\overline{T})", ["P_{\\overline{T}}(\\overline{M})", "P(\\overline{M} \\cap \\overline{T})", "P_M(\\overline{T})"]],
-      ["la probabilité qu'une personne saine ait un test positif (un **faux positif**)", "P_{\\overline{M}}(T)", ["P_T(\\overline{M})", "P_M(\\overline{T})", "P(\\overline{M})"]]
+    const nonL = (x) => (x.startsWith("\\overline") ? x.slice(10, -1) : `\\overline{${x}}`); // contraire d'une lettre
+    const cond = (x, y) => [`P_{${x}}(${y})`, [`P_{${y}}(${x})`, `P(${x} \\cap ${y})`, `P_{${nonL(x)}}(${y})`]];
+    const inter = (x, y) => [`P(${x} \\cap ${y})`, [`P_{${x}}(${y})`, `P_{${y}}(${x})`, `P(${x}) + P(${y})`]];
+    const C = [
+      { intro: "Test de dépistage au dispensaire. $M$ : « la personne est malade », $T$ : « le test est positif ».", X: "M", Y: "T", leg: "Malade : $M$ ; sain : $\\overline{M}$ ; test positif : $T$ ; test négatif : $\\overline{T}$.",
+        Q: [
+          ["la probabilité qu'une personne ait un test positif **sachant** qu'elle est malade", ["P_M(T)", ["P_T(M)", "P(M \\cap T)", "P(T)"]]],
+          ["la probabilité qu'une personne soit malade **sachant** que son test est positif", ["P_T(M)", ["P_M(T)", "P(M \\cap T)", "P(M)"]]],
+          ["la probabilité qu'une personne soit malade **et** ait un test positif", ["P(M \\cap T)", ["P_M(T)", "P_T(M)", "P(M) + P(T)"]]],
+          ["la probabilité qu'une personne saine ait un test négatif (la **spécificité**)", ["P_{\\overline{M}}(\\overline{T})", ["P_{\\overline{T}}(\\overline{M})", "P(\\overline{M} \\cap \\overline{T})", "P_M(\\overline{T})"]]],
+          ["la probabilité qu'une personne saine ait un test positif (un **faux positif**)", ["P_{\\overline{M}}(T)", ["P_T(\\overline{M})", "P_M(\\overline{T})", "P(\\overline{M})"]]],
+          ["la probabilité qu'une personne malade ait un test négatif (un **faux négatif**)", cond("M", "\\overline{T}")],
+          ["la probabilité qu'une personne soit malade **et** ait un test négatif", inter("M", "\\overline{T}")],
+          ["la **sensibilité** du test, c'est-à-dire la probabilité que le test soit positif pour une personne malade", cond("M", "T")],
+          ["la probabilité qu'une personne dont le test est **négatif** soit saine", cond("\\overline{T}", "\\overline{M}")],
+          ["la probabilité qu'une personne dont le test est positif soit en réalité **saine**", cond("T", "\\overline{M}")],
+          ["la probabilité qu'une personne soit saine **et** ait un test positif", inter("\\overline{M}", "T")],
+          ["la probabilité qu'une personne choisie au hasard ait un test positif, sans rien savoir d'autre", ["P(T)", ["P_M(T)", "P(M \\cap T)", "P_T(M)"]]],
+          ["la probabilité qu'une personne choisie au hasard soit malade, sans rien savoir de son test", ["P(M)", ["P_T(M)", "P(M \\cap T)", "P_M(T)"]]],
+          ["la proportion de malades **parmi** les personnes dont le test est positif", cond("T", "M")],
+          ["la proportion de tests négatifs **parmi** les personnes malades", cond("M", "\\overline{T}")]
+        ] },
+      { intro: "Au lycée, on choisit un élève au hasard. $F$ : « l'élève est une fille », $S$ : « l'élève fait du sport ».", X: "F", Y: "S", leg: "Fille : $F$ ; garçon : $\\overline{F}$ ; fait du sport : $S$ ; ne fait pas de sport : $\\overline{S}$.",
+        Q: [
+          ["la probabilité qu'un élève fasse du sport **sachant** que c'est une fille", cond("F", "S")],
+          ["la probabilité, parmi les élèves qui font du sport, de choisir une fille", cond("S", "F")],
+          ["la probabilité qu'un élève soit une fille **et** fasse du sport", inter("F", "S")],
+          ["la probabilité qu'une fille ne fasse pas de sport", cond("F", "\\overline{S}")],
+          ["la probabilité qu'un garçon fasse du sport", cond("\\overline{F}", "S")],
+          ["la probabilité qu'un élève soit un garçon qui fait du sport", inter("\\overline{F}", "S")],
+          ["la probabilité qu'un élève qui ne fait pas de sport soit un garçon", cond("\\overline{S}", "\\overline{F}")],
+          ["la probabilité qu'un élève soit une fille, **sachant** qu'il ne fait pas de sport", cond("\\overline{S}", "F")]
+        ] },
+      { intro: "On choisit au hasard un jour de l'année. $A$ : « il pleut », $R$ : « la barge est en retard ».", X: "A", Y: "R", leg: "Il pleut : $A$ ; il ne pleut pas : $\\overline{A}$ ; barge en retard : $R$ ; barge à l'heure : $\\overline{R}$.",
+        Q: [
+          ["la probabilité que la barge soit en retard un jour de pluie", cond("A", "R")],
+          ["la probabilité qu'il pleuve un jour où la barge est en retard", cond("R", "A")],
+          ["la probabilité qu'il pleuve **et** que la barge soit en retard", inter("A", "R")],
+          ["la probabilité que la barge soit à l'heure un jour sans pluie", cond("\\overline{A}", "\\overline{R}")],
+          ["la probabilité que la barge soit en retard un jour sans pluie", cond("\\overline{A}", "R")],
+          ["la probabilité qu'il ne pleuve pas **et** que la barge soit à l'heure", inter("\\overline{A}", "\\overline{R}")],
+          ["la proportion de jours de pluie **parmi** les jours où la barge est à l'heure", cond("\\overline{R}", "A")]
+        ] },
+      { intro: "Campagne de vaccination à Mayotte. On choisit un habitant au hasard. $V$ : « l'habitant est vacciné », $G$ : « l'habitant attrape la grippe ».", X: "V", Y: "G", leg: "Vacciné : $V$ ; non vacciné : $\\overline{V}$ ; attrape la grippe : $G$ ; n'attrape pas la grippe : $\\overline{G}$.",
+        Q: [
+          ["la probabilité qu'un habitant vacciné attrape la grippe", cond("V", "G")],
+          ["la probabilité qu'un habitant qui a attrapé la grippe soit vacciné", cond("G", "V")],
+          ["la probabilité qu'un habitant non vacciné attrape la grippe", cond("\\overline{V}", "G")],
+          ["la probabilité qu'un habitant soit vacciné **et** n'attrape pas la grippe", inter("V", "\\overline{G}")],
+          ["la probabilité qu'un habitant qui n'a pas attrapé la grippe soit vacciné", cond("\\overline{G}", "V")],
+          ["la probabilité qu'un habitant ne soit pas vacciné **et** attrape la grippe", inter("\\overline{V}", "G")]
+        ] },
+      { intro: "Une coopérative de Combani trie des fleurs d'ylang-ylang. $C$ : « la fleur a été cueillie le matin », $Q$ : « la fleur est de premier choix ».", X: "C", Y: "Q", leg: "Cueillie le matin : $C$ ; cueillie l'après-midi : $\\overline{C}$ ; premier choix : $Q$ ; pas premier choix : $\\overline{Q}$.",
+        Q: [
+          ["la probabilité qu'une fleur cueillie le matin soit de premier choix", cond("C", "Q")],
+          ["la probabilité qu'une fleur de premier choix ait été cueillie le matin", cond("Q", "C")],
+          ["la probabilité qu'une fleur ait été cueillie le matin **et** soit de premier choix", inter("C", "Q")],
+          ["la probabilité qu'une fleur cueillie l'après-midi soit de premier choix", cond("\\overline{C}", "Q")],
+          ["la probabilité qu'une fleur cueillie le matin ne soit pas de premier choix", cond("C", "\\overline{Q}")]
+        ] }
     ];
-    const [txt, bonne, faux] = pick(T);
+    const c = Math.random() < 0.35 ? C[0] : pick(C), [txt, [bonne, faux]] = pick(c.Q);
     const ch = melangeChoix(`$${bonne}$`, faux.map((f) => `$${f}$`));
     return {
-      enonce: `Test de dépistage au dispensaire. $M$ : « la personne est malade », $T$ : « le test est positif ». Comment note-t-on ${txt} ?`,
+      enonce: `${c.intro} Comment note-t-on ${txt} ?`,
       mode: "choix", choix: ch.choix, attendu: ch.attendu,
-      aides: ["« Sachant que … » : ce qui est connu va en **indice**.", "« … et … » : c'est une intersection $\\cap$.", "Malade : $M$ ; sain : $\\overline{M}$ ; test positif : $T$ ; test négatif : $\\overline{T}$."],
-      solution: `C'est $${bonne}$. Attention : $P_M(T)$ et $P_T(M)$ sont des probabilités **différentes**.`
+      aides: ["« Sachant que … » : ce qui est connu va en **indice**.", "« … et … » : c'est une intersection $\\cap$.", c.leg],
+      solution: `C'est $${bonne}$. Attention : $P_${c.X}(${c.Y})$ et $P_${c.Y}(${c.X})$ sont des probabilités **différentes**.`
     };
   };
 
@@ -4874,8 +5804,8 @@
       enonce: "Masses (en kg) de tortues vertes mesurées sur une plage de Mayotte, regroupées en classes. Estime la masse moyenne en utilisant le centre de chaque classe (arrondis au dixième).",
       tableau: S.tableau,
       mode: "nombre", prefixe: "Moyenne ≈", suffixe: "kg", attendu: r, tolerance: 0.051,
-      aides: [`Le centre de la classe $[a\\,;b[$ est $\\dfrac{a + b}{2}$ : ici $${S.centres.join("\\,;\\,")}$.`, "Moyenne pondérée : $\\dfrac{\\text{somme des (centre} \\times \\text{effectif)}}{\\text{effectif total}}$.", `Effectif total : $${S.N}$.`],
-      solution: `$\\bar{x} \\approx \\dfrac{${S.centres.map((c, i) => `${c} \\times ${S.eff[i]}`).join(" + ")}}{${S.N}} = \\dfrac{${S.centres.reduce((s, c, i) => s + c * S.eff[i], 0)}}{${S.N}} \\approx ${nb(r)}$ kg.\n\nC'est une **estimation** : on suppose que toutes les tortues d'une classe ont la masse du centre.`
+      aides: [`Le centre de la classe $[a\\,;b[$ est $\\dfrac{a + b}{2}$ : ici $${S.centres.join(" ; ")}$.`, "Moyenne pondérée : $\\dfrac{\\text{somme des (centre} \\times \\text{effectif)}}{\\text{effectif total}}$.", `Effectif total : $${S.N}$.`],
+      solution: `Somme des produits centre × effectif : $${S.centres.map((c, i) => `${c} \\times ${S.eff[i]}`).join(" + ")} = ${nb(S.centres.reduce((s, c, i) => s + c * S.eff[i], 0))}$.\n\nDonc $\\bar{x} \\approx \\dfrac{${nb(S.centres.reduce((s, c, i) => s + c * S.eff[i], 0))}}{${S.N}} \\approx ${nb(r)}$ kg.\n\nC'est une **estimation** : on suppose que toutes les tortues d'une classe ont la masse du centre.`
     };
   };
 
@@ -4896,8 +5826,8 @@
       enonce: "Masses (en kg) de tortues vertes regroupées en classes. Quelle est la **classe médiane** ?",
       tableau: S.tableau,
       mode: "choix", choix: S.classes.map((c) => `$${c}$`), attendu: j,
-      aides: [`Effectif total : $${S.N}$. La moitié : $${nb(S.N / 2)}$.`, `Effectifs cumulés croissants : $${S.cum.join("\\,;\\,")}$.`, `La classe médiane est la première dont l'effectif cumulé atteint $${nb(S.N / 2)}$.`],
-      solution: `Effectifs cumulés : $${S.cum.join("\\,;\\,")}$. On atteint $\\dfrac{${S.N}}{2} = ${nb(S.N / 2)}$ dans la classe $${S.classes[j]}$ : c'est la classe médiane.`
+      aides: [`Effectif total : $${S.N}$. La moitié : $${nb(S.N / 2)}$.`, `Effectifs cumulés croissants : $${S.cum.join(" ; ")}$.`, `La classe médiane est la première dont l'effectif cumulé atteint $${nb(S.N / 2)}$.`],
+      solution: `Effectifs cumulés : $${S.cum.join(" ; ")}$. On atteint $\\dfrac{${S.N}}{2} = ${nb(S.N / 2)}$ dans la classe $${S.classes[j]}$ : c'est la classe médiane.`
     };
   };
 
@@ -4908,7 +5838,7 @@
       enonce: "Masses (en kg) de tortues vertes regroupées en classes. On suppose que les tortues d'une classe sont réparties **uniformément**. Estime la médiane (arrondie au dixième).",
       tableau: S.tableau,
       mode: "nombre", prefixe: "Médiane ≈", suffixe: "kg", attendu: r, tolerance: 0.051,
-      aides: [`Classe médiane : $${S.classes[j]}$ (effectifs cumulés $${S.cum.join("\\,;\\,")}$).`, `Avant cette classe : $${avant}$ tortues. Il en manque $${nb(S.N / 2)} - ${avant} = ${nb(S.N / 2 - avant)}$ pour arriver à la moitié.`, `Ces $${nb(S.N / 2 - avant)}$ tortues occupent la fraction $\\dfrac{${nb(S.N / 2 - avant)}}{${S.eff[j]}}$ de la classe, d'amplitude $${S.amp}$.`],
+      aides: [`Classe médiane : $${S.classes[j]}$ (effectifs cumulés $${S.cum.join(" ; ")}$).`, `Avant cette classe : $${avant}$ tortues. Il en manque $${nb(S.N / 2)} - ${avant} = ${nb(S.N / 2 - avant)}$ pour arriver à la moitié.`, `Ces $${nb(S.N / 2 - avant)}$ tortues occupent la fraction $\\dfrac{${nb(S.N / 2 - avant)}}{${S.eff[j]}}$ de la classe, d'amplitude $${S.amp}$.`],
       solution: `$Me \\approx ${S.bornes[j]} + \\dfrac{${nb(S.N / 2 - avant)}}{${S.eff[j]}} \\times ${S.amp} \\approx ${nb(r)}$ kg.\n\nC'est ce qu'on lit sur le polygone des fréquences cumulées croissantes, à l'ordonnée $50\\,\\%$.`
     };
   };
@@ -4925,32 +5855,145 @@
   };
 
   GEN["ec-lgn"] = function () {
-    const T = [
-      { q: "On lance $10$ fois une pièce équilibrée et on obtient $7$ fois « pile ». Que peut-on dire ?", b: "Rien d'anormal : sur $10$ lancers, la fréquence fluctue beaucoup", f: ["La pièce est truquée", "La probabilité de « pile » est $0{,}7$", "Au prochain lancer, on aura sûrement « face »"], s: "Sur un petit échantillon, la fréquence observée **fluctue** : $7$ « pile » sur $10$ arrive assez souvent. Seule une très longue série permettrait de douter. Et la pièce n'a pas de mémoire." },
-      { q: "On lance un dé équilibré un très grand nombre de fois. Vers quoi se rapproche la fréquence d'apparition du $6$ ?", b: "$\\dfrac{1}{6}$", f: ["$6$", "$0{,}6$", "Elle ne se stabilise pas"], s: "**Loi des grands nombres** : quand on répète une expérience un grand nombre de fois, la fréquence observée se rapproche de la probabilité, ici $\\dfrac{1}{6} \\approx 0{,}167$." },
-      { q: "Deux élèves simulent $100$ lancers d'une pièce équilibrée. L'un obtient $46$ « pile », l'autre $55$. Pourquoi ?", b: "C'est la fluctuation d'échantillonnage", f: ["L'un des deux s'est trompé", "La pièce change de probabilité", "Il fallait obtenir exactement $50$"], s: "Deux échantillons de même taille ne donnent pas la même fréquence : c'est la **fluctuation d'échantillonnage**. Plus l'échantillon est grand, plus elle est faible." },
-      { q: "Sur $10\\,000$ naissances à Mayotte, on observe une fréquence de garçons de $0{,}51$. Que peut-on dire ?", b: "$0{,}51$ est une estimation de la probabilité qu'un bébé soit un garçon", f: ["La probabilité est exactement $0{,}5$", "La probabilité est exactement $0{,}51$", "Une naissance sur deux est forcément un garçon"], s: "Un modèle probabiliste ne décrit pas exactement la réalité : sur un grand échantillon, la fréquence observée **estime** la probabilité, sans l'égaler forcément." }
-    ];
-    const t = pick(T), ch = melangeChoix(t.b, t.f);
+    const AIDES = ["Sur un petit nombre d'expériences, la fréquence observée varie beaucoup.", "Sur un très grand nombre d'expériences, elle se rapproche de la probabilité (loi des grands nombres).", "Un modèle (une probabilité) et une observation (une fréquence) sont deux choses différentes."];
+    const prenoms = shuffle(["Anlia", "Nassim", "Faïza", "Ibrahim", "Zaïnaba", "Soumaïla", "Moinécha", "Kamal", "Chadia", "Ylias"]);
+    const typ = rand(0, 6);
+    let t;
+    if (typ === 0) {
+      // petit échantillon : rien d'anormal
+      if (Math.random() < 0.7) {
+        const n = pick([10, 10, 20]), k = n === 10 ? pick([3, 4, 6, 7]) : pick([7, 8, 12, 13]);
+        t = { q: `On lance $${n}$ fois une pièce équilibrée et on obtient $${k}$ fois « pile ». Que peut-on dire ?`, b: `Rien d'anormal : sur $${n}$ lancers, la fréquence fluctue beaucoup`, f: ["La pièce est truquée", `La probabilité de « pile » est $${fr(k / n)}$`, `Au prochain lancer, on aura sûrement « ${k > n / 2 ? "face" : "pile"} »`], s: `Sur un petit échantillon, la fréquence observée **fluctue** : $${k}$ « pile » sur $${n}$ arrive assez souvent. Seule une très longue série permettrait de douter. Et la pièce n'a pas de mémoire.` };
+      } else {
+        const [n, k] = pick([[6, 0], [6, 2], [12, 0], [12, 3], [10, 0], [10, 3]]);
+        t = { q: `On lance $${n}$ fois un dé équilibré à six faces et ${k ? `on obtient $${k}$ fois le $6$` : "on n'obtient **aucun** $6$"}. Que peut-on dire ?`, b: `Rien d'anormal : sur $${n}$ lancers, la fréquence fluctue beaucoup`, f: ["Le dé est truqué", `La probabilité d'obtenir $6$ avec ce dé est $${k ? frac(k, n) : 0}$`, k ? "Au prochain lancer, on n'aura sûrement pas de $6$" : "Au prochain lancer, on aura sûrement un $6$"], s: `Sur seulement $${n}$ lancers, la fréquence observée **fluctue** beaucoup : obtenir ${k ? `$${k}$ fois le $6$` : "aucun $6$"} n'a rien d'exceptionnel, même si la probabilité est $\\dfrac{1}{6}$. Seule une très longue série permettrait de douter du dé. Et le dé n'a pas de mémoire.` };
+      }
+    } else if (typ === 1) {
+      // loi des grands nombres : vers quoi se rapproche la fréquence ?
+      const k = rand(0, 3);
+      if (k === 0) {
+        const N = pick([4, 6, 6, 8, 10, 12, 20]), v = N === 6 && Math.random() < 0.5 ? 6 : rand(1, N);
+        t = { q: N === 6 ? `On lance un dé équilibré un très grand nombre de fois. Vers quoi se rapproche la fréquence d'apparition du $${v}$ ?` : `On lance un dé équilibré à $${N}$ faces, numérotées de $1$ à $${N}$, un très grand nombre de fois. Vers quoi se rapproche la fréquence d'apparition du $${v}$ ?`, b: `$\\dfrac{1}{${N}}$`, f: [`$${v === 1 ? N : v}$`, v < 10 && v !== 1 ? `$0{,}${v}$` : "$\\dfrac{1}{2}$", "Elle ne se stabilise pas"], s: `**Loi des grands nombres** : quand on répète une expérience un grand nombre de fois, la fréquence observée se rapproche de la probabilité, ici $\\dfrac{1}{${N}}${N === 4 || N === 8 || N === 10 || N === 20 ? " =" : " \\approx"} ${nb(+(1 / N).toFixed(3))}$.` };
+      } else if (k === 1) {
+        const [ev, num] = pick([["d'un nombre pair", 3], ["d'un nombre impair", 3], ["d'un multiple de $3$", 2], ["d'un nombre supérieur ou égal à $5$", 2], ["d'un nombre inférieur ou égal à $4$", 4], ["d'un nombre premier", 3]]);
+        t = { q: `On lance un dé équilibré à six faces un très grand nombre de fois. Vers quoi se rapproche la fréquence d'apparition ${ev} ?`, b: `$${frac(num, 6)}$`, f: [`$${frac(num + 1, 6)}$`, `$\\dfrac{1}{6}$`, "Elle ne se stabilise pas"], s: `Il y a $${num}$ issues favorables sur $6$, donc la probabilité est $\\dfrac{${num}}{6}${num === 3 || num === 2 || num === 4 ? ` = ${frac(num, 6)}` : ""}$. **Loi des grands nombres** : sur un très grand nombre de lancers, la fréquence observée se rapproche de cette probabilité.` };
+      } else if (k === 2) {
+        const r = rand(1, 6), v = rand(1, 6), coul = Math.random() < 0.5;
+        const nbF = coul ? r : v, N = r + v;
+        t = { q: `Une urne contient $${r}$ boule${r > 1 ? "s" : ""} rouge${r > 1 ? "s" : ""} et $${v}$ boule${v > 1 ? "s" : ""} verte${v > 1 ? "s" : ""}. On tire une boule au hasard, on note sa couleur et on la remet, un très grand nombre de fois. Vers quoi se rapproche la fréquence des boules ${coul ? "rouges" : "vertes"} ?`, b: `$${frac(nbF, N)}$`, f: [`$${frac(nbF, N - nbF)}$`, r === v ? "$1$" : "$\\dfrac{1}{2}$", "Elle ne se stabilise pas"], s: `La probabilité de tirer une boule ${coul ? "rouge" : "verte"} est $\\dfrac{${nbF}}{${N}}${pgcd(nbF, N) > 1 ? ` = ${frac(nbF, N)}` : ""}$ (tirage avec remise : l'urne ne change pas). **Loi des grands nombres** : la fréquence observée se rapproche de cette probabilité.` };
+      } else {
+        const N = pick([5, 8, 10, 12]), g = rand(1, N - 1);
+        t = { q: `Une roue de loterie de la fête de Sada est partagée en $${N}$ secteurs identiques, dont $${g}$ gagnant${g > 1 ? "s" : ""}. On la fait tourner un très grand nombre de fois. Vers quoi se rapproche la fréquence des tours gagnants ?`, b: `$${frac(g, N)}$`, f: [`$${frac(g, N - g)}$`, g * 2 === N ? "$1$" : "$\\dfrac{1}{2}$", "Elle ne se stabilise pas"], s: `Les secteurs sont identiques : la probabilité de gagner est $\\dfrac{${g}}{${N}}${pgcd(g, N) > 1 ? ` = ${frac(g, N)}` : ""}$. **Loi des grands nombres** : sur un très grand nombre de tours, la fréquence des tours gagnants se rapproche de cette probabilité.` };
+      }
+    } else if (typ === 2) {
+      // fluctuation d'échantillonnage entre deux élèves
+      const N = pick([50, 100, 100, 200, 500, 1000]), piece = Math.random() < 0.7, m = piece ? N / 2 : Math.round(N / 6), e = Math.max(2, Math.round(Math.sqrt(piece ? N / 4 : (N * 5) / 36) * 1.5));
+      let k1, k2; do { k1 = m + rand(-e, e); k2 = m + rand(-e, e); } while (k1 === k2 || k1 === m || k2 === m);
+      const [A, B] = prenoms, deuxEleves = piece && N === 100 && Math.random() < 0.5;
+      if (deuxEleves && Math.random() < 0.3) { k1 = 46; k2 = 55; } // l'exemple d'origine
+      t = piece
+        ? { q: deuxEleves ? `Deux élèves simulent $100$ lancers d'une pièce équilibrée. L'un obtient $${k1}$ « pile », l'autre $${k2}$. Pourquoi ?` : `${A} et ${B} simulent chacun $${nb(N)}$ lancers d'une pièce équilibrée. ${A} obtient $${nb(k1)}$ « pile », ${B} en obtient $${nb(k2)}$. Pourquoi ?`, b: "C'est la fluctuation d'échantillonnage", f: ["L'un des deux s'est trompé", "La pièce change de probabilité", `Il fallait obtenir exactement $${nb(N / 2)}$`], s: "Deux échantillons de même taille ne donnent pas la même fréquence : c'est la **fluctuation d'échantillonnage**. Plus l'échantillon est grand, plus elle est faible." }
+        : { q: `${A} et ${B} simulent chacun $${nb(N)}$ lancers d'un dé équilibré. ${A} obtient $${nb(k1)}$ fois le $6$, ${B} $${nb(k2)}$ fois. Pourquoi ?`, b: "C'est la fluctuation d'échantillonnage", f: ["L'un des deux s'est trompé", "Le dé change de probabilité", `Il fallait obtenir exactement $\\dfrac{${nb(N)}}{6}$ fois le $6$`], s: `Deux échantillons de même taille ne donnent pas la même fréquence : c'est la **fluctuation d'échantillonnage**. Les deux fréquences, $${fr(+(k1 / N).toFixed(3))}$ et $${fr(+(k2 / N).toFixed(3))}$, fluctuent autour de la probabilité $\\dfrac{1}{6} \\approx 0{,}167$ ; plus l'échantillon est grand, plus elles en seront proches.` };
+    } else if (typ === 3) {
+      // estimer une probabilité inconnue par une fréquence (modèle et réalité)
+      const C = pick([
+        () => { const N = pick([5000, 10000, 20000]), f = pick([0.51, 0.52]); return [`Sur $${nb(N)}$ naissances à Mayotte, on observe une fréquence de garçons de $${fr(f)}$.`, f, "qu'un bébé soit un garçon", ["La probabilité est exactement $0{,}5$", `La probabilité est exactement $${fr(f)}$`, "Une naissance sur deux est forcément un garçon"]]; },
+        () => { const N = pick([1000, 2000, 5000]), f = pick([0.62, 0.68, 0.74, 0.81]); return [`Un pépiniériste de Combani sème $${nb(N)}$ graines d'ylang-ylang : $${nb(Math.round(N * f))}$ germent.`, f, "qu'une graine germe", [`La probabilité est exactement $${fr(f)}$`, "La probabilité est $0{,}5$ : une graine germe ou ne germe pas", `Sur $100$ graines, exactement $${Math.round(f * 100)}$ germeront`]]; },
+        () => { const N = pick([400, 800, 1200]), f = pick([0.15, 0.2, 0.35, 0.4]); return [`Sur $${nb(N)}$ tortues vertes observées sur une plage de Mayotte, $${nb(Math.round(N * f))}$ portent une bague de suivi.`, f, "qu'une tortue prise au hasard porte une bague", [`La probabilité est exactement $${fr(f)}$`, "La probabilité est $0{,}5$ : une tortue est baguée ou non", `Sur $100$ tortues, exactement $${Math.round(f * 100)}$ sont baguées`]]; },
+        () => { const N = pick([1000, 2000, 5000]), f = pick([0.38, 0.42, 0.56, 0.61]); return [`On lance $${nb(N)}$ fois une punaise : elle tombe $${nb(Math.round(N * f))}$ fois sur la pointe.`, f, "que la punaise tombe sur la pointe", [`La probabilité est exactement $${fr(f)}$`, "La probabilité est $0{,}5$ : il y a deux façons de tomber", `Sur $100$ lancers, elle tombera exactement $${Math.round(f * 100)}$ fois sur la pointe`]]; }
+      ])();
+      t = { q: `${C[0]} Que peut-on dire ?`, b: `$${fr(C[1])}$ est une estimation de la probabilité ${C[2]}`, f: C[3], s: `Un modèle probabiliste ne décrit pas exactement la réalité : sur un grand échantillon, la fréquence observée ($${fr(C[1])}$) **estime** la probabilité, sans l'égaler forcément.` };
+    } else if (typ === 4) {
+      // taille de l'échantillon
+      const n1 = pick([10, 20, 30, 50]), n2 = pick([1000, 2000, 5000, 10000]), [A, B] = prenoms, grandA = Math.random() < 0.5;
+      const nA = grandA ? n2 : n1, nB = grandA ? n1 : n2, G = grandA ? A : B, P = grandA ? B : A;
+      t = { q: `${A} lance une pièce équilibrée $${nb(nA)}$ fois, ${B} la lance $${nb(nB)}$ fois. Qui a le plus de chances d'obtenir une fréquence de « pile » très proche de $0{,}5$ ?`, b: `${G}, qui fait $${nb(n2)}$ lancers`, f: [`${P}, qui fait $${nb(n1)}$ lancers`, "Les deux autant : la pièce est la même", `Aucun des deux : la fréquence ne se rapproche jamais de $0{,}5$`], s: `**Loi des grands nombres** : plus on répète l'expérience, plus la fréquence a de chances d'être proche de la probabilité $0{,}5$. Sur seulement $${n1}$ lancers, la **fluctuation** est forte. C'est donc ${G}, avec $${nb(n2)}$ lancers.` };
+    } else if (typ === 5) {
+      // grand échantillon : la pièce semble-t-elle équilibrée ?
+      const N = pick([5000, 10000, 20000]), proche = Math.random() < 0.5;
+      const k = proche ? N / 2 + randNZ(-Math.round(N * 0.004), Math.round(N * 0.004)) : N / 2 + pick([-1, 1]) * Math.round(N * pick([0.08, 0.1, 0.12, 0.15]));
+      const f = k / N;
+      t = { q: `On lance une pièce $${nb(N)}$ fois et on obtient $${nb(k)}$ fois « pile ». Que peut-on penser ?`, b: proche ? "La pièce semble équilibrée" : "On peut douter que la pièce soit équilibrée", f: [proche ? "On peut douter que la pièce soit équilibrée" : "La pièce semble équilibrée", `On ne peut rien dire : il faudrait exactement $${nb(N / 2)}$ « pile »`, `La probabilité de « pile » est exactement $${fr(+f.toFixed(4))}$`],
+        s: proche ? `La fréquence observée est $\\dfrac{${nb(k)}}{${nb(N)}} = ${fr(+f.toFixed(4))}$, très proche de $0{,}5$. Sur un aussi grand nombre de lancers, c'est ce que prévoit la **loi des grands nombres** pour une pièce équilibrée.` : `La fréquence observée est $\\dfrac{${nb(k)}}{${nb(N)}} = ${fr(+f.toFixed(4))}$. Sur un aussi grand nombre de lancers, la **loi des grands nombres** dit qu'elle devrait être très proche de $0{,}5$ : un tel écart fait douter de l'équilibre de la pièce (sans en être absolument sûr).` };
+    } else {
+      // la pièce (ou le dé) n'a pas de mémoire
+      const m = rand(3, 8), piece = Math.random() < 0.6;
+      t = piece
+        ? { q: `Avec une pièce équilibrée, on vient d'obtenir $${m}$ fois « pile » de suite. Quelle est la probabilité d'obtenir « pile » au lancer suivant ?`, b: "$\\dfrac{1}{2}$", f: ["Moins de $\\dfrac{1}{2}$ : « face » doit revenir", "Plus de $\\dfrac{1}{2}$ : « pile » est en série", "$0$"], s: "La pièce n'a pas de **mémoire** : les lancers sont indépendants et la probabilité de « pile » reste $\\dfrac{1}{2}$ à chaque lancer.\n\nLa loi des grands nombres parle d'un très grand nombre de lancers : elle ne dit pas que les « pile » et les « face » se compensent à court terme.", a: ["Une pièce n'a pas de mémoire : chaque lancer est indépendant des précédents.", "La loi des grands nombres ne dit pas que les « pile » et les « face » doivent se compenser tout de suite.", "La probabilité de « pile » est la même à chaque lancer."] }
+        : { q: `Avec un dé équilibré, on n'a obtenu aucun $6$ pendant les $${m + 4}$ derniers lancers. Quelle est la probabilité d'obtenir un $6$ au lancer suivant ?`, b: "$\\dfrac{1}{6}$", f: ["Plus de $\\dfrac{1}{6}$ : le $6$ doit bientôt sortir", "Moins de $\\dfrac{1}{6}$ : le $6$ ne sort pas avec ce dé", "$1$"], s: "Le dé n'a pas de **mémoire** : les lancers sont indépendants et la probabilité d'obtenir $6$ reste $\\dfrac{1}{6}$ à chaque lancer.\n\nLa loi des grands nombres parle d'un très grand nombre de lancers : elle ne dit pas que le $6$ doit « rattraper son retard ».", a: ["Un dé n'a pas de mémoire : chaque lancer est indépendant des précédents.", "La loi des grands nombres ne dit pas que les résultats doivent se compenser tout de suite.", "La probabilité d'obtenir $6$ est la même à chaque lancer."] };
+    }
+    const ch = melangeChoix(t.b, t.f);
     return {
       enonce: t.q, mode: "choix", choix: ch.choix, attendu: ch.attendu,
-      aides: ["Sur un petit nombre d'expériences, la fréquence observée varie beaucoup.", "Sur un très grand nombre d'expériences, elle se rapproche de la probabilité (loi des grands nombres).", "Un modèle (une probabilité) et une observation (une fréquence) sont deux choses différentes."],
+      aides: t.a || AIDES,
       solution: t.s
     };
   };
 
   GEN["ec-python"] = function () {
-    const t = rand(0, 2);
-    const P = [
-      ["from random import randint\n\ndef experience():\n    return randint(1, 6) == 6", "1/6", 1 / 6, "$\\texttt{randint(1, 6)}$ donne un entier au hasard de $1$ à $6$ : la probabilité d'obtenir $6$ est $\\dfrac{1}{6}$."],
-      ["from random import randint\n\ndef experience():\n    return randint(1, 6) % 2 == 0", "1/2", 1 / 2, "Le résultat est pair ($2$, $4$ ou $6$) avec la probabilité $\\dfrac{3}{6} = \\dfrac{1}{2}$."],
-      ["from random import randint\n\ndef experience():\n    return randint(1, 6) + randint(1, 6) == 7", "1/6", 1 / 6, "Avec deux dés, $36$ couples équiprobables, dont $6$ de somme $7$ : $\\dfrac{6}{36} = \\dfrac{1}{6}$."]
-    ][t];
+    const t = rand(0, 6), RI = "from random import randint\n\ndef experience():\n    return ";
+    const tt = (s) => `$\\texttt{${s}}$`;
+    let P, err = [];
+    // P = [code de experience, numérateur, dénominateur, explication] (ou valeur décimale si dénominateur 0)
+    if (t === 0) {
+      // un entier précis avec randint(1, N)
+      const N = pick([4, 6, 6, 8, 10, 12, 20]), v = N === 6 && Math.random() < 0.4 ? 6 : rand(1, N);
+      P = [RI + `randint(1, ${N}) == ${v}`, 1, N, `${tt(`randint(1, ${N})`)} donne un entier au hasard de $1$ à $${N}$ : la probabilité d'obtenir $${v}$ est $\\dfrac{1}{${N}}$.`];
+    } else if (t === 1) {
+      // parité ou multiples avec %
+      const T = pick([
+        [6, 2, 0], [6, 2, 1], [6, 3, 0], [8, 2, 0], [10, 3, 0], [10, 4, 0], [12, 5, 0], [12, 3, 0], [20, 3, 0], [20, 6, 0], [10, 2, 1], [12, 4, 0]
+      ]);
+      const [N, m, r] = T, favo = []; for (let x = 1; x <= N; x++) if (x % m === r) favo.push(x);
+      const quoi = m === 2 ? (r === 0 ? "pair" : "impair") : `un multiple de $${m}$`;
+      P = [RI + `randint(1, ${N}) % ${m} == ${r}`, favo.length, N,
+        (m === 2 ? `${tt(`\\% 2`)} donne le reste de la division par $2$ : le test est vrai quand le résultat est ${quoi}` : `${tt(`\\% ${m} == 0`)} est vrai quand le reste de la division par $${m}$ est nul, c'est-à-dire pour ${quoi}`) +
+        ` : $${favo.join("$, $")}$, soit $${favo.length}$ issues sur $${N}$. Probabilité : $\\dfrac{${favo.length}}{${N}}${pgcd(favo.length, N) > 1 ? ` = ${frac(favo.length, N)}` : ""}$.`];
+      if (N === 6 && m === 2 && r === 0) P[3] = "Le résultat est pair ($2$, $4$ ou $6$) avec la probabilité $\\dfrac{3}{6} = \\dfrac{1}{2}$.";
+    } else if (t === 2) {
+      // inférieur ou égal / supérieur ou égal / strictement supérieur
+      const N = pick([6, 8, 10, 12, 20]), k = rand(2, N - 1), op = pick(["<=", ">=", ">", "<"]);
+      const nbF = { "<=": k, ">=": N - k + 1, ">": N - k, "<": k - 1 }[op];
+      const mots = { "<=": "inférieur ou égal à", ">=": "supérieur ou égal à", ">": "strictement supérieur à", "<": "strictement inférieur à" }[op];
+      const liste = { "<=": [1, k], ">=": [k, N], ">": [k + 1, N], "<": [1, k - 1] }[op];
+      P = [RI + `randint(1, ${N}) ${op} ${k}`, nbF, N, `Le test est vrai quand l'entier tiré (de $1$ à $${N}$) est ${mots} $${k}$ : ce sont ${liste[0] === liste[1] ? `l'entier $${liste[0]}$` : liste[1] - liste[0] === 1 ? `les entiers $${liste[0]}$ et $${liste[1]}$` : `les entiers de $${liste[0]}$ à $${liste[1]}$`}, soit $${nbF}$ issues sur $${N}$. Probabilité : $\\dfrac{${nbF}}{${N}}${pgcd(nbF, N) > 1 ? ` = ${frac(nbF, N)}` : ""}$.`];
+      if (op === "<=" || op === ">=") err = [{ valeur: (nbF - 1) / N, message: `Le signe ${tt(op)} veut dire « ${mots} » : $${k}$ compte aussi.` }];
+      else err = [{ valeur: (nbF + 1) / N, message: `Le signe ${tt(op)} est strict : $${k}$ ne compte pas.` }];
+    } else if (t === 3) {
+      // random() < p ou random() > p
+      const p = pick([0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9]), inf = Math.random() < 0.6;
+      const code = `from random import random\n\ndef experience():\n    return random() ${inf ? "<" : ">"} ${p}`;
+      P = inf ? [code, p, 0, `${tt("random()")} donne un nombre au hasard dans $[0\\,;1[$ : il est inférieur à $${fr(p)}$ avec la probabilité $${fr(p)}$.`]
+        : [code, +(1 - p).toFixed(2), 0, `${tt("random()")} donne un nombre au hasard dans $[0\\,;1[$ : il est supérieur à $${fr(p)}$ avec la probabilité $1 - ${fr(p)} = ${fr(+(1 - p).toFixed(2))}$.`];
+      if (!inf) err = [{ valeur: p, message: `Le test est ${tt(`random() > ${p}`)} : on veut les nombres **supérieurs** à $${fr(p)}$.` }];
+    } else if (t === 4) {
+      // somme de deux dés
+      const s = Math.random() < 0.3 ? 7 : rand(2, 12), c = 6 - Math.abs(s - 7);
+      const couples = []; for (let a = 1; a <= 6; a++) { const b = s - a; if (b >= 1 && b <= 6) couples.push(`(${a}\\,;${b})`); }
+      P = [RI + `randint(1, 6) + randint(1, 6) == ${s}`, c, 36, s === 7 ? "Avec deux dés, $36$ couples équiprobables, dont $6$ de somme $7$ : $\\dfrac{6}{36} = \\dfrac{1}{6}$." : `Avec deux dés, $36$ couples équiprobables. Somme $${s}$ : $${couples.join("$, $")}$, soit $${c}$ couple${c > 1 ? "s" : ""}. Probabilité : $\\dfrac{${c}}{36}${pgcd(c, 36) > 1 ? ` = ${frac(c, 36)}` : ""}$.`];
+      if (Math.abs(1 / 11 - c / 36) > 0.012) err = [{ valeur: 1 / 11, message: "Les $11$ sommes possibles (de $2$ à $12$) ne sont **pas** équiprobables : compte les couples de dés dans un tableau $6 \\times 6$." }];
+    } else if (t === 5) {
+      // un double
+      P = [RI + "randint(1, 6) == randint(1, 6)", 6, 36, "Le test est vrai quand les deux dés donnent le même nombre (un double). Sur les $36$ couples équiprobables, il y a $6$ doubles : $\\dfrac{6}{36} = \\dfrac{1}{6}$."];
+    } else if (t === 6) {
+      // une ou deux pièces codées 0 / 1
+      const k = rand(0, 3);
+      if (k === 3) P = [RI + "randint(0, 1) == 1", 1, 2, `${tt("randint(0, 1)")} donne $0$ ou $1$ avec la même probabilité (comme une pièce) : $\\dfrac{1}{2}$.`];
+      else {
+        const nbF = k === 1 ? 2 : 1;
+        P = [RI + `randint(0, 1) + randint(0, 1) == ${k}`, nbF, 4, `Deux tirages de $0$ ou $1$ : $4$ couples équiprobables $(0\\,;0)$, $(0\\,;1)$, $(1\\,;0)$, $(1\\,;1)$. Somme égale à $${k}$ : ${k === 1 ? "$(0\\,;1)$ et $(1\\,;0)$" : k === 0 ? "$(0\\,;0)$ seulement" : "$(1\\,;1)$ seulement"}. Probabilité : $\\dfrac{${nbF}}{4}${nbF === 2 ? " = \\dfrac{1}{2}" : ""}$.`];
+        if (k !== 1) err = [{ valeur: 1 / 3, message: "Les sommes $0$, $1$ et $2$ ne sont pas équiprobables : la somme $1$ s'obtient de deux façons." }];
+      }
+    }
+    const p = P[2] ? P[1] / P[2] : P[1];
+    const exact = Math.abs(p * 1000 - Math.round(p * 1000)) < 1e-9;
+    const valTex = P[2] ? `${frac(P[1], P[2])} ${exact ? "=" : "\\approx"} ${nb(+p.toFixed(3))}` : fr(p);
     return {
       enonce: "On considère le programme :\n\n```python\n" + P[0] + "\n\ndef frequence(n):\n    c = 0\n    for i in range(n):\n        if experience():\n            c = c + 1\n    return c / n\n```\n\nPour $n$ très grand, vers quelle valeur $\\texttt{frequence(n)}$ se rapproche-t-elle ? (Fraction ou décimal à $0{,}01$ près.)",
-      mode: "nombre", prefixe: "Valeur :", attendu: P[2], tolerance: 0.006,
+      mode: "nombre", prefixe: "Valeur :", attendu: p, tolerance: 0.006,
+      erreurs: err.filter((e) => Math.abs(e.valeur - p) > 0.012),
       aides: ["$\\texttt{frequence(n)}$ répète $n$ fois l'expérience et renvoie la fréquence des succès.", "D'après la loi des grands nombres, cette fréquence se rapproche de la probabilité de succès.", "Calcule la probabilité que $\\texttt{experience()}$ renvoie $\\texttt{True}$."],
-      solution: `${P[3]}\n\nPour $n$ grand, $\\texttt{frequence(n)}$ se rapproche de $\\dfrac{${P[1].split("/").join("}{")}} \\approx ${nb(+P[2].toFixed(3))}$.`
+      solution: `${P[3]}\n\nPour $n$ grand, $\\texttt{frequence(n)}$ se rapproche de $${valTex}$.`
     };
   };
 
@@ -5033,15 +6076,40 @@
   };
 
   GEN["sy-longueur"] = function () {
-    const n = pick([1, 2, 4]), t = rand(0, 1);
-    const f = t ? (x) => x * x : (x) => Math.sqrt(x), ftex = t ? "x**2" : "sqrt(x)";
-    let L = 0; for (let i = 0; i < n; i++) { const a = i / n, b = (i + 1) / n; L += Math.hypot(b - a, f(b) - f(a)); }
+    // f : code Python, fonction, valeurs exactes en TeX aux abscisses k/4 (k entier)
+    const F = [
+      { code: "x**2", f: (x) => x * x, v: (x) => nb(x * x) },
+      { code: "sqrt(x)", f: (x) => Math.sqrt(x), v: (x) => (Number.isInteger(Math.sqrt(x * 16)) ? nb(Math.sqrt(x)) : `\\sqrt{${nb(x)}}`) },
+      { code: "x**3", f: (x) => x * x * x, v: (x) => nb(x * x * x) },
+      { code: "1 / (x + 1)", f: (x) => 1 / (x + 1), v: (x) => frac(4, Math.round(4 * x) + 4) },
+      { code: "2 * x + 1", f: (x) => 2 * x + 1, v: (x) => nb(2 * x + 1), droite: true },
+      { code: "4 * x * (1 - x)", f: (x) => 4 * x * (1 - x), v: (x) => nb(4 * x * (1 - x)), seul1: true }
+    ];
+    const fn = Math.random() < 0.35 ? pick(F.slice(0, 2)) : pick(F);
+    const B = !fn.seul1 && Math.random() < 0.25 ? 2 : 1, n = pick([1, 2, 4]), w = B / n;
+    const premier = n > 1 && Math.random() < 0.3; // valeur de L après le premier tour de boucle
+    const seg = (i) => { const a = i * w, b = (i + 1) * w; return Math.hypot(b - a, fn.f(b) - fn.f(a)); };
+    let L = 0; for (let i = 0; i < (premier ? 1 : n); i++) L += seg(i);
     const r = Math.round(L * 1000) / 1000;
+    const p = (x) => `(${nb(x)}\\,;${fn.v(x)})`;
+    const dy = (i) => { const a = i * w, b = (i + 1) * w; return `(${fn.v(b)} - ${fn.v(a)})^2`; };
+    const ligneSeg = (i) => `$\\sqrt{${nb(w)}^2 + ${dy(i)}} \\approx ${nb(Math.round(seg(i) * 1000) / 1000)}$`;
+    const code = "```python\nfrom math import sqrt\n\ndef f(x):\n    return " + fn.code + "\n\ndef longueur(n):\n    L = 0\n    for i in range(n):\n        " + (B === 1 ? "a, b = i / n, (i + 1) / n" : "a, b = 2 * i / n, 2 * (i + 1) / n") + "\n        L = L + sqrt((b - a)**2 + (f(b) - f(a))**2)\n    return L\n```";
+    const question = premier
+      ? `Lors de l'appel $\\texttt{longueur(${n})}$, quelle est la valeur de $\\texttt{L}$ après le **premier** passage dans la boucle (pour $\\texttt{i}$ égal à $0$) ? (Arrondis au millième.)`
+      : `Que renvoie $\\texttt{longueur(${n})}$ ? (Arrondis au millième.)`;
+    let solution;
+    if (premier) solution = `Pour $\\texttt{i}$ égal à $0$ : $a = 0$ et $b = ${nb(w)}$. Le premier segment va de $${p(0)}$ à $${p(w)}$ ; sa longueur est ${ligneSeg(0)}.\n\n$\\texttt{L}$ valait $0$, il vaut donc environ $${nb(r)}$ après le premier passage.`;
+    else if (n === 1) solution = `Un seul segment de $${p(0)}$ à $${p(B)}$ : ${ligneSeg(0)}.`;
+    else solution = `Les $${n}$ segments ont pour longueurs : ${Array.from({ length: n }, (_, i) => ligneSeg(i)).join(" ; ")}.\n\nSomme des longueurs des $${n}$ segments $\\approx ${nb(r)}$.`;
+    if (fn.droite) solution += `\n\nIci la courbe est une **droite** : la ligne brisée est confondue avec elle, et on trouve ${premier ? "la même pente sur chaque segment" : "le même résultat quel que soit $n$"}.`;
+    else if (!premier) solution += "\n\nPlus $n$ est grand, plus la ligne brisée « colle » à la courbe et plus l'approximation est bonne.";
     return {
-      enonce: "On approche la longueur de la courbe de $f$ sur $[0\\,;1]$ par une ligne brisée de $n$ segments :\n\n```python\nfrom math import sqrt\n\ndef f(x):\n    return " + ftex + "\n\ndef longueur(n):\n    L = 0\n    for i in range(n):\n        a, b = i / n, (i + 1) / n\n        L = L + sqrt((b - a)**2 + (f(b) - f(a))**2)\n    return L\n```\n\n" + `Que renvoie $\\texttt{longueur(${n})}$ ? (Arrondis au millième.)`,
-      mode: "nombre", prefixe: "Longueur ≈", attendu: r, tolerance: 0.0011,
-      aides: [`On découpe $[0\\,;1]$ en $${n}$ morceaux de largeur $${nb(1 / n)}$.`, "Chaque segment relie $(a\\,;f(a))$ et $(b\\,;f(b))$ ; sa longueur se calcule avec la formule de la distance (chapitre 7).", n === 1 ? "Un seul segment, de $(0\\,;0)$ à $(1\\,;1)$." : "Additionne les longueurs des segments."],
-      solution: (n === 1 ? "Un seul segment de $(0\\,;0)$ à $(1\\,;1)$ : $\\sqrt{1^2 + 1^2} = \\sqrt{2}$" : `Somme des longueurs des $${n}$ segments`) + ` $\\approx ${nb(r)}$.\n\nPlus $n$ est grand, plus la ligne brisée « colle » à la courbe et plus l'approximation est bonne.`
+      enonce: `On approche la longueur de la courbe de $f$ sur $[0\\,;${B}]$ par une ligne brisée de $n$ segments :\n\n` + code + "\n\n" + question,
+      mode: "nombre", prefixe: premier ? "L ≈" : "Longueur ≈", attendu: r, tolerance: 0.0011,
+      erreurs: !premier && n > 1 ? [{ valeur: Math.round(seg(0) * 1000) / 1000, message: "Ça, c'est seulement la longueur du premier segment : la boucle les additionne tous." }].filter((e) => Math.abs(e.valeur - r) > 0.002) : [],
+      aides: [`On découpe $[0\\,;${B}]$ en $${n}$ morceau${n > 1 ? "x" : ""} de largeur $${nb(w)}$.`, "Chaque segment relie $(a\\,;f(a))$ et $(b\\,;f(b))$ ; sa longueur se calcule avec la formule de la distance (chapitre 7).", premier ? `Au premier passage, seul le segment de $${p(0)}$ à $${p(w)}$ est ajouté à $\\texttt{L}$.` : n === 1 ? `Un seul segment, de $${p(0)}$ à $${p(B)}$.` : "Additionne les longueurs des segments."],
+      solution
     };
   };
 
@@ -5178,15 +6246,126 @@
   FIGURES["motif-allumettes"] = () => motifFig("allumettes");
 
   GEN["su-motif"] = function () {
-    const cle = pick(Object.keys(MOTIFS)), M = MOTIFS[cle], n = rand(5, 12);
+    // Motifs du cours (MOTIFS, dessinés par motifFig) et nouveaux motifs dessinés ici.
+    // lin : [a, b] si u_n = an + b ; pieges : formules fausses [TeX, fonction] ; ajout : ce qu'on ajoute d'une étape à la suivante.
+    const anc = (cle, objet, ajout, pieges, lin) => Object.assign({}, MOTIFS[cle], { objet, ajout, pieges, lin, fig: () => motifFig(cle) });
+    const A = {
+      triangle: anc("triangle", "galets", "une rangée de $n + 1$ galets", [["u_n = n^2", (n) => n * n], ["u_n = 2n - 1", (n) => 2 * n - 1], ["u_n = n(n + 1)", (n) => n * (n + 1)]]),
+      carre: anc("carre", "galets", "une ligne et une colonne, soit $2n + 1$ galets", [["u_n = 3n - 2", (n) => 3 * n - 2], ["u_n = 2n", (n) => 2 * n], ["u_n = n^2 + 1", (n) => n * n + 1]]),
+      allumettes: anc("allumettes", "allumettes", "un carré de plus, soit $3$ allumettes", [["u_n = 4n", (n) => 4 * n], ["u_n = 3n", (n) => 3 * n], ["u_n = n + 3", (n) => n + 3]], [3, 1]),
+      L: {
+        nom: "de galets rangés en L", objet: "galets", u: (n) => 2 * n - 1, rec: "u_{n+1} = u_n + 2", gen: "u_n = 2n - 1", lin: [2, -1], d: 15,
+        expl: (n) => `$u_n = 2n - 1 = 2 \\times ${n} - 1$`, ajout: "un galet au bout de chaque branche, soit $2$ galets",
+        pieges: [["u_n = 2n", (n) => 2 * n], ["u_n = n^2", (n) => n * n], ["u_n = 2n + 1", (n) => 2 * n + 1]],
+        dessin: (n) => { const p = []; for (let k = 0; k < n; k++) p.push([0, k]); for (let k = 1; k < n; k++) p.push([k, 0]); return { p }; }
+      },
+      rectangle: {
+        nom: "de galets rangés en rectangle", objet: "galets", u: (n) => n * (n + 1), rec: "u_{n+1} = u_n + 2(n + 1)", gen: "u_n = n(n + 1)", d: 14,
+        expl: (n) => `$u_n = n(n + 1) = ${n} \\times ${n + 1}$`, ajout: "une colonne de $n$ galets et une ligne de $n + 2$ galets, soit $2n + 2$ galets",
+        pieges: [["u_n = n^2 + 1", (n) => n * n + 1], ["u_n = 2n", (n) => 2 * n], ["u_n = (n + 1)^2", (n) => (n + 1) * (n + 1)]],
+        dessin: (n) => { const p = []; for (let i = 0; i <= n; i++) for (let j = 0; j < n; j++) p.push([i, j]); return { p }; }
+      },
+      croix: {
+        nom: "de galets rangés en croix", objet: "galets", u: (n) => 4 * n + 1, rec: "u_{n+1} = u_n + 4", gen: "u_n = 4n + 1", lin: [4, 1], d: 12, r: 5,
+        expl: (n) => `$u_n = 4n + 1 = 4 \\times ${n} + 1$`, ajout: "un galet au bout de chacun des $4$ bras",
+        pieges: [["u_n = 4n", (n) => 4 * n], ["u_n = 5n", (n) => 5 * n], ["u_n = n + 4", (n) => n + 4]],
+        dessin: (n) => { const p = [[0, 0]]; for (let k = 1; k <= n; k++) p.push([k, 0], [-k, 0], [0, k], [0, -k]); return { p }; }
+      },
+      bordure: {
+        nom: "de galets formant le bord d'un carré", objet: "galets", u: (n) => 4 * n, rec: "u_{n+1} = u_n + 4", gen: "u_n = 4n", lin: [4, 0], d: 14,
+        expl: (n) => `$u_n = 4n = 4 \\times ${n}$`, ajout: "un galet de plus sur chaque côté, soit $4$ galets",
+        pieges: [["u_n = n^2", (n) => n * n], ["u_n = (n + 1)^2", (n) => (n + 1) * (n + 1)], ["u_n = 4n + 4", (n) => 4 * n + 4]],
+        dessin: (n) => { const p = []; for (let i = 0; i <= n; i++) for (let j = 0; j <= n; j++) if (i === 0 || j === 0 || i === n || j === n) p.push([i, j]); return { p }; }
+      },
+      triangles: {
+        nom: "d'allumettes formant une bande de triangles", objet: "allumettes", u: (n) => 2 * n + 1, rec: "u_{n+1} = u_n + 2", gen: "u_n = 2n + 1", lin: [2, 1], d: 26,
+        expl: (n) => `$u_n = 2n + 1 = 2 \\times ${n} + 1$`, ajout: "un triangle de plus, soit $2$ allumettes",
+        pieges: [["u_n = 3n", (n) => 3 * n], ["u_n = n + 2", (n) => n + 2], ["u_n = 2n", (n) => 2 * n]],
+        dessin: (n) => {
+          const P = (k) => [k / 2, k % 2 ? Math.sqrt(3) / 2 : 0], s = [];
+          for (let k = 0; k <= n; k++) s.push([...P(k), ...P(k + 1)]);
+          for (let k = 0; k < n; k++) s.push([...P(k), ...P(k + 2)]);
+          return { s };
+        }
+      },
+      double: {
+        nom: "d'allumettes formant deux rangées de carrés", objet: "allumettes", u: (n) => 5 * n + 2, rec: "u_{n+1} = u_n + 5", gen: "u_n = 5n + 2", lin: [5, 2], d: 22,
+        expl: (n) => `$u_n = 5n + 2 = 5 \\times ${n} + 2$`, ajout: "une colonne de deux carrés, soit $5$ allumettes",
+        pieges: [["u_n = 7n", (n) => 7 * n], ["u_n = 6n + 1", (n) => 6 * n + 1], ["u_n = 5n", (n) => 5 * n]],
+        dessin: (n) => {
+          const s = [];
+          for (let y = 0; y <= 2; y++) for (let k = 0; k < n; k++) s.push([k, y, k + 1, y]);
+          for (let x = 0; x <= n; x++) for (let y = 0; y < 2; y++) s.push([x, y, x, y + 1]);
+          return { s };
+        }
+      }
+    };
+    // Dessin des étapes 1, 2, 3 d'un nouveau motif (même style que motifFig)
+    const dessiner = (M) => {
+      const W = 320, H = 120, ox = [14, 82, 180], r = M.r || 6.5;
+      let s = `<svg class="graph" viewBox="0 0 ${W} ${H}" role="img" aria-label="Étapes 1, 2 et 3 du motif ${M.nom}">`;
+      [1, 2, 3].forEach((n, i) => {
+        const D = M.dessin(n), xs = [], ys = [];
+        (D.p || []).forEach(([x, y]) => { xs.push(x); ys.push(y); });
+        (D.s || []).forEach(([a, b, c, e]) => { xs.push(a, c); ys.push(b, e); });
+        const x0 = Math.min(...xs), y0 = Math.min(...ys), w = (Math.max(...xs) - x0) * M.d, marge = D.p ? r + 2 : 4, bas = D.p ? 86 : 82;
+        const X = (x) => +(ox[i] + marge + (x - x0) * M.d).toFixed(1), Y = (y) => +(bas - (y - y0) * M.d).toFixed(1);
+        (D.s || []).forEach(([a, b, c, e]) => { s += `<line x1="${X(a)}" y1="${Y(b)}" x2="${X(c)}" y2="${Y(e)}" style="stroke:var(--courbe2);stroke-width:3;stroke-linecap:round"/>`; });
+        (D.p || []).forEach(([x, y]) => { s += `<circle cx="${X(x)}" cy="${Y(y)}" r="${r}" style="fill:var(--lagon-pale);stroke:var(--lagon);stroke-width:1.4"/>`; });
+        s += `<text class="g-label" x="${+(ox[i] + marge + w / 2).toFixed(1)}" y="${H - 6}" text-anchor="middle">étape ${n}</text>`;
+      });
+      return s + `</svg>`;
+    };
+    const cle = pick(Object.keys(A)), M = A[cle], ancien = !!MOTIFS[cle], t = rand(0, 3);
+    const figure = ancien ? M.fig() : dessiner(M), de = M.objet === "allumettes" ? "d'allumettes" : "de galets";
+    const intro = `On construit des motifs ${M.nom} (étapes $1$, $2$, $3$ ci-dessous). On note $u_n$ le nombre ${de} à l'étape $n$.`;
+    const compte = `Compte : $u_1 = ${M.u(1)}$, $u_2 = ${M.u(2)}$, $u_3 = ${M.u(3)}$.`;
+    if (t === 0) {
+      // Calculer un terme (question d'origine pour les trois motifs du cours)
+      const n = ancien ? rand(5, 12) : rand(5, 15);
+      return {
+        enonce: `${intro} Calcule $u_{${n}}$.`,
+        figure, mode: "nombre", prefixe: `$u_{${n}} =$`, attendu: M.u(n),
+        aides: [compte, `Passage d'une étape à la suivante : $${M.rec}$.`, `Formule explicite : $${M.gen}$, ou continue de proche en proche.`],
+        solution: `${M.expl(n).slice(0, -1)} = ${M.u(n)}$.\n\nRelation de récurrence : $${M.rec}$.`
+      };
+    }
+    if (t === 1) {
+      // Retrouver l'étape à partir du nombre d'objets
+      const n = M.lin ? rand(6, 25) : rand(5, 14), N = M.u(n);
+      const res = M.lin
+        ? `$${poly(M.lin, "n")} = ${N} \\iff ${M.lin[1] ? `${M.lin[0]}n = ${N - M.lin[1]} \\iff ` : ""}n = ${n}$.`
+        : `Les termes grandissent : on les calcule (ou on teste des valeurs de $n$) jusqu'à trouver $${N}$. ${M.expl(n).slice(0, -1)} = ${N}$.`;
+      return {
+        enonce: `${intro} À quelle étape le motif compte-t-il exactement $${N}$ ${M.objet} ?`,
+        figure, mode: "nombre", prefixe: "Étape", attendu: n,
+        erreurs: [{ valeur: N, message: `$${N}$, c'est le nombre de ${M.objet}. On demande le **numéro de l'étape** $n$.` }],
+        aides: [compte, `Formule explicite : $${M.gen}$.`, M.lin ? `Résous l'équation $${poly(M.lin, "n")} = ${N}$.` : `Cherche $n$ tel que $${M.gen.replace("u_n = ", "")} = ${N}$ : essaie des valeurs de $n$ autour de $${n < 10 ? 5 : 10}$.`],
+        solution: `On cherche $n$ tel que $u_n = ${N}$, avec $${M.gen}$.\n\n${res} C'est l'étape $${n}$.`
+      };
+    }
+    if (t === 2) {
+      // Combien d'objets ajoute-t-on ?
+      const n = rand(4, 20), add = M.u(n + 1) - M.u(n);
+      return {
+        enonce: `${intro} Combien ${de} faut-il ajouter pour passer de l'étape $${n}$ à l'étape $${n + 1}$ ?`,
+        figure, mode: "nombre", prefixe: "Il faut ajouter", suffixe: M.objet, attendu: add,
+        erreurs: [{ valeur: M.u(n + 1), message: `Ça, c'est le nombre total de ${M.objet} à l'étape $${n + 1}$. On demande combien on en **ajoute**.` }].filter((e) => e.valeur !== add),
+        aides: ["Sur la figure, compare l'étape $1$ et l'étape $2$, puis l'étape $2$ et l'étape $3$ : qu'est-ce qu'on ajoute ?", `D'une étape à la suivante, on ajoute ${M.ajout}. Relation : $${M.rec}$.`, `Calcule $u_{${n + 1}} - u_{${n}}$.`],
+        solution: `D'une étape à la suivante, on ajoute ${M.ajout} : $${M.rec}$.\n\nIci, $u_{${n + 1}} - u_{${n}} = ${M.u(n + 1)} - ${M.u(n)} = ${add}$ ${M.objet}.`
+      };
+    }
+    // Quelle formule explicite ? (un contre-exemple élimine chaque fausse formule)
+    const ch = melangeChoix(`$${M.gen}$`, M.pieges.map((p) => `$${p[0]}$`));
+    const refus = M.pieges.map(([tx, f]) => { const k = [1, 2, 3].find((j) => f(j) !== M.u(j)); return `- $${tx}$ donne $${f(k)}$ à l'étape $${k}$, au lieu de $${M.u(k)}$.`; }).join("\n");
     return {
-      enonce: `On construit des motifs ${M.nom} (étapes $1$, $2$, $3$ ci-dessous). On note $u_n$ le nombre ${cle === "allumettes" ? "d'allumettes" : "de galets"} à l'étape $n$. Calcule $u_{${n}}$.`,
-      figure: motifFig(cle),
-      mode: "nombre", prefixe: `$u_{${n}} =$`, attendu: M.u(n),
-      aides: [`Compte : $u_1 = ${M.u(1)}$, $u_2 = ${M.u(2)}$, $u_3 = ${M.u(3)}$.`, `Passage d'une étape à la suivante : $${M.rec}$.`, `Formule explicite : $${M.gen}$, ou continue de proche en proche.`],
-      solution: `${M.expl(n).slice(0, -1)} = ${M.u(n)}$.\n\nRelation de récurrence : $${M.rec}$.`
+      enonce: `${intro} Quelle formule explicite donne $u_n$ ?`,
+      figure, mode: "choix", choix: ch.choix, attendu: ch.attendu,
+      aides: [compte, "Teste chaque formule pour $n = 1$, $n = 2$ et $n = 3$.", "Une formule qui marche pour $n = 1$ peut échouer pour $n = 2$ : un seul contre-exemple suffit pour l'éliminer."],
+      solution: `$${M.gen}$ donne bien $${M.u(1)}$, $${M.u(2)}$ et $${M.u(3)}$. Les autres formules sont fausses, un contre-exemple suffit :\n${refus}`
     };
   };
+  // Logique : a est un paramètre (fixé), h une variable qui tend vers 0
 
   GEN["su-traduire"] = function () {
     const a = rand(2, 9) * 10, p = pick([2, 3, 4, 5, 8, 10]), T = [
@@ -5244,13 +6423,109 @@
       ["2 - \\dfrac{3}{n + 1}", "elle se rapproche de $2$", "$\\dfrac{3}{n + 1}$ se rapproche de $0$ : $u_n$ se rapproche de $2$."],
       ["1000 \\times 0{,}5^n", "elle se rapproche de $0$", "$0{,}5^n$ est divisé par $2$ à chaque rang : il se rapproche de $0$, et $u_n$ aussi."]
     ];
-    const [f, b, s] = pick(T), autres = ["elle se rapproche de $0$", "elle devient aussi grande qu'on veut", "elle n'a pas de limite", "elle se rapproche de $1$"].filter((x) => x !== b);
-    const ch = melangeChoix(b, autres.slice(0, 3));
+    const aidesStd = ["Calcule $u_{10}$, $u_{100}$ et $u_{1\\,000}$, à la calculatrice ou de tête.", "Regarde si les termes se stabilisent autour d'un nombre, grandissent sans fin, ou oscillent.", "En Première, on conjecture une limite : on ne la démontre pas encore."];
+    const enonceStd = (f) => `$u_n = ${f}$. Calcule quelques termes pour de grandes valeurs de $n$ ($10$, $100$, $1\\,000$) et conjecture le comportement de $(u_n)$ quand $n$ devient très grand.`;
+    // Questions d'origine : inchangées
+    if (Math.random() < 0.3) {
+      const [f, b, s] = pick(T), autres = ["elle se rapproche de $0$", "elle devient aussi grande qu'on veut", "elle n'a pas de limite", "elle se rapproche de $1$"].filter((x) => x !== b);
+      const ch = melangeChoix(b, autres.slice(0, 3));
+      return { enonce: enonceStd(f), mode: "choix", choix: ch.choix, attendu: ch.attendu, aides: aidesStd, solution: s };
+    }
+    const INF = "elle devient aussi grande qu'on veut", MINF = "elle devient négative et aussi grande qu'on veut en valeur absolue", PAS = "elle n'a pas de limite";
+    const vers = (x) => `elle se rapproche de $${fr(x)}$`;
+    // Valeur d'un terme, prête à suivre « u_{100} » : « = 3{,}007 » si elle tombe juste, « \approx … » sinon (écriture scientifique si besoin)
+    const val = (x) => {
+      if (Math.abs(x) >= 1e7 || (x !== 0 && Math.abs(x) < 1e-4)) {
+        let e = Math.floor(Math.log10(Math.abs(x))), m = +(x / 10 ** e).toFixed(2);
+        if (Math.abs(m) >= 10) { m = +(m / 10).toFixed(2); e++; }
+        return `\\approx ${fr(m)} \\times 10^{${e}}`;
+      }
+      const r = +x.toFixed(Math.abs(x) >= 1000 ? 1 : 4);
+      return (Math.abs(x - r) < 1e-9 ? "= " : "\\approx ") + nb(r);
+    };
+    const F = [
+      // a ± b / (n, n², n + 1, √n) : limite a
+      () => {
+        const a = rand(2, 9), b = rand(1, 9), moins = Math.random() < 0.5;
+        const [dT, d] = pick([["n", (n) => n], ["n^2", (n) => n * n], ["n + 1", (n) => n + 1], ["\\sqrt{n}", Math.sqrt]]);
+        const u = (n) => a + ((moins ? -1 : 1) * b) / d(n);
+        return {
+          f: `${a} ${moins ? "-" : "+"} \\dfrac{${b}}{${dT}}`, b: vers(a), faux: [vers(0), vers(b === a ? a + b : b), INF, PAS],
+          s: `$\\dfrac{${b}}{${dT}}$ devient aussi petit qu'on veut quand $n$ grandit : $u_{100} ${val(u(100))}$ et $u_{1\\,000} ${val(u(1000))}$. Les termes se rapprochent de $${a}$ : on conjecture une limite finie, égale à $${a}$.`
+        };
+      },
+      // suite affine : ±∞
+      () => {
+        const a = pick([-9, -7, -5, -4, -3, -2, 2, 3, 4, 5, 6, 8]), b = randNZ(-9, 9), u = (n) => a * n + b;
+        const f = a < 0 && b > 0 && Math.random() < 0.5 ? `${b} - ${-a}n` : poly([a, b], "n");
+        return {
+          f, b: a > 0 ? INF : MINF, faux: [a > 0 ? MINF : INF, vers(0), vers(b), PAS],
+          s: `À chaque rang, on ${a > 0 ? "ajoute" : "retranche"} $${Math.abs(a)}$ : $u_{10} = ${nb(u(10))}$, $u_{100} = ${nb(u(100))}$, $u_{1\\,000} = ${nb(u(1000))}$. ${a > 0 ? "Les termes dépassent n'importe quel nombre : on conjecture que la limite est $+\\infty$." : "Les termes deviennent négatifs et aussi grands qu'on veut en valeur absolue : on conjecture que la limite est $-\\infty$."}`
+        };
+      },
+      // second degré : le terme en n² l'emporte
+      () => {
+        const k = rand(2, 30), c = rand(-9, 9), s = pick([1, -1]), u = (n) => s * (n * n - k * n) + c;
+        return {
+          f: poly([s, -s * k, c], "n"), b: s > 0 ? INF : MINF, faux: [s > 0 ? MINF : INF, vers(0), vers(c === 0 ? k : c), PAS],
+          s: `$u_{10} = ${nb(u(10))}$, $u_{100} = ${nb(u(100))}$, $u_{1\\,000} = ${nb(u(1000))}$. Pour $n$ grand, $n^2$ l'emporte largement sur $${k}n$ : ${s > 0 ? "les termes dépassent n'importe quel nombre. On conjecture que la limite est $+\\infty$." : "les termes deviennent négatifs et aussi grands qu'on veut en valeur absolue. On conjecture que la limite est $-\\infty$."}`
+        };
+      },
+      // c × q^n
+      () => {
+        const t = rand(0, 3);
+        const q = [pick([0.1, 0.2, 0.5, 0.8, 0.9]), pick([1.1, 1.5, 2, 3]), pick([-0.2, -0.5, -0.8]), pick([-1.5, -2, -3])][t];
+        const c = t === 0 || t === 2 ? pick([2, 5, 10, 20, 50, 100]) : pick([1, 2, 3, 5]);
+        const u = (n) => c * q ** n, qT = q < 0 ? `(${fr(q)})^n` : `${fr(q)}^n`;
+        const f = c === 1 ? qT : `${c} \\times ${qT}`;
+        if (t === 0) return { f, b: vers(0), faux: [INF, vers(c), PAS, vers(1)], s: `À chaque rang, on multiplie par $${fr(q)}$, un nombre compris entre $0$ et $1$ : les termes diminuent vers $0$. $u_{10} ${val(u(10))}$ et $u_{100} ${val(u(100))}$. On conjecture que la limite est $0$.` };
+        if (t === 1) return { f, b: INF, faux: [vers(0), vers(c === 1 ? q : c), PAS, MINF], s: `À chaque rang, on multiplie par $${fr(q)}$, un nombre plus grand que $1$ : $u_{10} ${val(u(10))}$ et $u_{100} ${val(u(100))}$. Les termes dépassent n'importe quel nombre : on conjecture que la limite est $+\\infty$.` };
+        if (t === 2) return { f, alt: true, b: vers(0), faux: [PAS, INF, vers(c), vers(1)], s: `Les termes changent de signe à chaque rang, mais leur distance à $0$ est multipliée par $${fr(-q)}$ à chaque fois : $u_{100} ${val(u(100))}$ et $u_{101} ${val(u(101))}$. Ils se rapprochent de $0$ : on conjecture que la limite est $0$.` };
+        return { f, alt: true, b: PAS, faux: [INF, MINF, vers(0), vers(1)], s: `Les termes changent de signe à chaque rang et leur distance à $0$ est multipliée par $${fr(-q)}$ : $u_{100} ${val(u(100))}$ et $u_{101} ${val(u(101))}$. Ils ne se rapprochent d'aucun nombre et ne gardent pas un signe constant : ni limite finie, ni $+\\infty$, ni $-\\infty$. Pas de limite.` };
+      },
+      // avec (-1)^n
+      () => {
+        const t = rand(0, 3), a = rand(2, 9);
+        if (t === 0) return { f: `${a} \\times (-1)^n`, alt: true, b: PAS, faux: [vers(a), vers(0), INF, vers(-a)], s: `Les termes valent $${a}$ aux rangs pairs et $-${a}$ aux rangs impairs : $u_{100} = ${a}$, $u_{101} = -${a}$. Ils ne se rapprochent d'aucun nombre : pas de limite.` };
+        if (t === 1) return { f: `${a} + (-1)^n`, alt: true, b: PAS, faux: [vers(a), vers(a + 1), vers(0), INF], s: `Les termes valent $${a + 1}$ aux rangs pairs et $${a - 1}$ aux rangs impairs : $u_{100} = ${a + 1}$, $u_{101} = ${a - 1}$. Ils sautent sans cesse d'une valeur à l'autre : pas de limite.` };
+        if (t === 2) return { f: `${a} + \\dfrac{(-1)^n}{n}`, alt: true, b: vers(a), faux: [PAS, vers(a + 1), vers(0), INF], s: `$\\dfrac{(-1)^n}{n}$ vaut $\\dfrac{1}{n}$ ou $-\\dfrac{1}{n}$ : il oscille autour de $0$, mais de moins en moins. $u_{100} = ${fr(a + 0.01)}$, $u_{101} \\approx ${fr(+(a - 1 / 101).toFixed(4))}$, $u_{1\\,000} = ${fr(a + 0.001)}$ : les termes se rapprochent de $${a}$. On conjecture une limite égale à $${a}$.` };
+        const k = rand(1, 5);
+        return { f: `(-1)^n \\times ${k === 1 ? "" : k}n`, alt: true, b: PAS, faux: [INF, vers(0), MINF, vers(k)], s: `$u_{100} = ${nb(100 * k)}$, $u_{101} = -${nb(101 * k)}$, $u_{1\\,000} = ${nb(1000 * k)}$, $u_{1\\,001} = -${nb(1001 * k)}$ : les termes changent de signe et s'éloignent de $0$. Ni limite finie, ni $+\\infty$, ni $-\\infty$ : pas de limite.` };
+      },
+      // quotients
+      () => {
+        const t = rand(0, 2), c = rand(1, 9);
+        if (t === 0) {
+          let a, b; do { a = rand(1, 6); b = randNZ(-9, 9); } while (b === a * c);
+          const u = (n) => (a * n + b) / (n + c);
+          return { f: `\\dfrac{${poly([a, b], "n")}}{n + ${c}}`, b: vers(a), faux: [vers(0), INF, vers(b), vers(a + 1), PAS], s: `Pour $n$ grand, les nombres $${b}$ et $${c}$ comptent peu devant $n$ : $u_{100} ${val(u(100))}$ et $u_{1\\,000} ${val(u(1000))}$. Les termes se rapprochent de $\\dfrac{${poly([a, 0], "n")}}{n} = ${a}$ : on conjecture une limite égale à $${a}$.` };
+        }
+        if (t === 1) {
+          const a = rand(1, 9), u = (n) => (a * n) / (n * n + c);
+          return { f: `\\dfrac{${poly([a, 0], "n")}}{n^2 + ${c}}`, b: vers(0), faux: [vers(a), INF, vers(1), PAS], s: `Le dénominateur $n^2 + ${c}$ grandit beaucoup plus vite que le numérateur : $u_{100} ${val(u(100))}$ et $u_{1\\,000} ${val(u(1000))}$. On conjecture une limite égale à $0$.` };
+        }
+        const u = (n) => (n * n) / (n + c);
+        return { f: `\\dfrac{n^2}{n + ${c}}`, b: INF, faux: [vers(1), vers(0), vers(c), PAS], s: `$u_{100} ${val(u(100))}$ et $u_{1\\,000} ${val(u(1000))}$ : les termes sont proches de $n - ${c}$, ils grandissent sans fin. On conjecture une limite égale à $+\\infty$.` };
+      },
+      // avec √n
+      () => {
+        const a = rand(2, 20), t = rand(0, 1), u = (n) => (t ? a - Math.sqrt(n) : Math.sqrt(n) + a);
+        return {
+          f: t ? `${a} - \\sqrt{n}` : `\\sqrt{n} + ${a}`, b: t ? MINF : INF, faux: [vers(a), vers(0), t ? INF : MINF, PAS],
+          s: `$u_{10} ${val(u(10))}$, $u_{100} = ${u(100)}$ et $u_{1\\,000} ${val(u(1000))}$. $\\sqrt{n}$ dépasse n'importe quel nombre (par exemple $\\sqrt{n} > 100$ dès que $n > 10\\,000$) : ${t ? "les termes deviennent négatifs et aussi grands qu'on veut en valeur absolue. On conjecture que la limite est $-\\infty$." : "les termes aussi. On conjecture que la limite est $+\\infty$."}`
+        };
+      }
+    ];
+    const Q = pick(F)(), ch = melangeChoix(Q.b, Q.faux);
     return {
-      enonce: `$u_n = ${f}$. Calcule quelques termes pour de grandes valeurs de $n$ ($10$, $100$, $1\\,000$) et conjecture le comportement de $(u_n)$ quand $n$ devient très grand.`,
+      enonce: Q.alt
+        ? `$u_n = ${Q.f}$. Calcule quelques termes consécutifs pour de grandes valeurs de $n$ (par exemple $n = 100$, $101$, $1\\,000$, $1\\,001$) et conjecture le comportement de $(u_n)$ quand $n$ devient très grand.`
+        : enonceStd(Q.f),
       mode: "choix", choix: ch.choix, attendu: ch.attendu,
-      aides: ["Calcule $u_{10}$, $u_{100}$ et $u_{1\\,000}$, à la calculatrice ou de tête.", "Regarde si les termes se stabilisent autour d'un nombre, grandissent sans fin, ou oscillent.", "En Première, on conjecture une limite : on ne la démontre pas encore."],
-      solution: s
+      aides: Q.alt
+        ? ["Calcule $u_{100}$, $u_{101}$, $u_{1\\,000}$ et $u_{1\\,001}$ : un rang pair et un rang impair à chaque fois.", "Le signe des termes peut changer d'un rang à l'autre : regarde si, malgré tout, ils se rapprochent d'un nombre.", "En Première, on conjecture une limite : on ne la démontre pas encore."]
+        : aidesStd,
+      solution: Q.s
     };
   };
 
@@ -5264,7 +6539,7 @@
         mode: "nombre", prefixe: "Réponse :", attendu: L[i],
         erreurs: i + 1 < n ? [{ valeur: L[i + 1], message: "Les indices commencent à $0$ : $\\texttt{L[0]}$ est le premier élément." }] : [],
         aides: ["Liste en compréhension : on calcule l'expression pour chaque $k$ de $\\texttt{range(" + n + ")}$, c'est-à-dire $0$, $1$, …, $" + (n - 1) + "$.", `$\\texttt{L[${i}]}$ correspond à $k = ${i}$.`, `Calcule $${a} \\times ${i} ${sg(b)}$.`],
-        solution: `$\\texttt{L} = [${L.join(",\\ ")}]$. $\\texttt{L[${i}]} = ${a} \\times ${i} ${sg(b)} = ${L[i]}$.`
+        solution: `La liste vaut [${L.join(", ").replace(/-/g, "−")}]. $\\texttt{L[${i}]} = ${a} \\times ${i} ${sg(b)} = ${L[i]}$.`
       };
     }
     if (t === 1) {
@@ -5273,7 +6548,7 @@
         enonce: "Suite de Fibonacci en Python :\n\n```python\nF = [1, 1]\nfor i in range(" + (n - 2) + "):\n    F.append(F[-1] + F[-2])\nprint(F[-1])\n```\n\nQu'affiche ce programme ?",
         mode: "nombre", prefixe: "Affichage :", attendu: F[n - 1],
         aides: ["$\\texttt{F.append(x)}$ ajoute $x$ à la fin de la liste ; $\\texttt{F[-1]}$ est le dernier élément, $\\texttt{F[-2]}$ l'avant-dernier.", "Chaque nouveau terme est la somme des deux précédents : $1, 1, 2, 3, 5…$", `La boucle ajoute $${n - 2}$ termes : la liste contient $${n}$ termes à la fin.`],
-        solution: `$\\texttt{F} = [${F.join(",\\ ")}]$ : le programme affiche le dernier, $${F[n - 1]}$.`
+        solution: `La liste F vaut [${F.join(", ")}] : le programme affiche le dernier terme, $${F[n - 1]}$.`
       };
     }
     if (t === 2) {
@@ -5282,7 +6557,7 @@
         enonce: "Suite de Syracuse : si $u$ est pair, on le divise par $2$ ; sinon, on le remplace par $3u + 1$.\n\n```python\nu = " + S[0] + "\nL = [u]\nwhile u != 1:\n    if u % 2 == 0:\n        u = u // 2\n    else:\n        u = 3 * u + 1\n    L.append(u)\nprint(len(L))\n```\n\nQu'affiche ce programme ?",
         mode: "nombre", prefixe: "Affichage :", attendu: S.length,
         aides: ["$\\texttt{len(L)}$ est le nombre d'éléments de la liste.", `Calcule la suite à partir de $${S[0]}$ jusqu'à arriver à $1$.`, `Les premiers termes : $${S.slice(0, 4).join(",\\ ")}$…`],
-        solution: `$\\texttt{L} = [${S.join(",\\ ")}]$ : $${S.length}$ éléments. Le programme affiche $${S.length}$.`
+        solution: `La liste vaut [${S.join(", ")}] : $${S.length}$ éléments. Le programme affiche $${S.length}$.`
       };
     }
     const u0 = rand(1, 5), a = rand(2, 3), n = rand(3, 5); const L = [u0]; for (let k = 0; k < n; k++) L.push(a * L[L.length - 1]);
@@ -5290,7 +6565,7 @@
       enonce: "En Python :\n\n```python\nL = [" + u0 + "]\nfor k in range(" + n + "):\n    L.append(" + a + " * L[k])\nprint(sum(L))\n```\n\nQu'affiche ce programme ?",
       mode: "nombre", prefixe: "Affichage :", attendu: L.reduce((s, x) => s + x, 0),
       aides: ["La liste se construit terme par terme : $\\texttt{L[k+1]} = " + a + " \\times \\texttt{L[k]}$.", `La boucle ajoute $${n}$ termes : la liste en contient $${n + 1}$.`, "$\\texttt{sum(L)}$ additionne tous les éléments."],
-      solution: `$\\texttt{L} = [${L.join(",\\ ")}]$ et $\\texttt{sum(L)} = ${L.reduce((s, x) => s + x, 0)}$.`
+      solution: `La liste vaut [${L.join(", ")}] et $\\texttt{sum(L)} = ${L.reduce((s, x) => s + x, 0)}$.`
     };
   };
 
@@ -5966,6 +7241,10 @@
 
   // Logique : négation de « majorée », vrai ou faux avec contre-exemple
   GEN["su-geo-logique"] = function () {
+    const VF = (aff, rep, sol) => ({ enonce: `Vrai ou faux : « ${aff} » ?`, choix: ["Vrai", "Faux"], attendu: rep, sol });
+    const CNS = ["Nécessaire mais pas suffisante", "Suffisante mais pas nécessaire", "Nécessaire et suffisante", "Ni nécessaire ni suffisante"];
+    const AIDES_CNS = (fin) => ["« A est suffisante pour B » signifie : si A est vraie, alors B est vraie.", "« A est nécessaire pour B » signifie : si B est vraie, alors A est vraie (impossible d'avoir B sans A).", fin];
+    const QCM = (enonce, bonne, fausses, sol, aides) => ({ enonce, ...melangeChoix(bonne, fausses), sol, aides });
     const T = [
       () => {
         const c = melangeChoix("Pour tout réel $M$, il existe un entier $n$ tel que $u_n > M$", ["Il existe un réel $M$ tel que, pour tout entier $n$, $u_n > M$", "Pour tout réel $M$ et tout entier $n$, $u_n > M$", "Il existe un entier $n$ tel que $u_n > 0$"]);
@@ -5977,12 +7256,73 @@
       () => ({ enonce: "Vrai ou faux : « une hausse de $2\\,\\%$ par an pendant $10$ ans fait une hausse de $20\\,\\%$ » ?", choix: ["Vrai", "Faux"], attendu: 1, sol: "**Faux**. Le coefficient global est $1{,}02^{10} \\approx 1{,}219$ : la hausse est d'environ $21{,}9\\,\\%$. Les pourcentages successifs ne s'additionnent pas." }),
       () => ({ enonce: "Vrai ou faux : « si $0 < q < 1$, la suite géométrique $u_n = u_0 \\times q^n$ est décroissante » ?", choix: ["Vrai", "Faux"], attendu: 1, sol: "**Faux**. Contre-exemple : $u_0 = -8$ et $q = 0{,}5$ donnent $-8$, $-4$, $-2$… La suite est croissante. Avec $u_0 > 0$, l'affirmation devient vraie." }),
       () => ({ enonce: "Vrai ou faux : « la suite géométrique de premier terme $8$ et de raison $0{,}5$ est majorée par $8$ » ?", choix: ["Vrai", "Faux"], attendu: 0, sol: "**Vrai**. $u_0 = 8 > 0$ et $0 < q < 1$ : la suite est décroissante, donc pour tout $n$, $u_n \\leqslant u_0 = 8$." }),
-      () => ({ enonce: "Vrai ou faux : « une suite dont les termes changent de signe n'a pas de limite » ?", choix: ["Vrai", "Faux"], attendu: 1, sol: "**Faux**. Contre-exemple : $u_n = 4 \\times (-0{,}5)^n$ donne $4$, $-2$, $1$, $-0{,}5$… Les termes changent de signe mais se rapprochent de $0$ : la limite est $0$." })
+      () => ({ enonce: "Vrai ou faux : « une suite dont les termes changent de signe n'a pas de limite » ?", choix: ["Vrai", "Faux"], attendu: 1, sol: "**Faux**. Contre-exemple : $u_n = 4 \\times (-0{,}5)^n$ donne $4$, $-2$, $1$, $-0{,}5$… Les termes changent de signe mais se rapprochent de $0$ : la limite est $0$." }),
+      () => VF("si $u_0 > 0$ et $q > 1$, la suite géométrique $u_n = u_0 \\times q^n$ est croissante", 0, "**Vrai** : $u_{n+1} - u_n = u_0 q^n(q - 1)$ est un produit de trois nombres strictement positifs. La suite est même strictement croissante."),
+      () => VF("une suite géométrique de premier terme $u_0 \\neq 0$ et de raison $q < 0$ n'est ni croissante ni décroissante", 0, "**Vrai** : les termes changent de signe à chaque rang. Par exemple $u_n = (-2)^n$ donne $1$, $-2$, $4$ : la suite descend, puis remonte."),
+      () => VF("toute suite géométrique de raison $0{,}5$ a pour limite $0$", 0, "**Vrai** : $u_n = u_0 \\times 0{,}5^n$, et $0{,}5^n$ se rapproche de $0$ car $-1 < 0{,}5 < 1$, quel que soit $u_0$. Donc $u_n$ se rapproche de $0$."),
+      () => VF("une suite géométrique de raison $q > 1$ a pour limite $+\\infty$", 1, "**Faux**. Contre-exemple : $u_0 = -1$ et $q = 2$ donnent $-1$, $-2$, $-4$, $-8$… dont la limite est $-\\infty$. (Et avec $u_0 = 0$, tous les termes sont nuls.)"),
+      () => VF("il existe une suite qui est à la fois arithmétique et géométrique", 0, "**Vrai** : la suite constante $u_n = 3$ est arithmétique de raison $0$ et géométrique de raison $1$. Un exemple suffit."),
+      () => VF("si $(u_n)$ est géométrique de raison $q$, alors $(2u_n)$ est géométrique de raison $q$", 0, "**Vrai** : $2u_{n+1} = 2 \\times q\\,u_n = q \\times (2u_n)$ pour tout $n$."),
+      () => VF("si $(u_n)$ est géométrique de raison $q$, alors $(u_n^2)$ est géométrique de raison $q^2$", 0, "**Vrai** : $u_{n+1}^2 = (q\\,u_n)^2 = q^2 \\times u_n^2$ pour tout $n$."),
+      () => VF("si $(u_n)$ et $(v_n)$ sont géométriques, alors $(u_n + v_n)$ est géométrique", 1, "**Faux**. Contre-exemple : $u_n = 2^n$ et $v_n = 1$ (géométrique de raison $1$). La somme vaut $2$, $3$, $5$… et $\\dfrac{3}{2} \\neq \\dfrac{5}{3}$."),
+      () => VF("si $(u_n)$ et $(v_n)$ sont géométriques, alors $(u_n \\times v_n)$ est géométrique", 0, "**Vrai** : si $u_{n+1} = q\\,u_n$ et $v_{n+1} = q'\\,v_n$, alors $u_{n+1} \\times v_{n+1} = qq' \\times u_n v_n$ : la suite produit est géométrique de raison $qq'$."),
+      () => VF("la suite définie par $u_n = n^2$ est géométrique", 1, "**Faux**. Contre-exemple : $u_1 = 1$, $u_2 = 4$ et $u_3 = 9$, or $\\dfrac{4}{1} = 4 \\neq \\dfrac{9}{4}$. Deux quotients consécutifs différents suffisent."),
+      () => VF("la suite définie par $u_n = 3 \\times 2^n$ est majorée", 1, "**Faux** : quel que soit le réel $M$, les termes finissent par le dépasser, car $2^n$ devient aussi grand qu'on veut. Par exemple $u_{10} = 3\\,072$ et $u_{20} > 3\\,000\\,000$."),
+      () => VF("la suite définie par $u_n = 5 \\times 0{,}8^n$ est minorée par $0$", 0, "**Vrai** : $5 > 0$ et $0{,}8^n > 0$, donc $u_n > 0$ pour tout entier $n$."),
+      () => VF("la suite définie par $u_n = (-2)^n$ est majorée", 1, "**Faux** : les termes de rang pair, $(-2)^{2k} = 4^k$, dépassent n'importe quel nombre $M$. Par exemple $u_{10} = 1\\,024$."),
+      () => VF("la suite définie par $u_n = (-0{,}5)^n$ est majorée par $1$", 0, "**Vrai** : chaque terme vaut $0{,}5^n$ ou $-0{,}5^n$, et $0 < 0{,}5^n \\leqslant 1$. Donc $u_n \\leqslant 1$ pour tout $n$ : les termes $1$, $-0{,}5$, $0{,}25$… ne dépassent jamais $1$."),
+      () => VF("la suite définie par $u_n = -3 \\times 2^n$ est majorée", 0, "**Vrai** : tous ses termes sont négatifs, donc $u_n \\leqslant 0$ pour tout $n$. Elle est même majorée par $u_0 = -3$, car elle est décroissante."),
+      () => VF("une suite croissante n'est jamais majorée", 1, "**Faux**. Contre-exemple : $u_n = -8 \\times 0{,}5^n$ donne $-8$, $-4$, $-2$, $-1$… Elle est croissante, et majorée par $0$ puisque tous ses termes sont négatifs."),
+      () => VF("une suite qui n'est pas croissante est décroissante", 1, "**Faux**. Contre-exemple : $u_n = (-2)^n$ donne $1$, $-2$, $4$… Elle n'est ni croissante ni décroissante. Le contraire de « croissante » n'est pas « décroissante »."),
+      () => VF("il existe un entier $n$ tel que $2^n > 1\\,000\\,000$", 0, "**Vrai** : $n = 20$ convient, car $2^{20} = 1\\,048\\,576$. Pour un « il existe », un exemple suffit."),
+      () => VF("pour tout entier $n$, $0{,}9^n > 0{,}001$", 1, "**Faux**. Contre-exemple : $n = 66$ donne $0{,}9^{66} \\approx 0{,}000\\,955 < 0{,}001$. Comme $0 < 0{,}9 < 1$, $0{,}9^n$ se rapproche de $0$ et finit par passer sous n'importe quel seuil strictement positif."),
+      () => VF("une hausse de $10\\,\\%$ suivie d'une baisse de $10\\,\\%$ ramène au prix de départ", 1, "**Faux** : le coefficient global est $1{,}1 \\times 0{,}9 = 0{,}99$ : le prix a baissé de $1\\,\\%$. La baisse s'applique au prix **déjà augmenté**."),
+      () => VF("deux baisses successives de $50\\,\\%$ font une baisse de $100\\,\\%$", 1, "**Faux** : le coefficient global est $0{,}5 \\times 0{,}5 = 0{,}25$ : il reste un quart du prix, la baisse est de $75\\,\\%$."),
+      () => {
+        const t = pick([3, 4, 5, 10]), n = pick([2, 3, 5]), k = (1 + t / 100) ** n, exact = Math.abs(k - +k.toFixed(4)) < 1e-12, pc = (k - 1) * 100, pcExact = Math.abs(pc - +pc.toFixed(2)) < 1e-9;
+        return VF(`une hausse de $${t}\\,\\%$ par an pendant $${n}$ ans fait une hausse de $${t * n}\\,\\%$`, 1, `**Faux** : le coefficient global est $${nb(1 + t / 100)}^{${n}} ${exact ? "=" : "\\approx"} ${nb(+k.toFixed(4))}$, soit une hausse ${pcExact ? `de $${nb(+pc.toFixed(2))}` : `d'environ $${nb(+pc.toFixed(1))}`}\\,\\%$, et non $${t * n}\\,\\%$. Chaque hausse s'applique à une valeur déjà augmentée : on multiplie les coefficients, on n'additionne pas les pourcentages.`);
+      },
+      () => {
+        const a = pick([3, 4, 5]), q = pick([2, 3]);
+        return VF(`si $u_0 = ${a}$ et $u_{n+1} = ${q}u_n$ pour tout $n$, alors $u_n = ${a * q}^n$`, 1, `**Faux**. Contre-exemple : pour $n = 0$, $${a * q}^0 = 1$ alors que $u_0 = ${a}$. Le bon terme général est $u_n = ${a} \\times ${q}^n$ : seule la raison est à la puissance $n$.`);
+      },
+      () => VF("pour tout entier $n$, $1 + 2 + 4 + \\dots + 2^{n} = 2^{n+1} - 1$", 0, "**Vrai** : c'est la somme $1 + q + \\dots + q^n$ avec $q = 2$, donc elle vaut $\\dfrac{1 - 2^{n+1}}{1 - 2} = 2^{n+1} - 1$."),
+      () => VF("si $u_1 = 2u_0$, alors la suite $(u_n)$ est géométrique de raison $2$", 1, "**Faux**. Contre-exemple : $u_n = n + 1$ donne $u_0 = 1$ et $u_1 = 2 = 2u_0$, mais $u_2 = 3 \\neq 2u_1 = 4$. Il faut $u_{n+1} = 2u_n$ pour **tout** $n$."),
+      () => QCM("« $(u_n)$ est minorée » signifie : il existe un réel $m$ tel que, pour tout entier $n$, $u_n \\geqslant m$. Quelle est la traduction de « $(u_n)$ n'est **pas** minorée » ?",
+        "Pour tout réel $m$, il existe un entier $n$ tel que $u_n < m$",
+        ["Il existe un réel $m$ tel que, pour tout entier $n$, $u_n < m$", "Pour tout réel $m$ et tout entier $n$, $u_n < m$", "Il existe un entier $n$ tel que $u_n < 0$"],
+        "On échange « il existe » et « pour tout », puis on nie la fin : $u_n \\geqslant m$ devient $u_n < m$. Aucun nombre $m$ ne reste sous tous les termes : c'est le cas de $u_n = -2^n$, par exemple."),
+      () => QCM("Quelle est la négation de « pour tout entier $n$, $u_n > 0$ » ?",
+        "Il existe un entier $n$ tel que $u_n \\leqslant 0$",
+        ["Pour tout entier $n$, $u_n \\leqslant 0$", "Il existe un entier $n$ tel que $u_n < 0$", "Pour tout entier $n$, $u_n < 0$"],
+        "« Pour tout » devient « il existe », et $u_n > 0$ devient $u_n \\leqslant 0$ : le contraire de « strictement positif » est « négatif ou nul ». Un seul terme négatif ou nul suffit."),
+      () => QCM("« $(u_n)$ est croissante » signifie : pour tout entier $n$, $u_{n+1} \\geqslant u_n$. Quelle est la traduction de « $(u_n)$ n'est **pas** croissante » ?",
+        "Il existe un entier $n$ tel que $u_{n+1} < u_n$",
+        ["Pour tout entier $n$, $u_{n+1} < u_n$", "La suite $(u_n)$ est décroissante", "Il existe un entier $n$ tel que $u_{n+1} \\geqslant u_n$"],
+        "On nie « pour tout $n$, $u_{n+1} \\geqslant u_n$ » : il existe un rang $n$ où $u_{n+1} < u_n$, c'est-à-dire une baisse. Ce n'est pas « décroissante » : la suite $(-2)^n$ n'est ni croissante ni décroissante."),
+      () => {
+        const [cond, typ, ex] = pick([["q > 1", 2, ""], ["q > 2", 1, "1{,}5"], ["q > 3", 1, "2"], ["q > 1{,}5", 1, "1{,}2"], ["q > 0", 0, "0{,}5"], ["q > 0{,}5", 0, "0{,}8"], ["q \\geqslant 1", 0, "1"]]);
+        const sol = typ === 2
+          ? "Avec $u_0 > 0$ : si $q > 1$, la suite est strictement croissante (cours). Réciproquement, si $q \\leqslant 1$, elle ne l'est pas : $q = 1$ la rend constante, $0 < q < 1$ décroissante, et si $q \\leqslant 0$, $u_1 = q\\,u_0 \\leqslant 0 < u_0$. Condition **nécessaire et suffisante**."
+          : typ === 1
+            ? `**Suffisante** : si $${cond}$, alors $q > 1$ et la suite est strictement croissante. **Pas nécessaire** : $q = ${ex}$ donne aussi une suite strictement croissante, sans vérifier $${cond}$.`
+            : `**Nécessaire** : si la suite est strictement croissante, alors $q > 1$, donc $${cond}$. **Pas suffisante** : $q = ${ex}$ vérifie $${cond}$, mais la suite est alors ${ex === "1" ? "constante" : "décroissante (car $0 < q < 1$)"}.`;
+        return QCM(`$(u_n)$ est une suite géométrique de premier terme $u_0 > 0$ et de raison $q$. Pour que $(u_n)$ soit strictement croissante, la condition « $${cond}$ » est :`, CNS[typ], CNS, sol, AIDES_CNS("Avec $u_0 > 0$, la suite est strictement croissante exactement quand $q > 1$."));
+      },
+      () => QCM("$(u_n)$ est une suite géométrique de premier terme $u_0 \\neq 0$ et de raison $q$. Pour que $(u_n)$ ait pour limite $0$, la condition « $0 < q < 1$ » est :", CNS[1], CNS,
+        "**Suffisante** : si $0 < q < 1$, $q^n$ se rapproche de $0$, donc $u_n$ aussi. **Pas nécessaire** : $q = -0{,}5$ convient aussi, les termes se rapprochent de $0$ en changeant de signe.",
+        AIDES_CNS("Rappel : $q^n$ a pour limite $0$ quand $-1 < q < 1$.")),
+      () => QCM("$(u_n)$ est une suite géométrique de premier terme $u_0 \\neq 0$ et de raison $q$. Pour que $(u_n)$ ait pour limite $0$, la condition « $-1 < q < 1$ » est :", CNS[2], CNS,
+        "**Suffisante** : si $-1 < q < 1$, $q^n$ se rapproche de $0$, donc $u_n$ aussi. **Nécessaire** : si $q = 1$, la suite est constante égale à $u_0 \\neq 0$ ; si $q > 1$, elle tend vers $+\\infty$ ou $-\\infty$ ; si $q \\leqslant -1$, elle n'a pas de limite. Condition **nécessaire et suffisante**.",
+        AIDES_CNS("Passe en revue les cas $q > 1$, $q = 1$, $-1 < q < 1$ et $q \\leqslant -1$.")),
+      () => QCM("Pour que la suite $(u_n)$ soit géométrique de raison $2$, la condition « $u_1 = 2u_0$ » est :", CNS[0], CNS,
+        "**Nécessaire** : si $(u_n)$ est géométrique de raison $2$, alors $u_{n+1} = 2u_n$ pour tout $n$, en particulier $u_1 = 2u_0$. **Pas suffisante** : $u_n = n + 1$ vérifie $u_1 = 2 = 2u_0$, mais $u_2 = 3 \\neq 4$.",
+        AIDES_CNS("Une suite géométrique de raison $2$ vérifie $u_{n+1} = 2u_n$ pour **tout** $n$, pas seulement pour $n = 0$."))
     ];
     const r = pick(T)();
     return {
       enonce: r.enonce, mode: "choix", choix: r.choix, attendu: r.attendu,
-      aides: ["« Pour tout » se réfute avec **un seul** contre-exemple.", "Pense aux cas particuliers : premier terme négatif, raison négative, raison entre $0$ et $1$.", "Pour nier une phrase, « pour tout » devient « il existe » et inversement."],
+      aides: r.aides || ["« Pour tout » se réfute avec **un seul** contre-exemple.", "Pense aux cas particuliers : premier terme négatif, raison négative, raison entre $0$ et $1$.", "Pour nier une phrase, « pour tout » devient « il existe » et inversement."],
       solution: r.sol
     };
   };
@@ -6260,17 +7600,81 @@
 
   // Logique : a est un paramètre (fixé), h une variable qui tend vers 0
   GEN["d1-statut"] = function () {
+    // [question, bonne réponse, fausses réponses, solution, aides (facultatif)]
+    const vf = ["Une affirmation générale est fausse dès qu'on trouve **un** contre-exemple.", "Le nombre dérivé $f'(a)$ est une **pente** ; $f(a)$ est une **ordonnée** : ce sont deux nombres différents.", "Teste avec des fonctions simples : $x \\mapsto x$, $x \\mapsto x^2$, $x \\mapsto x^2 + 1$."];
     const T = [
       ["Dans le taux $\\dfrac{f(a + h) - f(a)}{h}$ qui sert à calculer $f'(a)$, quel est le rôle de $h$ ?", "Une variable non nulle qui se rapproche de $0$", ["Un nombre fixé à l'avance, comme $a$", "L'inconnue d'une équation à résoudre", "Le nombre dérivé"], "$h$ est une **variable** : on la fait varier, de plus en plus près de $0$, sans jamais qu'elle vaille $0$ (on divise par $h$)."],
       ["Dans le taux $\\dfrac{f(a + h) - f(a)}{h}$ qui sert à calculer $f'(a)$, quel est le rôle de $a$ ?", "Un paramètre : l'abscisse fixée du point étudié", ["Une variable qui se rapproche de $0$", "L'inconnue d'une équation", "La pente de la tangente"], "$a$ est un **paramètre** : il est fixé pendant tout le calcul (c'est le point où l'on dérive). Seul $h$ varie."],
       ["Peut-on remplacer directement $h$ par $0$ dans $\\dfrac{f(a + h) - f(a)}{h}$ ?", "Non : on obtiendrait $\\dfrac{0}{0}$, il faut d'abord simplifier par $h$", ["Oui, et on trouve $f'(a)$", "Oui, et on trouve $0$", "Non, car $a$ doit être nul"], "Pour $h = 0$, le quotient n'existe pas. On simplifie d'abord par $h$ (avec $h \\neq 0$), puis on regarde vers quoi tend le résultat quand $h$ se rapproche de $0$."],
       ["Dans l'équation de tangente $y = f'(a)(x - a) + f(a)$, quelles lettres varient quand on parcourt la droite ?", "$x$ et $y$", ["$a$ et $f(a)$", "$a$ seulement", "$f'(a)$ et $x$"], "$a$, $f(a)$ et $f'(a)$ sont des **nombres fixés** ; $x$ et $y$ sont les coordonnées d'un point qui se déplace sur la droite."],
-      ["$f'(3)$ est…", "un nombre : la pente de la tangente au point d'abscisse $3$", ["une fonction", "l'image de $3$ par $f$", "une équation de droite"], "$f'(3)$ est un **nombre**, la limite du taux de variation en $3$, c'est-à-dire la pente de la tangente au point d'abscisse $3$."]
+      ["$f'(3)$ est…", "un nombre : la pente de la tangente au point d'abscisse $3$", ["une fonction", "l'image de $3$ par $f$", "une équation de droite"], "$f'(3)$ est un **nombre**, la limite du taux de variation en $3$, c'est-à-dire la pente de la tangente au point d'abscisse $3$."],
+      ["Le taux $\\dfrac{f(a + h) - f(a)}{h}$ peut-il être calculé avec $h$ négatif ?", "Oui : $h$ est un réel non nul, positif ou négatif", ["Non, $h$ doit toujours être positif", "Non, $h$ doit être un entier", "Oui, et $h$ peut même valoir $0$"], "$h$ est une **variable** qui prend des valeurs non nulles, de chaque côté de $0$. Pour $h < 0$, le point d'abscisse $a + h$ est à gauche de $A$, et le taux est encore la pente d'une sécante."],
+      ["Dans l'approximation $f(a + h) \\approx f(a) + f'(a)\\,h$, quel nombre doit être proche de $0$ pour que l'approximation soit bonne ?", "$h$, l'écart avec l'abscisse $a$ du point de contact", ["$a$", "$f(a)$", "$f'(a)$"], "On remplace la courbe par sa tangente au point d'abscisse $a$ : c'est valable **près** de ce point, donc pour $h$ petit. Les nombres $a$, $f(a)$ et $f'(a)$, eux, sont fixés."],
+      ["Dans la fonction Python pentes(a, pas) du cours, que contient la liste pas ?", "Des valeurs de $h$ de plus en plus proches de $0$", ["Les pentes des tangentes", "Une seule valeur : $h = 0$", "Les abscisses de plusieurs points de contact"], "La liste pas contient des valeurs de la **variable** $h$ : $1$ ; $0{,}1$ ; $0{,}01$… Le **paramètre** a reste le même pour toute la liste : c'est l'abscisse du point étudié."],
+      ["Pourquoi ne met-on pas $0$ dans la liste des pas $h$ du programme Python du cours ?", "Le programme diviserait par $0$ et s'arrêterait sur une erreur", ["Le résultat serait trop grand pour Python", "Python ne connaît pas le nombre $0$", "On pourrait : on obtiendrait directement $f'(a)$"], "Pour $h = 0$, le programme devrait calculer $\\dfrac{f(a) - f(a)}{0}$ : c'est une division par $0$, Python s'arrête avec une erreur (ZeroDivisionError). On prend donc des valeurs de $h$ **non nulles**, de plus en plus petites."],
+      ["Vrai ou faux : « si $f'(a) = 0$, alors $f(a) = 0$ » ?", "Faux", ["Vrai"], "Faux. Contre-exemple : $f(x) = x^2 + 1$ en $a = 0$. Le taux vaut $\\dfrac{h^2 + 1 - 1}{h} = h$, qui tend vers $0$ : $f'(0) = 0$, mais $f(0) = 1$. Le nombre dérivé est une **pente**, pas une image.", vf],
+      ["Vrai ou faux : « deux fonctions qui ont la même image en $1$ ont le même nombre dérivé en $1$ » ?", "Faux", ["Vrai"], "Faux. Contre-exemple : $f(x) = x^2$ et $g(x) = x$ valent toutes les deux $1$ en $1$. Mais le taux de $f$ vaut $2 + h$, donc $f'(1) = 2$, et celui de $g$ vaut toujours $1$, donc $g'(1) = 1$. Deux courbes peuvent passer par le même point avec des pentes différentes.", vf],
+      ["Vrai ou faux : « en général, le taux $\\dfrac{f(a + h) - f(a)}{h}$ dépend de $h$ » ?", "Vrai", ["Faux"], "Vrai. Par exemple, pour $f(x) = x^2$ en $a = 1$, il vaut $2 + h$ : il change quand $h$ change. C'est sa **limite** quand $h$ tend vers $0$, le nombre $f'(1) = 2$, qui ne dépend plus de $h$."],
+      ["Vrai ou faux : « pour $f(x) = x^2$, le taux entre $1$ et $1 + h$ vaut $2 + h$, donc $f'(1) = 2 + h$ » ?", "Faux", ["Vrai"], "Faux. $2 + h$ est la pente d'une **sécante** : elle dépend de $h$. Le nombre dérivé est la limite de $2 + h$ quand $h$ se rapproche de $0$ : $f'(1) = 2$, un nombre qui ne contient plus $h$."],
+      ["Vrai ou faux : « si la tangente au point d'abscisse $a$ est horizontale, alors $f'(a) = 0$ » ?", "Vrai", ["Faux"], "Vrai. $f'(a)$ est le coefficient directeur de la tangente ; une droite horizontale a un coefficient directeur nul."],
+      ["Dans le calcul de $f'(a)$ pour $f(x) = x^2$, on obtient $\\dfrac{(a + h)^2 - a^2}{h} = 2a + h$. Quand $h$ se rapproche de $0$, cette expression se rapproche de :", "$2a$", ["$2a + h$", "$0$", "$2$"], "$a$ est fixé et seul $h$ varie : $2a + h$ se rapproche de $2a$. Donc $f'(a) = 2a$ : ce nombre dépend du point choisi, mais plus de $h$."],
+      ["La tangente au point d'abscisse $a$ a pour équation $y = f'(a)(x - a) + f(a)$. Si on remplace $x$ par $a$, on obtient :", "$y = f(a)$ : le point de contact est bien sur la tangente", ["$y = 0$", "$y = f'(a)$", "$y = a$"], "Pour $x = a$ : $y = f'(a) \\times 0 + f(a) = f(a)$. La tangente passe bien par le point $A(a\\,;f(a))$."],
+      ["Pour lire $f'(a)$ sur un graphique, on part du point de contact $A$ et on avance d'une unité vers la droite **en suivant la tangente**. Que lit-on alors ?", "De combien la tangente monte (ou descend) : c'est $f'(a)$", ["L'ordonnée du point d'arrivée", "L'image $f(a + 1)$", "L'abscisse du point d'arrivée"], "On lit une **pente** : le déplacement vertical pour $1$ unité horizontale le long de la tangente. Ce n'est pas $f(a + 1)$ : on suit la tangente, pas la courbe."],
+      ["Pour $f(x) = \\dfrac{1}{x}$, le taux entre $a$ et $a + h$ vaut $\\dfrac{-1}{a(a + h)}$. À quelles conditions ce calcul a-t-il un sens ?", "$a \\neq 0$, $h \\neq 0$ et $a + h \\neq 0$", ["Pour tous les réels $a$ et $h$", "Seulement si $a \\neq 0$", "Seulement si $h = 0$"], "On divise par $h$, et on calcule $f(a)$ et $f(a + h)$ : il faut $h \\neq 0$, $a \\neq 0$ et $a + h \\neq 0$. Le paramètre $a$ est fixé, non nul ; la variable $h$ prend des valeurs non nulles assez proches de $0$ pour que $a + h \\neq 0$."],
+      ["Le taxi du cours parcourt $d(t) = 0{,}8t^2$ mètres en $t$ secondes. Dans le taux $\\dfrac{d(10 + h) - d(10)}{h} = 16 + 0{,}8h$, que représente $h$ ?", "Une durée en secondes, non nulle, de plus en plus courte", ["La vitesse du taxi", "La distance parcourue", "L'instant $t = 10$ s"], "$h$ est une **variable** : la durée de l'intervalle de temps qui suit $t = 10$ s. Quand elle devient très courte, la vitesse moyenne $16 + 0{,}8h$ se rapproche de la vitesse instantanée $d'(10) = 16$ m/s. L'instant $10$ est un **paramètre**, fixé."],
+      ["Pour le taxi du cours, $d(t) = 0{,}8t^2$ (en m, avec $t$ en s). Que représente $d'(10) = 16$ ?", "La vitesse instantanée à $t = 10$ s : $16$ m/s", ["La distance parcourue en $10$ s", "La vitesse moyenne entre $0$ et $10$ s", "Le temps mis pour parcourir $16$ m"], "$d'(10)$ est un **nombre** : la limite des vitesses moyennes entre $10$ et $10 + h$, c'est la vitesse affichée au compteur à $t = 10$ s. La distance parcourue est $d(10) = 80$ m, et la vitesse moyenne entre $0$ et $10$ s vaut $\\dfrac{80}{10} = 8$ m/s."],
+      ["Pour la confiture de mangue du cours, $C(q) = 0{,}02q^2 + 2q + 50$ et $C'(100) = 6$. Dans $C'(100)$, que représente $100$ ?", "La quantité de pots déjà fabriqués, fixée pour le calcul", ["Le coût en euros", "Le coût d'un pot supplémentaire", "Une variable qui se rapproche de $0$"], "$100$ est un **paramètre** : on étudie la production au niveau de $100$ pots. $C'(100) = 6$ € est le coût marginal, environ le coût du $101$e pot. La variable qui tend vers $0$ est $h$, dans le taux $\\dfrac{C(100 + h) - C(100)}{h}$."]
     ];
-    const [q, b, f, s] = pick(T), c = melangeChoix(b, f);
+    const P = [
+      // Que représente un nombre de l'équation de tangente ?
+      () => {
+        let m, a, b; do { m = pick([-6, -5, -4, -3, -2, 2, 3, 4, 5, 6]); a = randNZ(-5, 5); b = randNZ(-9, 9); } while (new Set([m, a, b]).size < 3);
+        const eq = `y = ${m}(x ${a > 0 ? "-" : "+"} ${Math.abs(a)}) ${sg(b)}`, k = rand(0, 2);
+        const R = [`$f'(${a})$ : la pente de la tangente`, `$f(${a})$ : l'ordonnée du point de contact`, "L'abscisse du point de contact", "Une variable : il change le long de la droite"];
+        return [`La tangente à la courbe d'une fonction $f$ en un point a pour équation $${eq}$, écrite sous la forme $y = f'(a)(x - a) + f(a)$. Que représente le nombre $${[m, b, a][k]}$ ?`, R[k], R.filter((_, j) => j !== k),
+          `On compare avec $y = f'(a)(x - a) + f(a)$ : $a = ${a}$ est l'abscisse du point de contact, $f(${a}) = ${b}$ son ordonnée et $f'(${a}) = ${m}$ la pente de la tangente. Ces trois nombres sont fixés : seuls $x$ et $y$ varient.`];
+      },
+      // Le taux vaut m + kh : que vaut f'(a) ?
+      () => {
+        let m, k; do { m = randNZ(-8, 8); k = randNZ(-3, 3); } while (k === m || m + k === 0);
+        const a = randNZ(-5, 5), tx = `${m} ${k < 0 ? "-" : "+"} ${Math.abs(k) === 1 ? "" : Math.abs(k)}h`;
+        return [`Pour une fonction $f$, on a trouvé que le taux de variation entre $${a}$ et $${a} + h$ vaut $${tx}$ (pour $h \\neq 0$). Que vaut $f'(${a})$ ?`, `$${m}$`, [`$${m + k}$`, `$${k}$`, "On ne peut pas savoir : $h$ n'est pas connu"],
+          `$h$ est une variable qui se rapproche de $0$ : le taux $${tx}$ se rapproche donc de $${m}$. Ainsi $f'(${a}) = ${m}$. ($${m + k}$ correspond à $h = 1$ : c'est la pente d'une sécante, pas celle de la tangente.)`];
+      },
+      // f'(a) = 2a : remplacer le paramètre
+      () => {
+        const a = pick([-6, -5, -4, -3, -2, -1, 3, 4, 5, 6, 7, 8, 9]);
+        return [`Pour $f(x) = x^2$, on a démontré que $f'(a) = 2a$ pour tout réel $a$. Que vaut $f'(${a})$ ?`, `$${2 * a}$`, [`$${a * a}$`, "$2$", `$${a}$`],
+          `$a$ est un **paramètre** : on le remplace par $${a}$. $f'(${a}) = 2 \\times ${par(a)} = ${2 * a}$. (Attention, $${a * a}$ est l'image $f(${a})$, pas le nombre dérivé.)`];
+      },
+      // f'(a) = -1/a² : remplacer le paramètre
+      () => {
+        const a = pick([-5, -4, -3, -2, 2, 3, 4, 5]);
+        return [`Pour $f(x) = \\dfrac{1}{x}$, on a obtenu $f'(a) = -\\dfrac{1}{a^2}$ pour tout réel $a \\neq 0$. Que vaut $f'(${a})$ ?`, `$${frac(-1, a * a)}$`, [`$${frac(1, a * a)}$`, `$${frac(1, a)}$`, `$${frac(-1, a)}$`, `$${-a * a}$`],
+          `On remplace le paramètre $a$ par $${a}$ : $f'(${a}) = -\\dfrac{1}{${par(a)}^2} = ${frac(-1, a * a)}$. Ce nombre est négatif, comme tous les nombres dérivés de la fonction inverse.`];
+      },
+      // Taux entre deux nombres fixés : sécante
+      () => {
+        const a = rand(-4, 4), b = a + rand(1, 5);
+        return [`Le quotient $\\dfrac{f(${b}) - f(${a})}{${b} - ${par(a)}}$ est :`, `la pente de la sécante passant par les points d'abscisses $${a}$ et $${b}$`, [`la pente de la tangente au point d'abscisse $${a}$`, `le nombre dérivé $f'(${b})$`, `l'image $f(${b - a})$`],
+          `C'est le taux de variation de $f$ entre deux nombres **fixés**, $${a}$ et $${b}$ : la pente de la sécante passant par les points de la courbe d'abscisses $${a}$ et $${b}$. Pour obtenir la pente d'une tangente, il faudrait faire tendre l'écart $h$ entre les deux abscisses vers $0$.`];
+      },
+      // f'(a) ne dépend pas de h
+      () => {
+        const a = randNZ(-6, 9);
+        return [`Vrai ou faux : « le nombre $f'(${a})$ dépend de $h$ » ?`, "Faux", ["Vrai"], `Faux. Le taux $\\dfrac{f(${a} + h) - f(${a})}{h}$ dépend de $h$, mais $f'(${a})$ est sa **limite** quand $h$ se rapproche de $0$ : c'est un nombre fixé, qui ne dépend que de $f$ et du point d'abscisse $${a}$.`];
+      },
+      // Variables x et y dans une équation de droite
+      () => {
+        const m = randNZ(-5, 5), p = randNZ(-9, 9), eq = `y = ${poly([m, p])}`;
+        return [`Une tangente a pour équation $${eq}$. Dans cette écriture, $x$ et $y$ sont :`, "les coordonnées d'un point qui se déplace sur la tangente", ["deux nombres fixés", "la pente et l'ordonnée à l'origine", "l'abscisse du point de contact et la pente"],
+          `Dans une équation de droite, $x$ et $y$ sont des **variables** : un point $M(x\\,;y)$ est sur la droite si et seulement si $${eq}$. Les nombres $${m}$ (pente) et $${p}$ (ordonnée à l'origine) sont fixés.`];
+      }
+    ];
+    const Q = Math.random() < 0.3 ? pick(P)() : pick(T), [q, b, f, s] = Q, c = melangeChoix(b, f);
     return {
       enonce: q, mode: "choix", choix: c.choix, attendu: c.attendu,
-      aides: ["Un **paramètre** est une lettre fixée pendant le calcul ; une **variable** prend différentes valeurs.", "Dans $f'(a)$, le point d'abscisse $a$ ne bouge pas : c'est le second point, d'abscisse $a + h$, qui se rapproche.", "On ne divise jamais par $0$."],
+      aides: Q[4] || ["Un **paramètre** est une lettre fixée pendant le calcul ; une **variable** prend différentes valeurs.", "Dans $f'(a)$, le point d'abscisse $a$ ne bouge pas : c'est le second point, d'abscisse $a + h$, qui se rapproche.", "On ne divise jamais par $0$."],
       solution: s
     };
   };
@@ -6295,19 +7699,35 @@
       const [ex, ey] = P(a, R + 10), t = a + (a > 0 ? Math.PI / 2 : -Math.PI / 2), u = [Math.cos(t), -Math.sin(t)];
       s += `<path class="g-curve g-curve-1" d="${d}" style="fill:none;stroke-width:2"/><path class="g-end g-curve-1" d="M${ex + 7 * u[0]} ${ey + 7 * u[1]} L${ex - 5 * u[1] - 3 * u[0]} ${ey + 5 * u[0] - 3 * u[1]} L${ex + 5 * u[1] - 3 * u[0]} ${ey - 5 * u[0] - 3 * u[1]} Z"/>`;
     }
+    const prisesC = [boiteTexte(cx - 6, cy + 14, "O", 11, "end"), boiteTexte(cx + R + 4, cy + 14, "I", 11, "start"), boiteTexte(cx - 6, cy - R - 6, "J", 11, "end")];
     if (o.proj !== undefined) {
       const [mx, my] = P(o.proj);
       s += `<line class="g-hline" x1="${mx}" y1="${my}" x2="${mx}" y2="${cy}"/><line class="g-hline" x1="${mx}" y1="${my}" x2="${cx}" y2="${my}"/><line x1="${cx}" y1="${cy}" x2="${mx}" y2="${my}" style="stroke:var(--doux);stroke-width:1.4"/>`;
       s += `<circle class="g-point" cx="${mx}" cy="${cy}" r="3"/><circle class="g-point" cx="${cx}" cy="${my}" r="3"/>`;
-      if (o.projLabels !== false) s += `<text class="g-clabel g-curve-1" x="${mx}" y="${cy + (my < cy ? 16 : -8)}" text-anchor="middle">${o.cosLabel || "cos x"}</text><text class="g-clabel g-curve-1" x="${cx + (mx > cx ? -6 : 6)}" y="${my + 4}" text-anchor="${mx > cx ? "end" : "start"}">${o.sinLabel || "sin x"}</text>`;
+      if (o.projLabels !== false) {
+        // près de l'origine, les noms « cos » et « sin » s'écartent de la lettre O
+        const prochX = Math.abs(mx - cx) < 22, prochY = Math.abs(my - cy) < 14;
+        const cosT = prochX ? [mx + 8, cy + (my < cy ? 16 : -8), "start"] : [mx, cy + (my < cy ? 16 : -8), "middle"];
+        const sinT = [cx + (mx > cx ? -6 : 6), prochY ? my - 10 : my + 4, mx > cx ? "end" : "start"];
+        s += `<text class="g-clabel g-curve-1" x="${cosT[0]}" y="${cosT[1]}" text-anchor="${cosT[2]}">${o.cosLabel || "cos x"}</text><text class="g-clabel g-curve-1" x="${sinT[0]}" y="${sinT[1]}" text-anchor="${sinT[2]}">${o.sinLabel || "sin x"}</text>`;
+        prisesC.push(boiteTexte(cosT[0], cosT[1], o.cosLabel || "cos x", 13, cosT[2]), boiteTexte(sinT[0], sinT[1], o.sinLabel || "sin x", 13, sinT[2]));
+      }
     }
+    // étiquettes des points : à l'extérieur du cercle, écartées si elles tombent sur une autre étiquette
     (o.points || []).forEach((p) => {
       const [x, y] = P(p.a), [lx, ly] = P(p.a, R + (p.r || 18));
       s += `<circle class="g-point" cx="${x}" cy="${y}" r="${p.gros ? 4.5 : 3.5}"/>`;
+      if (!p.label) return;
       // sur un axe, l'étiquette passe en diagonale pour ne pas couvrir l'axe ni les lettres I et J
       const c = Math.round(Math.cos(p.a) * 1e6) / 1e6, sn = Math.round(Math.sin(p.a) * 1e6) / 1e6, axe = Math.abs(c) === 1 || Math.abs(sn) === 1;
-      const [tx, ty, an] = axe ? [x + (c === -1 ? -7 : 7), y + (c === 1 ? -7 : c === -1 ? 15 : sn === 1 ? -8 : 17), c === -1 ? "end" : "start"] : [lx, ly + 4, "middle"];
-      if (p.label) s += `<text class="g-plabel" x="${tx}" y="${ty}" text-anchor="${an}" style="font-size:${p.fs || 11}px">${p.label}</text>`;
+      const fs = p.fs || 11, cote = Math.cos(p.a) >= 0 ? "start" : "end";
+      const essais = [axe ? [x + (c === -1 ? -7 : 7), y + (c === 1 ? -7 : c === -1 ? 15 : sn === 1 ? -8 : 17), c === -1 ? "end" : "start"] : [lx, ly + 4, "middle"]];
+      [32, 46].forEach((r) => { const [ax, ay] = P(p.a, R + r); essais.push([ax, ay + 4, "middle"]); });
+      [-0.18, 0.18, -0.32, 0.32].forEach((d) => { const [ax, ay] = P(p.a + d, R + 16); essais.push([ax, ay + 4, cote]); });
+      const libre = (e) => { const b = boiteTexte(e[0], e[1], p.label, fs, e[2]); return b.x1 >= 0 && b.x2 <= W && b.y1 >= 0 && b.y2 <= H && !prisesC.some((q) => seCoupent(b, q)); };
+      const [tx, ty, an] = essais.find(libre) || essais[0];
+      prisesC.push(boiteTexte(tx, ty, p.label, fs, an));
+      s += `<text class="g-plabel" x="${+(+tx).toFixed(1)}" y="${+(+ty).toFixed(1)}" text-anchor="${an}" style="font-size:${fs}px">${p.label}</text>`;
     });
     return s + (o.extra || "") + `</svg>`;
   }
@@ -6456,34 +7876,89 @@
   };
 
   GEN["tr-pythagore"] = function () {
-    const [p, q, h] = pick([[3, 4, 5], [5, 12, 13], [7, 24, 25], [8, 15, 17]]), donne = pick(["cos", "sin"]), quart = pick([1, 2, 4]);
-    // quart 1 : [0 ; π/2], quart 2 : [π/2 ; π], quart 4 : [−π/2 ; 0]
-    const cosPos = quart !== 2, sinPos = quart !== 4;
+    if (Math.random() < 0.2) {
+      // Carré du sinus (ou du cosinus) à partir d'une valeur quelconque de l'autre
+      const [a, b] = pick([[1, 2], [1, 3], [2, 3], [1, 4], [3, 4], [1, 5], [2, 5], [3, 5], [4, 5], [1, 6], [5, 6], [2, 7], [3, 7]]), sgn = pick([1, -1]);
+      const donne = pick(["cos", "sin"]), cherche = donne === "cos" ? "sin" : "cos", v = frac(sgn * a, b), rep = (b * b - a * a) / (b * b);
+      return {
+        enonce: `On sait que $\\${donne} x = ${v}$. Calcule $\\${cherche}^2 x$ (fraction).`,
+        mode: "nombre", prefixe: `$\\${cherche}^2 x =$`, attendu: rep,
+        erreurs: [{ valeur: 1 - a / b, message: `$\\cos^2 x + \\sin^2 x = 1$ porte sur les **carrés** : il faut élever $${v}$ au carré avant de le retirer de $1$.` }, { valeur: (a * a) / (b * b), message: `Ça, c'est $\\${donne}^2 x$. On demande $\\${cherche}^2 x = 1 - \\${donne}^2 x$.` }],
+        aides: ["Pour tout réel $x$, $\\cos^2 x + \\sin^2 x = 1$.", `Donc $\\${cherche}^2 x = 1 - \\${donne}^2 x$.`, `$\\${donne}^2 x = \\left(${v}\\right)^2 = \\dfrac{${a * a}}{${b * b}}$.`],
+        solution: `$\\${cherche}^2 x = 1 - \\left(${v}\\right)^2 = 1 - \\dfrac{${a * a}}{${b * b}} = ${frac(b * b - a * a, b * b)}$.${sgn < 0 ? ` Le signe « − » disparaît : $\\left(${v}\\right)^2 = \\dfrac{${a * a}}{${b * b}}$ est positif.` : ""}`
+      };
+    }
+    const [P, Q, h] = pick([[3, 4, 5], [5, 12, 13], [7, 24, 25], [8, 15, 17], [20, 21, 29], [9, 40, 41], [12, 35, 37], [11, 60, 61]]);
+    const [p, q] = Math.random() < 0.5 ? [P, Q] : [Q, P], donne = pick(["cos", "sin"]), quart = pick([1, 2, 3, 4]);
+    // quart 1 : [0 ; π/2], quart 2 : [π/2 ; π], quart 3 : [−π ; −π/2], quart 4 : [−π/2 ; 0]
+    const cosPos = quart === 1 || quart === 4, sinPos = quart <= 2;
     const val = donne === "cos" ? (cosPos ? p : -p) / h : (sinPos ? p : -p) / h;
     const rep = donne === "cos" ? (sinPos ? q : -q) / h : (cosPos ? q : -q) / h, cherche = donne === "cos" ? "sin" : "cos";
-    const inter = { 1: "\\left[0\\,;\\dfrac{\\pi}{2}\\right]", 2: "\\left[\\dfrac{\\pi}{2}\\,;\\pi\\right]", 4: "\\left[-\\dfrac{\\pi}{2}\\,;0\\right]" }[quart];
+    const inter = { 1: "\\left[0\\,;\\dfrac{\\pi}{2}\\right]", 2: "\\left[\\dfrac{\\pi}{2}\\,;\\pi\\right]", 3: "\\left[-\\pi\\,;-\\dfrac{\\pi}{2}\\right]", 4: "\\left[-\\dfrac{\\pi}{2}\\,;0\\right]" }[quart];
     return {
       enonce: `On sait que $\\${donne} x = ${frac(Math.round(val * h), h)}$ et que $x \\in ${inter}$. Calcule $\\${cherche} x$ (fraction).`,
       mode: "nombre", prefixe: `$\\${cherche} x =$`, attendu: rep,
       erreurs: [{ valeur: -rep, message: `Attention au signe : pour $x \\in ${inter}$, le point est dans un quart de cercle où $\\${cherche} x$ est ${rep > 0 ? "positif" : "négatif"}.` }, { valeur: 1 - Math.abs(val), message: "$\\cos^2 x + \\sin^2 x = 1$ porte sur les **carrés**, pas sur les nombres eux-mêmes." }],
-      aides: ["Pour tout réel $x$, $\\cos^2 x + \\sin^2 x = 1$.", `$\\${cherche}^2 x = 1 - \\left(${frac(Math.round(val * h), h)}\\right)^2 = \\dfrac{${q * q}}{${h * h}}$.`, `Donc $\\${cherche} x = \\dfrac{${q}}{${h}}$ ou $-\\dfrac{${q}}{${h}}$ : le signe dépend du quart de cercle.`],
-      solution: `$\\${cherche}^2 x = 1 - \\dfrac{${p * p}}{${h * h}} = \\dfrac{${q * q}}{${h * h}}$. Pour $x \\in ${inter}$, $\\${cherche} x$ est ${rep > 0 ? "positif" : "négatif"}, donc $\\${cherche} x = ${frac(Math.round(rep * h), h)}$.`
+      aides: ["Pour tout réel $x$, $\\cos^2 x + \\sin^2 x = 1$.", `$\\${cherche}^2 x = 1 - \\left(${frac(Math.round(val * h), h)}\\right)^2 = \\dfrac{${nb(q * q)}}{${nb(h * h)}}$.`, `Donc $\\${cherche} x = \\dfrac{${q}}{${h}}$ ou $-\\dfrac{${q}}{${h}}$ : le signe dépend du quart de cercle.`],
+      solution: `$\\${cherche}^2 x = 1 - \\dfrac{${nb(p * p)}}{${nb(h * h)}} = \\dfrac{${nb(q * q)}}{${nb(h * h)}}$. Pour $x \\in ${inter}$, $\\${cherche} x$ est ${rep > 0 ? "positif" : "négatif"}, donc $\\${cherche} x = ${frac(Math.round(rep * h), h)}$.`
     };
   };
+  // Logique : négation de « majorée », vrai ou faux avec contre-exemple, conditions nécessaires ou suffisantes
 
   GEN["tr-triangle"] = function () {
-    const r = pick([17, 18, 20]), [k, d] = pick([[1, 6], [1, 4], [1, 3]]), f = pick(["sin", "cos"]), a = (k * Math.PI) / d, v = r * (f === "sin" ? Math.sin(a) : Math.cos(a));
+    const t = rand(0, 3), ANG = [[1, 6], [1, 4], [1, 3]];
+    if (t === 0) {
+      const r = pick([15, 16, 17, 18, 20]), [k, d] = pick(ANG), f = pick(["sin", "cos"]), a = (k * Math.PI) / d, v = r * (f === "sin" ? Math.sin(a) : Math.cos(a));
+      return {
+        enonce: `La manivelle d'un pédalier mesure $${r}$ cm. Elle fait un angle de $${trTex(k, d)}$ avec l'horizontale, vers le haut. ${f === "sin" ? "À quelle hauteur au-dessus de l'axe du pédalier se trouve la pédale ?" : "À quelle distance horizontale de l'axe du pédalier se trouve la pédale ?"} Arrondis au dixième de cm.`,
+        mode: "nombre", prefixe: f === "sin" ? "Hauteur :" : "Distance :", suffixe: "cm", attendu: +v.toFixed(1), tolerance: 0.051,
+        erreurs: [{ valeur: +(r * (f === "sin" ? Math.cos(a) : Math.sin(a))).toFixed(1), message: `La ${f === "sin" ? "hauteur correspond au côté opposé à l'angle : c'est le **sinus**" : "distance horizontale correspond au côté adjacent : c'est le **cosinus**"}.` }].filter((e) => Math.abs(e.valeur - +v.toFixed(1)) > 0.06),
+        aides: ["Dans le triangle rectangle formé par la manivelle (hypoténuse), la verticale et l'horizontale :", f === "sin" ? "côté opposé $=$ hypoténuse $\\times \\sin(\\text{angle})$." : "côté adjacent $=$ hypoténuse $\\times \\cos(\\text{angle})$.", `$${r} \\times \\${f}\\left(${trTex(k, d)}\\right) = ${r} \\times ${trValeur(k, d, f).tex}$.`],
+        solution: `$${r} \\times \\${f}\\left(${trTex(k, d)}\\right) = ${r} \\times ${trValeur(k, d, f).tex} ${Math.abs(v - +v.toFixed(1)) < 1e-9 ? `= ${nb(+v.toFixed(1))}` : `\\approx ${v.toFixed(1).replace(".", "{,}")}`}$ cm.`
+      };
+    }
+    if (t === 1 || t === 2) {
+      // Échelle contre un mur (au cm près) ou fil d'un cerf-volant (au dixième de mètre près)
+      const ech = t === 1, L = ech ? pick([3, 4, 5, 6]) : pick([20, 25, 30, 40, 50]), [k, d] = pick(ANG), f = pick(["sin", "cos"]), a = (k * Math.PI) / d;
+      const v = L * (f === "sin" ? Math.sin(a) : Math.cos(a)), p = ech ? 2 : 1, rep = +v.toFixed(p), exact = Math.abs(v - rep) < 1e-9;
+      const objet = ech ? "l'échelle" : "le fil";
+      const enonce = ech
+        ? `Une échelle de $${L}$ m est appuyée contre un mur vertical. Elle fait un angle de $${trTex(k, d)}$ avec le sol horizontal. ${f === "sin" ? "À quelle hauteur le haut de l'échelle touche-t-il le mur ?" : "À quelle distance du mur se trouve le pied de l'échelle ?"} Arrondis au centimètre (au centième de mètre).`
+        : `Sur la plage, le fil tendu d'un cerf-volant mesure $${L}$ m. Il fait un angle de $${trTex(k, d)}$ avec le sol horizontal (on néglige la hauteur de la main). ${f === "sin" ? "À quelle hauteur vole le cerf-volant ?" : "À quelle distance horizontale de la main se trouve le cerf-volant ?"} Arrondis au dixième de mètre.`;
+      return {
+        enonce,
+        mode: "nombre", prefixe: f === "sin" ? "Hauteur :" : "Distance :", suffixe: "m", attendu: rep, tolerance: ech ? 0.0051 : 0.051,
+        erreurs: [{ valeur: +(L * (f === "sin" ? Math.cos(a) : Math.sin(a))).toFixed(p), message: `La ${f === "sin" ? "hauteur correspond au côté opposé à l'angle : c'est le **sinus**" : "distance horizontale correspond au côté adjacent à l'angle : c'est le **cosinus**"}.` }].filter((e) => Math.abs(e.valeur - rep) > (ech ? 0.006 : 0.06)),
+        aides: [`${ech ? "L'échelle, le mur et le sol" : "Le fil, la verticale du cerf-volant et le sol"} forment un triangle rectangle : ${objet} en est l'hypoténuse.`, f === "sin" ? "La hauteur est le côté **opposé** à l'angle : côté opposé $=$ hypoténuse $\\times \\sin(\\text{angle})$." : "La distance horizontale est le côté **adjacent** à l'angle : côté adjacent $=$ hypoténuse $\\times \\cos(\\text{angle})$.", `$${L} \\times \\${f}\\left(${trTex(k, d)}\\right) = ${L} \\times ${trValeur(k, d, f).tex}$.`],
+        solution: `$${L} \\times \\${f}\\left(${trTex(k, d)}\\right) = ${L} \\times ${trValeur(k, d, f).tex} ${exact ? `= ${nb(rep)}` : `\\approx ${v.toFixed(p).replace(".", "{,}")}`}$ m.`
+      };
+    }
+    // Retrouver l'angle à partir d'une longueur
+    const r = pick([15, 16, 17, 18, 20]), typ = rand(0, 2), h = nb(r / 2);
+    const bonne = ["$\\dfrac{\\pi}{6}$", "$\\dfrac{\\pi}{3}$", "$\\dfrac{\\pi}{4}$"][typ];
+    const c = melangeChoix(bonne, ["$\\dfrac{\\pi}{6}$", "$\\dfrac{\\pi}{4}$", "$\\dfrac{\\pi}{3}$", "$\\dfrac{\\pi}{2}$"]);
+    const situation = [`la pédale se trouve $${h}$ cm au-dessus de l'axe du pédalier`, `la pédale se trouve à $${h}$ cm de l'axe du pédalier, horizontalement`, `la pédale est aussi haute au-dessus de l'axe qu'elle en est éloignée horizontalement (environ $${nb(+((r * Math.SQRT2) / 2).toFixed(1))}$ cm dans chaque direction)`][typ];
     return {
-      enonce: `La manivelle d'un pédalier mesure $${r}$ cm. Elle fait un angle de $${trTex(k, d)}$ avec l'horizontale, vers le haut. ${f === "sin" ? "À quelle hauteur au-dessus de l'axe du pédalier se trouve la pédale ?" : "À quelle distance horizontale de l'axe du pédalier se trouve la pédale ?"} Arrondis au dixième de cm.`,
-      mode: "nombre", prefixe: f === "sin" ? "Hauteur :" : "Distance :", suffixe: "cm", attendu: +v.toFixed(1), tolerance: 0.051,
-      erreurs: [{ valeur: +(r * (f === "sin" ? Math.cos(a) : Math.sin(a))).toFixed(1), message: `La ${f === "sin" ? "hauteur correspond au côté opposé à l'angle : c'est le **sinus**" : "distance horizontale correspond au côté adjacent : c'est le **cosinus**"}.` }].filter((e) => Math.abs(e.valeur - +v.toFixed(1)) > 0.06),
-      aides: ["Dans le triangle rectangle formé par la manivelle (hypoténuse), la verticale et l'horizontale :", f === "sin" ? "côté opposé $=$ hypoténuse $\\times \\sin(\\text{angle})$." : "côté adjacent $=$ hypoténuse $\\times \\cos(\\text{angle})$.", `$${r} \\times \\${f}\\left(${trTex(k, d)}\\right) = ${r} \\times ${trValeur(k, d, f).tex}$.`],
-      solution: `$${r} \\times \\${f}\\left(${trTex(k, d)}\\right) = ${r} \\times ${trValeur(k, d, f).tex} \\approx ${nb(+v.toFixed(1))}$ cm.`
+      enonce: `La manivelle d'un pédalier mesure $${r}$ cm. Elle est tournée vers l'avant et vers le haut, et ${situation}. Quel angle $x$ la manivelle fait-elle avec l'horizontale ?`,
+      mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: [
+        `La manivelle (hypoténuse), la verticale et l'horizontale forment un triangle rectangle : hauteur $= ${r} \\sin x$ et distance horizontale $= ${r} \\cos x$.`,
+        [`$\\sin x = \\dfrac{${h}}{${r}} = \\dfrac{1}{2}$.`, `$\\cos x = \\dfrac{${h}}{${r}} = \\dfrac{1}{2}$.`, `$${r} \\sin x = ${r} \\cos x$, donc $\\sin x = \\cos x$.`][typ],
+        ["Quel réel de $\\left]0\\,;\\dfrac{\\pi}{2}\\right[$ a un sinus égal à $\\dfrac{1}{2}$ ?", "Quel réel de $\\left]0\\,;\\dfrac{\\pi}{2}\\right[$ a un cosinus égal à $\\dfrac{1}{2}$ ?", "Pour quel réel de $\\left]0\\,;\\dfrac{\\pi}{2}\\right[$ le cosinus et le sinus sont-ils égaux ?"][typ]
+      ],
+      solution: [
+        `La hauteur vaut $${r}\\sin x$, donc $\\sin x = \\dfrac{${h}}{${r}} = \\dfrac{1}{2}$. Avec $0 < x < \\dfrac{\\pi}{2}$, on trouve $x = \\dfrac{\\pi}{6}$, car $\\sin\\dfrac{\\pi}{6} = \\dfrac{1}{2}$.`,
+        `La distance horizontale vaut $${r}\\cos x$, donc $\\cos x = \\dfrac{${h}}{${r}} = \\dfrac{1}{2}$. Avec $0 < x < \\dfrac{\\pi}{2}$, on trouve $x = \\dfrac{\\pi}{3}$, car $\\cos\\dfrac{\\pi}{3} = \\dfrac{1}{2}$.`,
+        `$${r}\\sin x = ${r}\\cos x$, donc $\\sin x = \\cos x$ : le point $M(x)$ est sur la bissectrice du premier quart de cercle. Avec $0 < x < \\dfrac{\\pi}{2}$, $x = \\dfrac{\\pi}{4}$, et chaque longueur vaut $${r} \\times \\dfrac{\\sqrt{2}}{2} \\approx ${nb(+((r * Math.SQRT2) / 2).toFixed(1))}$ cm.`
+      ][typ]
     };
   };
 
   // Logique : « pour tout réel x » et « il existe un réel x »
   GEN["tr-logique"] = function () {
+    const CNS = ["Nécessaire mais pas suffisante", "Suffisante mais pas nécessaire", "Nécessaire et suffisante", "Ni nécessaire ni suffisante"];
+    const AIDES_CNS = (fin) => ["« A est suffisante pour B » signifie : si A est vraie, alors B est vraie.", "« A est nécessaire pour B » signifie : si B est vraie, alors A est vraie (impossible d'avoir B sans A).", fin];
+    // Vrai ou faux : [affirmation, 0 si vraie / 1 si fausse, solution], ou fonction qui renvoie ce triplet
     const T = [
       ["Pour tout réel $x$, $\\cos^2 x + \\sin^2 x = 1$.", 0, "**Vrai** : dans le triangle rectangle formé par $O$, $M(x)$ et son projeté, le théorème de Pythagore donne $\\cos^2 x + \\sin^2 x = OM^2 = 1$, et cela pour **tout** réel $x$."],
       ["Pour tout réel $x$, $\\sin x \\geqslant 0$.", 1, "**Faux**. Contre-exemple : $\\sin\\left(-\\dfrac{\\pi}{2}\\right) = -1 < 0$."],
@@ -6492,9 +7967,112 @@
       ["Pour tout réel $x$, $\\cos x + \\sin x = 1$.", 1, "**Faux**. Contre-exemple : $\\cos\\dfrac{\\pi}{4} + \\sin\\dfrac{\\pi}{4} = \\sqrt{2} \\neq 1$. Ne pas confondre avec $\\cos^2 x + \\sin^2 x = 1$."],
       ["Pour tout réel $x$, $\\cos(x + 2\\pi) = \\cos x$.", 0, "**Vrai** : $x$ et $x + 2\\pi$ diffèrent d'un tour complet, ils ont le même point image sur le cercle."],
       ["Pour tout réel $x$, $\\cos(-x) = \\cos x$.", 0, "**Vrai** : les points associés à $x$ et $-x$ sont symétriques par rapport à l'axe des abscisses, ils ont la même abscisse."],
-      ["Il existe un réel $x$ tel que $\\cos x = \\sin x$.", 0, "**Vrai** : $x = \\dfrac{\\pi}{4}$ convient, avec $\\cos\\dfrac{\\pi}{4} = \\sin\\dfrac{\\pi}{4} = \\dfrac{\\sqrt{2}}{2}$."]
+      ["Il existe un réel $x$ tel que $\\cos x = \\sin x$.", 0, "**Vrai** : $x = \\dfrac{\\pi}{4}$ convient, avec $\\cos\\dfrac{\\pi}{4} = \\sin\\dfrac{\\pi}{4} = \\dfrac{\\sqrt{2}}{2}$."],
+      ["Pour tout réel $x$, $-1 \\leqslant \\cos x \\leqslant 1$.", 0, "**Vrai** : $\\cos x$ est l'abscisse d'un point du cercle trigonométrique, de rayon $1$ : elle est toujours comprise entre $-1$ et $1$."],
+      ["Il existe un réel $x$ tel que $\\cos x = 0$ et $\\sin x = 0$.", 1, "**Faux** : pour tout réel $x$, $\\cos^2 x + \\sin^2 x = 1$. Si on avait $\\cos x = \\sin x = 0$, on aurait $0 = 1$ : impossible. (Le point $O$ n'est pas sur le cercle.)"],
+      ["Il existe un réel $x$ tel que $\\cos x = \\dfrac{1}{2}$ et $\\sin x = \\dfrac{1}{2}$.", 1, "**Faux** : on aurait $\\cos^2 x + \\sin^2 x = \\dfrac{1}{4} + \\dfrac{1}{4} = \\dfrac{1}{2}$, alors que cette somme vaut toujours $1$."],
+      ["Pour tout réel $x$, $\\sin(x + 2\\pi) = \\sin x$.", 0, "**Vrai** : $x$ et $x + 2\\pi$ diffèrent d'un tour complet ; ils ont le même point image, donc la même ordonnée."],
+      ["Pour tout réel $x$, $\\sin(-x) = \\sin x$.", 1, "**Faux**. Contre-exemple : $x = \\dfrac{\\pi}{2}$ donne $\\sin\\left(-\\dfrac{\\pi}{2}\\right) = -1$ et $\\sin\\dfrac{\\pi}{2} = 1$. En fait $\\sin(-x) = -\\sin x$ : les points images sont symétriques par rapport à l'axe des abscisses."],
+      ["Pour tout réel $x$, $\\sin(-x) = -\\sin x$.", 0, "**Vrai** : les points associés à $x$ et $-x$ sont symétriques par rapport à l'axe des abscisses : ils ont des ordonnées opposées."],
+      ["Pour tout réel $x$, $\\cos(\\pi - x) = \\cos x$.", 1, "**Faux**. Contre-exemple : $x = 0$ donne $\\cos \\pi = -1$ et $\\cos 0 = 1$. En fait $\\cos(\\pi - x) = -\\cos x$ : les points images sont symétriques par rapport à l'axe des ordonnées."],
+      ["Pour tout réel $x$, $\\sin(\\pi - x) = \\sin x$.", 0, "**Vrai** : les points associés à $x$ et $\\pi - x$ sont symétriques par rapport à l'axe des ordonnées : ils ont la même ordonnée."],
+      ["Pour tout réel $x$, $\\cos(x + \\pi) = -\\cos x$.", 0, "**Vrai** : $x$ et $x + \\pi$ diffèrent d'un demi-tour ; leurs points images sont symétriques par rapport à $O$, leurs coordonnées sont opposées."],
+      ["Pour tout réel $x$, $\\cos(x + \\pi) = \\cos x$.", 1, "**Faux**. Contre-exemple : $x = 0$ donne $\\cos \\pi = -1$ et $\\cos 0 = 1$. Un demi-tour mène au point diamétralement opposé : $\\cos(x + \\pi) = -\\cos x$."],
+      ["Pour tout réel $x$, $\\cos\\left(x + \\dfrac{\\pi}{2}\\right) = \\cos x$.", 1, "**Faux**. Contre-exemple : $x = 0$ donne $\\cos\\dfrac{\\pi}{2} = 0$ et $\\cos 0 = 1$. Un quart de tour change le point image."],
+      ["Pour tout réel $x$, $\\cos(2x) = 2\\cos x$.", 1, "**Faux**. Contre-exemple : $x = 0$ donne $\\cos 0 = 1$ à gauche et $2\\cos 0 = 2$ à droite. D'ailleurs $2\\cos x$ peut valoir $2$, alors qu'un cosinus ne dépasse jamais $1$."],
+      ["Pour tout réel $x$, $\\sin(2x) = 2\\sin x$.", 1, "**Faux**. Contre-exemple : $x = \\dfrac{\\pi}{2}$ donne $\\sin \\pi = 0$ à gauche et $2\\sin\\dfrac{\\pi}{2} = 2$ à droite."],
+      ["Il existe un réel $x$ tel que $\\sin(2x) = 2\\sin x$.", 0, "**Vrai** : $x = 0$ convient, car $\\sin 0 = 0 = 2\\sin 0$. Pour un « il existe », un seul exemple suffit, même si l'égalité est fausse « pour tout $x$ »."],
+      ["Si $\\cos x = 1$, alors $x = 0$.", 1, "**Faux**. Contre-exemple : $x = 2\\pi$ vérifie $\\cos(2\\pi) = 1$, mais $2\\pi \\neq 0$. Tous les réels $0$, $2\\pi$, $-2\\pi$, $4\\pi$… ont le même point image $I$."],
+      ["Si $x = 0$, alors $\\cos x = 1$.", 0, "**Vrai** : le point image de $0$ est $I(1\\,;0)$, donc $\\cos 0 = 1$. (La réciproque « si $\\cos x = 1$, alors $x = 0$ » est fausse : pense à $x = 2\\pi$.)"],
+      ["Si $\\sin x = \\dfrac{1}{2}$, alors $x = \\dfrac{\\pi}{6}$.", 1, "**Faux**. Contre-exemple : $x = \\dfrac{5\\pi}{6}$ vérifie aussi $\\sin\\dfrac{5\\pi}{6} = \\dfrac{1}{2}$ (point symétrique par rapport à l'axe des ordonnées). Et $\\dfrac{\\pi}{6} + 2\\pi$ aussi."],
+      ["Si deux réels ont le même point image sur le cercle trigonométrique, alors ils ont le même cosinus.", 0, "**Vrai** : le cosinus est l'abscisse du point image ; même point, même abscisse."],
+      ["Si deux réels ont le même cosinus, alors ils ont le même point image.", 1, "**Faux**. Contre-exemple : $\\dfrac{\\pi}{3}$ et $-\\dfrac{\\pi}{3}$ ont le même cosinus $\\dfrac{1}{2}$, mais leurs points images sont symétriques par rapport à l'axe des abscisses : ce sont deux points différents."],
+      ["Si deux réels ont le même cosinus et le même sinus, alors ils ont le même point image.", 0, "**Vrai** : le cosinus et le sinus sont les coordonnées du point image. Mêmes coordonnées, même point."],
+      ["Deux réels qui ont le même point image sur le cercle trigonométrique sont égaux.", 1, "**Faux**. Contre-exemple : $0$ et $2\\pi$ ont le même point image $I$, mais $0 \\neq 2\\pi$. Deux réels qui diffèrent d'un nombre entier de tours ont le même point image."],
+      ["Pour tout réel $x$ de $\\left[0\\,;\\dfrac{\\pi}{2}\\right]$, $\\cos x \\geqslant 0$.", 0, "**Vrai** : le point image est sur le quart de cercle situé en haut à droite, son abscisse est positive ou nulle."],
+      ["Pour tout réel $x$ de $[0\\,;\\pi]$, $\\cos x \\geqslant 0$.", 1, "**Faux**. Contre-exemple : $x = \\pi$ donne $\\cos \\pi = -1 < 0$ (ou encore $x = \\dfrac{2\\pi}{3}$, avec $\\cos\\dfrac{2\\pi}{3} = -\\dfrac{1}{2}$)."],
+      ["Pour tout réel $x$ de $[0\\,;\\pi]$, $\\sin x \\geqslant 0$.", 0, "**Vrai** : le point image est sur le demi-cercle supérieur, son ordonnée est positive ou nulle."],
+      ["Pour tout réel $x$, $\\cos^2 x \\leqslant 1$.", 0, "**Vrai** : $\\cos^2 x = 1 - \\sin^2 x$ et $\\sin^2 x \\geqslant 0$, donc $\\cos^2 x \\leqslant 1$."],
+      ["Pour tout réel $x$, $\\cos x \\times \\sin x \\leqslant \\dfrac{1}{2}$.", 0, "**Vrai** : $(\\cos x - \\sin x)^2 \\geqslant 0$ donne $\\cos^2 x - 2\\cos x \\sin x + \\sin^2 x \\geqslant 0$, soit $1 - 2\\cos x \\sin x \\geqslant 0$, donc $\\cos x \\sin x \\leqslant \\dfrac{1}{2}$."],
+      ["Pour tout réel $x$, $\\cos x + \\sin x \\leqslant 2$.", 0, "**Vrai** : $\\cos x \\leqslant 1$ et $\\sin x \\leqslant 1$, donc leur somme est au plus $2$."],
+      ["Il existe un réel $x$ tel que $\\cos x + \\sin x = 2$.", 1, "**Faux** : il faudrait $\\cos x = 1$ et $\\sin x = 1$, puisque chacun vaut au plus $1$. Mais alors $\\cos^2 x + \\sin^2 x = 2 \\neq 1$ : impossible."],
+      ["Il existe un réel $x$ tel que $\\cos x = -\\sin x$.", 0, "**Vrai** : $x = -\\dfrac{\\pi}{4}$ convient, car $\\cos\\left(-\\dfrac{\\pi}{4}\\right) = \\dfrac{\\sqrt{2}}{2}$ et $\\sin\\left(-\\dfrac{\\pi}{4}\\right) = -\\dfrac{\\sqrt{2}}{2}$."],
+      ["Pour tout réel $y$ de $[-1\\,;1]$, il existe un réel $x$ tel que $\\cos x = y$.", 0, "**Vrai** : comme $-1 \\leqslant y \\leqslant 1$, la droite verticale d'abscisse $y$ coupe le cercle trigonométrique en un point $M$. Si $x$ est un réel dont le point image est $M$, alors $\\cos x = y$. Ici, le réel $x$ dépend de $y$."],
+      ["Il existe un réel $x$ tel que, pour tout réel $y$, $\\cos x \\geqslant \\cos y$.", 0, "**Vrai** : $x = 0$ convient, car $\\cos 0 = 1$ et $\\cos y \\leqslant 1$ pour tout réel $y$. Le même $x$ marche pour tous les $y$ : $1$ est la plus grande valeur d'un cosinus."],
+      ["Pour tout réel $y$, il existe un réel $x$ tel que $\\cos x > \\cos y$.", 1, "**Faux**. Contre-exemple : $y = 0$. On a $\\cos 0 = 1$, et aucun réel $x$ ne vérifie $\\cos x > 1$."],
+      () => {
+        const f = pick(["cos", "sin"]), ok = Math.random() < 0.6;
+        if (ok) {
+          const [v, k, d] = pick(f === "cos"
+            ? [["1", 0, 1], ["0", 1, 2], ["-1", 1, 1], ["\\dfrac{1}{2}", 1, 3], ["-\\dfrac{1}{2}", 2, 3], ["\\dfrac{\\sqrt{2}}{2}", 1, 4], ["-\\dfrac{\\sqrt{2}}{2}", 3, 4], ["\\dfrac{\\sqrt{3}}{2}", 1, 6], ["-\\dfrac{\\sqrt{3}}{2}", 5, 6]]
+            : [["1", 1, 2], ["0", 0, 1], ["-1", -1, 2], ["\\dfrac{1}{2}", 1, 6], ["-\\dfrac{1}{2}", -1, 6], ["\\dfrac{\\sqrt{2}}{2}", 1, 4], ["-\\dfrac{\\sqrt{2}}{2}", -1, 4], ["\\dfrac{\\sqrt{3}}{2}", 1, 3], ["-\\dfrac{\\sqrt{3}}{2}", -1, 3]]);
+          return [`Il existe un réel $x$ tel que $\\${f} x = ${v}$.`, 0, `**Vrai** : $x = ${trTex(k, d)}$ convient, car $\\${f}\\left(${trTex(k, d)}\\right) = ${v}$. Pour un « il existe », un seul exemple suffit.`];
+        }
+        const [v, val] = pick([["\\dfrac{3}{2}", 1.5], ["2", 2], ["-2", -2], ["\\sqrt{2}", Math.SQRT2], ["\\dfrac{\\pi}{3}", Math.PI / 3], ["-\\dfrac{5}{4}", -1.25], ["\\dfrac{\\sqrt{5}}{2}", Math.sqrt(5) / 2], ["\\dfrac{4}{3}", 4 / 3]]);
+        const app = Number.isInteger(val) ? "" : ` ${Number.isInteger(val * 100) ? "=" : "\\approx"} ${nb(+val.toFixed(3))}`;
+        return [`Il existe un réel $x$ tel que $\\${f} x = ${v}$.`, 1, `**Faux** : pour tout réel $x$, $-1 \\leqslant \\${f} x \\leqslant 1$, car c'est une coordonnée d'un point du cercle de rayon $1$. Or $${v}${app} ${val > 0 ? "> 1" : "< -1"}$ : aucun réel ne convient.`];
+      }
     ];
-    const [aff, rep, sol] = pick(T);
+    // Questions à choix : négation, conditions nécessaires ou suffisantes
+    const Q = [
+      () => ({
+        enonce: "Quelle est la **négation** de « pour tout réel $x$, $\\sin x \\geqslant 0$ » ?",
+        bonne: "« il existe un réel $x$ tel que $\\sin x < 0$ »",
+        fausses: ["« pour tout réel $x$, $\\sin x < 0$ »", "« il existe un réel $x$ tel que $\\sin x \\geqslant 0$ »", "« pour tout réel $x$, $\\sin x \\leqslant 0$ »"],
+        aides: ["Pour nier « pour tout $x$, P », on écrit « il existe $x$ tel que (non P) ».", "Il suffit d'**un seul** réel qui ne convient pas.", "Le contraire de $\\sin x \\geqslant 0$ est $\\sin x < 0$."],
+        sol: "« Pour tout » devient « il existe », et $\\sin x \\geqslant 0$ devient $\\sin x < 0$. Cette négation est vraie : $x = -\\dfrac{\\pi}{2}$ convient. La phrase de départ est donc fausse."
+      }),
+      () => ({
+        enonce: "Quelle est la **négation** de « il existe un réel $x$ tel que $\\cos x = 2$ » ?",
+        bonne: "« pour tout réel $x$, $\\cos x \\neq 2$ »",
+        fausses: ["« il existe un réel $x$ tel que $\\cos x \\neq 2$ »", "« pour tout réel $x$, $\\cos x = 2$ »", "« il existe un réel $x$ tel que $\\cos x = -2$ »"],
+        aides: ["Pour nier « il existe $x$ tel que P », on écrit « pour tout $x$, (non P) ».", "Nier « il existe », c'est dire qu'**aucun** réel ne convient.", "Le contraire de $\\cos x = 2$ est $\\cos x \\neq 2$."],
+        sol: "« Il existe » devient « pour tout », et $\\cos x = 2$ devient $\\cos x \\neq 2$. Cette négation est vraie, car $\\cos x \\leqslant 1$ pour tout réel $x$."
+      }),
+      () => ({
+        enonce: "Quelle est la **négation** de « pour tout réel $x$, $\\cos^2 x + \\sin^2 x = 1$ » ?",
+        bonne: "« il existe un réel $x$ tel que $\\cos^2 x + \\sin^2 x \\neq 1$ »",
+        fausses: ["« pour tout réel $x$, $\\cos^2 x + \\sin^2 x \\neq 1$ »", "« il existe un réel $x$ tel que $\\cos^2 x + \\sin^2 x = 1$ »", "« pour tout réel $x$, $\\cos x + \\sin x \\neq 1$ »"],
+        aides: ["Pour nier « pour tout $x$, P », on écrit « il existe $x$ tel que (non P) ».", "On garde la même égalité, mais niée.", "Le contraire de « $= 1$ » est « $\\neq 1$ »."],
+        sol: "« Pour tout » devient « il existe », et l'égalité devient « $\\neq$ ». Cette négation est fausse, puisque la propriété $\\cos^2 x + \\sin^2 x = 1$ est vraie pour tout réel $x$."
+      }),
+      () => ({
+        enonce: "Pour qu'un réel $x$ vérifie $\\cos x = 1$, la condition « $x = 0$ » est :",
+        bonne: CNS[1], fausses: CNS, aides: AIDES_CNS("Quels réels ont pour point image $I$ ?"),
+        sol: "**Suffisante** : si $x = 0$, alors $\\cos x = \\cos 0 = 1$. **Pas nécessaire** : $x = 2\\pi$ vérifie $\\cos x = 1$ sans être égal à $0$."
+      }),
+      () => ({
+        enonce: "Pour qu'un réel $x$ vérifie $\\sin x = 0$, la condition « $\\cos x = 1$ » est :",
+        bonne: CNS[1], fausses: CNS, aides: AIDES_CNS("Utilise $\\cos^2 x + \\sin^2 x = 1$, et pense au réel $\\pi$."),
+        sol: "**Suffisante** : si $\\cos x = 1$, alors $\\sin^2 x = 1 - 1 = 0$, donc $\\sin x = 0$. **Pas nécessaire** : $x = \\pi$ vérifie $\\sin x = 0$, alors que $\\cos \\pi = -1$."
+      }),
+      () => ({
+        enonce: "Pour qu'un réel $x$ vérifie $\\cos x = 1$, la condition « $\\sin x = 0$ » est :",
+        bonne: CNS[0], fausses: CNS, aides: AIDES_CNS("Utilise $\\cos^2 x + \\sin^2 x = 1$, et pense au réel $\\pi$."),
+        sol: "**Nécessaire** : si $\\cos x = 1$, alors $\\sin^2 x = 1 - 1 = 0$, donc $\\sin x = 0$. **Pas suffisante** : $x = \\pi$ vérifie $\\sin x = 0$, mais $\\cos \\pi = -1$."
+      }),
+      () => ({
+        enonce: "Pour qu'un réel $x$ vérifie $\\cos^2 x = 1$, la condition « $\\sin x = 0$ » est :",
+        bonne: CNS[2], fausses: CNS, aides: AIDES_CNS("Utilise $\\cos^2 x + \\sin^2 x = 1$ dans les deux sens."),
+        sol: "Comme $\\cos^2 x + \\sin^2 x = 1$ : $\\cos^2 x = 1 \\iff \\sin^2 x = 0 \\iff \\sin x = 0$. La condition est **nécessaire et suffisante**."
+      }),
+      () => ({
+        enonce: "Pour qu'un réel $x$ vérifie $\\cos x = \\dfrac{1}{2}$, la condition « $x = \\dfrac{\\pi}{3}$ » est :",
+        bonne: CNS[1], fausses: CNS, aides: AIDES_CNS("Combien de points du cercle ont pour abscisse $\\dfrac{1}{2}$ ?"),
+        sol: "**Suffisante** : $\\cos\\dfrac{\\pi}{3} = \\dfrac{1}{2}$. **Pas nécessaire** : $x = -\\dfrac{\\pi}{3}$ vérifie aussi $\\cos x = \\dfrac{1}{2}$ (point symétrique par rapport à l'axe des abscisses)."
+      }),
+      () => ({
+        enonce: "Pour qu'un réel $x$ **de $[0\\,;\\pi]$** vérifie $\\cos x = \\dfrac{1}{2}$, la condition « $x = \\dfrac{\\pi}{3}$ » est :",
+        bonne: CNS[2], fausses: CNS, aides: AIDES_CNS("Les réels de $[0\\,;\\pi]$ ont leur point image sur le demi-cercle supérieur."),
+        sol: "**Suffisante** : $\\cos\\dfrac{\\pi}{3} = \\dfrac{1}{2}$. **Nécessaire** : la droite verticale d'abscisse $\\dfrac{1}{2}$ coupe le demi-cercle supérieur en un seul point, $M\\left(\\dfrac{\\pi}{3}\\right)$, qui n'est associé qu'au réel $\\dfrac{\\pi}{3}$ dans $[0\\,;\\pi]$. Sur cet intervalle, les deux conditions sont équivalentes."
+      })
+    ];
+    const k = rand(0, T.length + Q.length - 1);
+    if (k >= T.length) {
+      const r = Q[k - T.length](), c = melangeChoix(r.bonne, r.fausses);
+      return { enonce: r.enonce, mode: "choix", choix: c.choix, attendu: c.attendu, aides: r.aides, solution: r.sol };
+    }
+    const [aff, rep, sol] = typeof T[k] === "function" ? T[k]() : T[k];
     return {
       enonce: `Vrai ou faux : « ${aff} »`,
       mode: "choix", choix: ["Vrai", "Faux"], attendu: rep,
@@ -6505,15 +8083,19 @@
 
   GEN["tr-python"] = function () {
     const code = "```python\nfrom math import sqrt\n\ndef archimede(etapes):\n    n = 6    # hexagone inscrit dans le cercle de rayon 1\n    c = 1    # longueur d'un côté\n    for i in range(etapes):\n        c = sqrt(2 - sqrt(4 - c**2))\n        n = 2 * n\n    return n * c / 2\n```";
-    const t = rand(0, 3);
+    // Variante : on part d'un autre polygone régulier inscrit (n0 côtés de longueur c0, c0 écrit en Python)
+    const POLY = { carre: { n0: 4, c0: Math.SQRT2, py: "sqrt(2)", nom: "carré", tex: "\\sqrt{2}" }, triangle: { n0: 3, c0: Math.sqrt(3), py: "sqrt(3)", nom: "triangle équilatéral", tex: "\\sqrt{3}" }, hexagone: { n0: 6, c0: 1, py: "1", nom: "hexagone", tex: "1" } };
+    const codeP = (P) => P.n0 === 6 ? code : "```python\nfrom math import sqrt\n\ndef archimede(etapes):\n    n = " + P.n0 + "    # " + P.nom + " inscrit dans le cercle de rayon 1\n    c = " + P.py + "    # longueur d'un côté\n    for i in range(etapes):\n        c = sqrt(2 - sqrt(4 - c**2))\n        n = 2 * n\n    return n * c / 2\n```";
+    const arch = (P, e) => { let n = P.n0, c = P.c0; for (let k = 0; k < e; k++) { c = Math.sqrt(2 - Math.sqrt(4 - c * c)); n *= 2; } return { n, c, v: (n * c) / 2 }; };
+    const t = rand(0, 8);
     if (t === 0) {
-      const e = rand(1, 5), n = 6 * 2 ** e;
+      const e = rand(1, 8), n = 6 * 2 ** e;
       return {
         enonce: `Archimède approchait $\\pi$ avec des polygones réguliers inscrits dans un cercle.\n\n${code}\n\nAprès archimede(${e}), combien de côtés a le polygone ?`,
         mode: "nombre", prefixe: "Côtés :", attendu: n,
         erreurs: [{ valeur: 6 * 2 * e, message: "À chaque étape, le nombre de côtés est **multiplié** par $2$, pas augmenté." }].filter((x) => x.valeur !== n),
         aides: ["Au départ, $n = 6$ (un hexagone).", `La boucle tourne $${e}$ fois et double $n$ à chaque fois.`, `$6 \\times 2^{${e}}$.`],
-        solution: `$n = 6 \\times 2^{${e}} = ${n}$ côtés. Archimède est allé jusqu'à $96$ côtés.`
+        solution: `$n = 6 \\times 2^{${e}} = ${nb(n)}$ côtés. Archimède est allé jusqu'à $96$ côtés.`
       };
     }
     if (t === 1) {
@@ -6533,14 +8115,64 @@
         solution: "Les résultats valent environ $3{,}106$ ; $3{,}133$ ; $3{,}139$ ; $3{,}141$… Ils se rapprochent du demi-périmètre du cercle de rayon $1$, c'est-à-dire $\\pi$."
       };
     }
-    const c = melangeChoix("Le polygone est à l'intérieur du cercle : son périmètre est plus court", ["Python fait des erreurs d'arrondi", "La racine carrée diminue les nombres", "Le cercle n'a pas un rayon égal à 1"]);
+    if (t === 3) {
+      const c = melangeChoix("Le polygone est à l'intérieur du cercle : son périmètre est plus court", ["Python fait des erreurs d'arrondi", "La racine carrée diminue les nombres", "Le cercle n'a pas un rayon égal à 1"]);
+      return {
+        enonce: `${code}\n\nPourquoi les résultats de archimede(k) sont-ils toujours inférieurs à $\\pi$ ?`,
+        mode: "choix", choix: c.choix, attendu: c.attendu,
+        aides: ["Le polygone est **inscrit** : ses sommets sont sur le cercle.", "Entre deux sommets, le côté (segment) est plus court que l'arc de cercle.", "On compare le demi-périmètre du polygone au demi-périmètre du cercle, $\\pi$."],
+        solution: "Chaque côté du polygone inscrit est un segment, plus court que l'arc de cercle qu'il sous-tend : le demi-périmètre du polygone est donc inférieur à $\\pi$. Il s'en approche quand le nombre de côtés augmente."
+      };
+    }
+    if (t === 4) {
+      const P = pick([POLY.carre, POLY.triangle]), e = rand(1, 6), n = P.n0 * 2 ** e;
+      return {
+        enonce: `On modifie le programme d'Archimède pour partir d'un ${P.nom} inscrit dans le cercle de rayon $1$ (son côté mesure $${P.tex}$).\n\n${codeP(P)}\n\nAprès archimede(${e}), combien de côtés a le polygone ?`,
+        mode: "nombre", prefixe: "Côtés :", attendu: n,
+        erreurs: [{ valeur: 6 * 2 ** e, message: `Ici, on ne part pas d'un hexagone : au départ, $n = ${P.n0}$.` }, { valeur: P.n0 + 2 * e, message: "À chaque étape, le nombre de côtés est **multiplié** par $2$, pas augmenté de $2$." }].filter((x) => x.valeur !== n),
+        aides: [`Au départ, $n = ${P.n0}$.`, `La boucle tourne $${e}$ fois et double $n$ à chaque fois.`, `$${P.n0} \\times 2^{${e}}$.`],
+        solution: `$n = ${P.n0} \\times 2^{${e}} = ${nb(n)}$ côtés. Plus il y a de côtés, plus le polygone se rapproche du cercle.`
+      };
+    }
+    if (t === 5) {
+      const [cle, e] = pick([["hexagone", 1], ["hexagone", 2], ["carre", 0], ["carre", 1], ["triangle", 0], ["triangle", 1]]), P = POLY[cle], R1 = arch(P, 1), res = arch(P, e), v = +res.v.toFixed(3);
+      const exact = Math.abs(res.v - Math.round(res.v)) < 1e-9;
+      return {
+        enonce: `${P.n0 === 6 ? "Archimède approchait $\\pi$ avec des polygones réguliers inscrits dans un cercle." : `On modifie le programme d'Archimède pour partir d'un ${P.nom} inscrit dans le cercle de rayon $1$ (son côté mesure $${P.tex}$).`}\n\n${codeP(P)}\n\nQue renvoie archimede(${e}) ? Arrondis au millième si besoin.`,
+        mode: "nombre", prefixe: "Résultat :", attendu: exact ? Math.round(res.v) : v, tolerance: 0.0006,
+        erreurs: [{ valeur: +(res.n * res.c).toFixed(3), message: "La fonction renvoie $\\dfrac{n \\times c}{2}$ : n'oublie pas de diviser par $2$." }].filter((x) => Math.abs(x.valeur - v) > 0.001),
+        aides: [e === 0 ? `Avec $0$ étape, la boucle ne tourne pas : $n = ${P.n0}$ et $c = ${P.tex}$.` : `Une étape : $c$ devient $\\sqrt{2 - \\sqrt{4 - c^2}}$ et $n$ devient $${R1.n}$.`, e === 0 ? "La fonction renvoie $\\dfrac{n \\times c}{2}$." : `Après une étape : $c = \\sqrt{2 - \\sqrt{4 - ${P.n0 === 6 ? "1" : `${P.n0 === 4 ? 2 : 3}`}}} ${Math.abs(R1.c - 1) < 1e-9 ? "= \\sqrt{1} = 1" : `\\approx ${nb(+R1.c.toFixed(4))}`}$.`, e === 0 ? `Calcule $\\dfrac{${P.n0} \\times ${P.tex}}{2}$ à la calculatrice.` : e === 2 ? "Recommence une fois avec la nouvelle valeur de $c$ (garde-la en mémoire dans la calculatrice), puis calcule $\\dfrac{n \\times c}{2}$." : "Termine avec $\\dfrac{n \\times c}{2}$."],
+        solution: `${e === 0 ? `La boucle ne tourne pas : $\\dfrac{${P.n0} \\times ${P.tex}}{2}` : `Après ${e === 1 ? "une étape" : "deux étapes"}, $n = ${res.n}$ et $c ${Math.abs(res.c - 1) < 1e-9 ? "= 1" : `\\approx ${nb(+res.c.toFixed(4))}`}$, donc $\\dfrac{n \\times c}{2}`} ${exact ? "=" : "\\approx"} ${nb(exact ? Math.round(res.v) : v)}$. ${exact ? "On retrouve l'hexagone : un triangle dont on double les côtés devient un hexagone." : "C'est une valeur approchée de $\\pi$ par défaut, de plus en plus précise quand le nombre de côtés augmente."}`
+      };
+    }
+    if (t === 6) {
+      const e = rand(1, 7), n = 6 * 2 ** e;
+      return {
+        enonce: `${code}\n\nQuel nombre faut-il donner à archimede pour que le dernier polygone ait $${nb(n)}$ côtés${n === 96 ? ", comme celui d'Archimède" : ""} ?`,
+        mode: "nombre", prefixe: "Étapes :", attendu: e,
+        erreurs: [{ valeur: n / 6, message: `En $${e}$ étape${e > 1 ? "s" : ""}, on multiplie par $2^{${e}} = ${n / 6}$ : la réponse est le nombre d'étapes, pas le facteur.` }].filter((x) => x.valeur !== e),
+        aides: ["Au départ, $n = 6$, et chaque étape double $n$.", `Il faut passer de $6$ à $${nb(n)}$ côtés : $${nb(n)} = 6 \\times ${n / 6}$.`, `Combien de fois faut-il multiplier par $2$ pour obtenir $${n / 6}$ ?`],
+        solution: `$${nb(n)} = 6 \\times ${n / 6} = 6 \\times 2^{${e}}$ : il faut doubler $${e}$ fois le nombre de côtés, donc appeler archimede(${e}).`
+      };
+    }
+    if (t === 7) {
+      const P = pick([POLY.hexagone, POLY.carre, POLY.triangle]), R1 = arch(P, 1), v = +R1.c.toFixed(4), c2 = P.n0 === 6 ? "1" : P.n0 === 4 ? "2" : "3";
+      return {
+        enonce: `${P.n0 === 6 ? "" : `On modifie le programme d'Archimède pour partir d'un ${P.nom} inscrit dans le cercle de rayon $1$.\n\n`}${codeP(P)}\n\nLors de l'appel archimede(1), quelle est la valeur de c après le passage dans la boucle ? Arrondis au dix-millième si besoin.`,
+        mode: "nombre", prefixe: "c =", attendu: Math.abs(R1.c - 1) < 1e-9 ? 1 : v, tolerance: 0.00006,
+        aides: [`Au départ, $c = ${P.tex}$, donc $c^2 = ${c2}$.`, `Dans la boucle, $c$ devient $\\sqrt{2 - \\sqrt{4 - ${c2}}}$.`, `Calcule d'abord $\\sqrt{${4 - +c2}}$.`],
+        solution: `$c = \\sqrt{2 - \\sqrt{4 - ${c2}}} = \\sqrt{2 - \\sqrt{${4 - +c2}}} ${Math.abs(R1.c - 1) < 1e-9 ? "= \\sqrt{1} = 1" : `\\approx ${nb(v)}`}$ : c'est le côté du polygone à $${R1.n}$ côtés inscrit dans le cercle de rayon $1$.`
+      };
+    }
+    const c = melangeChoix("n × c est le périmètre du polygone, proche de celui du cercle, $2\\pi$ : on divise par $2$ pour approcher $\\pi$", ["Pour arrondir le résultat", "Parce que le rayon du cercle vaut $2$", "Parce qu'à chaque étape le nombre de côtés double"]);
     return {
-      enonce: `${code}\n\nPourquoi les résultats de archimede(k) sont-ils toujours inférieurs à $\\pi$ ?`,
+      enonce: `${code}\n\nPourquoi la fonction renvoie-t-elle n * c / 2 et pas n * c ?`,
       mode: "choix", choix: c.choix, attendu: c.attendu,
-      aides: ["Le polygone est **inscrit** : ses sommets sont sur le cercle.", "Entre deux sommets, le côté (segment) est plus court que l'arc de cercle.", "On compare le demi-périmètre du polygone au demi-périmètre du cercle, $\\pi$."],
-      solution: "Chaque côté du polygone inscrit est un segment, plus court que l'arc de cercle qu'il sous-tend : le demi-périmètre du polygone est donc inférieur à $\\pi$. Il s'en approche quand le nombre de côtés augmente."
+      aides: ["Le polygone a $n$ côtés de longueur $c$ : que représente $n \\times c$ ?", "Le cercle a pour rayon $1$ : quel est son périmètre ?", "On veut une valeur approchée de $\\pi$, pas de $2\\pi$."],
+      solution: "Le polygone a $n$ côtés de longueur $c$ : son périmètre est $n \\times c$. Il est proche du périmètre du cercle de rayon $1$, qui vaut $2\\pi$. En divisant par $2$, on obtient une valeur approchée de $\\pi$."
     };
   };
+  // Logique : « pour tout réel x » et « il existe un réel x », négation, contre-exemple, conditions
 
 
   /* ---------- Première, chapitre 9 : dérivation, point de vue global (préfixe d2-) ---------- */
@@ -6663,18 +8295,74 @@
 
   // Logique : disjonction des cas (valeur absolue), contre-exemples
   GEN["d2-logique"] = function () {
+    // Aides pour les questions sur les formules et les quantificateurs
+    const AQ = ["« Pour tout » : un seul contre-exemple suffit pour le réfuter. « Il existe » : un seul exemple suffit pour le prouver.", "Dérivées usuelles : $(x^2)' = 2x$, $(x^3)' = 3x^2$, $\\left(\\dfrac{1}{x}\\right)' = -\\dfrac{1}{x^2}$, $(\\sqrt{x})' = \\dfrac{1}{2\\sqrt{x}}$.", "Teste avec des fonctions simples, comme $x \\mapsto x$ ou $x \\mapsto x^2$."];
+    // [question, bonne réponse, fausses réponses, solution, aides (facultatif)]
     const T = [
       ["La fonction racine carrée est-elle dérivable en $0$ ?", "Non : le taux $\\dfrac{\\sqrt{h}}{h} = \\dfrac{1}{\\sqrt{h}}$ devient aussi grand qu'on veut", ["Oui, et le nombre dérivé vaut $0$", "Oui, et le nombre dérivé vaut $\\dfrac{1}{2}$", "Non, car elle n'est pas définie en $0$"], "Pour $h > 0$, $\\dfrac{\\sqrt{0 + h} - \\sqrt{0}}{h} = \\dfrac{1}{\\sqrt{h}}$, qui n'a pas de limite finie quand $h$ tend vers $0$ : la tangente en $0$ est verticale. Pourtant $\\sqrt{0} = 0$ existe bien."],
       ["La fonction valeur absolue est-elle dérivable en $0$ ?", "Non : le taux vaut $1$ si $h > 0$ et $-1$ si $h < 0$", ["Oui, et le nombre dérivé vaut $0$", "Oui, et le nombre dérivé vaut $1$", "Non, car $|0|$ n'existe pas"], "Disjonction des cas : si $h > 0$, $\\dfrac{|h|}{h} = 1$ ; si $h < 0$, $\\dfrac{|h|}{h} = -1$. Le taux ne se rapproche pas d'un nombre unique : pas de nombre dérivé en $0$."],
       ["Pour $h < 0$, le taux $\\dfrac{|0 + h| - |0|}{h}$ vaut :", "$-1$", ["$1$", "$0$", "$h$"], "Pour $h < 0$, $|h| = -h$, donc $\\dfrac{|h|}{h} = \\dfrac{-h}{h} = -1$."],
       ["Vrai ou faux : « une fonction dont la courbe se trace sans lever le crayon est dérivable partout » ?", "Faux", ["Vrai"], "Faux. Contre-exemple : la valeur absolue se trace sans lever le crayon, mais elle n'est pas dérivable en $0$ (pointe de la courbe)."],
       ["Vrai ou faux : « si $f'(x) = g'(x)$ pour tout $x$, alors $f = g$ » ?", "Faux", ["Vrai"], "Faux. Contre-exemple : $f(x) = x^2$ et $g(x) = x^2 + 1$ ont la même dérivée $2x$, mais $f \\neq g$."],
-      ["Pour simplifier $|x - 2|$, on raisonne par disjonction des cas :", "si $x \\geqslant 2$, $|x - 2| = x - 2$ ; si $x < 2$, $|x - 2| = 2 - x$", ["si $x \\geqslant 0$, $|x - 2| = x - 2$ ; sinon $|x - 2| = x + 2$", "$|x - 2| = x - 2$ pour tout $x$", "$|x - 2| = |x| - 2$ pour tout $x$"], "On regarde le signe de ce qui est dans la valeur absolue : $x - 2 \\geqslant 0$ quand $x \\geqslant 2$."]
+      ["Pour simplifier $|x - 2|$, on raisonne par disjonction des cas :", "si $x \\geqslant 2$, $|x - 2| = x - 2$ ; si $x < 2$, $|x - 2| = 2 - x$", ["si $x \\geqslant 0$, $|x - 2| = x - 2$ ; sinon $|x - 2| = x + 2$", "$|x - 2| = x - 2$ pour tout $x$", "$|x - 2| = |x| - 2$ pour tout $x$"], "On regarde le signe de ce qui est dans la valeur absolue : $x - 2 \\geqslant 0$ quand $x \\geqslant 2$."],
+      ["Pour $h > 0$, le taux $\\dfrac{|0 + h| - |0|}{h}$ vaut :", "$1$", ["$-1$", "$0$", "$h$"], "Pour $h > 0$, $|h| = h$, donc $\\dfrac{|h|}{h} = \\dfrac{h}{h} = 1$."],
+      ["Pour tout réel $x \\neq 0$, le quotient $\\dfrac{|x|}{x}$ vaut :", "$1$ si $x > 0$, et $-1$ si $x < 0$", ["$1$ pour tout $x \\neq 0$", "$-1$ pour tout $x \\neq 0$", "$x$"], "Disjonction des cas : si $x > 0$, $|x| = x$ et le quotient vaut $1$ ; si $x < 0$, $|x| = -x$ et il vaut $\\dfrac{-x}{x} = -1$."],
+      ["Vrai ou faux : « pour tout réel $x$, $|x|^2 = x^2$ » ?", "Vrai", ["Faux"], "Vrai, par disjonction des cas : si $x \\geqslant 0$, $|x| = x$ ; si $x < 0$, $|x| = -x$ et $(-x)^2 = x^2$. Ainsi $x \\mapsto |x|^2$ est la fonction carré, dérivable partout, alors que la valeur absolue ne l'est pas en $0$."],
+      ["Vrai ou faux : « la dérivée d'un produit est le produit des dérivées » ?", "Faux", ["Vrai"], "Faux. Contre-exemple : avec $u(x) = x$ et $v(x) = x$, le produit $u(x)v(x) = x^2$ a pour dérivée $2x$, alors que $u'(x) \\times v'(x) = 1 \\times 1 = 1$. La bonne formule est $(uv)' = u'v + uv'$.", AQ],
+      ["Vrai ou faux : « la dérivée d'un quotient est le quotient des dérivées » ?", "Faux", ["Vrai"], "Faux. Contre-exemple : avec $u(x) = 1$ et $v(x) = x$, le quotient $\\dfrac{1}{x}$ a pour dérivée $-\\dfrac{1}{x^2}$, alors que $\\dfrac{u'(x)}{v'(x)} = \\dfrac{0}{1} = 0$. La bonne formule est $\\left(\\dfrac{u}{v}\\right)' = \\dfrac{u'v - uv'}{v^2}$.", AQ],
+      ["Vrai ou faux : « si $f$ est dérivable en $a$, alors $f$ est définie en $a$ » ?", "Vrai", ["Faux"], "Vrai : le taux $\\dfrac{f(a + h) - f(a)}{h}$ utilise $f(a)$, qui doit donc exister."],
+      ["Vrai ou faux : « si $f$ est définie en $a$, alors $f$ est dérivable en $a$ » ?", "Faux", ["Vrai"], "Faux. C'est la réciproque de « si $f$ est dérivable en $a$, alors $f$ est définie en $a$ », qui est vraie ; mais la réciproque est fausse. Contre-exemple : la racine carrée est définie en $0$ ($\\sqrt{0} = 0$) mais n'y est pas dérivable."],
+      ["Vrai ou faux : « si $f$ et $g$ sont dérivables en $a$, alors $f + g$ est dérivable en $a$ » ?", "Vrai", ["Faux"], "Vrai : c'est une propriété du cours, et $(f + g)'(a) = f'(a) + g'(a)$.", AQ],
+      ["Vrai ou faux : « si $f + g$ est dérivable en $0$, alors $f$ et $g$ sont dérivables en $0$ » ?", "Faux", ["Vrai"], "Faux. Contre-exemple : $f(x) = |x|$ et $g(x) = -|x|$. Leur somme est la fonction nulle, dérivable en $0$, alors que ni $f$ ni $g$ ne sont dérivables en $0$. C'est la réciproque de la propriété « $f$ et $g$ dérivables $\\Rightarrow$ $f + g$ dérivable » : elle est fausse."],
+      ["Sur quel ensemble la fonction racine carrée est-elle dérivable ?", "$]0\\,;+\\infty[$", ["$[0\\,;+\\infty[$", "$\\mathbb{R}$", "$]-\\infty\\,;0[$"], "Elle est définie sur $[0\\,;+\\infty[$, mais dérivable seulement sur $]0\\,;+\\infty[$ : en $0$, le taux $\\dfrac{1}{\\sqrt{h}}$ n'a pas de limite finie."],
+      ["La courbe de la racine carrée a une tangente verticale au point d'abscisse $0$. Peut-on en déduire un nombre dérivé en $0$ ?", "Non : une droite verticale n'a pas de coefficient directeur", ["Oui, il vaut $0$", "Oui, il vaut $1$", "Oui, il vaut $\\dfrac{1}{2}$"], "Une droite verticale n'a pas de coefficient directeur réel. La racine carrée n'est donc pas dérivable en $0$, même si sa courbe a une tangente (verticale) en ce point."],
+      ["Vrai ou faux : « il existe un réel $a$ tel que la tangente à la parabole $y = x^2$ au point d'abscisse $a$ soit horizontale » ?", "Vrai", ["Faux"], "Vrai : la dérivée de $x \\mapsto x^2$ est $x \\mapsto 2x$, qui s'annule pour $x = 0$. Au sommet $(0\\,;0)$, la tangente est horizontale. Un seul exemple suffit pour prouver un « il existe ».", AQ],
+      ["Vrai ou faux : « pour tout réel $x$, le nombre dérivé de $x \\mapsto x^3$ en $x$ est positif ou nul » ?", "Vrai", ["Faux"], "Vrai : $(x^3)' = 3x^2$, et un carré est toujours positif ou nul. Il vaut $0$ seulement en $x = 0$.", AQ],
+      ["Vrai ou faux : « pour tout réel $x > 0$, la tangente à l'hyperbole $y = \\dfrac{1}{x}$ au point d'abscisse $x$ a un coefficient directeur strictement négatif » ?", "Vrai", ["Faux"], "Vrai : ce coefficient directeur vaut $-\\dfrac{1}{x^2}$, et $x^2 > 0$ pour $x \\neq 0$, donc il est strictement négatif.", AQ],
+      ["Vrai ou faux : « si $f(x) = g(x) + 5$ pour tout réel $x$ (avec $g$ dérivable), alors $f' = g'$ » ?", "Vrai", ["Faux"], "Vrai : $(g + 5)' = g' + 0 = g'$, car la dérivée d'une constante est nulle. C'est justement pourquoi deux fonctions de même dérivée ne sont pas forcément égales : elles peuvent différer d'une constante.", AQ],
+      ["Vrai ou faux : « si $f'(0) = 0$, alors $f(x) \\geqslant f(0)$ pour tout réel $x$ » ?", "Faux", ["Vrai"], "Faux. Contre-exemple : $f(x) = x^3$. On a $f'(x) = 3x^2$, donc $f'(0) = 0$, mais $f(-1) = -1 < 0 = f(0)$. Une tangente horizontale ne signifie pas forcément un minimum.", AQ],
+      ["La négation de « $f$ est dérivable en tout point de $I$ » est :", "il existe un point de $I$ où $f$ n'est pas dérivable", ["$f$ n'est dérivable en aucun point de $I$", "$f$ est dérivable en au moins un point de $I$", "$f$ n'est pas définie sur $I$"], "Le contraire de « pour tout… » est « il existe… qui ne… pas ». Exemple : la valeur absolue est dérivable en tout point sauf $0$ ; elle n'est donc pas dérivable sur $\\mathbb{R}$, sans être « nulle part dérivable ».", AQ]
     ];
-    const [q, b, f, s] = pick(T), c = melangeChoix(b, f);
+    const P = [
+      // |x - c| par disjonction des cas
+      () => {
+        const c = pick([-7, -6, -5, -4, -3, -2, -1, 1, 3, 4, 5, 6, 7]), E = poly([1, -c]), N = c > 0 ? `${c} - x` : poly([-1, c]);
+        return [`Pour simplifier $|${E}|$, on raisonne par disjonction des cas :`, `si $x \\geqslant ${c}$, $|${E}| = ${E}$ ; si $x < ${c}$, $|${E}| = ${N}$`,
+          [`si $x \\geqslant 0$, $|${E}| = ${E}$ ; sinon $|${E}| = ${poly([1, c])}$`, `$|${E}| = ${E}$ pour tout $x$`, `si $x \\geqslant ${-c}$, $|${E}| = ${E}$ ; si $x < ${-c}$, $|${E}| = ${N}$`],
+          `On regarde le signe de ce qui est dans la valeur absolue : $${E} \\geqslant 0 \\iff x \\geqslant ${c}$. Si $x \\geqslant ${c}$, $|${E}| = ${E}$ ; si $x < ${c}$, $|${E}| = -(${E}) = ${N}$.`];
+      },
+      // Valeur absolue en a non nul
+      () => {
+        const a = pick([-6, -5, -4, -3, -2, -1, 1, 2, 3, 4, 5, 6]), b = `Oui, et le nombre dérivé vaut $${a > 0 ? 1 : -1}$`;
+        return [`La fonction valeur absolue est-elle dérivable en $${a}$ ?`, b, [`Oui, et le nombre dérivé vaut $${a > 0 ? -1 : 1}$`, "Non, à cause de la pointe de sa courbe", "Oui, et le nombre dérivé vaut $0$"],
+          a > 0
+            ? `Pour $h$ proche de $0$, $${a} + h > 0$, donc $|${a} + h| = ${a} + h$ et le taux vaut $\\dfrac{${a} + h - ${a}}{h} = 1$. La valeur absolue est dérivable en $${a}$, de nombre dérivé $1$ : la pointe de la courbe est seulement en $0$.`
+            : `Pour $h$ proche de $0$, $${a} + h < 0$, donc $|${a} + h| = -(${a} + h)$ et le taux vaut $\\dfrac{-(${a} + h) - ${-a}}{h} = \\dfrac{-h}{h} = -1$. La valeur absolue est dérivable en $${a}$, de nombre dérivé $-1$ : la pointe de la courbe est seulement en $0$.`];
+      },
+      // Taux de la racine carrée en 0
+      () => {
+        const [h, r] = pick([[0.01, 0.1], [0.0001, 0.01], [0.04, 0.2], [0.25, 0.5], [0.000001, 0.001]]), v = Math.round(1 / r);
+        return [`Pour la racine carrée en $0$, que vaut le taux $\\dfrac{\\sqrt{0 + h} - \\sqrt{0}}{h}$ pour $h = ${fr(h)}$ ?`, `$${nb(v)}$`, [`$${fr(r)}$`, `$${fr(h)}$`, `$${nb(Math.round(1 / h))}$`],
+          `$\\dfrac{\\sqrt{h}}{h} = \\dfrac{1}{\\sqrt{h}} = \\dfrac{1}{${fr(r)}} = ${nb(v)}$. Plus $h$ est proche de $0$, plus ce taux est grand : il n'a pas de limite finie, la racine carrée n'est pas dérivable en $0$.`];
+      },
+      // Il existe x tel que f'(x) = m ?
+      () => {
+        const m = randNZ(-6, 6), k = rand(0, 3);
+        const fT = ["x^2", "x^3", "\\dfrac{1}{x}", "\\sqrt{x}"][k], dom = k >= 2 ? " sur $]0\\,;+\\infty[$" : "";
+        const vrai = k === 0 || (k === 1 && m > 0) || (k === 2 && m < 0) || (k === 3 && m > 0);
+        const s = [
+          `Vrai : $f'(x) = 2x$, et $2x = ${m} \\iff x = ${frac(m, 2)}$. Un exemple suffit pour prouver un « il existe ».`,
+          m > 0 ? `Vrai : $f'(x) = 3x^2$, et $3x^2 = ${m}$ pour $x = \\sqrt{\\dfrac{${m}}{3}}$ par exemple. Un exemple suffit pour prouver un « il existe ».` : `Faux : $f'(x) = 3x^2 \\geqslant 0$ pour tout réel $x$, donc $f'(x)$ ne vaut jamais $${m}$. Pour réfuter un « il existe », il faut montrer qu'**aucun** réel ne convient.`,
+          m < 0 ? `Vrai : $f'(x) = -\\dfrac{1}{x^2}$, et $-\\dfrac{1}{x^2} = ${m} \\iff x^2 = ${frac(1, -m)}$, vrai pour $x = ${m === -1 ? "1" : m === -4 ? "\\dfrac{1}{2}" : `\\dfrac{1}{\\sqrt{${-m}}}`}$ par exemple.` : `Faux : $f'(x) = -\\dfrac{1}{x^2} < 0$ pour tout $x > 0$, donc $f'(x)$ ne vaut jamais $${m}$. Pour réfuter un « il existe », il faut montrer qu'**aucun** réel ne convient.`,
+          m > 0 ? `Vrai : $f'(x) = \\dfrac{1}{2\\sqrt{x}}$, et $\\dfrac{1}{2\\sqrt{x}} = ${m} \\iff \\sqrt{x} = ${frac(1, 2 * m)} \\iff x = ${frac(1, 4 * m * m)}$.` : `Faux : $f'(x) = \\dfrac{1}{2\\sqrt{x}} > 0$ pour tout $x > 0$, donc $f'(x)$ ne vaut jamais $${m}$. Pour réfuter un « il existe », il faut montrer qu'**aucun** réel ne convient.`
+        ][k];
+        return [`On considère $f(x) = ${fT}$${dom}. Vrai ou faux : « il existe un réel $x$ tel que $f'(x) = ${m}$ » ?`, vrai ? "Vrai" : "Faux", [vrai ? "Faux" : "Vrai"], s, AQ];
+      }
+    ];
+    const Q = Math.random() < 0.3 ? pick(P)() : pick(T), [q, b, f, s] = Q, c = melangeChoix(b, f);
     return {
       enonce: q, mode: "choix", choix: c.choix, attendu: c.attendu,
-      aides: ["Une fonction est dérivable en $a$ si le taux $\\dfrac{f(a + h) - f(a)}{h}$ se rapproche d'un **nombre réel** quand $h$ tend vers $0$.", "Pour la valeur absolue, distingue les cas $h > 0$ et $h < 0$.", "Un seul contre-exemple suffit pour réfuter une affirmation générale."],
+      aides: Q[4] || ["Une fonction est dérivable en $a$ si le taux $\\dfrac{f(a + h) - f(a)}{h}$ se rapproche d'un **nombre réel** quand $h$ tend vers $0$.", "Pour la valeur absolue, distingue les cas $h > 0$ et $h < 0$.", "Un seul contre-exemple suffit pour réfuter une affirmation générale."],
       solution: s
     };
   };
@@ -6703,26 +8391,144 @@
   };
 
   GEN["d2-python"] = function () {
-    const A = pick([0, 0, 1, 4, 16, 25]);
-    const code = "```python\nfrom math import sqrt\n\ndef taux(f, a, h):\n    return (f(a + h) - f(a)) / h\n\nprint([taux(sqrt, " + A + ", 10**(-k)) for k in range(1, 6)])\n```";
-    if (A === 0) {
-      const c = melangeChoix("Elles deviennent de plus en plus grandes : la racine carrée n'est pas dérivable en 0", ["Elles se rapprochent de 0 : la racine carrée a pour nombre dérivé 0 en 0", "Elles se rapprochent de 0,5", "Le programme renvoie une erreur"]);
+    // Programme du cours : taux(f, a, h) pour h = 10^(-k), k = 1, …, K - 1 (h négatif si neg)
+    const prog = (defs, fn, a, K, neg) => "```python\n" + defs + "def taux(f, a, h):\n    return (f(a + h) - f(a)) / h\n\nprint([taux(" + fn + ", " + a + ", " + (neg ? "-" : "") + "10**(-k)) for k in range(1, " + K + ")])\n```";
+    const SQRT = "from math import sqrt\n\n", CARRE = "def carre(x):\n    return x * x\n\n", CUBE = "def cube(x):\n    return x * x * x\n\n", INV = "def inverse(x):\n    return 1 / x\n\n";
+    const t = rand(0, 9);
+    if (t <= 1) {
+      // Racine carrée (questions d'origine, et d'autres carrés parfaits)
+      const A = t === 0 ? pick([0, 0, 1, 4, 16, 25]) : pick([9, 36, 49, 64, 81, 100]);
+      const code = prog(SQRT, "sqrt", A, 6);
+      if (A === 0) {
+        const c = melangeChoix("Elles deviennent de plus en plus grandes : la racine carrée n'est pas dérivable en 0", ["Elles se rapprochent de 0 : la racine carrée a pour nombre dérivé 0 en 0", "Elles se rapprochent de 0,5", "Le programme renvoie une erreur"]);
+        return {
+          enonce: `${code}\n\nLe programme affiche environ [3.16, 10.0, 31.6, 100.0, 316.2]. Qu'en conclure ?`,
+          mode: "choix", choix: c.choix, attendu: c.attendu,
+          aides: ["Chaque valeur est le taux de variation de la racine carrée entre $0$ et $h$.", "Ce taux vaut $\\dfrac{\\sqrt{h}}{h} = \\dfrac{1}{\\sqrt{h}}$.", "Un nombre dérivé existe seulement si le taux se rapproche d'un nombre réel."],
+          solution: "Le taux $\\dfrac{1}{\\sqrt{h}}$ est multiplié par environ $3{,}16$ à chaque fois que $h$ est divisé par $10$ : il devient aussi grand qu'on veut. La racine carrée n'est pas dérivable en $0$ (tangente verticale)."
+        };
+      }
+      const rep = 1 / (2 * Math.sqrt(A)), exact = [1, 4, 16, 25, 64, 100].includes(A);
       return {
-        enonce: `${code}\n\nLe programme affiche environ [3.16, 10.0, 31.6, 100.0, 316.2]. Qu'en conclure ?`,
-        mode: "choix", choix: c.choix, attendu: c.attendu,
-        aides: ["Chaque valeur est le taux de variation de la racine carrée entre $0$ et $h$.", "Ce taux vaut $\\dfrac{\\sqrt{h}}{h} = \\dfrac{1}{\\sqrt{h}}$.", "Un nombre dérivé existe seulement si le taux se rapproche d'un nombre réel."],
-        solution: "Le taux $\\dfrac{1}{\\sqrt{h}}$ est multiplié par environ $3{,}16$ à chaque fois que $h$ est divisé par $10$ : il devient aussi grand qu'on veut. La racine carrée n'est pas dérivable en $0$ (tangente verticale)."
+        enonce: `${code}\n\nVers quel nombre les valeurs affichées se rapprochent-elles ?${exact ? "" : " (Valeur exacte, ou arrondie au millième.)"}`,
+        mode: "nombre", prefixe: "Réponse :", attendu: rep, tolerance: 0.001,
+        erreurs: [{ valeur: Math.sqrt(A), message: `Ça, c'est $\\sqrt{${A}}$. Les valeurs sont des **taux de variation**.` }].filter((e) => Math.abs(e.valeur - rep) > 0.001),
+        aides: ["Chaque valeur est le taux de variation de la racine carrée entre $" + A + "$ et $" + A + " + h$.", "Quand $h$ tend vers $0$, le taux tend vers le nombre dérivé.", `$(\\sqrt{x})' = \\dfrac{1}{2\\sqrt{x}}$ : calcule-le en $x = ${A}$.`],
+        solution: `Les taux se rapprochent du nombre dérivé $\\dfrac{1}{2\\sqrt{${A}}} = ${frac(1, 2 * Math.sqrt(A))} ${exact ? `= ${nb(rep)}` : `\\approx ${nb(+rep.toFixed(4))}`}$.`
       };
     }
-    const rep = 1 / (2 * Math.sqrt(A));
+    const K = rand(5, 8);
+    if (t === 2) {
+      // Fonction carré : limite des taux
+      const a = randNZ(-6, 6), rep = 2 * a;
+      return {
+        enonce: `${prog(CARRE, "carre", a, K)}\n\nVers quel nombre les valeurs affichées se rapprochent-elles ?`,
+        mode: "nombre", prefixe: "Réponse :", attendu: rep,
+        erreurs: [{ valeur: a * a, message: `Ça, c'est carre(${a}), l'image de $${a}$. Les valeurs affichées sont des **taux de variation**.` }, { valeur: +(rep + 0.1).toFixed(6), message: "C'est seulement la première valeur, pour $h = 0{,}1$. Regarde vers quoi les valeurs se rapprochent quand $h$ devient très petit." }].filter((e) => e.valeur !== rep),
+        aides: [`Chaque valeur est le taux de variation de la fonction carré entre $${a}$ et $${a} + h$, pour $h = 0{,}1$ ; $0{,}01$ ; …`, `Ce taux vaut $\\dfrac{(${a} + h)^2 - ${par(a)}^2}{h} = ${rep} + h$.`, `Quand $h$ se rapproche de $0$, le taux se rapproche du nombre dérivé $f'(${a})$.`],
+        solution: `Le taux vaut $\\dfrac{(${a} + h)^2 - ${par(a)}^2}{h} = ${rep} + h$. Les valeurs affichées sont environ $${nb(rep + 0.1)}$ ; $${nb(rep + 0.01)}$ ; $${nb(rep + 0.001)}$ … : elles se rapprochent de $f'(${a}) = 2 \\times ${par(a)} = ${rep}$.`
+      };
+    }
+    if (t === 3) {
+      // Fonction carré : première valeur affichée
+      const a = randNZ(-6, 6), rep = +(2 * a + 0.1).toFixed(6);
+      return {
+        enonce: `${prog(CARRE, "carre", a, K)}\n\nQuelle est la **première** valeur de la liste affichée ? (Python peut ajouter quelques chiffres parasites tout à la fin : donne la valeur exacte.)`,
+        mode: "nombre", prefixe: "Première valeur :", attendu: rep, tolerance: 1e-6,
+        erreurs: [{ valeur: 2 * a, message: "Ça, c'est la valeur dont les nombres de la liste se rapprochent. La première valeur correspond à $k = 1$, donc à $h = 0{,}1$." }],
+        aides: ["Pour $k = 1$, on a $h = 10^{-1} = 0{,}1$.", `Le taux de la fonction carré entre $${a}$ et $${a} + h$ vaut $\\dfrac{(${a} + h)^2 - ${par(a)}^2}{h} = ${2 * a} + h$.`, "Remplace $h$ par $0{,}1$."],
+        solution: `Pour $k = 1$, $h = 0{,}1$ et le taux vaut $${2 * a} + 0{,}1 = ${nb(rep)}$. Python peut afficher un nombre très légèrement différent, à cause des arrondis de calcul.`
+      };
+    }
+    if (t === 4) {
+      // Fonction cube
+      const a = randNZ(-3, 3), rep = 3 * a * a;
+      return {
+        enonce: `${prog(CUBE, "cube", a, K)}\n\nVers quel nombre les valeurs affichées se rapprochent-elles ?`,
+        mode: "nombre", prefixe: "Réponse :", attendu: rep,
+        erreurs: [{ valeur: a * a * a, message: `Ça, c'est cube(${a}), l'image de $${a}$. Les valeurs affichées sont des **taux de variation**.` }].filter((e) => e.valeur !== rep),
+        aides: [`Chaque valeur est le taux de variation de la fonction cube entre $${a}$ et $${a} + h$.`, "Quand $h$ tend vers $0$, le taux tend vers le nombre dérivé.", `$(x^3)' = 3x^2$ : calcule-le en $x = ${a}$.`],
+        solution: `Les taux se rapprochent du nombre dérivé de la fonction cube en $${a}$ : $3 \\times ${par(a)}^2 = ${rep}$. (En développant, le taux vaut exactement $${rep} ${sg(3 * a)}h + h^2$.)`
+      };
+    }
+    if (t === 5) {
+      // Fonction inverse
+      const a = pick([-4, -3, -2, -1, 1, 2, 3, 4]), rep = -1 / (a * a);
+      return {
+        enonce: `${prog(INV, "inverse", a, K)}\n\nVers quel nombre les valeurs affichées se rapprochent-elles ? (Valeur exacte, ou arrondie au millième.)`,
+        mode: "nombre", prefixe: "Réponse :", attendu: rep, tolerance: 0.001,
+        erreurs: [{ valeur: 1 / (a * a), message: "Attention au signe : la fonction inverse est décroissante, ses nombres dérivés sont négatifs." }, { valeur: 1 / a, message: `Ça, c'est inverse(${a}), l'image de $${a}$. Les valeurs affichées sont des **taux de variation**.` }].filter((e, j, L) => Math.abs(e.valeur - rep) > 0.001 && L.findIndex((x) => x.valeur === e.valeur) === j),
+        aides: [`Chaque valeur est le taux de variation de la fonction inverse entre $${a}$ et $${a} + h$.`, "Quand $h$ tend vers $0$, le taux tend vers le nombre dérivé.", `$\\left(\\dfrac{1}{x}\\right)' = -\\dfrac{1}{x^2}$ : calcule-le en $x = ${a}$.`],
+        solution: `Les valeurs se rapprochent du nombre dérivé de la fonction inverse en $${a}$ : $-\\dfrac{1}{${par(a)}^2} = ${frac(-1, a * a)}${a * a === 1 ? "" : a * a === 9 ? ` \\approx ${fr(+rep.toFixed(3))}` : ` = ${fr(rep)}`}$.`
+      };
+    }
+    if (t === 6) {
+      // Un polynôme du second degré défini en Python
+      const p = pick([-3, -2, 2, 3]), q = rand(-5, 5), r = rand(-5, 5), a = rand(-3, 3), rep = 2 * p * a + q, fa = p * a * a + q * a + r;
+      const py = `${p === 1 ? "" : p === -1 ? "-" : p + " * "}x * x` + (q ? ` ${q < 0 ? "-" : "+"} ${Math.abs(q) === 1 ? "" : Math.abs(q) + " * "}x` : "") + (r ? ` ${r < 0 ? "-" : "+"} ${Math.abs(r)}` : "");
+      return {
+        enonce: `${prog("def f(x):\n    return " + py + "\n\n", "f", a, K)}\n\nVers quel nombre les valeurs affichées se rapprochent-elles ?`,
+        mode: "nombre", prefixe: "Réponse :", attendu: rep,
+        erreurs: [{ valeur: fa, message: `Ça, c'est f(${a}), l'image de $${a}$. Les valeurs affichées sont des **taux de variation**.` }].filter((e) => e.valeur !== rep),
+        aides: [`La fonction f du programme est $f(x) = ${poly([p, q, r])}$ : chaque valeur est son taux de variation entre $${a}$ et $${a} + h$.`, `Quand $h$ tend vers $0$, le taux tend vers $f'(${a})$.`, `$f'(x) = ${poly([2 * p, q])}$ : calcule $f'(${a})$.`],
+        solution: `$f(x) = ${poly([p, q, r])}$, donc $f'(x) = ${poly([2 * p, q])}$ et $f'(${a}) = ${2 * p} \\times ${par(a)}${q ? ` ${sg(q)}` : ""} = ${rep}$. Les valeurs affichées se rapprochent de ce nombre dérivé.`
+      };
+    }
+    if (t === 7) {
+      // Valeur absolue : en 0 (h > 0 ou h < 0), ou en a non nul
+      const v = rand(0, 2);
+      if (v < 2) {
+        const neg = v === 1, s = neg ? "-1.0" : "1.0";
+        const c = melangeChoix(`Non : le programme n'essaie que des $h ${neg ? "<" : ">"} 0$ ; pour $h ${neg ? ">" : "<"} 0$, le taux vaut $${neg ? 1 : -1}$`, [`Oui, et son nombre dérivé en $0$ vaut $${neg ? -1 : 1}$`, "Oui, et son nombre dérivé en $0$ vaut $0$", "Non, car la valeur absolue n'est pas définie en $0$"]);
+        return {
+          enonce: `${prog("", "abs", 0, 6, neg)}\n\nabs est la fonction valeur absolue de Python. Le programme affiche [${Array(5).fill(s).join(", ")}]. Peut-on en conclure que la valeur absolue est dérivable en $0$ ?`,
+          mode: "choix", choix: c.choix, attendu: c.attendu,
+          aides: [`Ici, $h$ vaut $${neg ? "-" : ""}0{,}1$ ; $${neg ? "-" : ""}0{,}01$ ; … : que des nombres ${neg ? "négatifs" : "positifs"}.`, "Pour être dérivable en $0$, le taux doit se rapprocher d'un **même** nombre quand $h$ tend vers $0$, de quelque côté que ce soit.", "Calcule $\\dfrac{|h|}{h}$ pour $h > 0$, puis pour $h < 0$."],
+          solution: `Pour $h > 0$, $\\dfrac{|h|}{h} = 1$ ; pour $h < 0$, $\\dfrac{|h|}{h} = \\dfrac{-h}{h} = -1$. Le programme n'a regardé qu'un seul côté de $0$. Le taux ne se rapproche pas d'un nombre unique : la valeur absolue **n'est pas dérivable en $0$**. Une simulation ne remplace pas une démonstration.`
+        };
+      }
+      const a = pick([-5, -4, -3, -2, -1, 1, 2, 3, 4, 5]), rep = a > 0 ? 1 : -1;
+      return {
+        enonce: `${prog("", "abs", a, K)}\n\nabs est la fonction valeur absolue de Python. Vers quel nombre les valeurs affichées se rapprochent-elles ?`,
+        mode: "nombre", prefixe: "Réponse :", attendu: rep,
+        erreurs: [{ valeur: -rep, message: `Regarde le signe de $${a} + h$ quand $h$ est petit : il est ${a > 0 ? "positif" : "négatif"}.` }, { valeur: Math.abs(a), message: `Ça, c'est abs(${a}). Les valeurs affichées sont des **taux de variation**.` }].filter((e, j, L) => e.valeur !== rep && L.findIndex((x) => x.valeur === e.valeur) === j),
+        aides: [`Pour $h$ proche de $0$, $${a} + h$ est ${a > 0 ? "positif" : "négatif"}.`, a > 0 ? `Donc $|${a} + h| = ${a} + h$ et $|${a}| = ${a}$.` : `Donc $|${a} + h| = -(${a} + h)$ et $|${a}| = ${-a}$.`, "Simplifie le taux $\\dfrac{|a + h| - |a|}{h}$."],
+        solution: a > 0
+          ? `Pour $h$ petit, $${a} + h > 0$ : $\\dfrac{|${a} + h| - |${a}|}{h} = \\dfrac{${a} + h - ${a}}{h} = 1$. Toutes les valeurs valent $1$ : la valeur absolue est dérivable en $${a}$, de nombre dérivé $1$.`
+          : `Pour $h$ petit, $${a} + h < 0$ : $\\dfrac{|${a} + h| - |${a}|}{h} = \\dfrac{-(${a} + h) - ${-a}}{h} = \\dfrac{-h}{h} = -1$. Toutes les valeurs valent $-1$ : la valeur absolue est dérivable en $${a}$, de nombre dérivé $-1$.`
+      };
+    }
+    if (t === 8) {
+      // Fonction inverse en 0 : erreur
+      const c = melangeChoix("Python s'arrête sur une erreur : il doit calculer inverse(0), une division par 0", ["Les valeurs se rapprochent de $0$", "Les valeurs se rapprochent de $-1$", "Les valeurs deviennent de plus en plus grandes"]);
+      return {
+        enonce: `${prog(INV, "inverse", 0, K)}\n\nQue se passe-t-il quand on lance ce programme ?`,
+        mode: "choix", choix: c.choix, attendu: c.attendu,
+        aides: ["Regarde ce que calcule taux(f, a, h) : il a besoin de f(a + h) **et** de f(a).", "Ici, $a = 0$ : il faut calculer inverse(0).", "La fonction inverse n'est pas définie en $0$."],
+        solution: "Pour calculer le taux, Python doit évaluer inverse(0), c'est-à-dire $\\dfrac{1}{0}$ : il s'arrête avec une erreur (ZeroDivisionError). La fonction inverse n'est pas définie en $0$, donc on ne peut même pas parler de nombre dérivé en $0$."
+      };
+    }
+    // Lire la boucle : nombre de valeurs, ou plus petit pas h
+    const a = randNZ(-5, 5), F = pick([["carre", CARRE], ["cube", CUBE], ["sqrt", SQRT]]), aa = F[0] === "sqrt" ? Math.abs(a) : a;
+    if (Math.random() < 0.5) {
+      return {
+        enonce: `${prog(F[1], F[0], aa, K)}\n\nCombien de nombres la liste affichée contient-elle ?`,
+        mode: "nombre", prefixe: "Réponse :", attendu: K - 1,
+        erreurs: [{ valeur: K, message: `range(1, ${K}) s'arrête **avant** $${K}$.` }],
+        aides: ["La liste contient un taux pour chaque valeur de k.", `range(1, ${K}) donne les entiers de $1$ jusqu'à $${K - 1}$ ($${K}$ est exclu).`, "Compte ces entiers."],
+        solution: `k prend les valeurs $1$, $2$, …, $${K - 1}$ : la liste contient $${K - 1}$ nombres, un pour chaque pas $h = 10^{-k}$.`
+      };
+    }
+    const hmin = +(10 ** -(K - 1)).toFixed(12), hTex = `0{,}${"0".repeat(K - 2)}1`;
     return {
-      enonce: `${code}\n\nVers quel nombre les valeurs affichées se rapprochent-elles ?`,
-      mode: "nombre", prefixe: "Réponse :", attendu: rep, tolerance: 0.001,
-      erreurs: [{ valeur: Math.sqrt(A), message: `Ça, c'est $\\sqrt{${A}}$. Les valeurs sont des **taux de variation**.` }].filter((e) => Math.abs(e.valeur - rep) > 0.001),
-      aides: ["Chaque valeur est le taux de variation de la racine carrée entre $" + A + "$ et $" + A + " + h$.", "Quand $h$ tend vers $0$, le taux tend vers le nombre dérivé.", `$(\\sqrt{x})' = \\dfrac{1}{2\\sqrt{x}}$ : calcule-le en $x = ${A}$.`],
-      solution: `Les taux se rapprochent du nombre dérivé $\\dfrac{1}{2\\sqrt{${A}}} = ${frac(1, 2 * Math.sqrt(A))} = ${nb(rep)}$.`
+      enonce: `${prog(F[1], F[0], aa, K)}\n\nQuelle est la plus petite valeur de $h$ utilisée par ce programme ? (Écris-la en écriture décimale.)`,
+      mode: "nombre", prefixe: "$h =$", attendu: hmin, tolerance: hmin / 100,
+      erreurs: [{ valeur: +(10 ** -K).toFixed(12), message: `range(1, ${K}) s'arrête **avant** $${K}$ : la dernière valeur de k est $${K - 1}$.` }],
+      aides: ["En Python, les deux étoiles notent une puissance : le pas vaut $h = 10^{-k}$.",`k va de $1$ à $${K - 1}$ : la plus petite valeur de $h$ est $10^{-${K - 1}}$.`, `$10^{-${K - 1}}$ s'écrit avec $${K - 2}$ zéros après la virgule, puis un $1$.`],
+      solution: `k prend les valeurs $1$ à $${K - 1}$, donc $h$ prend les valeurs $10^{-1} = 0{,}1$, $10^{-2} = 0{,}01$, …, jusqu'à $10^{-${K - 1}} = ${hTex}$.`
     };
   };
+  // Logique : disjonction des cas (valeur absolue), contre-exemples, quantificateurs
 
 
   /* ---------- Première, chapitre 10 : variations et courbes représentatives (préfixe vr-) ---------- */
@@ -6802,18 +8608,76 @@
   };
 
   GEN["vr-lecture-derivee"] = function () {
+    const lab = "C<tspan class=\"sub\" dy=\"3\">f′</tspan>", I = (x, y) => `$[${x}\\,;${y}]$`;
+    // partie visible de la courbe : autour de c, dans le cadre [−4,4 ; 4,4] × [y0 ; y1]
+    const dom = (fp, c, y0, y1) => { const [a, b] = d1Domaine(fp, c, 4.4, y0, y1); return { a: Math.max(a, -4.4), b: Math.min(b, 4.4) }; };
+    const t = rand(0, 5);
+    if (t === 4) {
+      // f' affine : un seul changement de signe
+      const r = rand(-3, 3), m = pick([-2, -1, -0.5, 0.5, 1, 2]), fp = (x) => m * (x - r), D = dom(fp, r, -4.4, 4.4);
+      const fig = graph({ xmin: -4.5, xmax: 4.5, ymin: -4.5, ymax: 4.5, h: 240, curves: [{ f: fp, ...D, closed: false, label: lab, lx: D.b - 0.6, dx: -8, dy: m > 0 ? -10 : 18 }], points: [{ x: r, y: 0 }], aria: "Courbe de la fonction dérivée f′ : une droite" });
+      const dc = `Décroissante sur $]-\\infty\\,;${r}]$, puis croissante sur $[${r}\\,;+\\infty[$`, cd = `Croissante sur $]-\\infty\\,;${r}]$, puis décroissante sur $[${r}\\,;+\\infty[$`;
+      const c = melangeChoix(m > 0 ? dc : cd, [m > 0 ? cd : dc, "Croissante sur $\\mathbb{R}$", "Décroissante sur $\\mathbb{R}$"]);
+      return {
+        enonce: "On a tracé la courbe de la **dérivée** $f'$ d'une fonction $f$ : c'est une droite. Quel est le sens de variation de $f$ ?",
+        mode: "choix", choix: c.choix, attendu: c.attendu, figure: fig,
+        aides: ["Attention : c'est la courbe de $f'$, pas celle de $f$. Que la droite monte ou descende ne dit rien directement sur $f$.", "Regarde le **signe** de $f'(x)$ : au-dessus de l'axe des abscisses, $f'(x) > 0$ ; en dessous, $f'(x) < 0$.", `La droite coupe l'axe des abscisses en $${r}$.`],
+        solution: `$f'(x) ${m > 0 ? "<" : ">"} 0$ pour $x < ${r}$ et $f'(x) ${m > 0 ? ">" : "<"} 0$ pour $x > ${r}$ : $f$ est ${m > 0 ? "décroissante puis croissante, avec un minimum" : "croissante puis décroissante, avec un maximum"} en $x = ${r}$.`,
+        figureSolution: tabSV(["−∞", nbSvg(r), "+∞"], m > 0 ? ["-", "0", "+"] : ["+", "0", "-"], ["", "", ""])
+      };
+    }
+    if (t === 5) {
+      // f' s'annule sans changer de signe : pas d'extremum
+      const r = rand(-2, 2), s = pick([1, -1]), k = pick([0.5, 1]), fp = (x) => s * k * (x - r) ** 2, y0 = s > 0 ? -1.5 : -4.5, y1 = s > 0 ? 4.5 : 1.5;
+      const fig = graph({ xmin: -4.5, xmax: 4.5, ymin: y0, ymax: y1, h: 240, curves: [{ f: fp, ...dom(fp, r, y0 + 0.1, y1 - 0.1), closed: false, label: lab, lx: r, dx: 18, dy: s > 0 ? 20 : -10 }], points: [{ x: r, y: 0 }], aria: "Courbe de la fonction dérivée f′, qui touche l'axe des abscisses sans le traverser" });
+      const croit = s > 0 ? "croissante" : "décroissante";
+      const c = melangeChoix(`$f$ est ${croit} sur $\\mathbb{R}$, sans extremum`, [`$f$ admet un minimum en $${r}$`, `$f$ admet un maximum en $${r}$`, `$f$ est ${s > 0 ? "décroissante" : "croissante"} sur $\\mathbb{R}$`]);
+      return {
+        enonce: "On a tracé la courbe de la **dérivée** $f'$ d'une fonction $f$. Que peut-on dire de $f$ ?",
+        mode: "choix", choix: c.choix, attendu: c.attendu, figure: fig,
+        aides: ["Attention : c'est la courbe de $f'$, pas celle de $f$.", `$f'(${r}) = 0$ : la tangente à la courbe de $f$ est horizontale en $${r}$. Mais $f'$ change-t-elle de signe en $${r}$ ?`, s > 0 ? "La courbe de $f'$ touche l'axe sans passer en dessous : $f'(x) \\geqslant 0$ pour tout $x$." : "La courbe de $f'$ touche l'axe sans passer au-dessus : $f'(x) \\leqslant 0$ pour tout $x$."],
+        solution: `$f'(x) ${s > 0 ? "\\geqslant" : "\\leqslant"} 0$ pour tout réel $x$, et $f'$ ne s'annule qu'en $${r}$ : $f$ est strictement ${croit} sur $\\mathbb{R}$. En $${r}$, $f'$ s'annule **sans changer de signe** : la tangente est horizontale, mais il n'y a pas d'extremum (comme pour $x^3$ en $0$).`,
+        figureSolution: tabSV(["−∞", nbSvg(r), "+∞"], s > 0 ? ["+", "0", "+"] : ["-", "0", "-"], ["", "", ""])
+      };
+    }
+    // f' du second degré, de racines r1 et r2
     let r1, r2; do { r1 = rand(-3, 1); r2 = r1 + rand(2, 4); } while (r2 > 3);
     const s = pick([1, -1]), k = 0.5, fp = (x) => s * k * (x - r1) * (x - r2);
     const m = -s * k * ((r2 - r1) / 2) ** 2;
-    const fig = graph({ xmin: -4.5, xmax: 4.5, ymin: Math.min(m, 0) - 1.5, ymax: Math.max(m, 0) + 2.5, h: 240, curves: [{ f: fp, ...(() => { const [a, b] = d1Domaine(fp, (r1 + r2) / 2, 4.4, Math.min(m, 0) - 1.4, Math.max(m, 0) + 2.4); return { a, b }; })(), closed: false, label: "C<tspan class=\"sub\" dy=\"3\">f′</tspan>", lx: (r1 + r2) / 2, dx: 18, dy: s > 0 ? 20 : -10 }], points: [{ x: r1, y: 0 }, { x: r2, y: 0 }], aria: "Courbe de la fonction dérivée f′" });
-    const I = (x, y) => `$[${x}\\,;${y}]$`, ext = `$]-\\infty\\,;${r1}]$ et $[${r2}\\,;+\\infty[$`;
-    const croiss = s > 0 ? ext : I(r1, r2);
-    const c = melangeChoix(croiss, [s > 0 ? I(r1, r2) : ext, `$[${r1}\\,;+\\infty[$`, `$]-\\infty\\,;${r2}]$`]);
+    const fig = graph({ xmin: -4.5, xmax: 4.5, ymin: Math.min(m, 0) - 1.5, ymax: Math.max(m, 0) + 2.5, h: 240, curves: [{ f: fp, ...(() => { const [a, b] = d1Domaine(fp, (r1 + r2) / 2, 4.4, Math.min(m, 0) - 1.4, Math.max(m, 0) + 2.4); return { a, b }; })(), closed: false, label: lab, lx: (r1 + r2) / 2, dx: 18, dy: s > 0 ? 20 : -10 }], points: [{ x: r1, y: 0 }, { x: r2, y: 0 }], aria: "Courbe de la fonction dérivée f′" });
+    const tab = tabSV(["−∞", nbSvg(r1), nbSvg(r2), "+∞"], s > 0 ? ["+", "0", "-", "0", "+"] : ["-", "0", "+", "0", "-"], ["", "", "", ""]);
+    const ext = `$]-\\infty\\,;${r1}]$ et $[${r2}\\,;+\\infty[$`;
+    if (t === 0) {
+      const croiss = s > 0 ? ext : I(r1, r2);
+      const c = melangeChoix(croiss, [s > 0 ? I(r1, r2) : ext, `$[${r1}\\,;+\\infty[$`, `$]-\\infty\\,;${r2}]$`]);
+      return {
+        enonce: "On a tracé la courbe de la **dérivée** $f'$ d'une fonction $f$. Sur quel(s) intervalle(s) $f$ est-elle croissante ?",
+        mode: "choix", choix: c.choix, attendu: c.attendu, figure: fig,
+        aides: ["Attention : c'est la courbe de $f'$, pas celle de $f$.", "$f$ est croissante là où $f'(x) \\geqslant 0$, c'est-à-dire là où la courbe de $f'$ est **au-dessus** de l'axe des abscisses.", `La courbe de $f'$ coupe l'axe en $${r1}$ et $${r2}$.`],
+        solution: `$f'(x) \\geqslant 0$ ${s > 0 ? `à l'extérieur de $[${r1}\\,;${r2}]$` : `sur $[${r1}\\,;${r2}]$`} : $f$ est croissante sur ${croiss}.`,
+        figureSolution: tab
+      };
+    }
+    if (t === 1) {
+      const decr = s > 0 ? I(r1, r2) : ext;
+      const c = melangeChoix(decr, [s > 0 ? ext : I(r1, r2), `$[${r1}\\,;+\\infty[$`, `$]-\\infty\\,;${r2}]$`]);
+      return {
+        enonce: "On a tracé la courbe de la **dérivée** $f'$ d'une fonction $f$. Sur quel(s) intervalle(s) $f$ est-elle décroissante ?",
+        mode: "choix", choix: c.choix, attendu: c.attendu, figure: fig,
+        aides: ["Attention : c'est la courbe de $f'$, pas celle de $f$.", "$f$ est décroissante là où $f'(x) \\leqslant 0$, c'est-à-dire là où la courbe de $f'$ est **en dessous** de l'axe des abscisses.", `La courbe de $f'$ coupe l'axe en $${r1}$ et $${r2}$.`],
+        solution: `$f'(x) \\leqslant 0$ ${s > 0 ? `sur $[${r1}\\,;${r2}]$` : `à l'extérieur de $[${r1}\\,;${r2}]$`} : $f$ est décroissante sur ${decr}.`,
+        figureSolution: tab
+      };
+    }
+    // t = 2 ou 3 : abscisse du maximum ou du minimum local
+    const veutMax = t === 2, xMax = s > 0 ? r1 : r2, xMin = s > 0 ? r2 : r1, rep = veutMax ? xMax : xMin, autre = veutMax ? xMin : xMax;
     return {
-      enonce: "On a tracé la courbe de la **dérivée** $f'$ d'une fonction $f$. Sur quel(s) intervalle(s) $f$ est-elle croissante ?",
-      mode: "choix", choix: c.choix, attendu: c.attendu, figure: fig,
-      aides: ["Attention : c'est la courbe de $f'$, pas celle de $f$.", "$f$ est croissante là où $f'(x) \\geqslant 0$, c'est-à-dire là où la courbe de $f'$ est **au-dessus** de l'axe des abscisses.", `La courbe de $f'$ coupe l'axe en $${r1}$ et $${r2}$.`],
-      solution: `$f'(x) \\geqslant 0$ ${s > 0 ? `à l'extérieur de $[${r1}\\,;${r2}]$` : `sur $[${r1}\\,;${r2}]$`} : $f$ est croissante sur ${croiss}.`
+      enonce: `On a tracé la courbe de la **dérivée** $f'$ d'une fonction $f$. En quelle valeur de $x$ la fonction $f$ admet-elle un ${veutMax ? "maximum" : "minimum"} local ?`,
+      mode: "nombre", prefixe: "$x =$", attendu: rep, figure: fig,
+      erreurs: [{ valeur: autre, message: `En $${autre}$, $f'$ passe de « ${veutMax ? "−" : "+"} » à « ${veutMax ? "+" : "−"} » : $f$ y admet un ${veutMax ? "minimum" : "maximum"} local.` }, { valeur: (r1 + r2) / 2, message: "Ça, c'est le sommet de la courbe de $f'$. Un extremum de $f$ se lit là où $f'$ **s'annule** en changeant de signe." }],
+      aides: ["Attention : c'est la courbe de $f'$, pas celle de $f$. Un extremum de $f$ se lit là où $f'$ s'annule **en changeant de signe**.", `La courbe de $f'$ coupe l'axe des abscisses en $${r1}$ et $${r2}$.`, veutMax ? "Maximum : $f'$ passe de « + » (au-dessus de l'axe) à « − » (en dessous) ; $f$ croît puis décroît." : "Minimum : $f'$ passe de « − » (en dessous de l'axe) à « + » (au-dessus) ; $f$ décroît puis croît."],
+      solution: `$f'$ s'annule en $${r1}$ et en $${r2}$ en changeant de signe. En $${rep}$, elle passe de « ${veutMax ? "+" : "−"} » à « ${veutMax ? "−" : "+"} » : $f$ ${veutMax ? "croît puis décroît" : "décroît puis croît"}, elle admet donc un ${veutMax ? "maximum" : "minimum"} local en $x = ${rep}$.`,
+      figureSolution: tab
     };
   };
 
@@ -6832,6 +8696,7 @@
   };
 
   GEN["vr-parite"] = function () {
+    // [f(x), 0 paire / 1 impaire / 2 ni l'un ni l'autre, solution, ensemble de définition imposé (facultatif)]
     const T = [
       ["x^4 - 3x^2", 0, "$f(-x) = (-x)^4 - 3(-x)^2 = x^4 - 3x^2 = f(x)$ : **paire**, la courbe est symétrique par rapport à l'axe des ordonnées."],
       ["x^3 + 5x", 1, "$f(-x) = (-x)^3 + 5(-x) = -x^3 - 5x = -f(x)$ : **impaire**, la courbe est symétrique par rapport à l'origine."],
@@ -6842,11 +8707,69 @@
       ["\\sqrt{x}", 2, "L'ensemble de définition $[0\\,;+\\infty[$ n'est pas symétrique par rapport à $0$ : ni paire ni impaire."],
       ["\\dfrac{x^2 + 1}{x}", 1, "$f(-x) = \\dfrac{x^2 + 1}{-x} = -f(x)$ : **impaire**."],
       ["2x^2 - 7", 0, "$f(-x) = 2(-x)^2 - 7 = 2x^2 - 7 = f(x)$ : **paire**."],
-      ["x^5 - 2x^3", 1, "$f(-x) = -x^5 + 2x^3 = -f(x)$ : **impaire**."]
+      ["x^5 - 2x^3", 1, "$f(-x) = -x^5 + 2x^3 = -f(x)$ : **impaire**."],
+      ["x^2 - 4", 0, "$f(-x) = (-x)^2 - 4 = x^2 - 4 = f(x)$ : **paire**."],
+      ["1 - 3x^2", 0, "$f(-x) = 1 - 3(-x)^2 = 1 - 3x^2 = f(x)$ : **paire**."],
+      ["x^4 + x^2 + 1", 0, "$f(-x) = (-x)^4 + (-x)^2 + 1 = x^4 + x^2 + 1 = f(x)$ : **paire**."],
+      ["x^3 - x", 1, "$f(-x) = (-x)^3 - (-x) = -x^3 + x = -(x^3 - x) = -f(x)$ : **impaire**."],
+      ["-2x", 1, "$f(-x) = -2(-x) = 2x = -f(x)$ : **impaire**. Sa courbe est une droite qui passe par l'origine."],
+      ["2x + 1", 2, "$f(1) = 3$ et $f(-1) = -1$ : on n'a ni $f(-1) = f(1)$, ni $f(-1) = -f(1) = -3$. Ni paire ni impaire."],
+      ["x^2 - 2x", 2, "$f(1) = -1$ et $f(-1) = 3$ : on n'a ni $f(-1) = f(1)$, ni $f(-1) = -f(1) = 1$. Ni paire ni impaire."],
+      ["x^3 + x^2", 2, "$f(1) = 2$ et $f(-1) = 0$ : on n'a ni $f(-1) = f(1)$, ni $f(-1) = -f(1) = -2$. Ni paire ni impaire."],
+      ["(x - 1)^2", 2, "$f(1) = 0$ et $f(-1) = 4$ : on n'a ni $f(-1) = f(1)$, ni $f(-1) = -f(1) = 0$. Ni paire ni impaire : la parabole est symétrique par rapport à la droite d'équation $x = 1$, pas par rapport à l'axe des ordonnées."],
+      ["x|x|", 1, "$f(-x) = (-x) \\times |-x| = -x|x| = -f(x)$ : **impaire**."],
+      ["|x| - x^2", 0, "$f(-x) = |-x| - (-x)^2 = |x| - x^2 = f(x)$ : **paire**."],
+      ["|x - 1|", 2, "$f(1) = 0$ et $f(-1) = 2$ : on n'a ni $f(-1) = f(1)$, ni $f(-1) = -f(1) = 0$. Ni paire ni impaire."],
+      ["\\dfrac{1}{x^2}", 0, "Définie sur $\\mathbb{R} \\setminus \\{0\\}$, symétrique par rapport à $0$, et $f(-x) = \\dfrac{1}{(-x)^2} = \\dfrac{1}{x^2} = f(x)$ : **paire**."],
+      ["\\dfrac{1}{x^2 + 1}", 0, "Définie sur $\\mathbb{R}$ (car $x^2 + 1 > 0$), et $f(-x) = \\dfrac{1}{(-x)^2 + 1} = \\dfrac{1}{x^2 + 1} = f(x)$ : **paire**."],
+      ["\\dfrac{x}{x^2 + 1}", 1, "Définie sur $\\mathbb{R}$, et $f(-x) = \\dfrac{-x}{(-x)^2 + 1} = -\\dfrac{x}{x^2 + 1} = -f(x)$ : **impaire**."],
+      ["\\dfrac{3}{x}", 1, "Définie sur $\\mathbb{R} \\setminus \\{0\\}$, symétrique par rapport à $0$, et $f(-x) = \\dfrac{3}{-x} = -\\dfrac{3}{x} = -f(x)$ : **impaire**."],
+      ["x^2 + \\dfrac{1}{x}", 2, "Définie sur $\\mathbb{R} \\setminus \\{0\\}$. $f(1) = 2$ et $f(-1) = 1 - 1 = 0$ : on n'a ni $f(-1) = f(1)$, ni $f(-1) = -f(1) = -2$. Ni paire ni impaire."],
+      ["\\dfrac{1}{x - 1}", 2, "L'ensemble de définition $\\mathbb{R} \\setminus \\{1\\}$ n'est pas symétrique par rapport à $0$ : $-1$ en fait partie, mais pas $1$. Ni paire ni impaire."],
+      ["\\sqrt{x^2 + 1}", 0, "Définie sur $\\mathbb{R}$, et $f(-x) = \\sqrt{(-x)^2 + 1} = \\sqrt{x^2 + 1} = f(x)$ : **paire**."],
+      ["5", 0, "Fonction constante : $f(-x) = 5 = f(x)$ pour tout réel $x$ : **paire**. Sa courbe, une droite horizontale, est symétrique par rapport à l'axe des ordonnées."],
+      ["x^6 - x^2", 0, "$f(-x) = (-x)^6 - (-x)^2 = x^6 - x^2 = f(x)$ : **paire** (seulement des puissances paires de $x$)."],
+      ["x^5 + 3x", 1, "$f(-x) = (-x)^5 + 3(-x) = -x^5 - 3x = -f(x)$ : **impaire** (seulement des puissances impaires de $x$)."],
+      ["x^4 - x", 2, "$f(1) = 0$ et $f(-1) = 2$ : on n'a ni $f(-1) = f(1)$, ni $f(-1) = -f(1) = 0$. Ni paire ni impaire."],
+      ["(x + 1)(x - 1)", 0, "$f(-x) = (-x + 1)(-x - 1) = (x - 1)(x + 1) = f(x)$ : **paire**. (En développant : $f(x) = x^2 - 1$.)"],
+      ["x(x^2 - 4)", 1, "$f(-x) = (-x)\\left((-x)^2 - 4\\right) = -x(x^2 - 4) = -f(x)$ : **impaire**."],
+      ["x^2", 2, "L'ensemble de définition $[-2\\,;3]$ n'est pas symétrique par rapport à $0$ : $3$ en fait partie, mais pas $-3$. Ni paire ni impaire, même si la formule est celle d'une fonction paire.", "[-2\\,;3]"],
+      ["x^3", 2, "L'ensemble de définition $[0\\,;+\\infty[$ n'est pas symétrique par rapport à $0$ : $1$ en fait partie, mais pas $-1$. Ni paire ni impaire.", "[0\\,;+\\infty["],
+      ["x^2 + 1", 0, "L'ensemble $[-4\\,;4]$ est symétrique par rapport à $0$, et $f(-x) = (-x)^2 + 1 = x^2 + 1 = f(x)$ : **paire**.", "[-4\\,;4]"]
     ];
-    const [fx, rep, sol] = pick(T);
+    // f(−x) écrit avant simplification : coefficients de x^n, …, x, 1
+    const subst = (co) => {
+      const d = co.length - 1; let s = "";
+      co.forEach((c, i) => {
+        const p = d - i; if (!c) return;
+        const m = p === 0 ? "" : p === 1 ? "(-x)" : `(-x)^${p}`, ab = Math.abs(c), k = p > 0 && ab === 1 ? "" : `${ab}`;
+        s += s === "" ? (c < 0 ? "-" : "") + k + m : (c < 0 ? " - " : " + ") + k + m;
+      });
+      return s;
+    };
+    let fx, rep, sol, dom;
+    if (Math.random() < 0.6) [fx, rep, sol, dom] = pick(T);
+    else {
+      const t = rand(0, 3), a = randNZ(-3, 3), b = randNZ(-5, 5);
+      if (t === 0) {
+        const co = [a, 0, b, 0, rand(-6, 6)];
+        fx = poly(co); rep = 0;
+        sol = `$f(-x) = ${subst(co)} = ${poly(co)} = f(x)$ : **paire**. Il n'y a que des puissances paires de $x$, et $(-x)^4 = x^4$, $(-x)^2 = x^2$.`;
+      } else if (t === 1) {
+        const co = pick([[a, 0, b, 0], [a, 0, b, 0, 0, 0], [a, 0, 0, 0, b, 0]]);
+        fx = poly(co); rep = 1;
+        sol = `$f(-x) = ${subst(co)} = ${poly(co.map((c) => -c))} = -\\left(${poly(co)}\\right) = -f(x)$ : **impaire**. Il n'y a que des puissances impaires de $x$.`;
+      } else {
+        // ni paire ni impaire : contre-exemple avec x = 1
+        let co;
+        if (t === 2) { let c; do { c = randNZ(-6, 6); } while (a + c === 0); co = [a, b, c]; } else co = pick([[a, 0, 0, b], [a, b, 0, 0]]);
+        const f = (x) => co.reduce((s, c) => s * x + c, 0), f1 = f(1), fm = f(-1);
+        fx = poly(co); rep = 2;
+        sol = `$f(1) = ${f1}$ et $f(-1) = ${fm}$ : on n'a ni $f(-1) = f(1)$, ni $f(-1) = -f(1) = ${-f1 || 0}$. Ni paire ni impaire (un contre-exemple suffit).`;
+      }
+    }
     return {
-      enonce: `La fonction $f(x) = ${fx}$ est-elle paire, impaire ou ni l'un ni l'autre ?`,
+      enonce: dom ? `La fonction $f$ définie sur $${dom}$ par $f(x) = ${fx}$ est-elle paire, impaire ou ni l'un ni l'autre ?` : `La fonction $f(x) = ${fx}$ est-elle paire, impaire ou ni l'un ni l'autre ?`,
       mode: "choix", choix: ["Paire", "Impaire", "Ni paire ni impaire"], attendu: rep,
       aides: ["Vérifie d'abord que l'ensemble de définition est symétrique par rapport à $0$.", "Calcule $f(-x)$ : si $f(-x) = f(x)$ pour tout $x$, $f$ est paire ; si $f(-x) = -f(x)$, $f$ est impaire.", "Pour prouver « ni l'un ni l'autre », un contre-exemple numérique suffit (par exemple $x = 1$)."],
       solution: sol
@@ -6855,6 +8778,9 @@
 
   // Logique : implication, réciproque, condition nécessaire non suffisante
   GEN["vr-logique"] = function () {
+    const CNS = ["Nécessaire mais pas suffisante", "Suffisante mais pas nécessaire", "Nécessaire et suffisante", "Ni nécessaire ni suffisante"];
+    const AIDES_CNS = (fin) => ["« A est suffisante pour B » signifie : si A est vraie, alors B est vraie.", "« A est nécessaire pour B » signifie : si B est vraie, alors A est vraie (impossible d'avoir B sans A).", fin];
+    // Vrai ou faux : [affirmation, 0 si vraie / 1 si fausse, solution], ou fonction qui renvoie ce triplet
     const T = [
       ["Si $f'(a) = 0$, alors $f$ admet un extremum en $a$.", 1, "**Faux**. Contre-exemple : $f(x) = x^3$, $f'(0) = 0$ mais $f$ est croissante, sans extremum en $0$. La condition $f'(a) = 0$ est **nécessaire**, pas suffisante."],
       ["Si $f$ est dérivable sur un intervalle ouvert et admet un extremum en $a$, alors $f'(a) = 0$.", 0, "**Vrai** : en un extremum à l'intérieur de l'intervalle, la tangente est horizontale."],
@@ -6862,9 +8788,102 @@
       ["Si $f$ est strictement croissante sur $I$, alors $f'(x) > 0$ pour tout $x$ de $I$.", 1, "**Faux**. Contre-exemple : $x^3$ est strictement croissante sur $\\mathbb{R}$, mais sa dérivée $3x^2$ s'annule en $0$. La réciproque d'un théorème vrai n'est pas forcément vraie."],
       ["Si $f'$ s'annule en $a$ en changeant de signe, alors $f$ admet un extremum en $a$.", 0, "**Vrai** : $f$ change de sens de variation en $a$ ; de « + » à « − » c'est un maximum, de « − » à « + » un minimum."],
       ["Si $f'(x) = 0$ pour tout $x$ d'un intervalle $I$, alors $f$ est constante sur $I$.", 0, "**Vrai** : une dérivée nulle sur un intervalle caractérise les fonctions constantes."],
-      ["Une fonction paire ne peut pas être croissante sur $\\mathbb{R}$, sauf si elle est constante.", 0, "**Vrai** : si $f$ est paire, $f(-1) = f(1)$. Si $f$ était croissante et non constante, on aurait une contradiction entre $f(-x)$ et $f(x)$ pour un $x > 0$ où elle augmente."]
+      ["Une fonction paire ne peut pas être croissante sur $\\mathbb{R}$, sauf si elle est constante.", 0, "**Vrai** : si $f$ est paire, $f(-1) = f(1)$. Si $f$ était croissante et non constante, on aurait une contradiction entre $f(-x)$ et $f(x)$ pour un $x > 0$ où elle augmente."],
+      ["Si $f'(x) > 0$ pour tout $x$ de $I$, alors $f$ est strictement croissante sur $I$.", 0, "**Vrai** : c'est le théorème du cours (admis), avec une dérivée strictement positive."],
+      ["Si $f$ est dérivable et croissante sur $I$, alors $f'(x) \\geqslant 0$ pour tout $x$ de $I$.", 0, "**Vrai** : c'est la réciproque du théorème « si $f' \\geqslant 0$ sur $I$, alors $f$ est croissante sur $I$ ». Pour une fonction dérivable, elle est vraie aussi : une fonction croissante n'a que des tangentes de pente positive ou nulle."],
+      ["Si $f$ est constante sur $I$, alors $f'(x) = 0$ pour tout $x$ de $I$.", 0, "**Vrai** : la dérivée d'une fonction constante est nulle. La réciproque est vraie aussi sur un intervalle : les deux propriétés sont équivalentes."],
+      ["Si $f$ est strictement décroissante sur $\\mathbb{R}$, alors $f'(x) < 0$ pour tout réel $x$.", 1, "**Faux**. Contre-exemple : $f(x) = -x^3$ est strictement décroissante sur $\\mathbb{R}$, mais $f'(x) = -3x^2$ s'annule en $0$."],
+      ["Si $f$ est paire et dérivable sur $\\mathbb{R}$, alors $f'(0) = 0$.", 0, "**Vrai** : en dérivant l'égalité $f(-x) = f(x)$ (règle de $g(ax + b)$), on obtient $-f'(-x) = f'(x)$. En $x = 0$ : $-f'(0) = f'(0)$, donc $f'(0) = 0$. La courbe, symétrique par rapport à l'axe des ordonnées, a une tangente horizontale en $0$."],
+      ["Si $f'(0) = 0$, alors $f$ est paire.", 1, "**Faux**. Contre-exemple : $f(x) = x^3$ vérifie $f'(0) = 0$, mais $f(-1) = -1$ et $f(1) = 1$ : elle n'est pas paire. C'est la réciproque de « si $f$ est paire et dérivable, alors $f'(0) = 0$ », qui, elle, est vraie."],
+      ["Si $f$ est impaire et définie en $0$, alors $f(0) = 0$.", 0, "**Vrai** : l'égalité $f(-x) = -f(x)$ en $x = 0$ donne $f(0) = -f(0)$, donc $2f(0) = 0$ et $f(0) = 0$. La courbe passe par l'origine."],
+      ["Si $f(0) = 0$, alors $f$ est impaire.", 1, "**Faux**. Contre-exemple : $f(x) = x^2$ vérifie $f(0) = 0$, mais $f(-1) = 1$ et $-f(1) = -1$ : elle n'est pas impaire (elle est paire)."],
+      ["Il existe une fonction définie sur $\\mathbb{R}$ qui est à la fois paire et impaire.", 0, "**Vrai** : la fonction nulle, $f(x) = 0$ pour tout $x$, vérifie à la fois $f(-x) = f(x)$ et $f(-x) = -f(x)$. Un exemple suffit pour un « il existe »."],
+      ["Si $f$ est paire et croissante sur $[0\\,;+\\infty[$, alors $f$ est décroissante sur $]-\\infty\\,;0]$.", 0, "**Vrai** : si $a \\leqslant b \\leqslant 0$, alors $-a \\geqslant -b \\geqslant 0$, donc $f(-a) \\geqslant f(-b)$, c'est-à-dire $f(a) \\geqslant f(b)$. La symétrie par rapport à l'axe des ordonnées inverse le sens de variation, comme pour $x^2$."],
+      ["Si $f$ est impaire et croissante sur $[0\\,;+\\infty[$, alors $f$ est décroissante sur $]-\\infty\\,;0]$.", 1, "**Faux**. Contre-exemple : $f(x) = x^3$ est impaire et croissante sur $[0\\,;+\\infty[$, et elle est aussi croissante sur $]-\\infty\\,;0]$. La symétrie par rapport à l'origine **conserve** le sens de variation."],
+      ["Sur un intervalle $[a\\,;b]$, le maximum d'une fonction dérivable est toujours atteint en un point où sa dérivée s'annule.", 1, "**Faux**. Contre-exemple : $f(x) = x$ sur $[0\\,;1]$ a pour maximum $f(1) = 1$, alors que $f'(x) = 1$ ne s'annule jamais. Le maximum peut être atteint à une **borne** : il faut toujours calculer les valeurs aux bornes."],
+      ["Deux fonctions qui ont la même dérivée sur $\\mathbb{R}$ sont égales.", 1, "**Faux**. Contre-exemple : $f(x) = x^2$ et $g(x) = x^2 + 1$ ont la même dérivée $2x$, mais $f(0) = 0$ et $g(0) = 1$. Elles diffèrent d'une constante : $(g - f)' = 0$, donc $g - f$ est constante."],
+      ["Pour une fonction $f$ dérivable sur un intervalle $I$, $f$ est constante sur $I$ si et seulement si $f'(x) = 0$ pour tout $x$ de $I$.", 0, "**Vrai** : si $f$ est constante, sa dérivée est nulle ; réciproquement, si $f' = 0$ sur l'intervalle $I$, $f$ est constante (théorème du cours). L'implication et sa réciproque sont vraies."],
+      ["Pour tout réel $x$, $x^3 \\geqslant 3x - 2$.", 1, "**Faux**. Contre-exemple : $x = -3$ donne $x^3 = -27$ et $3x - 2 = -11$, or $-27 < -11$. L'inégalité n'est vraie que pour $x \\geqslant -2$, car $x^3 - 3x + 2 = (x - 1)^2(x + 2)$."],
+      ["Pour tout réel $x \\geqslant 0$, $x^3 \\geqslant 3x - 2$.", 0, "**Vrai** : $d(x) = x^3 - 3x + 2$ a pour dérivée $3(x - 1)(x + 1)$. Sur $[0\\,;+\\infty[$, $d$ décroît jusqu'à $1$ puis croît : son minimum est $d(1) = 0$, donc $d(x) \\geqslant 0$."],
+      ["Il existe une fonction $f$ dérivable sur $\\mathbb{R}$ et un réel $a$ tels que $f'(a) = 0$ sans que $f$ admette d'extremum en $a$.", 0, "**Vrai** : $f(x) = x^3$ et $a = 0$ conviennent. $f'(0) = 0$, mais $f$ est strictement croissante : la tangente est horizontale en $0$, sans extremum."],
+      ["Si $f$ est dérivable sur un intervalle ouvert contenant $a$ et si $f'(a) \\neq 0$, alors $f$ n'admet pas d'extremum local en $a$.", 0, "**Vrai** : c'est la **contraposée** de la propriété « si $f$ admet un extremum local en $a$, alors $f'(a) = 0$ ». Une implication et sa contraposée sont toujours vraies ou fausses en même temps."],
+      ["Si $f$ n'admet pas d'extremum local en $a$, alors $f'(a) \\neq 0$.", 1, "**Faux**. Contre-exemple : $f(x) = x^3$ n'a pas d'extremum en $0$, et pourtant $f'(0) = 0$."],
+      ["Si $f(x) = ax^2 + bx + c$ avec $a > 0$, alors $f$ admet un minimum en $-\\dfrac{b}{2a}$.", 0, "**Vrai** : $f'(x) = 2ax + b$ s'annule en $-\\dfrac{b}{2a}$ en passant de « − » à « + », car $a > 0$ : c'est un minimum."],
+      ["La méthode de Newton pour $f(x) = x^2 - 2$ fonctionne quel que soit le nombre de départ $x_0$.", 1, "**Faux**. Contre-exemple : $x_0 = 0$. On a $f'(0) = 0$ : la tangente en $0$ est horizontale et ne coupe pas l'axe des abscisses, et le calcul $x_1 = 0 - \\dfrac{f(0)}{f'(0)}$ demande de diviser par $0$."],
+      () => { const a = rand(-3, 4); return [`Si $f'(${a}) = 0$, alors la tangente à la courbe de $f$ au point d'abscisse $${a}$ est horizontale.`, 0, `**Vrai** : le coefficient directeur de cette tangente est $f'(${a}) = 0$. Elle a pour équation $y = f(${a})$ : elle est horizontale.`]; },
+      () => { const b = rand(3, 6); return [`Si $f'(x) < 0$ pour tout $x$ de $[0\\,;${b}]$, alors $f(${b}) < f(0)$.`, 0, `**Vrai** : $f' < 0$ sur $[0\\,;${b}]$, donc $f$ est strictement décroissante sur cet intervalle. Comme $0 < ${b}$, on a $f(${b}) < f(0)$.`]; },
+      () => { const b = rand(3, 6); return [`Si $f(${b}) > f(0)$, alors $f$ est croissante sur $[0\\,;${b}]$.`, 1, `**Faux**. Contre-exemple : $f(x) = (x - 1)^2$. On a $f(0) = 1$ et $f(${b}) = ${(b - 1) ** 2} > 1$, mais $f$ est décroissante sur $[0\\,;1]$. Comparer les valeurs aux bornes ne suffit pas.`]; },
+      () => { const b = pick([2, 4, 6]); return [`Si $f(0) = f(${b})$, alors $f$ est constante sur $[0\\,;${b}]$.`, 1, `**Faux**. Contre-exemple : $f(x) = x(x - ${b})$ vérifie $f(0) = f(${b}) = 0$, mais $f(${b / 2}) = ${-((b / 2) ** 2)}$ : elle n'est pas constante (elle décroît puis croît).`]; },
+      () => {
+        const m = randNZ(-4, 5), p = rand(-3, 4), aff = poly([m, p]);
+        return [`Si $f'(x) = ${m}$ pour tout réel $x$ et $f(0) = ${p}$, alors $f(x) = ${aff}$ pour tout réel $x$.`, 0, `**Vrai** : la fonction $g(x) = f(x) - (${aff})$ a pour dérivée $${m} - ${par(m)} = 0$ sur $\\mathbb{R}$, donc elle est constante, égale à $g(0) = ${p} - ${par(p)} = 0$. Ainsi $f(x) = ${aff}$.`];
+      },
+      () => { const c = rand(1, 5); return [`Pour tout réel $x$, $x^2 + ${c * c} \\geqslant ${2 * c}x$.`, 0, `**Vrai** : $d(x) = ${poly([1, -2 * c, c * c])}$ a pour dérivée $${poly([2, -2 * c])}$, négative avant $${c}$ et positive après. Son minimum est $d(${c}) = 0$, donc $d(x) \\geqslant 0$. (On reconnaît aussi $d(x) = (x - ${c})^2$.)`]; },
+      () => { const c = rand(1, 5); return [`Pour tout réel $x$, $x^2 + ${c * c} > ${2 * c}x$.`, 1, `**Faux**. Contre-exemple : $x = ${c}$ donne $${c * c} + ${c * c} = ${2 * c * c}$ à gauche et $${2 * c} \\times ${c} = ${2 * c * c}$ à droite : il y a égalité. En effet $x^2 - ${2 * c}x + ${c * c} = (x - ${c})^2$, qui s'annule en $${c}$.`]; }
     ];
-    const [aff, rep, sol] = pick(T);
+    // Questions à choix : contraposée, réciproque, négation, conditions nécessaires ou suffisantes
+    const Q = [
+      () => ({
+        enonce: "$f$ est dérivable sur un intervalle ouvert $I$ et $a \\in I$. Quelle est la **contraposée** de « si $f$ admet un extremum local en $a$, alors $f'(a) = 0$ » ?",
+        bonne: "« si $f'(a) \\neq 0$, alors $f$ n'admet pas d'extremum local en $a$ »",
+        fausses: ["« si $f'(a) = 0$, alors $f$ admet un extremum local en $a$ »", "« si $f$ n'admet pas d'extremum local en $a$, alors $f'(a) \\neq 0$ »", "« si $f'(a) \\neq 0$, alors $f$ admet un extremum local en $a$ »"],
+        aides: ["La contraposée de « si P, alors Q » est « si (non Q), alors (non P) ».", "On échange les deux parties **et** on les nie toutes les deux.", "Ici, P : « $f$ admet un extremum local en $a$ » et Q : « $f'(a) = 0$ »."],
+        sol: "Contraposée : « si (non Q), alors (non P) », soit « si $f'(a) \\neq 0$, alors $f$ n'admet pas d'extremum local en $a$ ». Elle est vraie, comme la propriété. Attention : « si $f'(a) = 0$, alors $f$ admet un extremum local en $a$ » est la **réciproque**, et elle est fausse ($x^3$ en $0$)."
+      }),
+      () => ({
+        enonce: "Quelle est la **réciproque** de « si $f'(x) \\geqslant 0$ pour tout $x$ de $I$, alors $f$ est croissante sur $I$ » ?",
+        bonne: "« si $f$ est croissante sur $I$, alors $f'(x) \\geqslant 0$ pour tout $x$ de $I$ »",
+        fausses: ["« si $f$ n'est pas croissante sur $I$, alors il existe $x$ dans $I$ tel que $f'(x) < 0$ »", "« si $f'(x) \\leqslant 0$ pour tout $x$ de $I$, alors $f$ est décroissante sur $I$ »", "« si $f$ est décroissante sur $I$, alors $f'(x) \\leqslant 0$ pour tout $x$ de $I$ »"],
+        aides: ["La réciproque de « si P, alors Q » est « si Q, alors P ».", "On échange les deux parties, sans les nier.", "Ici, Q : « $f$ est croissante sur $I$ »."],
+        sol: "On échange les deux parties : « si $f$ est croissante sur $I$, alors $f'(x) \\geqslant 0$ pour tout $x$ de $I$ ». Pour une fonction dérivable, cette réciproque est vraie aussi. (La phrase « si $f$ n'est pas croissante sur $I$, alors il existe $x$ dans $I$ tel que $f'(x) < 0$ » est la **contraposée** du théorème.)"
+      }),
+      () => ({
+        enonce: "Quelle est la **négation** de « pour tout $x$ de $I$, $f'(x) \\geqslant 0$ » ?",
+        bonne: "« il existe $x$ dans $I$ tel que $f'(x) < 0$ »",
+        fausses: ["« pour tout $x$ de $I$, $f'(x) < 0$ »", "« pour tout $x$ de $I$, $f'(x) \\leqslant 0$ »", "« il existe $x$ dans $I$ tel que $f'(x) \\leqslant 0$ »"],
+        aides: ["Pour nier « pour tout $x$, P », on écrit « il existe $x$ tel que (non P) ».", "Il suffit d'**un seul** $x$ qui ne convient pas.", "Le contraire de $f'(x) \\geqslant 0$ est $f'(x) < 0$."],
+        sol: "« Pour tout » devient « il existe », et $f'(x) \\geqslant 0$ devient $f'(x) < 0$. Ne pas confondre avec « pour tout $x$ de $I$, $f'(x) < 0$ », qui est beaucoup plus fort."
+      }),
+      () => ({
+        enonce: "$f$ est dérivable sur un intervalle ouvert $I$ et $a \\in I$. Pour que $f$ admette un extremum local en $a$, la condition « $f'(a) = 0$ » est :",
+        bonne: CNS[0], fausses: CNS, aides: AIDES_CNS("Pense à la fonction $x \\mapsto x^3$ en $0$."),
+        sol: "**Nécessaire** : en un extremum local, la tangente est horizontale, donc $f'(a) = 0$. **Pas suffisante** : pour $f(x) = x^3$, $f'(0) = 0$ mais $f$ n'a pas d'extremum en $0$."
+      }),
+      () => ({
+        enonce: "$f$ est dérivable sur un intervalle $I$. Pour que $f$ soit croissante sur $I$, la condition « $f'(x) > 0$ pour tout $x$ de $I$ » est :",
+        bonne: CNS[1], fausses: CNS, aides: AIDES_CNS("Une fonction croissante peut-elle avoir une dérivée qui s'annule ? Pense à $x^3$."),
+        sol: "**Suffisante** : si $f' > 0$ sur $I$, alors $f$ est (strictement) croissante sur $I$. **Pas nécessaire** : $f(x) = x^3$ est croissante sur $\\mathbb{R}$, alors que $f'(0) = 0$."
+      }),
+      () => ({
+        enonce: "$f$ est dérivable sur un intervalle $I$. Pour que $f$ soit croissante sur $I$, la condition « $f'(x) \\geqslant 0$ pour tout $x$ de $I$ » est :",
+        bonne: CNS[2], fausses: CNS, aides: AIDES_CNS("Relis le théorème du cours et sa réciproque, vraie pour une fonction dérivable."),
+        sol: "**Suffisante** : c'est le théorème du cours. **Nécessaire** : pour une fonction dérivable, la réciproque est vraie aussi. Les deux propriétés sont équivalentes."
+      }),
+      () => {
+        const b = rand(3, 6);
+        return {
+          enonce: `Pour que $f$ soit croissante sur $[0\\,;${b}]$, la condition « $f(0) \\leqslant f(${b})$ » est :`,
+          bonne: CNS[0], fausses: CNS, aides: AIDES_CNS(`Une fonction peut-elle descendre puis remonter entre $0$ et $${b}$, tout en finissant plus haut ?`),
+          sol: `**Nécessaire** : si $f$ est croissante sur $[0\\,;${b}]$, comme $0 \\leqslant ${b}$, on a $f(0) \\leqslant f(${b})$. **Pas suffisante** : $f(x) = (x - 1)^2$ vérifie $f(0) = 1 \\leqslant f(${b}) = ${(b - 1) ** 2}$, mais elle est décroissante sur $[0\\,;1]$.`
+        };
+      },
+      () => ({
+        enonce: "$f$ est dérivable sur $\\mathbb{R}$. Pour que $f$ soit paire, la condition « $f'(0) = 0$ » est :",
+        bonne: CNS[0], fausses: CNS, aides: AIDES_CNS("La courbe d'une fonction paire est symétrique par rapport à l'axe des ordonnées. Pense aussi à $x^3$."),
+        sol: "**Nécessaire** : si $f$ est paire et dérivable, $f'(0) = 0$ (en dérivant $f(-x) = f(x)$, on trouve $-f'(0) = f'(0)$). **Pas suffisante** : $f(x) = x^3$ vérifie $f'(0) = 0$ sans être paire."
+      }),
+      () => ({
+        enonce: "$f$ est définie sur $\\mathbb{R}$. Pour que $f$ soit impaire, la condition « $f(0) = 0$ » est :",
+        bonne: CNS[0], fausses: CNS, aides: AIDES_CNS("Écris $f(-x) = -f(x)$ pour $x = 0$. Pense aussi à $x^2$."),
+        sol: "**Nécessaire** : si $f$ est impaire, $f(-0) = -f(0)$ donne $f(0) = 0$. **Pas suffisante** : $f(x) = x^2$ vérifie $f(0) = 0$, mais elle est paire, pas impaire."
+      })
+    ];
+    const k = rand(0, T.length + Q.length - 1);
+    if (k >= T.length) {
+      const r = Q[k - T.length](), c = melangeChoix(r.bonne, r.fausses);
+      return { enonce: r.enonce, mode: "choix", choix: c.choix, attendu: c.attendu, aides: r.aides, solution: r.sol };
+    }
+    const [aff, rep, sol] = typeof T[k] === "function" ? T[k]() : T[k];
     return {
       enonce: `Vrai ou faux : « ${aff} »`,
       mode: "choix", choix: ["Vrai", "Faux"], attendu: rep,
@@ -6874,8 +8893,9 @@
   };
 
   GEN["vr-optimisation"] = function () {
-    if (Math.random() < 0.5) {
-      const L = pick([12, 18, 24, 30, 36]), x = L / 6, V = (2 * L ** 3) / 27, q = Math.random() < 0.5;
+    const t = rand(0, 2), q = Math.random() < 0.5;
+    if (t === 0) {
+      const L = pick([6, 12, 18, 24, 30, 36, 42, 48, 60]), x = L / 6, V = (2 * L ** 3) / 27;
       return {
         enonce: `Dans une plaque carrée de $${L}$ cm de côté, on découpe aux quatre coins des carrés de côté $x$ cm, puis on replie pour former une boîte sans couvercle. Son volume est $V(x) = x(${L} - 2x)^2$ pour $0 < x < ${L / 2}$. ${q ? "Pour quelle valeur de $x$ le volume est-il maximal ?" : "Quel est le volume maximal ?"}`,
         mode: "nombre", prefixe: q ? "$x =$" : "$V_{\\max} =$", suffixe: q ? "cm" : "cm³", attendu: q ? x : V,
@@ -6885,49 +8905,153 @@
         figure: patron(L)
       };
     }
-    const k = pick([10, 12, 15]), c = pick([200, 500]), Bmax = k ** 3 - c, q = Math.random() < 0.5;
+    if (t === 1) {
+      const k = pick([8, 10, 12, 14, 15, 16]), c = pick([100, 200, 300, 500]), Bmax = k ** 3 - c;
+      return {
+        enonce: `Une distillerie d'ylang-ylang produit $x$ litres d'huile essentielle par mois ($0 \\leqslant x \\leqslant 20$). Son bénéfice, en euros, est $B(x) = -2x^3 + ${3 * k}x^2 - ${c}$. ${q ? "Quelle production rend le bénéfice maximal ?" : "Quel est le bénéfice maximal ?"}`,
+        mode: "nombre", prefixe: q ? "$x =$" : "$B_{\\max} =$", suffixe: q ? "L" : "€", attendu: q ? k : Bmax,
+        erreurs: q ? [{ valeur: 0, message: "En $0$, $B'$ s'annule mais le bénéfice y est négatif : c'est un minimum." }] : [{ valeur: k, message: "Ça, c'est la production optimale. On demande le bénéfice $B(x)$." }],
+        aides: [`$B'(x) = -6x^2 + ${6 * k}x$.`, `$B'(x) = -6x(x - ${k})$ : positif sur $]0\\,;${k}[$, négatif sur $]${k}\\,;20]$.`, `Le maximum est atteint en $x = ${k}$ ; calcule $B(${k})$.`],
+        solution: `$B'(x) = -6x(x - ${k})$ : $B$ croît sur $[0\\,;${k}]$ puis décroît sur $[${k}\\,;20]$. Le bénéfice est maximal pour $${k}$ L : $B(${k}) = -2 \\times ${nb(k ** 3)} + ${3 * k} \\times ${k * k} - ${c} = ${nb(Bmax)}$ €.`,
+        figure: tabSV(["0", "?", "20"], ["?", "", "?"], ["", "", ""], "B"),
+        figureSolution: tabSV(["0", `${k}`, "20"], ["+", "0", "-"], [nbSvg(-c), nbSvg(Bmax), nbSvg(-2 * 8000 + 3 * k * 400 - c)], "B")
+      };
+    }
+    // Enclos adossé à un mur : A(x) = x(P − 2x), maximum en P/4
+    const P = pick([20, 24, 32, 40, 48, 60, 80, 100]), xm = P / 4, Am = (P * P) / 8;
     return {
-      enonce: `Une distillerie d'ylang-ylang produit $x$ litres d'huile essentielle par mois ($0 \\leqslant x \\leqslant 20$). Son bénéfice, en euros, est $B(x) = -2x^3 + ${3 * k}x^2 - ${c}$. ${q ? "Quelle production rend le bénéfice maximal ?" : "Quel est le bénéfice maximal ?"}`,
-      mode: "nombre", prefixe: q ? "$x =$" : "$B_{\\max} =$", suffixe: q ? "L" : "€", attendu: q ? k : Bmax,
-      erreurs: q ? [{ valeur: 0, message: "En $0$, $B'$ s'annule mais le bénéfice y est négatif : c'est un minimum." }] : [{ valeur: k, message: "Ça, c'est la production optimale. On demande le bénéfice $B(x)$." }],
-      aides: [`$B'(x) = -6x^2 + ${6 * k}x$.`, `$B'(x) = -6x(x - ${k})$ : positif sur $]0\\,;${k}[$, négatif sur $]${k}\\,;20]$.`, `Le maximum est atteint en $x = ${k}$ ; calcule $B(${k})$.`],
-      solution: `$B'(x) = -6x(x - ${k})$ : $B$ croît sur $[0\\,;${k}]$ puis décroît sur $[${k}\\,;20]$. Le bénéfice est maximal pour $${k}$ L : $B(${k}) = -2 \\times ${k ** 3} + ${3 * k} \\times ${k * k} - ${c} = ${nb(Bmax)}$ €.`,
-      figure: tabSV(["0", "?", "20"], ["?", "", "?"], ["", "", ""], "B"),
-      figureSolution: tabSV(["0", `${k}`, "20"], ["+", "0", "-"], [nbSvg(-c), nbSvg(Bmax), nbSvg(-2 * 8000 + 3 * k * 400 - c)], "B")
+      enonce: `Un éleveur veut construire un enclos rectangulaire pour ses chèvres, adossé à un mur : il dispose de $${P}$ m de grillage pour les trois autres côtés. On note $x$ la longueur (en m) des deux côtés perpendiculaires au mur. L'aire de l'enclos est $A(x) = x(${P} - 2x)$ pour $0 < x < ${P / 2}$. ${q ? "Pour quelle valeur de $x$ l'aire est-elle maximale ?" : "Quelle est l'aire maximale ?"}`,
+      mode: "nombre", prefixe: q ? "$x =$" : "$A_{\\max} =$", suffixe: q ? "m" : "m²", attendu: q ? xm : Am,
+      erreurs: q ? [{ valeur: P / 2, message: `Pour cette valeur, $${P} - 2x = 0$ : l'enclos est aplati, son aire est nulle.` }] : [{ valeur: xm, message: "Ça, c'est la valeur de $x$. On demande l'aire $A(x)$." }],
+      aides: [`Développe : $A(x) = ${P}x - 2x^2$, donc $A'(x) = ${P} - 4x$.`, `$A'(x) > 0 \\iff x < ${xm}$ : $A$ croît puis décroît.`, q ? `Le maximum est atteint là où $A'$ s'annule en passant de « + » à « − ».` : `Le maximum est atteint en $x = ${xm}$ ; calcule $A(${xm})$.`],
+      solution: `$A(x) = ${P}x - 2x^2$ et $A'(x) = ${P} - 4x$, positif pour $x < ${xm}$ et négatif pour $x > ${xm}$. L'aire est maximale pour $x = ${xm}$ m : $A(${xm}) = ${xm} \\times ${P / 2} = ${nb(Am)}$ m². L'enclos mesure alors $${xm}$ m sur $${P / 2}$ m : le côté le long du mur est deux fois plus long que les deux autres.`,
+      figure: tabSV(["0", "?", `${P / 2}`], ["?", "", "?"], ["", "", ""], "A"),
+      figureSolution: tabSV(["0", `${xm}`, `${P / 2}`], ["+", "0", "-"], ["", nbSvg(Am), ""], "A")
     };
   };
 
   GEN["vr-inegalite"] = function () {
-    const m = pick([2, 3, 5, 6]), q = Math.random() < 0.5;
+    const t = pick([0, 0, 1, 2]), q = Math.random() < 0.5;
+    if (t === 1) {
+      // Parabole et droite sur R : d(x) = x² − 2bx + c, minimum en b
+      const b = pick([-3, -2, -1, 1, 2, 3, 4]), c = pick(Math.abs(b) >= 2 ? [b * b - 3, b * b - 1, b * b, b * b + 1, b * b + 3] : [b * b, b * b + 1, b * b + 3]);
+      const B = -2 * b, mini = c - b * b, droite = poly([2 * b, 0]);
+      const fin = mini > 0
+        ? `Donc $d(x) > 0$ pour tout réel $x$ : $x^2 + ${c} > ${droite}$, la parabole est toujours au-dessus de la droite.`
+        : mini === 0
+          ? `Donc $d(x) \\geqslant 0$ : $x^2 + ${c} \\geqslant ${droite}$ pour tout réel $x$, avec égalité en $${b}$ (on reconnaît $d(x) = (x ${b > 0 ? "-" : "+"} ${Math.abs(b)})^2$).`
+          : `Le minimum est négatif : en $x = ${b}$, on a $x^2 + ${c} < ${droite}$. L'inégalité $x^2 + ${c} \\geqslant ${droite}$ n'est donc pas vraie pour tout réel $x$ : la parabole passe sous la droite autour de $${b}$.`;
+      return {
+        enonce: `Pour comparer $x^2 + ${c}$ et $${droite}$ sur $\\mathbb{R}$, on étudie $d(x) = ${poly([1, B, c])}$. ${q ? "Quel est le minimum de $d$ sur $\\mathbb{R}$ ?" : "En quelle valeur de $x$ la fonction $d$ atteint-elle son minimum ?"}`,
+        mode: "nombre", prefixe: q ? "Minimum :" : "$x =$", attendu: q ? mini : b,
+        erreurs: q ? [{ valeur: c, message: "Ça, c'est $d(0)$. Le minimum est atteint là où $d'$ change de signe." }, { valeur: b, message: `Ça, c'est l'abscisse du minimum. On demande sa valeur $d(${b})$.` }].filter((e) => e.valeur !== mini) : [{ valeur: -b, message: `Attention au signe : $d'(x) = ${poly([2, B])}$ s'annule en $x = ${b}$.` }],
+        aides: [`$d'(x) = ${poly([2, B])}$.`, `$d'(x) = 0 \\iff x = ${b}$ : $d'$ est négative avant $${b}$ et positive après.`, q ? `Le minimum est $d(${b})$.` : "C'est là que $d$ passe de décroissante à croissante."],
+        solution: `$d'(x) = ${poly([2, B])}$ : $d$ décroît sur $]-\\infty\\,;${b}]$ et croît sur $[${b}\\,;+\\infty[$. Son minimum est $d(${b}) = ${par(b)}^2 ${B < 0 ? "-" : "+"} ${Math.abs(B)} \\times ${par(b)} + ${c} = ${mini}$. ${fin}`,
+        figure: tabSV(["−∞", "?", "+∞"], ["?", "", "?"], ["", "", ""], "d"),
+        figureSolution: tabSV(["−∞", nbSvg(b), "+∞"], ["-", "0", "+"], ["", nbSvg(mini), ""], "d")
+      };
+    }
+    if (t === 2) {
+      // f(x) = x + a²/x sur ]0 ; +∞[ : minimum 2a en a
+      const a = rand(1, 6), A = a * a;
+      return {
+        enonce: `On étudie la fonction $f(x) = x + \\dfrac{${A}}{x}$ sur $]0\\,;+\\infty[$. ${q ? "Quel est le minimum de $f$ sur $]0\\,;+\\infty[$ ?" : "En quelle valeur de $x$ la fonction $f$ atteint-elle son minimum ?"}`,
+        mode: "nombre", prefixe: q ? "Minimum :" : "$x =$", attendu: q ? 2 * a : a,
+        erreurs: q ? [{ valeur: a, message: `Ça, c'est l'abscisse du minimum. On demande sa valeur $f(${a})$.` }] : [{ valeur: -a, message: `$-${a}$ n'est pas dans $]0\\,;+\\infty[$.` }, { valeur: 2 * a, message: "Ça, c'est la valeur du minimum. On demande l'abscisse où il est atteint." }],
+        aides: [`$f'(x) = 1 - \\dfrac{${A}}{x^2} = \\dfrac{x^2 - ${A}}{x^2} = \\dfrac{(x - ${a})(x + ${a})}{x^2}$.`, `Sur $]0\\,;+\\infty[$, $x + ${a} > 0$ et $x^2 > 0$ : $f'(x)$ a le signe de $x - ${a}$.`, q ? `Le minimum est $f(${a})$.` : "C'est là que $f'$ s'annule en passant de « − » à « + »."],
+        solution: `$f'(x) = \\dfrac{(x - ${a})(x + ${a})}{x^2}$ a le signe de $x - ${a}$ sur $]0\\,;+\\infty[$ : $f$ décroît sur $]0\\,;${a}]$ et croît sur $[${a}\\,;+\\infty[$. Son minimum est $f(${a}) = ${a} + \\dfrac{${A}}{${a}} = ${2 * a}$. Donc, pour tout $x > 0$, $x + \\dfrac{${A}}{x} \\geqslant ${2 * a}$.`,
+        figure: tabSV(["0", "?", "+∞"], ["?", "", "?"], ["", "", ""], "f"),
+        figureSolution: tabSV(["0", `${a}`, "+∞"], ["-", "0", "+"], ["", nbSvg(2 * a), ""], "f")
+      };
+    }
+    // Cubique et droite sur [0 ; +∞[ : d(x) = x³ − 3a²x + m, minimum en a
+    const a = pick([1, 1, 2]), m = a === 1 ? pick([1, 2, 3, 4, 5, 6]) : pick([12, 14, 16, 18, 20]), p = 3 * a * a, mini = m - 2 * a ** 3;
+    const fin = mini === 0
+      ? `Donc $d(x) \\geqslant 0$ : $x^3 \\geqslant ${p}x - ${m}$ sur $[0\\,;+\\infty[$, avec égalité en $${a}$ (la droite est tangente à la courbe).`
+      : mini > 0
+        ? `Donc $d(x) > 0$ : $x^3 > ${p}x - ${m}$ sur $[0\\,;+\\infty[$, la courbe est toujours au-dessus de la droite.`
+        : `Le minimum est négatif : en $x = ${a}$, on a $x^3 < ${p}x - ${m}$. L'inégalité $x^3 \\geqslant ${p}x - ${m}$ n'est donc pas vraie sur tout $[0\\,;+\\infty[$ : la courbe passe sous la droite autour de $${a}$.`;
     return {
-      enonce: `Pour comparer $x^3$ et $3x - ${m}$ sur $[0\\,;+\\infty[$, on étudie $d(x) = x^3 - 3x + ${m}$. ${q ? "Quel est le minimum de $d$ sur $[0\\,;+\\infty[$ ?" : "En quelle valeur de $x$ ce minimum est-il atteint ?"}`,
-      mode: "nombre", prefixe: q ? "Minimum :" : "$x =$", attendu: q ? m - 2 : 1,
-      erreurs: q ? [{ valeur: m, message: "Ça, c'est $d(0)$. Le minimum est atteint là où $d'$ change de signe." }, { valeur: 1, message: "Ça, c'est l'abscisse du minimum. On demande sa valeur $d(1)$." }].filter((e) => e.valeur !== m - 2) : [{ valeur: -1, message: "$-1$ n'est pas dans $[0\\,;+\\infty[$." }],
-      aides: ["$d'(x) = 3x^2 - 3 = 3(x - 1)(x + 1)$.", "Sur $[0\\,;+\\infty[$, $d'$ est négative avant $1$ et positive après.", "Le minimum est $d(1)$."],
-      solution: `$d'(x) = 3(x - 1)(x + 1)$ : $d$ décroît sur $[0\\,;1]$ et croît sur $[1\\,;+\\infty[$. Son minimum est $d(1) = 1 - 3 + ${m} = ${m - 2}$. ${m - 2 === 0 ? "Donc $d(x) \\geqslant 0$ : $x^3 \\geqslant 3x - 2$ sur $[0\\,;+\\infty[$, avec égalité en $1$ (la droite est tangente à la courbe)." : `Donc $d(x) > 0$ : $x^3 > 3x - ${m}$ sur $[0\\,;+\\infty[$, la courbe est toujours au-dessus de la droite.`}`,
+      enonce: `Pour comparer $x^3$ et $${p}x - ${m}$ sur $[0\\,;+\\infty[$, on étudie $d(x) = x^3 - ${p}x + ${m}$. ${q ? "Quel est le minimum de $d$ sur $[0\\,;+\\infty[$ ?" : "En quelle valeur de $x$ ce minimum est-il atteint ?"}`,
+      mode: "nombre", prefixe: q ? "Minimum :" : "$x =$", attendu: q ? mini : a,
+      erreurs: q ? [{ valeur: m, message: "Ça, c'est $d(0)$. Le minimum est atteint là où $d'$ change de signe." }, { valeur: a, message: `Ça, c'est l'abscisse du minimum. On demande sa valeur $d(${a})$.` }].filter((e) => e.valeur !== mini) : [{ valeur: -a, message: `$-${a}$ n'est pas dans $[0\\,;+\\infty[$.` }],
+      aides: [`$d'(x) = 3x^2 - ${p} = 3(x - ${a})(x + ${a})$.`, `Sur $[0\\,;+\\infty[$, $d'$ est négative avant $${a}$ et positive après.`, `Le minimum est $d(${a})$.`],
+      solution: `$d'(x) = 3(x - ${a})(x + ${a})$ : $d$ décroît sur $[0\\,;${a}]$ et croît sur $[${a}\\,;+\\infty[$. Son minimum est $d(${a}) = ${a ** 3} - ${p * a} + ${m} = ${mini}$. ${fin}`,
       figure: tabSV(["0", "?", "+∞"], ["?", "", "?"], ["", "", ""], "d"),
-      figureSolution: tabSV(["0", "1", "+∞"], ["-", "0", "+"], [nbSvg(m), nbSvg(m - 2), ""], "d")
+      figureSolution: tabSV(["0", `${a}`, "+∞"], ["-", "0", "+"], [nbSvg(m), nbSvg(mini), ""], "d")
     };
   };
 
   GEN["vr-newton"] = function () {
-    const [A, x0] = pick([[2, 1], [2, 2], [3, 2], [5, 2], [10, 3], [7, 3], [6, 2]]), x1 = (x0 + A / x0) / 2;
+    const [A, x0] = pick([[2, 1], [2, 2], [3, 2], [5, 2], [10, 3], [7, 3], [6, 2], [3, 1], [5, 3], [7, 2], [8, 3], [11, 3], [12, 3], [13, 4], [15, 4], [17, 4], [20, 4]]), x1 = (x0 + A / x0) / 2;
     const code = "```python\ndef newton(f, fp, x, n):\n    for i in range(n):\n        x = x - f(x) / fp(x)\n    return x\n\ndef f(x):\n    return x**2 - " + A + "\n\ndef fp(x):\n    return 2 * x\n```";
-    if (Math.random() < 0.6) {
+    // n / d en fraction, suivie de sa valeur décimale (exacte si elle a au plus 3 décimales)
+    const valeur = (n, d) => { const v = n / d, f = frac(n, d); return Number.isInteger(v) ? f : `${f}${Number.isInteger(v * 1000) ? ` = ${nb(v)}` : ` \\approx ${nb(+v.toFixed(4))}`}`; };
+    const t = rand(0, 7);
+    if (t <= 1) {
       return {
         enonce: `${code}\n\nQue renvoie newton(f, fp, ${x0}, 1) ? (Valeur exacte : fraction ou décimal.)`,
         mode: "nombre", prefixe: "Résultat :", attendu: x1, tolerance: 1e-6,
         erreurs: [{ valeur: x0 - (x0 * x0 - A), message: "On divise $f(x)$ par $f'(x)$ avant de soustraire." }].filter((e) => Math.abs(e.valeur - x1) > 1e-6),
         aides: ["Une seule étape : $x_1 = x_0 - \\dfrac{f(x_0)}{f'(x_0)}$.", `$f(${x0}) = ${x0 * x0 - A}$ et $f'(${x0}) = ${2 * x0}$.`, `$x_1 = ${x0} - \\dfrac{${x0 * x0 - A}}{${2 * x0}}$.`],
-        solution: `$x_1 = ${x0} - \\dfrac{${x0 * x0 - A}}{${2 * x0}} = ${frac(x0 * 2 * x0 - (x0 * x0 - A), 2 * x0)}${Number.isInteger(x1 * 1000) ? ` = ${nb(x1)}` : ` \\approx ${nb(+x1.toFixed(4))}`}$. C'est l'abscisse où la tangente en $${x0}$ coupe l'axe des abscisses.`
+        solution: `$x_1 = ${x0} - \\dfrac{${x0 * x0 - A}}{${2 * x0}} = ${valeur(x0 * x0 + A, 2 * x0)}$. C'est l'abscisse où la tangente en $${x0}$ coupe l'axe des abscisses.`
       };
     }
-    const c = melangeChoix(`$\\sqrt{${A}}$`, [`$${A}$`, `$\\dfrac{${A}}{2}$`, "$0$"]);
+    if (t === 2) {
+      const c = melangeChoix(`$\\sqrt{${A}}$`, [`$${A}$`, `$\\dfrac{${A}}{2}$`, "$0$"]);
+      return {
+        enonce: `${code}\n\nVers quel nombre se rapprochent les résultats de newton(f, fp, ${x0}, n) quand n augmente ?`,
+        mode: "choix", choix: c.choix, attendu: c.attendu,
+        aides: ["La méthode de Newton cherche une solution de $f(x) = 0$.", `Ici $f(x) = x^2 - ${A}$.`, `$x^2 - ${A} = 0$ pour $x = \\sqrt{${A}}$ ou $x = -\\sqrt{${A}}$ ; on part d'un nombre positif.`],
+        solution: `La méthode suit les tangentes jusqu'à la solution positive de $x^2 - ${A} = 0$ : $\\sqrt{${A}} \\approx ${nb(+Math.sqrt(A).toFixed(6))}$. Quelques étapes suffisent pour obtenir beaucoup de décimales exactes.`
+      };
+    }
+    if (t === 3) {
+      const x2 = (x1 + A / x1) / 2, r = +x2.toFixed(4);
+      return {
+        enonce: `${code}\n\nQue renvoie newton(f, fp, ${x0}, 2) ? Arrondis au dix-millième.`,
+        mode: "nombre", prefixe: "Résultat :", attendu: r, tolerance: 0.00006,
+        erreurs: [{ valeur: +x1.toFixed(4), message: "Ça, c'est le résultat après **une** étape. Avec n = 2, la boucle tourne deux fois." }].filter((e) => Math.abs(e.valeur - r) > 0.0001),
+        aides: ["Deux étapes : on calcule $x_1$, puis $x_2 = x_1 - \\dfrac{f(x_1)}{f'(x_1)}$.", `$x_1 = ${x0} - \\dfrac{${x0 * x0 - A}}{${2 * x0}} = ${valeur(x0 * x0 + A, 2 * x0)}$.`, `$x_2 = x_1 - \\dfrac{x_1^2 - ${A}}{2x_1}$ : garde la valeur exacte de $x_1$ dans la calculatrice.`],
+        solution: `$x_1 = ${valeur(x0 * x0 + A, 2 * x0)}$, puis $x_2 = x_1 - \\dfrac{x_1^2 - ${A}}{2x_1} \\approx ${nb(r)}$. C'est déjà très proche de $\\sqrt{${A}} \\approx ${nb(+Math.sqrt(A).toFixed(6))}$.`
+      };
+    }
+    if (t === 4) {
+      const c = melangeChoix(`$-\\sqrt{${A}}$`, [`$\\sqrt{${A}}$`, "$0$", `$-${A}$`]);
+      return {
+        enonce: `${code}\n\nVers quel nombre se rapprochent les résultats de newton(f, fp, -${x0}, n) quand n augmente ?`,
+        mode: "choix", choix: c.choix, attendu: c.attendu,
+        aides: ["La méthode de Newton cherche une solution de $f(x) = 0$.", `$x^2 - ${A} = 0$ a deux solutions : $\\sqrt{${A}}$ et $-\\sqrt{${A}}$.`, `Ici, une étape donne $x - \\dfrac{x^2 - ${A}}{2x} = \\dfrac{1}{2}\\left(x + \\dfrac{${A}}{x}\\right)$ : quel est son signe si $x < 0$ ?`],
+        solution: `Une étape remplace $x$ par $\\dfrac{1}{2}\\left(x + \\dfrac{${A}}{x}\\right)$. Si $x < 0$, ce nombre est négatif (somme de deux négatifs) : on reste du côté négatif, et les résultats se rapprochent de la solution négative de $x^2 - ${A} = 0$, c'est-à-dire $-\\sqrt{${A}} \\approx ${nb(+(-Math.sqrt(A)).toFixed(6))}$.`
+      };
+    }
+    if (t === 5) {
+      const c = melangeChoix("Une erreur : on divise par zéro, car fp(0) vaut $0$", ["Le programme renvoie $0$", `Le programme renvoie $${A}$`, `Le programme renvoie $\\sqrt{${A}}$`]);
+      return {
+        enonce: `${code}\n\nQue se passe-t-il quand on appelle newton(f, fp, 0, 1) ?`,
+        mode: "choix", choix: c.choix, attendu: c.attendu,
+        aides: ["Calcule fp(0).", "La ligne « x = x - f(x) / fp(x) » demande de diviser par fp(x).", `Sur la courbe de $y = x^2 - ${A}$, comment est la tangente au point d'abscisse $0$ ?`],
+        solution: `fp(0) $= 2 \\times 0 = 0$ : le calcul x - f(x) / fp(x) demande de diviser par $0$, et Python s'arrête avec une erreur (ZeroDivisionError). Géométriquement, la tangente en $0$ est horizontale : elle ne coupe jamais l'axe des abscisses. C'est un cas défavorable : il faut partir d'un point où $f'$ ne s'annule pas.`
+      };
+    }
+    if (t === 6) {
+      const c = melangeChoix("L'abscisse du point où la tangente à la courbe en x coupe l'axe des abscisses", ["La pente de la tangente à la courbe en x", "L'ordonnée du point de la courbe d'abscisse x", "L'abscisse du point où la courbe coupe l'axe des ordonnées"]);
+      return {
+        enonce: `${code}\n\nDans la boucle, que représente le nombre x - f(x) / fp(x) ?`,
+        mode: "choix", choix: c.choix, attendu: c.attendu,
+        aides: ["La tangente au point d'abscisse $a$ a pour équation $y = f(a) + f'(a)(x - a)$.", "Cherche où cette tangente coupe l'axe des abscisses : résous $f(a) + f'(a)(x - a) = 0$.", "On trouve $x = a - \\dfrac{f(a)}{f'(a)}$."],
+        solution: "La tangente au point d'abscisse $a$ a pour équation $y = f(a) + f'(a)(x - a)$. Elle coupe l'axe des abscisses quand $y = 0$, soit pour $x = a - \\dfrac{f(a)}{f'(a)}$ (si $f'(a) \\neq 0$) : c'est exactement le calcul de la boucle. La méthode de Newton remplace la courbe par sa tangente."
+      };
+    }
+    // f(x) = x³ − B : une étape vers la solution de x³ = B
+    const [B, y0] = pick([[2, 1], [3, 1], [5, 2], [7, 2], [10, 2], [20, 3], [25, 3], [30, 3], [50, 4], [70, 4]]), y1 = y0 - (y0 ** 3 - B) / (3 * y0 * y0);
+    const code3 = "```python\ndef newton(f, fp, x, n):\n    for i in range(n):\n        x = x - f(x) / fp(x)\n    return x\n\ndef f(x):\n    return x**3 - " + B + "\n\ndef fp(x):\n    return 3 * x**2\n```";
     return {
-      enonce: `${code}\n\nVers quel nombre se rapprochent les résultats de newton(f, fp, ${x0}, n) quand n augmente ?`,
-      mode: "choix", choix: c.choix, attendu: c.attendu,
-      aides: ["La méthode de Newton cherche une solution de $f(x) = 0$.", `Ici $f(x) = x^2 - ${A}$.`, `$x^2 - ${A} = 0$ pour $x = \\sqrt{${A}}$ ou $x = -\\sqrt{${A}}$ ; on part d'un nombre positif.`],
-      solution: `La méthode suit les tangentes jusqu'à la solution positive de $x^2 - ${A} = 0$ : $\\sqrt{${A}} \\approx ${nb(+Math.sqrt(A).toFixed(6))}$. Quelques étapes suffisent pour obtenir beaucoup de décimales exactes.`
+      enonce: `On cherche le nombre $x$ tel que $x^3 = ${B}$ avec la méthode de Newton.\n\n${code3}\n\nQue renvoie newton(f, fp, ${y0}, 1) ? (Valeur exacte : fraction ou décimal.)`,
+      mode: "nombre", prefixe: "Résultat :", attendu: y1, tolerance: 1e-6,
+      erreurs: [{ valeur: y0 - (y0 ** 3 - B), message: "On divise $f(x)$ par $f'(x)$ avant de soustraire." }, { valeur: y0 - (y0 ** 3 - B) / (2 * y0), message: "Ici $f(x) = x^3 - " + B + "$ : sa dérivée est $f'(x) = 3x^2$, pas $2x$." }].filter((e) => Math.abs(e.valeur - y1) > 1e-6),
+      aides: ["Une seule étape : $x_1 = x_0 - \\dfrac{f(x_0)}{f'(x_0)}$, avec $f'(x) = 3x^2$.", `$f(${y0}) = ${y0 ** 3 - B}$ et $f'(${y0}) = ${3 * y0 * y0}$.`, `$x_1 = ${y0} - \\dfrac{${y0 ** 3 - B}}{${3 * y0 * y0}}$.`],
+      solution: `$x_1 = ${y0} - \\dfrac{${y0 ** 3 - B}}{${3 * y0 * y0}} = ${valeur(2 * y0 ** 3 + B, 3 * y0 * y0)}$. Les étapes suivantes se rapprochent de la solution de $x^3 = ${B}$, environ $${nb(+Math.cbrt(B).toFixed(4))}$.`
     };
   };
 
@@ -7140,19 +9264,81 @@
 
   // Logique : équivalence et contre-exemples sur le produit scalaire
   GEN["ps-logique"] = function () {
+    const AF = ["Projection : si $H$ est le projeté orthogonal de $C$ sur $(AB)$, alors $\\overrightarrow{AB} \\cdot \\overrightarrow{AC} = \\overrightarrow{AB} \\cdot \\overrightarrow{AH}$.", "Vecteurs orthogonaux : produit nul. Même sens : produit des normes. Sens contraires : l'opposé du produit des normes.", "Avec le cosinus : $\\vec{u} \\cdot \\vec{v} = \\|\\vec{u}\\| \\times \\|\\vec{v}\\| \\times \\cos(\\vec{u}, \\vec{v})$."];
+    const AC = ["Dans un repère orthonormé, $\\vec{u} \\cdot \\vec{v} = xx' + yy'$.", "Deux vecteurs sont orthogonaux si et seulement si leur produit scalaire est nul.", "Calcule soigneusement, en mettant les nombres négatifs entre parenthèses."];
+    // [affirmation, 0 si vraie / 1 si fausse, solution, aides (facultatif)]
     const T = [
       ["Pour deux vecteurs $\\vec{u}$ et $\\vec{v}$ : $\\vec{u} \\cdot \\vec{v} = 0$ si et seulement si $\\vec{u}$ et $\\vec{v}$ sont orthogonaux.", 0, "**Vrai** : c'est une équivalence (avec la convention que le vecteur nul est orthogonal à tout vecteur)."],
       ["Si $\\vec{u} \\cdot \\vec{v} = 0$, alors $\\vec{u} = \\vec{0}$ ou $\\vec{v} = \\vec{0}$.", 1, "**Faux**. Contre-exemple : $\\vec{u}\\begin{pmatrix} 1 \\\\ 0 \\end{pmatrix}$ et $\\vec{v}\\begin{pmatrix} 0 \\\\ 1 \\end{pmatrix}$ sont non nuls et $\\vec{u} \\cdot \\vec{v} = 0$."],
       ["Pour tout vecteur $\\vec{u}$, $\\vec{u} \\cdot \\vec{u} = \\|\\vec{u}\\|^2$.", 0, "**Vrai** : l'angle entre $\\vec{u}$ et lui-même est nul et $\\cos 0 = 1$."],
       ["Pour tous points $A$, $B$, $C$ : $\\overrightarrow{AB} \\cdot \\overrightarrow{AC} = AB \\times AC$.", 1, "**Faux** en général : il manque $\\cos \\widehat{BAC}$. C'est vrai seulement si $\\overrightarrow{AB}$ et $\\overrightarrow{AC}$ sont de même sens."],
       ["Si $\\vec{u} \\cdot \\vec{v} = \\vec{u} \\cdot \\vec{w}$ avec $\\vec{u} \\neq \\vec{0}$, alors $\\vec{v} = \\vec{w}$.", 1, "**Faux**. Contre-exemple : $\\vec{u}\\begin{pmatrix} 1 \\\\ 0 \\end{pmatrix}$, $\\vec{v}\\begin{pmatrix} 2 \\\\ 0 \\end{pmatrix}$, $\\vec{w}\\begin{pmatrix} 2 \\\\ 5 \\end{pmatrix}$ : les deux produits valent $2$."],
-      ["Si $\\vec{u}$ et $\\vec{v}$ sont non nuls et $\\vec{u} \\cdot \\vec{v} < 0$, alors l'angle entre eux est obtus.", 0, "**Vrai** : $\\cos(\\vec{u}, \\vec{v})$ a le signe de $\\vec{u} \\cdot \\vec{v}$, donc il est négatif."]
+      ["Si $\\vec{u}$ et $\\vec{v}$ sont non nuls et $\\vec{u} \\cdot \\vec{v} < 0$, alors l'angle entre eux est obtus.", 0, "**Vrai** : $\\cos(\\vec{u}, \\vec{v})$ a le signe de $\\vec{u} \\cdot \\vec{v}$, donc il est négatif."],
+      ["Le produit scalaire de deux vecteurs est un vecteur.", 1, "**Faux** : c'est un **nombre réel**, par exemple $\\vec{u} \\cdot \\vec{v} = \\|\\vec{u}\\| \\times \\|\\vec{v}\\| \\times \\cos(\\vec{u}, \\vec{v})$."],
+      ["Si $\\vec{u}$ et $\\vec{v}$ sont colinéaires et de même sens, alors $\\vec{u} \\cdot \\vec{v} = \\|\\vec{u}\\| \\times \\|\\vec{v}\\|$.", 0, "**Vrai** : l'angle entre eux est nul et $\\cos 0 = 1$."],
+      ["Si $\\vec{u}$ et $\\vec{v}$ sont colinéaires et de sens contraires, alors $\\vec{u} \\cdot \\vec{v} = -\\|\\vec{u}\\| \\times \\|\\vec{v}\\|$.", 0, "**Vrai** : l'angle entre eux mesure $180°$ et $\\cos 180° = -1$."],
+      ["Pour tous vecteurs $\\vec{u}$ et $\\vec{v}$, $\\vec{u} \\cdot \\vec{v} \\leqslant \\|\\vec{u}\\| \\times \\|\\vec{v}\\|$.", 0, "**Vrai** : un cosinus est toujours inférieur ou égal à $1$ (et si l'un des vecteurs est nul, les deux membres valent $0$)."],
+      ["Si $\\vec{u} \\cdot \\vec{v} > 0$, alors $\\vec{u}$ et $\\vec{v}$ sont colinéaires.", 1, "**Faux**. Contre-exemple : $\\vec{u}\\begin{pmatrix} 1 \\\\ 0 \\end{pmatrix}$ et $\\vec{v}\\begin{pmatrix} 1 \\\\ 1 \\end{pmatrix}$ : $\\vec{u} \\cdot \\vec{v} = 1 > 0$, mais ils ne sont pas colinéaires (l'angle entre eux mesure $45°$)."],
+      ["Si $\\vec{u} = \\vec{0}$, alors $\\vec{u} \\cdot \\vec{v} = 0$ pour tout vecteur $\\vec{v}$.", 0, "**Vrai** : c'est la convention du cours. Avec les coordonnées : $0 \\times x' + 0 \\times y' = 0$."],
+      ["Dans n'importe quel repère, si $\\vec{u}\\begin{pmatrix} x \\\\ y \\end{pmatrix}$ et $\\vec{v}\\begin{pmatrix} x' \\\\ y' \\end{pmatrix}$, alors $\\vec{u} \\cdot \\vec{v} = xx' + yy'$.", 1, "**Faux** : la formule n'est valable que dans un repère **orthonormé**. Contre-exemple : dans un repère $(O\\,;\\vec{i}, \\vec{j})$ avec $\\vec{i}$ et $\\vec{j}$ orthogonaux, $\\|\\vec{i}\\| = 1$ et $\\|\\vec{j}\\| = 2$, le vecteur $\\vec{j}$ a pour coordonnées $\\begin{pmatrix} 0 \\\\ 1 \\end{pmatrix}$ et $\\vec{j} \\cdot \\vec{j} = \\|\\vec{j}\\|^2 = 4$, alors que la formule donnerait $0 \\times 0 + 1 \\times 1 = 1$."],
+      ["Pour tout vecteur $\\vec{u}$, $\\vec{u} \\cdot \\vec{u} \\geqslant 0$.", 0, "**Vrai** : $\\vec{u} \\cdot \\vec{u} = \\|\\vec{u}\\|^2$, le carré d'une longueur."],
+      ["Il existe un vecteur non nul $\\vec{u}$ tel que $\\vec{u} \\cdot \\vec{u} = 0$.", 1, "**Faux** : si $\\vec{u} \\neq \\vec{0}$, alors $\\vec{u} \\cdot \\vec{u} = \\|\\vec{u}\\|^2 > 0$. Pour réfuter un « il existe », il faut montrer qu'**aucun** vecteur ne convient."],
+      ["Pour tous points $A$ et $B$, $\\overrightarrow{AB} \\cdot \\overrightarrow{BA} = -AB^2$.", 0, "**Vrai** : $\\overrightarrow{BA} = -\\overrightarrow{AB}$. Ce sont deux vecteurs de sens contraires, de même norme $AB$ : leur produit scalaire vaut $-AB \\times AB = -AB^2$."],
+      ["Si $H$ est le projeté orthogonal de $C$ sur la droite $(AB)$, alors $\\overrightarrow{AB} \\cdot \\overrightarrow{AC} = \\overrightarrow{AB} \\cdot \\overrightarrow{AH}$.", 0, "**Vrai** : c'est la propriété de projection du cours. On remplace $C$ par son projeté $H$ sur la droite qui porte l'autre vecteur.", AF],
+      ["Si $A$, $B$, $C$ sont trois points distincts tels que $\\overrightarrow{AB} \\cdot \\overrightarrow{AC} = 0$, alors le triangle $ABC$ est rectangle en $A$.", 0, "**Vrai** : $\\overrightarrow{AB}$ et $\\overrightarrow{AC}$ sont non nuls et leur produit scalaire est nul, donc ils sont orthogonaux : l'angle en $A$ est droit."],
+      ["Si le triangle $ABC$ est rectangle en $B$, alors $\\overrightarrow{AB} \\cdot \\overrightarrow{AC} = 0$.", 1, "**Faux** : l'angle droit est en $B$, c'est donc $\\overrightarrow{BA} \\cdot \\overrightarrow{BC}$ qui est nul. Contre-exemple : $A(0\\,;0)$, $B(1\\,;0)$ et $C(1\\,;1)$ ; le triangle est rectangle en $B$, mais $\\overrightarrow{AB} \\cdot \\overrightarrow{AC} = 1 \\times 1 + 0 \\times 1 = 1$."],
+      ["Si l'angle entre deux vecteurs non nuls $\\vec{u}$ et $\\vec{v}$ est aigu, alors $\\vec{u} \\cdot \\vec{v} > 0$.", 0, "**Vrai** : le cosinus d'un angle aigu est strictement positif, et les normes aussi."],
+      ["Le travail d'une force perpendiculaire au déplacement est nul.", 0, "**Vrai** : $W = F \\times AB \\times \\cos 90° = 0$. Seule la partie de la force dans la direction du déplacement « travaille »."],
+      ["Si on double l'intensité d'une force sans changer sa direction ni le déplacement, son travail double.", 0, "**Vrai** : $W = F \\times AB \\times \\cos \\alpha$ est proportionnel à $F$."],
+      ["Pour tous vecteurs $\\vec{u}$ et $\\vec{v}$, $\\vec{u} \\cdot \\vec{v} = \\vec{v} \\cdot \\vec{u}$.", 0, "**Vrai** : avec les coordonnées dans un repère orthonormé, $xx' + yy' = x'x + y'y$ ; avec le cosinus, les deux angles ont le même cosinus."],
+      ["Si $\\|\\vec{u}\\| = \\|\\vec{v}\\|$, alors $\\vec{u} = \\vec{v}$.", 1, "**Faux**. Contre-exemple : $\\vec{u}\\begin{pmatrix} 1 \\\\ 0 \\end{pmatrix}$ et $\\vec{v}\\begin{pmatrix} 0 \\\\ 1 \\end{pmatrix}$ ont la même norme $1$, mais ils sont différents (et même orthogonaux)."]
     ];
-    const [aff, rep, sol] = pick(T);
+    const P = [
+      // Orthogonaux ou pas (coordonnées)
+      () => {
+        const a = randNZ(-6, 6), b = randNZ(-6, 6), k = pick([-2, -1, 1, 2]), cas = rand(0, 2);
+        const v = cas === 0 ? [-k * b, k * a] : cas === 1 ? [b, a] : [-k * b + pick([-1, 1]), k * a];
+        const ps = a * v[0] + b * v[1];
+        return [`Dans un repère orthonormé, les vecteurs $\\vec{u}\\begin{pmatrix} ${a} \\\\ ${b} \\end{pmatrix}$ et $\\vec{v}\\begin{pmatrix} ${v[0]} \\\\ ${v[1]} \\end{pmatrix}$ sont orthogonaux.`, ps === 0 ? 0 : 1,
+          `$\\vec{u} \\cdot \\vec{v} = ${a} \\times ${par(v[0])} + ${par(b)} \\times ${par(v[1])} = ${ps}$. ${ps === 0 ? "**Vrai** : le produit scalaire est nul, les vecteurs sont orthogonaux." : "**Faux** : le produit scalaire n'est pas nul, les vecteurs ne sont pas orthogonaux."}`, AC];
+      },
+      // Normes et produit scalaire possibles ?
+      () => {
+        const p = rand(1, 5), q = rand(1, 5), m = p * q, vrai = Math.random() < 0.5, s = vrai ? rand(-m, m) : pick([1, -1]) * (m + rand(1, 6));
+        return [`Il existe deux vecteurs $\\vec{u}$ et $\\vec{v}$ tels que $\\|\\vec{u}\\| = ${p}$, $\\|\\vec{v}\\| = ${q}$ et $\\vec{u} \\cdot \\vec{v} = ${s}$.`, vrai ? 0 : 1,
+          vrai ? `**Vrai** : il suffit que $\\cos(\\vec{u}, \\vec{v}) = \\dfrac{${s}}{${p} \\times ${q}} = ${frac(s, m)}$, un nombre compris entre $-1$ et $1$ : un tel angle existe. Pour prouver un « il existe », un exemple suffit.`
+            : `**Faux** : $\\vec{u} \\cdot \\vec{v} = ${p} \\times ${q} \\times \\cos(\\vec{u}, \\vec{v})$, et un cosinus est compris entre $-1$ et $1$. Le produit scalaire est donc forcément compris entre $-${m}$ et $${m}$ : il ne peut pas valoir $${s}$.`,
+          ["$\\vec{u} \\cdot \\vec{v} = \\|\\vec{u}\\| \\times \\|\\vec{v}\\| \\times \\cos(\\vec{u}, \\vec{v})$.", "Un cosinus est toujours compris entre $-1$ et $1$.", "Calcule le cosinus qu'il faudrait : est-il possible ?"]];
+      },
+      // Dans un carré
+      () => {
+        const a = rand(2, 6), a2 = a * a, vrai = Math.random() < 0.5;
+        const L = [
+          ["\\overrightarrow{AB} \\cdot \\overrightarrow{AC}", a2, [2 * a2, 0], `Le projeté orthogonal de $C$ sur $(AB)$ est $B$, donc $\\overrightarrow{AB} \\cdot \\overrightarrow{AC} = AB^2 = ${a2}$.`],
+          ["\\overrightarrow{AB} \\cdot \\overrightarrow{AD}", 0, [a2, -a2], "Les droites $(AB)$ et $(AD)$ sont perpendiculaires, donc $\\overrightarrow{AB} \\cdot \\overrightarrow{AD} = 0$."],
+          ["\\overrightarrow{AB} \\cdot \\overrightarrow{CD}", -a2, [a2, 0], `$\\overrightarrow{CD} = -\\overrightarrow{AB}$ : deux vecteurs de sens contraires, donc $\\overrightarrow{AB} \\cdot \\overrightarrow{CD} = -AB^2 = -${a2}$.`],
+          ["\\overrightarrow{AB} \\cdot \\overrightarrow{DC}", a2, [-a2, 0], `$\\overrightarrow{DC} = \\overrightarrow{AB}$, donc $\\overrightarrow{AB} \\cdot \\overrightarrow{DC} = AB^2 = ${a2}$.`],
+          ["\\overrightarrow{AC} \\cdot \\overrightarrow{BD}", 0, [2 * a2, a2], "Les diagonales d'un carré sont perpendiculaires, donc $\\overrightarrow{AC} \\cdot \\overrightarrow{BD} = 0$."],
+          ["\\overrightarrow{AC} \\cdot \\overrightarrow{AC}", 2 * a2, [a2, 4 * a2], `$\\overrightarrow{AC} \\cdot \\overrightarrow{AC} = AC^2$, et la diagonale vaut $AC = ${a}\\sqrt{2}$, donc $AC^2 = 2 \\times ${a2} = ${2 * a2}$.`]
+        ];
+        const [e, val, faux, s] = pick(L), aff = vrai ? val : pick(faux);
+        return [`Dans un carré $ABCD$ de côté $${a}$, $${e} = ${aff}$.`, vrai ? 0 : 1, `${vrai ? "**Vrai**." : "**Faux**."} ${s}${vrai ? "" : ` Ce produit vaut donc $${val}$, et non $${aff}$.`}`, AF];
+      },
+      // Dans un triangle équilatéral
+      () => {
+        const a = rand(2, 8), h = frac(a * a, 2), vrai = Math.random() < 0.5, k = rand(0, 1);
+        const [e, val, faux, s] = [
+          ["\\overrightarrow{AB} \\cdot \\overrightarrow{AC}", h, [`${a * a}`, `-${h}`], `$\\overrightarrow{AB} \\cdot \\overrightarrow{AC} = ${a} \\times ${a} \\times \\cos 60° = ${a * a} \\times \\dfrac{1}{2} = ${h}$.`],
+          ["\\overrightarrow{AB} \\cdot \\overrightarrow{BC}", `-${h}`, [h, `${a * a}`], `Attention, les deux vecteurs ne partent pas du même point : $\\overrightarrow{AB} = -\\overrightarrow{BA}$, donc $\\overrightarrow{AB} \\cdot \\overrightarrow{BC} = -\\overrightarrow{BA} \\cdot \\overrightarrow{BC} = -${a} \\times ${a} \\times \\cos 60° = -${h}$. (L'angle entre $\\overrightarrow{AB}$ et $\\overrightarrow{BC}$ mesure $120°$.)`]
+        ][k], aff = vrai ? val : pick(faux);
+        return [`Dans un triangle équilatéral $ABC$ de côté $${a}$, $${e} = ${aff}$.`, vrai ? 0 : 1, `${vrai ? "**Vrai**." : "**Faux**."} ${s}${vrai ? "" : ` Ce produit vaut donc $${val}$, et non $${aff}$.`}`, AF];
+      }
+    ];
+    const Q = Math.random() < 0.35 ? pick(P)() : pick(T), [aff, rep, sol] = Q;
     return {
       enonce: `Vrai ou faux : « ${aff} »`,
       mode: "choix", choix: ["Vrai", "Faux"], attendu: rep,
-      aides: ["$\\vec{u} \\cdot \\vec{v} = \\|\\vec{u}\\| \\times \\|\\vec{v}\\| \\times \\cos(\\vec{u}, \\vec{v})$.", "Un produit scalaire nul ne veut pas dire qu'un vecteur est nul.", "Pour réfuter, cherche un contre-exemple avec des coordonnées simples."],
+      aides: Q[3] || ["$\\vec{u} \\cdot \\vec{v} = \\|\\vec{u}\\| \\times \\|\\vec{v}\\| \\times \\cos(\\vec{u}, \\vec{v})$.", "Un produit scalaire nul ne veut pas dire qu'un vecteur est nul.", "Pour réfuter, cherche un contre-exemple avec des coordonnées simples."],
       solution: sol
     };
   };
@@ -7252,6 +9438,10 @@
 
   // Logique : raisonnement par l'absurde, contre-exemples
   GEN["ex-logique"] = function () {
+    const E = (a) => (a === 0 ? "1" : a === 1 ? "e" : `e^{${a}}`); // e^a écrit simplement
+    const CNS = ["Nécessaire mais pas suffisante", "Suffisante mais pas nécessaire", "Nécessaire et suffisante", "Ni nécessaire ni suffisante"];
+    const AIDES_CNS = (fin) => ["« A est suffisante pour B » signifie : si A est vraie, alors B est vraie.", "« A est nécessaire pour B » signifie : si B est vraie, alors A est vraie (impossible d'avoir B sans A).", fin];
+    // Vrai ou faux : [affirmation, 0 si vraie / 1 si fausse, solution], ou fonction qui renvoie ce triplet
     const T = [
       ["Il existe un réel $x$ tel que $e^{x} = 0$.", 1, "**Faux**, par l'absurde : si $e^{a} = 0$, alors $e^{a} \\times e^{-a} = 0$, alors que ce produit vaut toujours $e^{0} = 1$. Contradiction : l'exponentielle ne s'annule jamais."],
       ["Pour tout réel $x$, $e^{x} > 0$.", 0, "**Vrai** : $e^{x} = \\left(e^{\\frac{x}{2}}\\right)^2 \\geqslant 0$, et $e^{x} \\neq 0$, donc $e^{x} > 0$."],
@@ -7259,9 +9449,109 @@
       ["Pour tous réels $a$ et $b$, $e^{a + b} = e^{a} + e^{b}$.", 1, "**Faux**. Contre-exemple : $a = b = 0$ donne $e^{0} = 1$ à gauche et $1 + 1 = 2$ à droite. La bonne formule est $e^{a + b} = e^{a} \\times e^{b}$."],
       ["Pour tout réel $x$, $\\left(e^{x}\\right)^2 = e^{x^2}$.", 1, "**Faux**. Contre-exemple : pour $x = 1$, $\\left(e^{1}\\right)^2 = e^{2}$ mais $e^{1^2} = e^{1}$. La bonne formule est $\\left(e^{x}\\right)^2 = e^{2x}$."],
       ["Si $e^{a} = e^{b}$, alors $a = b$.", 0, "**Vrai** : l'exponentielle est strictement croissante, donc deux réels différents ont des images différentes."],
-      ["Pour tout réel $x$, $e^{x} \\geqslant x + 1$.", 0, "**Vrai** : la courbe de l'exponentielle est au-dessus de sa tangente en $0$ (on le démontre en étudiant $e^{x} - x - 1$, dont le minimum vaut $0$)."]
+      ["Pour tout réel $x$, $e^{x} \\geqslant x + 1$.", 0, "**Vrai** : la courbe de l'exponentielle est au-dessus de sa tangente en $0$ (on le démontre en étudiant $e^{x} - x - 1$, dont le minimum vaut $0$)."],
+      ["Pour tout réel $x$, $e^{-x} = -e^{x}$.", 1, "**Faux**. Contre-exemple : pour $x = 0$, $e^{-0} = 1$ mais $-e^{0} = -1$. D'ailleurs $e^{-x} > 0$ alors que $-e^{x} < 0$. La bonne formule est $e^{-x} = \\dfrac{1}{e^{x}}$."],
+      ["Pour tout réel $x$, $e^{x} \\times e^{-x} = 1$.", 0, "**Vrai** : $e^{x} \\times e^{-x} = e^{x - x} = e^{0} = 1$. C'est la propriété qui sert à montrer, par l'absurde, que l'exponentielle ne s'annule jamais."],
+      ["Pour tous réels $a$ et $b$, $e^{a - b} = \\dfrac{e^{a}}{e^{b}}$.", 0, "**Vrai** : $e^{a - b} \\times e^{b} = e^{a - b + b} = e^{a}$, donc $e^{a - b} = \\dfrac{e^{a}}{e^{b}}$ (on peut diviser, car $e^{b} \\neq 0$)."],
+      ["Pour tout réel $x$, $e^{2x} = 2e^{x}$.", 1, "**Faux**. Contre-exemple : pour $x = 0$, $e^{0} = 1$ mais $2e^{0} = 2$. La bonne formule est $e^{2x} = \\left(e^{x}\\right)^2$."],
+      ["Pour tout réel $x$, $e^{2x} = \\left(e^{x}\\right)^2$.", 0, "**Vrai** : $e^{2x} = e^{x + x} = e^{x} \\times e^{x} = \\left(e^{x}\\right)^2$ (relation fonctionnelle)."],
+      ["Si $a < b$, alors $e^{a} < e^{b}$.", 0, "**Vrai** : la fonction exponentielle est strictement croissante sur $\\mathbb{R}$, car sa dérivée $e^{x}$ est strictement positive."],
+      ["Si $e^{a} < e^{b}$, alors $a < b$.", 0, "**Vrai**, par contraposée : si $a \\geqslant b$, alors $e^{a} \\geqslant e^{b}$, car l'exponentielle est croissante. C'est la réciproque de « si $a < b$, alors $e^{a} < e^{b}$ » : les deux sont vraies, d'où l'équivalence $e^{a} < e^{b} \\iff a < b$."],
+      ["Il existe un réel $x$ tel que $e^{x} = 1$.", 0, "**Vrai** : $x = 0$ convient, car $e^{0} = 1$. Pour un « il existe », un seul exemple suffit."],
+      ["Pour tout réel $x$, $e^{x} > 1$.", 1, "**Faux**. Contre-exemple : $x = -1$ donne $e^{-1} \\approx 0{,}37 < 1$ (et $x = 0$ donne $e^{0} = 1$, qui n'est pas strictement supérieur à $1$). On a seulement $e^{x} > 0$."],
+      ["Si $x > 0$, alors $e^{x} > 1$.", 0, "**Vrai** : l'exponentielle est strictement croissante, donc $x > 0$ entraîne $e^{x} > e^{0} = 1$."],
+      ["Si $e^{x} > 1$, alors $x > 0$.", 0, "**Vrai** : c'est la réciproque de « si $x > 0$, alors $e^{x} > 1$ ». Par contraposée : si $x \\leqslant 0$, alors $e^{x} \\leqslant e^{0} = 1$. Les deux implications sont vraies : $e^{x} > 1 \\iff x > 0$."],
+      ["Si $x < 0$, alors $e^{x} < 0$.", 1, "**Faux**. Contre-exemple : $x = -2$ donne $e^{-2} \\approx 0{,}14 > 0$. Une exponentielle est toujours strictement positive ; pour $x < 0$, on a seulement $0 < e^{x} < 1$."],
+      ["Il existe un réel $x$ tel que $e^{x} = x$.", 1, "**Faux** : pour tout réel $x$, $e^{x} \\geqslant x + 1 > x$ (la courbe est au-dessus de sa tangente $y = x + 1$), donc $e^{x}$ n'est jamais égal à $x$."],
+      ["Il existe un réel $x$ tel que $e^{x} > 1\\,000$.", 0, "**Vrai** : $x = 7$ convient, car $e^{7} \\approx 1\\,097 > 1\\,000$. Un seul exemple suffit pour un « il existe »."],
+      ["Pour tout réel $x$, $e^{x} < e^{x + 1}$.", 0, "**Vrai** : $x < x + 1$ et l'exponentielle est strictement croissante. On peut aussi écrire $e^{x + 1} = e \\times e^{x}$, avec $e > 1$ et $e^{x} > 0$."],
+      ["La fonction $x \\mapsto e^{-x}$ est croissante sur $\\mathbb{R}$.", 1, "**Faux** : sa dérivée est $-e^{-x}$, strictement négative, donc elle est strictement **décroissante**. Par exemple $e^{-0} = 1 > e^{-1} \\approx 0{,}37$."],
+      ["Pour tout réel $k$, la fonction $t \\mapsto e^{kt}$ est strictement croissante sur $\\mathbb{R}$.", 1, "**Faux**. Contre-exemple : $k = -1$. La dérivée $-e^{-t}$ est strictement négative : la fonction est décroissante. (Pour $k = 0$, elle est même constante.) Elle n'est strictement croissante que pour $k > 0$."],
+      ["La dérivée de la fonction $x \\mapsto e^{x}$ est la fonction $x \\mapsto xe^{x - 1}$.", 1, "**Faux** : la règle $\\left(x^n\\right)' = nx^{n - 1}$ concerne les puissances de $x$, pas l'exponentielle. Par définition, $\\left(e^{x}\\right)' = e^{x}$. Contre-exemple : en $x = 0$, la dérivée vaut $e^{0} = 1$, et non $0 \\times e^{-1} = 0$."],
+      ["Si $f' = f$ sur $\\mathbb{R}$, alors $f$ est la fonction exponentielle.", 1, "**Faux**. Contre-exemple : $f(x) = 2e^{x}$ vérifie $f' = f$, mais $f(0) = 2$. Il manque la condition $f(0) = 1$ : avec elle, la fonction est unique, c'est $\\exp$."],
+      ["Si $f$ est dérivable sur $\\mathbb{R}$, avec $f' = f$ et $f(0) = 1$, alors $f = \\exp$.", 0, "**Vrai** : c'est le théorème (admis) qui définit l'exponentielle. Il existe une **unique** fonction vérifiant ces deux conditions."],
+      ["La suite définie par $u_n = e^{n}$ est géométrique.", 0, "**Vrai** : $u_{n+1} = e^{n + 1} = e^{n} \\times e = u_n \\times e$. Elle est géométrique de raison $e \\approx 2{,}718$."],
+      ["La suite définie par $u_n = e^{n}$ est arithmétique.", 1, "**Faux**. Contre-exemple : $u_1 - u_0 = e - 1 \\approx 1{,}72$ mais $u_2 - u_1 = e^{2} - e \\approx 4{,}67$. Les écarts ne sont pas constants (la suite est géométrique de raison $e$)."],
+      ["Pour tous réels $a$ et $b$, $e^{a} = e^{b} \\iff a = b$.", 0, "**Vrai**, dans les deux sens. Si $a = b$, alors $e^{a} = e^{b}$. Réciproquement, par contraposée : si $a \\neq b$, par exemple $a < b$, alors $e^{a} < e^{b}$ (stricte croissance), donc $e^{a} \\neq e^{b}$."],
+      ["Pour tous réels $a$ et $b$, $e^{a} \\leqslant e^{b} \\iff a \\leqslant b$.", 0, "**Vrai** : l'exponentielle est strictement croissante, elle conserve l'ordre dans les deux sens. C'est ce qu'on utilise pour résoudre une inéquation : on compare les exposants, sans changer le sens."],
+      ["Le café de température $T(t) = 28 + 62e^{-0{,}08t}$ (en °C) finit par atteindre exactement $28$ °C.", 1, "**Faux**, par l'absurde : si $T(t) = 28$, alors $62e^{-0{,}08t} = 0$, donc $e^{-0{,}08t} = 0$, ce qui est impossible. La température se rapproche de $28$ °C sans jamais l'atteindre."],
+      ["Il existe un instant $t \\geqslant 0$ où la concentration $C(t) = 20e^{-0{,}3t}$ (en mg/L) est nulle.", 1, "**Faux** : $C(t)$ est le produit de $20$ et de $e^{-0{,}3t}$, deux nombres strictement positifs, donc $C(t) > 0$ pour tout $t$. La concentration diminue sans jamais devenir exactement nulle."],
+      () => { const a = rand(1, 4); return [`Pour tout réel $x$, $e^{x + ${a}} = e^{x} + e^{${a}}$.`, 1, `**Faux**. Contre-exemple : pour $x = 0$, on trouve $e^{${a}}$ à gauche et $1 + e^{${a}}$ à droite. La bonne formule est $e^{x + ${a}} = e^{x} \\times e^{${a}}$.`]; },
+      () => { const a = rand(1, 4); return [`Pour tout réel $x$, $e^{x + ${a}} = e^{${a}} \\times e^{x}$.`, 0, `**Vrai** : c'est la relation fonctionnelle $e^{a + b} = e^{a} \\times e^{b}$, avec $a = x$ et $b = ${a}$.`]; },
+      () => { const c = randNZ(-3, 4); return [`Il existe un réel $x$ tel que $e^{2x + 1} = e^{x ${sg(c)}}$.`, 0, `**Vrai** : $e^{2x + 1} = e^{x ${sg(c)}} \\iff 2x + 1 = x ${sg(c)} \\iff x = ${c - 1}$. Le réel $x = ${c - 1}$ convient : un exemple suffit.`]; },
+      () => { const c = pick([1, 2, 3, 5, 10]); return [`Il existe un réel $x$ tel que $e^{x} = -${c}$.`, 1, `**Faux** : pour tout réel $x$, $e^{x} > 0$, donc $e^{x}$ ne peut jamais valoir $-${c}$. L'équation n'a aucune solution.`]; },
+      () => {
+        const a = pick([-1, -0.5, -0.2, 0.1, 0.5, 1]), at = a === -1 ? "-" : a === 1 ? "" : nb(a);
+        return [`La suite définie par $u_n = e^{${at}n}$ est décroissante.`, a < 0 ? 0 : 1, `**${a < 0 ? "Vrai" : "Faux"}** : $u_{n+1} = e^{${at}n} \\times e^{${nb(a)}} = u_n \\times e^{${nb(a)}}$. La suite est géométrique de raison $q = e^{${nb(a)}} \\approx ${nb(+Math.exp(a).toFixed(3))}$, avec $u_0 = 1 > 0$. Comme $q ${a < 0 ? "<" : ">"} 1$, elle est ${a < 0 ? "décroissante" : "croissante"}.`];
+      }
     ];
-    const [aff, rep, sol] = pick(T);
+    // Questions à choix : réciproque, contraposée, négation, absurde, conditions nécessaires ou suffisantes
+    const Q = [
+      () => ({
+        enonce: "Quelle est la **contraposée** de l'implication « si $a < b$, alors $e^{a} < e^{b}$ » ?",
+        bonne: "« si $e^{a} \\geqslant e^{b}$, alors $a \\geqslant b$ »",
+        fausses: ["« si $e^{a} < e^{b}$, alors $a < b$ »", "« si $a \\geqslant b$, alors $e^{a} \\geqslant e^{b}$ »", "« si $e^{a} \\geqslant e^{b}$, alors $a < b$ »"],
+        aides: ["La contraposée de « si P, alors Q » est « si (non Q), alors (non P) ».", "On échange les deux parties **et** on les nie toutes les deux.", "La négation de $a < b$ est $a \\geqslant b$."],
+        sol: "La contraposée de « si P, alors Q » est « si (non Q), alors (non P) ». Ici, non Q : $e^{a} \\geqslant e^{b}$, et non P : $a \\geqslant b$. Elle est vraie, comme l'implication de départ. Attention : « si $e^{a} < e^{b}$, alors $a < b$ » est la **réciproque**."
+      }),
+      () => ({
+        enonce: "Quelle est la **réciproque** de l'implication « si $x > 0$, alors $e^{x} > 1$ » ?",
+        bonne: "« si $e^{x} > 1$, alors $x > 0$ »",
+        fausses: ["« si $e^{x} \\leqslant 1$, alors $x \\leqslant 0$ »", "« si $x \\leqslant 0$, alors $e^{x} \\leqslant 1$ »", "« si $x > 0$, alors $e^{x} \\leqslant 1$ »"],
+        aides: ["La réciproque de « si P, alors Q » est « si Q, alors P ».", "On échange les deux parties, sans rien nier.", "Ici, P : « $x > 0$ » et Q : « $e^{x} > 1$ »."],
+        sol: "La réciproque de « si P, alors Q » est « si Q, alors P » : on échange les deux parties, sans les nier. Ici, elle est vraie aussi, car $e^{x} > e^{0} \\iff x > 0$. (« si $e^{x} \\leqslant 1$, alors $x \\leqslant 0$ » est la contraposée.)"
+      }),
+      () => ({
+        enonce: "Quelle est la **négation** de la phrase « pour tout réel $x$, $e^{x} > 0$ » ?",
+        bonne: "« il existe un réel $x$ tel que $e^{x} \\leqslant 0$ »",
+        fausses: ["« pour tout réel $x$, $e^{x} \\leqslant 0$ »", "« il existe un réel $x$ tel que $e^{x} < 0$ »", "« pour tout réel $x$, $e^{x} < 0$ »"],
+        aides: ["Pour nier « pour tout $x$, P », on écrit « il existe $x$ tel que (non P) ».", "Le contraire de $e^{x} > 0$ n'est pas $e^{x} < 0$ : pense au cas $e^{x} = 0$.", "Le contraire de « $> 0$ » est « $\\leqslant 0$ »."],
+        sol: "« Pour tout » devient « il existe », et $e^{x} > 0$ devient $e^{x} \\leqslant 0$ : le contraire de « strictement positif » est « négatif ou nul ». Cette négation est fausse, puisque la phrase de départ est vraie."
+      }),
+      () => ({
+        enonce: "On veut démontrer **par l'absurde** que l'exponentielle ne s'annule jamais. Par quoi commence-t-on ?",
+        bonne: "On suppose qu'il existe un réel $a$ tel que $e^{a} = 0$",
+        fausses: ["On suppose que, pour tout réel $x$, $e^{x} > 0$", "On calcule $e^{0} = 1$", "On suppose que, pour tout réel $x$, $e^{x} = 0$"],
+        aides: ["Le raisonnement par l'absurde commence par supposer le contraire de ce qu'on veut démontrer.", "On veut montrer : « pour tout réel $x$, $e^{x} \\neq 0$ ».", "Le contraire d'un « pour tout » est un « il existe »."],
+        sol: "Par l'absurde, on suppose le **contraire** de ce qu'on veut montrer. Le contraire de « pour tout $x$, $e^{x} \\neq 0$ » est « il existe $a$ tel que $e^{a} = 0$ ». Alors $e^{a} \\times e^{-a} = 0$, alors que ce produit vaut $1$ : contradiction."
+      }),
+      () => {
+        const a = rand(0, 2), P = `e^{x} > ${E(a)}`, typ = rand(0, 3);
+        // typ 0 : x > a ; 1 : x > c avec c > a ; 2 : x > c avec c < a ; 3 : x < c
+        const c = typ === 0 ? a : typ === 1 ? a + rand(1, 2) : typ === 2 ? a - rand(1, 2) : a + rand(-1, 1);
+        const x1 = Math.min(a, c) - 1, x2 = Math.max(a, c) + 1, ea = a < 2 ? ` = ${E(a)}` : "";
+        return {
+          enonce: `Pour qu'un réel $x$ vérifie $${P}$, la condition « $x ${typ === 3 ? "<" : ">"} ${c}$ » est :`,
+          bonne: CNS[[2, 1, 0, 3][typ]], fausses: CNS,
+          aides: AIDES_CNS(`L'exponentielle est strictement croissante : $${P}$ équivaut à $x > ${a}$.`),
+          sol: [
+            `$e^{x} > e^{${a}}${ea} \\iff x > ${a}$, car l'exponentielle est strictement croissante. La condition est **nécessaire et suffisante** : les deux propriétés sont équivalentes.`,
+            `**Suffisante** : si $x > ${c}$, alors $x > ${a}$, donc $e^{x} > e^{${a}}${ea}$. **Pas nécessaire** : $x = ${c}$ vérifie $e^{${c}} > ${E(a)}$, mais pas $x > ${c}$.`,
+            `**Nécessaire** : si $${P}$, alors $x > ${a}$ (stricte croissance), donc $x > ${c}$. **Pas suffisante** : $x = ${a}$ vérifie $x > ${c}$, mais $e^{${a}}${ea}$ n'est pas strictement supérieur à $${E(a)}$.`,
+            `**Pas suffisante** : $x = ${x1}$ vérifie $x < ${c}$, mais $e^{${x1}} < ${E(a)}$. **Pas nécessaire** : $x = ${x2}$ vérifie $e^{${x2}} > ${E(a)}$, mais pas $x < ${c}$.`
+          ][typ]
+        };
+      },
+      () => {
+        const c = pick([-2, -1, 0, 1, 2]);
+        return {
+          enonce: `Pour que la fonction $t \\mapsto e^{kt}$ soit strictement décroissante sur $\\mathbb{R}$, la condition « $k < ${c}$ » est :`,
+          bonne: CNS[c < 0 ? 1 : c === 0 ? 2 : 0], fausses: CNS,
+          aides: AIDES_CNS("La dérivée de $t \\mapsto e^{kt}$ est $ke^{kt}$, et $e^{kt} > 0$ : son signe est celui de $k$."),
+          sol: c < 0
+            ? `**Suffisante** : si $k < ${c}$, alors $k < 0$ et la dérivée $ke^{kt}$ est strictement négative : la fonction est strictement décroissante. **Pas nécessaire** : $k = ${c === -1 ? "-0{,}5" : "-1"}$ convient aussi, sans vérifier $k < ${c}$.`
+            : c === 0
+              ? "La dérivée $ke^{kt}$ a le signe de $k$, car $e^{kt} > 0$ : la fonction est strictement décroissante si et seulement si $k < 0$ (constante si $k = 0$, croissante si $k > 0$). Condition **nécessaire et suffisante**."
+              : `**Nécessaire** : si la fonction est strictement décroissante, alors $k < 0$ (sinon elle serait constante ou croissante), donc $k < ${c}$. **Pas suffisante** : $k = 0$ vérifie $k < ${c}$, mais $t \\mapsto e^{0 \\times t} = 1$ est constante.`
+        };
+      }
+    ];
+    const k = rand(0, T.length + Q.length - 1);
+    if (k >= T.length) {
+      const r = Q[k - T.length](), c = melangeChoix(r.bonne, r.fausses);
+      return { enonce: r.enonce, mode: "choix", choix: c.choix, attendu: c.attendu, aides: r.aides, solution: r.sol };
+    }
+    const [aff, rep, sol] = typeof T[k] === "function" ? T[k]() : T[k];
     return {
       enonce: `Vrai ou faux : « ${aff} »`,
       mode: "choix", choix: ["Vrai", "Faux"], attendu: rep,
@@ -7311,9 +9601,9 @@
   };
 
   GEN["ex-python"] = function () {
-    const t = rand(0, 2);
+    const t = rand(0, 7);
     if (t === 0) {
-      const n = pick([1, 2, 3, 10]), v = (1 + 1 / n) ** n;
+      const n = pick([1, 2, 3, 4, 5, 10, 20, 50, 100]), v = (1 + 1 / n) ** n;
       return {
         enonce: "```python\ndef approx_e(n):\n    return (1 + 1/n)**n\n```".replace("approx_e", "approche") + `\n\nQue renvoie approche(${n}) ? (Arrondis au dix-millième si besoin.)`,
         mode: "nombre", prefixe: "Résultat :", attendu: +v.toFixed(4), tolerance: 0.00006,
@@ -7323,7 +9613,7 @@
     }
     const code = "```python\ndef euler(h):\n    x, y = 0, 1\n    while x < 1 - h / 2:\n        y = y + h * y\n        x = x + h\n    return y\n```";
     if (t === 1) {
-      const h = pick([1, 0.5, 0.25]), v = (1 + h) ** (1 / h);
+      const h = pick([1, 0.5, 0.25, 0.2, 0.1]), v = (1 + h) ** (1 / h);
       return {
         enonce: `Méthode d'Euler pour la fonction $f$ telle que $f' = f$ et $f(0) = 1$ :\n\n${code}\n\nQue renvoie euler(${h}) ?`,
         mode: "nombre", prefixe: "Résultat :", attendu: +v.toFixed(6), tolerance: 1e-5,
@@ -7331,14 +9621,69 @@
         solution: `On multiplie $${1 / h}$ fois par $1 + ${nb(h)}$ : $(1 + ${nb(h)})^{${1 / h}} = ${nb(+v.toFixed(6))}$. C'est une valeur approchée de $f(1) = e \\approx 2{,}718$ ; plus $h$ est petit, meilleure elle est.`
       };
     }
-    const c = melangeChoix("$f(x + h) \\approx f(x) + h f'(x)$, avec $f' = f$", ["$f(x + h) = f(x) \\times h$", "$f(x + h) = e^{h}$", "$f(x + h) \\approx f(x) + h$"]);
+    if (t === 2) {
+      const c = melangeChoix("$f(x + h) \\approx f(x) + h f'(x)$, avec $f' = f$", ["$f(x + h) = f(x) \\times h$", "$f(x + h) = e^{h}$", "$f(x + h) \\approx f(x) + h$"]);
+      return {
+        enonce: `${code}\n\nQuelle idée justifie la ligne « y = y + h * y » ?`,
+        mode: "choix", choix: c.choix, attendu: c.attendu,
+        aides: ["C'est l'approximation linéaire du chapitre 7 : on remplace la courbe par sa tangente sur un petit pas.", "$f(x + h) \\approx f(x) + f'(x) \\times h$.", "Ici $f'(x) = f(x)$, que le programme appelle y."],
+        solution: "Approximation linéaire : $f(x + h) \\approx f(x) + h f'(x)$. Comme $f' = f$, cela donne $f(x + h) \\approx f(x) + h f(x)$, soit « y = y + h * y » : c'est la **méthode d'Euler**."
+      };
+    }
+    if (t === 3) {
+      const h = pick([0.5, 0.25, 0.2, 0.1, 0.05, 0.01, 0.001]), N = Math.round(1 / h);
+      return {
+        enonce: `${code}\n\nCombien de fois la boucle « while » est-elle parcourue lors de l'appel euler(${h}) ?`,
+        mode: "nombre", prefixe: "Passages :", attendu: N,
+        erreurs: [{ valeur: N + 1, message: `La boucle s'arrête dès que $x$ atteint $1$ : $x$ part de $0$, il faut $${N}$ pas de $${nb(h)}$.` }, { valeur: N - 1, message: `Compte bien le premier passage, avec $x = 0$ : il faut $${N}$ pas de $${nb(h)}$ pour aller de $0$ à $1$.` }],
+        aides: ["$x$ part de $0$ et augmente de $h$ à chaque passage.", "La boucle s'arrête quand $x$ atteint $1$ : la condition $x < 1 - \\dfrac{h}{2}$ évite simplement les soucis d'arrondi de l'ordinateur.", `Combien de pas de $${nb(h)}$ faut-il pour aller de $0$ à $1$ ?`],
+        solution: `$x$ part de $0$, augmente de $${nb(h)}$ à chaque passage, et la boucle s'arrête quand $x$ atteint $1$ : il faut $\\dfrac{1}{${nb(h)}} = ${nb(N)}$ pas. La boucle est parcourue $${nb(N)}$ fois, et $y$ est multiplié $${nb(N)}$ fois par $1 + ${nb(h)}$.`
+      };
+    }
+    if (t === 4) {
+      const [h, k] = pick([[0.25, 2], [0.25, 3], [0.2, 2], [0.2, 3], [0.1, 2], [0.1, 3], [0.05, 2], [0.05, 3]]), m = 1 + h, v = m ** k;
+      const etapes = Array.from({ length: k + 1 }, (_, j) => `$${nb(+(m ** j).toFixed(6))}$`).join(", ");
+      return {
+        enonce: `${code}\n\nLors de l'appel euler(${h}), quelle est la valeur de y après ${k} passages dans la boucle ?`,
+        mode: "nombre", prefixe: "y =", attendu: +v.toFixed(6), tolerance: 1e-6,
+        erreurs: [{ valeur: +(1 + k * h).toFixed(6), message: `On n'ajoute pas $${nb(h)}$ à chaque passage : on ajoute $${nb(h)} \\times y$, c'est-à-dire qu'on multiplie $y$ par $${nb(m)}$.` }].filter((e) => Math.abs(e.valeur - v) > 1e-6),
+        aides: ["Au départ, $x = 0$ et $y = 1$.", `À chaque passage, $y$ devient $y + ${nb(h)} \\times y = ${nb(m)} \\times y$.`, `Après $${k}$ passage${k > 1 ? "s" : ""} : $y = ${nb(m)}^{${k}}$.`],
+        solution: `$y$ vaut successivement ${etapes} : à chaque passage, il est multiplié par $${nb(m)}$. Après $${k}$ passage${k > 1 ? "s" : ""}, $y = ${nb(m)}^{${k}} = ${nb(+v.toFixed(6))}$.`
+      };
+    }
+    if (t === 5) {
+      const [a, h] = pick([[-1, 0.5], [-1, 0.25], [-1, 0.1], [2, 0.5], [2, 0.25], [0.5, 0.5], [0.5, 0.25]]), N = Math.round(1 / h), m = 1 + a * h, v = m ** N;
+      const aT = a === -1 ? "-" : nb(a), ligne = a === -1 ? "y = y - h * y" : `y = y + h * ${a} * y`, exact = Math.abs(v - +v.toFixed(4)) < 1e-12;
+      const code2 = "```python\ndef euler(h):\n    x, y = 0, 1\n    while x < 1 - h / 2:\n        " + ligne + "\n        x = x + h\n    return y\n```";
+      return {
+        enonce: `Méthode d'Euler pour la fonction $f$ telle que $f' = ${aT}f$ et $f(0) = 1$, c'est-à-dire $f(x) = e^{${aT}x}$ :\n\n${code2}\n\nQue renvoie euler(${h}) ? (Arrondis au dix-millième si besoin.)`,
+        mode: "nombre", prefixe: "Résultat :", attendu: +v.toFixed(4), tolerance: 0.00006,
+        erreurs: [{ valeur: +((1 + h) ** N).toFixed(4), message: `Ça, c'est le résultat pour $f' = f$. Ici, $f' = ${aT}f$ : $y$ est multiplié par $1 ${a < 0 ? "-" : "+"} ${nb(Math.abs(a * h))}$ à chaque pas.` }].filter((e) => Math.abs(e.valeur - +v.toFixed(4)) > 0.0001),
+        aides: ["Sur un pas $h$, on suit la tangente : $f(x + h) \\approx f(x) + h f'(x)$.", `Ici $f' = ${aT}f$ : à chaque pas, $y$ est multiplié par $1 ${a < 0 ? "-" : "+"} ${nb(Math.abs(a * h))} = ${nb(m)}$.`, `Il y a $${N}$ pas de $0$ à $1$ : le résultat est $${nb(m)}^{${N}}$.`],
+        solution: `On multiplie $${N}$ fois par $${nb(m)}$ : $${nb(m)}^{${N}} ${exact ? "=" : "\\approx"} ${nb(+v.toFixed(4))}$. C'est une valeur approchée de $f(1) = e^{${a === -1 ? "-1" : nb(a)}} \\approx ${nb(+Math.exp(a).toFixed(3))}$ ; elle serait meilleure avec un pas $h$ plus petit.`
+      };
+    }
+    if (t === 6) {
+      const c = melangeChoix("Vers $e \\approx 2{,}718$", ["Vers $1$, car $1 + \\dfrac{1}{n}$ se rapproche de $1$", "Vers $2$", "Elles deviennent aussi grandes qu'on veut"]);
+      return {
+        enonce: "```python\ndef approche(n):\n    return (1 + 1/n)**n\n```\n\napproche(10) renvoie environ $2{,}5937$ et approche(100) environ $2{,}7048$. Quand $n$ devient très grand, vers quel nombre se rapprochent les résultats ?",
+        mode: "choix", choix: c.choix, attendu: c.attendu,
+        aides: ["Calcule aussi approche(1000) à la calculatrice.", "Les résultats augmentent, mais de moins en moins vite.", "Avec $h = \\dfrac{1}{n}$, c'est le résultat de la méthode d'Euler pour $f' = f$ : une valeur approchée de $f(1)$."],
+        solution: "approche(1000) $\\approx 2{,}7169$ et approche(10000) $\\approx 2{,}7181$ : les résultats se rapprochent de $e \\approx 2{,}71828$. Ce n'est pas $1$ : même si $1 + \\dfrac{1}{n}$ se rapproche de $1$, on l'élève à une puissance $n$ de plus en plus grande. C'est aussi le résultat de la méthode d'Euler avec un pas $h = \\dfrac{1}{n}$."
+      };
+    }
+    const s = pick([2.5, 2.6, 2.65, 2.7]), u = (k) => (1 + 1 / k) ** k;
+    let N = 1; while (u(N) < s) N++;
+    const code3 = "```python\ndef seuil(s):\n    n = 1\n    while (1 + 1/n)**n < s:\n        n = n + 1\n    return n\n```";
     return {
-      enonce: `${code}\n\nQuelle idée justifie la ligne « y = y + h * y » ?`,
-      mode: "choix", choix: c.choix, attendu: c.attendu,
-      aides: ["C'est l'approximation linéaire du chapitre 7 : on remplace la courbe par sa tangente sur un petit pas.", "$f(x + h) \\approx f(x) + f'(x) \\times h$.", "Ici $f'(x) = f(x)$, que le programme appelle y."],
-      solution: "Approximation linéaire : $f(x + h) \\approx f(x) + h f'(x)$. Comme $f' = f$, cela donne $f(x + h) \\approx f(x) + h f(x)$, soit « y = y + h * y » : c'est la **méthode d'Euler**."
+      enonce: `Le nombre $\\left(1 + \\dfrac{1}{n}\\right)^n$ augmente et se rapproche de $e$ quand l'entier $n$ augmente.\n\n${code3}\n\nQue renvoie seuil(${s}) ? Aide-toi du tableau de valeurs de ta calculatrice.`,
+      mode: "nombre", prefixe: "Résultat :", attendu: N,
+      erreurs: [{ valeur: N - 1, message: `Pour $n = ${N - 1}$, $\\left(1 + \\dfrac{1}{${N - 1}}\\right)^{${N - 1}} \\approx ${nb(+u(N - 1).toFixed(5))}$ est encore inférieur à $${nb(s)}$ : la boucle continue.` }],
+      aides: [`La boucle s'arrête au **premier** entier $n$ tel que $\\left(1 + \\dfrac{1}{n}\\right)^n \\geqslant ${nb(s)}$.`, "Dans le menu « suites » ou « fonctions » de la calculatrice, entre l'expression $(1 + 1/n)^n$ et regarde le tableau de valeurs.", `Le résultat est entre $${Math.floor(N / 5) * 5 - (N % 5 === 0 ? 5 : 0)}$ et $${Math.floor(N / 5) * 5 + (N % 5 === 0 ? 0 : 5)}$.`],
+      solution: `$\\left(1 + \\dfrac{1}{${N - 1}}\\right)^{${N - 1}} \\approx ${nb(+u(N - 1).toFixed(5))} < ${nb(s)}$ et $\\left(1 + \\dfrac{1}{${N}}\\right)^{${N}} \\approx ${nb(+u(N).toFixed(5))} \\geqslant ${nb(s)}$ : la boucle s'arrête pour $n = ${N}$, et seuil(${s}) renvoie $${N}$.`
     };
   };
+  // Logique : implication, réciproque, contraposée, condition nécessaire ou suffisante, contre-exemples
 
 
   /* ---------- Première, chapitre 13 : variables aléatoires (préfixe va-) ---------- */
@@ -7490,20 +9835,82 @@
 
   // Logique : ensembles {X = a}, intersections, négations
   GEN["va-logique"] = function () {
-    const a = rand(1, 4);
+    const a = rand(1, 4), b = a + rand(2, 4), c = rand(2, 9), v = pick([2, 5, 10, 20]);
+    const ev = (t) => `$\\{${t}\\}$`;
+    const AIDES_EV = ["$\\{X \\leqslant a\\}$ est l'ensemble des issues pour lesquelles $X$ prend une valeur inférieure ou égale à $a$.", "« Et » correspond à l'intersection $\\cap$, « ou » à la réunion $\\cup$.", "Pour nier « $\\leqslant$ », on écrit « $>$ »."];
+    const AIDES_CALC = ["L'événement contraire de $A$ a pour probabilité $P(\\overline{A}) = 1 - P(A)$.", "Écris la liste des valeurs de $X$ que l'on garde.", "Attention aux inégalités strictes : $\\{X < a\\}$ ne contient pas la valeur $a$."];
+    const AIDES_PROP = ["$E(aX + b) = aE(X) + b$ et $V(aX + b) = a^2\\,V(X)$.", "Pour montrer qu'une phrase est fausse, un seul contre-exemple suffit.", "L'espérance est une moyenne pondérée des valeurs ; la variance, une moyenne pondérée de carrés."];
+    const VF = (txt) => `Vrai ou faux : « ${txt} ».`;
+    // Probabilités en dixièmes pour les calculs
+    const p = pick([0.1, 0.2, 0.3, 0.4, 0.6, 0.7, 0.8, 0.9]), p1 = rand(5, 8) / 10, p2 = rand(1, 3) / 10;
     const T = [
-      [`Le contraire de l'événement $\\{X \\leqslant ${a}\\}$ est :`, `$\\{X > ${a}\\}$`, [`$\\{X \\geqslant ${a}\\}$`, `$\\{X < ${a}\\}$`, `$\\{X = ${a}\\}$`], `La négation de « $X \\leqslant ${a}$ » est « $X > ${a}$ » : la valeur $${a}$ appartient à $\\{X \\leqslant ${a}\\}$, donc pas à son contraire.`],
-      [`$\\{X \\leqslant ${a}\\} \\cap \\{X \\geqslant ${a}\\}$ est l'événement :`, `$\\{X = ${a}\\}$`, ["$\\varnothing$", `$\\{X \\neq ${a}\\}$`, "l'univers tout entier"], `Les deux conditions à la fois : $X \\leqslant ${a}$ et $X \\geqslant ${a}$, donc $X = ${a}$.`],
-      [`$\\{X < ${a}\\} \\cup \\{X = ${a}\\}$ est l'événement :`, `$\\{X \\leqslant ${a}\\}$`, [`$\\{X < ${a}\\}$`, `$\\{X \\geqslant ${a}\\}$`, "$\\varnothing$"], `L'une ou l'autre des conditions : $X$ est strictement inférieur ou égal à $${a}$.`],
-      ["Vrai ou faux : « l'espérance $E(X)$ est toujours une valeur prise par $X$ ».", "Faux", ["Vrai"], "Faux. Contre-exemple : pour un dé équilibré, $E(X) = 3{,}5$, qui n'est pas un résultat possible. L'espérance est une **moyenne** théorique."],
-      ["Vrai ou faux : « $V(2X) = 2V(X)$ ».", "Faux", ["Vrai"], "Faux : $V(aX) = a^2V(X)$, donc $V(2X) = 4V(X)$. La variance est la moyenne des **carrés** des écarts."],
-      ["Vrai ou faux : « une variance est toujours positive ou nulle ».", "Vrai", ["Faux"], "Vrai : c'est une moyenne pondérée de carrés $(x_i - E(X))^2$, tous positifs ou nuls."],
-      ["Un jeu est équitable lorsque :", "l'espérance du gain est nulle", ["le gain maximal est égal à la mise", "on gagne une fois sur deux", "la variance du gain est nulle"], "En moyenne, sur un grand nombre de parties, on ne gagne ni ne perd : $E(X) = 0$."]
+      // Événements : contraires, intersections, réunions
+      [`Le contraire de l'événement $\\{X \\leqslant ${a}\\}$ est :`, ev(`X > ${a}`), [ev(`X \\geqslant ${a}`), ev(`X < ${a}`), ev(`X = ${a}`)], `La négation de « $X \\leqslant ${a}$ » est « $X > ${a}$ » : la valeur $${a}$ appartient à $\\{X \\leqslant ${a}\\}$, donc pas à son contraire.`],
+      [`$\\{X \\leqslant ${a}\\} \\cap \\{X \\geqslant ${a}\\}$ est l'événement :`, ev(`X = ${a}`), ["$\\varnothing$", ev(`X \\neq ${a}`), "l'univers tout entier"], `Les deux conditions à la fois : $X \\leqslant ${a}$ et $X \\geqslant ${a}$, donc $X = ${a}$.`],
+      [`$\\{X < ${a}\\} \\cup \\{X = ${a}\\}$ est l'événement :`, ev(`X \\leqslant ${a}`), [ev(`X < ${a}`), ev(`X \\geqslant ${a}`), "$\\varnothing$"], `L'une ou l'autre des conditions : $X$ est strictement inférieur ou égal à $${a}$.`],
+      [`Le contraire de l'événement $\\{X > ${a}\\}$ est :`, ev(`X \\leqslant ${a}`), [ev(`X < ${a}`), ev(`X \\geqslant ${a}`), ev(`X \\neq ${a}`)], `La négation de « $X > ${a}$ » est « $X \\leqslant ${a}$ » : la valeur $${a}$, exclue de $\\{X > ${a}\\}$, appartient à son contraire.`],
+      [`Le contraire de l'événement $\\{X \\geqslant ${a}\\}$ est :`, ev(`X < ${a}`), [ev(`X \\leqslant ${a}`), ev(`X > ${a}`), ev(`X = ${a}`)], `La négation de « $X \\geqslant ${a}$ » est « $X < ${a}$ » : la valeur $${a}$ est déjà dans $\\{X \\geqslant ${a}\\}$, elle n'est pas dans son contraire.`],
+      [`Le contraire de l'événement $\\{X = ${a}\\}$ est :`, ev(`X \\neq ${a}`), [ev(`X > ${a}`), ev(`X < ${a}`), "$\\varnothing$"], `Le contraire de « $X = ${a}$ » est « $X \\neq ${a}$ », c'est-à-dire $\\{X < ${a}\\} \\cup \\{X > ${a}\\}$ : il faut garder les valeurs des deux côtés de $${a}$.`],
+      [`$\\{X \\leqslant ${a}\\} \\cup \\{X > ${a}\\}$ est l'événement :`, "l'univers tout entier (événement certain)", ["$\\varnothing$", ev(`X = ${a}`), ev(`X \\neq ${a}`)], `Toute valeur de $X$ est soit inférieure ou égale à $${a}$, soit strictement supérieure : la réunion d'un événement et de son contraire est l'événement certain.`],
+      [`$\\{X \\leqslant ${a}\\} \\cap \\{X > ${a}\\}$ est l'événement :`, "$\\varnothing$ (événement impossible)", [ev(`X = ${a}`), "l'univers tout entier", ev(`X \\neq ${a}`)], `Aucune valeur n'est à la fois inférieure ou égale à $${a}$ et strictement supérieure à $${a}$ : un événement et son contraire sont incompatibles.`],
+      [`$\\{X \\geqslant ${a}\\} \\cap \\{X \\leqslant ${b}\\}$ est l'événement :`, ev(`${a} \\leqslant X \\leqslant ${b}`), [ev(`${a} < X < ${b}`), `$\\{X \\leqslant ${a}\\} \\cup \\{X \\geqslant ${b}\\}$`, "$\\varnothing$"], `« Et » : $X$ est à la fois supérieur ou égal à $${a}$ et inférieur ou égal à $${b}$, donc $${a} \\leqslant X \\leqslant ${b}$ (bornes comprises).`],
+      [`$\\{X < ${a}\\} \\cup \\{X > ${a}\\}$ est l'événement :`, ev(`X \\neq ${a}`), ["l'univers tout entier", "$\\varnothing$", ev(`X = ${a}`)], `$X$ est strictement plus petit ou strictement plus grand que $${a}$ : seule la valeur $${a}$ est exclue.`],
+      [`$\\{X = ${a}\\} \\cup \\{X > ${a}\\}$ est l'événement :`, ev(`X \\geqslant ${a}`), [ev(`X > ${a}`), ev(`X \\leqslant ${a}`), ev(`X = ${a}`)], `« Ou » : $X$ est égal à $${a}$ ou strictement plus grand, donc $X \\geqslant ${a}$.`],
+      [`$\\{X \\leqslant ${a}\\} \\cap \\{X \\neq ${a}\\}$ est l'événement :`, ev(`X < ${a}`), [ev(`X \\leqslant ${a}`), ev(`X > ${a}`), "$\\varnothing$"], `On garde les valeurs inférieures ou égales à $${a}$, sauf $${a}$ lui-même : il reste $X < ${a}$.`],
+      [`L'événement « $X$ est compris entre $${a}$ et $${b}$, bornes incluses » s'écrit :`, `$\\{X \\geqslant ${a}\\} \\cap \\{X \\leqslant ${b}\\}$`, [`$\\{X \\geqslant ${a}\\} \\cup \\{X \\leqslant ${b}\\}$`, `$\\{X \\leqslant ${a}\\} \\cap \\{X \\geqslant ${b}\\}$`, `$\\{X > ${a}\\} \\cap \\{X < ${b}\\}$`], `Il faut les deux conditions **à la fois** : c'est une intersection. Avec la réunion, toutes les valeurs conviendraient.`],
+      [`Le contraire de l'événement $\\{${a} \\leqslant X \\leqslant ${b}\\}$ est :`, `$\\{X < ${a}\\} \\cup \\{X > ${b}\\}$`, [`$\\{X < ${a}\\} \\cap \\{X > ${b}\\}$`, `$\\{X \\leqslant ${a}\\} \\cup \\{X \\geqslant ${b}\\}$`, ev(`${a} < X < ${b}`)], `$X$ n'est pas entre $${a}$ et $${b}$ : il est strictement plus petit que $${a}$ **ou** strictement plus grand que $${b}$. La négation d'un « et » est un « ou ».`],
+      [`$X$ ne prend que des valeurs entières. L'événement $\\{X < ${a + 1}\\}$ est aussi l'événement :`, ev(`X \\leqslant ${a}`), [ev(`X \\leqslant ${a + 1}`), ev(`X \\leqslant ${a + 2}`), ev(`X \\geqslant ${a}`)], `Les entiers strictement inférieurs à $${a + 1}$ sont ceux qui sont inférieurs ou égaux à $${a}$.`],
+      [`$X$ ne prend que des valeurs entières. L'événement $\\{X > ${a}\\}$ est aussi l'événement :`, ev(`X \\geqslant ${a + 1}`), [ev(`X \\geqslant ${a}`), ev(`X \\geqslant ${a - 1}`), ev(`X \\leqslant ${a + 1}`)], `Les entiers strictement supérieurs à $${a}$ sont $${a + 1}$, $${a + 2}$… : ce sont ceux qui sont supérieurs ou égaux à $${a + 1}$.`],
+      ["$X$ est le gain algébrique (en euros) d'un joueur à la tombola de la maison des lycéens. L'événement « le joueur perd de l'argent » s'écrit :", ev("X < 0"), [ev("X \\leqslant 0"), ev("X > 0"), ev("X = 0")], "Perdre de l'argent, c'est avoir un gain **strictement** négatif : $\\{X < 0\\}$. Avec $X = 0$, on ne gagne ni ne perd."],
+      [`$X$ est le gain algébrique (en euros) d'un joueur à un jeu de la kermesse. L'événement « le joueur gagne au moins $${v}$ € » s'écrit :`, ev(`X \\geqslant ${v}`), [ev(`X > ${v}`), ev(`X \\leqslant ${v}`), ev(`X < ${v}`)], `« Au moins $${v}$ » : $${v}$ ou plus, la valeur $${v}$ comprise. C'est $\\{X \\geqslant ${v}\\}$.`],
+      [`$X$ est le gain algébrique (en euros) d'un joueur à un jeu de la kermesse. L'événement « le joueur gagne au plus $${v}$ € » s'écrit :`, ev(`X \\leqslant ${v}`), [ev(`X < ${v}`), ev(`X \\geqslant ${v}`), ev(`X > ${v}`)], `« Au plus $${v}$ » : $${v}$ ou moins, la valeur $${v}$ comprise. C'est $\\{X \\leqslant ${v}\\}$.`],
+      ["Lors d'une plongée à N'Gouja, $X$ est le nombre de tortues observées. L'événement « on observe au moins une tortue » s'écrit :", ev("X \\geqslant 1"), [ev("X > 1"), ev("X = 1"), ev("X \\leqslant 1")], "« Au moins une » : une, deux, trois… C'est $\\{X \\geqslant 1\\}$, la valeur $1$ comprise."],
+      ["Lors d'une plongée à N'Gouja, $X$ est le nombre de tortues observées. Le contraire de l'événement « on observe au moins une tortue » est :", ev("X = 0"), [ev("X \\leqslant 1"), ev("X = 1"), ev("X > 0")], "Le contraire de « au moins une » est « aucune » : $\\{X = 0\\}$. C'est pour cela qu'on calcule souvent $P(X \\geqslant 1) = 1 - P(X = 0)$."],
+      // Calculs avec l'événement contraire
+      [`On sait que $P(X \\leqslant ${a}) = ${fr(p)}$. Alors $P(X > ${a})$ vaut :`, `$${fr(1 - p)}$`, [`$${fr(p)}$`, "on ne peut pas le savoir sans la loi complète", `$${fr(1 + p)}$`], `$\\{X > ${a}\\}$ est le contraire de $\\{X \\leqslant ${a}\\}$ : $P(X > ${a}) = 1 - ${fr(p)} = ${fr(1 - p)}$.`, AIDES_CALC],
+      [`On sait que $P(X \\geqslant ${a}) = ${fr(p)}$. Alors $P(X < ${a})$ vaut :`, `$${fr(1 - p)}$`, [`$${fr(p)}$`, "on ne peut pas le savoir sans la loi complète", `$${fr(1 + p)}$`], `$\\{X < ${a}\\}$ est le contraire de $\\{X \\geqslant ${a}\\}$ : $P(X < ${a}) = 1 - ${fr(p)} = ${fr(1 - p)}$.`, AIDES_CALC],
+      [`On sait que $P(X \\leqslant ${a}) = ${fr(p1)}$ et $P(X = ${a}) = ${fr(p2)}$. Alors $P(X < ${a})$ vaut :`, `$${fr(p1 - p2)}$`, [`$${fr(p1)}$`, `$${fr(p1 + p2)}$`, `$${fr(1 - p1)}$`], `$\\{X \\leqslant ${a}\\}$ est la réunion des événements incompatibles $\\{X < ${a}\\}$ et $\\{X = ${a}\\}$ : $P(X < ${a}) = ${fr(p1)} - ${fr(p2)} = ${fr(p1 - p2)}$.`, AIDES_CALC],
+      [`On sait que $P(X < ${a}) = ${fr(p1)}$ et $P(X = ${a}) = ${fr(p2)}$. Alors $P(X \\geqslant ${a})$ vaut :`, `$${fr(1 - p1)}$`, [`$${fr(1 - p1 - p2)}$`, `$${fr(p2)}$`, `$${fr(1 - p2)}$`], `$\\{X \\geqslant ${a}\\}$ est le contraire de $\\{X < ${a}\\}$ : $P(X \\geqslant ${a}) = 1 - ${fr(p1)} = ${fr(1 - p1)}$. La donnée $P(X = ${a})$ ne sert pas ici.`, AIDES_CALC],
+      // Propriétés de l'espérance et de la variance
+      [VF("l'espérance $E(X)$ est toujours une valeur prise par $X$"), "Faux", ["Vrai"], "Faux. Contre-exemple : pour un dé équilibré, $E(X) = 3{,}5$, qui n'est pas un résultat possible. L'espérance est une **moyenne** théorique.", AIDES_PROP],
+      [VF("$V(2X) = 2V(X)$"), "Faux", ["Vrai"], "Faux : $V(aX) = a^2V(X)$, donc $V(2X) = 4V(X)$. La variance est la moyenne des **carrés** des écarts.", AIDES_PROP],
+      [VF("une variance est toujours positive ou nulle"), "Vrai", ["Faux"], "Vrai : c'est une moyenne pondérée de carrés $(x_i - E(X))^2$, tous positifs ou nuls.", AIDES_PROP],
+      ["Un jeu est équitable lorsque :", "l'espérance du gain est nulle", ["le gain maximal est égal à la mise", "on gagne une fois sur deux", "la variance du gain est nulle"], "En moyenne, sur un grand nombre de parties, on ne gagne ni ne perd : $E(X) = 0$.", AIDES_PROP],
+      [VF(`$E(X + ${c}) = E(X) + ${c}$`), "Vrai", ["Faux"], `Vrai : par linéarité, $E(aX + b) = aE(X) + b$ avec $a = 1$ et $b = ${c}$. Ajouter $${c}$ à toutes les valeurs ajoute $${c}$ à la moyenne.`, AIDES_PROP],
+      [VF(`$V(X + ${c}) = V(X) + ${c}$`), "Faux", ["Vrai"], `Faux : $V(X + ${c}) = V(X)$. Ajouter $${c}$ à toutes les valeurs les décale sans changer leur dispersion.`, AIDES_PROP],
+      [VF(`$\\sigma(-${c}X) = -${c}\\,\\sigma(X)$`), "Faux", ["Vrai"], `Faux : $\\sigma(aX) = |a|\\,\\sigma(X)$, donc $\\sigma(-${c}X) = ${c}\\,\\sigma(X)$. Un écart type est toujours positif ou nul.`, AIDES_PROP],
+      [VF(`si $X$ prend toujours la valeur $${c}$, alors $V(X) = 0$`), "Vrai", ["Faux"], `Vrai : $E(X) = ${c}$ et tous les écarts $x_i - E(X)$ sont nuls. Une variable constante n'est pas dispersée.`, AIDES_PROP],
+      [VF("$E(X)$ est toujours comprise entre la plus petite et la plus grande valeur prise par $X$"), "Vrai", ["Faux"], "Vrai : l'espérance est une moyenne pondérée des valeurs de $X$, avec des coefficients positifs de somme $1$.", AIDES_PROP],
+      [VF(`une variable aléatoire peut vérifier $P(X = ${a}) = ${fr(p1)}$ et $P(X = ${b}) = ${fr(1.1 - p1 + p2)}$`), "Faux", ["Vrai"], `Faux : $${fr(p1)} + ${fr(1.1 - p1 + p2)} = ${fr(1.1 + p2)} > 1$, alors que la somme de toutes les probabilités d'une loi vaut $1$.`, AIDES_PROP],
+      [VF("si $E(X) = 0$, alors $X$ prend toujours la valeur $0$"), "Faux", ["Vrai"], "Faux. Contre-exemple : $X$ vaut $-1$ ou $1$ avec la probabilité $\\dfrac{1}{2}$ chacun ; $E(X) = 0$, mais $X$ ne vaut jamais $0$.", AIDES_PROP],
+      [VF("$E(X^2) = E(X)^2$ pour toute variable aléatoire $X$"), "Faux", ["Vrai"], "Faux : $E(X^2) - E(X)^2 = V(X)$, qui n'est pas nul en général. Avec $X = -1$ ou $1$ (probabilité $\\dfrac{1}{2}$ chacun) : $E(X^2) = 1$ mais $E(X)^2 = 0$.", AIDES_PROP],
+      [VF(`$P(X > ${a}) + P(X \\leqslant ${a}) = 1$`), "Vrai", ["Faux"], `Vrai : $\\{X > ${a}\\}$ et $\\{X \\leqslant ${a}\\}$ sont des événements contraires.`, AIDES_CALC],
+      [VF(`$P(X \\geqslant ${a}) + P(X \\leqslant ${a}) = 1$ pour toute variable aléatoire $X$`), "Faux", ["Vrai"], `Faux : $P(X \\geqslant ${a}) + P(X \\leqslant ${a}) = 1 + P(X = ${a})$, car la valeur $${a}$ est comptée deux fois. Ce n'est égal à $1$ que si $P(X = ${a}) = 0$.`, AIDES_CALC],
+      ["L'écart type $\\sigma(X)$ d'une variable aléatoire s'exprime :", "dans la même unité que $X$", ["dans l'unité de $X$ au carré", "toujours en pourcentage", "sans unité, comme une probabilité"], "$\\sigma(X) = \\sqrt{V(X)}$ : la racine carrée « annule » le carré de la variance. Si $X$ est en euros, $\\sigma(X)$ aussi (et $V(X)$ en euros au carré).", AIDES_PROP],
+      ["Un jeu est défavorable au joueur lorsque :", "l'espérance de son gain est strictement négative", ["il perd plus souvent qu'il ne gagne", "le gain minimal est négatif", "la variance du gain est grande"], "C'est la moyenne à long terme qui compte : on peut perdre souvent mais gagner gros de temps en temps. Le jeu est défavorable quand $E(X) < 0$.", AIDES_PROP],
+      ["On répète des épreuves de Bernoulli indépendantes. Dans l'arbre, la probabilité d'un chemin est :", "le produit des probabilités de ses branches", ["la somme des probabilités de ses branches", "la plus petite des probabilités de ses branches", "toujours $\\dfrac{1}{2}$ à chaque étape"], "Sur un chemin, on **multiplie** les probabilités des branches. On **additionne** ensuite les probabilités des chemins qui réalisent un même événement.", ["Un chemin correspond à « ceci **et** cela **et**… ».", "Pour des épreuves indépendantes, $P(A \\cap B) = P(A) \\times P(B)$.", "On additionne seulement des chemins différents (événements incompatibles)."]]
     ];
-    const [q, b, f, s] = pick(T), c = melangeChoix(b, f);
+    // Lecture d'une loi : probabilité d'un événement avec inégalité stricte ou large
+    if (Math.random() < 0.18) {
+      let ps; do { ps = Array.from({ length: 5 }, () => rand(1, 4)); } while (ps.reduce((s, x) => s + x, 0) !== 10);
+      const k = rand(1, 3), op = pick([">", "\\geqslant", "<", "\\leqslant"]);
+      const garde = (x) => (op === ">" ? x > k : op === "<" ? x < k : op === "\\geqslant" ? x >= k : x <= k);
+      const xs = [0, 1, 2, 3, 4], somme = (f) => xs.filter(f).reduce((s, x) => s + ps[x], 0) / 10;
+      const bon = somme(garde), piege = op === ">" || op === "<" ? bon + ps[k] / 10 : bon - ps[k] / 10;
+      const ch = melangeChoix(`$${fr(bon)}$`, [`$${fr(piege)}$`, `$${fr(1 - bon)}$`, `$${fr(ps[k] / 10)}$`]);
+      const vals = xs.filter(garde);
+      return {
+        enonce: `Voici la loi d'une variable aléatoire $X$. Que vaut $P(X ${op} ${k})$ ?`,
+        tableau: { var: "x_i", nom: "P(X = x_i)", x: xs, y: ps.map((q) => fr(q / 10)) },
+        mode: "choix", choix: ch.choix, attendu: ch.attendu,
+        aides: [`Écris la liste des valeurs de $X$ qui vérifient $X ${op} ${k}$.`, op === ">" || op === "<" ? `L'inégalité est stricte : la valeur $${k}$ n'est **pas** comptée.` : `L'inégalité est large : la valeur $${k}$ **est** comptée.`, "Additionne les probabilités de ces valeurs."],
+        solution: `On garde $X \\in \\{${vals.join("\\,;")}\\}$ : $P(X ${op} ${k}) = ${vals.length > 1 ? `${vals.map((x) => fr(ps[x] / 10)).join(" + ")} = ` : ""}${fr(bon)}$.`
+      };
+    }
+    const [q, bo, f, s, aides] = pick(T), ch = melangeChoix(bo, f);
     return {
-      enonce: q, mode: "choix", choix: c.choix, attendu: c.attendu,
-      aides: ["$\\{X \\leqslant a\\}$ est l'ensemble des issues pour lesquelles $X$ prend une valeur inférieure ou égale à $a$.", "« Et » correspond à l'intersection $\\cap$, « ou » à la réunion $\\cup$.", "Pour nier « $\\leqslant$ », on écrit « $>$ »."],
+      enonce: q, mode: "choix", choix: ch.choix, attendu: ch.attendu,
+      aides: aides || AIDES_EV,
       solution: s
     };
   };
@@ -7648,32 +10055,158 @@
 
   // Logique : contraposée et réciproque
   GEN["sc-logique"] = function () {
+    const AK = ["Al-Kashi : $BC^2 = AB^2 + AC^2 - 2\\,AB \\times AC \\times \\cos \\widehat{A}$.", "Le signe de $\\cos \\widehat{A}$ dit si l'angle est aigu (positif), droit (nul) ou obtus (négatif).", "Pour réfuter une implication, un seul contre-exemple suffit."];
+    const AV = ["Développe : $\\|\\vec{u} + \\vec{v}\\|^2 = \\|\\vec{u}\\|^2 + 2\\,\\vec{u} \\cdot \\vec{v} + \\|\\vec{v}\\|^2$ et $(\\vec{u} + \\vec{v}) \\cdot (\\vec{u} - \\vec{v}) = \\|\\vec{u}\\|^2 - \\|\\vec{v}\\|^2$.", "Réciproque : on échange l'hypothèse et la conclusion. Contraposée : on nie les deux, puis on les échange.", "Pour réfuter une implication, un seul contre-exemple suffit."];
+    // [question, bonne réponse, fausses réponses, solution, aides (facultatif)]
     const T = [
       ["Quelle est la contraposée de « si $ABC$ est rectangle en $A$, alors $BC^2 = AB^2 + AC^2$ » ?", "Si $BC^2 \\neq AB^2 + AC^2$, alors $ABC$ n'est pas rectangle en $A$", ["Si $BC^2 = AB^2 + AC^2$, alors $ABC$ est rectangle en $A$", "Si $ABC$ n'est pas rectangle en $A$, alors $BC^2 \\neq AB^2 + AC^2$", "$ABC$ est rectangle en $A$ et $BC^2 \\neq AB^2 + AC^2$"], "La contraposée de « si P alors Q » est « si non Q alors non P ». La première proposition fausse est la **réciproque**."],
       ["Si une implication est vraie, sa contraposée est :", "toujours vraie", ["toujours fausse", "vraie ou fausse selon les cas", "la même chose que la réciproque"], "Une implication et sa contraposée disent la même chose : elles sont vraies ou fausses en même temps."],
       ["Si une implication est vraie, sa réciproque est :", "vraie ou fausse selon les cas", ["toujours vraie", "toujours fausse", "la même chose que la contraposée"], "Exemple : « si $x = 2$, alors $x^2 = 4$ » est vraie, mais sa réciproque « si $x^2 = 4$, alors $x = 2$ » est fausse ($x = -2$)."],
       ["Un triangle a pour côtés $5$, $6$ et $8$. Est-il rectangle ?", "Non, car $8^2 \\neq 5^2 + 6^2$", ["Oui, car $8$ est le plus grand côté", "Oui, car $5 + 6 > 8$", "On ne peut pas savoir sans les angles"], "$8^2 = 64$ et $5^2 + 6^2 = 61$. Par la contraposée de Pythagore, le triangle n'est pas rectangle (il a un angle obtus, car $64 > 61$)."],
-      ["Contraposée de « si $\\vec{u} \\cdot \\vec{v} > 0$, alors l'angle entre $\\vec{u}$ et $\\vec{v}$ est aigu » (vecteurs non nuls) :", "Si l'angle n'est pas aigu, alors $\\vec{u} \\cdot \\vec{v} \\leqslant 0$", ["Si l'angle est aigu, alors $\\vec{u} \\cdot \\vec{v} > 0$", "Si $\\vec{u} \\cdot \\vec{v} \\leqslant 0$, alors l'angle n'est pas aigu", "Si l'angle est obtus, alors $\\vec{u} \\cdot \\vec{v} > 0$"], "On nie la conclusion (« pas aigu ») et l'hypothèse (« $\\leqslant 0$ »), puis on les échange."]
+      ["Contraposée de « si $\\vec{u} \\cdot \\vec{v} > 0$, alors l'angle entre $\\vec{u}$ et $\\vec{v}$ est aigu » (vecteurs non nuls) :", "Si l'angle n'est pas aigu, alors $\\vec{u} \\cdot \\vec{v} \\leqslant 0$", ["Si l'angle est aigu, alors $\\vec{u} \\cdot \\vec{v} > 0$", "Si $\\vec{u} \\cdot \\vec{v} \\leqslant 0$, alors l'angle n'est pas aigu", "Si l'angle est obtus, alors $\\vec{u} \\cdot \\vec{v} > 0$"], "On nie la conclusion (« pas aigu ») et l'hypothèse (« $\\leqslant 0$ »), puis on les échange."],
+      ["Quelle est la réciproque de « si $ABC$ est rectangle en $A$, alors $BC^2 = AB^2 + AC^2$ » ?", "Si $BC^2 = AB^2 + AC^2$, alors $ABC$ est rectangle en $A$", ["Si $BC^2 \\neq AB^2 + AC^2$, alors $ABC$ n'est pas rectangle en $A$", "Si $ABC$ n'est pas rectangle en $A$, alors $BC^2 \\neq AB^2 + AC^2$", "Si $BC$ est le plus grand côté, alors $ABC$ est rectangle en $A$"], "La réciproque de « si P, alors Q » est « si Q, alors P » : on échange l'hypothèse et la conclusion. Ici, elle est vraie elle aussi : c'est la réciproque du théorème de Pythagore."],
+      ["Quelle est la contraposée de « si $M$ est sur le cercle de diamètre $[AB]$, alors le triangle $AMB$ est rectangle en $M$ » (avec $M$ distinct de $A$ et de $B$) ?", "Si $AMB$ n'est pas rectangle en $M$, alors $M$ n'est pas sur le cercle de diamètre $[AB]$", ["Si $AMB$ est rectangle en $M$, alors $M$ est sur le cercle de diamètre $[AB]$", "Si $M$ n'est pas sur le cercle de diamètre $[AB]$, alors $AMB$ n'est pas rectangle en $M$", "$M$ est sur le cercle de diamètre $[AB]$ et $AMB$ n'est pas rectangle en $M$"], "La contraposée de « si P, alors Q » est « si non Q, alors non P ». Les deux autres implications proposées sont la réciproque et la contraposée de la réciproque : elles sont vraies ici aussi (c'est une équivalence), mais ce n'est pas la contraposée demandée."],
+      ["Si une implication est fausse, sa contraposée est :", "fausse aussi", ["vraie", "vraie ou fausse selon les cas", "la même chose que sa réciproque"], "Une implication et sa contraposée sont équivalentes : elles sont vraies ensemble, ou fausses ensemble."],
+      ["Pour démontrer qu'un triangle n'est **pas** rectangle en $A$ à partir de ses longueurs, on utilise :", "la contraposée du théorème de Pythagore", ["la réciproque du théorème de Pythagore", "le théorème de Pythagore lui-même", "la formule de l'aire du triangle"], "On calcule $BC^2$ et $AB^2 + AC^2$ : s'ils sont différents, la contraposée de Pythagore permet de conclure que $ABC$ n'est pas rectangle en $A$."],
+      ["Pour démontrer qu'un triangle **est** rectangle en $A$ à partir de ses longueurs, on utilise :", "la réciproque du théorème de Pythagore", ["la contraposée du théorème de Pythagore", "le théorème de Pythagore lui-même", "la formule de l'aire du triangle"], "Si $BC^2 = AB^2 + AC^2$, la réciproque de Pythagore permet de conclure que $ABC$ est rectangle en $A$. Le théorème lui-même ne s'applique qu'à un triangle dont on sait déjà qu'il est rectangle."],
+      ["Les implications « si $\\overrightarrow{MA} \\cdot \\overrightarrow{MB} = 0$, alors $M$ est sur le cercle de diamètre $[AB]$ » et « si $M$ est sur le cercle de diamètre $[AB]$, alors $\\overrightarrow{MA} \\cdot \\overrightarrow{MB} = 0$ » sont :", "vraies toutes les deux : c'est une équivalence", ["vraie pour la première, fausse pour la seconde", "fausse pour la première, vraie pour la seconde", "fausses toutes les deux"], "Le cours démontre que $\\overrightarrow{MA} \\cdot \\overrightarrow{MB} = MI^2 - IA^2$, avec $I$ milieu de $[AB]$. Donc $\\overrightarrow{MA} \\cdot \\overrightarrow{MB} = 0 \\iff MI = IA$ : c'est une équivalence, l'implication et sa réciproque sont vraies."],
+      ["Vrai ou faux : « dans un triangle $ABC$, si $\\cos \\widehat{A} < 0$, alors $BC^2 > AB^2 + AC^2$ » ?", "Vrai", ["Faux"], "Vrai. Al-Kashi : $BC^2 = AB^2 + AC^2 - 2\\,AB \\times AC \\times \\cos \\widehat{A}$. Si $\\cos \\widehat{A} < 0$, on retranche un nombre négatif, donc $BC^2 > AB^2 + AC^2$.", AK],
+      ["Vrai ou faux : « dans un triangle $ABC$, si $BC^2 < AB^2 + AC^2$, alors l'angle $\\widehat{A}$ est aigu » ?", "Vrai", ["Faux"], "Vrai. D'après Al-Kashi, $2\\,AB \\times AC \\times \\cos \\widehat{A} = AB^2 + AC^2 - BC^2 > 0$, donc $\\cos \\widehat{A} > 0$ : l'angle $\\widehat{A}$ est aigu.", AK],
+      ["Si l'angle $\\widehat{A}$ d'un triangle $ABC$ est droit, la formule d'Al-Kashi $BC^2 = AB^2 + AC^2 - 2\\,AB \\times AC \\times \\cos \\widehat{A}$ devient :", "le théorème de Pythagore", ["$BC^2 = AB^2 + AC^2 - 2\\,AB \\times AC$", "$BC = AB + AC$", "$BC^2 = AB^2 - AC^2$"], "$\\cos 90° = 0$ : il reste $BC^2 = AB^2 + AC^2$. Al-Kashi généralise Pythagore à tous les triangles.", AK],
+      ["Vrai ou faux : « dans un triangle $ABC$, si l'angle $\\widehat{A}$ est obtus, alors $BC$ est le plus grand côté » ?", "Vrai", ["Faux"], "Vrai. Si $\\widehat{A}$ est obtus, $\\cos \\widehat{A} < 0$ et Al-Kashi donne $BC^2 > AB^2 + AC^2$, donc $BC^2 > AB^2$ et $BC^2 > AC^2$. Sa contraposée est utile : si $BC$ n'est pas le plus grand côté, l'angle $\\widehat{A}$ n'est pas obtus.", AK],
+      ["Vrai ou faux : « si $BC^2 = AB^2 + AC^2 - AB \\times AC$, alors le triangle $ABC$ est rectangle » ?", "Faux", ["Vrai"], "Faux. Contre-exemple : un triangle équilatéral de côté $1$ vérifie $1^2 = 1^2 + 1^2 - 1 \\times 1$, et il n'est pas rectangle. D'après Al-Kashi, cette égalité signifie $\\cos \\widehat{A} = \\dfrac{1}{2}$, c'est-à-dire $\\widehat{A} = 60°$.", AK],
+      ["L'implication « si $\\vec{v} = \\vec{w}$, alors $\\vec{u} \\cdot \\vec{v} = \\vec{u} \\cdot \\vec{w}$ » est vraie. Sa réciproque est :", "« si $\\vec{u} \\cdot \\vec{v} = \\vec{u} \\cdot \\vec{w}$, alors $\\vec{v} = \\vec{w}$ », qui est fausse", ["« si $\\vec{u} \\cdot \\vec{v} = \\vec{u} \\cdot \\vec{w}$, alors $\\vec{v} = \\vec{w}$ », qui est vraie", "« si $\\vec{v} \\neq \\vec{w}$, alors $\\vec{u} \\cdot \\vec{v} \\neq \\vec{u} \\cdot \\vec{w}$ », qui est vraie", "« si $\\vec{u} \\cdot \\vec{v} \\neq \\vec{u} \\cdot \\vec{w}$, alors $\\vec{v} \\neq \\vec{w}$ », qui est fausse"], "On échange l'hypothèse et la conclusion. Contre-exemple pour la réciproque : $\\vec{u}\\begin{pmatrix} 1 \\\\ 0 \\end{pmatrix}$, $\\vec{v}\\begin{pmatrix} 2 \\\\ 0 \\end{pmatrix}$ et $\\vec{w}\\begin{pmatrix} 2 \\\\ 3 \\end{pmatrix}$ : $\\vec{u} \\cdot \\vec{v} = \\vec{u} \\cdot \\vec{w} = 2$, mais $\\vec{v} \\neq \\vec{w}$.", AV],
+      ["Quelle est la contraposée de « si $\\vec{u} \\cdot \\vec{v} = 0$, alors $\\|\\vec{u} + \\vec{v}\\|^2 = \\|\\vec{u}\\|^2 + \\|\\vec{v}\\|^2$ » ?", "Si $\\|\\vec{u} + \\vec{v}\\|^2 \\neq \\|\\vec{u}\\|^2 + \\|\\vec{v}\\|^2$, alors $\\vec{u} \\cdot \\vec{v} \\neq 0$", ["Si $\\|\\vec{u} + \\vec{v}\\|^2 = \\|\\vec{u}\\|^2 + \\|\\vec{v}\\|^2$, alors $\\vec{u} \\cdot \\vec{v} = 0$", "Si $\\vec{u} \\cdot \\vec{v} \\neq 0$, alors $\\|\\vec{u} + \\vec{v}\\|^2 \\neq \\|\\vec{u}\\|^2 + \\|\\vec{v}\\|^2$", "$\\vec{u} \\cdot \\vec{v} = 0$ et $\\|\\vec{u} + \\vec{v}\\|^2 \\neq \\|\\vec{u}\\|^2 + \\|\\vec{v}\\|^2$"], "« Si non Q, alors non P ». L'implication de départ est vraie, car $\\|\\vec{u} + \\vec{v}\\|^2 = \\|\\vec{u}\\|^2 + 2\\,\\vec{u} \\cdot \\vec{v} + \\|\\vec{v}\\|^2$ ; sa contraposée l'est donc aussi.", AV],
+      ["Vrai ou faux : « si $\\|\\vec{u} + \\vec{v}\\|^2 = \\|\\vec{u}\\|^2 + \\|\\vec{v}\\|^2$, alors $\\vec{u}$ et $\\vec{v}$ sont orthogonaux » ?", "Vrai", ["Faux"], "Vrai : $\\|\\vec{u} + \\vec{v}\\|^2 = \\|\\vec{u}\\|^2 + 2\\,\\vec{u} \\cdot \\vec{v} + \\|\\vec{v}\\|^2$, donc l'égalité donne $2\\,\\vec{u} \\cdot \\vec{v} = 0$, soit $\\vec{u} \\cdot \\vec{v} = 0$. C'est la réciproque de Pythagore, écrite avec des vecteurs.", AV],
+      ["Si $(\\vec{u} + \\vec{v}) \\cdot (\\vec{u} - \\vec{v}) = 0$, on peut affirmer que :", "$\\|\\vec{u}\\| = \\|\\vec{v}\\|$", ["$\\vec{u} = \\vec{v}$", "$\\vec{u}$ et $\\vec{v}$ sont orthogonaux", "$\\vec{u} = \\vec{0}$ ou $\\vec{v} = \\vec{0}$"], "$(\\vec{u} + \\vec{v}) \\cdot (\\vec{u} - \\vec{v}) = \\|\\vec{u}\\|^2 - \\|\\vec{v}\\|^2$ : la condition équivaut à $\\|\\vec{u}\\| = \\|\\vec{v}\\|$. Un seul contre-exemple élimine les trois autres réponses : $\\vec{u}\\begin{pmatrix} 1 \\\\ 0 \\end{pmatrix}$ et $\\vec{v}\\begin{pmatrix} -1 \\\\ 0 \\end{pmatrix}$ vérifient la condition, mais $\\vec{u} \\neq \\vec{v}$, $\\vec{u} \\cdot \\vec{v} = -1 \\neq 0$ et aucun des deux n'est nul.", AV]
     ];
-    const [q, b, f, s] = pick(T), c = melangeChoix(b, f);
+    // Triangles : [a, b, c] avec c le plus grand côté
+    const DROITS = [[3, 4, 5], [6, 8, 10], [5, 12, 13], [9, 12, 15], [8, 15, 17], [7, 24, 25], [12, 16, 20], [20, 21, 29], [9, 40, 41], [15, 20, 25]];
+    const AUTRES = [[5, 6, 7], [6, 7, 9], [4, 6, 7], [5, 7, 8], [6, 8, 9], [7, 8, 10], [4, 5, 6], [8, 9, 12], [9, 10, 13], [4, 5, 7], [3, 5, 7], [2, 3, 4], [6, 8, 11], [5, 12, 14], [7, 8, 12], [4, 7, 9], [6, 7, 10]];
+    const AT = ["Repère le plus grand côté : seul l'angle qui lui est opposé peut être droit ou obtus.", "Compare le carré du plus grand côté à la somme des carrés des deux autres côtés.", "Égalité : réciproque de Pythagore. Sinon : contraposée de Pythagore, et Al-Kashi donne le signe du cosinus."];
+    const triangle = () => {
+      const [a, b, c] = pick(Math.random() < 0.4 ? DROITS : AUTRES), S = a * a + b * b, C = c * c;
+      const cotes = shuffle([a, b, c]), txt = `$${cotes[0]}$, $${cotes[1]}$ et $${cotes[2]}$`;
+      const calc = `Le plus grand côté mesure $${c}$ : $${c}^2 = ${C}$ et $${a}^2 + ${b}^2 = ${a * a} + ${b * b} = ${S}$.`;
+      if (Math.random() < 0.5) {
+        if (C === S) return [`Un triangle a pour côtés ${txt}. Est-il rectangle ?`, `Oui, car $${c}^2 = ${a}^2 + ${b}^2$`, ["On ne peut pas savoir sans mesurer les angles", `Non, car $${a} + ${b} \\neq ${c}$`, `Non, car $${c}^2 \\neq ${a}^2 + ${b}^2$`], `${calc} Par la **réciproque** du théorème de Pythagore, le triangle est rectangle ; l'angle droit est opposé au côté de longueur $${c}$.`, AT];
+        return [`Un triangle a pour côtés ${txt}. Est-il rectangle ?`, `Non, car $${c}^2 \\neq ${a}^2 + ${b}^2$`, [`Oui, car $${c}$ est le plus grand côté`, `Oui, car $${a} + ${b} > ${c}$`, "On ne peut pas savoir sans mesurer les angles"], `${calc} Ces nombres sont différents : par la **contraposée** du théorème de Pythagore, l'angle opposé au plus grand côté n'est pas droit. Les deux autres angles ne peuvent pas être droits non plus (l'angle droit est toujours opposé au plus grand côté) : le triangle n'est pas rectangle.`, AT];
+      }
+      const nat = C < S ? "aigu" : C === S ? "droit" : "obtus";
+      return [`Un triangle a pour côtés ${txt}. Quelle est la nature de son angle opposé au côté de longueur $${c}$ ?`, `Il est ${nat}`, ["Il est aigu", "Il est droit", "Il est obtus", "On ne peut pas savoir sans rapporteur"].filter((x) => x !== `Il est ${nat}`),
+        `${calc} D'après Al-Kashi, le cosinus de cet angle vaut $\\dfrac{${S} - ${C}}{2 \\times ${a} \\times ${b}}$, du signe de $${S} - ${C} = ${S - C}$. ${C < S ? "Il est positif : l'angle est **aigu**." : C === S ? "Il est nul : l'angle est **droit** (réciproque de Pythagore)." : "Il est négatif : l'angle est **obtus**."}`, AT];
+    };
+    const Q = Math.random() < 0.3 ? triangle() : pick(T), [q, b, f, s] = Q, c = melangeChoix(b, f);
     return {
       enonce: q, mode: "choix", choix: c.choix, attendu: c.attendu,
-      aides: ["Implication : « si P, alors Q ». Réciproque : « si Q, alors P ». Contraposée : « si non Q, alors non P ».", "Une implication et sa contraposée sont équivalentes.", "La réciproque peut être fausse même si l'implication est vraie."],
+      aides: Q[4] || ["Implication : « si P, alors Q ». Réciproque : « si Q, alors P ». Contraposée : « si non Q, alors non P ».", "Une implication et sa contraposée sont équivalentes.", "La réciproque peut être fausse même si l'implication est vraie."],
       solution: s
     };
   };
 
   GEN["sc-python"] = function () {
-    const [A, B, Cc, ang] = pick([[[0, 0], [4, 0], [2, 2], 45], [[0, 0], [3, 0], [0, 5], 90], [[0, 0], [2, 0], [-1, 1], 135], [[1, 1], [4, 1], [1, 6], 90], [[1, 2], [3, 2], [-2, 2], 180], [[0, 0], [2, 2], [3, 0], 45], [[2, 1], [5, 4], [5, -2], 90]]);
     const code = "```python\nfrom math import sqrt, acos, degrees\n\ndef angle(A, B, C):\n    u = (B[0] - A[0], B[1] - A[1])\n    v = (C[0] - A[0], C[1] - A[1])\n    ps = u[0] * v[0] + u[1] * v[1]\n    nu = sqrt(u[0]**2 + u[1]**2)\n    nv = sqrt(v[0]**2 + v[1]**2)\n    return degrees(acos(ps / (nu * nv)))\n```";
-    const u = [B[0] - A[0], B[1] - A[1]], v = [Cc[0] - A[0], Cc[1] - A[1]], ps = u[0] * v[0] + u[1] * v[1];
+    const pt = (P) => `(${P[0]}, ${P[1]})`, appel = (A, B, C) => `angle(${pt(A)}, ${pt(B)}, ${pt(C)})`;
+    const vec = (u) => `\\begin{pmatrix} ${u[0]} \\\\ ${u[1]} \\end{pmatrix}`;
+    const cosTex = { 45: "\\dfrac{\\sqrt{2}}{2}", 90: "0", 135: "-\\dfrac{\\sqrt{2}}{2}", 180: "-1" };
+    const t = rand(0, 7);
+    if (t <= 1) {
+      // Angle remarquable : cas d'origine, ou triangle construit au hasard
+      let A, B, Cc, ang;
+      if (t === 0) [A, B, Cc, ang] = pick([[[0, 0], [4, 0], [2, 2], 45], [[0, 0], [3, 0], [0, 5], 90], [[0, 0], [2, 0], [-1, 1], 135], [[1, 1], [4, 1], [1, 6], 90], [[1, 2], [3, 2], [-2, 2], 180], [[0, 0], [2, 2], [3, 0], 45], [[2, 1], [5, 4], [5, -2], 90]]);
+      else {
+        // v se déduit de u par une rotation (90°), u + rot(u) (45°), -u + rot(u) (135°) ou -u (180°) ; on écarte les cas où Python sortirait de [-1 ; 1]
+        let x;
+        do {
+          ang = pick([45, 90, 135, 180]); A = [rand(-3, 3), rand(-3, 3)];
+          const u0 = pick([[1, 0], [0, 1], [1, 1], [2, 1], [1, 2], [2, -1], [1, -2], [3, 1], [1, 3], [-1, 2], [-2, 1], [3, -1]]), k = pick([1, 1, 2]);
+          const u = [k * u0[0], k * u0[1]], s = pick([1, -1]), r = [-s * u[1], s * u[0]], k2 = pick([1, 2]);
+          const v = ang === 90 ? [k2 * r[0], k2 * r[1]] : ang === 45 ? [u[0] + r[0], u[1] + r[1]] : ang === 135 ? [r[0] - u[0], r[1] - u[1]] : [-k2 * u[0], -k2 * u[1]];
+          B = [A[0] + u[0], A[1] + u[1]]; Cc = [A[0] + v[0], A[1] + v[1]];
+          const ps = u[0] * v[0] + u[1] * v[1];
+          x = ps / (Math.sqrt(u[0] ** 2 + u[1] ** 2) * Math.sqrt(v[0] ** 2 + v[1] ** 2));
+        } while (Math.abs(x) > 1 || Math.max(...B.map(Math.abs), ...Cc.map(Math.abs)) > 9);
+      }
+      const u = [B[0] - A[0], B[1] - A[1]], v = [Cc[0] - A[0], Cc[1] - A[1]], ps = u[0] * v[0] + u[1] * v[1];
+      return {
+        enonce: `${code}\n\nQue renvoie (environ) angle((${A[0]}, ${A[1]}), (${B[0]}, ${B[1]}), (${Cc[0]}, ${Cc[1]})) ?`,
+        mode: "nombre", prefixe: "Résultat :", suffixe: "°", attendu: ang, tolerance: 0.051,
+        aides: ["La fonction calcule l'angle $\\widehat{BAC}$ en degrés, avec $\\cos \\widehat{BAC} = \\dfrac{\\overrightarrow{AB} \\cdot \\overrightarrow{AC}}{AB \\times AC}$.", `$\\overrightarrow{AB}\\begin{pmatrix} ${u[0]} \\\\ ${u[1]} \\end{pmatrix}$, $\\overrightarrow{AC}\\begin{pmatrix} ${v[0]} \\\\ ${v[1]} \\end{pmatrix}$ et $\\overrightarrow{AB} \\cdot \\overrightarrow{AC} = ${ps}$.`, "Reconnais une valeur remarquable du cosinus."],
+        solution: t === 0
+          ? `$\\overrightarrow{AB} \\cdot \\overrightarrow{AC} = ${ps}$, $AB = \\sqrt{${u[0] ** 2 + u[1] ** 2}}$ et $AC = \\sqrt{${v[0] ** 2 + v[1] ** 2}}$ : le cosinus vaut ${ang === 90 ? "$0$" : ang === 180 ? "$-1$" : ang === 45 ? "$\\dfrac{\\sqrt{2}}{2}$" : "$-\\dfrac{\\sqrt{2}}{2}$"}, donc l'angle mesure $${ang}°$ (Python peut afficher une valeur très proche, à cause des arrondis).`
+          : `$\\overrightarrow{AB} \\cdot \\overrightarrow{AC} = ${u[0]} \\times ${par(v[0])} + ${par(u[1])} \\times ${par(v[1])} = ${ps}$, $AB = \\sqrt{${u[0] ** 2 + u[1] ** 2}}$ et $AC = \\sqrt{${v[0] ** 2 + v[1] ** 2}}$. ${ps === 0 ? "Le produit scalaire est nul : le cosinus vaut $0$" : `$\\cos \\widehat{BAC} = \\dfrac{${ps}}{\\sqrt{${u[0] ** 2 + u[1] ** 2}} \\times \\sqrt{${v[0] ** 2 + v[1] ** 2}}} = ${cosTex[ang]}$`}, donc l'angle mesure $${ang}°$ (Python peut afficher une valeur très proche, à cause des arrondis).`
+      };
+    }
+    // Trois points au hasard, A distinct de B et de C, non alignés
+    let A, B, Cc, u, v;
+    do { A = [rand(-3, 3), rand(-3, 3)]; B = [rand(-4, 5), rand(-4, 5)]; Cc = [rand(-4, 5), rand(-4, 5)]; u = [B[0] - A[0], B[1] - A[1]]; v = [Cc[0] - A[0], Cc[1] - A[1]]; } while (u[0] * v[1] - u[1] * v[0] === 0);
+    const ps = u[0] * v[0] + u[1] * v[1], appelT = appel(A, B, Cc);
+    if (t === 2) {
+      // Valeur de ps
+      const faux = u[0] * v[1] + u[1] * v[0];
+      return {
+        enonce: `${code}\n\nOn appelle ${appelT}. Quelle valeur la variable ps prend-elle ?`,
+        mode: "nombre", prefixe: "ps =", attendu: ps,
+        erreurs: [{ valeur: faux, message: "On multiplie les abscisses entre elles, puis les ordonnées entre elles : u[0] * v[0] + u[1] * v[1]." }].filter((e) => e.valeur !== ps),
+        aides: ["u contient les coordonnées de $\\overrightarrow{AB}$ et v celles de $\\overrightarrow{AC}$, avec A le premier point.", `$\\overrightarrow{AB}${vec(u)}$ et $\\overrightarrow{AC}${vec(v)}$.`, "ps est le produit scalaire $xx' + yy'$."],
+        solution: `$\\overrightarrow{AB}${vec(u)}$ et $\\overrightarrow{AC}${vec(v)}$, donc ps $= ${u[0]} \\times ${par(v[0])} + ${par(u[1])} \\times ${par(v[1])} = ${ps}$ : c'est le produit scalaire $\\overrightarrow{AB} \\cdot \\overrightarrow{AC}$.`
+      };
+    }
+    if (t === 3) {
+      // Valeur de nu (vecteur de norme entière)
+      const w = pick([[3, 4], [4, 3], [-3, 4], [4, -3], [-4, -3], [6, 8], [8, -6], [5, 12], [-12, 5], [0, 5], [-7, 0], [6, 0], [0, -4]]);
+      const P = [rand(-3, 3), rand(-3, 3)], Q = [P[0] + w[0], P[1] + w[1]], n2 = w[0] ** 2 + w[1] ** 2, n = Math.sqrt(n2);
+      return {
+        enonce: `${code}\n\nOn appelle ${appel(P, Q, Cc[0] === P[0] && Cc[1] === P[1] ? [P[0] + 1, P[1] + 2] : Cc)}. Quelle valeur la variable nu prend-elle ?`,
+        mode: "nombre", prefixe: "nu =", attendu: n,
+        erreurs: [{ valeur: n2, message: "Ça, c'est le carré de la norme : il reste à prendre la racine carrée." }, { valeur: Math.abs(w[0]) + Math.abs(w[1]), message: "La norme n'est pas la somme des coordonnées : $\\|\\vec{u}\\| = \\sqrt{x^2 + y^2}$." }].filter((e, j, L) => e.valeur !== n && L.findIndex((x) => x.valeur === e.valeur) === j),
+        aides: ["u contient les coordonnées du vecteur allant du premier point au deuxième.", `Ici, u $= (${w[0]}, ${w[1]})$.`, "nu est la norme de ce vecteur : $\\sqrt{x^2 + y^2}$."],
+        solution: `u $= (${w[0]}, ${w[1]})$ et nu $= \\sqrt{${par(w[0])}^2 + ${par(w[1])}^2} = \\sqrt{${n2}} = ${n}$. Python affiche ${n}.0, car sqrt renvoie un nombre décimal.`
+      };
+    }
+    if (t === 4) {
+      // Aigu, droit ou obtus, sans calculer l'angle
+      let P = A, Q = B, R = Cc, s = ps;
+      if (Math.random() < 0.25) { const k = pick([1, 2]), sg2 = pick([1, -1]); R = [P[0] - sg2 * k * u[1], P[1] + sg2 * k * u[0]]; s = 0; }
+      const w = [R[0] - P[0], R[1] - P[1]];
+      const R3 = ["Un nombre strictement compris entre $0$ et $90$ : l'angle est aigu", "$90$ (environ) : l'angle est droit", "Un nombre strictement compris entre $90$ et $180$ : l'angle est obtus"], k = s > 0 ? 0 : s === 0 ? 1 : 2;
+      return {
+        enonce: `${code}\n\nSans calculer l'angle, que peut-on dire du nombre renvoyé par ${appel(P, Q, R)} ?`,
+        mode: "choix", ...melangeChoix(R3[k], [...R3.filter((_, j) => j !== k), "On ne peut rien dire sans calculatrice"]),
+        aides: ["Le cosinus de l'angle a le même signe que le produit scalaire ps.", `$\\overrightarrow{AB}${vec(u)}$ et $\\overrightarrow{AC}${vec(w)}$ : calcule leur produit scalaire.`, "Produit scalaire positif : angle aigu ; nul : angle droit ; négatif : angle obtus."],
+        solution: `$\\overrightarrow{AB} \\cdot \\overrightarrow{AC} = ${u[0]} \\times ${par(w[0])} + ${par(u[1])} \\times ${par(w[1])} = ${s}$. Le cosinus de l'angle $\\widehat{BAC}$ a le signe du produit scalaire : ${k === 0 ? "il est positif, l'angle est **aigu**." : k === 1 ? "il est nul, l'angle est **droit**." : "il est négatif, l'angle est **obtus**."}`
+      };
+    }
+    if (t === 5) {
+      // Premier et deuxième points confondus : division par 0
+      const c = melangeChoix("Python s'arrête sur une erreur : nu vaut 0 et on divise par 0", ["La fonction renvoie 0", "La fonction renvoie 90", "La fonction renvoie 180"]);
+      return {
+        enonce: `${code}\n\nQue se passe-t-il quand on appelle ${appel(A, A, Cc)} ?`,
+        mode: "choix", choix: c.choix, attendu: c.attendu,
+        aides: ["Les deux premiers points sont les mêmes : que vaut u ?", "u $= (0, 0)$ : que vaut alors nu ?", "La dernière ligne divise par nu * nv."],
+        solution: "Les points $A$ et $B$ sont confondus : u $= (0, 0)$, donc nu $= 0$ et ps $= 0$. La dernière ligne calcule $\\dfrac{0}{0}$ : Python s'arrête avec une erreur (ZeroDivisionError). C'est normal : l'angle $\\widehat{BAC}$ n'a pas de sens si $B = A$, car $\\overrightarrow{AB}$ est le vecteur nul."
+      };
+    }
+    // Quel angle calcule-t-on ? Quel appel écrire ?
+    const L = shuffle(pick([["M", "N", "P"], ["E", "F", "G"], ["R", "S", "T"], ["I", "J", "K"], ["D", "E", "F"]]));
+    if (t === 6) {
+      const c = melangeChoix(`L'angle $\\widehat{${L[1]}${L[0]}${L[2]}}$, de sommet $${L[0]}$`, [`L'angle $\\widehat{${L[0]}${L[1]}${L[2]}}$, de sommet $${L[1]}$`, `L'angle $\\widehat{${L[0]}${L[2]}${L[1]}}$, de sommet $${L[2]}$`, `La longueur $${L[1]}${L[2]}$`]);
+      return {
+        enonce: `${code}\n\nTrois points ${L[0]}, ${L[1]} et ${L[2]} sont donnés par leurs coordonnées. Que calcule angle(${L.join(", ")}) ?`,
+        mode: "choix", choix: c.choix, attendu: c.attendu,
+        aides: ["u et v sont les vecteurs qui partent du **premier** point passé à la fonction.", `Ici, u va de ${L[0]} à ${L[1]}, et v va de ${L[0]} à ${L[2]}.`, "L'angle entre ces deux vecteurs a pour sommet leur point de départ."],
+        solution: `u $= \\overrightarrow{${L[0]}${L[1]}}$ et v $= \\overrightarrow{${L[0]}${L[2]}}$ : la fonction renvoie l'angle entre ces deux vecteurs, c'est-à-dire $\\widehat{${L[1]}${L[0]}${L[2]}}$, de sommet $${L[0]}$ (le premier point).`
+      };
+    }
+    const [S, X, Y] = L, c = melangeChoix(`angle(${S}, ${X}, ${Y})`, [`angle(${X}, ${S}, ${Y})`, `angle(${Y}, ${X}, ${S})`, `angle(${X}, ${Y}, ${S})`]);
     return {
-      enonce: `${code}\n\nQue renvoie (environ) angle((${A[0]}, ${A[1]}), (${B[0]}, ${B[1]}), (${Cc[0]}, ${Cc[1]})) ?`,
-      mode: "nombre", prefixe: "Résultat :", suffixe: "°", attendu: ang, tolerance: 0.051,
-      aides: ["La fonction calcule l'angle $\\widehat{BAC}$ en degrés, avec $\\cos \\widehat{BAC} = \\dfrac{\\overrightarrow{AB} \\cdot \\overrightarrow{AC}}{AB \\times AC}$.", `$\\overrightarrow{AB}\\begin{pmatrix} ${u[0]} \\\\ ${u[1]} \\end{pmatrix}$, $\\overrightarrow{AC}\\begin{pmatrix} ${v[0]} \\\\ ${v[1]} \\end{pmatrix}$ et $\\overrightarrow{AB} \\cdot \\overrightarrow{AC} = ${ps}$.`, "Reconnais une valeur remarquable du cosinus."],
-      solution: `$\\overrightarrow{AB} \\cdot \\overrightarrow{AC} = ${ps}$, $AB = \\sqrt{${u[0] ** 2 + u[1] ** 2}}$ et $AC = \\sqrt{${v[0] ** 2 + v[1] ** 2}}$ : le cosinus vaut ${ang === 90 ? "$0$" : ang === 180 ? "$-1$" : ang === 45 ? "$\\dfrac{\\sqrt{2}}{2}$" : "$-\\dfrac{\\sqrt{2}}{2}$"}, donc l'angle mesure $${ang}°$ (Python peut afficher une valeur très proche, à cause des arrondis).`
+      enonce: `${code}\n\nOn veut la mesure de l'angle $\\widehat{${X}${S}${Y}}$, de sommet $${S}$. Quel appel faut-il écrire ?`,
+      mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: ["Dans la fonction, u et v partent tous les deux du premier point A.", "Le sommet de l'angle calculé est donc le **premier** point passé à la fonction.", `Le sommet de l'angle $\\widehat{${X}${S}${Y}}$ est $${S}$.`],
+      solution: `Le sommet est le premier argument : angle(${S}, ${X}, ${Y}) calcule l'angle entre $\\overrightarrow{${S}${X}}$ et $\\overrightarrow{${S}${Y}}$, c'est-à-dire $\\widehat{${X}${S}${Y}}$. (angle(${S}, ${Y}, ${X}) donnerait le même résultat.)`
     };
   };
+  // Logique : ensemble de points défini par une condition
 
 
   /* ---------- Première, chapitre 15 : géométrie repérée (préfixe gr-) ---------- */
@@ -7807,20 +10340,113 @@
 
   // Logique : ensemble de points défini par une condition
   GEN["gr-logique"] = function () {
+    // [question, bonne réponse, fausses réponses, solution, aides (facultatif)]
     const T = [
       ["Le point $M(x\\,;y)$ appartient à la droite $d : 2x - y + 1 = 0$ :", "si et seulement si $2x - y + 1 = 0$", ["seulement si $x = 0$", "si $2x - y + 1 > 0$", "pour tout $x$ et tout $y$"], "Une équation de $d$ caractérise ses points : c'est une **équivalence**. $M \\in d \\iff 2x - y + 1 = 0$."],
       ["L'ensemble des points $M(x\\,;y)$ tels que $x^2 + y^2 = 9$ est :", "le cercle de centre $O$ et de rayon $3$", ["le cercle de centre $O$ et de rayon $9$", "le disque de centre $O$ et de rayon $3$", "la droite $y = 9 - x$"], "$x^2 + y^2 = OM^2$, donc $OM^2 = 9 \\iff OM = 3$."],
       ["L'ensemble des points $M(x\\,;y)$ tels que $(x - 1)^2 + (y + 2)^2 \\leqslant 4$ est :", "le disque de centre $(1\\,;-2)$ et de rayon $2$", ["le cercle de centre $(1\\,;-2)$ et de rayon $2$", "le disque de centre $(-1\\,;2)$ et de rayon $2$", "le disque de centre $(1\\,;-2)$ et de rayon $4$"], "« $\\leqslant$ » donne tout l'intérieur et le bord : c'est un **disque**, de centre $(1\\,;-2)$ et de rayon $\\sqrt{4} = 2$."],
       ["L'ensemble des points $M(x\\,;y)$ tels que $x^2 + y^2 = -4$ est :", "l'ensemble vide", ["le cercle de centre $O$ et de rayon $2$", "le cercle de centre $O$ et de rayon $-2$", "le point $O$"], "Une somme de carrés est toujours positive ou nulle : aucun point ne vérifie cette égalité."],
-      ["$\\vec{n}\\begin{pmatrix} 3 \\\\ -1 \\end{pmatrix}$ est normal à $d$, et $A \\in d$. Pour tout point $M$ :", "$M \\in d \\iff \\overrightarrow{AM} \\cdot \\vec{n} = 0$", ["$M \\in d \\iff \\overrightarrow{AM} = \\vec{n}$", "$M \\in d \\iff AM = 3$", "$M \\in d \\iff \\overrightarrow{AM} \\cdot \\vec{n} = 1$"], "$d$ est l'ensemble des points $M$ tels que $\\overrightarrow{AM}$ est orthogonal à $\\vec{n}$."]
+      ["$\\vec{n}\\begin{pmatrix} 3 \\\\ -1 \\end{pmatrix}$ est normal à $d$, et $A \\in d$. Pour tout point $M$ :", "$M \\in d \\iff \\overrightarrow{AM} \\cdot \\vec{n} = 0$", ["$M \\in d \\iff \\overrightarrow{AM} = \\vec{n}$", "$M \\in d \\iff AM = 3$", "$M \\in d \\iff \\overrightarrow{AM} \\cdot \\vec{n} = 1$"], "$d$ est l'ensemble des points $M$ tels que $\\overrightarrow{AM}$ est orthogonal à $\\vec{n}$."],
+      ["L'ensemble des points $M(x\\,;y)$ tels que $x^2 + y^2 \\leqslant 0$ est :", "le seul point $O$", ["l'ensemble vide", "le disque de centre $O$ et de rayon $1$", "le cercle de centre $O$ et de rayon $0$"], "Une somme de carrés est positive ou nulle : $x^2 + y^2 \\leqslant 0 \\iff x^2 + y^2 = 0 \\iff x = 0$ et $y = 0$. Seule l'origine $O$ convient."],
+      ["$A$ est un point de la droite $d$. Son projeté orthogonal sur $d$ est :", "le point $A$ lui-même", ["le point de $d$ le plus proche de l'origine", "il n'existe pas", "le symétrique de $A$ par rapport à $d$"], "Le projeté orthogonal de $A$ est le point $H$ de $d$ tel que $(AH)$ soit perpendiculaire à $d$, ou $H = A$ quand $A$ est déjà sur $d$ : la distance de $A$ à $d$ est alors nulle."],
+      ["Vrai ou faux : « si $H$ est le projeté orthogonal de $A$ sur la droite $d$, alors $AH \\leqslant AM$ pour tout point $M$ de $d$ » ?", "Vrai", ["Faux"], "Vrai. Pour $M \\in d$ distinct de $H$, le triangle $AHM$ est rectangle en $H$, donc $AM^2 = AH^2 + HM^2 > AH^2$. C'est pour cela que $AH$ est appelée la distance du point $A$ à la droite $d$."],
+      ["Le point $M$ est sur le cercle de centre $\\Omega$ et de rayon $r$ si et seulement si :", "$\\Omega M^2 = r^2$", ["$\\Omega M \\leqslant r$", "$\\Omega M = r^2$", "$\\Omega M^2 = r$"], "Le cercle est l'ensemble des points à la distance $r$ de $\\Omega$ : $\\Omega M = r \\iff \\Omega M^2 = r^2$ (les deux nombres sont positifs). C'est cette forme qui donne l'équation $(x - a)^2 + (y - b)^2 = r^2$."],
+      ["Le point $M$ n'appartient **pas** au disque de centre $\\Omega$ et de rayon $r$ si et seulement si :", "$\\Omega M > r$", ["$\\Omega M < r$", "$\\Omega M \\geqslant r$", "$\\Omega M \\neq r$"], "$M$ est dans le disque $\\iff \\Omega M \\leqslant r$. La négation de « $\\leqslant$ » est « $>$ » : les points du cercle ($\\Omega M = r$) sont dans le disque."],
+      ["Vrai ou faux : « deux droites qui ont des vecteurs normaux colinéaires sont parallèles » ?", "Vrai", ["Faux"], "Vrai : un vecteur directeur est orthogonal au vecteur normal. Si les vecteurs normaux sont colinéaires, les vecteurs directeurs le sont aussi : les droites sont parallèles (éventuellement confondues)."],
+      ["Vrai ou faux : « pour tout point $M(x\\,;y)$ du cercle de centre $O$ et de rayon $5$, on a $x \\leqslant 5$ » ?", "Vrai", ["Faux"], "Vrai : si $x^2 + y^2 = 25$, alors $x^2 = 25 - y^2 \\leqslant 25$, donc $-5 \\leqslant x \\leqslant 5$. Le cercle est tout entier entre les droites d'équations $x = -5$ et $x = 5$."],
+      ["Vrai ou faux : « il existe un point du cercle d'équation $x^2 + y^2 = 25$ dont les deux coordonnées sont des entiers non nuls » ?", "Vrai", ["Faux"], "Vrai : le point $(3\\,;4)$ convient, car $3^2 + 4^2 = 9 + 16 = 25$. Pour prouver un « il existe », un seul exemple suffit."]
     ];
-    const [q, bo, f, s] = pick(T), c = melangeChoix(bo, f);
+    const A2 = ["Un point appartient à une figure si et seulement si ses coordonnées vérifient l'équation (ou la condition).", "$(x - a)^2 + (y - b)^2 = r^2$ : cercle de centre $(a\\,;b)$ et de rayon $r$ ; « $\\leqslant r^2$ » : disque.", "Une somme de carrés ne peut pas être négative."];
+    const sq = (v, c) => (c === 0 ? `${v}^2` : `(${v} ${c > 0 ? "-" : "+"} ${Math.abs(c)})^2`);
+    const C = (a, b) => `(${a}\\,;${b})`, cercle = (a, b, r) => `le cercle de centre $${C(a, b)}$ et de rayon $${r}$`, disque = (a, b, r) => `le disque de centre $${C(a, b)}$ et de rayon $${r}$`;
+    const rac = (n) => (Number.isInteger(Math.sqrt(n)) ? Math.sqrt(n) : `\\sqrt{${n}}`);
+    const lin = (c, v) => (c === 0 ? "" : ` ${c < 0 ? "-" : "+"} ${Math.abs(c) === 1 ? "" : Math.abs(c)}${v}`);
+    const P = [
+      // (x - a)² + (y - b)² = r², ≤ r², > r²
+      () => {
+        let a, b; do { a = rand(-5, 5); b = rand(-5, 5); } while (a === 0 && b === 0);
+        const r = rand(2, 6), k = rand(0, 2), eq = `${sq("x", a)} + ${sq("y", b)} ${["=", "\\leqslant", ">"][k]} ${r * r}`;
+        const ext = `les points situés à l'extérieur du disque de centre $${C(a, b)}$ et de rayon $${r}$`;
+        const bon = [cercle(a, b, r), disque(a, b, r), ext][k];
+        const faux = k === 0 ? [cercle(-a, -b, r), cercle(a, b, r * r), disque(a, b, r)] : k === 1 ? [cercle(a, b, r), disque(-a, -b, r), disque(a, b, r * r)] : [disque(a, b, r), cercle(a, b, r), "l'ensemble vide"];
+        return [`L'ensemble des points $M(x\\,;y)$ tels que $${eq}$ est :`, bon, faux,
+          `Avec $\\Omega${C(a, b)}$, on a $\\Omega M^2 = ${sq("x", a)} + ${sq("y", b)}$. La condition s'écrit $\\Omega M^2 ${["=", "\\leqslant", ">"][k]} ${r}^2$, c'est-à-dire $\\Omega M ${["=", "\\leqslant", ">"][k]} ${r}$ (une distance est positive) : ${["c'est le **cercle**", "c'est le **disque** (bord compris)", "ce sont les points **hors du disque**"][k]} de centre $${C(a, b)}$ et de rayon $${r}$. Attention aux signes : $x ${a > 0 ? "-" : "+"} ${Math.abs(a) || 0}$ correspond à l'abscisse $${a}$ du centre.`.replace("$x - 0$", "$x$").replace("$x + 0$", "$x$"), A2];
+      },
+      // = 0 : un point ; = négatif : vide
+      () => {
+        let a, b; do { a = rand(-5, 5); b = rand(-5, 5); } while (a === 0 && b === 0);
+        if (Math.random() < 0.5) return [`L'ensemble des points $M(x\\,;y)$ tels que $${sq("x", a)} + ${sq("y", b)} = 0$ est :`, `le seul point $${C(a, b)}$`, ["l'ensemble vide", cercle(a, b, 1), `le seul point $${C(-a, -b)}$`],
+          `Une somme de deux carrés est nulle si et seulement si les deux carrés sont nuls : $x = ${a}$ et $y = ${b}$. L'ensemble est réduit au point $${C(a, b)}$.`, A2];
+        const k = rand(1, 9);
+        return [`L'ensemble des points $M(x\\,;y)$ tels que $${sq("x", a)} + ${sq("y", b)} = -${k}$ est :`, "l'ensemble vide", [cercle(a, b, rac(k)), `le seul point $${C(a, b)}$`, cercle(a, b, -k)],
+          `Une somme de deux carrés est toujours positive ou nulle : elle ne peut pas valoir $-${k}$. Aucun point ne convient, l'ensemble est **vide**.`, A2];
+      },
+      // Forme développée : compléter les carrés
+      () => {
+        const a = randNZ(-5, 5), b = randNZ(-5, 5), cas = rand(0, 2), r = rand(1, 5), k = [r * r, 0, -rand(1, 9)][cas], g = a * a + b * b - k;
+        const eq = `x^2 + y^2${lin(-2 * a, "x")}${lin(-2 * b, "y")}${g ? ` ${g < 0 ? "-" : "+"} ${Math.abs(g)}` : ""} = 0`;
+        const bon = [cercle(a, b, r), `le seul point $${C(a, b)}$`, "l'ensemble vide"][cas];
+        const faux = cas === 0 ? [cercle(-a, -b, r), cercle(a, b, r === 1 ? 2 : r * r), "l'ensemble vide"] : cas === 1 ? ["l'ensemble vide", `le seul point $${C(-a, -b)}$`, cercle(a, b, 1)] : [cercle(a, b, rac(-k)), `le seul point $${C(a, b)}$`, cercle(-a, -b, rac(-k))];
+        return [`L'ensemble des points $M(x\\,;y)$ tels que $${eq}$ est :`, bon, faux,
+          `On complète les carrés : $x^2${lin(-2 * a, "x")} = ${sq("x", a)} - ${a * a}$ et $y^2${lin(-2 * b, "y")} = ${sq("y", b)} - ${b * b}$. L'équation devient $${sq("x", a)} + ${sq("y", b)} = ${k}$. ${cas === 0 ? `Comme $${k} = ${r}^2 > 0$, c'est le cercle de centre $${C(a, b)}$ et de rayon $${r}$.` : cas === 1 ? `Une somme de carrés nulle : $x = ${a}$ et $y = ${b}$, c'est le seul point $${C(a, b)}$.` : "Une somme de carrés ne peut pas être négative : l'ensemble est vide."}`,
+          ["Complète les carrés : $x^2 - 2ax = (x - a)^2 - a^2$.", "Mets l'équation sous la forme $(x - a)^2 + (y - b)^2 = k$.", "Si $k > 0$ : cercle de rayon $\\sqrt{k}$ ; si $k = 0$ : un seul point ; si $k < 0$ : ensemble vide."]];
+      },
+      // Droite définie par un point et un vecteur normal
+      () => {
+        const xA = rand(-4, 4), yA = rand(-4, 4), p = randNZ(-4, 4), q = randNZ(-4, 4), c = -p * xA - q * yA;
+        return [`On donne $A${C(xA, yA)}$ et $\\vec{n}\\begin{pmatrix} ${p} \\\\ ${q} \\end{pmatrix}$. L'ensemble des points $M$ tels que $\\overrightarrow{AM} \\cdot \\vec{n} = 0$ est :`, "la droite passant par $A$ et de vecteur normal $\\vec{n}$", ["la droite passant par $A$ et de vecteur directeur $\\vec{n}$", "le cercle de centre $A$ et de rayon $\\|\\vec{n}\\|$", "le seul point $A$"],
+          `$\\overrightarrow{AM} \\cdot \\vec{n} = 0$ signifie que $\\overrightarrow{AM}$ est orthogonal à $\\vec{n}$ (ou nul) : c'est la droite passant par $A$ et de vecteur **normal** $\\vec{n}$. Son équation : $${p}(x ${xA > 0 ? "-" : "+"} ${Math.abs(xA)}) + ${par(q)}(y ${yA > 0 ? "-" : "+"} ${Math.abs(yA)}) = 0$, soit $${grEq(p, q, c)}$.`.replace(/\(x [+-] 0\)/, "x").replace(/\(y [+-] 0\)/, "y"), A2];
+      },
+      // Un point est-il sur une droite ?
+      () => {
+        const a = randNZ(-5, 5), b = randNZ(-5, 5), x = rand(-5, 5), y = rand(-5, 5), sur = Math.random() < 0.5, c = -a * x - b * y + (sur ? 0 : randNZ(-4, 4)), v = a * x + b * y + c;
+        return [`Le point $M${C(x, y)}$ appartient-il à la droite $d : ${grEq(a, b, c)}$ ?`, sur ? "Oui" : "Non", [sur ? "Non" : "Oui", "On ne peut pas savoir sans tracer la droite"],
+          `On remplace $x$ par $${x}$ et $y$ par $${y}$ : $${a} \\times ${par(x)} + ${par(b)} \\times ${par(y)}${c ? ` ${sg(c)}` : ""} = ${v}$. ${sur ? "Les coordonnées vérifient l'équation : $M \\in d$." : `$${v} \\neq 0$ : les coordonnées ne vérifient pas l'équation, donc $M \\notin d$ (c'est une équivalence).`}`, A2];
+      },
+      // Un point est-il sur un cercle, dedans, dehors ?
+      () => {
+        const a = rand(-4, 4), b = rand(-4, 4); let dx, dy; do { dx = rand(-5, 5); dy = rand(-5, 5); } while (dx * dx + dy * dy < 2);
+        const d2 = dx * dx + dy * dy, R = Math.max(1, d2 + pick([0, 0, -rand(1, 4), rand(1, 4)])), x = a + dx, y = b + dy, k = d2 === R ? 0 : d2 < R ? 1 : 2;
+        const R3 = ["Il est sur le cercle", "Il est à l'intérieur du cercle", "Il est à l'extérieur du cercle"];
+        return [`Où se trouve le point $M${C(x, y)}$ par rapport au cercle d'équation $${sq("x", a)} + ${sq("y", b)} = ${R}$ ?`, R3[k], R3.filter((_, j) => j !== k),
+          `Avec $\\Omega${C(a, b)}$ : $\\Omega M^2 = ${par(x - a)}^2 + ${par(y - b)}^2 = ${d2}$, à comparer à $r^2 = ${R}$. ${k === 0 ? "Égalité : $M$ est sur le cercle." : k === 1 ? `$${d2} < ${R}$ : $\\Omega M < r$, $M$ est à l'intérieur.` : `$${d2} > ${R}$ : $\\Omega M > r$, $M$ est à l'extérieur.`}`, A2];
+      },
+      // Médiatrice, cercle de diamètre
+      () => {
+        let xA, yA, xB, yB; do { xA = rand(-4, 4); yA = rand(-4, 4); xB = rand(-4, 4); yB = rand(-4, 4); } while (xA === xB && yA === yB);
+        const pts = `On donne $A${C(xA, yA)}$ et $B${C(xB, yB)}$.`;
+        if (Math.random() < 0.5) return [`${pts} L'ensemble des points $M$ tels que $MA = MB$ est :`, "la médiatrice du segment $[AB]$", ["le cercle de diamètre $[AB]$", "le milieu de $[AB]$", "la droite $(AB)$"],
+          "C'est la définition de la **médiatrice** : l'ensemble des points à égale distance de $A$ et de $B$. En repère, $MA = MB \\iff MA^2 = MB^2$ ; en développant, les termes $x^2$ et $y^2$ se simplifient et il reste une équation de droite.", A2];
+        return [`${pts} L'ensemble des points $M$ tels que $\\overrightarrow{MA} \\cdot \\overrightarrow{MB} = 0$ est :`, "le cercle de diamètre $[AB]$", ["la médiatrice du segment $[AB]$", "la droite $(AB)$", "le cercle de centre $A$ passant par $B$"],
+          `Avec $I${C(fr((xA + xB) / 2), fr((yA + yB) / 2))}$ milieu de $[AB]$ : $\\overrightarrow{MA} \\cdot \\overrightarrow{MB} = MI^2 - IA^2$, donc la condition équivaut à $MI = IA$. C'est le cercle de centre $I$ passant par $A$ et $B$ : le cercle de diamètre $[AB]$.`, A2];
+      },
+      // x = c ou y = c
+      () => {
+        const c = randNZ(-6, 6), X = Math.random() < 0.5;
+        const ver = `la droite parallèle à l'axe des ordonnées passant par $${X ? C(c, 0) : C(0, c)}$`, hor = `la droite parallèle à l'axe des abscisses passant par $${X ? C(c, 0) : C(0, c)}$`;
+        return [`Dans le plan, l'ensemble des points $M(x\\,;y)$ tels que $${X ? "x" : "y"} = ${c}$ est :`, X ? ver : hor, [X ? hor : ver, `le seul point $${X ? C(c, 0) : C(0, c)}$`, cercle(0, 0, Math.abs(c)).replace(`$${C(0, 0)}$`, "$O$")],
+          `La condition porte sur ${X ? "l'abscisse" : "l'ordonnée"} seulement : ${X ? "$y$" : "$x$"} peut prendre n'importe quelle valeur. On obtient la droite ${X ? "verticale" : "horizontale"} d'équation $${X ? "x" : "y"} = ${c}$.`, A2];
+      },
+      // Droites perpendiculaires, parallèles, ou ni l'un ni l'autre ?
+      () => {
+        const a = randNZ(-4, 4), b = randNZ(-4, 4), cas = rand(0, 2), k = pick([-2, -1, 2, 3]);
+        let a2, b2;
+        if (cas === 0) { a2 = -k * b; b2 = k * a; } else if (cas === 1) { a2 = k * a; b2 = k * b; } else { do { a2 = randNZ(-4, 4); b2 = randNZ(-4, 4); } while (a * a2 + b * b2 === 0 || a * b2 - a2 * b === 0); }
+        const c = rand(-6, 6); let c2; do { c2 = rand(-6, 6); } while (cas === 1 && c2 === k * c);
+        const R3 = ["Elles sont perpendiculaires", "Elles sont parallèles", "Elles ne sont ni parallèles ni perpendiculaires"], ps = a * a2 + b * b2;
+        return [`Que dire des droites $d : ${grEq(a, b, c)}$ et $d' : ${grEq(a2, b2, c2)}$ ?`, R3[cas], R3.filter((_, j) => j !== cas),
+          `Vecteurs normaux : $\\vec{n}\\begin{pmatrix} ${a} \\\\ ${b} \\end{pmatrix}$ et $\\vec{n'}\\begin{pmatrix} ${a2} \\\\ ${b2} \\end{pmatrix}$. ${cas === 0 ? `$\\vec{n} \\cdot \\vec{n'} = ${a} \\times ${par(a2)} + ${par(b)} \\times ${par(b2)} = 0$ : les vecteurs normaux sont orthogonaux, donc les droites sont **perpendiculaires**.` : cas === 1 ? `$\\vec{n'} = ${k}\\vec{n}$ : les vecteurs normaux sont colinéaires, donc les droites sont **parallèles**.` : `$\\vec{n} \\cdot \\vec{n'} = ${ps} \\neq 0$ et les vecteurs normaux ne sont pas colinéaires ($${a} \\times ${par(b2)} - ${par(a2)} \\times ${par(b)} = ${a * b2 - a2 * b} \\neq 0$) : les droites ne sont ni perpendiculaires ni parallèles.`}`,
+          ["Lis un vecteur normal de chaque droite sur les coefficients de $x$ et de $y$.", "Deux droites sont perpendiculaires si et seulement si leurs vecteurs normaux sont orthogonaux.", "Elles sont parallèles si et seulement si leurs vecteurs normaux sont colinéaires."]];
+      }
+    ];
+    const Q = Math.random() < 0.6 ? pick(P)() : pick(T), [q, bo, f, s] = Q, c = melangeChoix(bo, f);
     return {
       enonce: q, mode: "choix", choix: c.choix, attendu: c.attendu,
-      aides: ["Un point appartient à une figure si et seulement si ses coordonnées vérifient l'équation (ou la condition).", "$(x - a)^2 + (y - b)^2 = r^2$ : cercle ; « $\\leqslant r^2$ » : disque.", "Une somme de carrés ne peut pas être négative."],
+      aides: Q[4] || ["Un point appartient à une figure si et seulement si ses coordonnées vérifient l'équation (ou la condition).", "$(x - a)^2 + (y - b)^2 = r^2$ : cercle ; « $\\leqslant r^2$ » : disque.", "Une somme de carrés ne peut pas être négative."],
       solution: s
     };
   };
+  // Logique : équivalence et contre-exemples sur le produit scalaire
 
 
   /* ---------- Première, chapitre 16 : expérimentations, échantillons (préfixe sm-) ---------- */
@@ -7930,21 +10556,74 @@
   };
 
   GEN["sm-taille"] = function () {
-    if (Math.random() < 0.5) {
-      const k = pick([4, 9, 16, 100]), c = melangeChoix(`elle est divisée par $${Math.sqrt(k)}$`, [`elle est divisée par $${k}$`, `elle est multipliée par $${Math.sqrt(k)}$`, "elle ne change pas"]);
+    const t = pick(["choix", "choix", "taille", "taille", "taille", "marge", "fois"]);
+    if (t === "choix") {
+      const k = pick([4, 9, 16, 25, 36, 49, 64, 100]), r = Math.sqrt(k);
+      if (Math.random() < 0.65) {
+        const c = melangeChoix(`elle est divisée par $${r}$`, [`elle est divisée par $${k}$`, `elle est multipliée par $${r}$`, "elle ne change pas"]);
+        return {
+          enonce: `On multiplie la taille $n$ des échantillons par $${k}$. Que devient la demi-largeur $\\dfrac{2\\sigma}{\\sqrt{n}}$ de l'intervalle où tombent environ $95\\,\\%$ des moyennes ?`,
+          mode: "choix", choix: c.choix, attendu: c.attendu,
+          aides: [`$\\sqrt{${k}n} = \\sqrt{${k}} \\times \\sqrt{n}$.`, `$\\sqrt{${k}} = ${r}$.`, "Le dénominateur est multiplié, donc la fraction est divisée."],
+          solution: `$\\dfrac{2\\sigma}{\\sqrt{${k}n}} = \\dfrac{1}{${r}} \\times \\dfrac{2\\sigma}{\\sqrt{n}}$ : la demi-largeur est divisée par $${r}$. Pour être $${r}$ fois plus précis, il faut $${k}$ fois plus de données.`
+        };
+      }
+      const c = melangeChoix(`elle est multipliée par $${r}$`, [`elle est multipliée par $${k}$`, `elle est divisée par $${r}$`, "elle ne change pas"]);
       return {
-        enonce: `On multiplie la taille $n$ des échantillons par $${k}$. Que devient la demi-largeur $\\dfrac{2\\sigma}{\\sqrt{n}}$ de l'intervalle où tombent environ $95\\,\\%$ des moyennes ?`,
+        enonce: `Faute de temps, on divise par $${k}$ la taille $n$ des échantillons. Que devient la demi-largeur $\\dfrac{2\\sigma}{\\sqrt{n}}$ de l'intervalle où tombent environ $95\\,\\%$ des moyennes ?`,
         mode: "choix", choix: c.choix, attendu: c.attendu,
-        aides: [`$\\sqrt{${k}n} = \\sqrt{${k}} \\times \\sqrt{n}$.`, `$\\sqrt{${k}} = ${Math.sqrt(k)}$.`, "Le dénominateur est multiplié, donc la fraction est divisée."],
-        solution: `$\\dfrac{2\\sigma}{\\sqrt{${k}n}} = \\dfrac{1}{${Math.sqrt(k)}} \\times \\dfrac{2\\sigma}{\\sqrt{n}}$ : la demi-largeur est divisée par $${Math.sqrt(k)}$. Pour être $${Math.sqrt(k)}$ fois plus précis, il faut $${k}$ fois plus de données.`
+        aides: [`$\\sqrt{\\dfrac{n}{${k}}} = \\dfrac{\\sqrt{n}}{\\sqrt{${k}}}$.`, `$\\sqrt{${k}} = ${r}$.`, "Le dénominateur est divisé, donc la fraction est multipliée."],
+        solution: `$\\dfrac{2\\sigma}{\\sqrt{n / ${k}}} = \\dfrac{2\\sigma}{\\sqrt{n} / ${r}} = ${r} \\times \\dfrac{2\\sigma}{\\sqrt{n}}$ : la demi-largeur est multipliée par $${r}$. Avec $${k}$ fois moins de données, l'estimation est $${r}$ fois moins précise.`
       };
     }
-    const sigma = pick([1.8, 2, 5, 10]), e = pick([0.1, 0.2, 0.5, 1, 2]), n = Math.ceil(+(((2 * sigma) / e) ** 2).toFixed(6));
+    // Contextes : [objet mesuré (pluriel), grandeur, unité, écarts types, marges voulues, marges observées]
+    const CTX = [
+      ["régimes", "la masse moyenne des régimes de bananes d'une parcelle", "kg", [1.5, 1.8, 2, 2.5], [0.2, 0.25, 0.5], [0.36, 0.6, 0.9, 1.2]],
+      ["mangues", "la masse moyenne des mangues d'un verger de Combani", "g", [30, 40, 50], [5, 10, 20], [12, 18, 24, 36]],
+      ["traversées", "la durée moyenne d'une traversée en barge entre Mamoudzou et Dzaoudzi", "min", [3, 4, 5], [0.5, 1, 2], [0.6, 1.2, 1.8, 2.4]],
+      ["tortues", "la longueur moyenne de la carapace des tortues vertes qui pondent à Moya", "cm", [6, 8, 10], [1, 2, 4], [1.2, 2.4, 3.6, 6]],
+      ["flacons", "le volume moyen d'huile d'ylang-ylang dans les flacons d'une distillerie", "mL", [0.6, 0.8, 1.2], [0.1, 0.2, 0.3], [0.12, 0.24, 0.36, 0.6]]
+    ];
+    if (t === "taille") {
+      if (Math.random() < 0.4) {
+        // Question d'origine (régimes de bananes)
+        const sigma = pick([1.8, 2, 5, 10]), e = pick([0.1, 0.2, 0.5, 1, 2]), n = Math.ceil(+(((2 * sigma) / e) ** 2).toFixed(6));
+        return {
+          enonce: `L'écart type de la masse d'un régime de bananes est $\\sigma = ${fr(sigma)}$ kg. Quelle taille $n$ d'échantillon faut-il au minimum pour que $\\dfrac{2\\sigma}{\\sqrt{n}} \\leqslant ${fr(e)}$ ?`,
+          mode: "nombre", prefixe: "$n \\geqslant$", attendu: n,
+          aides: ["$\\dfrac{2\\sigma}{\\sqrt{n}} \\leqslant e \\iff \\sqrt{n} \\geqslant \\dfrac{2\\sigma}{e}$.", `$\\dfrac{2\\sigma}{e} = \\dfrac{${fr(2 * sigma)}}{${fr(e)}} = ${fr(+((2 * sigma) / e).toFixed(4))}$.`, "Élève au carré, puis prends le premier entier qui convient."],
+          solution: `$\\sqrt{n} \\geqslant ${fr(+((2 * sigma) / e).toFixed(4))} \\iff n \\geqslant ${fr(+(((2 * sigma) / e) ** 2).toFixed(4))}$ : il faut au moins $${nb(n)}$ régimes.`
+        };
+      }
+      const [obj, quoi, u, ss, es] = pick(CTX), sigma = pick(ss), e = pick(es), x = +((2 * sigma) / e).toFixed(4), n = Math.ceil(+(((2 * sigma) / e) ** 2).toFixed(6));
+      return {
+        enonce: `On veut estimer ${quoi} avec une marge $\\dfrac{2\\sigma}{\\sqrt{n}}$ d'au plus $${fr(e)}$ ${u}. L'écart type vaut $\\sigma = ${fr(sigma)}$ ${u}. Combien de ${obj} faut-il mesurer au minimum ?`,
+        mode: "nombre", prefixe: "$n \\geqslant$", attendu: n,
+        erreurs: [{ valeur: Math.ceil(+(x).toFixed(6)), message: "Tu as trouvé une borne pour $\\sqrt{n}$ : élève-la au carré pour obtenir $n$." }, { valeur: Math.ceil(+(((sigma / e) ** 2)).toFixed(6)), message: "N'oublie pas le $2$ du numérateur : $\\dfrac{2\\sigma}{\\sqrt{n}}$." }],
+        aides: [`Résous $\\dfrac{2\\sigma}{\\sqrt{n}} \\leqslant ${fr(e)}$, c'est-à-dire $\\sqrt{n} \\geqslant \\dfrac{2\\sigma}{${fr(e)}}$.`, `$\\dfrac{2\\sigma}{${fr(e)}} = \\dfrac{${fr(2 * sigma)}}{${fr(e)}} = ${fr(x)}$.`, "Élève au carré, puis prends le premier entier qui convient."],
+        solution: `$\\dfrac{2 \\times ${fr(sigma)}}{\\sqrt{n}} \\leqslant ${fr(e)} \\iff \\sqrt{n} \\geqslant ${fr(x)} \\iff n \\geqslant ${fr(+(x * x).toFixed(4))}$ : il faut mesurer au moins $${nb(n)}$ ${obj}.`
+      };
+    }
+    const [obj, quoi, u, , , ms] = pick(CTX);
+    if (t === "marge") {
+      // La marge pour n0, puis pour k × n0
+      const n0 = pick([25, 50, 100, 200]), k = pick([4, 9, 16, 25]), r = Math.sqrt(k), e0 = pick(ms), e1 = +(e0 / r).toFixed(6);
+      return {
+        enonce: `Pour estimer ${quoi}, on mesure un échantillon de $${n0}$ ${obj} : la marge $\\dfrac{2\\sigma}{\\sqrt{n}}$ vaut $${fr(e0)}$ ${u}. Que vaut cette marge si l'on mesure $${nb(n0 * k)}$ ${obj} ?`,
+        mode: "nombre", prefixe: "Marge :", suffixe: u, attendu: e1, tolerance: 1e-6,
+        erreurs: [{ valeur: +(e0 / k).toFixed(6), message: `La taille est multipliée par $${k}$, mais la marge dépend de $\\sqrt{n}$ : elle est divisée par $\\sqrt{${k}} = ${r}$.` }, { valeur: +(e0 * r).toFixed(6), message: "Plus l'échantillon est grand, plus la marge est petite : on divise, on ne multiplie pas." }],
+        aides: [`La taille passe de $${n0}$ à $${nb(n0 * k)}$ : elle est multipliée par $${k}$.`, `Comme $\\sqrt{${k}n} = ${r}\\sqrt{n}$, la marge $\\dfrac{2\\sigma}{\\sqrt{n}}$ est divisée par $${r}$.`, `Calcule $${fr(e0)} \\div ${r}$.`],
+        solution: `$${nb(n0 * k)} = ${k} \\times ${n0}$ et $\\sqrt{${k}} = ${r}$ : la marge est divisée par $${r}$. Elle vaut $${fr(e0)} \\div ${r} = ${fr(e1)}$ ${u}.`
+      };
+    }
+    // Combien mesurer pour une marge d fois plus petite ?
+    const n0 = pick([20, 25, 50, 100, 150, 200]), d = pick(n0 <= 25 ? [2, 3, 4, 5, 10] : [2, 3, 4, 5]);
     return {
-      enonce: `L'écart type de la masse d'un régime de bananes est $\\sigma = ${fr(sigma)}$ kg. Quelle taille $n$ d'échantillon faut-il au minimum pour que $\\dfrac{2\\sigma}{\\sqrt{n}} \\leqslant ${fr(e)}$ ?`,
-      mode: "nombre", prefixe: "$n \\geqslant$", attendu: n,
-      aides: ["$\\dfrac{2\\sigma}{\\sqrt{n}} \\leqslant e \\iff \\sqrt{n} \\geqslant \\dfrac{2\\sigma}{e}$.", `$\\dfrac{2\\sigma}{e} = \\dfrac{${fr(2 * sigma)}}{${fr(e)}} = ${fr(+((2 * sigma) / e).toFixed(4))}$.`, "Élève au carré, puis prends le premier entier qui convient."],
-      solution: `$\\sqrt{n} \\geqslant ${fr(+((2 * sigma) / e).toFixed(4))} \\iff n \\geqslant ${fr(+(((2 * sigma) / e) ** 2).toFixed(4))}$ : il faut au moins $${n}$ régimes.`
+      enonce: `Pour estimer ${quoi}, on a mesuré $${n0}$ ${obj}. On veut une marge $\\dfrac{2\\sigma}{\\sqrt{n}}$ ${d === 2 ? "deux" : d === 3 ? "trois" : d === 4 ? "quatre" : d === 5 ? "cinq" : "dix"} fois plus petite. Combien de ${obj} faut-il mesurer ?`,
+      mode: "nombre", prefixe: "$n =$", attendu: n0 * d * d,
+      erreurs: [{ valeur: n0 * d, message: `La marge dépend de $\\sqrt{n}$ : pour la diviser par $${d}$, il faut multiplier $n$ par $${d}^2 = ${d * d}$.` }],
+      aides: ["La marge est $\\dfrac{2\\sigma}{\\sqrt{n}}$ : c'est $\\sqrt{n}$ qu'il faut multiplier.", `Pour diviser la marge par $${d}$, il faut multiplier $\\sqrt{n}$ par $${d}$.`, `Multiplier $\\sqrt{n}$ par $${d}$, c'est multiplier $n$ par $${d}^2 = ${d * d}$.`],
+      solution: `$\\dfrac{2\\sigma}{\\sqrt{${d * d}n}} = \\dfrac{1}{${d}} \\times \\dfrac{2\\sigma}{\\sqrt{n}}$ : il faut $${d * d}$ fois plus de ${obj}, soit $${d * d} \\times ${n0} = ${nb(n0 * d * d)}$ ${obj}.`
     };
   };
 
@@ -7979,20 +10658,87 @@
   };
 
   GEN["sm-lecture"] = function () {
+    // Aides : simulation (AS), marge 2σ/√n (AM), Monte-Carlo (AMC)
+    const AS = ["random() renvoie un nombre au hasard dans $[0\\,;1[$ : il tombe dans un intervalle avec une probabilité égale à sa **longueur**.", "Chaque appel à random() (ou à ALEA() dans un tableur) tire un **nouveau** nombre.", "Un échantillon de taille $n$, ce sont $n$ répétitions **indépendantes** de la même expérience."];
+    const AM = ["Environ $95\\,\\%$ des échantillons de taille $n$ ont une moyenne $m$ telle que $|m - \\mu| \\leqslant \\dfrac{2\\sigma}{\\sqrt{n}}$.", "Le $\\sqrt{n}$ au dénominateur : multiplier $n$ par $4$ divise la marge par $2$.", "« Environ $95\\,\\%$ » ne veut pas dire « toujours »."];
+    const AMC = ["La proportion de points tombés dans une zone du carré $[0\\,;1] \\times [0\\,;1]$ estime l'aire de cette zone.", "Le quart de disque de rayon $1$ a pour aire $\\dfrac{\\pi}{4}$ ; l'aire sous la parabole $y = x^2$ vaut $\\dfrac{1}{3}$.", "L'erreur diminue comme $\\dfrac{1}{\\sqrt{N}}$ : pour être $10$ fois plus précis, il faut $100$ fois plus de points."];
+    // [question, bonne réponse, fausses réponses, solution, aides (facultatif)]
     const T = [
       ["Vrai ou faux : « la moyenne d'un échantillon est toujours égale à l'espérance $E(X)$ ».", "Faux", ["Vrai"], "Faux : la moyenne d'un échantillon **fluctue** d'un échantillon à l'autre, autour de $E(X)$."],
       ["Vrai ou faux : « plus la taille $n$ de l'échantillon est grande, moins sa moyenne s'écarte de $E(X)$ en général ».", "Vrai", ["Faux"], "Vrai : l'écart typique est de l'ordre de $\\dfrac{\\sigma}{\\sqrt{n}}$, qui diminue quand $n$ augmente (loi des grands nombres)."],
       ["Deux élèves simulent chacun $100$ régimes de bananes et trouvent des moyennes de $11{,}2$ kg et $11{,}6$ kg. Que peut-on dire ?", "C'est la fluctuation d'échantillonnage", ["L'un des deux s'est trompé", "L'espérance vaut forcément $11{,}4$ kg", "La simulation est fausse"], "Deux échantillons différents donnent des moyennes différentes : c'est normal."],
       ["On pèse $400$ régimes et on trouve une moyenne de $11{,}3$ kg. Cette valeur est :", "une estimation de la masse moyenne des régimes de la parcelle", ["exactement l'espérance", "la masse de chaque régime", "sans aucun rapport avec l'espérance"], "Avec un grand échantillon, la moyenne observée est une bonne **estimation** de l'espérance, avec une incertitude de l'ordre de $\\dfrac{2\\sigma}{\\sqrt{n}}$."],
-      ["Dans la méthode de Monte-Carlo, pourquoi tire-t-on beaucoup de points ?", "Pour que la proportion observée se rapproche de l'aire cherchée", ["Pour que le dessin soit joli", "Parce que Python l'exige", "Pour que chaque point tombe sous la courbe"], "La proportion de points sous la courbe est une fréquence : elle se rapproche de la probabilité (l'aire) quand le nombre de points grandit."]
+      ["Dans la méthode de Monte-Carlo, pourquoi tire-t-on beaucoup de points ?", "Pour que la proportion observée se rapproche de l'aire cherchée", ["Pour que le dessin soit joli", "Parce que Python l'exige", "Pour que chaque point tombe sous la courbe"], "La proportion de points sous la courbe est une fréquence : elle se rapproche de la probabilité (l'aire) quand le nombre de points grandit."],
+      ["Vrai ou faux : « $100\\,\\%$ des échantillons de taille $n$ ont une moyenne à moins de $\\dfrac{2\\sigma}{\\sqrt{n}}$ de l'espérance $\\mu$ ».", "Faux", ["Vrai"], "Faux : c'est le cas d'**environ** $95\\,\\%$ des échantillons. Quelques-uns, par malchance, s'écartent davantage.", AM],
+      ["Vrai ou faux : « en doublant la taille $n$ de l'échantillon, on divise la marge $\\dfrac{2\\sigma}{\\sqrt{n}}$ par $2$ ».", "Faux", ["Vrai"], "Faux : $\\sqrt{2n} = \\sqrt{2} \\times \\sqrt{n}$, donc la marge est seulement divisée par $\\sqrt{2} \\approx 1{,}41$. Pour la diviser par $2$, il faut multiplier $n$ par $4$, car $\\sqrt{4n} = 2\\sqrt{n}$.", AM],
+      ["Dans un tableur, pour simuler la masse d'un régime, un élève écrit dans une seule cellule =SI(ALEA()<0,1;8;SI(ALEA()<0,4;10;SI(ALEA()<0,8;12;14))). Est-ce correct ?", "Non : chaque ALEA() tire un nouveau nombre, la loi n'est plus respectée", ["Oui, c'est la bonne méthode", "Non : il faudrait écrire 0.1 au lieu de 0,1", "Oui, à condition de recopier la formule vers le bas"], "Chaque appel à ALEA() tire un **nouveau** nombre : les trois tests ne portent pas sur le même nombre. Par exemple, la probabilité d'obtenir $10$ devient $0{,}9 \\times 0{,}4 = 0{,}36$ au lieu de $0{,}3$. On tire le nombre une seule fois (colonne A), puis on le teste (colonne B).", AS],
+      ["Vrai ou faux : « un échantillon de taille $n$ est formé des résultats de $n$ répétitions indépendantes de la même expérience ».", "Vrai", ["Faux"], "Vrai : c'est la définition. Par exemple, peser $n$ régimes pris au hasard dans la parcelle.", AS],
+      ["Vrai ou faux : « si on augmente la taille de l'échantillon, sa moyenne est **forcément** plus proche de $E(X)$ ».", "Faux", ["Vrai"], "Faux : c'est vrai **en général**, pas à chaque fois. Par hasard, un petit échantillon peut tomber très près de $E(X)$ et un grand un peu plus loin. Seule la tendance est garantie (loi des grands nombres)."],
+      ["Vrai ou faux : « avec la méthode de Monte-Carlo, $4$ fois la proportion de points tombés dans le quart de disque estime $\\pi$ ».", "Vrai", ["Faux"], "Vrai : le quart de disque de rayon $1$ a pour aire $\\dfrac{\\pi}{4}$ et le carré a pour aire $1$. La proportion estime $\\dfrac{\\pi}{4}$, donc $4$ fois la proportion estime $\\pi$.", AMC],
+      ["Vrai ou faux : « avec $100$ fois plus de points, l'estimation de Monte-Carlo est $100$ fois plus précise ».", "Faux", ["Vrai"], "Faux : l'erreur diminue comme $\\dfrac{1}{\\sqrt{N}}$. Avec $100$ fois plus de points, elle est divisée par $\\sqrt{100} = 10$ seulement.", AMC],
+      ["Vrai ou faux : « deux appels à moyenne(100) renvoient en général deux nombres différents ».", "Vrai", ["Faux"], "Vrai : chaque appel simule un nouvel échantillon de $100$ régimes. C'est la fluctuation d'échantillonnage."],
+      ["La marge $\\dfrac{2\\sigma}{\\sqrt{n}}$ dépend :", "de l'écart type $\\sigma$ et de la taille $n$ de l'échantillon", ["de la moyenne $m$ observée", "du nombre $N$ d'échantillons simulés", "de l'espérance $\\mu$ seulement"], "La formule ne contient que $\\sigma$ (la dispersion de $X$) et $n$ (la taille de l'échantillon). Plus $\\sigma$ est grand, plus la marge est grande ; plus $n$ est grand, plus elle est petite.", AM],
+      ["Vrai ou faux : « la proportion d'environ $95\\,\\%$ d'échantillons vérifiant $|m - \\mu| \\leqslant \\dfrac{2\\sigma}{\\sqrt{n}}$ dépend de la taille $n$ des échantillons ».", "Faux", ["Vrai"], "Faux : on observe environ $95\\,\\%$ que $n$ vaille $25$, $100$ ou $400$. C'est la **marge** $\\dfrac{2\\sigma}{\\sqrt{n}}$ qui dépend de $n$, pas la proportion.", AM],
+      ["Dans $\\dfrac{2\\sigma}{\\sqrt{n}}$, que représente $\\sigma$ ?", "L'écart type de la variable aléatoire $X$", ["La moyenne de l'échantillon", "La taille de l'échantillon", "La proportion $95\\,\\%$"], "$\\sigma = \\sigma(X)$ est l'écart type de $X$ : il mesure la dispersion des valeurs de $X$ autour de son espérance. Pour les régimes du cours, $\\sigma = 1{,}8$ kg.", AM],
+      ["Vrai ou faux : « environ une fois sur vingt, l'intervalle $\\left[m - \\dfrac{2\\sigma}{\\sqrt{n}}\\,;m + \\dfrac{2\\sigma}{\\sqrt{n}}\\right]$ ne contient pas $\\mu$ ».", "Vrai", ["Faux"], "Vrai : dans environ $95\\,\\%$ des cas, $\\mu$ est à moins de $\\dfrac{2\\sigma}{\\sqrt{n}}$ de $m$. Dans les $5\\,\\%$ restants, soit environ une fois sur vingt, l'estimation se trompe.", AM],
+      ["Vrai ou faux : « d'après la loi des grands nombres, la moyenne d'un échantillon se rapproche de $E(X)$ quand sa taille $n$ devient grande ».", "Vrai", ["Faux"], "Vrai : c'est la loi des grands nombres, déjà vue en Seconde avec les fréquences. C'est elle qui permet d'estimer une espérance avec un grand échantillon."],
+      ["Dans la méthode de Monte-Carlo pour l'aire sous la parabole $y = x^2$ (entre $0$ et $1$), la proportion de points sous la courbe se rapproche de :", "$\\dfrac{1}{3}$, l'aire sous la courbe", ["$\\dfrac{1}{2}$, car la courbe coupe le carré en deux", "$1$, l'aire du carré", "$\\pi$"], "Les points sont tirés dans le carré $[0\\,;1] \\times [0\\,;1]$, d'aire $1$ : la proportion de points sous la courbe estime l'aire sous la courbe, qui vaut $\\dfrac{1}{3}$ (calculée en Terminale). La parabole ne coupe pas le carré en deux parts égales.", AMC]
     ];
-    const [q, b, f, s] = pick(T), c = melangeChoix(b, f);
+    const P = [
+      // Probabilité que random() tombe dans [a ; b[
+      () => {
+        const a = pick([0, 0.1, 0.2, 0.25, 0.3, 0.4]), b = pick([0.5, 0.6, 0.75, 0.8, 0.9]), p = +(b - a).toFixed(2);
+        const I = a === 0 ? `inférieur à $${fr(b)}$` : `dans l'intervalle $[${fr(a)}\\,;${fr(b)}[$`;
+        return [`random() renvoie un nombre au hasard dans $[0\\,;1[$. Avec quelle probabilité ce nombre est-il ${I} ?`, `$${fr(p)}$`, [`$${fr(b)}$`, `$${fr(+(1 - p).toFixed(2))}$`, `$${fr(a)}$`, `$${fr(+(b / 2).toFixed(3))}$`],
+          `La probabilité est égale à la **longueur** de l'intervalle : $${fr(b)} - ${fr(a)} = ${fr(p)}$.`, AS];
+      },
+      // regime() : probabilité de chaque masse
+      () => {
+        const [v, p, deb, fin, f] = pick([[8, 0.1, "0", "0{,}1", [0.9, 0.2, 0.4]], [10, 0.3, "0{,}1", "0{,}4", [0.4, 0.1, 0.5]], [12, 0.4, "0{,}4", "0{,}8", [0.8, 0.3, 0.2]], [14, 0.2, "0{,}8", "1", [0.8, 0.4, 0.1]]]);
+        return ["```python\nfrom random import random\n\ndef regime():\n    r = random()\n    if r < 0.1:\n        return 8\n    elif r < 0.4:\n        return 10\n    elif r < 0.8:\n        return 12\n    else:\n        return 14\n```\n\n" + `Avec quelle probabilité regime() renvoie-t-elle $${v}$ ?`, `$${fr(p)}$`, f.map((x) => `$${fr(x)}$`),
+          `regime() renvoie $${v}$ quand r est dans $[${deb}\\,;${fin}[$${v === 8 ? "" : " (les tests précédents ont échoué)"} : c'est un intervalle de longueur $${fin} - ${deb} = ${fr(p)}$.`, AS];
+      },
+      // Petit et grand échantillon
+      () => {
+        const n1 = pick([16, 25, 100]), k = pick([4, 10]), n2 = n1 * k * k;
+        return [`On calcule la moyenne d'un échantillon de $${nb(n1)}$ régimes, puis celle d'un échantillon de $${nb(n2)}$ régimes. Laquelle est, en général, la plus proche de l'espérance $\\mu$ ?`, `Celle de l'échantillon de $${nb(n2)}$ régimes`, [`Celle de l'échantillon de $${nb(n1)}$ régimes`, "Elles sont toujours égales", "Aucune des deux ne se rapproche de $\\mu$"],
+          `Loi des grands nombres : plus l'échantillon est grand, plus sa moyenne est, en général, proche de $\\mu$. Comme $\\sqrt{${nb(n2)}} = ${k} \\times \\sqrt{${n1}}$, la marge $\\dfrac{2\\sigma}{\\sqrt{n}}$ est $${k}$ fois plus petite pour le grand échantillon.`, AM];
+      },
+      // Combien d'échantillons dans l'intervalle ?
+      () => {
+        const N = pick([200, 400, 1000, 2000]), n = pick([25, 100, 400]);
+        return [`On simule $${nb(N)}$ échantillons de $${n}$ régimes. Environ combien d'entre eux ont une moyenne $m$ telle que $|m - \\mu| \\leqslant \\dfrac{2\\sigma}{\\sqrt{${n}}}$ ?`, `Environ $${nb(0.95 * N)}$`, [`Environ $${nb(0.05 * N)}$`, `Exactement $${nb(N)}$`, `Environ $${nb(N / 2)}$`],
+          `Environ $95\\,\\%$ des échantillons vérifient cette inégalité, quelle que soit leur taille : $0{,}95 \\times ${nb(N)} = ${nb(0.95 * N)}$. Pas exactement : le nombre observé fluctue lui aussi.`, AM];
+      },
+      // Une moyenne observée est-elle surprenante ?
+      () => {
+        const m = pick([10.9, 11.0, 11.2, 11.3, 11.6, 11.7, 11.9, 12.1]), d = +Math.abs(m - 11.4).toFixed(2), sur = d > 0.36;
+        const oui = `Oui, plutôt : $|m - \\mu| = ${fr(d)} > 0{,}36$, cela n'arrive que dans environ $5\\,\\%$ des cas`, non = `Non : $|m - \\mu| = ${fr(d)} \\leqslant 0{,}36$, comme pour environ $95\\,\\%$ des échantillons`;
+        return [`Pour les régimes du cours, $\\mu = 11{,}4$ kg et $\\sigma = 1{,}8$ kg. Un échantillon de $100$ régimes a une moyenne $m = ${fr(m)}$ kg. Est-ce surprenant ?`, sur ? oui : non, [sur ? "Non : une moyenne d'échantillon fluctue, n'importe quel écart est banal" : "Oui : la moyenne s'écarte de $\\mu$, l'échantillon est donc anormal", "C'est impossible : la moyenne doit valoir $11{,}4$ kg", "On ne peut rien dire sans connaître la masse de chaque régime"],
+          `La marge vaut $\\dfrac{2 \\times 1{,}8}{\\sqrt{100}} = 0{,}36$ kg et $|${fr(m)} - 11{,}4| = ${fr(d)}$. ${sur ? "C'est plus que la marge : ce n'est pas impossible, mais c'est rare (environ $5\\,\\%$ des échantillons). On peut se demander si ces régimes viennent bien de la même parcelle." : "C'est dans la marge : c'est le cas d'environ $95\\,\\%$ des échantillons, rien d'étonnant."}`, AM];
+      },
+      // Estimation : certitude ou non ?
+      () => {
+        const [n, r] = pick([[36, 6], [81, 9], [100, 10], [144, 12], [400, 20]]), m = pick([10.8, 11.6, 11.9, 12.2]), e = +(3.6 / r).toFixed(4);
+        return [`Une coopérative pèse $${n}$ régimes d'une parcelle : moyenne $m = ${fr(m)}$ kg, avec $\\sigma \\approx 1{,}8$ kg. Vrai ou faux : « la masse moyenne $\\mu$ des régimes de la parcelle est **certainement** comprise entre $${fr(+(m - e).toFixed(4))}$ et $${fr(+(m + e).toFixed(4))}$ kg ».`, "Faux", ["Vrai"],
+          `Faux. La marge vaut bien $\\dfrac{2 \\times 1{,}8}{\\sqrt{${n}}} = ${fr(e)}$ kg, mais l'estimation n'est pas une certitude : $\\mu$ est dans cet intervalle avec un risque d'erreur d'environ $5\\,\\%$.`, AM];
+      },
+      // Valeurs possibles d'une moyenne d'échantillon
+      () => {
+        const [v, ok, ex] = pick([[15, false], [14.5, false], [7.5, false], [7, false], [13, true, "$12$ et $14$"], [9, true, "$8$ et $10$"], [13.5, true, "$12$, $14$, $14$ et $14$"], [8.5, true, "$8$, $8$, $8$ et $10$"]]);
+        return [`La masse d'un régime vaut $8$, $10$, $12$ ou $14$ kg. Vrai ou faux : « la moyenne d'un petit échantillon de régimes peut valoir $${fr(v)}$ kg ».`, ok ? "Vrai" : "Faux", [ok ? "Faux" : "Vrai"],
+          ok ? `Vrai : par exemple, l'échantillon formé des masses ${ex} a pour moyenne $${fr(v)}$ kg. C'est loin de $E(X) = 11{,}4$ kg, mais la moyenne d'un petit échantillon fluctue beaucoup.`
+            : `Faux : chaque régime pèse entre $8$ et $14$ kg, donc la moyenne d'un échantillon est aussi comprise entre $8$ et $14$ kg. Elle ne peut pas valoir $${fr(v)}$ kg.`];
+      }
+    ];
+    const Q = Math.random() < 0.35 ? pick(P)() : pick(T), [q, b, f, s] = Q, c = melangeChoix(b, f);
     return {
       enonce: q, mode: "choix", choix: c.choix, attendu: c.attendu,
-      aides: ["Une moyenne d'échantillon est une observation ; l'espérance est une valeur théorique.", "Quand la taille de l'échantillon augmente, la moyenne fluctue moins.", "Une fréquence observée sur beaucoup d'essais estime une probabilité."],
+      aides: Q[4] || ["Une moyenne d'échantillon est une observation ; l'espérance est une valeur théorique.", "Quand la taille de l'échantillon augmente, la moyenne fluctue moins.", "Une fréquence observée sur beaucoup d'essais estime une probabilité."],
       solution: s
     };
   };
+  // Logique : contraposée et réciproque
 
 
   /* ---------- Première, chapitre 17 : préparation à l'épreuve anticipée (préfixe ea-) ---------- */
@@ -8220,7 +10966,43 @@
       ["$x > 3$", "$x^2 > 9$", 0, "Si $x > 3$, alors $x^2 > 9$ ; mais $x = -4$ vérifie $x^2 > 9$ sans que $x > 3$."],
       ["$P(A \\cap B) = P(A) \\times P(B)$", "$A$ et $B$ sont indépendants", 2, "C'est la définition de l'indépendance : les deux phrases sont équivalentes."],
       ["$x > 0$", "$e^x > 1$", 2, "La fonction exponentielle est strictement croissante et $e^0 = 1$ : $e^x > 1 \\iff x > 0$."],
-      ["$(u_n)$ est croissante", "$(u_n)$ a pour limite $+\\infty$", 3, "$u_n = 1 - \\dfrac{1}{n+1}$ est croissante sans tendre vers $+\\infty$ ; $u_n = n + 2 \\times (-1)^n$ tend vers $+\\infty$ sans être croissante."]
+      ["$(u_n)$ est croissante", "$(u_n)$ a pour limite $+\\infty$", 3, "$u_n = 1 - \\dfrac{1}{n+1}$ est croissante sans tendre vers $+\\infty$ ; $u_n = n + 2 \\times (-1)^n$ tend vers $+\\infty$ sans être croissante."],
+      // Second degré
+      ["$x = 2$", "$x^2 - 3x + 2 = 0$", 0, "Si $x = 2$, alors $x^2 - 3x + 2 = 4 - 6 + 2 = 0$ ; mais $x = 1$ est aussi solution, donc l'équation n'impose pas $x = 2$."],
+      ["$\\Delta \\geqslant 0$", "le trinôme $ax^2 + bx + c$ (avec $a \\neq 0$) a au moins une racine réelle", 2, "C'est le cours : deux racines si $\\Delta > 0$, une seule si $\\Delta = 0$, aucune si $\\Delta < 0$."],
+      ["$\\Delta < 0$", "le trinôme $ax^2 + bx + c$ (avec $a \\neq 0$) est strictement positif pour tout réel $x$", 1, "Un trinôme toujours strictement positif ne s'annule pas, donc $\\Delta < 0$ : c'est nécessaire. Mais $-x^2 - 1$ a pour discriminant $-4 < 0$ et il est toujours négatif : ce n'est pas suffisant (il faut aussi $a > 0$)."],
+      ["$x^2 < 4$", "$x < 2$", 0, "Si $x^2 < 4$, alors $-2 < x < 2$, donc $x < 2$. Mais $x = -3$ vérifie $x < 2$ alors que $(-3)^2 = 9 > 4$."],
+      ["$x < 2$", "$x^2 < 4$", 1, "Si $x^2 < 4$, alors $-2 < x < 2$, donc forcément $x < 2$. Mais $x = -3 < 2$ et $(-3)^2 = 9$ : ce n'est pas suffisant."],
+      ["$x > 1$", "$x^2 > 4$", 3, "$x = 1{,}5$ vérifie $x > 1$ mais $1{,}5^2 = 2{,}25 < 4$ ; $x = -3$ vérifie $x^2 > 4$ sans que $x > 1$. Aucune des deux implications n'est vraie."],
+      // Suites
+      ["$(u_n)$ est arithmétique de raison $r > 0$", "$(u_n)$ est strictement croissante", 0, "Si $r > 0$, alors $u_{n+1} - u_n = r > 0$ : la suite est strictement croissante. Mais $u_n = n^2$ est strictement croissante sans être arithmétique."],
+      ["$u_{n+1} - u_n = 3$ pour tout entier $n$", "$(u_n)$ est arithmétique de raison $3$", 2, "C'est la définition d'une suite arithmétique de raison $3$ : les deux phrases disent la même chose."],
+      ["$u_0 > 0$ et $q > 1$", "la suite géométrique $(u_n)$ de raison $q$ est strictement croissante", 0, "Avec $u_0 > 0$ et $q > 1$, chaque terme est plus grand que le précédent. Mais $u_n = -1 \\times 0{,}5^n$ ($u_0 = -1$, $q = 0{,}5$) donne $-1$ ; $-0{,}5$ ; $-0{,}25$… : elle est strictement croissante sans que $u_0 > 0$ ni $q > 1$."],
+      ["$(u_n)$ est géométrique, de raison $q$ avec $0 < q < 1$", "$(u_n)$ a pour limite $0$", 0, "Une suite géométrique de raison $q \\in ]0\\,;1[$ tend vers $0$. Mais $u_n = \\dfrac{1}{n + 1}$ tend vers $0$ sans être géométrique."],
+      ["$(u_n)$ est croissante", "$u_n > 0$ pour tout entier $n$", 3, "$u_n = n - 5$ est croissante mais $u_0 = -5 < 0$ ; $u_n = \\dfrac{1}{n + 1}$ est toujours positive mais décroissante."],
+      // Dérivation et fonctions
+      ["$f'(x) > 0$ pour tout $x$ de l'intervalle $I$", "$f$ (dérivable sur $I$) est strictement croissante sur $I$", 0, "Une dérivée strictement positive donne une fonction strictement croissante. Mais $x \\mapsto x^3$ est strictement croissante sur $\\mathbb{R}$ alors que sa dérivée $3x^2$ s'annule en $0$."],
+      ["la tangente à la courbe de $f$ au point d'abscisse $a$ est horizontale", "$f'(a) = 0$", 2, "$f'(a)$ est le coefficient directeur de la tangente : la tangente est horizontale exactement quand ce coefficient est nul."],
+      ["$f'(a) > 0$", "$f(a) > 0$", 3, "$f(x) = x - 5$ : $f'(0) = 1 > 0$ mais $f(0) = -5 < 0$. $g(x) = 5 - x$ : $g(0) = 5 > 0$ mais $g'(0) = -1 < 0$. Le signe de $f'(a)$ et celui de $f(a)$ n'ont rien à voir."],
+      ["$f$ est paire", "$f(-1) = f(1)$", 0, "Si $f$ est paire, $f(-x) = f(x)$ pour tout $x$, en particulier pour $x = 1$. Mais $f(x) = x^3 - x$ vérifie $f(-1) = f(1) = 0$ sans être paire : $f(-2) = -6 \\neq f(2) = 6$."],
+      // Exponentielle
+      ["$e^x > 0$", "$x > 0$", 1, "$e^x > 0$ est vrai pour **tout** réel $x$ : c'est donc toujours nécessaire. Mais ce n'est pas suffisant : $e^{-1} > 0$ alors que $-1 < 0$."],
+      ["$e^a = e^b$", "$a = b$", 2, "La fonction exponentielle est strictement croissante : $e^a = e^b \\iff a = b$."],
+      // Trigonométrie
+      ["$\\cos(x) = 1$", "$\\sin(x) = 0$", 0, "Si $\\cos(x) = 1$, alors $\\sin^2(x) = 1 - 1 = 0$, donc $\\sin(x) = 0$. Mais $\\sin(\\pi) = 0$ alors que $\\cos(\\pi) = -1$."],
+      ["$x = \\dfrac{\\pi}{6}$", "$\\sin(x) = \\dfrac{1}{2}$", 0, "$\\sin\\left(\\dfrac{\\pi}{6}\\right) = \\dfrac{1}{2}$, mais aussi $\\sin\\left(\\dfrac{5\\pi}{6}\\right) = \\sin\\left(\\pi - \\dfrac{\\pi}{6}\\right) = \\dfrac{1}{2}$."],
+      ["$\\cos(x) > 0$", "$\\sin(x) > 0$", 3, "Pour $x = -\\dfrac{\\pi}{4}$, $\\cos(x) > 0$ mais $\\sin(x) < 0$ ; pour $x = \\dfrac{3\\pi}{4}$, $\\sin(x) > 0$ mais $\\cos(x) < 0$."],
+      // Géométrie
+      ["$\\vec{u}$ et $\\vec{v}$ sont colinéaires", "$\\vec{u} = \\vec{v}$", 1, "Deux vecteurs égaux sont colinéaires : c'est nécessaire. Mais $2\\vec{u}$ est colinéaire à $\\vec{u}$ (non nul) sans lui être égal."],
+      ["$\\overrightarrow{AB} \\cdot \\overrightarrow{AC} = 0$", "le triangle $ABC$ ($A$, $B$, $C$ distincts) est rectangle en $A$", 2, "Pour des vecteurs non nuls, produit scalaire nul $\\iff$ vecteurs orthogonaux : c'est exactement l'angle droit en $A$."],
+      ["$\\overrightarrow{MA} \\cdot \\overrightarrow{MB} = 0$", "$M$ est sur le cercle de diamètre $[AB]$", 2, "C'est une propriété du cours : le cercle de diamètre $[AB]$ est l'ensemble des points $M$ tels que $\\overrightarrow{MA} \\cdot \\overrightarrow{MB} = 0$."],
+      ["les droites $d$ et $d'$ ont des vecteurs normaux colinéaires", "$d$ et $d'$ sont parallèles", 2, "Deux droites sont parallèles exactement quand leurs vecteurs normaux sont colinéaires."],
+      // Probabilités et arithmétique
+      ["$P_A(B) = P(B)$ (avec $P(A) \\neq 0$)", "$A$ et $B$ sont indépendants", 2, "Avec $P(A) \\neq 0$, $P_A(B) = P(B) \\iff P(A \\cap B) = P(A) \\times P(B)$ : c'est l'indépendance."],
+      ["$n$ est un multiple de $6$", "$n$ est un multiple de $3$", 0, "$6 = 2 \\times 3$ : un multiple de $6$ est un multiple de $3$. Mais $9$ est un multiple de $3$ sans être un multiple de $6$."],
+      ["$n$ est pair", "$n^2$ est pair", 2, "Si $n = 2k$, $n^2 = 4k^2$ est pair ; et par contraposée, si $n$ est impair, $n^2$ est impair. Donc $n$ pair $\\iff n^2$ pair."],
+      ["$n$ est pair", "$n$ est un multiple de $3$", 3, "$2$ est pair sans être multiple de $3$, et $3$ est multiple de $3$ sans être pair."],
+      ["$xy = 0$", "$x = 0$", 1, "Si $x = 0$, alors $xy = 0$ : c'est nécessaire. Mais $x = 1$ et $y = 0$ donnent $xy = 0$ sans que $x = 0$."]
     ];
     const [a, b, k, s] = pick(T), ch = melangeChoix(R[k], R);
     return {
@@ -8259,7 +11041,102 @@
       ["On a trouvé $P(R) = 0{,}22$ pour l'événement R « Inaya arrive en retard ». Quelle réponse est la mieux rédigée ?",
         "La probabilité qu'Inaya arrive en retard est $0{,}22$.",
         ["$0{,}22$", "$P = 0{,}22$ donc c'est bon.", "Elle arrive en retard 22 fois."],
-        "Une réponse se termine par une **phrase** qui répond à la question posée, avec le vocabulaire de l'énoncé."]
+        "Une réponse se termine par une **phrase** qui répond à la question posée, avec le vocabulaire de l'énoncé."],
+      // Suites
+      ["Pour tout $n$, $u_n = 5 - 2n$. Quelle rédaction justifie correctement que $(u_n)$ est arithmétique ?",
+        "Pour tout $n$, $u_{n+1} - u_n = 5 - 2(n + 1) - (5 - 2n) = -2$ : la différence est constante, $(u_n)$ est arithmétique de raison $-2$.",
+        ["$u_1 - u_0 = -2$ et $u_2 - u_1 = -2$, donc $(u_n)$ est arithmétique de raison $-2$.", "$u_0 = 5$ et $u_1 = 3$ : la suite diminue, elle est arithmétique.", "$(u_n)$ est arithmétique car il y a un $-2$."],
+        "Deux différences égales ne prouvent rien pour les suivantes : il faut calculer $u_{n+1} - u_n$ **pour tout** $n$."],
+      ["On a montré que, pour tout $n$, $u_{n+1} - u_n = n^2 + 1$. Quelle conclusion est correctement rédigée ?",
+        "Pour tout $n$, $n^2 \\geqslant 0$, donc $u_{n+1} - u_n = n^2 + 1 > 0$ : la suite $(u_n)$ est strictement croissante.",
+        ["$u_1 > u_0$, donc la suite est croissante.", "La suite est croissante car $n$ augmente.", "$u_{n+1} - u_n = n^2 + 1$, donc la suite est géométrique."],
+        "On étudie le **signe** de $u_{n+1} - u_n$ pour tout $n$, puis on conclut sur le sens de variation."],
+      ["Pour tout $n$, $u_n = 5 \\times 0{,}8^n$. Quelle rédaction justifie le sens de variation de $(u_n)$ ?",
+        "$(u_n)$ est géométrique de premier terme $u_0 = 5 > 0$ et de raison $q = 0{,}8$, avec $0 < q < 1$ : elle est strictement décroissante.",
+        ["$u_0 = 5$ et $u_1 = 4$, donc la suite est décroissante.", "$0{,}8 < 1$, donc la suite est négative.", "La suite est décroissante car il y a une puissance."],
+        "On cite la propriété du cours sur les suites géométriques, en vérifiant **ses deux conditions** : $u_0 > 0$ et $0 < q < 1$."],
+      ["La fonction seuil() renvoie le premier mois $n$ où le nombre $u_n$ de poissons d'une ferme aquacole dépasse $1\\,150$. Elle renvoie $5$. Quelle interprétation est la mieux rédigée ?",
+        "C'est au bout de $5$ mois que le nombre de poissons de la ferme dépasse $1\\,150$ pour la première fois.",
+        ["$n = 5$.", "Il y a $5$ poissons dans la ferme.", "La suite vaut $5$, donc c'est bon."],
+        "On interprète le résultat **dans le contexte** : ici, $n$ est un nombre de mois."],
+      // Second degré
+      ["Résoudre $x^2 - 5x + 6 = 0$. Quelle rédaction est correcte ?",
+        "$\\Delta = (-5)^2 - 4 \\times 1 \\times 6 = 1 > 0$ : deux solutions, $x_1 = \\dfrac{5 - 1}{2} = 2$ et $x_2 = \\dfrac{5 + 1}{2} = 3$. $S = \\{2\\,;3\\}$.",
+        ["$2^2 - 5 \\times 2 + 6 = 0$, donc $S = \\{2\\}$.", "$\\Delta = 1$, donc $x = 1$.", "$x^2 = 5x - 6$, donc $x = 5 - \\dfrac{6}{x}$."],
+        "On calcule $\\Delta$, on en déduit le nombre de solutions, on les calcule toutes et on donne l'ensemble $S$."],
+      ["Résoudre $(x - 1)(x - 4) < 0$. Quelle rédaction est correcte ?",
+        "Le trinôme $(x - 1)(x - 4)$ a pour racines $1$ et $4$ et son coefficient $a = 1$ est positif : il est négatif entre ses racines. $S = ]1\\,;4[$.",
+        ["$x - 1 < 0$ et $x - 4 < 0$, donc $x < 1$ : $S = ]-\\infty\\,;1[$.", "Les racines sont $1$ et $4$, donc $S = \\{1\\,;4\\}$.", "Les racines sont $1$ et $4$, donc $S = ]-\\infty\\,;1[ \\cup ]4\\,;+\\infty[$."],
+        "Un produit est négatif quand ses facteurs sont de signes **contraires** : on utilise le signe du trinôme (ou un tableau de signes)."],
+      // Dérivation
+      ["$f(x) = x^2$. Quelle rédaction donne correctement l'équation de la tangente au point d'abscisse $3$ ?",
+        "$f'(x) = 2x$, donc $f'(3) = 6$, et $f(3) = 9$. La tangente a pour équation $y = f'(3)(x - 3) + f(3)$, soit $y = 6(x - 3) + 9 = 6x - 9$.",
+        ["$f'(3) = 6$, donc la tangente a pour équation $y = 6x$.", "$y = 9(x - 3) + 6$, soit $y = 9x - 21$.", "$y = 2x(x - 3) + 9$."],
+        "On cite la formule $y = f'(a)(x - a) + f(a)$ avec les **nombres** $f'(3)$ et $f(3)$, puis on simplifie."],
+      ["Montrer que $f(x) = x^3 + x$ est strictement croissante sur $\\mathbb{R}$. Quelle rédaction est correcte ?",
+        "$f'(x) = 3x^2 + 1$. Pour tout réel $x$, $x^2 \\geqslant 0$, donc $f'(x) \\geqslant 1 > 0$ : $f$ est strictement croissante sur $\\mathbb{R}$.",
+        ["$f(0) = 0 < f(1) = 2$, donc $f$ est croissante.", "$f'(x) = 3x^2 + 1$, donc $f$ est croissante.", "Sur l'écran, la courbe monte."],
+        "Il faut justifier le **signe** de la dérivée pour tout $x$, puis conclure : deux valeurs ne suffisent pas."],
+      ["$f(x) = (x + 1)e^x$ et $f'(x) = (x + 2)e^x$. Quelle rédaction justifie les variations de $f$ ?",
+        "Pour tout $x$, $e^x > 0$, donc $f'(x)$ a le signe de $x + 2$ : négatif sur $]-\\infty\\,;-2[$, positif sur $]-2\\,;+\\infty[$. $f$ est décroissante sur $]-\\infty\\,;-2]$ et croissante sur $[-2\\,;+\\infty[$.",
+        ["$f'(-2) = 0$, donc $f$ est croissante.", "$e^x$ est croissante, donc $f$ est croissante.", "$f'(x)$ a le signe de $e^x$, donc $f$ est croissante sur $\\mathbb{R}$."],
+        "L'exponentielle est strictement positive : le signe de $f'(x)$ est celui de l'autre facteur, $x + 2$."],
+      ["$f'(x) = 3x^2$. Quelle rédaction est correcte à propos d'un extremum en $0$ ?",
+        "$f'(x) = 3x^2 \\geqslant 0$ pour tout $x$ : $f'$ s'annule en $0$ sans changer de signe, $f$ est croissante sur $\\mathbb{R}$ et n'a pas d'extremum en $0$.",
+        ["$f'(0) = 0$, donc $f$ admet un extremum en $0$.", "$f'(0) = 0$, donc $f$ admet un minimum en $0$ car $3 > 0$.", "On ne peut rien dire sans calculatrice."],
+        "Un extremum demande que $f'$ **change de signe** : ici elle reste positive."],
+      // Exponentielle
+      ["Résoudre $e^{2x - 4} \\geqslant 1$. Quelle rédaction est correcte ?",
+        "$1 = e^0$ et la fonction exponentielle est strictement croissante, donc $e^{2x - 4} \\geqslant e^0 \\iff 2x - 4 \\geqslant 0 \\iff x \\geqslant 2$. $S = [2\\,;+\\infty[$.",
+        ["$e^{2x - 4} \\geqslant 1 \\iff 2x - 4 \\geqslant 1 \\iff x \\geqslant 2{,}5$.", "Une exponentielle est toujours positive, donc $S = \\mathbb{R}$.", "$x = 2$."],
+        "On écrit $1 = e^0$, on cite la stricte croissance de l'exponentielle, puis on résout l'inéquation obtenue."],
+      ["Montrer que, pour tout réel $x$, $e^x \\neq 0$. Quelle rédaction est correcte ?",
+        "Pour tout réel $x$, $e^x \\times e^{-x} = e^0 = 1$. Si on avait $e^x = 0$, on obtiendrait $0 = 1$ : c'est absurde. Donc $e^x \\neq 0$.",
+        ["Sur la calculatrice, $e^x$ n'est jamais nul.", "$e^0 = 1 \\neq 0$, donc $e^x \\neq 0$ pour tout $x$.", "La courbe de l'exponentielle est au-dessus de l'axe des abscisses."],
+        "C'est un raisonnement **par l'absurde** : on suppose le contraire et on aboutit à une contradiction. Une seule valeur ou une figure ne prouvent rien."],
+      // Trigonométrie, produit scalaire, géométrie repérée
+      ["On sait que $\\cos(x) = 0{,}6$ et $x \\in [0\\,;\\pi]$. Quelle rédaction donne correctement $\\sin(x)$ ?",
+        "$\\sin^2(x) = 1 - \\cos^2(x) = 1 - 0{,}36 = 0{,}64$. Comme $x \\in [0\\,;\\pi]$, $\\sin(x) \\geqslant 0$, donc $\\sin(x) = 0{,}8$.",
+        ["$\\sin(x) = 1 - 0{,}6 = 0{,}4$.", "$\\sin^2(x) = 0{,}64$, donc $\\sin(x) = 0{,}8$ ou $\\sin(x) = -0{,}8$ : on ne peut pas conclure.", "$\\sin(x) = \\sqrt{1 - 0{,}6}$."],
+        "On utilise $\\cos^2(x) + \\sin^2(x) = 1$, puis le **signe** de $\\sin(x)$ donné par l'intervalle pour choisir la bonne racine."],
+      ["Dans un triangle $ABC$, $AB = 4$, $AC = 3$ et $\\widehat{BAC} = 60°$. Quelle rédaction calcule correctement $\\overrightarrow{AB} \\cdot \\overrightarrow{AC}$ ?",
+        "$\\overrightarrow{AB} \\cdot \\overrightarrow{AC} = AB \\times AC \\times \\cos(\\widehat{BAC}) = 4 \\times 3 \\times \\dfrac{1}{2} = 6$.",
+        ["$\\overrightarrow{AB} \\cdot \\overrightarrow{AC} = 4 \\times 3 = 12$.", "$\\overrightarrow{AB} \\cdot \\overrightarrow{AC} = 4 \\times 3 \\times 60 = 720$.", "$\\overrightarrow{AB} \\cdot \\overrightarrow{AC} = 4 + 3 = 7$."],
+        "On cite la formule avec le cosinus de l'angle, et on utilise la valeur remarquable $\\cos(60°) = \\dfrac{1}{2}$."],
+      ["Le point $M(3\\,;4)$ est-il sur le cercle de centre $O$ et de rayon $5$ ? Quelle rédaction est correcte ?",
+        "$OM = \\sqrt{3^2 + 4^2} = \\sqrt{25} = 5$ : $M$ est à la distance $5$ du centre $O$, donc $M$ est sur le cercle.",
+        ["Sur la figure, $M$ semble être sur le cercle.", "$3 + 4 = 7 \\neq 5$, donc $M$ n'est pas sur le cercle.", "$3^2 + 4^2 = 25$."],
+        "On calcule la distance au centre, on la compare au rayon, puis on **conclut** par une phrase."],
+      ["Donner une équation de la droite $d$ passant par $A(1\\,;2)$ et de vecteur normal $\\vec{n}(3\\,;-1)$. Quelle rédaction est correcte ?",
+        "$\\vec{n}(3\\,;-1)$ est normal à $d$, donc $d$ a une équation de la forme $3x - y + c = 0$. Comme $A \\in d$ : $3 \\times 1 - 2 + c = 0$, donc $c = -1$. Une équation de $d$ est $3x - y - 1 = 0$.",
+        ["Une équation de $d$ est $3x - y = 0$.", "$d$ a pour équation $-x + 3y + c = 0$, avec $c = -5$.", "$3 \\times 1 - 1 \\times 2 = 1$, donc $d$ a pour équation $y = 1$."],
+        "On utilise la forme $ax + by + c = 0$ donnée par le vecteur normal, puis on trouve $c$ grâce au point $A$."],
+      // Probabilités, variables aléatoires
+      ["$P(A) = 0{,}5$ et $P_A(B) = 0{,}6$. Quelle rédaction calcule correctement $P(A \\cap B)$ ?",
+        "$P(A \\cap B) = P(A) \\times P_A(B) = 0{,}5 \\times 0{,}6 = 0{,}3$.",
+        ["$A$ et $B$ sont indépendants, donc $P(A \\cap B) = 0{,}5 \\times 0{,}6 = 0{,}3$.", "$P(A \\cap B) = P(A) + P_A(B) = 1{,}1$.", "$P(A \\cap B) = P_A(B) = 0{,}6$."],
+        "On cite la formule des probabilités conditionnelles. Rien ne dit que $A$ et $B$ sont indépendants : il ne faut pas l'inventer, même si le nombre obtenu est juste."],
+      ["Il pleut à Mamoudzou un jour sur quatre. S'il pleut, le taxi-brousse est en retard avec la probabilité $0{,}6$ ; sinon, avec la probabilité $0{,}2$. Quelle rédaction calcule correctement la probabilité $P(R)$ d'un retard ?",
+        "On note $A$ « il pleut » ; $A$ et $\\overline{A}$ forment une partition de l'univers. D'après la formule des probabilités totales, $P(R) = 0{,}25 \\times 0{,}6 + 0{,}75 \\times 0{,}2 = 0{,}15 + 0{,}15 = 0{,}3$.",
+        ["$P(R) = 0{,}6 + 0{,}2 = 0{,}8$.", "$P(R) = 0{,}25 \\times 0{,}6 = 0{,}15$.", "$P(R) = \\dfrac{0{,}6 + 0{,}2}{2} = 0{,}4$."],
+        "On additionne les probabilités des **deux chemins** qui mènent au retard, en citant la formule des probabilités totales."],
+      ["$P(A) = 0{,}3$, $P(B) = 0{,}5$ et $P(A \\cap B) = 0{,}1$. Quelle rédaction est correcte ?",
+        "$P(A) \\times P(B) = 0{,}3 \\times 0{,}5 = 0{,}15 \\neq 0{,}1 = P(A \\cap B)$, donc $A$ et $B$ ne sont pas indépendants.",
+        ["$P(A \\cap B) \\neq 0$, donc $A$ et $B$ ne sont pas indépendants.", "$A$ et $B$ ne sont pas incompatibles, donc ils sont indépendants.", "$0{,}3 + 0{,}5 \\neq 0{,}1$, donc ils ne sont pas indépendants."],
+        "On compare $P(A \\cap B)$ au **produit** $P(A) \\times P(B)$. Ne confonds pas « indépendants » et « incompatibles »."],
+      ["À un jeu, le gain $X$ (en euros) vaut $-2$ avec la probabilité $0{,}7$, $3$ avec la probabilité $0{,}2$ et $8$ avec la probabilité $0{,}1$. Quelle rédaction est correcte ?",
+        "$E(X) = -2 \\times 0{,}7 + 3 \\times 0{,}2 + 8 \\times 0{,}1 = -1{,}4 + 0{,}6 + 0{,}8 = 0$ : le jeu est équitable.",
+        ["On perd $7$ fois sur $10$, donc le jeu est défavorable.", "Le gain maximal est $8$ €, donc le jeu est favorable.", "$E(X) = \\dfrac{-2 + 3 + 8}{3} = 3$ : le jeu est favorable."],
+        "On calcule l'espérance en **pondérant** chaque gain par sa probabilité, puis on conclut avec le vocabulaire du cours."],
+      // Raisonnements
+      ["Montrer que l'affirmation « pour tout réel $x$, $x^2 \\geqslant x$ » est fausse. Quelle rédaction est correcte ?",
+        "Pour $x = \\dfrac{1}{2}$, $x^2 = \\dfrac{1}{4} < \\dfrac{1}{2}$ : ce contre-exemple montre que l'affirmation est fausse.",
+        ["Pour $x = 2$, $x^2 = 4 \\geqslant 2$, donc l'affirmation est vraie.", "On ne peut pas tester tous les réels, donc on ne peut pas conclure.", "Pour $x = 0$, $0^2 = 0 \\geqslant 0$, donc l'affirmation est fausse."],
+        "Pour contredire un « pour tout », **un seul contre-exemple** suffit, à condition de bien vérifier qu'il contredit l'affirmation."],
+      ["Montrer que, si $n^2$ est pair, alors $n$ est pair. Quelle rédaction est correcte ?",
+        "Par contraposée : si $n$ est impair, $n = 2k + 1$, alors $n^2 = 4k^2 + 4k + 1 = 2(2k^2 + 2k) + 1$ est impair. Donc si $n^2$ est pair, $n$ est pair.",
+        ["$4^2 = 16$ est pair et $4$ est pair, donc c'est vrai.", "Si $n$ est pair, $n = 2k$, donc $n^2 = 4k^2$ est pair. C'est démontré.", "$n^2 = n \\times n$, donc $n$ est pair."],
+        "Un exemple ne prouve pas un « pour tout ». Et prouver « si $n$ pair, alors $n^2$ pair », c'est prouver la **réciproque**, pas l'énoncé demandé."]
     ];
     const [q, b, f, s] = pick(T), ch = melangeChoix(b, f);
     return {
@@ -8282,7 +11159,50 @@
       ["Si $(u_n)$ est géométrique avec $u_0 = 8$ et $q = 0{,}5$, alors $u_3 = 1$.", true, "$u_3 = 8 \\times 0{,}5^3 = 8 \\times 0{,}125 = 1$."],
       ["La fonction $x \\mapsto e^{-x}$ est croissante sur $\\mathbb{R}$.", false, "Sa dérivée est $-e^{-x} < 0$ : elle est décroissante."],
       ["Si $\\vec{u} \\cdot \\vec{v} < 0$, alors l'angle entre $\\vec{u}$ et $\\vec{v}$ est obtus.", true, "$\\vec{u} \\cdot \\vec{v} = \\|\\vec{u}\\| \\times \\|\\vec{v}\\| \\times \\cos\\theta < 0$ impose $\\cos\\theta < 0$ : l'angle est obtus."],
-      ["Si $E(X) = 2$, alors $E(3X + 1) = 7$.", true, "Linéarité : $E(3X + 1) = 3E(X) + 1 = 7$."]
+      ["Si $E(X) = 2$, alors $E(3X + 1) = 7$.", true, "Linéarité : $E(3X + 1) = 3E(X) + 1 = 7$."],
+      // Calcul et second degré
+      ["Pour tout réel $x$, $(x + 3)^2 = x^2 + 9$.", false, "Pour $x = 1$ : $(1 + 3)^2 = 16$ alors que $1 + 9 = 10$. La bonne identité est $(x + 3)^2 = x^2 + 6x + 9$."],
+      ["Pour tout réel $x$, $\\sqrt{x^2} = x$.", false, "Pour $x = -2$ : $\\sqrt{(-2)^2} = \\sqrt{4} = 2 \\neq -2$. En fait, $\\sqrt{x^2} = |x|$."],
+      ["Pour tout réel $x$, $x^2 \\geqslant x$.", false, "Pour $x = \\dfrac{1}{2}$ : $x^2 = \\dfrac{1}{4} < \\dfrac{1}{2}$. Un seul contre-exemple suffit."],
+      ["L'équation $x^2 + x + 1 = 0$ n'a aucune solution réelle.", true, "$\\Delta = 1^2 - 4 \\times 1 \\times 1 = -3 < 0$."],
+      ["Le trinôme $x^2 - 6x + 9$ s'annule pour une seule valeur de $x$.", true, "$\\Delta = 36 - 36 = 0$ : une seule racine, $3$. D'ailleurs $x^2 - 6x + 9 = (x - 3)^2$."],
+      // Dérivation et fonctions
+      ["Si $f(x) = \\dfrac{1}{x}$ sur $]0\\,;+\\infty[$, alors $f'(x) = \\dfrac{1}{x^2}$.", false, "$f'(x) = -\\dfrac{1}{x^2}$ : la fonction inverse est décroissante sur $]0\\,;+\\infty[$."],
+      ["Si $f(x) = xe^x$, alors $f'(x) = e^x$.", false, "C'est un produit : $f'(x) = 1 \\times e^x + x \\times e^x = (1 + x)e^x$. Par exemple $f'(1) = 2e \\neq e$."],
+      ["La tangente à la courbe de $x \\mapsto x^2$ au point d'abscisse $1$ a pour équation $y = 2x - 1$.", true, "$f(1) = 1$ et $f'(1) = 2$ : $y = 2(x - 1) + 1 = 2x - 1$."],
+      ["Si $f'(x) > 0$ pour tout $x$ de $[0\\,;5]$, alors $f(5) > f(0)$.", true, "$f$ est strictement croissante sur $[0\\,;5]$, donc $f(0) < f(5)$."],
+      ["Si la dérivée de $f$ s'annule en $a$ en changeant de signe, alors $f$ admet un extremum local en $a$.", true, "C'est la propriété du cours : $f$ change de sens de variation en $a$, donc $f(a)$ est un maximum ou un minimum local."],
+      ["La fonction $x \\mapsto x^3 + 1$ est impaire.", false, "$f(-1) = 0$ mais $-f(1) = -2$ : on n'a pas $f(-x) = -f(x)$. D'ailleurs, une fonction impaire définie en $0$ vérifie $f(0) = 0$, et ici $f(0) = 1$."],
+      // Suites
+      ["Si $(u_n)$ est arithmétique de raison $-3$ avec $u_0 = 10$, alors $u_5 = -5$.", true, "$u_5 = u_0 + 5r = 10 + 5 \\times (-3) = -5$."],
+      ["$1 + 2 + 4 + 8 + \\dots + 2^{9} = 2^{10} - 1$.", true, "Somme de termes consécutifs d'une suite géométrique de raison $2$ : $\\dfrac{2^{10} - 1}{2 - 1} = 2^{10} - 1 = 1\\,023$."],
+      ["Une suite géométrique de raison $1{,}05$ est toujours croissante.", false, "Elle est croissante si son premier terme est positif. Avec $u_0 = -100$ : $u_1 = -105 < u_0$, la suite est décroissante."],
+      ["Si $u_{n+1} = u_n + 2$ pour tout $n$, alors $(u_n)$ est géométrique de raison $2$.", false, "On **ajoute** $2$ à chaque étape : la suite est arithmétique de raison $2$. Avec $u_0 = 1$ : $1$, $3$, $5$, et $\\dfrac{3}{1} \\neq \\dfrac{5}{3}$."],
+      ["Les termes de la suite définie par $u_n = \\dfrac{1}{n + 1}$ se rapprochent de $0$ quand $n$ devient grand.", true, "$1$, $\\dfrac{1}{2}$, $\\dfrac{1}{3}$, …, $\\dfrac{1}{1\\,001}$… : les termes deviennent aussi proches de $0$ que l'on veut. La suite a pour limite $0$."],
+      // Exponentielle
+      ["Pour tous réels $a$ et $b$, $e^{a + b} = e^a + e^b$.", false, "Pour $a = b = 0$ : $e^0 = 1$ mais $e^0 + e^0 = 2$. La bonne propriété est $e^{a + b} = e^a \\times e^b$."],
+      ["L'équation $e^x = -1$ a une solution réelle.", false, "Pour tout réel $x$, $e^x > 0$ : l'exponentielle ne prend jamais de valeur négative."],
+      ["Pour tout réel $x$, $\\dfrac{e^{3x}}{e^{x}} = e^{3}$.", false, "$\\dfrac{e^{3x}}{e^x} = e^{3x - x} = e^{2x}$, qui dépend de $x$. Pour $x = 0$, on obtient $1 \\neq e^3$."],
+      // Trigonométrie
+      ["$\\cos\\left(\\dfrac{\\pi}{3}\\right) = \\dfrac{\\sqrt{3}}{2}$.", false, "$\\cos\\left(\\dfrac{\\pi}{3}\\right) = \\dfrac{1}{2}$ ; c'est $\\sin\\left(\\dfrac{\\pi}{3}\\right)$ qui vaut $\\dfrac{\\sqrt{3}}{2}$."],
+      ["Pour tout réel $x$, $\\sin(-x) = -\\sin(x)$.", true, "Les points du cercle associés à $x$ et $-x$ sont symétriques par rapport à l'axe des abscisses : même cosinus, sinus opposés."],
+      ["Il existe un réel $x$ tel que $\\cos(x) = 2$.", false, "$\\cos(x)$ est l'abscisse d'un point du cercle de rayon $1$ : pour tout réel $x$, $-1 \\leqslant \\cos(x) \\leqslant 1$."],
+      // Produit scalaire et géométrie repérée
+      ["Les vecteurs $\\vec{u}(2\\,;3)$ et $\\vec{v}(-3\\,;2)$ sont orthogonaux.", true, "$\\vec{u} \\cdot \\vec{v} = 2 \\times (-3) + 3 \\times 2 = 0$."],
+      ["Si $\\vec{u} \\cdot \\vec{v} = 0$, alors $\\vec{u} = \\vec{0}$ ou $\\vec{v} = \\vec{0}$.", false, "$\\vec{u}(1\\,;0)$ et $\\vec{v}(0\\,;1)$ sont non nuls et $\\vec{u} \\cdot \\vec{v} = 0$ : ils sont orthogonaux."],
+      ["Le vecteur $\\vec{n}(2\\,;-1)$ est normal à la droite d'équation $2x - y + 5 = 0$.", true, "La droite d'équation $ax + by + c = 0$ a pour vecteur normal $\\vec{n}(a\\,;b)$, ici $(2\\,;-1)$."],
+      ["Le cercle d'équation $x^2 + y^2 = 9$ a pour rayon $9$.", false, "C'est le cercle de centre $O$ et de rayon $3$, car $r^2 = 9$."],
+      ["Le point $A(1\\,;2)$ appartient à la droite d'équation $3x - y - 1 = 0$.", true, "$3 \\times 1 - 2 - 1 = 0$ : les coordonnées de $A$ vérifient l'équation."],
+      // Probabilités et variables aléatoires
+      ["Pour tous événements $A$ et $B$ de probabilités non nulles, $P_A(B) = P_B(A)$.", false, "On lance un dé équilibré : $A$ « obtenir un nombre pair », $B$ « obtenir $6$ ». $P_A(B) = \\dfrac{1}{3}$ mais $P_B(A) = 1$."],
+      ["Si $A$ et $B$ sont indépendants, alors $\\overline{A}$ et $B$ sont indépendants.", true, "$P(\\overline{A} \\cap B) = P(B) - P(A \\cap B) = P(B) - P(A)P(B) = P(\\overline{A})P(B)$."],
+      ["Si $P(A) \\neq 0$, alors $P(A \\cap B) = P(A) \\times P_A(B)$.", true, "C'est la définition de $P_A(B) = \\dfrac{P(A \\cap B)}{P(A)}$ : on multiplie les probabilités le long d'un chemin de l'arbre."],
+      ["Si $V(X) = 3$, alors $V(2X + 5) = 11$.", false, "$V(2X + 5) = 2^2 \\times V(X) = 12$ : la constante $5$ ne change pas la variance."],
+      ["Si $V(X) = 9$, alors $\\sigma(X) = 3$.", true, "$\\sigma(X) = \\sqrt{V(X)} = \\sqrt{9} = 3$."],
+      // Logique
+      ["La négation de « pour tout réel $x$, $x^2 > 0$ » est « pour tout réel $x$, $x^2 \\leqslant 0$ ».", false, "La négation est « il existe un réel $x$ tel que $x^2 \\leqslant 0$ ». Elle est d'ailleurs vraie : $x = 0$ convient."],
+      ["La réciproque d'une implication vraie est toujours vraie.", false, "« Si $x = 3$, alors $x^2 = 9$ » est vraie, mais sa réciproque « si $x^2 = 9$, alors $x = 3$ » est fausse : $x = -3$."],
+      ["Une implication et sa contraposée sont soit vraies toutes les deux, soit fausses toutes les deux.", true, "« Si P, alors Q » et « si non Q, alors non P » sont équivalentes : c'est ce qui justifie le raisonnement par contraposée."]
     ];
     const [q, v, s] = pick(T), ch = melangeChoix(v ? "Vrai" : "Faux", [v ? "Faux" : "Vrai"]);
     return {
@@ -8291,6 +11211,7 @@
       solution: `**${v ? "Vrai" : "Faux"}.** ${s}`
     };
   };
+  // Logique : ensembles {X = a}, intersections, négations
 
 
   /* Séries « flash » d'un thème : mélange de ses générateurs */
@@ -8309,7 +11230,7 @@
 
 
   /* Une « erreur connue » ne doit jamais coïncider avec la bonne réponse (à la tolérance près) */
-  Object.keys(GEN).filter((k) => /^(ld|am|cd|ar|cl|fa|ve|st|vx|tc|co|dr|fr|sg|pc|ec|sy|su|s2|pi|s5|d1|tr|d2|vr|ps|ex|va|sc|gr|sm|ea)-/.test(k)).forEach((k) => {
+  Object.keys(GEN).filter((k) => /^(auto|ld|am|cd|ar|cl|fa|ve|st|vx|tc|co|dr|fr|sg|pc|ec|sy|su|s2|pi|s5|d1|tr|d2|vr|ps|ex|va|sc|gr|sm|ea)-/.test(k)).forEach((k) => {
     const g = GEN[k];
     GEN[k] = (i) => { const q = g(i); if (q.erreurs) q.erreurs = q.erreurs.filter((e) => Math.abs(e.valeur - q.attendu) >= (q.tolerance || 1e-9)); return q; };
   });

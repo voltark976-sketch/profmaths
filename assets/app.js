@@ -127,7 +127,25 @@
 
   /* ---------- Mise en forme du texte : $maths$, **gras**, puces ---------- */
   const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  // Une liste écrite dans une seule formule ($3 ; 11 ; 19 ; …$) ne peut pas passer à la ligne sur un téléphone :
+  // on la découpe aux « ; » de premier niveau, chaque nombre devient une petite formule.
+  function decoupeListe(src) {
+    const parts = []; let d = 0, cur = "";
+    for (let i = 0; i < src.length; i++) {
+      const c = src[i];
+      if (c === "\\") { cur += c + (src[i + 1] || ""); i++; continue; }
+      if (c === "{") d++; else if (c === "}") d--;
+      if (d === 0 && src.startsWith(" ; ", i)) { parts.push(cur); cur = ""; i += 2; continue; }
+      cur += c;
+    }
+    parts.push(cur);
+    return parts;
+  }
   function tex(src, display) {
+    if (!display && src.includes(" ; ") && !/\\left|\\right|\\begin/.test(src)) {
+      const parts = decoupeListe(src);
+      if (parts.length > 1) return parts.map((p) => tex(p)).join(" ; ");
+    }
     if (window.katex) {
       // Intervalles : ]a ; b[ s'écrit comme d'habitude, l'espacement des crochets est corrigé ici
       // (sauf après \left : \left[ … \right] s'ajuste déjà tout seul)
@@ -391,7 +409,7 @@
       CATALOGUE.niveaux.forEach((n) => n.chapitres.forEach((ch) => {
         if (!(window.CHAPITRES && CHAPITRES[ch.id])) return;
         const b = bilanChapitre(ch.id);
-        lignes += `<li><a class="chap" href="#${ch.id}"><span class="chap-t"><strong>${esc(ch.titre)}</strong><span class="meta">${esc(n.nom)} · ${b.got}/${b.total} étoiles${b.qcm !== undefined ? ` · QCM ${b.qcm}/${CHAPITRES[ch.id].qcm.length}` : ""}</span><span class="barre"><span style="width:${Math.round((b.got / b.total) * 100)}%"></span></span></span></a></li>`;
+        lignes += `<li><a class="chap" href="#${ch.id}"><span class="chap-t"><strong>${esc(ch.titre)}</strong><span class="meta">${esc(n.nom)} · ${b.got}/${b.total} étoiles${b.qcm !== undefined ? ` · QCM ${Math.min(b.qcm, tailleQcm(CHAPITRES[ch.id]))}/${tailleQcm(CHAPITRES[ch.id])}` : ""}</span><span class="barre"><span style="width:${Math.round((b.got / b.total) * 100)}%"></span></span></span></a></li>`;
       }));
       $app.innerHTML = `<section class="page-compte"><p class="eyebrow">Mon compte</p><h1>Bonjour ${esc(e.prenom || e.identifiant)} !</h1>
         <p class="lead">Identifiant : <strong>${esc(e.identifiant)}</strong>${e.classe ? ` · ${esc(e.classe)}${e.groupe ? " " + esc(e.groupe) : ""}` : ""}</p>${demo}
@@ -488,7 +506,7 @@
       }).join("");
       const kq = "qcm:" + suiviChoix.chap, sq = (x.qcm || {})[suiviChoix.chap];
       if (q[kq]) dernier = Math.max(dernier, q[kq]);
-      const qcm = fait(kq, sq !== undefined) ? `<td class="fait qcm">${sq}/${c.qcm.length}</td>` : `<td class="vide">·</td>`;
+      const qcm = fait(kq, sq !== undefined) ? `<td class="fait qcm">${Math.min(sq, tailleQcm(c))}/${tailleQcm(c)}</td>` : `<td class="vide">·</td>`;
       if (fait(kq, sq !== undefined)) aFait = true;
       if (aFait) faits++;
       return `<tr><th scope="row">${esc(x.nom || "")} ${esc(x.prenom || x.identifiant || "")}</th>${cases}${qcm}<td>${dernier ? date(dernier) : "–"}</td><td>${x.xp || 0}</td></tr>`;
@@ -598,13 +616,29 @@
     }));
   }
 
+  /* Pas deux fois la même question dans une série : on retire jusqu'à trouver une question nouvelle.
+     On évite aussi, autant que possible, les questions de la série précédente du même type. */
+  const RECENTS = {};
+  const cleQuestion = (q) => [q.enonce, JSON.stringify(q.tableau || ""), q.figure || "", (q.choix || []).slice().sort().join("¦"), q.mode === "choix" ? q.choix[q.attendu] : JSON.stringify(q.attendu)].join("§");
+  function tirerSansDoublon(tirer, vus, recents) {
+    let q, k;
+    for (let t = 0; t < 60; t++) {
+      q = tirer(); k = cleQuestion(q);
+      if (!vus.has(k) && (t >= 30 || !recents || !recents.has(k))) break;
+    }
+    vus.add(k);
+    return q;
+  }
+
   function lancerSerie(p, c, id, ex) {
     const gen = GEN[ex.type];
     let i = 0, score = 0;
     const max = ex.nb * 10;
+    const vus = new Set(), recents = new Set(RECENTS[ex.type] || []);
 
     function question() {
-      const q = gen(i);
+      const q = tirerSansDoublon(() => gen(i), vus, recents);
+      if (i + 1 === ex.nb) RECENTS[ex.type] = [...vus];
       let aides = 0, erreurs = 0, fini = false;
       const champ = champReponse(q);
       p.innerHTML = `<div class="exo">
@@ -709,14 +743,36 @@
   }
 
   /* ---------- QCM ---------- */
+  /* Un QCM = 12 questions : la plupart tirées de la banque du chapitre (en évitant celles de l'essai précédent),
+     plus 3 questions à choix fabriquées par les générateurs d'exercices du chapitre. */
+  const QCM_N = 12, QCM_GEN = 3, QCM_RECENTS = {};
+  const tailleQcm = (c) => Math.min(QCM_N, c.qcm.length + (c.exercices.length ? QCM_GEN : 0));
+  function questionsGenerees(c, n) {
+    const types = shuffle(c.exercices.map((e) => e.type).filter((t) => GEN[t])), out = [], vus = new Set();
+    for (let essai = 0; out.length < n && essai < 60 && types.length; essai++) {
+      const t = types[essai % types.length];
+      if (out.some((x) => x.type === t) && essai < 3 * types.length) continue; // d'abord un seul par type
+      let q;
+      try { q = GEN[t](Math.floor(Math.random() * 5)); } catch (e) { continue; }
+      const k = cleQuestion(q);
+      if (q.mode !== "choix" || vus.has(k)) continue;
+      vus.add(k);
+      out.push({ type: t, gen: true, question: q.enonce, choix: q.choix, bonne: q.attendu, explication: q.solution, svg: q.figure, tableau: q.tableau });
+    }
+    return out;
+  }
   function vueQCM(p, c, id) {
-    const qs = shuffle(c.qcm).map((q) => {
+    const gen = questionsGenerees(c, QCM_GEN);
+    const deja = new Set(QCM_RECENTS[id] || []);
+    const banque = shuffle(c.qcm).sort((a, b) => deja.has(a.question) - deja.has(b.question)).slice(0, Math.max(0, QCM_N - gen.length));
+    QCM_RECENTS[id] = banque.map((q) => q.question);
+    const qs = shuffle(banque.concat(gen)).map((q) => {
       const ordre = shuffle(q.choix.map((_, k) => k));
       return Object.assign({}, q, { ordre });
     });
-    let h = `<p class="intro">${qs.length} questions, une seule bonne réponse à chaque fois. Les questions et les réponses changent d'ordre à chaque essai.${prog.qcm[id] !== undefined ? ` Ton meilleur score : <strong>${prog.qcm[id]}/${qs.length}</strong>.` : ""}</p><form id="qcm">`;
+    let h = `<p class="intro">${qs.length} questions, une seule bonne réponse à chaque fois. Les questions changent à chaque essai.${prog.qcm[id] !== undefined ? ` Ton meilleur score : <strong>${Math.min(prog.qcm[id], qs.length)}/${qs.length}</strong>.` : ""}</p><form id="qcm">`;
     qs.forEach((q, n) => {
-      h += `<fieldset class="q" data-n="${n}"><legend><span class="n">${n + 1}</span>${inline(q.question)}</legend>${q.figure ? figure(q.figure) : ""}${q.tableau ? tableau(q.tableau) : ""}
+      h += `<fieldset class="q" data-n="${n}"><legend><span class="n">${n + 1}</span>${q.gen ? "" : inline(q.question)}</legend>${q.gen ? `<div class="q-enonce">${md(q.question)}</div>` : ""}${q.figure ? figure(q.figure) : ""}${q.svg ? `<figure class="fig">${q.svg}</figure>` : ""}${q.tableau ? tableau(q.tableau) : ""}
         <div class="choix">${q.ordre.map((k) => `<label class="opt"><input type="radio" name="q${n}" value="${k}" id="q${n}c${k}"><span>${inline(q.choix[k])}</span></label>`).join("")}</div>
         <div class="expl" hidden></div></fieldset>`;
     });
@@ -745,7 +801,7 @@
         ex.innerHTML = `<strong>${ok ? "Juste." : choisi ? "Faux." : "Sans réponse."}</strong> ${md(q.explication)}`;
       });
       // QCM déjà bien réussi : il rapporte beaucoup moins d'XP
-      const avant = prog.qcm[id], tot = qs.length;
+      const avant = prog.qcm[id] === undefined ? undefined : Math.min(prog.qcm[id], qs.length), tot = qs.length;
       const record = avant === undefined || bon > avant;
       const coef = coefRejeu(avant === undefined, bon > avant, avant >= tot);
       prog.qcm[id] = Math.max(avant || 0, bon);
@@ -833,7 +889,14 @@
   // o = { cible: élément où jouer, retour: fonction du bouton retour, libelle: texte du bilan }
   function lancerChrono(J, theme, o) {
     const $c = o.cible;
-    const gen = () => GEN[theme.series[Math.floor(Math.random() * theme.series.length)]](Math.floor(Math.random() * 5));
+    // Défi : pas de question déjà posée parmi les 20 dernières
+    const derniers = [], vusDefi = new Set();
+    const gen = () => {
+      const q = tirerSansDoublon(() => GEN[theme.series[Math.floor(Math.random() * theme.series.length)]](Math.floor(Math.random() * 5)), vusDefi);
+      derniers.push(cleQuestion(q));
+      if (derniers.length > 20) vusDefi.delete(derniers.shift());
+      return q;
+    };
     let vies = J.vies, score = 0, serie = 0, bonnes = 0, n = 0;
     let reste = J.duree * 1000, depart = 0, enPause = true, fini = false;
     $c.innerHTML = `<div class="jeu">

@@ -173,7 +173,22 @@ window.CHAPITRES["premiere-suites-arithmetiques"] = {
       choix: ["$24$", "$10$", "$16$", "$4$"],
       bonne: 0,
       explication: "$4! = 1 \\times 2 \\times 3 \\times 4 = 24$."
-    }
+    },
+    { question: "Laquelle de ces suites est arithmétique ?", choix: ["$u_n = 4n - 7$", "$u_n = n^2 + 1$", "$u_n = 3 \\times 2^n$", "$u_n = \\dfrac{1}{n + 1}$"], bonne: 0, explication: "$u_{n+1} - u_n = 4(n + 1) - 7 - (4n - 7) = 4$ : la différence est constante, la raison est $4$." },
+    { question: "$u_0 = 12$ et $u_{n+1} = u_n - 3$. Pour tout $n$, $u_n$ est égal à :", choix: ["$12 - 3n$", "$12 \\times (-3)^n$", "$-3 + 12n$", "$12 - 3(n - 1)$"], bonne: 0, explication: "On retire $3$ à chaque étape : suite arithmétique de raison $-3$ et de premier terme $u_0 = 12$, donc $u_n = 12 - 3n$." },
+    { question: "$(u_n)$ est arithmétique, avec $u_5 = 20$ et $r = 4$. Combien vaut $u_{12}$ ?", choix: ["$48$", "$68$", "$52$", "$44$"], bonne: 0, explication: "$u_{12} = u_5 + (12 - 5) \\times 4 = 20 + 28 = 48$." },
+    { question: "$(u_n)$ est arithmétique, avec $u_4 = 10$ et $r = 2{,}5$. Alors $u_0$ vaut :", choix: ["$0$", "$20$", "$7{,}5$", "$10$"], bonne: 0, explication: "$u_4 = u_0 + 4r$, donc $u_0 = 10 - 4 \\times 2{,}5 = 0$." },
+    { question: "$u_0 = 1$, $u_1 = 3$ et $u_2 = 7$. La suite $(u_n)$ :", choix: ["n'est pas arithmétique, car $u_1 - u_0 \\neq u_2 - u_1$", "est arithmétique de raison $2$", "est arithmétique de raison $3$", "est arithmétique, puisqu'elle est croissante"], bonne: 0, explication: "$u_1 - u_0 = 2$ mais $u_2 - u_1 = 4$ : la différence n'est pas constante. Ce contre-exemple suffit." },
+    { question: "Pour son permis, Anli a $300$ € et met $45$ € de côté chaque mois. Après $n$ mois, il a (en €) :", choix: ["$300 + 45n$", "$300 \\times 45^n$", "$45 + 300n$", "$300 \\times 1{,}45^n$"], bonne: 0, explication: "On ajoute toujours $45$ € : suite arithmétique de premier terme $300$ et de raison $45$." },
+    { question: "Anli a $300$ € et met $45$ € de côté chaque mois. Au bout de combien de mois aura-t-il exactement $1\\,200$ € ?", choix: ["$20$ mois", "$27$ mois", "$26$ mois", "$30$ mois"], bonne: 0, explication: "$300 + 45n = 1\\,200 \\iff 45n = 900 \\iff n = 20$. ($27$ mois oublie les $300$ € de départ.)" },
+    { question: "La suite arithmétique de premier terme $u_0 = -50$ et de raison $0{,}5$ est :", choix: ["croissante", "décroissante", "constante", "négative pour tout $n$"], bonne: 0, explication: "Le sens de variation dépend du signe de la raison, pas du premier terme : $r = 0{,}5 > 0$. Elle devient positive à partir de $n = 101$." },
+    { question: "Les points $(n\\,;u_n)$ de la suite $u_n = 7 - 2n$ sont alignés sur une droite de coefficient directeur :", choix: ["$-2$", "$7$", "$2$", "$-\\dfrac{7}{2}$"], bonne: 0, explication: "$u_n = f(n)$ avec $f(x) = -2x + 7$ : le coefficient directeur est la raison $-2$, et $7$ est l'ordonnée à l'origine." },
+    { question: "Dans la démonstration de $u_n = u_0 + nr$, on additionne les égalités $u_1 - u_0 = r$, $u_2 - u_1 = r$, …, $u_n - u_{n-1} = r$. Le membre de gauche se simplifie en :", choix: ["$u_n - u_0$", "$u_n + u_0$", "$n \\times u_n$", "$0$"], bonne: 0, explication: "Les termes intermédiaires $u_1$, $u_2$, …, $u_{n-1}$ apparaissent une fois avec $+$ et une fois avec $-$ : il reste $u_n - u_0 = nr$." },
+    { question: "Combien vaut $1 + 2 + \\dots + 30$ ?", choix: ["$465$", "$450$", "$930$", "$900$"], bonne: 0, explication: "$\\dfrac{30 \\times 31}{2} = \\dfrac{930}{2} = 465$. ($930$ oublie la division par $2$.)" },
+    { question: "Combien de termes compte la somme $u_5 + u_6 + \\dots + u_{20}$ ?", choix: ["$16$", "$15$", "$20$", "$25$"], bonne: 0, explication: "De $u_p$ à $u_n$, il y a $n - p + 1$ termes : $20 - 5 + 1 = 16$." },
+    { question: "La somme $5 + 8 + 11 + \\dots + 32$ vaut :", choix: ["$185$", "$370$", "$166{,}5$", "$148$"], bonne: 0, explication: "Raison $3$ : $\\dfrac{32 - 5}{3} + 1 = 10$ termes. $S = 10 \\times \\dfrac{5 + 32}{2} = 185$." },
+    { question: "La somme $2 + 4 + 6 + \\dots + 100$ vaut :", choix: ["$2\\,550$", "$5\\,050$", "$2\\,500$", "$5\\,100$"], bonne: 0, explication: "$50$ termes, de $2$ à $100$ : $S = 50 \\times \\dfrac{2 + 100}{2} = 50 \\times 51 = 2\\,550$. C'est aussi $2 \\times (1 + 2 + \\dots + 50) = 2 \\times 1\\,275$." },
+    { question: "Avec la fonction $\\texttt{somme}$ du cours ($u_0 = 40$, raison $6$), que renvoie $\\texttt{somme(2)}$ ?", choix: ["$138$", "$86$", "$52$", "$46$"], bonne: 0, explication: "Au départ $\\texttt{s} = 40$ ; la boucle tourne $2$ fois : $\\texttt{u} = 46$ puis $52$, et $\\texttt{s} = 40 + 46 + 52 = 138$." }
   ],
 
   /* ---------- 4. FICHE MÉTHODE ---------- */

@@ -266,7 +266,17 @@ window.CHAPITRES["terminale-lois-discretes"] = {
       choix: ["Loi géométrique", "Loi binomiale", "Les deux", "Aucune des deux"],
       bonne: 1,
       explication: "Binomiale : $n$ essais fixés, c'est le nombre de succès qui varie. Géométrique : on s'arrête au premier succès."
-    }
+    },
+    { question: "$X$ suit une loi de Bernoulli avec $E(X) = 0{,}6$. Que vaut $P(X = 0)$ ?", choix: ["$0{,}4$", "$0{,}6$", "$0{,}24$", "$0$"], bonne: 0, explication: "Pour une loi de Bernoulli, $E(X) = p = 0{,}6$, donc $P(X = 0) = 1 - p = 0{,}4$. $0{,}24 = p(1 - p)$ est la variance." },
+    { question: "$X$ suit $\\mathcal{B}(3\\,;0{,}5)$. Que vaut $P(X = 2)$ ?", choix: ["$0{,}375$", "$0{,}125$", "$0{,}25$", "$0{,}5$"], bonne: 0, explication: "$P(X = 2) = \\dbinom{3}{2} \\times 0{,}5^2 \\times 0{,}5^1 = 3 \\times 0{,}125 = 0{,}375$. Trois chemins ont exactement $2$ succès." },
+    { question: "$X$ suit $\\mathcal{B}(100\\,;0{,}1)$. L'écart type $\\sigma(X)$ vaut :", choix: ["$3$", "$9$", "$10$", "$0{,}3$"], bonne: 0, explication: "$V(X) = np(1 - p) = 100 \\times 0{,}1 \\times 0{,}9 = 9$, donc $\\sigma(X) = \\sqrt{9} = 3$. $9$ est la variance et $10$ l'espérance." },
+    { question: "$X$ suit $\\mathcal{B}(n\\,;0{,}4)$ et $E(X) = 12$. Alors $n =$", choix: ["$30$", "$4{,}8$", "$12$", "$48$"], bonne: 0, explication: "$E(X) = np$, donc $0{,}4n = 12$ et $n = \\dfrac{12}{0{,}4} = 30$." },
+    { question: "$X$ suit $\\mathcal{B}(5\\,;0{,}2)$. Que vaut $P(X \\geqslant 1)$ ?", choix: ["$1 - 0{,}8^5$", "$0{,}8^5$", "$1 - 0{,}2^5$", "$5 \\times 0{,}2$"], bonne: 0, explication: "Le contraire de « au moins un succès » est « aucun succès », de probabilité $0{,}8^5$. Donc $P(X \\geqslant 1) = 1 - 0{,}8^5 \\approx 0{,}672$." },
+    { question: "$X$ suit une loi binomiale. $P(X > 4)$ s'écrit…", choix: ["$1 - P(X \\leqslant 4)$", "$1 - P(X \\leqslant 3)$", "$1 - P(X \\geqslant 4)$", "$P(X \\leqslant 4)$"], bonne: 0, explication: "On garde les entiers à partir de $5$ : le contraire de $X > 4$ est $X \\leqslant 4$. À ne pas confondre avec $P(X \\geqslant 4) = 1 - P(X \\leqslant 3)$." },
+    { question: "On lance un dé équilibré jusqu'à obtenir un $6$. En moyenne, combien de lancers faut-il ?", choix: ["$6$", "$3{,}5$", "$\\dfrac{1}{6}$", "$3$"], bonne: 0, explication: "Le rang du premier $6$ suit la loi géométrique $\\mathcal{G}\\left(\\dfrac{1}{6}\\right)$, d'espérance $\\dfrac{1}{p} = 6$. $3{,}5$ est la moyenne des résultats d'un lancer." },
+    { question: "$T$ suit $\\mathcal{G}(0{,}5)$. Que vaut $P(T > 3)$ ?", choix: ["$0{,}125$", "$0{,}0625$", "$0{,}875$", "$0{,}5$"], bonne: 0, explication: "$T > 3$ signifie trois échecs de suite : $P(T > 3) = 0{,}5^3 = 0{,}125$. $0{,}875 = 1 - 0{,}5^3$ est $P(T \\leqslant 3)$." },
+    { question: "À la pêche dans le lagon, chaque lancer de ligne prend un poisson avec la probabilité $0{,}15$, de façon indépendante. Le nombre $N$ de lancers jusqu'au premier poisson suit :", choix: ["la loi géométrique $\\mathcal{G}(0{,}15)$", "la loi binomiale $\\mathcal{B}(10\\,;0{,}15)$", "une loi uniforme", "la loi de Bernoulli de paramètre $0{,}15$"], bonne: 0, explication: "$N$ est le rang du premier succès dans des essais indépendants de même probabilité : c'est la loi géométrique. Le nombre d'essais n'est pas fixé à l'avance." },
+    { question: "$\\dbinom{4}{1} + \\dbinom{4}{2}$ est égal à :", choix: ["$\\dbinom{5}{2}$", "$\\dbinom{8}{3}$", "$\\dbinom{4}{3}$", "$\\dbinom{5}{1}$"], bonne: 0, explication: "Triangle de Pascal : $\\dbinom{n - 1}{k - 1} + \\dbinom{n - 1}{k} = \\dbinom{n}{k}$ avec $n = 5$ et $k = 2$. Vérification : $4 + 6 = 10 = \\dbinom{5}{2}$." }
   ],
 
   /* ---------- 4. FICHE MÉTHODE ---------- */

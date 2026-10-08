@@ -284,7 +284,18 @@ window.CHAPITRES["premiere-derivation-1"] = {
       choix: ["$f'(a) = -4$", "$f(a) = -4$", "$a = -4$", "la tangente passe par $(0\\,;-4)$"],
       bonne: 0,
       explication: "La limite des pentes des sécantes est le nombre dérivé, pente de la tangente."
-    }
+    },
+    { question: "Le taux de variation de $f(x) = 3x - 7$ entre $2$ et $10$ vaut :", choix: ["$3$", "$24$", "$8$", "$-7$"], bonne: 0, explication: "$\\dfrac{f(10) - f(2)}{10 - 2} = \\dfrac{23 - (-1)}{8} = \\dfrac{24}{8} = 3$. Pour une fonction affine, le taux de variation est toujours le coefficient directeur." },
+    { question: "Le taux de variation de $f(x) = x^2$ entre $-2$ et $1$ vaut :", choix: ["$-1$", "$1$", "$-3$", "$3$"], bonne: 0, explication: "$\\dfrac{f(1) - f(-2)}{1 - (-2)} = \\dfrac{1 - 4}{3} = -1$. Sans diviser par l'écart $3$, on trouverait $-3$." },
+    { question: "Pour $f(x) = 2x^2$ et $h \\neq 0$, le taux $\\dfrac{f(1 + h) - f(1)}{h}$ vaut :", choix: ["$4 + 2h$", "$2 + 2h$", "$4 + h$", "$2h$"], bonne: 0, explication: "$f(1 + h) - f(1) = 2(1 + 2h + h^2) - 2 = 4h + 2h^2$, puis on divise par $h$ : $4 + 2h$. Donc $f'(1) = 4$." },
+    { question: "Pour $f(x) = x^2 + 5x$, on trouve $\\dfrac{f(a + h) - f(a)}{h} = 2a + 5 + h$. Le nombre dérivé $f'(a)$ vaut :", choix: ["$2a + 5$", "$2a + 5 + h$", "$a^2 + 5a$", "$5$"], bonne: 0, explication: "Quand $h$ se rapproche de $0$, $2a + 5 + h$ se rapproche de $2a + 5$. Un nombre dérivé ne dépend pas de $h$, et $a^2 + 5a$ est l'image $f(a)$." },
+    { question: "Pour $f(x) = \\dfrac{1}{x}$, la tangente au point d'abscisse $-1$ a pour coefficient directeur :", choix: ["$-1$", "$1$", "$-\\dfrac{1}{2}$", "$0$"], bonne: 0, explication: "$f'(a) = -\\dfrac{1}{a^2}$, donc $f'(-1) = -\\dfrac{1}{(-1)^2} = -1$. Le carré est positif : ce nombre dérivé reste négatif." },
+    { question: "$f(-2) = 3$ et $f'(-2) = 4$. La tangente au point d'abscisse $-2$ a pour équation :", choix: ["$y = 4x + 11$", "$y = 4x - 5$", "$y = 4x + 3$", "$y = 3x + 10$"], bonne: 0, explication: "$y = f'(-2)(x - (-2)) + f(-2) = 4(x + 2) + 3 = 4x + 11$. Vérification : pour $x = -2$, $y = -8 + 11 = 3$." },
+    { question: "La tangente à la courbe de $f$ en $A(1\\,;2)$ passe aussi par $B(3\\,;3)$. Alors $f'(1) =$", choix: ["$\\dfrac{1}{2}$", "$1$", "$2$", "$3$"], bonne: 0, explication: "$f'(1)$ est la pente de la tangente : $\\dfrac{3 - 2}{3 - 1} = \\dfrac{1}{2}$. On avance de $2$ et on monte de $1$." },
+    { question: "$f(3) = 9$ et $f'(3) = 6$. Une valeur approchée de $f(2{,}99)$ est :", choix: ["$8{,}94$", "$9{,}06$", "$8{,}99$", "$8{,}4$"], bonne: 0, explication: "$f(3 + h) \\approx f(3) + f'(3)\\,h$ avec $h = -0{,}01$ : $9 + 6 \\times (-0{,}01) = 8{,}94$. Ici $h$ est négatif." },
+    { question: "Un taxi parcourt $d(t) = 0{,}8t^2$ mètres en $t$ secondes. Sa vitesse moyenne entre $t = 0$ et $t = 5$ s vaut :", choix: ["$4$ m/s", "$20$ m/s", "$8$ m/s", "$0{,}8$ m/s"], bonne: 0, explication: "$\\dfrac{d(5) - d(0)}{5 - 0} = \\dfrac{20}{5} = 4$ m/s : c'est la pente d'une sécante. $8$ m/s est la vitesse instantanée $d'(5)$." },
+    { question: "Vrai ou faux : si $f(a) = 0$, alors $f'(a) = 0$.", choix: ["Faux", "Vrai"], bonne: 0, explication: "Contre-exemple : $f(x) = 2x$ vérifie $f(0) = 0$, mais toutes ses sécantes ont pour pente $2$, donc $f'(0) = 2$. Ne confonds pas l'ordonnée $f(a)$ et la pente $f'(a)$." },
+    { question: "Avec $f(x) = x^2$, que renvoie environ $\\texttt{pentes(1, [1, 0.1])}$ (programme du cours) ?", choix: ["$\\texttt{[3.0, 2.1]}$", "$\\texttt{[4, 1.21]}$", "$\\texttt{[2, 2]}$", "$\\texttt{[3.0, 3.0]}$"], bonne: 0, explication: "Pour $h = 1$ : $\\dfrac{4 - 1}{1} = 3$. Pour $h = 0{,}1$ : $\\dfrac{1{,}21 - 1}{0{,}1} = 2{,}1$. Ces pentes $2 + h$ se rapprochent de $f'(1) = 2$." }
   ],
 
   /* ---------- 4. FICHE MÉTHODE ---------- */

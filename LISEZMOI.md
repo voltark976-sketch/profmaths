@@ -50,8 +50,11 @@ Les niveaux du catalogue sont Seconde, Automatismes, Première spécialité, Ter
   Les règles d'écriture sont rappelées en haut du fichier.
 
 ## Le reste
-- `assets/exercices.js` : graphiques et générateurs d'exercices aléatoires (indices et solutions).
+- `assets/exercices.js` : graphiques et générateurs d'exercices aléatoires (indices et solutions). `graph()` place seul les étiquettes (points, courbes, vecteurs, droites horizontales, nom de l'axe) là où elles ne se chevauchent pas, et n'écrit pas un nombre d'axe qui tomberait dessous.
 - `assets/app.js` : navigation, QCM, points et étoiles.
+  - Une série ne pose jamais deux fois la même question, et évite celles de l'essai précédent ; le Défi évite les 20 dernières questions.
+  - Un QCM compte 12 questions : 9 tirées dans la banque du chapitre (en évitant celles de l'essai précédent) et 3 questions à choix fabriquées par les générateurs du chapitre. Les banques peuvent donc grandir sans allonger le QCM.
+  - Une liste écrite dans une seule formule avec « ; » (`$3 ; 11 ; 19$`) est coupée en petites formules pour passer à la ligne sur téléphone : séparer les listes par « ; » plutôt que par `\,;\,`.
 - `assets/compte.js` : comptes élèves et sauvegarde de la progression.
 - `assets/style.css` : mise en page, thème clair et sombre.
 - `assets/katex/` : affichage des formules, hébergé avec le site (pas de dépendance externe).
