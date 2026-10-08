@@ -309,6 +309,13 @@ window.CATALOGUE = {
           titre: "Variables aléatoires",
           statut: "disponible",
           drive: ""
+        },
+        {
+          id: "premiere-produit-scalaire-2",
+          numero: 14,
+          titre: "Produit scalaire 2",
+          statut: "disponible",
+          drive: ""
         }
       ]
     },

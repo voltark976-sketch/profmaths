@@ -38,6 +38,7 @@ Site statique : aucune base de données, aucun compte élève. Ouvrir `index.htm
   - `produit-scalaire-1.js` : chapitre 11, produit scalaire (cosinus, projection, coordonnées, orthogonalité, travail d'une force). Générateurs `ps-`.
   - `exponentielle.js` : chapitre 12, fonction exponentielle (définition, relation fonctionnelle, e^(at), suites géométriques, Euler). Générateurs `ex-`.
   - `variables-aleatoires.js` : chapitre 13, variables aléatoires (loi, espérance, variance, tombola, épreuves répétées en arbre). Générateurs `va-` (et `ld-loi-esperance`).
+  - `produit-scalaire-2.js` : chapitre 14, produit scalaire (bilinéarité, identités, Al-Kashi, îlots du lagon, MA · MB = 0, contraposée). Générateurs `sc-`.
 - `data/terminale-spe/denombrement.js` : chapitre 14 de Terminale spécialité (combinatoire et dénombrement). Les générateurs d'exercices correspondants commencent par `cd-` dans `assets/exercices.js`.
 - `data/terminale/lois-discretes.js` : chapitre 2 de Terminale maths complémentaires.
 

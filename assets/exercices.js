@@ -7509,6 +7509,173 @@
   };
 
 
+  /* ---------- Première, chapitre 14 : produit scalaire 2 (préfixe sc-) ---------- */
+  // Triangle ABC pour Al-Kashi : côtés a, b, c et angle en A
+  FIGURES["al-kashi"] = () => {
+    const A = [40, 190], B = [290, 190], C = [120, 50];
+    let s = `<svg class="graph" viewBox="0 0 320 220" role="img" aria-label="Triangle ABC : a = BC est le côté opposé à l'angle A, b = AC et c = AB">`;
+    s += `<path d="M${A} L${B} L${C} Z" style="fill:var(--lagon-pale);stroke:var(--lagon);stroke-width:2"/>`;
+    s += `<path d="M${A[0] + 34} ${A[1]} A34 34 0 0 0 ${(A[0] + 34 * Math.cos(1.05)).toFixed(1)} ${(A[1] - 34 * Math.sin(1.05)).toFixed(1)}" style="fill:none;stroke:var(--ylang);stroke-width:2"/><text class="g-label" x="${A[0] + 40}" y="${A[1] - 12}" style="fill:var(--ylang)">Â</text>`;
+    s += psPoint(...A, "A", -10, 14) + psPoint(...B, "B", 10, 14) + psPoint(...C, "C", 0, -10);
+    s += `<text class="g-clabel" x="165" y="208" text-anchor="middle">c = AB</text><text class="g-clabel" x="62" y="114" text-anchor="middle">b = AC</text><text class="g-clabel g-curve-1" x="222" y="112" text-anchor="middle">a = BC</text>`;
+    return s + `</svg>`;
+  };
+  // Deux îlots A et B vus depuis une pirogue P
+  FIGURES["ilots"] = () => {
+    const P = [50, 185], A = [230, 175], B = [175, 45];
+    let s = `<svg class="graph" viewBox="0 0 320 220" role="img" aria-label="Depuis une pirogue P, on vise l'îlot A à 2,4 km et l'îlot B à 3,1 km ; l'angle entre les deux visées mesure 52°">`;
+    s += `<rect x="0" y="0" width="320" height="220" style="fill:var(--lagon-pale);opacity:.45"/>`;
+    s += `<ellipse cx="${A[0] + 18}" cy="${A[1] - 4}" rx="34" ry="14" style="fill:var(--ylang-pale);stroke:var(--ylang);stroke-width:1.5"/><ellipse cx="${B[0] + 22}" cy="${B[1] - 6}" rx="42" ry="16" style="fill:var(--ylang-pale);stroke:var(--ylang);stroke-width:1.5"/>`;
+    s += `<line x1="${P[0]}" y1="${P[1]}" x2="${A[0]}" y2="${A[1]}" style="stroke:var(--encre);stroke-width:1.5"/><line x1="${P[0]}" y1="${P[1]}" x2="${B[0]}" y2="${B[1]}" style="stroke:var(--encre);stroke-width:1.5"/><line x1="${A[0]}" y1="${A[1]}" x2="${B[0]}" y2="${B[1]}" style="stroke:var(--courbe2);stroke-width:2;stroke-dasharray:6 4"/>`;
+    s += `<path d="M${P[0] + 40} ${(P[1] - 2.2).toFixed(1)} A40 40 0 0 0 ${(P[0] + 40 * Math.cos(0.85)).toFixed(1)} ${(P[1] - 40 * Math.sin(0.85)).toFixed(1)}" style="fill:none;stroke:var(--encre);stroke-width:1.2"/><text class="g-label" x="${P[0] + 46}" y="${P[1] - 18}">52°</text>`;
+    s += psPoint(...P, "P", -8, 16) + psPoint(...A, "A", 4, 22) + psPoint(...B, "B", -12, -6);
+    s += `<text class="g-clabel" x="140" y="198" text-anchor="middle">2,4 km</text><text class="g-clabel" x="96" y="104" text-anchor="middle">3,1 km</text><text class="g-clabel g-curve-1" x="232" y="108">? km</text>`;
+    return s + `</svg>`;
+  };
+  // Cercle de diamètre [AB] : MA · MB = 0
+  FIGURES["cercle-diametre"] = () => {
+    const I = [160, 120], R = 90, A = [I[0] - R, I[1]], B = [I[0] + R, I[1]], t = 2.1, M = [+(I[0] + R * Math.cos(t)).toFixed(1), +(I[1] - R * Math.sin(t)).toFixed(1)];
+    let s = `<svg class="graph" viewBox="0 0 320 235" role="img" aria-label="Le cercle de diamètre [AB] : pour tout point M du cercle, le triangle AMB est rectangle en M">`;
+    s += `<circle cx="${I[0]}" cy="${I[1]}" r="${R}" class="g-curve" style="fill:none"/><line x1="${A[0]}" y1="${A[1]}" x2="${B[0]}" y2="${B[1]}" style="stroke:var(--doux);stroke-width:1.2"/>`;
+    s += psFleche(...M, ...A, "--courbe2") + psFleche(...M, ...B, "--courbe2");
+    const u1 = [A[0] - M[0], A[1] - M[1]], u2 = [B[0] - M[0], B[1] - M[1]], n1 = Math.hypot(...u1), n2 = Math.hypot(...u2), k = 14;
+    const p1 = [M[0] + (k * u1[0]) / n1, M[1] + (k * u1[1]) / n1], p2 = [M[0] + (k * u2[0]) / n2, M[1] + (k * u2[1]) / n2], p3 = [p1[0] + p2[0] - M[0], p1[1] + p2[1] - M[1]];
+    s += `<path d="M${p1.map((v) => v.toFixed(1))} L${p3.map((v) => v.toFixed(1))} L${p2.map((v) => v.toFixed(1))}" style="fill:none;stroke:var(--encre);stroke-width:1.2"/>`;
+    s += psPoint(...A, "A", -10, 4) + psPoint(...B, "B", 12, 4) + psPoint(...I, "I", 0, 18) + psPoint(...M, "M", -6, -10);
+    return s + `<text class="g-label" x="160" y="228" text-anchor="middle">MA · MB = 0 ⟺ M sur le cercle de diamètre [AB]</text></svg>`;
+  };
+
+  GEN["sc-bilineaire"] = function () {
+    const nu = rand(2, 5), nv = rand(1, 4), uv = randNZ(-6, 6), u2 = nu * nu, v2 = nv * nv;
+    const T = [
+      ["\\|\\vec{u} + \\vec{v}\\|^2", u2 + 2 * uv + v2, `$\\|\\vec{u} + \\vec{v}\\|^2 = \\|\\vec{u}\\|^2 + 2\\,\\vec{u} \\cdot \\vec{v} + \\|\\vec{v}\\|^2 = ${u2} + 2 \\times ${par(uv)} + ${v2}`, u2 + v2],
+      ["\\|\\vec{u} - \\vec{v}\\|^2", u2 - 2 * uv + v2, `$\\|\\vec{u} - \\vec{v}\\|^2 = \\|\\vec{u}\\|^2 - 2\\,\\vec{u} \\cdot \\vec{v} + \\|\\vec{v}\\|^2 = ${u2} - 2 \\times ${par(uv)} + ${v2}`, u2 + v2],
+      ["(\\vec{u} + \\vec{v}) \\cdot (\\vec{u} - \\vec{v})", u2 - v2, `$(\\vec{u} + \\vec{v}) \\cdot (\\vec{u} - \\vec{v}) = \\|\\vec{u}\\|^2 - \\|\\vec{v}\\|^2 = ${u2} - ${v2}`, u2 + v2],
+      ["\\vec{u} \\cdot (2\\vec{u} - 3\\vec{v})", 2 * u2 - 3 * uv, `$\\vec{u} \\cdot (2\\vec{u} - 3\\vec{v}) = 2\\|\\vec{u}\\|^2 - 3\\,\\vec{u} \\cdot \\vec{v} = 2 \\times ${u2} - 3 \\times ${par(uv)}`, 2 * u2 - 3],
+      ["(2\\vec{u} + \\vec{v}) \\cdot \\vec{v}", 2 * uv + v2, `$(2\\vec{u} + \\vec{v}) \\cdot \\vec{v} = 2\\,\\vec{u} \\cdot \\vec{v} + \\|\\vec{v}\\|^2 = 2 \\times ${par(uv)} + ${v2}`, uv + v2]
+    ];
+    const [ex, rep, sol, err] = pick(T);
+    return {
+      enonce: `On sait que $\\|\\vec{u}\\| = ${nu}$, $\\|\\vec{v}\\| = ${nv}$ et $\\vec{u} \\cdot \\vec{v} = ${uv}$. Calcule $${ex}$.`,
+      mode: "nombre", prefixe: "Résultat :", attendu: rep,
+      erreurs: [{ valeur: err, message: "Développe comme une identité remarquable, sans oublier le terme $2\\,\\vec{u} \\cdot \\vec{v}$ (ou les coefficients)." }].filter((e) => e.valeur !== rep),
+      aides: ["Le produit scalaire se développe comme un produit de nombres : il est symétrique et bilinéaire.", "$\\vec{u} \\cdot \\vec{u} = \\|\\vec{u}\\|^2$.", "Remplace par les valeurs données."],
+      solution: `${sol} = ${rep}$.`
+    };
+  };
+
+  GEN["sc-normes"] = function () {
+    const nu = rand(2, 6), nv = rand(2, 6), uv = randNZ(-8, 8), plus = Math.random() < 0.5;
+    const s2 = plus ? nu * nu + 2 * uv + nv * nv : nu * nu - 2 * uv + nv * nv;
+    if (s2 <= 0) return GEN["sc-normes"]();
+    return {
+      enonce: `On sait que $\\|\\vec{u}\\| = ${nu}$, $\\|\\vec{v}\\| = ${nv}$ et $\\|\\vec{u} ${plus ? "+" : "-"} \\vec{v}\\|^2 = ${s2}$. Calcule $\\vec{u} \\cdot \\vec{v}$.`,
+      mode: "nombre", prefixe: "$\\vec{u} \\cdot \\vec{v} =$", attendu: uv,
+      erreurs: [{ valeur: -uv, message: `Attention au signe : $\\|\\vec{u} ${plus ? "+" : "-"} \\vec{v}\\|^2 = \\|\\vec{u}\\|^2 ${plus ? "+" : "-"} 2\\,\\vec{u} \\cdot \\vec{v} + \\|\\vec{v}\\|^2$.` }, { valeur: 2 * uv, message: "N'oublie pas de diviser par $2$." }],
+      aides: [`$\\|\\vec{u} ${plus ? "+" : "-"} \\vec{v}\\|^2 = \\|\\vec{u}\\|^2 ${plus ? "+" : "-"} 2\\,\\vec{u} \\cdot \\vec{v} + \\|\\vec{v}\\|^2$.`, `$${s2} = ${nu * nu} ${plus ? "+" : "-"} 2\\,\\vec{u} \\cdot \\vec{v} + ${nv * nv}$.`, "Isole $\\vec{u} \\cdot \\vec{v}$."],
+      solution: `$${s2} = ${nu * nu + nv * nv} ${plus ? "+" : "-"} 2\\,\\vec{u} \\cdot \\vec{v}$, donc $\\vec{u} \\cdot \\vec{v} = ${plus ? `\\dfrac{${s2} - ${nu * nu + nv * nv}}{2}` : `\\dfrac{${nu * nu + nv * nv} - ${s2}}{2}`} = ${uv}$.`
+    };
+  };
+
+  GEN["sc-alkashi"] = function () {
+    if (Math.random() < 0.5) {
+      const b = rand(2, 8), c = rand(2, 8), ang = pick([60, 120, 90]), cs = { 60: 0.5, 120: -0.5, 90: 0 }[ang], a2 = b * b + c * c - 2 * b * c * cs, q = Math.random() < 0.5;
+      const cT = { 60: "\\dfrac{1}{2}", 120: "\\left(-\\dfrac{1}{2}\\right)", 90: "0" }[ang];
+      return {
+        enonce: `Dans le triangle $ABC$, $AB = ${c}$, $AC = ${b}$ et $\\widehat{BAC} = ${ang}°$. Calcule ${q ? "$BC^2$" : "$BC$, arrondi au centième"}.`,
+        mode: "nombre", prefixe: q ? "$BC^2 =$" : "$BC \\approx$", attendu: q ? a2 : +Math.sqrt(a2).toFixed(2), tolerance: q ? 1e-9 : 0.006,
+        erreurs: q ? [{ valeur: b * b + c * c, message: ang === 90 ? "Exact ici, car l'angle est droit." : "Il manque le terme $-2 \\times AB \\times AC \\times \\cos \\widehat{A}$ : Pythagore ne vaut que pour un angle droit." }, { valeur: b * b + c * c + 2 * b * c * cs, message: "Attention au signe : $BC^2 = AB^2 + AC^2 - 2\\,AB \\times AC \\cos \\widehat{A}$." }].filter((e) => e.valeur !== a2) : [{ valeur: a2, message: "Ça, c'est $BC^2$ : prends la racine carrée." }],
+        aides: ["Formule d'Al-Kashi : $BC^2 = AB^2 + AC^2 - 2\\,AB \\times AC \\times \\cos \\widehat{BAC}$.", `$BC^2 = ${c}^2 + ${b}^2 - 2 \\times ${c} \\times ${b} \\times ${cT}$.`, q ? "Calcule." : "Calcule $BC^2$, puis sa racine carrée."],
+        solution: `$BC^2 = ${c * c} + ${b * b} - 2 \\times ${c} \\times ${b} \\times ${cT} = ${a2}$${q ? "" : `, donc $BC = \\sqrt{${a2}} \\approx ${fr(+Math.sqrt(a2).toFixed(2))}$`}.`
+      };
+    }
+    const [x, y, z, ang] = pick([[3, 5, 7, 120], [5, 8, 7, 60], [3, 8, 7, 60], [8, 5, 7, 60], [7, 8, 13, 120], [3, 4, 5, 90], [6, 8, 10, 90], [4, 5, 6, null], [5, 6, 8, null], [2, 3, 4, null]]);
+    // côtés : AB = x, AC = y, BC = z ; angle en A
+    const cosA = (x * x + y * y - z * z) / (2 * x * y), deg = +((Math.acos(cosA) * 180) / Math.PI).toFixed(1);
+    return {
+      enonce: `Dans le triangle $ABC$, $AB = ${x}$, $AC = ${y}$ et $BC = ${z}$. Calcule la mesure de l'angle $\\widehat{BAC}$ en degrés${ang ? "" : ", arrondie au dixième"}.`,
+      mode: "nombre", prefixe: "$\\widehat{BAC} \\approx$", suffixe: "°", attendu: ang || deg, tolerance: 0.051,
+      aides: ["Al-Kashi donne $\\cos \\widehat{A} = \\dfrac{AB^2 + AC^2 - BC^2}{2\\,AB \\times AC}$.", `$\\cos \\widehat{A} = \\dfrac{${x * x} + ${y * y} - ${z * z}}{2 \\times ${x} \\times ${y}} = ${frac(x * x + y * y - z * z, 2 * x * y)}$.`, "Utilise une valeur remarquable ou la touche $\\cos^{-1}$ de la calculatrice (mode degrés)."],
+      solution: `$\\cos \\widehat{A} = ${frac(x * x + y * y - z * z, 2 * x * y)}$, donc $\\widehat{BAC} ${ang ? "=" : "\\approx"} ${fr(ang || deg)}°$.${ang === 90 ? " Le triangle est rectangle en $A$ : on retrouve Pythagore." : ""}`
+    };
+  };
+
+  GEN["sc-ilots"] = function () {
+    const d1 = pick([1.8, 2.4, 3, 3.5]), d2 = pick([2.2, 3.1, 4, 2.8]), ang = pick([35, 48, 52, 65, 80, 110]);
+    const d = Math.sqrt(d1 * d1 + d2 * d2 - 2 * d1 * d2 * Math.cos((ang * Math.PI) / 180)), v = +d.toFixed(2);
+    return {
+      enonce: `Depuis une pirogue $P$ dans le lagon, on mesure la distance à deux îlots : $PA = ${fr(d1)}$ km et $PB = ${fr(d2)}$ km. L'angle $\\widehat{APB}$ entre les deux visées mesure $${ang}°$. Quelle est la distance $AB$ entre les deux îlots, arrondie au centième de km ?`,
+      mode: "nombre", prefixe: "$AB \\approx$", suffixe: "km", attendu: v, tolerance: 0.006,
+      erreurs: [{ valeur: +Math.sqrt(d1 * d1 + d2 * d2).toFixed(2), message: "Pythagore ne s'applique que si l'angle est droit : utilise Al-Kashi." }].filter((e) => Math.abs(e.valeur - v) > 0.006),
+      aides: ["Al-Kashi : $AB^2 = PA^2 + PB^2 - 2\\,PA \\times PB \\times \\cos \\widehat{APB}$.", `$AB^2 = ${fr(d1)}^2 + ${fr(d2)}^2 - 2 \\times ${fr(d1)} \\times ${fr(d2)} \\times \\cos ${ang}°$.`, `$AB^2 \\approx ${fr(+(d * d).toFixed(3))}$, puis prends la racine carrée.`],
+      solution: `$AB^2 = ${fr(d1)}^2 + ${fr(d2)}^2 - 2 \\times ${fr(d1)} \\times ${fr(d2)} \\times \\cos ${ang}° \\approx ${fr(+(d * d).toFixed(3))}$, donc $AB \\approx ${fr(v)}$ km.`
+    };
+  };
+
+  GEN["sc-cercle"] = function () {
+    let A, B; do { A = [rand(-4, 2), rand(-4, 3)]; B = [A[0] + 2 * rand(-3, 3), A[1] + 2 * rand(-3, 3)]; } while (A[0] === B[0] && A[1] === B[1]);
+    const I = [(A[0] + B[0]) / 2, (A[1] + B[1]) / 2], r2 = ((B[0] - A[0]) ** 2 + (B[1] - A[1]) ** 2) / 4, t = rand(0, 2);
+    const pts = `$A(${A[0]}\\,;${A[1]})$ et $B(${B[0]}\\,;${B[1]})$`;
+    if (t === 0) {
+      const c = melangeChoix(`Le cercle de centre $I(${I[0]}\\,;${I[1]})$ et de rayon $\\sqrt{${r2}}$`.replace(`\\sqrt{${r2}}`, Number.isInteger(Math.sqrt(r2)) ? `${Math.sqrt(r2)}` : `\\sqrt{${r2}}`), [`La médiatrice de $[AB]$`, `Le cercle de centre $A$ passant par $B$`, `La droite $(AB)$`]);
+      return {
+        enonce: `Dans un repère orthonormé, ${pts}. Quel est l'ensemble des points $M$ tels que $\\overrightarrow{MA} \\cdot \\overrightarrow{MB} = 0$ ?`,
+        mode: "choix", choix: c.choix, attendu: c.attendu,
+        aides: ["$\\overrightarrow{MA} \\cdot \\overrightarrow{MB} = 0$ : l'angle $\\widehat{AMB}$ est droit (ou $M = A$, ou $M = B$).", "C'est le cercle de diamètre $[AB]$.", "Son centre est le milieu $I$ de $[AB]$ et son rayon vaut $\\dfrac{AB}{2}$."],
+        solution: `C'est le cercle de diamètre $[AB]$ : centre $I(${I[0]}\\,;${I[1]})$, milieu de $[AB]$, et rayon $\\dfrac{AB}{2} = \\sqrt{${r2}}$${Number.isInteger(Math.sqrt(r2)) ? ` $= ${Math.sqrt(r2)}$` : ""}.`
+      };
+    }
+    if (t === 1) {
+      return {
+        enonce: `Dans un repère orthonormé, ${pts}. L'ensemble des points $M$ tels que $\\overrightarrow{MA} \\cdot \\overrightarrow{MB} = 0$ est un cercle. Quel est le carré de son rayon ?`,
+        mode: "nombre", prefixe: "$r^2 =$", attendu: r2,
+        erreurs: [{ valeur: 4 * r2, message: "Ça, c'est $AB^2$. Le rayon vaut $\\dfrac{AB}{2}$, donc $r^2 = \\dfrac{AB^2}{4}$." }],
+        aides: ["C'est le cercle de diamètre $[AB]$.", `$AB^2 = ${par(B[0] - A[0])}^2 + ${par(B[1] - A[1])}^2 = ${4 * r2}$.`, "$r = \\dfrac{AB}{2}$, donc $r^2 = \\dfrac{AB^2}{4}$."],
+        solution: `$AB^2 = ${4 * r2}$, donc $r^2 = \\dfrac{${4 * r2}}{4} = ${r2}$.`
+      };
+    }
+    // M sur le cercle ?
+    const sur = Math.random() < 0.5;
+    let M; if (sur) { const c = [[I[0] + (B[1] - A[1]) / 2, I[1] - (B[0] - A[0]) / 2]][0]; M = c; } else M = [I[0] + rand(1, 3), I[1] + rand(1, 2)];
+    const ps = (A[0] - M[0]) * (B[0] - M[0]) + (A[1] - M[1]) * (B[1] - M[1]);
+    return {
+      enonce: `Dans un repère orthonormé, ${pts} et $M(${M[0]}\\,;${M[1]})$. Le triangle $AMB$ est-il rectangle en $M$ ?`,
+      mode: "choix", choix: ["Oui", "Non"], attendu: ps === 0 ? 0 : 1,
+      aides: ["Calcule $\\overrightarrow{MA} \\cdot \\overrightarrow{MB}$ avec les coordonnées.", `$\\overrightarrow{MA}\\begin{pmatrix} ${A[0] - M[0]} \\\\ ${A[1] - M[1]} \\end{pmatrix}$ et $\\overrightarrow{MB}\\begin{pmatrix} ${B[0] - M[0]} \\\\ ${B[1] - M[1]} \\end{pmatrix}$.`, "Rectangle en $M$ $\\iff \\overrightarrow{MA} \\cdot \\overrightarrow{MB} = 0$."],
+      solution: `$\\overrightarrow{MA} \\cdot \\overrightarrow{MB} = ${A[0] - M[0]} \\times ${par(B[0] - M[0])} + ${par(A[1] - M[1])} \\times ${par(B[1] - M[1])} = ${ps}$ : ${ps === 0 ? "le triangle est rectangle en $M$, et $M$ est sur le cercle de diamètre $[AB]$." : "non nul, le triangle n'est pas rectangle en $M$."}`
+    };
+  };
+
+  // Logique : contraposée et réciproque
+  GEN["sc-logique"] = function () {
+    const T = [
+      ["Quelle est la contraposée de « si $ABC$ est rectangle en $A$, alors $BC^2 = AB^2 + AC^2$ » ?", "Si $BC^2 \\neq AB^2 + AC^2$, alors $ABC$ n'est pas rectangle en $A$", ["Si $BC^2 = AB^2 + AC^2$, alors $ABC$ est rectangle en $A$", "Si $ABC$ n'est pas rectangle en $A$, alors $BC^2 \\neq AB^2 + AC^2$", "$ABC$ est rectangle en $A$ et $BC^2 \\neq AB^2 + AC^2$"], "La contraposée de « si P alors Q » est « si non Q alors non P ». La première proposition fausse est la **réciproque**."],
+      ["Si une implication est vraie, sa contraposée est :", "toujours vraie", ["toujours fausse", "vraie ou fausse selon les cas", "la même chose que la réciproque"], "Une implication et sa contraposée disent la même chose : elles sont vraies ou fausses en même temps."],
+      ["Si une implication est vraie, sa réciproque est :", "vraie ou fausse selon les cas", ["toujours vraie", "toujours fausse", "la même chose que la contraposée"], "Exemple : « si $x = 2$, alors $x^2 = 4$ » est vraie, mais sa réciproque « si $x^2 = 4$, alors $x = 2$ » est fausse ($x = -2$)."],
+      ["Un triangle a pour côtés $5$, $6$ et $8$. Est-il rectangle ?", "Non, car $8^2 \\neq 5^2 + 6^2$", ["Oui, car $8$ est le plus grand côté", "Oui, car $5 + 6 > 8$", "On ne peut pas savoir sans les angles"], "$8^2 = 64$ et $5^2 + 6^2 = 61$. Par la contraposée de Pythagore, le triangle n'est pas rectangle (il a un angle obtus, car $64 > 61$)."],
+      ["Contraposée de « si $\\vec{u} \\cdot \\vec{v} > 0$, alors l'angle entre $\\vec{u}$ et $\\vec{v}$ est aigu » (vecteurs non nuls) :", "Si l'angle n'est pas aigu, alors $\\vec{u} \\cdot \\vec{v} \\leqslant 0$", ["Si l'angle est aigu, alors $\\vec{u} \\cdot \\vec{v} > 0$", "Si $\\vec{u} \\cdot \\vec{v} \\leqslant 0$, alors l'angle n'est pas aigu", "Si l'angle est obtus, alors $\\vec{u} \\cdot \\vec{v} > 0$"], "On nie la conclusion (« pas aigu ») et l'hypothèse (« $\\leqslant 0$ »), puis on les échange."]
+    ];
+    const [q, b, f, s] = pick(T), c = melangeChoix(b, f);
+    return {
+      enonce: q, mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: ["Implication : « si P, alors Q ». Réciproque : « si Q, alors P ». Contraposée : « si non Q, alors non P ».", "Une implication et sa contraposée sont équivalentes.", "La réciproque peut être fausse même si l'implication est vraie."],
+      solution: s
+    };
+  };
+
+  GEN["sc-python"] = function () {
+    const [A, B, Cc, ang] = pick([[[0, 0], [4, 0], [2, 2], 45], [[0, 0], [3, 0], [0, 5], 90], [[0, 0], [2, 0], [-1, 1], 135], [[1, 1], [4, 1], [1, 6], 90], [[1, 2], [3, 2], [-2, 2], 180], [[0, 0], [2, 2], [3, 0], 45], [[2, 1], [5, 4], [5, -2], 90]]);
+    const code = "```python\nfrom math import sqrt, acos, degrees\n\ndef angle(A, B, C):\n    u = (B[0] - A[0], B[1] - A[1])\n    v = (C[0] - A[0], C[1] - A[1])\n    ps = u[0] * v[0] + u[1] * v[1]\n    nu = sqrt(u[0]**2 + u[1]**2)\n    nv = sqrt(v[0]**2 + v[1]**2)\n    return degrees(acos(ps / (nu * nv)))\n```";
+    const u = [B[0] - A[0], B[1] - A[1]], v = [Cc[0] - A[0], Cc[1] - A[1]], ps = u[0] * v[0] + u[1] * v[1];
+    return {
+      enonce: `${code}\n\nQue renvoie (environ) angle((${A[0]}, ${A[1]}), (${B[0]}, ${B[1]}), (${Cc[0]}, ${Cc[1]})) ?`,
+      mode: "nombre", prefixe: "Résultat :", suffixe: "°", attendu: ang, tolerance: 0.051,
+      aides: ["La fonction calcule l'angle $\\widehat{BAC}$ en degrés, avec $\\cos \\widehat{BAC} = \\dfrac{\\overrightarrow{AB} \\cdot \\overrightarrow{AC}}{AB \\times AC}$.", `$\\overrightarrow{AB}\\begin{pmatrix} ${u[0]} \\\\ ${u[1]} \\end{pmatrix}$, $\\overrightarrow{AC}\\begin{pmatrix} ${v[0]} \\\\ ${v[1]} \\end{pmatrix}$ et $\\overrightarrow{AB} \\cdot \\overrightarrow{AC} = ${ps}$.`, "Reconnais une valeur remarquable du cosinus."],
+      solution: `$\\overrightarrow{AB} \\cdot \\overrightarrow{AC} = ${ps}$, $AB = \\sqrt{${u[0] ** 2 + u[1] ** 2}}$ et $AC = \\sqrt{${v[0] ** 2 + v[1] ** 2}}$ : le cosinus vaut ${ang === 90 ? "$0$" : ang === 180 ? "$-1$" : ang === 45 ? "$\\dfrac{\\sqrt{2}}{2}$" : "$-\\dfrac{\\sqrt{2}}{2}$"}, donc l'angle mesure $${ang}°$ (Python peut afficher une valeur très proche, à cause des arrondis).`
+    };
+  };
+
+
   /* Séries « flash » d'un thème : mélange de ses générateurs */
   const THEMES = {
     "am-flash-cn": ["am-comparer", "am-fractions", "am-puissances", "am-ecritures", "am-ordre-grandeur", "am-coherence", "auto-conversions"],
@@ -7525,7 +7692,7 @@
 
 
   /* Une « erreur connue » ne doit jamais coïncider avec la bonne réponse (à la tolérance près) */
-  Object.keys(GEN).filter((k) => /^(ld|am|cd|ar|cl|fa|ve|st|vx|tc|co|dr|fr|sg|pc|ec|sy|su|s2|pi|s5|d1|tr|d2|vr|ps|ex|va)-/.test(k)).forEach((k) => {
+  Object.keys(GEN).filter((k) => /^(ld|am|cd|ar|cl|fa|ve|st|vx|tc|co|dr|fr|sg|pc|ec|sy|su|s2|pi|s5|d1|tr|d2|vr|ps|ex|va|sc)-/.test(k)).forEach((k) => {
     const g = GEN[k];
     GEN[k] = (i) => { const q = g(i); if (q.erreurs) q.erreurs = q.erreurs.filter((e) => Math.abs(e.valeur - q.attendu) >= (q.tolerance || 1e-9)); return q; };
   });
