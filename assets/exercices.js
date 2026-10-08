@@ -11397,6 +11397,117 @@
   };
 
 
+  /* ---------- Terminale maths complémentaires, chapitre 3 : suites arithmético-géométriques (préfixe tag-) ---------- */
+  FIGURES["tag-refroidissement"] = () => {
+    const pts = Array.from({ length: 13 }, (_, n) => ({ x: n, y: 25 + 65 * 0.8 ** n }));
+    return graph({ xmin: -0.8, xmax: 13.5, ymin: -8, ymax: 100, ystep: 10, yetiq: 20, padL: 30, h: 250, xlabel: "n (min)", ylabel: "°C", hlines: [{ y: 25, label: "25 °C" }], points: pts, aria: "Le plat passe de 90 °C à environ 26 °C en 12 minutes : la température se rapproche de 25 °C, la température de la pièce" });
+  };
+  FIGURES["tag-dette"] = () => {
+    const pts = []; let d = 3000; for (let n = 0; n <= 18 && d > -200; n++) { pts.push({ x: n, y: d }); d = 1.01 * d - 200; }
+    return graph({ xmin: -0.8, xmax: 18.5, ymin: -400, ymax: 3400, ystep: 500, yetiq: 1000, xetiq: 5, padL: 38, h: 240, xlabel: "n (mois)", ylabel: "€ dus", points: pts, aria: "Une dette de 3 000 € à 1 % par mois, remboursée 200 € par mois : elle est soldée au bout de 17 mois" });
+  };
+
+  // a, b, u0 tels que la limite ℓ = b / (1 − a) soit un entier
+  function tagSuite(conv) {
+    const a = conv ? pick([0.5, 0.8, 0.6, 0.9, 0.75, 0.4]) : pick([2, 3, 1.5, 1.1]);
+    const l = conv ? pick([10, 20, 25, 30, 40, 50, 100]) : pick([-10, -5, 5, 10, 20]);
+    const b = +(l * (1 - a)).toFixed(4);
+    let u0; do { u0 = conv ? l + pick([-30, -20, -10, 10, 20, 40, 60, 80]) : l + pick([-3, -2, -1, 1, 2, 4]); } while (u0 === l);
+    return { a, b, l, u0 };
+  }
+  const sgf = (x) => (x < 0 ? `- ${fr(-x)}` : `+ ${fr(x)}`);
+  const tagRel = (a, b) => `${fr(a)}u_n ${sgf(b).replace(/(\d+)\.(\d+)/, "$1{,}$2")}`;
+
+  GEN["tag-point-fixe"] = function () {
+    const { a, b, l } = tagSuite(Math.random() < 0.7);
+    return {
+      enonce: `On considère la suite définie par $u_{n+1} = ${tagRel(a, b)}$. Quel réel $\\ell$ vérifie $\\ell = ${fr(a)}\\ell ${sgf(b).replace(/(\d+)\.(\d+)/, "$1{,}$2")}$ (valeur de la suite constante solution) ?`,
+      mode: "nombre", prefixe: "$\\ell =$", attendu: l, tolerance: 1e-6,
+      erreurs: [{ valeur: +(b / (1 + a)).toFixed(4), message: "Regroupe les $\\ell$ : $\\ell - a\\ell = b$, soit $(1 - a)\\ell = b$." }, { valeur: +(-b / (1 - a)).toFixed(4), message: "Attention au signe en passant $b$ de l'autre côté." }],
+      aides: ["La suite constante égale à $\\ell$ vérifie la même relation : $\\ell = a\\ell + b$.", `$\\ell - ${fr(a)}\\ell = ${fr(b)}$, soit $${fr(+(1 - a).toFixed(4))}\\ell = ${fr(b)}$.`, `Divise par $${fr(+(1 - a).toFixed(4))}$.`],
+      solution: `$\\ell = ${fr(a)}\\ell ${sgf(b).replace(/(\d+)\.(\d+)/, "$1{,}$2")} \\iff ${fr(+(1 - a).toFixed(4))}\\ell = ${fr(b)} \\iff \\ell = ${fr(l)}$. Si $u_0 = ${fr(l)}$, tous les termes valent $${fr(l)}$.`
+    };
+  };
+
+  GEN["tag-auxiliaire"] = function () {
+    const { a, b, l, u0 } = tagSuite(Math.random() < 0.7), t = rand(0, 2);
+    const intro = `On considère $u_0 = ${fr(u0)}$ et $u_{n+1} = ${tagRel(a, b)}$. On pose $v_n = u_n - ${fr(l)}$.`;
+    if (t === 0) {
+      const c = melangeChoix(`géométrique de raison $${fr(a)}$`, [`arithmétique de raison $${fr(b)}$`, `géométrique de raison $${fr(b)}$`, `arithmétique de raison $${fr(a)}$`]);
+      return { enonce: `${intro} Quelle est la nature de $(v_n)$ ?`, mode: "choix", choix: c.choix, attendu: c.attendu,
+        aides: ["Exprime $v_{n+1}$ à l'aide de $u_{n+1}$, puis de $u_n$.", `$v_{n+1} = u_{n+1} - ${fr(l)} = ${fr(a)}u_n ${sgf(b).replace(/(\d+)\.(\d+)/, "$1{,}$2")} - ${fr(l)}$.`, `Factorise par $${fr(a)}$ : on doit retrouver $u_n - ${fr(l)} = v_n$.`],
+        solution: `$v_{n+1} = ${fr(a)}u_n ${sgf(b).replace(/(\d+)\.(\d+)/, "$1{,}$2")} - ${fr(l)} = ${fr(a)}u_n ${sgf(+(b - l).toFixed(4)).replace(/(\d+)\.(\d+)/, "$1{,}$2")} = ${fr(a)}(u_n - ${fr(l)}) = ${fr(a)}v_n$ : $(v_n)$ est **géométrique de raison $${fr(a)}$**.` };
+    }
+    if (t === 1) return { enonce: `${intro} Calcule $v_0$.`, mode: "nombre", prefixe: "$v_0 =$", attendu: +(u0 - l).toFixed(4), tolerance: 1e-6,
+      erreurs: [{ valeur: u0, message: "$v_0 = u_0 - \\ell$, pas $u_0$." }],
+      aides: ["$v_0 = u_0 - \\ell$.", `$u_0 = ${fr(u0)}$ et $\\ell = ${fr(l)}$.`, `$${fr(u0)} - ${par(l)}$.`],
+      solution: `$v_0 = ${fr(u0)} - ${par(l)} = ${fr(+(u0 - l).toFixed(4))}$.` };
+    const n = rand(2, 5), v = +((u0 - l) * a ** n).toFixed(6), u = +(l + v).toFixed(4);
+    return { enonce: `${intro} On sait que $(v_n)$ est géométrique de raison $${fr(a)}$. Calcule $u_{${n}}$ (arrondi au centième si besoin).`, mode: "nombre", prefixe: `$u_{${n}} \\approx$`, attendu: u, tolerance: 0.006,
+      erreurs: [{ valeur: +(v).toFixed(4), message: `Ça, c'est $v_{${n}}$ : ajoute $${fr(l)}$ pour revenir à $u_{${n}}$.` }],
+      aides: [`$v_0 = ${fr(u0)} - ${par(l)} = ${fr(+(u0 - l).toFixed(4))}$ et $v_n = v_0 \\times ${fr(a)}^n$.`, `$v_{${n}} = ${fr(+(u0 - l).toFixed(4))} \\times ${fr(a)}^{${n}}$.`, `$u_{${n}} = v_{${n}} + ${fr(l)}$.`],
+      solution: `$u_n = ${fr(l)} ${sgf(+(u0 - l).toFixed(4)).replace(/(\d+)\.(\d+)/, "$1{,}$2")} \\times ${fr(a)}^n$, donc $u_{${n}} = ${fr(l)} ${sgf(+(u0 - l).toFixed(4)).replace(/(\d+)\.(\d+)/, "$1{,}$2")} \\times ${fr(a)}^{${n}} \\approx ${fr(+u.toFixed(2))}$.` };
+  };
+
+  GEN["tag-limite"] = function () {
+    const conv = Math.random() < 0.6, { a, b, l, u0 } = tagSuite(conv), t = Math.random() < 0.5;
+    const k = +(u0 - l).toFixed(4);
+    const lim = conv ? `$${fr(l)}$` : k > 0 ? "$+\\infty$" : "$-\\infty$";
+    const varia = (a > 0 && k > 0) === (a > 1) ? "croissante" : "décroissante";
+    if (t) {
+      const c = melangeChoix(lim, shuffle(["$+\\infty$", "$-\\infty$", `$${fr(l)}$`, `$${fr(u0)}$`, "$0$"]));
+      return { enonce: `$u_n = ${fr(l)} ${sgf(k).replace(/(\d+)\.(\d+)/, "$1{,}$2")} \\times ${fr(a)}^n$ (suite arithmético-géométrique). Quelle est la limite de $(u_n)$ ?`, mode: "choix", choix: c.choix, attendu: c.attendu,
+        aides: [`Que devient $${fr(a)}^n$ quand $n$ devient grand ?`, `${a < 1 ? `$0 < ${fr(a)} < 1$, donc $${fr(a)}^n \\to 0$.` : `$${fr(a)} > 1$, donc $${fr(a)}^n \\to +\\infty$.`}`, `Tiens compte du signe de $${fr(k)}$.`],
+        solution: a < 1 ? `$${fr(a)}^n \\to 0$, donc $u_n \\to ${fr(l)}$.` : `$${fr(a)}^n \\to +\\infty$ et $${fr(k)} ${k > 0 ? "> 0" : "< 0"}$ : $u_n \\to ${k > 0 ? "+\\infty" : "-\\infty"}$.` };
+    }
+    const c = melangeChoix(varia, [varia === "croissante" ? "décroissante" : "croissante", "constante"]);
+    return { enonce: `$u_n = ${fr(l)} ${sgf(k).replace(/(\d+)\.(\d+)/, "$1{,}$2")} \\times ${fr(a)}^n$. La suite $(u_n)$ est :`, mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: [`$${fr(a)}^n$ est ${a < 1 ? "décroissante (car $0 < q < 1$)" : "croissante (car $q > 1$)"}.`, `On la multiplie par $${fr(k)}$ : ${k > 0 ? "un nombre positif garde le sens" : "un nombre négatif change le sens"}.`, `Ajouter $${fr(l)}$ ne change pas le sens de variation.`],
+      solution: `$${fr(a)}^n$ est ${a < 1 ? "décroissante" : "croissante"} ; multipliée par $${fr(k)}$ ${k > 0 ? "(positif)" : "(négatif)"}, elle devient ${varia} : $(u_n)$ est **${varia}**.` };
+  };
+
+  GEN["tag-contexte"] = function () {
+    const t = rand(0, 3);
+    if (t <= 1) {
+      const T0 = pick([80, 90, 95, 100, 70]), Ta = pick([20, 25, 28, 30]), a = pick([0.8, 0.9, 0.85, 0.75]), b = +(Ta * (1 - a)).toFixed(4);
+      if (t === 0) {
+        const c = melangeChoix(`$${Ta}$ °C : la température de la pièce`, [`$${T0}$ °C`, "$0$ °C", `$${fr(b)}$ °C`]);
+        return { enonce: `Un plat sort du four à $${T0}$ °C. Chaque minute, sa température vérifie $T_{n+1} = ${fr(a)}T_n + ${fr(b)}$ (modèle discret de Newton). Vers quelle température tend $T_n$ ?`, mode: "choix", choix: c.choix, attendu: c.attendu,
+          aides: ["Cherche la suite constante : $\\ell = a\\ell + b$.", `$(1 - ${fr(a)})\\ell = ${fr(b)}$.`, "$0 < a < 1$ : la suite tend vers $\\ell$."],
+          solution: `$\\ell = ${fr(a)}\\ell + ${fr(b)} \\iff \\ell = ${Ta}$. Comme $0 < ${fr(a)} < 1$, $T_n = ${Ta} + ${T0 - Ta} \\times ${fr(a)}^n \\to ${Ta}$ : le plat se refroidit jusqu'à la température de la pièce.` };
+      }
+      const seuilT = Ta + pick([5, 10, 15]); let n = 0; while (Ta + (T0 - Ta) * a ** n >= seuilT) n++;
+      return { enonce: `Un plat sort du four à $${T0}$ °C : $T_0 = ${T0}$ et $T_{n+1} = ${fr(a)}T_n + ${fr(b)}$ ($n$ en minutes). Au bout de combien de minutes sa température passe-t-elle sous $${seuilT}$ °C ?`, mode: "nombre", prefixe: "Minutes :", attendu: n,
+        aides: [`$T_n = ${Ta} + ${T0 - Ta} \\times ${fr(a)}^n$.`, "Calcule les termes à la calculatrice (tableau de valeurs) ou avec une boucle while.", `Cherche le premier $n$ tel que $T_n < ${seuilT}$.`],
+        solution: `$T_{${n - 1}} \\approx ${fr(+(Ta + (T0 - Ta) * a ** (n - 1)).toFixed(1))}$ °C et $T_{${n}} \\approx ${fr(+(Ta + (T0 - Ta) * a ** n).toFixed(1))}$ °C : il faut $${n}$ minutes.` };
+    }
+    const D0 = pick([2000, 3000, 5000, 1500]), r = pick([0.5, 1, 1.5]), m = pick([150, 200, 250, 300]), q = 1 + r / 100;
+    if (t === 2) {
+      const c = melangeChoix(`$D_{n+1} = ${fr(q)}D_n - ${m}$`, [`$D_{n+1} = ${fr(q)}D_n + ${m}$`, `$D_{n+1} = D_n - ${m}$`, `$D_{n+1} = ${fr(r / 100)}D_n - ${m}$`]);
+      return { enonce: `Mariama emprunte $${nb(D0)}$ € à $${fr(r)}\\,\\%$ d'intérêts par mois. Chaque mois, les intérêts s'ajoutent puis elle rembourse $${m}$ €. On note $D_n$ la somme due après $n$ mois. Quelle relation vérifie $(D_n)$ ?`, mode: "choix", choix: c.choix, attendu: c.attendu,
+        aides: [`Les intérêts multiplient la dette par $1 + \\dfrac{${fr(r)}}{100} = ${fr(q)}$.`, `Puis on retire le remboursement de $${m}$ €.`, "La suite est arithmético-géométrique."],
+        solution: `La dette est multipliée par $${fr(q)}$, puis diminuée de $${m}$ : $D_{n+1} = ${fr(q)}D_n - ${m}$.` };
+    }
+    let d = D0, n = 0; while (d > 0 && n < 200) { d = q * d - m; n++; }
+    return { enonce: `Une dette de $${nb(D0)}$ € vérifie $D_0 = ${nb(D0)}$ et $D_{n+1} = ${fr(q)}D_n - ${m}$ ($n$ en mois). Au bout de combien de mois est-elle remboursée (somme due négative ou nulle) ?`, mode: "nombre", prefixe: "Mois :", attendu: n,
+      erreurs: [{ valeur: Math.ceil(D0 / m), message: "Il faut tenir compte des intérêts : la dette ne baisse pas de $" + m + "$ € chaque mois." }],
+      aides: ["Calcule les termes avec la calculatrice ou une boucle while.", `$D_1 = ${fr(q)} \\times ${nb(D0)} - ${m} = ${fr(+(q * D0 - m).toFixed(2))}$.`, "Cherche le premier rang où $D_n \\leqslant 0$."],
+      solution: `En calculant les termes : $D_{${n - 1}} \\approx ${fr(+(D0 * q ** (n - 1) - m * (q ** (n - 1) - 1) / (q - 1)).toFixed(2))}$ € et $D_{${n}} \\leqslant 0$. La dette est remboursée au bout de $${n}$ mois (le dernier versement est plus petit).` };
+  };
+
+  GEN["tag-python"] = function () {
+    const { a, b, l, u0 } = tagSuite(true), cible = l + (u0 > l ? 1 : -1);
+    let u = u0, n = 0; const cond = u0 > l ? "u > " + cible : "u < " + cible;
+    while ((u0 > l ? u > cible : u < cible) && n < 500) { u = a * u + b; n++; }
+    return {
+      enonce: "On considère la fonction :\n\n```python\ndef seuil():\n    n = 0\n    u = " + u0 + "\n    while " + cond + ":\n        u = " + a + " * u + " + b + "\n        n = n + 1\n    return n\n```\n\nQue renvoie seuil() ?",
+      mode: "nombre", prefixe: "Résultat :", attendu: n,
+      aides: [`La boucle calcule $u_1$, $u_2$… pour la suite $u_0 = ${fr(u0)}$, $u_{n+1} = ${tagRel(a, b)}$.`, `Elle s'arrête dès que la condition « ${cond} » devient fausse.`, `$u_n = ${fr(l)} ${sgf(+(u0 - l).toFixed(4)).replace(/(\d+)\.(\d+)/, "$1{,}$2")} \\times ${fr(a)}^n$ : cherche le premier $n$ qui convient.`],
+      solution: `$u_{${n - 1}} \\approx ${fr(+(l + (u0 - l) * a ** (n - 1)).toFixed(3))}$ et $u_{${n}} \\approx ${fr(+(l + (u0 - l) * a ** n).toFixed(3))}$ : la boucle s'arrête pour $n = ${n}$, la fonction renvoie $${n}$.`
+    };
+  };
+
+
   /* Séries « flash » d'un thème : mélange de ses générateurs */
   const THEMES = {
     "am-flash-cn": ["am-comparer", "am-fractions", "am-puissances", "am-ecritures", "am-ordre-grandeur", "am-coherence", "auto-conversions"],
@@ -11413,7 +11524,7 @@
 
 
   /* Une « erreur connue » ne doit jamais coïncider avec la bonne réponse (à la tolérance près) */
-  Object.keys(GEN).filter((k) => /^(auto|ld|am|cd|ar|cl|fa|ve|st|vx|tc|co|dr|fr|sg|pc|ec|sy|su|s2|pi|s5|d1|tr|d2|vr|ps|ex|va|sc|gr|sm|ea|tsu)-/.test(k)).forEach((k) => {
+  Object.keys(GEN).filter((k) => /^(auto|ld|am|cd|ar|cl|fa|ve|st|vx|tc|co|dr|fr|sg|pc|ec|sy|su|s2|pi|s5|d1|tr|d2|vr|ps|ex|va|sc|gr|sm|ea|tsu|tag)-/.test(k)).forEach((k) => {
     const g = GEN[k];
     GEN[k] = (i) => { const q = g(i); if (q.erreurs) q.erreurs = q.erreurs.filter((e) => Math.abs(e.valeur - q.attendu) >= (q.tolerance || 1e-9)); return q; };
   });

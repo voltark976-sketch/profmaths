@@ -370,6 +370,13 @@ window.CATALOGUE = {
           titre: "Lois discrètes",
           statut: "disponible",
           drive: "https://drive.google.com/drive/folders/1Ocg_jAIkBcx1ZyeAMo7RfSITirsgvD59"
+        },
+        {
+          id: "terminale-arithmetico-geometriques",
+          numero: 3,
+          titre: "Suites arithmético-géométriques",
+          statut: "disponible",
+          drive: ""
         }
       ]
     }
