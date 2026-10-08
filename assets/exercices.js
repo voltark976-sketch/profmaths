@@ -7676,6 +7676,153 @@
   };
 
 
+  /* ---------- Première, chapitre 15 : géométrie repérée (préfixe gr-) ---------- */
+  // Cercle de centre (a ; b) et de rayon r, en deux demi-cercles pour graph()
+  const grCercle = (a, b, r) => [{ f: (x) => b + Math.sqrt(Math.max(0, r * r - (x - a) ** 2)), a: a - r, b: a + r, closed: false }, { f: (x) => b - Math.sqrt(Math.max(0, r * r - (x - a) ** 2)), a: a - r, b: a + r, closed: false }];
+  // Droite x − 2y + 2 = 0 : vecteur directeur u(2 ; 1), vecteur normal n(1 ; −2)
+  FIGURES["vecteur-normal"] = () => graph({ xmin: -3.4, xmax: 5.4, ymin: -1.6, ymax: 4.4, h: 260, curves: [{ f: (x) => x / 2 + 1, a: -3.2, b: 5.2, closed: false, label: "d : x − 2y + 2 = 0", lx: 4.5, dx: -4, dy: -10 }], fleches: [{ x1: 0, y1: 1, x2: 2, y2: 2, label: "u" }, { x1: 2, y1: 2, x2: 3, y2: 0, c: 1, label: "n" }], points: [{ x: 0, y: 1 }, { x: 2, y: 2 }], aria: "La droite d d'équation x − 2y + 2 = 0 a pour vecteur directeur u(2 ; 1) et pour vecteur normal n(1 ; −2), perpendiculaire à d" });
+  // Projeté orthogonal de A(5 ; 3) sur la droite x + y − 4 = 0 : H(3 ; 1)
+  FIGURES["projete"] = () => graph({ xmin: -0.6, xmax: 6.4, ymin: -0.6, ymax: 5.4, h: 260, curves: [{ f: (x) => 4 - x, a: -0.4, b: 4.6, closed: false, label: "d : x + y − 4 = 0", lx: -0.3, dx: 120, dy: -6 }, { f: (x) => x - 2, a: 3, b: 5, closed: false }], fleches: [{ x1: 1, y1: 3, x2: 2, y2: 4, c: 1, label: "n" }], points: [{ x: 5, y: 3, label: "A(5 ; 3)" }, { x: 3, y: 1, label: "H(3 ; 1)" }], aria: "Le projeté orthogonal H de A sur d est le point de d tel que (AH) soit dirigée par le vecteur normal n(1 ; 1)" }).replace(/(g-curve g-curve-1" )d/, '$1style="stroke-dasharray:5 4" d');
+  // Cercle de centre Ω(2 ; 1) et de rayon 3
+  FIGURES["cercle-repere"] = () => graph({ xmin: -1.8, xmax: 5.8, ymin: -2.6, ymax: 4.6, h: 280, curves: [...grCercle(2, 1, 3), { f: (x) => 1 + (x - 2) * (Math.sqrt(5) / 2), a: 2, b: 4, closed: false }], points: [{ x: 2, y: 1, label: "Ω(2 ; 1)", gauche: true }, { x: 4, y: 1 + Math.sqrt(5), label: "M(x ; y)" }], marques: [{ x: 3.55, y: 1.6, texte: "r = 3" }], aria: "Cercle de centre Ω(2 ; 1) et de rayon 3 : M est sur le cercle si et seulement si ΩM = 3" });
+  // Antenne relais en O, portée 5 km : villages couverts ou non
+  FIGURES["antenne"] = () => graph({ xmin: -6.4, xmax: 6.4, ymin: -5.8, ymax: 5.8, h: 300, curves: grCercle(0, 0, 5), points: [{ x: 0, y: 0, label: "antenne", gauche: true }, { x: 3, y: 2, label: "V₁" }, { x: 4, y: 4, label: "V₂" }, { x: -2, y: -4, label: "V₃" }, { x: -5, y: 1.5, label: "V₄", gauche: true }], aria: "Antenne relais en O, de portée 5 km : les villages V₁ et V₃ sont dans le disque couvert, V₂ et V₄ sont en dehors" });
+
+  const grEq = (a, b, c) => `${a === 1 ? "" : a === -1 ? "-" : a}x ${b < 0 ? "-" : "+"} ${Math.abs(b) === 1 ? "" : Math.abs(b)}y${c ? ` ${c < 0 ? "-" : "+"} ${Math.abs(c)}` : ""} = 0`;
+
+  GEN["gr-normal"] = function () {
+    const a = randNZ(-5, 5), b = randNZ(-5, 5), c = rand(-9, 9);
+    if (Math.random() < 0.5) {
+      const ch = melangeChoix(`$\\vec{n}\\begin{pmatrix} ${a} \\\\ ${b} \\end{pmatrix}$`, [`$\\vec{n}\\begin{pmatrix} ${-b} \\\\ ${a} \\end{pmatrix}$`, `$\\vec{n}\\begin{pmatrix} ${b} \\\\ ${a} \\end{pmatrix}$`, `$\\vec{n}\\begin{pmatrix} ${a} \\\\ ${c} \\end{pmatrix}$`]);
+      return {
+        enonce: `Quel vecteur est normal à la droite d'équation $${grEq(a, b, c)}$ ?`,
+        mode: "choix", choix: ch.choix, attendu: ch.attendu,
+        aides: ["La droite $ax + by + c = 0$ a pour vecteur normal $\\vec{n}\\begin{pmatrix} a \\\\ b \\end{pmatrix}$.", "Elle a pour vecteur directeur $\\vec{u}\\begin{pmatrix} -b \\\\ a \\end{pmatrix}$ : ne pas confondre.", "Un vecteur normal est orthogonal au vecteur directeur."],
+        solution: `$a = ${a}$ et $b = ${b}$ : $\\vec{n}\\begin{pmatrix} ${a} \\\\ ${b} \\end{pmatrix}$ est normal à la droite. Vérification : $\\vec{n} \\cdot \\vec{u} = ${a} \\times ${par(-b)} + ${par(b)} \\times ${par(a)} = 0$.`
+      };
+    }
+    const x0 = rand(-4, 4), y0 = rand(-4, 4), cc = -(a * x0 + b * y0);
+    return {
+      enonce: `La droite $d$ a pour vecteur normal $\\vec{n}\\begin{pmatrix} ${a} \\\\ ${b} \\end{pmatrix}$ et passe par $A(${x0}\\,;${y0})$. Son équation s'écrit $${grEq(a, b, 0).replace(" = 0", "")} + c = 0$. Que vaut $c$ ?`,
+      mode: "nombre", prefixe: "$c =$", attendu: cc,
+      erreurs: [{ valeur: -cc, message: "Attention au signe : $c = -(ax_A + by_A)$." }].filter((e) => e.valeur !== cc),
+      aides: ["L'équation est de la forme $ax + by + c = 0$ avec $(a\\,;b)$ les coordonnées de $\\vec{n}$.", `$A$ est sur $d$ : $${a} \\times ${par(x0)} + ${par(b)} \\times ${par(y0)} + c = 0$.`, `Donc $${a * x0 + b * y0} + c = 0$.`],
+      solution: `$${a * x0 + b * y0} + c = 0$, donc $c = ${cc}$ et $d : ${grEq(a, b, cc)}$.`
+    };
+  };
+
+  GEN["gr-projete"] = function () {
+    let a, b; do { a = randNZ(-2, 2); b = randNZ(-2, 2); } while (Math.abs(a) === Math.abs(b) && Math.random() < 0.5);
+    const H = [rand(-3, 3), rand(-3, 3)], t = randNZ(-2, 2), A = [H[0] + t * a, H[1] + t * b], c = -(a * H[0] + b * H[1]);
+    const q = pick(["x", "y", "d"]);
+    const rep = q === "x" ? H[0] : q === "y" ? H[1] : t * t * (a * a + b * b);
+    return {
+      enonce: `Dans un repère orthonormé, $d : ${grEq(a, b, c)}$ et $A(${A[0]}\\,;${A[1]})$. On note $H$ le projeté orthogonal de $A$ sur $d$. ${q === "d" ? "Calcule $AH^2$." : `Quelle est ${q === "x" ? "l'abscisse" : "l'ordonnée"} de $H$ ?`}`,
+      mode: "nombre", prefixe: q === "d" ? "$AH^2 =$" : q === "x" ? "$x_H =$" : "$y_H =$", attendu: rep,
+      erreurs: q === "d" ? [] : [{ valeur: q === "x" ? A[0] : A[1], message: "Ça, c'est une coordonnée de $A$ : $H$ est sur la droite $d$." }].filter((e) => e.valeur !== rep),
+      aides: [`$\\overrightarrow{AH}$ est colinéaire au vecteur normal $\\vec{n}\\begin{pmatrix} ${a} \\\\ ${b} \\end{pmatrix}$ : $H(${A[0]} ${a < 0 ? "-" : "+"} ${Math.abs(a) === 1 ? "" : Math.abs(a)}k\\,;${A[1]} ${b < 0 ? "-" : "+"} ${Math.abs(b) === 1 ? "" : Math.abs(b)}k)$ pour un réel $k$.`, `$H \\in d$ : remplace dans l'équation et résous en $k$ (on trouve $k = ${-t}$).`, `Puis $H(${H[0]}\\,;${H[1]})$${q === "d" ? " et $AH^2 = (x_H - x_A)^2 + (y_H - y_A)^2$" : ""}.`],
+      solution: `$H(${A[0]} + ${par(a)}k\\,;${A[1]} + ${par(b)}k)$ avec $${a}(${A[0]} + ${par(a)}k) + ${par(b)}(${A[1]} + ${par(b)}k) ${c < 0 ? "-" : "+"} ${Math.abs(c)} = 0$, d'où $k = ${-t}$ et $H(${H[0]}\\,;${H[1]})$.${q === "d" ? ` $AH^2 = ${par(H[0] - A[0])}^2 + ${par(H[1] - A[1])}^2 = ${rep}$ : c'est le carré de la distance de $A$ à $d$.` : ""}`
+    };
+  };
+
+  GEN["gr-cercle"] = function () {
+    const a = rand(-4, 4), b = rand(-4, 4), r = rand(1, 6);
+    const eq = `${a ? `(x ${a > 0 ? "-" : "+"} ${Math.abs(a)})^2` : "x^2"} + ${b ? `(y ${b > 0 ? "-" : "+"} ${Math.abs(b)})^2` : "y^2"} = ${r * r}`;
+    const t = rand(0, 2);
+    if (t === 0) {
+      const ch = melangeChoix(`$${eq}$`, [`$${eq.replace(/= \d+$/, `= ${r}`)}$`, `$${eq.replace(/-/g, "§").replace(/\+ (\d)\)/g, "- $1)").replace(/§/g, "+")}$`, `$${eq.replace(/= \d+$/, `= ${2 * r}`)}$`]);
+      return {
+        enonce: `Quelle est une équation du cercle de centre $\\Omega(${a}\\,;${b})$ et de rayon $${r}$ ?`,
+        mode: "choix", choix: ch.choix, attendu: ch.attendu,
+        aides: ["$M(x\\,;y)$ est sur le cercle si et seulement si $\\Omega M^2 = r^2$.", "$(x - x_\\Omega)^2 + (y - y_\\Omega)^2 = r^2$.", `Attention : $r^2 = ${r * r}$, et le signe dans la parenthèse est l'opposé de la coordonnée du centre.`],
+        solution: `$(x - ${par(a)})^2 + (y - ${par(b)})^2 = ${r}^2$, soit $${eq}$.`
+      };
+    }
+    if (t === 1) {
+      return {
+        enonce: `Le cercle $\\mathcal{C}$ a pour équation $${eq}$. Quel est son rayon ?`,
+        mode: "nombre", prefixe: "$r =$", attendu: r,
+        erreurs: [{ valeur: r * r, message: "Le second membre vaut $r^2$ : prends la racine carrée." }].filter((e) => e.valeur !== r),
+        aides: ["Équation de cercle : $(x - a)^2 + (y - b)^2 = r^2$.", `Ici $r^2 = ${r * r}$.`, "Le rayon est positif."],
+        solution: `$r^2 = ${r * r}$ donc $r = ${r}$, et le centre est $\\Omega(${a}\\,;${b})$.`
+      };
+    }
+    const sur = Math.random() < 0.5, ang = pick([[3, 4], [4, 3], [5, 0], [0, 5]]);
+    let M;
+    if (sur && r === 5) M = [a + ang[0] * pick([1, -1]), b + ang[1] * pick([1, -1])];
+    else if (sur) M = [a + r * pick([1, -1]), b];
+    else M = [a + r, b + 1];
+    const d2 = (M[0] - a) ** 2 + (M[1] - b) ** 2;
+    return {
+      enonce: `Le cercle $\\mathcal{C}$ a pour équation $${eq}$. Le point $M(${M[0]}\\,;${M[1]})$ appartient-il à $\\mathcal{C}$ ?`,
+      mode: "choix", choix: ["Oui", "Non"], attendu: d2 === r * r ? 0 : 1,
+      aides: ["$M \\in \\mathcal{C}$ si et seulement si ses coordonnées vérifient l'équation : c'est une **équivalence**.", "Remplace $x$ et $y$ par les coordonnées de $M$.", `Compare le résultat à $${r * r}$.`],
+      solution: `$(${M[0]} - ${par(a)})^2 + (${M[1]} - ${par(b)})^2 = ${d2}$${d2 === r * r ? `, égal à $r^2 = ${r * r}$ : $M$ est sur le cercle.` : `, différent de $r^2 = ${r * r}$ : $M$ n'est pas sur le cercle.`}`
+    };
+  };
+
+  GEN["gr-centre-rayon"] = function () {
+    const a = randNZ(-4, 4), b = randNZ(-4, 4), r = rand(1, 6), D = -2 * a, E = -2 * b, F = a * a + b * b - r * r;
+    const eq = `x^2 + y^2 ${D < 0 ? "-" : "+"} ${Math.abs(D)}x ${E < 0 ? "-" : "+"} ${Math.abs(E)}y${F ? ` ${F < 0 ? "-" : "+"} ${Math.abs(F)}` : ""} = 0`;
+    const q = pick(["r", "a", "b"]);
+    return {
+      enonce: `L'équation $${eq}$ est celle d'un cercle. ${q === "r" ? "Quel est son rayon ?" : `Quelle est ${q === "a" ? "l'abscisse" : "l'ordonnée"} de son centre ?`}`,
+      mode: "nombre", prefixe: q === "r" ? "$r =$" : q === "a" ? "$x_\\Omega =$" : "$y_\\Omega =$", attendu: q === "r" ? r : q === "a" ? a : b,
+      erreurs: q === "r" ? [{ valeur: r * r, message: "Ça, c'est $r^2$." }, { valeur: -F, message: "Il faut d'abord compléter les carrés : les constantes ajoutées changent le second membre." }].filter((e) => e.valeur !== r) : [{ valeur: q === "a" ? -a : -b, message: "Attention au signe : $(x - a)^2$ correspond au centre d'abscisse $a$." }],
+      aides: [`Complète les carrés : $x^2 ${D < 0 ? "-" : "+"} ${Math.abs(D)}x = (x ${a > 0 ? "-" : "+"} ${Math.abs(a)})^2 - ${a * a}$.`, `De même, $y^2 ${E < 0 ? "-" : "+"} ${Math.abs(E)}y = (y ${b > 0 ? "-" : "+"} ${Math.abs(b)})^2 - ${b * b}$.`, `On obtient $(x ${a > 0 ? "-" : "+"} ${Math.abs(a)})^2 + (y ${b > 0 ? "-" : "+"} ${Math.abs(b)})^2 = ${r * r}$.`],
+      solution: `$(x ${a > 0 ? "-" : "+"} ${Math.abs(a)})^2 - ${a * a} + (y ${b > 0 ? "-" : "+"} ${Math.abs(b)})^2 - ${b * b} ${F ? `${F < 0 ? "-" : "+"} ${Math.abs(F)}` : ""} = 0$, soit $(x ${a > 0 ? "-" : "+"} ${Math.abs(a)})^2 + (y ${b > 0 ? "-" : "+"} ${Math.abs(b)})^2 = ${r * r}$ : centre $\\Omega(${a}\\,;${b})$ et rayon $${r}$.`
+    };
+  };
+
+  GEN["gr-antenne"] = function () {
+    const a = rand(-3, 3), b = rand(-3, 3), r = pick([4, 5, 6, 8]), v = [a + rand(-r - 2, r + 2), b + rand(-r - 2, r + 2)], d2 = (v[0] - a) ** 2 + (v[1] - b) ** 2;
+    if (d2 === r * r) return GEN["gr-antenne"]();
+    const lieu = pick(["Combani", "Tsingoni", "Bandrélé", "Kani-Kéli", "M'tsangamouji"]);
+    if (Math.random() < 0.6) {
+      return {
+        enonce: `Dans un repère orthonormé (unité : le km), une antenne relais est placée en $A(${a}\\,;${b})$ et couvre un disque de rayon $${r}$ km. Le village de ${lieu} est au point $V(${v[0]}\\,;${v[1]})$. Est-il couvert ?`,
+        mode: "choix", choix: ["Oui", "Non"], attendu: d2 < r * r ? 0 : 1,
+        aides: ["La zone couverte est le disque : $(x - x_A)^2 + (y - y_A)^2 \\leqslant r^2$.", `Calcule $AV^2 = (${v[0]} - ${par(a)})^2 + (${v[1]} - ${par(b)})^2$.`, `Compare à $r^2 = ${r * r}$.`],
+        solution: `$AV^2 = ${par(v[0] - a)}^2 + ${par(v[1] - b)}^2 = ${d2}$, ${d2 < r * r ? `inférieur à $${r * r}$ : le village est couvert.` : `supérieur à $${r * r}$ : le village n'est pas couvert.`}`
+      };
+    }
+    return {
+      enonce: `Une antenne relais est en $A(${a}\\,;${b})$ (unité : le km). Le village de ${lieu} est en $V(${v[0]}\\,;${v[1]})$. Calcule $AV^2$, le carré de la distance entre l'antenne et le village.`,
+      mode: "nombre", prefixe: "$AV^2 =$", attendu: d2,
+      aides: ["$AV^2 = (x_V - x_A)^2 + (y_V - y_A)^2$ en repère orthonormé.", `$(${v[0]} - ${par(a)})^2 + (${v[1]} - ${par(b)})^2$.`, "Calcule chaque carré, puis additionne."],
+      solution: `$AV^2 = ${par(v[0] - a)}^2 + ${par(v[1] - b)}^2 = ${d2}$, soit $AV \\approx ${fr(+Math.sqrt(d2).toFixed(2))}$ km.`
+    };
+  };
+
+  GEN["gr-python"] = function () {
+    const a = rand(-3, 3), b = rand(-3, 3), r = pick([2, 3, 5]), x = a + rand(-r - 1, r + 1), y = b + rand(-r - 1, r + 1), d2 = (x - a) ** 2 + (y - b) ** 2;
+    const code = "```python\ndef couvert(x, y, a, b, r):\n    return (x - a)**2 + (y - b)**2 <= r**2\n```";
+    return {
+      enonce: `${code}\n\nQue renvoie couvert(${x}, ${y}, ${a}, ${b}, ${r}) ?`,
+      mode: "choix", choix: ["True", "False"], attendu: d2 <= r * r ? 0 : 1,
+      aides: ["La fonction teste si le point $(x\\,;y)$ est dans le disque de centre $(a\\,;b)$ et de rayon $r$ (bord compris).", `$(${x} - ${par(a)})^2 + (${y} - ${par(b)})^2 = ${d2}$.`, `Compare à $r^2 = ${r * r}$.`],
+      solution: `$${d2} ${d2 <= r * r ? "\\leqslant" : ">"} ${r * r}$ : la fonction renvoie ${d2 <= r * r ? "True, le point est dans le disque" : "False, le point est hors du disque"}${d2 === r * r ? " (il est exactement sur le cercle)" : ""}.`
+    };
+  };
+
+  // Logique : ensemble de points défini par une condition
+  GEN["gr-logique"] = function () {
+    const T = [
+      ["Le point $M(x\\,;y)$ appartient à la droite $d : 2x - y + 1 = 0$ :", "si et seulement si $2x - y + 1 = 0$", ["seulement si $x = 0$", "si $2x - y + 1 > 0$", "pour tout $x$ et tout $y$"], "Une équation de $d$ caractérise ses points : c'est une **équivalence**. $M \\in d \\iff 2x - y + 1 = 0$."],
+      ["L'ensemble des points $M(x\\,;y)$ tels que $x^2 + y^2 = 9$ est :", "le cercle de centre $O$ et de rayon $3$", ["le cercle de centre $O$ et de rayon $9$", "le disque de centre $O$ et de rayon $3$", "la droite $y = 9 - x$"], "$x^2 + y^2 = OM^2$, donc $OM^2 = 9 \\iff OM = 3$."],
+      ["L'ensemble des points $M(x\\,;y)$ tels que $(x - 1)^2 + (y + 2)^2 \\leqslant 4$ est :", "le disque de centre $(1\\,;-2)$ et de rayon $2$", ["le cercle de centre $(1\\,;-2)$ et de rayon $2$", "le disque de centre $(-1\\,;2)$ et de rayon $2$", "le disque de centre $(1\\,;-2)$ et de rayon $4$"], "« $\\leqslant$ » donne tout l'intérieur et le bord : c'est un **disque**, de centre $(1\\,;-2)$ et de rayon $\\sqrt{4} = 2$."],
+      ["L'ensemble des points $M(x\\,;y)$ tels que $x^2 + y^2 = -4$ est :", "l'ensemble vide", ["le cercle de centre $O$ et de rayon $2$", "le cercle de centre $O$ et de rayon $-2$", "le point $O$"], "Une somme de carrés est toujours positive ou nulle : aucun point ne vérifie cette égalité."],
+      ["$\\vec{n}\\begin{pmatrix} 3 \\\\ -1 \\end{pmatrix}$ est normal à $d$, et $A \\in d$. Pour tout point $M$ :", "$M \\in d \\iff \\overrightarrow{AM} \\cdot \\vec{n} = 0$", ["$M \\in d \\iff \\overrightarrow{AM} = \\vec{n}$", "$M \\in d \\iff AM = 3$", "$M \\in d \\iff \\overrightarrow{AM} \\cdot \\vec{n} = 1$"], "$d$ est l'ensemble des points $M$ tels que $\\overrightarrow{AM}$ est orthogonal à $\\vec{n}$."]
+    ];
+    const [q, bo, f, s] = pick(T), c = melangeChoix(bo, f);
+    return {
+      enonce: q, mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: ["Un point appartient à une figure si et seulement si ses coordonnées vérifient l'équation (ou la condition).", "$(x - a)^2 + (y - b)^2 = r^2$ : cercle ; « $\\leqslant r^2$ » : disque.", "Une somme de carrés ne peut pas être négative."],
+      solution: s
+    };
+  };
+
+
   /* Séries « flash » d'un thème : mélange de ses générateurs */
   const THEMES = {
     "am-flash-cn": ["am-comparer", "am-fractions", "am-puissances", "am-ecritures", "am-ordre-grandeur", "am-coherence", "auto-conversions"],
@@ -7692,7 +7839,7 @@
 
 
   /* Une « erreur connue » ne doit jamais coïncider avec la bonne réponse (à la tolérance près) */
-  Object.keys(GEN).filter((k) => /^(ld|am|cd|ar|cl|fa|ve|st|vx|tc|co|dr|fr|sg|pc|ec|sy|su|s2|pi|s5|d1|tr|d2|vr|ps|ex|va|sc)-/.test(k)).forEach((k) => {
+  Object.keys(GEN).filter((k) => /^(ld|am|cd|ar|cl|fa|ve|st|vx|tc|co|dr|fr|sg|pc|ec|sy|su|s2|pi|s5|d1|tr|d2|vr|ps|ex|va|sc|gr)-/.test(k)).forEach((k) => {
     const g = GEN[k];
     GEN[k] = (i) => { const q = g(i); if (q.erreurs) q.erreurs = q.erreurs.filter((e) => Math.abs(e.valeur - q.attendu) >= (q.tolerance || 1e-9)); return q; };
   });

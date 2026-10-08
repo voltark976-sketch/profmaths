@@ -39,6 +39,7 @@ Site statique : aucune base de données, aucun compte élève. Ouvrir `index.htm
   - `exponentielle.js` : chapitre 12, fonction exponentielle (définition, relation fonctionnelle, e^(at), suites géométriques, Euler). Générateurs `ex-`.
   - `variables-aleatoires.js` : chapitre 13, variables aléatoires (loi, espérance, variance, tombola, épreuves répétées en arbre). Générateurs `va-` (et `ld-loi-esperance`).
   - `produit-scalaire-2.js` : chapitre 14, produit scalaire (bilinéarité, identités, Al-Kashi, îlots du lagon, MA · MB = 0, contraposée). Générateurs `sc-`.
+  - `geometrie-reperee.js` : chapitre 15, géométrie repérée (vecteur normal, projeté orthogonal, cercles, antenne relais). Générateurs `gr-`.
 - `data/terminale-spe/denombrement.js` : chapitre 14 de Terminale spécialité (combinatoire et dénombrement). Les générateurs d'exercices correspondants commencent par `cd-` dans `assets/exercices.js`.
 - `data/terminale/lois-discretes.js` : chapitre 2 de Terminale maths complémentaires.
 

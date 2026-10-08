@@ -316,6 +316,13 @@ window.CATALOGUE = {
           titre: "Produit scalaire 2",
           statut: "disponible",
           drive: ""
+        },
+        {
+          id: "premiere-geometrie-reperee",
+          numero: 15,
+          titre: "Géométrie repérée",
+          statut: "disponible",
+          drive: ""
         }
       ]
     },
