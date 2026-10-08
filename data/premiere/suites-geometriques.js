@@ -178,6 +178,7 @@ window.CHAPITRES["premiere-suites-geometriques"] = {
     {
       titre: "Linéaire ou exponentielle ?",
       figure: "lineaire-exponentiel",
+      video: { titre: "Vidéo de ton prof : linéaire ou exponentiel ? Les abonnés de Lagon propre (problème corrigé)", youtube: "https://youtu.be/eUVrDnmVZek" },
       texte:
         "Deux façons de grandir :\n\n" +
         "- **croissance linéaire** : on **ajoute** la même quantité à chaque étape (suite arithmétique) ;\n" +
@@ -194,7 +195,8 @@ window.CHAPITRES["premiere-suites-geometriques"] = {
   videos: [
     { titre: "Exercice 17 · Évolution à taux constant : la valeur d'un scooter", type: "Taux constant", youtube: "https://youtu.be/l5z9ZUXsDFA" },
     { titre: "Exercice 18 · Une suite auxiliaire géométrique : la plage", type: "Suite auxiliaire", youtube: "https://youtu.be/9a9eqhi2VxE" },
-    { titre: "Exercice 20 · Calculer des sommes : Gauss et puissances", type: "Sommes", youtube: "https://youtu.be/HvTkzP61KcI" }
+    { titre: "Exercice 20 · Calculer des sommes : Gauss et puissances", type: "Sommes", youtube: "https://youtu.be/HvTkzP61KcI" },
+    { titre: "Exercice 29 · Linéaire ou exponentiel ? Les abonnés de Lagon propre", type: "Problème", youtube: "https://youtu.be/eUVrDnmVZek" }
   ],
   videosNote: "Énoncés dans le dossier élève ci-dessus (numéros des exercices du dossier).",
 

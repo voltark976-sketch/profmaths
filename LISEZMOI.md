@@ -31,6 +31,7 @@ Site statique : aucune base de données, aucun compte élève. Ouvrir `index.htm
   - `probabilites.js` : chapitre 4, probabilités conditionnelles et indépendance. Générateurs `pi-` (et `pc-` de Seconde).
   - `second-degre-2.js` : chapitre 5, second degré (forme canonique, discriminant, courbe de x ↦ f(x − m)). Générateurs `sd-` et `s5-`.
   - `suites-geometriques.js` : chapitre 6, suites géométriques (taux constant, somme des puissances, limite, seuil). Générateurs `suite-` et `su-geo-`.
+  - `derivation-1.js` : chapitre 7, dérivation (taux de variation, nombre dérivé, tangente, approximation linéaire). Générateurs `d1-`.
 - `data/terminale-spe/denombrement.js` : chapitre 14 de Terminale spécialité (combinatoire et dénombrement). Les générateurs d'exercices correspondants commencent par `cd-` dans `assets/exercices.js`.
 - `data/terminale/lois-discretes.js` : chapitre 2 de Terminale maths complémentaires.
 

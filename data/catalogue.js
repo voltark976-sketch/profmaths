@@ -260,6 +260,13 @@ window.CATALOGUE = {
           titre: "Suites géométriques",
           statut: "disponible",
           drive: ""
+        },
+        {
+          id: "premiere-derivation-1",
+          numero: 7,
+          titre: "Dérivation 1 : point de vue local",
+          statut: "disponible",
+          drive: ""
         }
       ]
     },

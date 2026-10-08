@@ -6007,6 +6007,275 @@
   };
 
 
+  /* ---------- Première, chapitre 7 : dérivation, point de vue local (préfixe d1-) ---------- */
+  const polyD = (c, v) => poly(c, v).replace(/(\d)\.(\d)/g, "$1{,}$2"); // polynôme avec virgule décimale
+  // Droite y = m x + p en TeX (m et p éventuellement décimaux)
+  const d1Droite = (m, p) => {
+    const mx = m === 0 ? "" : m === 1 ? "x" : m === -1 ? "-x" : `${nb(m)}x`;
+    if (!mx) return `y = ${nb(p)}`;
+    return `y = ${mx}${p ? ` ${p < 0 ? "-" : "+"} ${nb(Math.abs(p))}` : ""}`;
+  };
+  // Plus grand intervalle autour de a (|x - a| <= w) où la fonction reste dans [y0 ; y1]
+  function d1Domaine(f, a, w, y0, y1) {
+    let g = a, d = a;
+    while (g - 0.05 >= a - w && f(g - 0.05) >= y0 && f(g - 0.05) <= y1) g -= 0.05;
+    while (d + 0.05 <= a + w && f(d + 0.05) >= y0 && f(d + 0.05) <= y1) d += 0.05;
+    return [+g.toFixed(2), +d.toFixed(2)];
+  }
+  const d1Par = (x) => (x < 0 ? `(${nb(x)})` : nb(x)); // décimal négatif entre parenthèses
+  const tiret = (svg, i) => svg.replace(new RegExp(`(g-curve g-curve-${i}" )d`), '$1style="stroke-dasharray:5 4" d');
+
+  // Taux de variation : pente de la sécante (AB) à la parabole y = x²
+  FIGURES["secante"] = () => graph({ xmin: -0.8, xmax: 4.2, ymin: -1.5, ymax: 12.5, ystep: 1, yetiq: 2, h: 300, curves: [{ f: (x) => x * x, a: -0.6, b: 3.5, closed: false, label: "y = x²", lx: 3.3, dx: -10, dy: 6 }, { f: (x) => 4 * x - 3, a: 0.45, b: 3.8, closed: false }], fleches: [{ x1: 1, y1: 1, x2: 3, y2: 1, c: 1, label: "+2" }, { x1: 3, y1: 1, x2: 3, y2: 9, c: 1, label: "+8" }], points: [{ x: 1, y: 1, label: "A", gauche: true }, { x: 3, y: 9, label: "B", gauche: true }], aria: "Sécante (AB) à la parabole y = x² entre 1 et 3 : on avance de 2 et on monte de 8, la pente vaut 4" });
+  // Les sécantes (AM) tendent vers la tangente en A quand M se rapproche de A
+  FIGURES["secantes-tangente"] = () => {
+    const f = (x) => x * x, cs = [{ f, a: -0.8, b: 3.3, closed: false }];
+    const ligne = (m) => { const g = (x) => m * (x - 1) + 1, [a, b] = d1Domaine(g, 1, 2.5, -1.8, 10.5); return { f: g, a, b, closed: false }; };
+    cs.push(Object.assign(ligne(2), { label: "tangente", lx: 2.5, dx: 46, dy: 16 }), ligne(4), ligne(3), ligne(2.5));
+    let s = graph({ xmin: -1, xmax: 3.6, ymin: -2, ymax: 11, ystep: 1, yetiq: 2, h: 300, curves: cs, points: [{ x: 1, y: 1, label: "A", gauche: true }, { x: 3, y: 9, label: "M₁", gauche: true }, { x: 2, y: 4, label: "M₂", gauche: true }, { x: 1.5, y: 2.25 }], aria: "Les sécantes (AM) de pentes 4, 3 et 2,5 se rapprochent de la tangente en A, de pente 2, quand M se rapproche de A" });
+    [2, 3, 4].forEach((i) => { s = tiret(s, i); });
+    return s;
+  };
+  // Lire un nombre dérivé : la tangente en A(1 ; 2) a pour pente 3
+  FIGURES["tangente-lecture"] = () => {
+    const f = (x) => -0.5 * (x - 1) ** 2 + 3 * (x - 1) + 2, t = (x) => 3 * (x - 1) + 2;
+    const [a, b] = d1Domaine(f, 1, 3.4, -2.8, 7.8), [ta, tb] = d1Domaine(t, 1, 3, -2.8, 7.8);
+    return graph({ xmin: -1.5, xmax: 4.5, ymin: -3, ymax: 8, h: 300, curves: [{ f, a, b, closed: false, label: "C<tspan class=\"sub\" dy=\"3\">f</tspan>", lx: b, dx: -2, dy: 16 }, { f: t, a: ta, b: tb, closed: false }], fleches: [{ x1: 1, y1: 2, x2: 2, y2: 2, c: 1, label: "+1" }, { x1: 2, y1: 2, x2: 2, y2: 5, c: 1, label: "+3" }], points: [{ x: 1, y: 2, label: "A", gauche: true }], aria: "Tangente en A(1 ; 2) : on avance de 1, on monte de 3, donc f'(1) = 3" });
+  };
+  // Vitesse du taxi : d(t) = 0,8t², sécante entre 5 et 10, tangente en 10
+  FIGURES["taxi-vitesse"] = () => tiret(graph({ xmin: -0.8, xmax: 11.5, ymin: -8, ymax: 92, ystep: 10, yetiq: 20, h: 280, padL: 26, xlabel: "t (s)", ylabel: "d (m)", curves: [{ f: (t) => 0.8 * t * t, a: 0, b: 10.6, closed: false }, { f: (t) => 16 * t - 80, a: 5.3, b: 10.7, closed: false, label: "tangente", lx: 8.5, dx: 54, dy: 8 }, { f: (t) => 12 * t - 40, a: 3.6, b: 10.6, closed: false }], points: [{ x: 5, y: 20, label: "t = 5", gauche: true }, { x: 10, y: 80, label: "t = 10", gauche: true }], aria: "Distance parcourue par le taxi : la sécante entre 5 et 10 s a pour pente 12 (vitesse moyenne), la tangente en 10 s a pour pente 16 (vitesse instantanée)" }), 2);
+
+  GEN["d1-taux"] = function () {
+    const t = rand(0, 3);
+    let fTex, f, a, b, tau, tauTex, sol;
+    if (t === 0) { const p = pick([1, 2, -1, 3]), q = rand(-4, 4), r = rand(-5, 5); fTex = poly([p, q, r]); f = (x) => p * x * x + q * x + r; a = rand(-3, 2); b = a + rand(1, 4); tau = p * (a + b) + q; tauTex = `${tau}`; }
+    else if (t === 1) { const k = pick([1, 2, 3, 4, 6, 12]); fTex = k === 1 ? "\\dfrac{1}{x}" : `\\dfrac{${k}}{x}`; f = (x) => k / x; [a, b] = pick([[1, 2], [1, 3], [2, 4], [1, 4], [2, 3], [3, 6]]); tau = -k / (a * b); tauTex = frac(-k, a * b); }
+    else if (t === 2) { [a, b] = pick([[1, 4], [4, 9], [1, 9], [9, 16], [0, 4], [4, 16]]); fTex = "\\sqrt{x}"; f = Math.sqrt; tau = (Math.sqrt(b) - Math.sqrt(a)) / (b - a); tauTex = frac(Math.sqrt(b) - Math.sqrt(a), b - a); }
+    else { const m = randNZ(-4, 4), p = rand(-5, 5); fTex = poly([m, p]); f = (x) => m * x + p; a = rand(-3, 2); b = a + rand(2, 5); tau = m; tauTex = `${m}`; }
+    const fa = +f(a).toFixed(6), fb = +f(b).toFixed(6), num = +(fb - fa).toFixed(6);
+    const fr2 = (x) => (Number.isInteger(x) ? `${x}` : t === 1 ? frac(Math.round(x * 12 * 12), 144) : nb(x));
+    sol = `$\\dfrac{f(${b}) - f(${a})}{${b} - ${par(a)}} = \\dfrac{${fr2(fb)} - ${par(fr2(fa))}}{${b - a}} = ${tauTex}$.${t === 3 ? " Pour une fonction affine, le taux est toujours le coefficient directeur." : ""} C'est la pente de la sécante passant par les points d'abscisses $${a}$ et $${b}$.`;
+    return {
+      enonce: `Calcule le taux de variation de $f(x) = ${fTex}$ entre $${a}$ et $${b}$.`,
+      mode: "nombre", prefixe: "Taux :", attendu: tau,
+      erreurs: [{ valeur: num, message: `N'oublie pas de diviser par $${b} - ${par(a)} = ${b - a}$.` }, ...(num ? [{ valeur: (b - a) / num, message: "C'est l'inverse : on divise la variation de $f$ par la variation de $x$." }] : [])].filter((e) => Math.abs(e.valeur - tau) > 1e-9),
+      aides: ["Taux de variation entre $a$ et $b$ : $\\dfrac{f(b) - f(a)}{b - a}$.", `$f(${a}) = ${fr2(fa)}$ et $f(${b}) = ${fr2(fb)}$.`, t === 1 || t === 2 ? "Donne une fraction, par exemple $-1/2$ ou $1/3$." : `Calcule $\\dfrac{${fr2(fb)} - ${par(fr2(fa))}}{${b - a}}$.`],
+      solution: sol
+    };
+  };
+
+  GEN["d1-nombre-derive"] = function () {
+    if (Math.random() < 0.3) {
+      const k = pick([1, 2, 3, 4]), a = pick([1, 2, -1, -2, 3, 4]);
+      const fTex = k === 1 ? "\\dfrac{1}{x}" : `\\dfrac{${k}}{x}`, rep = -k / (a * a);
+      return {
+        enonce: `$f(x) = ${fTex}$. En calculant la limite du taux de variation, détermine $f'(${a})$.`,
+        mode: "nombre", prefixe: `$f'(${a}) =$`, attendu: rep,
+        erreurs: [{ valeur: k / (a * a), message: "Attention au signe : $\\dfrac{k}{a + h} - \\dfrac{k}{a}$ est négatif pour $h > 0$." }, { valeur: -k / a, message: `Le dénominateur devient $${par(a)} \\times ${par(a)}$ quand $h$ tend vers $0$.` }].filter((e) => Math.abs(e.valeur - rep) > 1e-9),
+        aides: [`$f(${a} + h) - f(${a}) = \\dfrac{${k}}{${a} + h} - \\dfrac{${k}}{${a}}$ : mets au même dénominateur.`, `On obtient $\\dfrac{${-k}h}{${a}(${a} + h)}$, donc le taux vaut $\\dfrac{${-k}}{${a}(${a} + h)}$.`, "Quand $h$ se rapproche de $0$, $" + a + " + h$ se rapproche de $" + a + "$. Donne une fraction, par exemple $-1/4$."],
+        solution: `$\\dfrac{f(${a} + h) - f(${a})}{h} = \\dfrac{${-k}}{${a}(${a} + h)}$, qui se rapproche de $\\dfrac{${-k}}{${a * a}}$ quand $h$ tend vers $0$. Donc $f'(${a}) = ${frac(-k, a * a)}$.`
+      };
+    }
+    const p = pick([1, 1, 2, -1, 3, -2]), q = rand(-5, 5), r = rand(-6, 6), a = rand(-3, 4);
+    const rep = 2 * p * a + q, fa = p * a * a + q * a + r;
+    const taux = `${rep}${p === 1 ? " + h" : p === -1 ? " - h" : ` ${p < 0 ? "-" : "+"} ${Math.abs(p)}h`}`;
+    return {
+      enonce: `$f(x) = ${poly([p, q, r])}$. En calculant la limite du taux de variation, détermine $f'(${a})$.`,
+      mode: "nombre", prefixe: `$f'(${a}) =$`, attendu: rep,
+      erreurs: [{ valeur: fa, message: `Ça, c'est l'image $f(${a})$. Le nombre dérivé est la limite du **taux de variation**.` }, { valeur: rep + p, message: "Ça, c'est le taux pour $h = 1$ (une sécante). Fais tendre $h$ vers $0$." }, { valeur: 2 * p * a, message: `Il manque la contribution du terme $${q}x$.` }].filter((e) => e.valeur !== rep && (e.valeur !== 2 * p * a || q !== 0)),
+      aides: [`Développe $f(${a} + h) = ${p === 1 ? "" : p === -1 ? "-" : p}(${a} + h)^2 ${q ? `${sg(q)}(${a} + h)` : ""} ${r ? sg(r) : ""}$.`, `$f(${a} + h) - f(${a}) = ${poly([p, rep, 0], "h")} = h(${taux})$.`, `Le taux vaut $${taux}$ : que devient-il quand $h$ se rapproche de $0$ ?`],
+      solution: `$\\dfrac{f(${a} + h) - f(${a})}{h} = ${taux}$ pour $h \\neq 0$. Quand $h$ se rapproche de $0$, ce taux se rapproche de $${rep}$ : $f'(${a}) = ${rep}$.`
+    };
+  };
+
+  GEN["d1-lire"] = function () {
+    const a = rand(-1, 2), ya = rand(-1, 3), m = pick([-2, -1, -0.5, 0, 0.5, 1, 2, 3]), c = pick([0.5, -0.5, 0.4, -0.4]);
+    const f = (x) => c * (x - a) ** 2 + m * (x - a) + ya, t = (x) => m * (x - a) + ya;
+    const xmin = Math.min(a - 3, -1) - 0.5, xmax = Math.max(a + 3, 1) + 0.5, ymin = Math.min(ya - 4, -1) - 0.5, ymax = Math.max(ya + 4, 1) + 0.5;
+    const [fa, fb] = d1Domaine(f, a, 3.2, ymin + 0.3, ymax - 0.3), [ta, tb] = d1Domaine(t, a, 2.6, ymin + 0.3, ymax - 0.3);
+    const base = { xmin, xmax, ymin, ymax, h: 280, curves: [{ f, a: fa, b: fb, closed: false, label: "C<tspan class=\"sub\" dy=\"3\">f</tspan>", lx: fb, dx: -6, dy: -10 }, { f: t, a: ta, b: tb, closed: false }], aria: "Courbe de f et sa tangente au point A" };
+    const pas = m === 0.5 || m === -0.5 ? 2 : 1;
+    const fl = m === 0 ? [{ x1: a, y1: ya, x2: a + 1, y2: ya, c: 1, label: "+1" }] : [{ x1: a, y1: ya, x2: a + pas, y2: ya, c: 1, label: `+${pas}` }, { x1: a + pas, y1: ya, x2: a + pas, y2: ya + m * pas, c: 1, label: `${m * pas > 0 ? "+" : "−"}${Math.abs(m * pas)}` }];
+    const figure = graph({ ...base, points: [{ x: a, y: ya, label: "A", gauche: true }] }), figureSolution = graph({ ...base, fleches: fl, points: [{ x: a, y: ya, label: "A", gauche: true }] });
+    const lecture = m === 0 ? "La tangente est horizontale : sa pente est nulle." : `En partant de A, on avance de $${pas}$ et on ${m > 0 ? "monte" : "descend"} de $${nb(Math.abs(m * pas))}$ : la pente vaut $${pas === 2 ? `\\dfrac{${m * pas}}{2} = ` : ""}${nb(m)}$.`;
+    if (Math.random() < 0.6) {
+      return {
+        enonce: `On a tracé la courbe de $f$ et sa tangente au point $A$ d'abscisse $${a}$. Lis $f'(${a})$.`,
+        mode: "nombre", prefixe: `$f'(${a}) =$`, attendu: m, figure, figureSolution,
+        erreurs: [{ valeur: ya, message: `$${ya}$, c'est $f(${a})$, l'ordonnée de A. Le nombre dérivé est la **pente** de la tangente.` }, ...(m ? [{ valeur: -m, message: `Attention au sens : la tangente ${m > 0 ? "monte" : "descend"} quand on va vers la droite.` }] : [])].filter((e) => e.valeur !== m),
+        aides: ["$f'(a)$ est le coefficient directeur (la pente) de la tangente au point d'abscisse $a$.", "Pars de A, avance d'une unité vers la droite et regarde de combien la tangente monte ou descend.", m === 0.5 || m === -0.5 ? "Si c'est difficile à lire, avance de $2$ unités puis divise par $2$." : "Vérifie avec un deuxième point de la tangente bien placé sur le quadrillage."],
+        solution: `${lecture} Donc $f'(${a}) = ${nb(m)}$.`
+      };
+    }
+    const p = +(ya - m * a).toFixed(2);
+    const bonne = `$${d1Droite(m, p)}$`;
+    const c2 = melangeChoix(bonne, [`$${d1Droite(m, ya)}$`, `$${d1Droite(m, +(ya + m * a).toFixed(2))}$`, `$${d1Droite(-m, +(ya + m * a).toFixed(2))}$`, `$${d1Droite(ya, m)}$`, `$${d1Droite(m + 1, p)}$`]);
+    return {
+      enonce: `On a tracé la courbe de $f$ et sa tangente au point $A$ d'abscisse $${a}$. Quelle est l'équation réduite de cette tangente ?`,
+      mode: "choix", choix: c2.choix, attendu: c2.attendu, figure, figureSolution,
+      aides: [`Lis $f(${a})$ (l'ordonnée de A) et $f'(${a})$ (la pente de la tangente).`, "Équation de la tangente : $y = f'(a)(x - a) + f(a)$.", `Ici $f(${a}) = ${ya}$ ; remplace et développe.`],
+      solution: `$f(${a}) = ${ya}$ et ${lecture.charAt(0).toLowerCase() + lecture.slice(1)} Donc $y = ${a === 0 ? `${nb(m)}x` : `${nb(m)}(x ${a < 0 ? "+" : "-"} ${Math.abs(a)})`} ${sg(ya)}$, soit $${d1Droite(m, p)}$.`
+    };
+  };
+
+  GEN["d1-tangente-eq"] = function () {
+    const a = randNZ(-3, 4), fa = rand(-5, 6), m = randNZ(-4, 5), p = fa - m * a;
+    if (Math.random() < 0.5) {
+      return {
+        enonce: `On sait que $f(${a}) = ${fa}$ et $f'(${a}) = ${m}$. La tangente à la courbe de $f$ au point d'abscisse $${a}$ a pour équation réduite $y = mx + p$. Que vaut $p$ ?`,
+        mode: "nombre", prefixe: "$p =$", attendu: p,
+        erreurs: [{ valeur: fa + m * a, message: `Attention au signe : $x - a = x - ${par(a)}$.` }, { valeur: fa, message: `$${fa}$, c'est $f(${a})$ ; l'ordonnée à l'origine s'obtient en développant.` }].filter((e) => e.valeur !== p),
+        aides: ["$y = f'(a)(x - a) + f(a)$.", `$y = ${m}(x - ${par(a)}) ${sg(fa)}$.`, `Développe : $${m}x ${sg(-m * a)} ${sg(fa)}$.`],
+        solution: `$y = ${m}(x - ${par(a)}) ${sg(fa)} = ${m}x ${sg(-m * a)} ${sg(fa)}$, donc $${d1Droite(m, p)}$ et $p = ${p}$.`
+      };
+    }
+    const bonne = `$${d1Droite(m, p)}$`;
+    const c = melangeChoix(bonne, [`$${d1Droite(m, fa + m * a)}$`, `$${d1Droite(fa, m)}$`, `$${d1Droite(m, fa)}$`, `$${d1Droite(-m, p)}$`]);
+    return {
+      enonce: `On sait que $f(${a}) = ${fa}$ et $f'(${a}) = ${m}$. Quelle est l'équation réduite de la tangente à la courbe de $f$ au point d'abscisse $${a}$ ?`,
+      mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: ["La tangente passe par $A(a\\,;f(a))$ et a pour coefficient directeur $f'(a)$.", "$y = f'(a)(x - a) + f(a)$.", `$y = ${m}(x - ${par(a)}) ${sg(fa)}$ : développe.`],
+      solution: `$y = ${m}(x - ${par(a)}) ${sg(fa)} = ${d1Droite(m, p).slice(4)}$. Vérification : pour $x = ${a}$, on trouve bien $y = ${fa}$.`
+    };
+  };
+
+  GEN["d1-approx"] = function () {
+    const t = rand(0, 2);
+    let enonce, rep, aides, sol, exact;
+    if (t === 0) {
+      const a = pick([2, 3, 5, 10]), h = pick([0.01, 0.02, -0.01, 0.1, 0.03]);
+      rep = +(a * a + 2 * a * h).toFixed(6); exact = +((a + h) ** 2).toFixed(6);
+      enonce = `$f(x) = x^2$, et on admet que $f'(${a}) = ${2 * a}$. Donne la valeur approchée de $${nb(a + h)}^2$ obtenue par approximation linéaire.`;
+      aides = ["$f(a + h) \\approx f(a) + f'(a) \\times h$ quand $h$ est proche de $0$.", `Ici $a = ${a}$ et $h = ${nb(h)}$.`, `$${a * a} + ${2 * a} \\times ${d1Par(h)}$.`];
+      sol = `$${nb(a + h)}^2 \\approx ${a * a} + ${2 * a} \\times ${d1Par(h)} = ${nb(rep)}$. La valeur exacte est $${nb(exact)}$ : l'erreur est très petite.`;
+    } else if (t === 1) {
+      const a = pick([1, 2, 4, 5]), h = pick([0.01, 0.02, 0.1, -0.02]);
+      rep = +(1 / a - h / (a * a)).toFixed(6); exact = 1 / (a + h);
+      enonce = `$f(x) = \\dfrac{1}{x}$, et on admet que $f'(${a}) = ${frac(-1, a * a)}$. Donne la valeur approchée de $\\dfrac{1}{${nb(a + h)}}$ obtenue par approximation linéaire.`;
+      aides = ["$f(a + h) \\approx f(a) + f'(a) \\times h$ quand $h$ est proche de $0$.", `Ici $a = ${a}$, $h = ${nb(h)}$ et $f(${a}) = ${nb(1 / a)}$.`, `$${nb(1 / a)} + \\left(${frac(-1, a * a)}\\right) \\times ${d1Par(h)}$.`];
+      sol = `$\\dfrac{1}{${nb(a + h)}} \\approx ${nb(1 / a)} + \\left(${frac(-1, a * a)}\\right) \\times ${d1Par(h)} = ${nb(rep)}$. La calculatrice donne $${nb(+exact.toFixed(6))}$…`;
+    } else {
+      const a = rand(1, 4), fa = rand(-3, 8), m = randNZ(-5, 5), h = pick([0.1, 0.2, -0.1, 0.05]);
+      rep = +(fa + m * h).toFixed(6);
+      enonce = `On sait que $f(${a}) = ${fa}$ et $f'(${a}) = ${m}$. Donne une valeur approchée de $f(${nb(a + h)})$ par approximation linéaire.`;
+      aides = ["$f(a + h) \\approx f(a) + f'(a) \\times h$ quand $h$ est proche de $0$.", `$${nb(a + h)} = ${a} + ${d1Par(h)}$, donc $h = ${nb(h)}$.`, `$${fa} + ${m} \\times ${d1Par(h)}$.`];
+      sol = `$f(${nb(a + h)}) \\approx ${fa} + ${m} \\times ${d1Par(h)} = ${nb(rep)}$. On remplace la courbe par sa tangente près du point d'abscisse $${a}$.`;
+    }
+    return { enonce, mode: "nombre", prefixe: "Valeur approchée :", attendu: rep, tolerance: 1e-6, aides, solution: sol };
+  };
+
+  GEN["d1-vitesse"] = function () {
+    const k = pick([0.5, 1, 1.5]), base = `Sur la route de Sada, un taxi démarre. La distance parcourue (en m) au bout de $t$ secondes est $d(t) = ${k === 1 ? "" : nb(k)}t^2$ (pour $t \\leqslant 10$).`;
+    const opts = { xmin: -0.8, xmax: 11, ymin: -k * 8, ymax: k * 110, ystep: k * 10, yetiq: k * 20, h: 260, padL: 30, xlabel: "t (s)", ylabel: "d (m)" };
+    const courbe = { f: (t) => k * t * t, a: 0, b: 10.2, closed: false };
+    if (Math.random() < 0.5) {
+      const t1 = rand(1, 5), t2 = t1 + rand(2, 5), v = k * (t1 + t2);
+      return {
+        enonce: `${base} Quelle est sa vitesse moyenne (en m/s) entre $t = ${t1}$ et $t = ${t2}$ ?`,
+        mode: "nombre", prefixe: "Vitesse moyenne :", suffixe: "m/s", attendu: v,
+        erreurs: [{ valeur: k * (t2 * t2 - t1 * t1), message: `C'est la distance parcourue ; divise-la par la durée $${t2 - t1}$ s.` }],
+        aides: ["Vitesse moyenne $=$ distance parcourue $\\div$ durée : c'est le **taux de variation** de $d$.", `$d(${t1}) = ${nb(k * t1 * t1)}$ et $d(${t2}) = ${nb(k * t2 * t2)}$.`, `$\\dfrac{${nb(k * t2 * t2)} - ${nb(k * t1 * t1)}}{${t2} - ${t1}}$.`],
+        solution: `$\\dfrac{d(${t2}) - d(${t1})}{${t2} - ${t1}} = \\dfrac{${nb(k * (t2 * t2 - t1 * t1))}}{${t2 - t1}} = ${nb(v)}$ m/s : c'est la pente de la sécante.`,
+        figure: graph({ ...opts, curves: [courbe] }),
+        figureSolution: graph({ ...opts, curves: [courbe, { f: (t) => v * (t - t1) + k * t1 * t1, a: t1, b: t2, closed: true }], points: [{ x: t1, y: k * t1 * t1 }, { x: t2, y: k * t2 * t2 }] })
+      };
+    }
+    const t0 = rand(2, 8), v = 2 * k * t0;
+    return {
+      enonce: `${base} En calculant la limite du taux de variation, détermine sa vitesse instantanée (en m/s) à $t = ${t0}$.`,
+      mode: "nombre", prefixe: `$d'(${t0}) =$`, suffixe: "m/s", attendu: v,
+      erreurs: [{ valeur: k * t0, message: `Ça, c'est la vitesse moyenne entre $0$ et $${t0}$. La vitesse instantanée est le nombre dérivé $d'(${t0})$.` }, { valeur: k * t0 * t0, message: `Ça, c'est la distance $d(${t0})$.` }].filter((e) => e.valeur !== v),
+      aides: [`$d(${t0} + h) - d(${t0}) = ${k === 1 ? "" : nb(k)}\\left((${t0} + h)^2 - ${t0 * t0}\\right) = ${k === 1 ? "" : nb(k)}(${2 * t0}h + h^2)$.`, `Le taux vaut $${nb(2 * k * t0)} ${k === 1 ? "+ h" : `+ ${nb(k)}h`}$.`, "Fais tendre $h$ vers $0$."],
+      solution: `$\\dfrac{d(${t0} + h) - d(${t0})}{h} = ${nb(2 * k * t0)} + ${k === 1 ? "" : nb(k)}h$, qui se rapproche de $${nb(v)}$ : la vitesse instantanée est $d'(${t0}) = ${nb(v)}$ m/s, soit $${nb(+(v * 3.6).toFixed(1))}$ km/h. C'est la pente de la tangente.`,
+      figure: graph({ ...opts, curves: [courbe] }),
+      figureSolution: graph({ ...opts, curves: [courbe, (() => { const g = (t) => v * (t - t0) + k * t0 * t0, [a, b] = d1Domaine(g, t0, 3, opts.ymin + 1, opts.ymax - 1); return { f: g, a, b, closed: false }; })()], points: [{ x: t0, y: k * t0 * t0 }] })
+    };
+  };
+
+  GEN["d1-marginal"] = function () {
+    const al = pick([0.01, 0.02, 0.05]), be = pick([1, 2, 3, 5]), ga = pick([50, 100, 200]), q0 = pick([20, 50, 100]);
+    const CTex = `${nb(al)}q^2 + ${be}q + ${ga}`, Cm = +(2 * al * q0 + be).toFixed(6), diff = +(2 * al * q0 + al + be).toFixed(6);
+    const intro = `Une coopérative de Bandrélé fabrique des pots de confiture de mangue. Le coût de fabrication de $q$ pots est $C(q) = ${CTex}$ euros.`;
+    const t = rand(0, 2);
+    if (t === 2) {
+      const c = melangeChoix(`Le coût de fabrication du ${q0 + 1}e pot, environ`, [`Le coût total des ${q0} premiers pots`, "Le coût moyen d'un pot", `Le bénéfice réalisé sur ${q0} pots`]);
+      return {
+        enonce: `${intro} On trouve $C'(${q0}) = ${nb(Cm)}$. Que représente ce nombre ?`,
+        mode: "choix", choix: c.choix, attendu: c.attendu,
+        aides: ["$C'(q_0)$ est la limite du taux $\\dfrac{C(q_0 + h) - C(q_0)}{h}$.", "Pour $h = 1$, ce taux vaut $C(q_0 + 1) - C(q_0)$ : le coût d'un pot de plus.", "On l'appelle le **coût marginal**."],
+        solution: `$C'(${q0})$ est le **coût marginal** : il donne environ le coût de fabrication d'un pot supplémentaire, le ${q0 + 1}e. Ici $C(${q0 + 1}) - C(${q0}) = ${nb(diff)}$ €, très proche de $${nb(Cm)}$ €.`
+      };
+    }
+    if (t === 1) {
+      return {
+        enonce: `${intro} Combien coûte la fabrication du ${q0 + 1}e pot, c'est-à-dire $C(${q0 + 1}) - C(${q0})$ ?`,
+        mode: "nombre", prefixe: "Coût :", suffixe: "€", attendu: diff, tolerance: 1e-6,
+        erreurs: [{ valeur: +(al * (q0 + 1) ** 2 + be * (q0 + 1) + ga).toFixed(6), message: "Ça, c'est le coût total de $" + (q0 + 1) + "$ pots. On demande le coût du dernier seulement." }],
+        aides: [`$C(${q0}) = ${nb(al)} \\times ${q0 * q0} + ${be} \\times ${q0} + ${ga} = ${nb(al * q0 * q0 + be * q0 + ga)}$.`, `$C(${q0 + 1}) = ${nb(al)} \\times ${(q0 + 1) ** 2} + ${be} \\times ${q0 + 1} + ${ga}$.`, "Fais la différence."],
+        solution: `$C(${q0 + 1}) - C(${q0}) = ${nb(+(al * (q0 + 1) ** 2 + be * (q0 + 1) + ga).toFixed(6))} - ${nb(al * q0 * q0 + be * q0 + ga)} = ${nb(diff)}$ €. C'est presque le coût marginal $C'(${q0}) = ${nb(Cm)}$ €.`
+      };
+    }
+    return {
+      enonce: `${intro} En calculant la limite du taux de variation, détermine le coût marginal $C'(${q0})$.`,
+      mode: "nombre", prefixe: `$C'(${q0}) =$`, suffixe: "€", attendu: Cm, tolerance: 1e-6,
+      erreurs: [{ valeur: diff, message: "Ça, c'est le taux pour $h = 1$. Le coût marginal est la **limite** quand $h$ tend vers $0$." }],
+      aides: [`$C(${q0} + h) - C(${q0}) = ${nb(al)}\\left((${q0} + h)^2 - ${q0 * q0}\\right) + ${be}h$.`, `$= ${nb(al)}(${2 * q0}h + h^2) + ${be}h = h(${nb(2 * al * q0)} + ${nb(al)}h + ${be})$.`, "Simplifie par $h$, puis fais tendre $h$ vers $0$."],
+      solution: `$\\dfrac{C(${q0} + h) - C(${q0})}{h} = ${nb(Cm)} + ${nb(al)}h$, qui se rapproche de $${nb(Cm)}$. Donc $C'(${q0}) = ${nb(Cm)}$ € : fabriquer un pot de plus coûte environ $${nb(Cm)}$ €.`
+    };
+  };
+
+  GEN["d1-python"] = function () {
+    const K = rand(-3, 3), a = rand(1, 4), d = 2 * a + K;
+    const fx = K === 0 ? "x**2" : `x**2 ${K < 0 ? "-" : "+"} ${Math.abs(K) === 1 ? "x" : `${Math.abs(K)}*x`}`;
+    const code = "```python\ndef f(x):\n    return " + fx + "\n\ndef pentes(a, pas):\n    return [(f(a + h) - f(a)) / h for h in pas]\n```";
+    const fTex = poly([1, K, 0]);
+    const t = rand(0, 2);
+    if (t === 0) {
+      const py = (v) => (Number.isInteger(v) ? `${v}.0` : String(v)), liste = (x) => `[${[1, 0.1, 0.01].map((h) => py(+(x + h).toFixed(2))).join(", ")}]`;
+      const c = melangeChoix(liste(d), [liste(d + 1), liste(2 * a), `[${[1, 0.1, 0.01].map((h) => py(+(a * a + K * a + h).toFixed(2))).join(", ")}]`]);
+      return {
+        enonce: `On considère ce programme :\n\n${code}\n\nQue renvoie (environ) pentes(${a}, [1, 0.1, 0.01]) ?`,
+        mode: "choix", choix: c.choix, attendu: c.attendu,
+        aides: [`Chaque élément est le taux $\\dfrac{f(${a} + h) - f(${a})}{h}$ pour une valeur de $h$.`, `Avec $f(x) = ${fTex}$, ce taux vaut $${d} + h$.`, "Remplace $h$ par $1$, puis $0{,}1$, puis $0{,}01$."],
+        solution: `Le taux vaut $${d} + h$ : la liste est environ ${liste(d)}. Python peut afficher de petites erreurs d'arrondi dans les derniers chiffres.`
+      };
+    }
+    if (t === 1) {
+      return {
+        enonce: `On considère ce programme :\n\n${code}\n\nOn calcule pentes(${a}, [0.1, 0.01, 0.001, 0.0001]). Vers quel nombre les valeurs de la liste se rapprochent-elles ?`,
+        mode: "nombre", prefixe: "Réponse :", attendu: d,
+        erreurs: [{ valeur: a * a + K * a, message: `Ça, c'est $f(${a})$. Les éléments de la liste sont des **pentes** de sécantes.` }].filter((e) => e.valeur !== d),
+        aides: ["Chaque élément est la pente d'une sécante passant par le point d'abscisse " + a + ".", `Pour $f(x) = ${fTex}$, le taux vaut $${d} + h$.`, "Quand $h$ se rapproche de $0$, les pentes se rapprochent du nombre dérivé."],
+        solution: `Les valeurs sont environ $${nb(d + 0.1)}$, $${nb(d + 0.01)}$, $${nb(d + 0.001)}$, $${nb(d + 0.0001)}$ : elles se rapprochent de $${d} = f'(${a})$, la pente de la tangente.`
+      };
+    }
+    const c = melangeChoix("Le coefficient directeur d'une sécante à la courbe de f", ["Une image f(a + h)", "Le nombre dérivé f'(a) exact", "L'ordonnée à l'origine d'une tangente"]);
+    return {
+      enonce: `On considère ce programme :\n\n${code}\n\nQue représente chaque nombre de la liste renvoyée par pentes(a, pas) ?`,
+      mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: ["Le programme calcule (f(a + h) − f(a)) / h pour chaque h de la liste pas.", "C'est un taux de variation entre a et a + h.", "Un taux de variation, c'est la pente d'une droite passant par deux points de la courbe."],
+      solution: "Chaque nombre est le taux de variation de $f$ entre $a$ et $a + h$ : le **coefficient directeur de la sécante** passant par les points d'abscisses $a$ et $a + h$. Quand $h$ devient petit, ces pentes s'approchent de $f'(a)$."
+    };
+  };
+
+  // Logique : a est un paramètre (fixé), h une variable qui tend vers 0
+  GEN["d1-statut"] = function () {
+    const T = [
+      ["Dans le taux $\\dfrac{f(a + h) - f(a)}{h}$ qui sert à calculer $f'(a)$, quel est le rôle de $h$ ?", "Une variable non nulle qui se rapproche de $0$", ["Un nombre fixé à l'avance, comme $a$", "L'inconnue d'une équation à résoudre", "Le nombre dérivé"], "$h$ est une **variable** : on la fait varier, de plus en plus près de $0$, sans jamais qu'elle vaille $0$ (on divise par $h$)."],
+      ["Dans le taux $\\dfrac{f(a + h) - f(a)}{h}$ qui sert à calculer $f'(a)$, quel est le rôle de $a$ ?", "Un paramètre : l'abscisse fixée du point étudié", ["Une variable qui se rapproche de $0$", "L'inconnue d'une équation", "La pente de la tangente"], "$a$ est un **paramètre** : il est fixé pendant tout le calcul (c'est le point où l'on dérive). Seul $h$ varie."],
+      ["Peut-on remplacer directement $h$ par $0$ dans $\\dfrac{f(a + h) - f(a)}{h}$ ?", "Non : on obtiendrait $\\dfrac{0}{0}$, il faut d'abord simplifier par $h$", ["Oui, et on trouve $f'(a)$", "Oui, et on trouve $0$", "Non, car $a$ doit être nul"], "Pour $h = 0$, le quotient n'existe pas. On simplifie d'abord par $h$ (avec $h \\neq 0$), puis on regarde vers quoi tend le résultat quand $h$ se rapproche de $0$."],
+      ["Dans l'équation de tangente $y = f'(a)(x - a) + f(a)$, quelles lettres varient quand on parcourt la droite ?", "$x$ et $y$", ["$a$ et $f(a)$", "$a$ seulement", "$f'(a)$ et $x$"], "$a$, $f(a)$ et $f'(a)$ sont des **nombres fixés** ; $x$ et $y$ sont les coordonnées d'un point qui se déplace sur la droite."],
+      ["$f'(3)$ est…", "un nombre : la pente de la tangente au point d'abscisse $3$", ["une fonction", "l'image de $3$ par $f$", "une équation de droite"], "$f'(3)$ est un **nombre**, la limite du taux de variation en $3$, c'est-à-dire la pente de la tangente au point d'abscisse $3$."]
+    ];
+    const [q, b, f, s] = pick(T), c = melangeChoix(b, f);
+    return {
+      enonce: q, mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: ["Un **paramètre** est une lettre fixée pendant le calcul ; une **variable** prend différentes valeurs.", "Dans $f'(a)$, le point d'abscisse $a$ ne bouge pas : c'est le second point, d'abscisse $a + h$, qui se rapproche.", "On ne divise jamais par $0$."],
+      solution: s
+    };
+  };
+
+
   /* Séries « flash » d'un thème : mélange de ses générateurs */
   const THEMES = {
     "am-flash-cn": ["am-comparer", "am-fractions", "am-puissances", "am-ecritures", "am-ordre-grandeur", "am-coherence", "auto-conversions"],
@@ -6023,7 +6292,7 @@
 
 
   /* Une « erreur connue » ne doit jamais coïncider avec la bonne réponse (à la tolérance près) */
-  Object.keys(GEN).filter((k) => /^(ld|am|cd|ar|cl|fa|ve|st|vx|tc|co|dr|fr|sg|pc|ec|sy|su|s2|pi|s5)-/.test(k)).forEach((k) => {
+  Object.keys(GEN).filter((k) => /^(ld|am|cd|ar|cl|fa|ve|st|vx|tc|co|dr|fr|sg|pc|ec|sy|su|s2|pi|s5|d1)-/.test(k)).forEach((k) => {
     const g = GEN[k];
     GEN[k] = (i) => { const q = g(i); if (q.erreurs) q.erreurs = q.erreurs.filter((e) => Math.abs(e.valeur - q.attendu) >= (q.tolerance || 1e-9)); return q; };
   });
