@@ -239,6 +239,13 @@ window.CATALOGUE = {
           titre: "Suites arithmétiques",
           statut: "disponible",
           drive: ""
+        },
+        {
+          id: "premiere-probabilites",
+          numero: 4,
+          titre: "Probabilités conditionnelles et indépendance",
+          statut: "disponible",
+          drive: ""
         }
       ]
     },

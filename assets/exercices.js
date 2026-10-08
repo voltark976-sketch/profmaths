@@ -5494,6 +5494,124 @@
   FIGURES["suite-geo"] = () => graph({ xmin: -0.5, xmax: 7.5, ymin: -2, ymax: 34, ystep: 4, yetiq: 8, h: 260, curves: [{ f: (x) => 2 ** (x * 0.5 + 0) * 1, a: 0, b: 0, closed: false }].slice(0, 0), points: Array.from({ length: 6 }, (_, n) => ({ x: n, y: 2 ** n })).concat(Array.from({ length: 8 }, (_, n) => ({ x: n, y: 24 * 0.6 ** n }))), marques: [{ x: 5.6, y: 31, texte: "×2" }, { x: 6.2, y: 3.2, texte: "×0,6" }], aria: "Suite géométrique de raison 2 (croissante) et de raison 0,6 (décroissante)" });
 
 
+  /* ---------- Première, chapitre 4 : probabilités conditionnelles et indépendance (préfixe pi-) ---------- */
+  // Arbre à trois branches au premier niveau (partition A₁, A₂, A₃), deux au second (D, non D)
+  function arbre3(noms, p1, p2) {
+    const W = 320, H = 230, x0 = 14, x1 = 120, x2 = 270, ys = [40, 115, 190], d = 22;
+    let s = `<svg class="graph" viewBox="0 0 ${W} ${H}" role="img" aria-label="Arbre pondéré : partition en trois événements">`;
+    const nom = (t) => (t[0] === "~" ? `<tspan style="text-decoration:overline">${t.slice(1)}</tspan>` : t);
+    const br = (xa, ya, xb, yb, t) => {
+      s += `<line x1="${xa}" y1="${ya}" x2="${xb - 14}" y2="${yb}" style="stroke:var(--doux);stroke-width:1.6"/>`;
+      s += `<text class="g-label" x="${(xa + xb - 14) / 2}" y="${(ya + yb) / 2 - 5}" text-anchor="middle" style="fill:${t === "?" ? "var(--ylang)" : "var(--encre)"}">${t}</text>`;
+    };
+    ys.forEach((y, i) => {
+      br(x0, H / 2, x1, y, p1[i]);
+      s += `<text class="g-clabel" x="${x1 - 8}" y="${y + 4}">${nom(noms[i])}</text>`;
+      br(x1 + 14, y, x2, y - d, p2[i]); br(x1 + 14, y, x2, y + d, "");
+      s += `<text class="g-clabel" x="${x2 - 8}" y="${y - d + 4}">${nom(noms[3])}</text><text class="g-clabel" x="${x2 - 8}" y="${y + d + 4}">${nom("~" + noms[3])}</text>`;
+    });
+    return s + `</svg>`;
+  }
+  const vir = (x) => String(+x.toFixed(4)).replace(".", ","), virT = (x) => vir(x).replace(",", "{,}");
+
+  GEN["pi-totales"] = function () {
+    const pA = pick([0.2, 0.3, 0.4, 0.6, 0.7]), b1 = pick([0.1, 0.2, 0.5, 0.8, 0.9]), b2 = pick([0.05, 0.1, 0.3, 0.4, 0.6]);
+    const P = [pA, 1 - pA, b1, 1 - b1, b2, 1 - b2].map((x) => +x.toFixed(2)), pB = +(P[0] * P[2] + P[1] * P[4]).toFixed(4);
+    return {
+      enonce: "D'après l'arbre pondéré, calcule $P(B)$.",
+      figure: arbre(NOMS_ARBRE, P.map(vir)),
+      mode: "nombre", prefixe: "$P(B) =$", attendu: pB,
+      erreurs: [{ valeur: +(P[0] * P[2]).toFixed(4), message: "Ça, c'est seulement $P(A \\cap B)$ : il faut ajouter le chemin qui passe par $\\overline{A}$." }, { valeur: +(P[2] + P[4]).toFixed(4), message: "On n'additionne pas les branches du second niveau : on additionne les **chemins** (produits)." }],
+      aides: ["$A$ et $\\overline{A}$ forment une **partition** de l'univers : $B = (A \\cap B) \\cup (\\overline{A} \\cap B)$.", "**Formule des probabilités totales** : $P(B) = P(A \\cap B) + P(\\overline{A} \\cap B)$.", `$P(B) = ${virT(P[0])} \\times ${virT(P[2])} + ${virT(P[1])} \\times ${virT(P[4])}$.`],
+      solution: `$P(B) = P(A)P_A(B) + P(\\overline{A})P_{\\overline{A}}(B) = ${virT(P[0])} \\times ${virT(P[2])} + ${virT(P[1])} \\times ${virT(P[4])} = ${virT(+(P[0] * P[2]).toFixed(4))} + ${virT(+(P[1] * P[4]).toFixed(4))} = ${virT(pB)}$.`
+    };
+  };
+
+  GEN["pi-inverser"] = function () {
+    const pA = pick([0.02, 0.05, 0.1, 0.2, 0.3]), b1 = pick([0.9, 0.95, 0.98]), b2 = pick([0.05, 0.1, 0.2]);
+    const inter = pA * b1, pB = inter + (1 - pA) * b2, r = Math.round((inter / pB) * 100) / 100;
+    const P = [pA, 1 - pA, b1, 1 - b1, b2, 1 - b2].map((x) => +x.toFixed(2));
+    return {
+      enonce: "Dépistage au dispensaire : $M$ « la personne est malade », $T$ « le test est positif ». D'après l'arbre, calcule $P_T(M)$, arrondie au centième.",
+      figure: arbre(["M", "~M", "T", "~T"], P.map(vir)),
+      mode: "nombre", prefixe: "$P_T(M) \\approx$", attendu: r, tolerance: 0.006,
+      erreurs: [{ valeur: b1, message: "Ça, c'est $P_M(T)$ (sur l'arbre). On demande l'inverse : $P_T(M)$." }],
+      aides: ["$P_T(M) = \\dfrac{P(M \\cap T)}{P(T)}$.", `$P(M \\cap T) = ${virT(P[0])} \\times ${virT(P[2])} = ${virT(+inter.toFixed(4))}$.`, `$P(T)$ par les probabilités totales : $${virT(+inter.toFixed(4))} + ${virT(P[1])} \\times ${virT(P[4])} = ${virT(+pB.toFixed(4))}$.`],
+      solution: `$P_T(M) = \\dfrac{P(M \\cap T)}{P(T)} = \\dfrac{${virT(+inter.toFixed(4))}}{${virT(+pB.toFixed(4))}} \\approx ${virT(r)}$.\n\n${r < 0.5 ? "Moins d'une chance sur deux d'être malade malgré un test positif : la maladie est rare et les faux positifs nombreux." : "On a inversé le conditionnement : $P_T(M) \\neq P_M(T)$."}`
+    };
+  };
+
+  GEN["pi-independance"] = function () {
+    const t = rand(0, 1);
+    const pA = pick([0.2, 0.3, 0.4, 0.5, 0.6]), pB = pick([0.1, 0.2, 0.3, 0.5, 0.7]);
+    if (t === 0) {
+      const indep = Math.random() < 0.5, inter = +(indep ? pA * pB : pA * pB + pick([0.04, -0.03, 0.05])).toFixed(3);
+      return {
+        enonce: `$P(A) = ${virT(pA)}$, $P(B) = ${virT(pB)}$ et $P(A \\cap B) = ${virT(inter)}$. Les événements $A$ et $B$ sont-ils indépendants ?`,
+        mode: "choix", choix: ["Oui", "Non"], attendu: indep ? 0 : 1,
+        aides: ["$A$ et $B$ sont **indépendants** si et seulement si $P(A \\cap B) = P(A) \\times P(B)$.", `Calcule $P(A) \\times P(B) = ${virT(pA)} \\times ${virT(pB)}$.`, "Compare avec $P(A \\cap B)$."],
+        solution: `$P(A) \\times P(B) = ${virT(+(pA * pB).toFixed(4))}$ ${indep ? "$=" : "$\\neq"} P(A \\cap B)$ : ${indep ? "ils sont **indépendants** (savoir que $A$ est réalisé ne change pas la probabilité de $B$)." : "ils ne sont **pas** indépendants."}`
+      };
+    }
+    return {
+      enonce: `$A$ et $B$ sont indépendants, avec $P(A) = ${virT(pA)}$ et $P(B) = ${virT(pB)}$. Calcule $P(A \\cap B)$.`,
+      mode: "nombre", prefixe: "$P(A \\cap B) =$", attendu: +(pA * pB).toFixed(4),
+      erreurs: [{ valeur: +(pA + pB).toFixed(4), message: "Pour l'intersection d'événements indépendants, on **multiplie**." }],
+      aides: ["Indépendants : $P(A \\cap B) = P(A) \\times P(B)$.", "C'est aussi $P_A(B) = P(B)$ : savoir $A$ ne change rien.", `$${virT(pA)} \\times ${virT(pB)}$.`],
+      solution: `$P(A \\cap B) = ${virT(pA)} \\times ${virT(pB)} = ${virT(+(pA * pB).toFixed(4))}$.`
+    };
+  };
+
+  GEN["pi-epreuves"] = function () {
+    const t = rand(0, 2);
+    if (t === 0) {
+      const k = rand(1, 6);
+      return {
+        enonce: `On lance un dé équilibré à $6$ faces puis une pièce équilibrée (épreuves indépendantes). Quelle est la probabilité d'obtenir un nombre supérieur ou égal à $${k}$ **et** « pile » ? (Fraction.)`,
+        mode: "nombre", prefixe: "Probabilité :", attendu: ((7 - k) / 6) * 0.5,
+        aides: ["Les deux épreuves sont indépendantes : on multiplie les probabilités.", `$P(\\text{dé} \\geqslant ${k}) = \\dfrac{${7 - k}}{6}$ et $P(\\text{pile}) = \\dfrac{1}{2}$.`, "Fais le produit, et simplifie si tu veux (écris par exemple $5/12$)."],
+        solution: `$\\dfrac{${7 - k}}{6} \\times \\dfrac{1}{2} = ${frac(7 - k, 12)}$.`
+      };
+    }
+    if (t === 1) {
+      const r = rand(2, 6), b = rand(2, 6), n = r + b;
+      return {
+        enonce: `Une urne contient $${r}$ boules rouges et $${b}$ bleues. On tire une boule, on la **remet**, puis on en tire une seconde. Probabilité d'obtenir deux boules rouges ? (Fraction.)`,
+        mode: "nombre", prefixe: "Probabilité :", attendu: (r / n) ** 2,
+        erreurs: [{ valeur: (r / n) * ((r - 1) / (n - 1)), message: "La boule est remise : la composition de l'urne ne change pas au second tirage." }],
+        aides: ["Avec remise, les deux tirages sont **indépendants**.", `$P(R) = \\dfrac{${r}}{${n}}$ à chaque tirage.`, `$P(R \\text{ puis } R) = \\dfrac{${r}}{${n}} \\times \\dfrac{${r}}{${n}}$.`],
+        solution: `$\\dfrac{${r}}{${n}} \\times \\dfrac{${r}}{${n}} = ${frac(r * r, n * n)}$.`
+      };
+    }
+    const p = pick([0.1, 0.2, 0.3, 0.6, 0.8]);
+    return {
+      enonce: `Un tireur atteint la cible avec la probabilité $${virT(p)}$, indépendamment d'un tir à l'autre. Il tire deux fois. Probabilité qu'il atteigne la cible **exactement une fois** ?`,
+      mode: "nombre", prefixe: "Probabilité :", attendu: +(2 * p * (1 - p)).toFixed(4),
+      erreurs: [{ valeur: +(p * (1 - p)).toFixed(4), message: "Il y a **deux** chemins : réussite puis échec, et échec puis réussite." }],
+      aides: ["Fais un arbre à deux niveaux (succès $S$, échec $\\overline{S}$).", `Chemins favorables : $S\\overline{S}$ et $\\overline{S}S$, chacun de probabilité $${virT(p)} \\times ${virT(1 - p)}$.`, "Additionne les deux chemins."],
+      solution: `$P = ${virT(p)} \\times ${virT(1 - p)} + ${virT(1 - p)} \\times ${virT(p)} = ${virT(+(2 * p * (1 - p)).toFixed(4))}$.`
+    };
+  };
+
+  GEN["pi-partition"] = function () {
+    const p1 = pick([0.2, 0.3, 0.5]), p2 = pick([0.2, 0.3]), p3 = +(1 - p1 - p2).toFixed(2);
+    const d = [pick([0.01, 0.02, 0.03]), pick([0.02, 0.04, 0.05]), pick([0.01, 0.06, 0.08])];
+    const pD = +(p1 * d[0] + p2 * d[1] + p3 * d[2]).toFixed(4);
+    return {
+      enonce: `Une coopérative de vanille trie ses gousses venant de trois villages $A_1$, $A_2$, $A_3$ (proportions et taux de gousses abîmées $D$ sur l'arbre). Quelle est la probabilité qu'une gousse prise au hasard soit abîmée ?`,
+      figure: arbre3(["A₁", "A₂", "A₃", "D"], [p1, p2, p3].map(vir), d.map(vir)),
+      mode: "nombre", prefixe: "$P(D) =$", attendu: pD,
+      aides: ["$A_1$, $A_2$, $A_3$ forment une **partition** de l'univers : chaque gousse vient d'un seul village.", "Probabilités totales : $P(D) = P(A_1)P_{A_1}(D) + P(A_2)P_{A_2}(D) + P(A_3)P_{A_3}(D)$.", "Additionne les trois chemins qui mènent à $D$."],
+      solution: `$P(D) = ${virT(p1)} \\times ${virT(d[0])} + ${virT(p2)} \\times ${virT(d[1])} + ${virT(p3)} \\times ${virT(d[2])} = ${virT(pD)}$.`
+    };
+  };
+
+
+  // Première, chapitre 4 : arbres du cours
+  FIGURES["arbre-partition"] = () => arbre3(["A₁", "A₂", "A₃", "D"], ["0,5", "0,3", "0,2"], ["0,02", "0,04", "0,06"]);
+  FIGURES["arbre-independance"] = () => arbre(["A", "~A", "B", "~B"], ["0,4", "0,6", "0,3", "0,7", "0,3", "0,7"]);
+
+
   /* Séries « flash » d'un thème : mélange de ses générateurs */
   const THEMES = {
     "am-flash-cn": ["am-comparer", "am-fractions", "am-puissances", "am-ecritures", "am-ordre-grandeur", "am-coherence", "auto-conversions"],
@@ -5510,7 +5628,7 @@
 
 
   /* Une « erreur connue » ne doit jamais coïncider avec la bonne réponse (à la tolérance près) */
-  Object.keys(GEN).filter((k) => /^(ld|am|cd|ar|cl|fa|ve|st|vx|tc|co|dr|fr|sg|pc|ec|sy|su|s2)-/.test(k)).forEach((k) => {
+  Object.keys(GEN).filter((k) => /^(ld|am|cd|ar|cl|fa|ve|st|vx|tc|co|dr|fr|sg|pc|ec|sy|su|s2|pi)-/.test(k)).forEach((k) => {
     const g = GEN[k];
     GEN[k] = (i) => { const q = g(i); if (q.erreurs) q.erreurs = q.erreurs.filter((e) => Math.abs(e.valeur - q.attendu) >= (q.tolerance || 1e-9)); return q; };
   });

@@ -28,6 +28,7 @@ Site statique : aucune base de données, aucun compte élève. Ouvrir `index.htm
   - `suites.js` : chapitre 1, suites (généralités). Générateurs `suite-` et `su-`.
   - `second-degre.js` : chapitre 2, second degré (forme factorisée). Générateurs `sd-` et `s2-`.
   - `suites-arithmetiques.js` : chapitre 3. Générateurs `su-arith-`, `su-somme-entiers`.
+  - `probabilites.js` : chapitre 4, probabilités conditionnelles et indépendance. Générateurs `pi-` (et `pc-` de Seconde).
 - `data/terminale-spe/denombrement.js` : chapitre 14 de Terminale spécialité (combinatoire et dénombrement). Les générateurs d'exercices correspondants commencent par `cd-` dans `assets/exercices.js`.
 - `data/terminale/lois-discretes.js` : chapitre 2 de Terminale maths complémentaires.
 
