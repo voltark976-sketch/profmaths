@@ -274,6 +274,13 @@ window.CATALOGUE = {
           titre: "Trigonométrie",
           statut: "disponible",
           drive: ""
+        },
+        {
+          id: "premiere-derivation-2",
+          numero: 9,
+          titre: "Dérivation 2 : point de vue global",
+          statut: "disponible",
+          drive: ""
         }
       ]
     },

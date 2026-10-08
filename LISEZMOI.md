@@ -33,6 +33,7 @@ Site statique : aucune base de données, aucun compte élève. Ouvrir `index.htm
   - `suites-geometriques.js` : chapitre 6, suites géométriques (taux constant, somme des puissances, limite, seuil). Générateurs `suite-` et `su-geo-`.
   - `derivation-1.js` : chapitre 7, dérivation (taux de variation, nombre dérivé, tangente, approximation linéaire). Générateurs `d1-`.
   - `trigonometrie.js` : chapitre 8, trigonométrie (radian, enroulement, cosinus et sinus, valeurs remarquables, Archimède). Générateurs `tr-`.
+  - `derivation-2.js` : chapitre 9, fonction dérivée (formules usuelles, produit, quotient, g(ax + b), dérivabilité). Générateurs `d2-`.
 - `data/terminale-spe/denombrement.js` : chapitre 14 de Terminale spécialité (combinatoire et dénombrement). Les générateurs d'exercices correspondants commencent par `cd-` dans `assets/exercices.js`.
 - `data/terminale/lois-discretes.js` : chapitre 2 de Terminale maths complémentaires.
 

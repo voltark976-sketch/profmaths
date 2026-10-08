@@ -6543,6 +6543,188 @@
   };
 
 
+  /* ---------- Première, chapitre 9 : dérivation, point de vue global (préfixe d2-) ---------- */
+  // f(x) = x² et sa dérivée f'(x) = 2x : la pente de la tangente devient l'ordonnée d'un point de f'
+  FIGURES["fonction-derivee"] = () => {
+    let s = graph({ xmin: -2.6, xmax: 2.6, ymin: -4.6, ymax: 6.6, h: 320, curves: [{ f: (x) => x * x, a: -2.5, b: 2.5, closed: false, label: "y = x²", lx: -2.4, dx: 44, dy: 6 }, { f: (x) => 2 * x, a: -2.25, b: 2.6, closed: false, label: "y = 2x", lx: -1.9, dx: -6, dy: -2 }, { f: (x) => -2 * x - 1, a: -1.8, b: -0.3, closed: false }, { f: (x) => 2 * x - 1, a: 0.3, b: 1.8, closed: false }], points: [{ x: -1, y: 1 }, { x: 1, y: 1 }, { x: -1, y: -2, label: "f′(−1) = −2", gauche: true }, { x: 1, y: 2, label: "f′(1) = 2", gauche: true }], aria: "Parabole y = x² avec ses tangentes en −1 et en 1, de pentes −2 et 2 ; ces pentes sont les ordonnées des points de la droite y = 2x, courbe de la fonction dérivée" });
+    [2, 3].forEach((i) => { s = tiret(s, i); });
+    return s;
+  };
+  // Racine carrée en 0 : les sécantes (OM) deviennent de plus en plus raides
+  FIGURES["racine-tangente"] = () => {
+    const cs = [{ f: Math.sqrt, a: 0, b: 4.1, closed: false, label: "y = √x", lx: 3.6, dx: 4, dy: -10 }];
+    [[1, 2.25], [0.25, 1.15], [0.04, 0.46]].forEach(([h, b]) => cs.push({ f: (x) => x / Math.sqrt(h), a: 0, b, closed: false }));
+    let s = graph({ xmin: -0.4, xmax: 4.3, ymin: -0.4, ymax: 2.5, xstep: 0.5, ystep: 0.5, xetiq: 1, yetiq: 1, h: 240, curves: cs, points: [{ x: 1, y: 1, label: "pente 1" }, { x: 0.25, y: 0.5, label: "pente 2" }, { x: 0.04, y: 0.2, label: "pente 5" }], aria: "Les sécantes à la courbe de la racine carrée passant par l'origine ont des pentes 1, 2, 5… de plus en plus grandes : la tangente en 0 est verticale" });
+    [1, 2, 3].forEach((i) => { s = tiret(s, i); });
+    return s;
+  };
+  // Valeur absolue : pente −1 à gauche de 0, pente 1 à droite
+  FIGURES["valeur-absolue"] = () => graph({ xmin: -3.4, xmax: 3.4, ymin: -1, ymax: 3.6, h: 220, curves: [{ f: (x) => -x, a: -3, b: 0, closed: false }, { f: (x) => x, a: 0, b: 3, closed: false, label: "y = |x|", lx: 2.4, dx: 46, dy: 0 }], marques: [{ x: -2, y: 2.8, texte: "pente −1" }, { x: 1.3, y: 2.8, texte: "pente 1" }], points: [{ x: 0, y: 0 }], aria: "Courbe de la valeur absolue en forme de V : pente −1 à gauche de 0, pente 1 à droite, pas de tangente en 0" }).replace(/g-curve g-curve-1"/, 'g-curve g-curve-0"');
+
+  // Écrit un monôme k x^n en TeX (k entier non nul)
+  const d2Mono = (k, e) => (e === 0 ? `${k}` : `${k === 1 ? "" : k === -1 ? "-" : k}${e === 1 ? "x" : `x^{${e}}`}`);
+
+  GEN["d2-usuelles"] = function () {
+    const T = [
+      () => { const n = rand(2, 6); return [`x^{${n}}`, d2Mono(n, n - 1), [d2Mono(n, n), d2Mono(n - 1, n - 1), d2Mono(1, n - 1), d2Mono(n + 1, n - 1)], `$(x^n)' = nx^{n-1}$ avec $n = ${n}$.`]; },
+      () => { const k = pick([2, 3, 4, 5, -2, -3, 7]), n = rand(2, 4); return [d2Mono(k, n), d2Mono(k * n, n - 1), [d2Mono(k, n - 1), d2Mono(n, n - 1), d2Mono(k * n, n)], `$(kx^n)' = k \\times nx^{n-1}$ : $${k} \\times ${n} = ${k * n}$.`]; },
+      () => ["\\dfrac{1}{x}", "-\\dfrac{1}{x^2}", ["\\dfrac{1}{x^2}", "-\\dfrac{1}{x}", "\\dfrac{1}{2x}"], "$\\left(\\dfrac{1}{x}\\right)' = -\\dfrac{1}{x^2}$, pour $x \\neq 0$."],
+      () => { const k = pick([2, 3, 5, -4]), K = Math.abs(k), sgn = (p) => (p ? "-" : ""); return [`\\dfrac{${k}}{x}`, `${sgn(k > 0)}\\dfrac{${K}}{x^2}`, [`${sgn(k < 0)}\\dfrac{${K}}{x^2}`, `${k}`, `${sgn(k > 0)}\\dfrac{${K}}{x}`, "-\\dfrac{1}{x^2}"], `$\\dfrac{${k}}{x} = ${k} \\times \\dfrac{1}{x}$, donc la dérivée est $${k} \\times \\left(-\\dfrac{1}{x^2}\\right)$.`]; },
+      () => ["\\sqrt{x}", "\\dfrac{1}{2\\sqrt{x}}", ["2\\sqrt{x}", "\\dfrac{1}{\\sqrt{x}}", "-\\dfrac{1}{2\\sqrt{x}}"], "$(\\sqrt{x})' = \\dfrac{1}{2\\sqrt{x}}$, pour $x > 0$."],
+      () => { const k = pick([5, -3, 7, 12]); return [`${k}`, "0", [`${k}`, "1", `${k}x`], "La dérivée d'une fonction constante est nulle : sa courbe est une droite horizontale."]; },
+      () => { const m = randNZ(-6, 6), p = randNZ(-9, 9); return [poly([m, p]), `${m}`, [poly([m, 0]), `${p}`, `${m + p}`], `La dérivée de $mx + p$ est $m$ : ici $${m}$, le coefficient directeur.`]; }
+    ];
+    const [f, d, fausses, sol] = pick(T)();
+    const c = melangeChoix(`$f'(x) = ${d}$`, [...new Set(fausses)].filter((x) => x !== d).map((x) => `$f'(x) = ${x}$`));
+    return {
+      enonce: `Quelle est la fonction dérivée de $f(x) = ${f}$ ?`,
+      mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: ["Dérivées à connaître : $k \\to 0$ ; $x^n \\to nx^{n-1}$ ; $\\dfrac{1}{x} \\to -\\dfrac{1}{x^2}$ ; $\\sqrt{x} \\to \\dfrac{1}{2\\sqrt{x}}$.", "Un coefficient multiplicateur se garde : $(ku)' = ku'$.", "Vérifie en calculant le nombre dérivé en un point simple."],
+      solution: sol
+    };
+  };
+
+  GEN["d2-polynome"] = function () {
+    const a = pick([1, -1, 2, -2, 3]), b = rand(-5, 5), c = rand(-6, 6), d = rand(-9, 9);
+    const fp = [3 * a, 2 * b, c], f = poly([a, b, c, d]), fpTex = poly(fp);
+    if (Math.random() < 0.5) {
+      const x0 = rand(-2, 3), v = 3 * a * x0 * x0 + 2 * b * x0 + c;
+      return {
+        enonce: `$f(x) = ${f}$. Calcule $f'(${x0})$.`,
+        mode: "nombre", prefixe: `$f'(${x0}) =$`, attendu: v,
+        erreurs: [{ valeur: a * x0 ** 3 + b * x0 * x0 + c * x0 + d, message: `Ça, c'est $f(${x0})$. Calcule d'abord la fonction dérivée $f'(x)$.` }, { valeur: 3 * a * x0 * x0 + 2 * b * x0 + c + d, message: "La dérivée d'une constante est nulle : le terme constant disparaît." }].filter((e) => e.valeur !== v),
+        aides: ["Dérive terme à terme : $(x^3)' = 3x^2$, $(x^2)' = 2x$, $(x)' = 1$, et une constante a pour dérivée $0$.", `$f'(x) = ${fpTex}$.`, `Remplace $x$ par $${x0}$.`],
+        solution: `$f'(x) = ${fpTex}$, donc $f'(${x0}) = ${3 * a} \\times ${par(x0)}^2 ${sg(2 * b)} \\times ${par(x0)} ${sg(c)} = ${v}$.`
+      };
+    }
+    const bonne = fpTex, fausses = [poly([3 * a, 2 * b, c, d]), poly([a, b, c]), poly([3 * a, b, c]), poly([3 * a, 2 * b, 0])];
+    const ch = melangeChoix(`$${bonne}$`, [...new Set(fausses)].filter((x) => x !== bonne).map((x) => `$${x}$`));
+    return {
+      enonce: `$f(x) = ${f}$. Quelle est l'expression de $f'(x)$ ?`,
+      mode: "choix", choix: ch.choix, attendu: ch.attendu,
+      aides: ["La dérivée d'une somme est la somme des dérivées.", "$(ax^3)' = 3ax^2$, $(bx^2)' = 2bx$, $(cx)' = c$ et $(d)' = 0$.", `Le terme en $x^3$ devient $${3 * a}x^2$.`],
+      solution: `On dérive terme à terme${d ? ` ; la constante $${d}$ a pour dérivée $0$` : ""} : $f'(x) = ${fpTex}$.`
+    };
+  };
+
+  GEN["d2-produit"] = function () {
+    const p = randNZ(-3, 4), q = rand(-5, 5), r = pick([1, 2, -1, 3]), s = rand(-6, 6), x0 = rand(-2, 3);
+    const u = (x) => p * x + q, v = (x) => r * x * x + s, up = p, vp = (x) => 2 * r * x;
+    const rep = up * v(x0) + u(x0) * vp(x0);
+    return {
+      enonce: `$f(x) = (${poly([p, q])})(${poly([r, 0, s])})$. Calcule $f'(${x0})$.`,
+      mode: "nombre", prefixe: `$f'(${x0}) =$`, attendu: rep,
+      erreurs: [{ valeur: up * vp(x0), message: "La dérivée d'un produit n'est pas le produit des dérivées : $(uv)' = u'v + uv'$." }, { valeur: u(x0) * v(x0), message: `Ça, c'est $f(${x0})$.` }].filter((e) => e.valeur !== rep),
+      aides: [`$u(x) = ${poly([p, q])}$ et $v(x) = ${poly([r, 0, s])}$ : $u'(x) = ${p}$ et $v'(x) = ${poly([2 * r, 0])}$.`, "$(uv)' = u'v + uv'$.", `$f'(${x0}) = ${p} \\times ${par(v(x0))} + ${par(u(x0))} \\times ${par(vp(x0))}$.`],
+      solution: `$f'(x) = ${p}(${poly([r, 0, s])}) + (${poly([p, q])})(${poly([2 * r, 0])})$, donc $f'(${x0}) = ${p} \\times ${par(v(x0))} + ${par(u(x0))} \\times ${par(vp(x0))} = ${rep}$.`
+    };
+  };
+
+  GEN["d2-quotient"] = function () {
+    if (Math.random() < 0.35) {
+      // inverse d'une fonction : f = 1 / v
+      const a = pick([1, 2, 3]), b = pick([1, 2, 3, 4]), x0 = rand(-2, 2);
+      const v0 = a * x0 * x0 + b, num = -2 * a * x0, rep = num / (v0 * v0);
+      return {
+        enonce: `$f(x) = \\dfrac{1}{${poly([a, 0, b])}}$. Calcule $f'(${x0})$ (fraction ou entier).`,
+        mode: "nombre", prefixe: `$f'(${x0}) =$`, attendu: rep,
+        erreurs: [{ valeur: -num / (v0 * v0), message: "Attention au signe : $\\left(\\dfrac{1}{v}\\right)' = -\\dfrac{v'}{v^2}$." }, { valeur: 1 / (2 * a * x0 || 1), message: "La dérivée de $\\dfrac{1}{v}$ n'est pas $\\dfrac{1}{v'}$." }].filter((e) => Math.abs(e.valeur - rep) > 1e-9),
+        aides: [`$v(x) = ${poly([a, 0, b])}$ et $v'(x) = ${poly([2 * a, 0])}$.`, "$\\left(\\dfrac{1}{v}\\right)' = -\\dfrac{v'}{v^2}$.", `$v(${x0}) = ${v0}$ et $v'(${x0}) = ${2 * a * x0}$.`],
+        solution: `$f'(x) = -\\dfrac{${poly([2 * a, 0])}}{(${poly([a, 0, b])})^2}$, donc $f'(${x0}) = -\\dfrac{${2 * a * x0}}{${v0}^2} = ${frac(num, v0 * v0)}$.`
+      };
+    }
+    let a, b, c, d; do { a = randNZ(-4, 4); b = rand(-5, 5); c = randNZ(-3, 3); d = rand(-5, 5); } while (a * d - b * c === 0);
+    const N = a * d - b * c, xs = [-2, -1, 0, 1, 2, 3].filter((x) => c * x + d !== 0), x0 = pick(xs), den = c * x0 + d;
+    const q = Math.random() < 0.5;
+    return {
+      enonce: q ? `$f(x) = \\dfrac{${poly([a, b])}}{${poly([c, d])}}$. On admet que $f'(x) = \\dfrac{k}{(${poly([c, d])})^2}$. Que vaut $k$ ?` : `$f(x) = \\dfrac{${poly([a, b])}}{${poly([c, d])}}$. Calcule $f'(${x0})$ (fraction ou entier).`,
+      mode: "nombre", prefixe: q ? "$k =$" : `$f'(${x0}) =$`, attendu: q ? N : N / (den * den),
+      erreurs: (q ? [{ valeur: -N, message: "L'ordre compte : $u'v - uv'$, pas $uv' - u'v$." }] : [{ valeur: -N / (den * den), message: "L'ordre compte : $u'v - uv'$, pas $uv' - u'v$." }, { valeur: a / c, message: "La dérivée d'un quotient n'est pas le quotient des dérivées." }]).filter((e) => Math.abs(e.valeur - (q ? N : N / (den * den))) > 1e-9),
+      aides: [`$u(x) = ${poly([a, b])}$, $u'(x) = ${a}$ ; $v(x) = ${poly([c, d])}$, $v'(x) = ${c}$.`, "$\\left(\\dfrac{u}{v}\\right)' = \\dfrac{u'v - uv'}{v^2}$.", `Numérateur : $${a}(${poly([c, d])}) - (${poly([a, b])}) \\times ${par(c)}$ : les termes en $x$ s'annulent.`],
+      solution: `$u'v - uv' = ${a}(${poly([c, d])}) - ${par(c)}(${poly([a, b])}) = ${a * d} ${sg(-b * c)} = ${N}$, donc $f'(x) = \\dfrac{${N}}{(${poly([c, d])})^2}$${q ? "" : ` et $f'(${x0}) = \\dfrac{${N}}{${den * den}} = ${frac(N, den * den)}$`}.`
+    };
+  };
+
+  GEN["d2-compo"] = function () {
+    const t = rand(0, 3), a = pick([2, 3, -1, -2, 4]);
+    let fTex, rep, err, aide, sol, x0, b;
+    if (t === 0) { b = rand(-4, 4); x0 = rand(-2, 2); const w = a * x0 + b; fTex = `(${poly([a, b])})^2`; rep = 2 * a * w; err = 2 * w; aide = `$g(X) = X^2$, $g'(X) = 2X$ : $f'(x) = ${a} \\times 2(${poly([a, b])})$.`; sol = `$f'(x) = ${a} \\times 2(${poly([a, b])}) = ${2 * a}(${poly([a, b])})$, donc $f'(${x0}) = ${2 * a} \\times ${par(w)} = ${rep}$.`; }
+    else if (t === 1) { b = rand(-3, 3); x0 = rand(-1, 2); const w = a * x0 + b; fTex = `(${poly([a, b])})^3`; rep = 3 * a * w * w; err = 3 * w * w; aide = `$g(X) = X^3$, $g'(X) = 3X^2$ : $f'(x) = ${a} \\times 3(${poly([a, b])})^2$.`; sol = `$f'(x) = ${3 * a}(${poly([a, b])})^2$, donc $f'(${x0}) = ${3 * a} \\times ${par(w)}^2 = ${rep}$.`; }
+    else if (t === 2) { const A = Math.abs(a), w = pick([1, 4, 9, 16]); x0 = rand(0, 3); b = w - A * x0; fTex = `\\sqrt{${poly([A, b])}}`; rep = A / (2 * Math.sqrt(w)); err = 1 / (2 * Math.sqrt(w)); aide = `$g(X) = \\sqrt{X}$, $g'(X) = \\dfrac{1}{2\\sqrt{X}}$ : $f'(x) = \\dfrac{${A}}{2\\sqrt{${poly([A, b])}}}$.`; sol = `$f'(x) = \\dfrac{${A}}{2\\sqrt{${poly([A, b])}}}$, donc $f'(${x0}) = \\dfrac{${A}}{2\\sqrt{${w}}} = ${frac(A, 2 * Math.sqrt(w))}$.`; }
+    else { do { b = rand(-4, 4); x0 = rand(-2, 2); } while (a * x0 + b === 0); const w = a * x0 + b; fTex = `\\dfrac{1}{${poly([a, b])}}`; rep = -a / (w * w); err = -1 / (w * w); aide = `$g(X) = \\dfrac{1}{X}$, $g'(X) = -\\dfrac{1}{X^2}$ : $f'(x) = ${a} \\times \\left(-\\dfrac{1}{(${poly([a, b])})^2}\\right)$.`; sol = `$f'(x) = -\\dfrac{${a}}{(${poly([a, b])})^2}$, donc $f'(${x0}) = -\\dfrac{${a}}{${w * w}} = ${frac(-a, w * w)}$.`; }
+    return {
+      enonce: `$f(x) = ${fTex}$. Calcule $f'(${x0})$ (fraction ou entier).`,
+      mode: "nombre", prefixe: `$f'(${x0}) =$`, attendu: rep,
+      erreurs: [{ valeur: err, message: `Il manque le facteur $${t === 2 ? Math.abs(a) : a}$ : la dérivée de $g(ax + b)$ est $a \\times g'(ax + b)$.` }].filter((e) => Math.abs(e.valeur - rep) > 1e-9),
+      aides: ["Pour $f(x) = g(ax + b)$ : $f'(x) = a \\times g'(ax + b)$.", aide, `Remplace $x$ par $${x0}$.`],
+      solution: sol
+    };
+  };
+
+  // Logique : disjonction des cas (valeur absolue), contre-exemples
+  GEN["d2-logique"] = function () {
+    const T = [
+      ["La fonction racine carrée est-elle dérivable en $0$ ?", "Non : le taux $\\dfrac{\\sqrt{h}}{h} = \\dfrac{1}{\\sqrt{h}}$ devient aussi grand qu'on veut", ["Oui, et le nombre dérivé vaut $0$", "Oui, et le nombre dérivé vaut $\\dfrac{1}{2}$", "Non, car elle n'est pas définie en $0$"], "Pour $h > 0$, $\\dfrac{\\sqrt{0 + h} - \\sqrt{0}}{h} = \\dfrac{1}{\\sqrt{h}}$, qui n'a pas de limite finie quand $h$ tend vers $0$ : la tangente en $0$ est verticale. Pourtant $\\sqrt{0} = 0$ existe bien."],
+      ["La fonction valeur absolue est-elle dérivable en $0$ ?", "Non : le taux vaut $1$ si $h > 0$ et $-1$ si $h < 0$", ["Oui, et le nombre dérivé vaut $0$", "Oui, et le nombre dérivé vaut $1$", "Non, car $|0|$ n'existe pas"], "Disjonction des cas : si $h > 0$, $\\dfrac{|h|}{h} = 1$ ; si $h < 0$, $\\dfrac{|h|}{h} = -1$. Le taux ne se rapproche pas d'un nombre unique : pas de nombre dérivé en $0$."],
+      ["Pour $h < 0$, le taux $\\dfrac{|0 + h| - |0|}{h}$ vaut :", "$-1$", ["$1$", "$0$", "$h$"], "Pour $h < 0$, $|h| = -h$, donc $\\dfrac{|h|}{h} = \\dfrac{-h}{h} = -1$."],
+      ["Vrai ou faux : « une fonction dont la courbe se trace sans lever le crayon est dérivable partout » ?", "Faux", ["Vrai"], "Faux. Contre-exemple : la valeur absolue se trace sans lever le crayon, mais elle n'est pas dérivable en $0$ (pointe de la courbe)."],
+      ["Vrai ou faux : « si $f'(x) = g'(x)$ pour tout $x$, alors $f = g$ » ?", "Faux", ["Vrai"], "Faux. Contre-exemple : $f(x) = x^2$ et $g(x) = x^2 + 1$ ont la même dérivée $2x$, mais $f \\neq g$."],
+      ["Pour simplifier $|x - 2|$, on raisonne par disjonction des cas :", "si $x \\geqslant 2$, $|x - 2| = x - 2$ ; si $x < 2$, $|x - 2| = 2 - x$", ["si $x \\geqslant 0$, $|x - 2| = x - 2$ ; sinon $|x - 2| = x + 2$", "$|x - 2| = x - 2$ pour tout $x$", "$|x - 2| = |x| - 2$ pour tout $x$"], "On regarde le signe de ce qui est dans la valeur absolue : $x - 2 \\geqslant 0$ quand $x \\geqslant 2$."]
+    ];
+    const [q, b, f, s] = pick(T), c = melangeChoix(b, f);
+    return {
+      enonce: q, mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: ["Une fonction est dérivable en $a$ si le taux $\\dfrac{f(a + h) - f(a)}{h}$ se rapproche d'un **nombre réel** quand $h$ tend vers $0$.", "Pour la valeur absolue, distingue les cas $h > 0$ et $h < 0$.", "Un seul contre-exemple suffit pour réfuter une affirmation générale."],
+      solution: s
+    };
+  };
+
+  GEN["d2-physique"] = function () {
+    const t = rand(0, 2);
+    if (t === 0) {
+      const t0 = pick([0.5, 1, 1.5, 2]), v = +(9.8 * t0).toFixed(2);
+      return {
+        enonce: `Une noix de coco tombe d'un cocotier. La distance parcourue (en m) au bout de $t$ secondes est $d(t) = 4{,}9t^2$. Quelle est sa vitesse $v(t) = d'(t)$ à $t = ${nb(t0)}$ s ?`,
+        mode: "nombre", prefixe: `$v(${nb(t0)}) =$`, suffixe: "m/s", attendu: v, tolerance: 1e-6,
+        erreurs: [{ valeur: +(4.9 * t0 * t0).toFixed(4), message: `Ça, c'est la distance $d(${nb(t0)})$. La vitesse est la **dérivée** de la distance.` }, { valeur: +(4.9 * t0).toFixed(4), message: "$(t^2)' = 2t$ : n'oublie pas le facteur $2$." }].filter((e) => Math.abs(e.valeur - v) > 1e-9),
+        aides: ["En physique, la vitesse est la dérivée de la position : $v(t) = d'(t)$, noté aussi $\\dfrac{\\mathrm{d}d}{\\mathrm{d}t}$.", "$(t^2)' = 2t$, donc $d'(t) = 4{,}9 \\times 2t = 9{,}8t$.", `Remplace $t$ par $${nb(t0)}$.`],
+        solution: `$v(t) = d'(t) = 9{,}8t$, donc $v(${nb(t0)}) = 9{,}8 \\times ${nb(t0)} = ${nb(v)}$ m/s.`
+      };
+    }
+    const a = pick([0.5, 1, 2, 3]), b = rand(1, 6), c = rand(0, 10), t0 = rand(1, 5), v = 2 * a * t0 + b;
+    const xTex = `${a === 1 ? "" : nb(a)}t^2 + ${b}t${c ? ` + ${c}` : ""}`;
+    return {
+      enonce: t === 1 ? `Un scooter roule sur la route de Sada. Sa position (en m) à l'instant $t$ (en s) est $x(t) = ${xTex}$. Quelle est sa vitesse $x'(t)$ à $t = ${t0}$ s ?` : `En physique-chimie, on note $v = \\dfrac{\\mathrm{d}x}{\\mathrm{d}t}$ la dérivée de la position. Pour $x(t) = ${xTex}$, que vaut $\\dfrac{\\mathrm{d}x}{\\mathrm{d}t}$ à $t = ${t0}$ ?`,
+      mode: "nombre", prefixe: "Vitesse :", suffixe: "m/s", attendu: v, tolerance: 1e-6,
+      erreurs: [{ valeur: a * t0 * t0 + b * t0 + c, message: `Ça, c'est la position $x(${t0})$. La vitesse est la dérivée.` }].filter((e) => e.valeur !== v),
+      aides: ["La vitesse instantanée est la dérivée de la position : $v(t) = x'(t)$.", `$x'(t) = ${2 * a === 1 ? "" : nb(2 * a)}t + ${b}$.`, `Remplace $t$ par $${t0}$.`],
+      solution: `$x'(t) = ${2 * a === 1 ? "" : nb(2 * a)}t + ${b}$, donc $x'(${t0}) = ${nb(2 * a)} \\times ${t0} + ${b} = ${nb(v)}$ m/s.`
+    };
+  };
+
+  GEN["d2-python"] = function () {
+    const A = pick([0, 0, 1, 4, 16, 25]);
+    const code = "```python\nfrom math import sqrt\n\ndef taux(f, a, h):\n    return (f(a + h) - f(a)) / h\n\nprint([taux(sqrt, " + A + ", 10**(-k)) for k in range(1, 6)])\n```";
+    if (A === 0) {
+      const c = melangeChoix("Elles deviennent de plus en plus grandes : la racine carrée n'est pas dérivable en 0", ["Elles se rapprochent de 0 : la racine carrée a pour nombre dérivé 0 en 0", "Elles se rapprochent de 0,5", "Le programme renvoie une erreur"]);
+      return {
+        enonce: `${code}\n\nLe programme affiche environ [3.16, 10.0, 31.6, 100.0, 316.2]. Qu'en conclure ?`,
+        mode: "choix", choix: c.choix, attendu: c.attendu,
+        aides: ["Chaque valeur est le taux de variation de la racine carrée entre $0$ et $h$.", "Ce taux vaut $\\dfrac{\\sqrt{h}}{h} = \\dfrac{1}{\\sqrt{h}}$.", "Un nombre dérivé existe seulement si le taux se rapproche d'un nombre réel."],
+        solution: "Le taux $\\dfrac{1}{\\sqrt{h}}$ est multiplié par environ $3{,}16$ à chaque fois que $h$ est divisé par $10$ : il devient aussi grand qu'on veut. La racine carrée n'est pas dérivable en $0$ (tangente verticale)."
+      };
+    }
+    const rep = 1 / (2 * Math.sqrt(A));
+    return {
+      enonce: `${code}\n\nVers quel nombre les valeurs affichées se rapprochent-elles ?`,
+      mode: "nombre", prefixe: "Réponse :", attendu: rep, tolerance: 0.001,
+      erreurs: [{ valeur: Math.sqrt(A), message: `Ça, c'est $\\sqrt{${A}}$. Les valeurs sont des **taux de variation**.` }].filter((e) => Math.abs(e.valeur - rep) > 0.001),
+      aides: ["Chaque valeur est le taux de variation de la racine carrée entre $" + A + "$ et $" + A + " + h$.", "Quand $h$ tend vers $0$, le taux tend vers le nombre dérivé.", `$(\\sqrt{x})' = \\dfrac{1}{2\\sqrt{x}}$ : calcule-le en $x = ${A}$.`],
+      solution: `Les taux se rapprochent du nombre dérivé $\\dfrac{1}{2\\sqrt{${A}}} = ${frac(1, 2 * Math.sqrt(A))} = ${nb(rep)}$.`
+    };
+  };
+
+
   /* Séries « flash » d'un thème : mélange de ses générateurs */
   const THEMES = {
     "am-flash-cn": ["am-comparer", "am-fractions", "am-puissances", "am-ecritures", "am-ordre-grandeur", "am-coherence", "auto-conversions"],
@@ -6559,7 +6741,7 @@
 
 
   /* Une « erreur connue » ne doit jamais coïncider avec la bonne réponse (à la tolérance près) */
-  Object.keys(GEN).filter((k) => /^(ld|am|cd|ar|cl|fa|ve|st|vx|tc|co|dr|fr|sg|pc|ec|sy|su|s2|pi|s5|d1|tr)-/.test(k)).forEach((k) => {
+  Object.keys(GEN).filter((k) => /^(ld|am|cd|ar|cl|fa|ve|st|vx|tc|co|dr|fr|sg|pc|ec|sy|su|s2|pi|s5|d1|tr|d2)-/.test(k)).forEach((k) => {
     const g = GEN[k];
     GEN[k] = (i) => { const q = g(i); if (q.erreurs) q.erreurs = q.erreurs.filter((e) => Math.abs(e.valeur - q.attendu) >= (q.tolerance || 1e-9)); return q; };
   });
