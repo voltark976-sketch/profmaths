@@ -35,6 +35,7 @@ Site statique : aucune base de données, aucun compte élève. Ouvrir `index.htm
   - `trigonometrie.js` : chapitre 8, trigonométrie (radian, enroulement, cosinus et sinus, valeurs remarquables, Archimède). Générateurs `tr-`.
   - `derivation-2.js` : chapitre 9, fonction dérivée (formules usuelles, produit, quotient, g(ax + b), dérivabilité). Générateurs `d2-`.
   - `variations-courbes.js` : chapitre 10, variations (signe de f′, extremums, parité, inégalités, optimisation, Newton). Générateurs `vr-`, tableaux avec `tabSV`.
+  - `produit-scalaire-1.js` : chapitre 11, produit scalaire (cosinus, projection, coordonnées, orthogonalité, travail d'une force). Générateurs `ps-`.
 - `data/terminale-spe/denombrement.js` : chapitre 14 de Terminale spécialité (combinatoire et dénombrement). Les générateurs d'exercices correspondants commencent par `cd-` dans `assets/exercices.js`.
 - `data/terminale/lois-discretes.js` : chapitre 2 de Terminale maths complémentaires.
 

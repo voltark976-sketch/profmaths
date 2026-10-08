@@ -288,6 +288,13 @@ window.CATALOGUE = {
           titre: "Variations et courbes représentatives",
           statut: "disponible",
           drive: ""
+        },
+        {
+          id: "premiere-produit-scalaire-1",
+          numero: 11,
+          titre: "Produit scalaire 1",
+          statut: "disponible",
+          drive: ""
         }
       ]
     },

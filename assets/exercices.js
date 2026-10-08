@@ -6932,6 +6932,232 @@
   };
 
 
+  /* ---------- Première, chapitre 11 : produit scalaire 1 (préfixe ps-) ---------- */
+  // Flèche SVG de (x1 ; y1) à (x2 ; y2), couleur c (variable CSS), nom au milieu (décalé de d px perpendiculairement)
+  function psFleche(x1, y1, x2, y2, c, nom, d) {
+    const t = Math.atan2(y2 - y1, x2 - x1), p = (r, a) => `${+(x2 - r * Math.cos(t + a)).toFixed(1)} ${+(y2 - r * Math.sin(t + a)).toFixed(1)}`;
+    let s = `<path d="M${x1} ${y1}L${p(6, 0)}" style="stroke:var(${c});stroke-width:2.4;fill:none"/><path d="M${x2} ${y2}L${p(12, 0.38)}L${p(12, -0.38)}Z" style="fill:var(${c})"/>`;
+    if (nom) { const mx = (x1 + x2) / 2 + (d || 12) * Math.sin(t), my = (y1 + y2) / 2 - (d || 12) * Math.cos(t); s += `<text class="g-clabel" x="${mx.toFixed(1)}" y="${(my + 4).toFixed(1)}" text-anchor="middle" style="fill:var(${c})">${nom}</text><text class="g-clabel" x="${mx.toFixed(1)}" y="${(my - 10).toFixed(1)}" text-anchor="middle" style="fill:var(${c});font-size:10px">→</text>`; }
+    return s;
+  }
+  const psPoint = (x, y, nom, dx, dy) => `<circle class="g-point" cx="${x}" cy="${y}" r="3.5"/><text class="g-plabel" x="${x + (dx || 0)}" y="${y + (dy || 0)}" text-anchor="middle">${nom}</text>`;
+  // u·v = ‖u‖ ‖v‖ cos θ : deux vecteurs de même origine et l'angle θ
+  FIGURES["ps-cosinus"] = () => {
+    const A = [50, 190], B = [290, 190], th = (40 * Math.PI) / 180, C = [50 + 200 * Math.cos(th), 190 - 200 * Math.sin(th)];
+    let s = `<svg class="graph" viewBox="0 0 320 220" role="img" aria-label="Deux vecteurs u et v de même origine A, formant un angle θ">`;
+    s += psFleche(...A, ...B, "--lagon", "u", 14) + psFleche(...A, ...C.map((v) => +v.toFixed(1)), "--courbe2", "v", 12);
+    s += `<path d="M${A[0] + 46} ${A[1]} A46 46 0 0 0 ${(A[0] + 46 * Math.cos(th)).toFixed(1)} ${(A[1] - 46 * Math.sin(th)).toFixed(1)}" style="fill:none;stroke:var(--encre);stroke-width:1.3"/><text class="g-label" x="${A[0] + 56}" y="${A[1] - 12}">θ</text>`;
+    s += psPoint(...A, "A", -10, 16);
+    return s + `<text class="g-label" x="160" y="214" text-anchor="middle">u · v = ‖u‖ × ‖v‖ × cos θ</text></svg>`;
+  };
+  // Projection orthogonale : AB · AC = AB · AH
+  FIGURES["ps-projection"] = () => {
+    const A = [40, 180], B = [280, 180], C = [190, 50], H = [190, 180];
+    let s = `<svg class="graph" viewBox="0 0 320 215" role="img" aria-label="H est le projeté orthogonal de C sur la droite (AB) : le produit scalaire AB · AC est égal à AB · AH">`;
+    s += `<line x1="20" y1="180" x2="305" y2="180" style="stroke:var(--doux);stroke-width:1"/><line x1="${C[0]}" y1="${C[1]}" x2="${H[0]}" y2="${H[1]}" class="g-hline"/><path d="M${H[0] - 12} ${H[1]} v-12 h12" style="fill:none;stroke:var(--encre);stroke-width:1.2"/>`;
+    s += psFleche(...A, ...B, "--lagon") + psFleche(...A, ...C, "--courbe2") + `<path d="M${A[0]} ${A[1] + 14} H${H[0]}" style="stroke:var(--ylang);stroke-width:3"/>`;
+    s += psPoint(...A, "A", -2, 18) + psPoint(...B, "B", 4, 18) + psPoint(...C, "C", 0, -10) + psPoint(...H, "H", 10, 18);
+    return s + `<text class="g-clabel" x="${(A[0] + H[0]) / 2}" y="${A[1] + 30}" text-anchor="middle" style="fill:var(--ylang)">AH</text></svg>`;
+  };
+  // Orthogonalité dans un repère : A(1 ; 1), B(4 ; 2), C(0 ; 4)
+  FIGURES["ps-repere"] = () => graph({ xmin: -0.8, xmax: 5.4, ymin: -0.8, ymax: 5.4, h: 280, fleches: [{ x1: 1, y1: 1, x2: 4, y2: 2, label: "AB" }, { x1: 1, y1: 1, x2: 0, y2: 4, c: 1, label: "AC" }], points: [{ x: 1, y: 1, label: "A", gauche: true }, { x: 4, y: 2, label: "B(4 ; 2)" }, { x: 0, y: 4, label: "C(0 ; 4)" }], aria: "Dans un repère orthonormé, les vecteurs AB(3 ; 1) et AC(−1 ; 3) ont un produit scalaire nul : ils sont orthogonaux" });
+  // Tirer une pirogue sur la plage : la force fait un angle α avec le déplacement
+  FIGURES["pirogue"] = () => {
+    let s = `<svg class="graph" viewBox="0 0 320 190" role="img" aria-label="On tire une pirogue avec une corde qui fait un angle de 30° avec le sable : seule la composante de la force dans le sens du déplacement travaille">`;
+    s += `<path d="M0 150 Q160 140 320 152 L320 190 L0 190Z" style="fill:var(--ylang-pale)"/>`;
+    s += `<path d="M30 128 Q95 150 160 128 L150 120 L40 120Z" style="fill:var(--lagon-pale);stroke:var(--lagon);stroke-width:2"/><line x1="60" y1="108" x2="140" y2="108" style="stroke:var(--doux);stroke-width:2"/><line x1="80" y1="108" x2="80" y2="121" style="stroke:var(--doux);stroke-width:2"/><line x1="120" y1="108" x2="120" y2="121" style="stroke:var(--doux);stroke-width:2"/>`;
+    s += `<line x1="160" y1="124" x2="250" y2="72" style="stroke:var(--encre);stroke-width:1.5;stroke-dasharray:2 2"/>` + psFleche(160, 124, 250, 72, "--courbe2", "F", 14) + psFleche(160, 162, 300, 162, "--lagon", "AB", 12);
+    s += `<path d="M200 124 A40 40 0 0 0 194.6 104" style="fill:none;stroke:var(--encre);stroke-width:1.2"/><text class="g-label" x="208" y="114">30°</text><line x1="160" y1="124" x2="260" y2="124" style="stroke:var(--doux);stroke-width:1;stroke-dasharray:3 3"/>`;
+    return s + `</svg>`;
+  };
+  // Rectangle ABCD pour les exercices de projection
+  function psRectangle(L, l) {
+    const W = 320, k = Math.min(220 / L, 130 / l), x0 = (W - L * k) / 2, y0 = 30, w = L * k, h = l * k;
+    let s = `<svg class="graph" viewBox="0 0 ${W} ${h + 70}" role="img" aria-label="Rectangle ABCD de longueur ${L} et de largeur ${l}">`;
+    s += `<rect x="${x0}" y="${y0}" width="${w}" height="${h}" style="fill:var(--lagon-pale);stroke:var(--lagon);stroke-width:1.8"/><line x1="${x0}" y1="${y0 + h}" x2="${x0 + w}" y2="${y0}" style="stroke:var(--doux);stroke-width:1;stroke-dasharray:4 3"/>`;
+    s += psPoint(x0, y0 + h, "A", -10, 16) + psPoint(x0 + w, y0 + h, "B", 10, 16) + psPoint(x0 + w, y0, "C", 10, -6) + psPoint(x0, y0, "D", -10, -6);
+    s += `<text class="g-label" x="${x0 + w / 2}" y="${y0 + h + 22}" text-anchor="middle">${L}</text><text class="g-label" x="${x0 + w + 14}" y="${y0 + h / 2 + 4}">${l}</text>`;
+    return s + `</svg>`;
+  }
+
+  const psCos = { 0: ["1", 1], 30: ["\\dfrac{\\sqrt{3}}{2}", Math.sqrt(3) / 2], 45: ["\\dfrac{\\sqrt{2}}{2}", Math.SQRT1_2], 60: ["\\dfrac{1}{2}", 0.5], 90: ["0", 0], 120: ["-\\dfrac{1}{2}", -0.5], 135: ["-\\dfrac{\\sqrt{2}}{2}", -Math.SQRT1_2], 150: ["-\\dfrac{\\sqrt{3}}{2}", -Math.sqrt(3) / 2], 180: ["-1", -1] };
+  const psAngle = { 0: "0", 30: "\\dfrac{\\pi}{6}", 45: "\\dfrac{\\pi}{4}", 60: "\\dfrac{\\pi}{3}", 90: "\\dfrac{\\pi}{2}", 120: "\\dfrac{2\\pi}{3}", 135: "\\dfrac{3\\pi}{4}", 150: "\\dfrac{5\\pi}{6}", 180: "\\pi" };
+
+  GEN["ps-cosinus"] = function () {
+    const a = rand(2, 6), b = rand(2, 8), simple = Math.random() < 0.65;
+    const ang = simple ? pick([0, 60, 90, 120, 180]) : pick([30, 45, 135, 150]), [cTex, cv] = psCos[ang], P = a * b;
+    const ens = `$\\|\\vec{u}\\| = ${a}$, $\\|\\vec{v}\\| = ${b}$ et l'angle $(\\vec{u}, \\vec{v})$ mesure $${psAngle[ang]}$ rad. Calcule $\\vec{u} \\cdot \\vec{v}$.`;
+    const aides = ["$\\vec{u} \\cdot \\vec{v} = \\|\\vec{u}\\| \\times \\|\\vec{v}\\| \\times \\cos(\\vec{u}, \\vec{v})$.", `$\\cos ${psAngle[ang]} = ${cTex}$.`, `$${a} \\times ${b} \\times ${cTex.startsWith("-") ? `\\left(${cTex}\\right)` : cTex}$.`];
+    if (simple) {
+      const v = +(P * cv).toFixed(6);
+      return {
+        enonce: ens, mode: "nombre", prefixe: "$\\vec{u} \\cdot \\vec{v} =$", attendu: v,
+        erreurs: [{ valeur: P, message: "N'oublie pas le cosinus de l'angle." }, { valeur: -v, message: "Attention au signe du cosinus." }].filter((e) => Math.abs(e.valeur - v) > 1e-9),
+        aides, solution: `$\\vec{u} \\cdot \\vec{v} = ${a} \\times ${b} \\times ${cTex.startsWith("-") ? `\\left(${cTex}\\right)` : cTex} = ${nb(v)}$.${ang === 90 ? " Les vecteurs sont orthogonaux." : ""}`
+      };
+    }
+    const exact = (s) => (s.includes("sqrt{3}") ? `\\sqrt{3}` : `\\sqrt{2}`), signe = cv < 0 ? "-" : "";
+    const coef = P / 2 === Math.round(P / 2) ? `${P / 2}` : `\\dfrac{${P}}{2}`, r = exact(cTex);
+    const bonne = `${signe}${coef === "1" ? "" : coef}${r}`.replace(/^(-?)\\dfrac\{(\d+)\}\{2\}(\\sqrt\{\d\})$/, "$1\\dfrac{$2$3}{2}");
+    const autre = r === "\\sqrt{3}" ? "\\sqrt{2}" : "\\sqrt{3}";
+    const c = melangeChoix(`$${bonne}$`, [`$${bonne.startsWith("-") ? bonne.slice(1) : "-" + bonne}$`, `$${bonne.replace(r, autre)}$`, `$${P}$`, `$${signe}${P}${r}$`]);
+    return {
+      enonce: ens, mode: "choix", choix: c.choix, attendu: c.attendu, aides,
+      solution: `$\\vec{u} \\cdot \\vec{v} = ${a} \\times ${b} \\times ${cTex.startsWith("-") ? `\\left(${cTex}\\right)` : cTex} = ${bonne}$, soit environ $${nb(+(P * cv).toFixed(2))}$.`
+    };
+  };
+
+  GEN["ps-projection"] = function () {
+    const L = pick([4, 5, 6, 8]), l = pick([2, 3, 4]);
+    const T = [
+      ["\\overrightarrow{AB} \\cdot \\overrightarrow{AC}", L * L, `Le projeté orthogonal de $C$ sur $(AB)$ est $B$ : $\\overrightarrow{AB} \\cdot \\overrightarrow{AC} = \\overrightarrow{AB} \\cdot \\overrightarrow{AB} = AB^2 = ${L * L}$.`],
+      ["\\overrightarrow{AB} \\cdot \\overrightarrow{AD}", 0, "Les vecteurs $\\overrightarrow{AB}$ et $\\overrightarrow{AD}$ sont orthogonaux : le produit scalaire est nul."],
+      ["\\overrightarrow{AB} \\cdot \\overrightarrow{CD}", -L * L, `$\\overrightarrow{CD} = -\\overrightarrow{AB}$ : $\\overrightarrow{AB} \\cdot \\overrightarrow{CD} = -AB^2 = ${-L * L}$ (sens contraires).`],
+      ["\\overrightarrow{AD} \\cdot \\overrightarrow{AC}", l * l, `Le projeté orthogonal de $C$ sur $(AD)$ est $D$ : $\\overrightarrow{AD} \\cdot \\overrightarrow{AC} = AD^2 = ${l * l}$.`],
+      ["\\overrightarrow{BA} \\cdot \\overrightarrow{BD}", L * L, `Le projeté orthogonal de $D$ sur $(AB)$ est $A$ : $\\overrightarrow{BA} \\cdot \\overrightarrow{BD} = BA^2 = ${L * L}$.`],
+      ["\\overrightarrow{AB} \\cdot \\overrightarrow{BC}", 0, "$\\overrightarrow{AB}$ et $\\overrightarrow{BC}$ sont orthogonaux (angle droit en $B$)."],
+      ["\\overrightarrow{DA} \\cdot \\overrightarrow{BC}", -l * l, `$\\overrightarrow{DA} = -\\overrightarrow{BC}$, donc $\\overrightarrow{DA} \\cdot \\overrightarrow{BC} = -BC^2 = ${-l * l}$.`]
+    ];
+    const [ps, rep, sol] = pick(T);
+    return {
+      enonce: `$ABCD$ est un rectangle avec $AB = ${L}$ et $AD = ${l}$. Calcule $${ps}$.`,
+      mode: "nombre", prefixe: "Résultat :", attendu: rep, figure: psRectangle(L, l),
+      erreurs: [{ valeur: -rep, message: "Attention au sens : si les vecteurs projetés sont de sens contraires, le produit est négatif." }, { valeur: L * l, message: "On ne multiplie pas les deux côtés du rectangle : projette un vecteur sur la direction de l'autre." }].filter((e) => e.valeur !== rep),
+      aides: ["Projette orthogonalement l'extrémité du second vecteur sur la droite qui porte le premier.", "$\\overrightarrow{AB} \\cdot \\overrightarrow{AC} = \\overrightarrow{AB} \\cdot \\overrightarrow{AH}$, où $H$ est le projeté de $C$ sur $(AB)$.", "Même sens : produit des longueurs ; sens contraires : son opposé ; vecteurs orthogonaux : $0$."],
+      solution: sol
+    };
+  };
+
+  GEN["ps-coordonnees"] = function () {
+    if (Math.random() < 0.5) {
+      const a = randNZ(-5, 5), b = rand(-5, 5), c = rand(-5, 5), d = randNZ(-5, 5), v = a * c + b * d;
+      return {
+        enonce: `Dans un repère orthonormé, $\\vec{u}\\begin{pmatrix} ${a} \\\\ ${b} \\end{pmatrix}$ et $\\vec{v}\\begin{pmatrix} ${c} \\\\ ${d} \\end{pmatrix}$. Calcule $\\vec{u} \\cdot \\vec{v}$.`,
+        mode: "nombre", prefixe: "$\\vec{u} \\cdot \\vec{v} =$", attendu: v,
+        erreurs: [{ valeur: a * b + c * d, message: "On multiplie les abscisses entre elles et les ordonnées entre elles : $xx' + yy'$." }, { valeur: a * d + b * c, message: "On multiplie abscisse par abscisse ($xx'$) et ordonnée par ordonnée ($yy'$), pas en croix." }].filter((e) => e.valeur !== v),
+        aides: ["En repère orthonormé : $\\vec{u} \\cdot \\vec{v} = xx' + yy'$.", `$${a} \\times ${par(c)} + ${par(b)} \\times ${par(d)}$.`, `$= ${a * c} ${sg(b * d)}$.`],
+        solution: `$\\vec{u} \\cdot \\vec{v} = ${a} \\times ${par(c)} + ${par(b)} \\times ${par(d)} = ${v}$.`
+      };
+    }
+    const A = [rand(-3, 3), rand(-3, 3)], B = [rand(-3, 4), rand(-3, 4)], C = [rand(-3, 4), rand(-3, 4)];
+    const u = [B[0] - A[0], B[1] - A[1]], w = [C[0] - A[0], C[1] - A[1]], v = u[0] * w[0] + u[1] * w[1];
+    if (!u[0] && !u[1] || !w[0] && !w[1]) return GEN["ps-coordonnees"]();
+    return {
+      enonce: `Dans un repère orthonormé, $A(${A[0]}\\,;${A[1]})$, $B(${B[0]}\\,;${B[1]})$ et $C(${C[0]}\\,;${C[1]})$. Calcule $\\overrightarrow{AB} \\cdot \\overrightarrow{AC}$.`,
+      mode: "nombre", prefixe: "Résultat :", attendu: v,
+      aides: ["Calcule d'abord les coordonnées des vecteurs : $\\overrightarrow{AB}\\begin{pmatrix} x_B - x_A \\\\ y_B - y_A \\end{pmatrix}$.", `$\\overrightarrow{AB}\\begin{pmatrix} ${u[0]} \\\\ ${u[1]} \\end{pmatrix}$ et $\\overrightarrow{AC}\\begin{pmatrix} ${w[0]} \\\\ ${w[1]} \\end{pmatrix}$.`, "Puis $xx' + yy'$."],
+      solution: `$\\overrightarrow{AB}\\begin{pmatrix} ${u[0]} \\\\ ${u[1]} \\end{pmatrix}$, $\\overrightarrow{AC}\\begin{pmatrix} ${w[0]} \\\\ ${w[1]} \\end{pmatrix}$, donc $\\overrightarrow{AB} \\cdot \\overrightarrow{AC} = ${u[0]} \\times ${par(w[0])} + ${par(u[1])} \\times ${par(w[1])} = ${v}$.${v === 0 ? " Le triangle $ABC$ est rectangle en $A$." : ""}`
+    };
+  };
+
+  GEN["ps-orthogonal"] = function () {
+    if (Math.random() < 0.5) {
+      const a = randNZ(-4, 4), b = randNZ(-4, 4), k = randNZ(-3, 3), ortho = Math.random() < 0.5;
+      const c = ortho ? -b * k : -b * k + randNZ(-2, 2), d = a * k, v = a * c + b * d;
+      return {
+        enonce: `Dans un repère orthonormé, les vecteurs $\\vec{u}\\begin{pmatrix} ${a} \\\\ ${b} \\end{pmatrix}$ et $\\vec{v}\\begin{pmatrix} ${c} \\\\ ${d} \\end{pmatrix}$ sont-ils orthogonaux ?`,
+        mode: "choix", choix: ["Oui", "Non"], attendu: v === 0 ? 0 : 1,
+        aides: ["$\\vec{u} \\perp \\vec{v} \\iff \\vec{u} \\cdot \\vec{v} = 0$.", "$\\vec{u} \\cdot \\vec{v} = xx' + yy'$.", `$${a} \\times ${par(c)} + ${par(b)} \\times ${par(d)}$.`],
+        solution: `$\\vec{u} \\cdot \\vec{v} = ${a} \\times ${par(c)} + ${par(b)} \\times ${par(d)} = ${v}$${v === 0 ? " : le produit scalaire est nul, les vecteurs sont **orthogonaux**." : ` $\\neq 0$ : les vecteurs ne sont **pas** orthogonaux.`}`
+      };
+    }
+    const a = randNZ(-4, 4), c = randNZ(-4, 4), d = randNZ(-4, 4);
+    if ((a * c) % d !== 0) return GEN["ps-orthogonal"]();
+    const m = -(a * c) / d;
+    return {
+      enonce: `Dans un repère orthonormé, $\\vec{u}\\begin{pmatrix} ${a} \\\\ m \\end{pmatrix}$ et $\\vec{v}\\begin{pmatrix} ${c} \\\\ ${d} \\end{pmatrix}$. Pour quelle valeur de $m$ ces vecteurs sont-ils orthogonaux ?`,
+      mode: "nombre", prefixe: "$m =$", attendu: m,
+      erreurs: [{ valeur: -m, message: `Résous $${a * c} ${d < 0 ? "-" : "+"} ${Math.abs(d)}m = 0$ en faisant attention au signe.` }].filter((e) => e.valeur !== m),
+      aides: ["Orthogonaux $\\iff \\vec{u} \\cdot \\vec{v} = 0$.", `$\\vec{u} \\cdot \\vec{v} = ${a} \\times ${par(c)} + m \\times ${par(d)} = ${a * c} ${d < 0 ? "-" : "+"} ${Math.abs(d)}m$.`, `Résous $${a * c} ${d < 0 ? "-" : "+"} ${Math.abs(d)}m = 0$.`],
+      solution: `$${a * c} ${d < 0 ? "-" : "+"} ${Math.abs(d)}m = 0 \\iff m = ${m}$. C'est une **équivalence** : pour cette valeur, et seulement pour elle, les vecteurs sont orthogonaux.`
+    };
+  };
+
+  GEN["ps-norme-angle"] = function () {
+    if (Math.random() < 0.4) {
+      const [x, y, n] = pick([[3, 4, 5], [6, 8, 10], [5, 12, 13], [8, 6, 10], [0, 7, 7], [12, 5, 13]]), sx = pick([1, -1]), sy = pick([1, -1]);
+      return {
+        enonce: `Dans un repère orthonormé, calcule la norme de $\\vec{u}\\begin{pmatrix} ${sx * x} \\\\ ${sy * y} \\end{pmatrix}$.`,
+        mode: "nombre", prefixe: "$\\|\\vec{u}\\| =$", attendu: n,
+        erreurs: [{ valeur: x * x + y * y, message: "C'est $\\|\\vec{u}\\|^2$ : il reste à prendre la racine carrée." }, { valeur: x + y, message: "La norme n'est pas la somme des coordonnées : $\\sqrt{x^2 + y^2}$." }].filter((e) => e.valeur !== n),
+        aides: ["$\\|\\vec{u}\\|^2 = \\vec{u} \\cdot \\vec{u} = x^2 + y^2$.", `$\\|\\vec{u}\\|^2 = ${par(sx * x)}^2 + ${par(sy * y)}^2 = ${x * x + y * y}$.`, "Prends la racine carrée."],
+        solution: `$\\|\\vec{u}\\| = \\sqrt{${x * x} + ${y * y}} = \\sqrt{${x * x + y * y}} = ${n}$.`
+      };
+    }
+    const [u, v, ang] = pick([[[1, 0], [1, 1], 45], [[1, 2], [3, 1], 45], [[1, 2], [-1, 3], 45], [[1, 1], [0, 2], 45], [[1, 1], [-1, 0], 135], [[2, 2], [0, -3], 135], [[1, 2], [-2, 1], 90], [[1, 1], [1, -1], 90], [[3, 1], [-1, 3], 90], [[2, 0], [-3, 0], 180]]);
+    const ps = u[0] * v[0] + u[1] * v[1], nu2 = u[0] ** 2 + u[1] ** 2, nv2 = v[0] ** 2 + v[1] ** 2;
+    const vec = (w) => `\\begin{pmatrix} ${w[0]} \\\\ ${w[1]} \\end{pmatrix}`;
+    return {
+      enonce: `Dans un repère orthonormé, $\\vec{u}${vec(u)}$ et $\\vec{v}${vec(v)}$. Quelle est la mesure en degrés de l'angle géométrique entre $\\vec{u}$ et $\\vec{v}$ ?`,
+      mode: "nombre", prefixe: "Angle :", suffixe: "°", attendu: ang,
+      erreurs: [{ valeur: 180 - ang, message: "Attention au signe du produit scalaire : négatif, l'angle est obtus ; positif, il est aigu." }].filter((e) => e.valeur !== ang),
+      aides: ["$\\cos(\\vec{u}, \\vec{v}) = \\dfrac{\\vec{u} \\cdot \\vec{v}}{\\|\\vec{u}\\| \\times \\|\\vec{v}\\|}$.", `$\\vec{u} \\cdot \\vec{v} = ${ps}$, $\\|\\vec{u}\\| = \\sqrt{${nu2}}$ et $\\|\\vec{v}\\| = \\sqrt{${nv2}}$.`, "Reconnais une valeur remarquable : $0$, $\\pm\\dfrac{\\sqrt{2}}{2}$, $\\pm 1$…"],
+      solution: `$\\cos(\\vec{u}, \\vec{v}) = \\dfrac{${ps}}{\\sqrt{${nu2}} \\times \\sqrt{${nv2}}} = \\dfrac{${ps}}{\\sqrt{${nu2 * nv2}}} = ${psCos[ang][0]}$, donc l'angle mesure $${ang}°$.`
+    };
+  };
+
+  GEN["ps-travail"] = function () {
+    const F = pick([150, 200, 250, 300]), d = pick([5, 8, 10, 12]), al = pick([0, 30, 45, 60, 90]), W = F * d * Math.cos((al * Math.PI) / 180);
+    return {
+      enonce: `Pour remonter une pirogue sur la plage, on la tire sur $${d}$ m avec une corde. La force exercée vaut $${F}$ N et la corde fait un angle de $${al}°$ avec le déplacement. Quel est le travail $W = \\vec{F} \\cdot \\overrightarrow{AB}$ de la force, en joules (arrondi à l'unité) ?`,
+      mode: "nombre", prefixe: "$W \\approx$", suffixe: "J", attendu: Math.round(W), tolerance: 0.51,
+      erreurs: [{ valeur: F * d, message: "Le travail tient compte de l'angle : $W = F \\times AB \\times \\cos \\alpha$." }].filter((e) => Math.abs(e.valeur - Math.round(W)) > 0.5),
+      aides: ["Le travail d'une force est un produit scalaire : $W = \\vec{F} \\cdot \\overrightarrow{AB} = F \\times AB \\times \\cos \\alpha$.", `$W = ${F} \\times ${d} \\times \\cos ${al}°$.`, `$\\cos ${al}° = ${psCos[al][0]}$.`],
+      solution: `$W = ${F} \\times ${d} \\times ${psCos[al][0]} \\approx ${Math.round(W)}$ J.${al === 90 ? " Une force perpendiculaire au déplacement ne travaille pas." : al === 0 ? " La corde est dans le sens du déplacement : tout l'effort sert à avancer." : ""}`
+    };
+  };
+
+  GEN["ps-python"] = function () {
+    const code = "```python\nfrom math import sqrt\n\ndef prodscal(u, v):\n    return u[0] * v[0] + u[1] * v[1]\n\ndef norme(u):\n    return sqrt(prodscal(u, u))\n```";
+    const t = rand(0, 2);
+    if (t === 0) {
+      const u = [randNZ(-5, 5), rand(-5, 5)], v = [rand(-5, 5), randNZ(-5, 5)], r = u[0] * v[0] + u[1] * v[1];
+      return {
+        enonce: `${code}\n\nQue renvoie prodscal((${u[0]}, ${u[1]}), (${v[0]}, ${v[1]})) ?`,
+        mode: "nombre", prefixe: "Résultat :", attendu: r,
+        aides: ["u[0] est l'abscisse de u et u[1] son ordonnée.", "La fonction calcule $xx' + yy'$.", `$${u[0]} \\times ${par(v[0])} + ${par(u[1])} \\times ${par(v[1])}$.`],
+        solution: `$${u[0]} \\times ${par(v[0])} + ${par(u[1])} \\times ${par(v[1])} = ${r}$.`
+      };
+    }
+    if (t === 1) {
+      const [x, y, n] = pick([[6, 8, 10], [3, 4, 5], [5, 12, 13], [0, 9, 9]]);
+      return {
+        enonce: `${code}\n\nQue renvoie norme((${x}, ${-y})) ?`,
+        mode: "nombre", prefixe: "Résultat :", attendu: n,
+        erreurs: [{ valeur: x * x + y * y, message: "La fonction prend la racine carrée de $\\vec{u} \\cdot \\vec{u}$." }],
+        aides: ["norme(u) calcule $\\sqrt{\\vec{u} \\cdot \\vec{u}}$.", `$\\vec{u} \\cdot \\vec{u} = ${x}^2 + ${par(-y)}^2 = ${x * x + y * y}$.`, `$\\sqrt{${x * x + y * y}}$.`],
+        solution: `$\\sqrt{${x * x} + ${y * y}} = ${n}$ (Python affiche $\\texttt{${n}.0}$).`
+      };
+    }
+    const c = melangeChoix("prodscal(u, v) == 0", ["norme(u) == norme(v)", "prodscal(u, v) == 1", "u[0] == v[0]"]);
+    return {
+      enonce: `${code}\n\nQuelle condition Python teste si les vecteurs u et v sont orthogonaux ?`,
+      mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: ["Deux vecteurs sont orthogonaux si et seulement si leur produit scalaire est nul.", "En Python, on teste une égalité avec « == ».", "Avec des coordonnées décimales, il vaut mieux tester si le résultat est très proche de 0."],
+      solution: "Orthogonaux $\\iff \\vec{u} \\cdot \\vec{v} = 0$ : on teste « prodscal(u, v) == 0 ». C'est une **équivalence**, donc le test répond dans les deux sens."
+    };
+  };
+
+  // Logique : équivalence et contre-exemples sur le produit scalaire
+  GEN["ps-logique"] = function () {
+    const T = [
+      ["Pour deux vecteurs $\\vec{u}$ et $\\vec{v}$ : $\\vec{u} \\cdot \\vec{v} = 0$ si et seulement si $\\vec{u}$ et $\\vec{v}$ sont orthogonaux.", 0, "**Vrai** : c'est une équivalence (avec la convention que le vecteur nul est orthogonal à tout vecteur)."],
+      ["Si $\\vec{u} \\cdot \\vec{v} = 0$, alors $\\vec{u} = \\vec{0}$ ou $\\vec{v} = \\vec{0}$.", 1, "**Faux**. Contre-exemple : $\\vec{u}\\begin{pmatrix} 1 \\\\ 0 \\end{pmatrix}$ et $\\vec{v}\\begin{pmatrix} 0 \\\\ 1 \\end{pmatrix}$ sont non nuls et $\\vec{u} \\cdot \\vec{v} = 0$."],
+      ["Pour tout vecteur $\\vec{u}$, $\\vec{u} \\cdot \\vec{u} = \\|\\vec{u}\\|^2$.", 0, "**Vrai** : l'angle entre $\\vec{u}$ et lui-même est nul et $\\cos 0 = 1$."],
+      ["Pour tous points $A$, $B$, $C$ : $\\overrightarrow{AB} \\cdot \\overrightarrow{AC} = AB \\times AC$.", 1, "**Faux** en général : il manque $\\cos \\widehat{BAC}$. C'est vrai seulement si $\\overrightarrow{AB}$ et $\\overrightarrow{AC}$ sont de même sens."],
+      ["Si $\\vec{u} \\cdot \\vec{v} = \\vec{u} \\cdot \\vec{w}$ avec $\\vec{u} \\neq \\vec{0}$, alors $\\vec{v} = \\vec{w}$.", 1, "**Faux**. Contre-exemple : $\\vec{u}\\begin{pmatrix} 1 \\\\ 0 \\end{pmatrix}$, $\\vec{v}\\begin{pmatrix} 2 \\\\ 0 \\end{pmatrix}$, $\\vec{w}\\begin{pmatrix} 2 \\\\ 5 \\end{pmatrix}$ : les deux produits valent $2$."],
+      ["Si $\\vec{u}$ et $\\vec{v}$ sont non nuls et $\\vec{u} \\cdot \\vec{v} < 0$, alors l'angle entre eux est obtus.", 0, "**Vrai** : $\\cos(\\vec{u}, \\vec{v})$ a le signe de $\\vec{u} \\cdot \\vec{v}$, donc il est négatif."]
+    ];
+    const [aff, rep, sol] = pick(T);
+    return {
+      enonce: `Vrai ou faux : « ${aff} »`,
+      mode: "choix", choix: ["Vrai", "Faux"], attendu: rep,
+      aides: ["$\\vec{u} \\cdot \\vec{v} = \\|\\vec{u}\\| \\times \\|\\vec{v}\\| \\times \\cos(\\vec{u}, \\vec{v})$.", "Un produit scalaire nul ne veut pas dire qu'un vecteur est nul.", "Pour réfuter, cherche un contre-exemple avec des coordonnées simples."],
+      solution: sol
+    };
+  };
+
+
   /* Séries « flash » d'un thème : mélange de ses générateurs */
   const THEMES = {
     "am-flash-cn": ["am-comparer", "am-fractions", "am-puissances", "am-ecritures", "am-ordre-grandeur", "am-coherence", "auto-conversions"],
@@ -6948,7 +7174,7 @@
 
 
   /* Une « erreur connue » ne doit jamais coïncider avec la bonne réponse (à la tolérance près) */
-  Object.keys(GEN).filter((k) => /^(ld|am|cd|ar|cl|fa|ve|st|vx|tc|co|dr|fr|sg|pc|ec|sy|su|s2|pi|s5|d1|tr|d2|vr)-/.test(k)).forEach((k) => {
+  Object.keys(GEN).filter((k) => /^(ld|am|cd|ar|cl|fa|ve|st|vx|tc|co|dr|fr|sg|pc|ec|sy|su|s2|pi|s5|d1|tr|d2|vr|ps)-/.test(k)).forEach((k) => {
     const g = GEN[k];
     GEN[k] = (i) => { const q = g(i); if (q.erreurs) q.erreurs = q.erreurs.filter((e) => Math.abs(e.valeur - q.attendu) >= (q.tolerance || 1e-9)); return q; };
   });

@@ -155,9 +155,12 @@
     return tex(`${t} ${{ "=": "=", "≈": "\\approx", "≠": "\\neq" }[m[2]]}`);
   }
   function md(s) {
-    return String(s).split(/\n\n+/).map((bloc) => {
-      // Bloc de code (programme Python) : entre deux lignes ```, sans ligne vide à l'intérieur
-      if (bloc.startsWith("```")) return `<pre class="code"><code>${esc(bloc.replace(/^```[a-z]*\n?/, "").replace(/\n?```\s*$/, ""))}</code></pre>`;
+    // Blocs de code (programmes Python) entre deux lignes ``` : mis de côté d'abord, pour garder leurs lignes vides
+    const codes = [];
+    s = String(s).replace(/```[a-z]*\n?([\s\S]*?)\n?```/g, (_, c) => `\n\n\u0000${codes.push(c) - 1}\u0000\n\n`);
+    return s.split(/\n\n+/).filter((bloc) => bloc.trim()).map((bloc) => {
+      const code = bloc.trim().match(/^\u0000(\d+)\u0000$/);
+      if (code) return `<pre class="code"><code>${esc(codes[+code[1]])}</code></pre>`;
       const lignes = bloc.split("\n");
       let out = "", liste = [];
       const flush = () => { if (liste.length) { out += `<ul>${liste.map((l) => `<li>${inline(l)}</li>`).join("")}</ul>`; liste = []; } };
