@@ -253,6 +253,13 @@ window.CATALOGUE = {
           titre: "Second degré 2 : forme canonique et discriminant",
           statut: "disponible",
           drive: ""
+        },
+        {
+          id: "premiere-suites-geometriques",
+          numero: 6,
+          titre: "Suites géométriques",
+          statut: "disponible",
+          drive: ""
         }
       ]
     },

@@ -5797,6 +5797,216 @@
   };
 
 
+  /* ---------- Première, chapitre 6 : suites géométriques (préfixe su-geo-) ---------- */
+  // Évolutions successives d'un prix : 100 € ×1,04 ×1,04 ×1,04
+  FIGURES["prix-evolution"] = () => {
+    const v = [100, 104, 108.16, 112.4864], X = [40, 120, 200, 280];
+    let s = `<svg class="graph" viewBox="0 0 320 120" role="img" aria-label="Un prix de 100 euros multiplié par 1,04 chaque année : 104, puis 108,16, puis environ 112,49 euros">`;
+    v.forEach((p, i) => {
+      s += `<rect x="${X[i] - 34}" y="40" width="68" height="34" rx="8" style="fill:var(--lagon-pale);stroke:var(--doux);stroke-width:1.2"/>`;
+      s += `<text class="g-clabel" x="${X[i]}" y="62" text-anchor="middle" style="font-size:12px">${i === 3 ? "≈ 112,49" : vir(p)}</text>`;
+      s += `<text class="g-label" x="${X[i]}" y="96" text-anchor="middle">u${"₀₁₂₃"[i]}</text>`;
+      if (i < 3) s += `<path class="g-curve g-curve-1" d="M${X[i] + 10} 34 Q${X[i] + 40} 12 ${X[i + 1] - 12} 33" style="fill:none"/><path class="g-end g-curve-1" d="M${X[i + 1] - 10} 37 l-8 -3 l4 -6 z"/><text class="g-clabel g-curve-1" x="${X[i] + 40}" y="16" text-anchor="middle" style="font-size:11px">×1,04</text>`;
+    });
+    return s + `</svg>`;
+  };
+  // Raison négative : les termes changent de signe (u_n = 4 × (−0,7)^n)
+  FIGURES["suite-geo-alterne"] = () => graph({ xmin: -0.5, xmax: 10.5, ymin: -3.5, ymax: 4.5, h: 240, points: Array.from({ length: 11 }, (_, n) => ({ x: n, y: 4 * (-0.7) ** n })), aria: "Points de la suite 4 × (−0,7) puissance n : un terme sur deux est négatif, et les points se rapprochent de l'axe" });
+  // Dose de médicament : u_n = 500 × 0,8^n et seuil de 100 mg
+  FIGURES["medicament"] = () => graph({ xmin: -0.5, xmax: 11.5, ymin: -40, ymax: 560, ystep: 50, yetiq: 100, h: 260, padL: 30, xlabel: "n (h)", ylabel: "mg", hlines: [{ y: 100, label: "100 mg" }], marques: [{ x: 8, y: 35, texte: "n = 8" }], points: Array.from({ length: 12 }, (_, n) => ({ x: n, y: 500 * 0.8 ** n })), aria: "Quantité de médicament 500 × 0,8 puissance n : elle passe sous 100 mg à partir de la 8e heure" });
+  // Linéaire ou exponentiel : A = 1000 + 80n, B = 1000 × 1,06^n
+  FIGURES["lineaire-exponentiel"] = () => graph({ xmin: -0.5, xmax: 16.5, ymin: 900, ymax: 2700, xstep: 1, xetiq: 2, ystep: 100, yetiq: 200, h: 280, padL: 34, xlabel: "années", curves: [{ f: (x) => 1000 + 80 * x, a: 0, b: 16, closed: false, label: "A", lx: 16, dx: 4, dy: 18 }, { f: (x) => 1000 * 1.06 ** x, a: 0, b: 16, closed: false, label: "B", lx: 15.2, dx: -4, dy: -8 }], points: Array.from({ length: 17 }, (_, n) => [{ x: n, y: 1000 + 80 * n }, { x: n, y: 1000 * 1.06 ** n, ...(n === 11 ? { label: "B passe devant", gauche: true } : {}) }]).flat(), aria: "Croissance linéaire A (+80 par an) et exponentielle B (+6 % par an) : B dépasse A à partir de la 11e année" }).replace(/(g-curve g-curve-[01]" )d/g, '$1style="stroke-dasharray:3 4" d');
+
+  GEN["su-geo-reconnaitre"] = function () {
+    const k = pick([2, 3, 5, 7]), q = pick([2, 3]);
+    const T = [
+      () => [`u_n = ${k} \\times ${q}^n`, q, `$u_{n+1} = ${k} \\times ${q}^{n+1} = ${q} \\times (${k} \\times ${q}^n) = ${q}u_n$ : géométrique de raison $${q}$ et de premier terme $u_0 = ${k}$.`],
+      () => [`u_n = ${q}^{n+1}`, q, `$u_{n+1} = ${q}^{n+2} = ${q} \\times ${q}^{n+1} = ${q}u_n$ : géométrique de raison $${q}$ et de premier terme $u_0 = ${q}$.`],
+      () => [`u_n = ${q}^{2n}`, q * q, `$u_n = (${q}^2)^n = ${q * q}^n$ : géométrique de raison $${q * q}$ (et non $${q}$), de premier terme $u_0 = 1$.`],
+      () => { const d = pick([2, 4, 5]); return [`u_n = \\dfrac{${k}}{${d}^n}`, 1 / d, `$u_n = ${k} \\times \\left(\\dfrac{1}{${d}}\\right)^n$ : géométrique de raison $\\dfrac{1}{${d}} = ${nb(1 / d)}$ et de premier terme $${k}$.`]; },
+      () => [`u_0 = ${k} \\text{ et } u_{n+1} = ${q}u_n`, q, `On multiplie toujours par $${q}$ : géométrique de raison $${q}$.`],
+      () => [`u_n = n \\times ${q}^n`, null, `$u_1 = ${q}$, $u_2 = ${2 * q * q}$, $u_3 = ${3 * q ** 3}$ : $\\dfrac{u_2}{u_1} = ${2 * q}$ mais $\\dfrac{u_3}{u_2} = ${nb((3 * q) / 2)}$. Contre-exemple : **pas** géométrique.`],
+      () => [`u_n = ${k} \\times ${q}^n + 1`, null, `$u_0 = ${k + 1}$, $u_1 = ${k * q + 1}$, $u_2 = ${k * q * q + 1}$ : $\\dfrac{u_1}{u_0} = ${frac(k * q + 1, k + 1)}$ et $\\dfrac{u_2}{u_1} = ${frac(k * q * q + 1, k * q + 1)}$ sont différents. **Pas** géométrique.`],
+      () => [`u_0 = ${k} \\text{ et } u_{n+1} = u_n + ${q}`, null, `On **ajoute** $${q}$ à chaque étape : $${k}$, $${k + q}$, $${k + 2 * q}$… Les quotients $${frac(k + q, k)}$ et $${frac(k + 2 * q, k + q)}$ sont différents : la suite est arithmétique, **pas** géométrique.`]
+    ];
+    const [def, r, sol] = pick(T)();
+    const rais = (x) => `Géométrique de raison $${x === 0.5 ? "\\dfrac{1}{2}" : x === 0.25 ? "\\dfrac{1}{4}" : x === 0.2 ? "\\dfrac{1}{5}" : x}$`;
+    const non = "Pas géométrique";
+    const bonne = r === null ? non : rais(r);
+    const fausses = r === null ? [rais(q), rais(k), rais(q + 1)] : r < 1 ? [rais(Math.round(1 / r)), rais(k), non] : r === q * q ? [rais(q), rais(2 * q), non] : [rais(k), rais(q + 1), non];
+    const c = melangeChoix(bonne, fausses);
+    return {
+      enonce: `La suite définie pour tout $n \\in \\mathbb{N}$ par $${def}$ est-elle géométrique ?`,
+      mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: ["Une suite est géométrique quand on passe d'un terme au suivant en **multipliant** toujours par le même nombre $q$ : $u_{n+1} = q \\times u_n$.", "Essaie d'écrire $u_{n+1}$ en fonction de $u_n$, ou calcule les premiers termes et leurs quotients.", "Pour répondre « non », un contre-exemple suffit : deux quotients consécutifs différents."],
+      solution: sol
+    };
+  };
+
+  GEN["su-geo-deux-termes"] = function () {
+    const q = pick([2, 3, 0.5]), u0 = q === 2 ? pick([1, 3, 5]) : q === 3 ? pick([1, 2]) : pick([64, 128, 256]);
+    const p = rand(1, 2), d = rand(2, 3), up = u0 * q ** p, uq = u0 * q ** (p + d), Q = Math.random() < 0.6;
+    const qT = q === 0.5 ? "\\dfrac{1}{2}" : `${q}`;
+    return {
+      enonce: `$(u_n)$ est une suite géométrique de raison positive, avec $u_{${p}} = ${nb(up)}$ et $u_{${p + d}} = ${nb(uq)}$. ${Q ? "Quelle est sa raison $q$ ?" : "Calcule son premier terme $u_0$."}`,
+      mode: "nombre", prefixe: Q ? "$q =$" : "$u_0 =$", attendu: Q ? q : u0,
+      erreurs: Q ? [{ valeur: uq / up, message: `$\\dfrac{u_{${p + d}}}{u_{${p}}} = ${nb(uq / up)}$, c'est $q^{${d}}$ : il y a $${d}$ multiplications par $q$ entre ces deux termes.` }, { valeur: (uq - up) / d, message: "Ça, c'est la méthode des suites arithmétiques. Ici on **multiplie** : $u_{n+" + d + "} = u_n \\times q^{" + d + "}$." }] : [{ valeur: up / q ** (p - 1), message: `De $u_0$ à $u_{${p}}$, on multiplie $${p}$ fois par $q$.` }],
+      aides: [`De $u_{${p}}$ à $u_{${p + d}}$, on multiplie $${d}$ fois par $q$ : $u_{${p + d}} = u_{${p}} \\times q^{${d}}$.`, Q ? `$q^{${d}} = \\dfrac{${nb(uq)}}{${nb(up)}} = ${nb(uq / up)}$.` : `$q^{${d}} = \\dfrac{${nb(uq)}}{${nb(up)}} = ${nb(uq / up)}$, donc $q = ${qT}$ (raison positive).`, Q ? `Cherche le nombre positif dont la puissance $${d}$ vaut $${nb(uq / up)}$ : essaie $2$, $3$, $\\dfrac{1}{2}$…` : `Puis $u_${p} = u_0 \\times q^{${p}}$, donc $u_0 = \\dfrac{u_${p}}{q^{${p}}}$.`],
+      solution: `$q^{${d}} = \\dfrac{${nb(uq)}}{${nb(up)}} = ${nb(uq / up)}$ donc $q = ${qT}$. Puis $u_0 = \\dfrac{${nb(up)}}{${q === 0.5 ? `0{,}5^{${p}}` : `${q}^{${p}}`}} = ${nb(u0)}$, et $u_n = ${nb(u0)} \\times ${q === 0.5 ? "0{,}5" : q}^n$.`
+    };
+  };
+
+  GEN["su-geo-taux"] = function () {
+    const objet = pick(["le prix du kilo de riz", "le prix de la bouteille de gaz", "le loyer d'un appartement à Mamoudzou", "le prix du ticket de barge"]);
+    if (Math.random() < 0.5) {
+      let t, n, g; do { t = pick([2, 3, 4, 5, 8, 10]); n = pick([2, 3, 5, 10]); g = +(((1 + t / 100) ** n - 1) * 100).toFixed(1); } while (g - n * t < 0.3); // l'écart avec la somme des taux doit se voir
+      return {
+        enonce: `Pendant $${n}$ ans, ${objet} augmente de $${pc(t)}$ par an. De quel pourcentage a-t-il augmenté au total ? Arrondis au dixième.`,
+        mode: "nombre", prefixe: "Hausse totale :", suffixe: "%", attendu: g, tolerance: 0.051,
+        erreurs: [{ valeur: n * t, message: "Les pourcentages successifs ne s'additionnent pas : on **multiplie** les coefficients multiplicateurs." }],
+        aides: [`Augmenter de $${pc(t)}$, c'est multiplier par $${nb(1 + t / 100)}$.`, `En $${n}$ ans, on multiplie par $${nb(1 + t / 100)}^{${n}} \\approx ${nb(+((1 + t / 100) ** n).toFixed(4))}$.`, "Taux global $=$ (coefficient global $- 1$) $\\times 100$."],
+        solution: `Coefficient global : $${nb(1 + t / 100)}^{${n}} \\approx ${nb(+((1 + t / 100) ** n).toFixed(4))}$, soit une hausse d'environ $${pc(g)}$ (et non $${pc(n * t)}$). Les valeurs successives forment une suite géométrique de raison $${nb(1 + t / 100)}$.`
+      };
+    }
+    let e1, e2; do { e1 = pick([10, 20, 25, 50, -10, -20, -25, -50]); e2 = pick([10, 20, 25, 50, -10, -20, -25, -50]); } while (e1 + e2 === 0 && Math.random() < 0.3);
+    const c1 = 1 + e1 / 100, c2 = 1 + e2 / 100, g = +((c1 * c2 - 1) * 100).toFixed(2);
+    const mot = (e) => (e > 0 ? `augmente de $${pc(e)}$` : `baisse de $${pc(-e)}$`);
+    return {
+      enonce: `Une année, ${objet} ${mot(e1)}, puis l'année suivante il ${mot(e2)}. Quel est le taux d'évolution global sur les deux ans ? (Écris un nombre négatif pour une baisse.)`,
+      mode: "nombre", prefixe: "Taux global :", suffixe: "%", attendu: g,
+      erreurs: e1 + e2 !== g ? [{ valeur: e1 + e2, message: "Les pourcentages successifs ne s'additionnent pas : on **multiplie** les coefficients multiplicateurs." }] : [],
+      aides: [`Coefficients multiplicateurs : $${nb(c1)}$ puis $${nb(c2)}$.`, `Coefficient global : $${nb(c1)} \\times ${nb(c2)} = ${nb(c1 * c2)}$.`, "Taux global $=$ (coefficient global $- 1$) $\\times 100$."],
+      solution: `$${nb(c1)} \\times ${nb(c2)} = ${nb(+(c1 * c2).toFixed(4))}$, donc un taux global de $${g > 0 ? "+" : ""}${pc(g)}$${e1 + e2 !== g ? ` (et non $${e1 + e2 > 0 ? "+" : ""}${pc(e1 + e2)}$)` : ""}.`
+    };
+  };
+
+  GEN["su-geo-medicament"] = function () {
+    const D = pick([200, 400, 500, 800, 1000]), p = pick([10, 20, 25, 30, 40, 50]), q = 1 - p / 100;
+    const intro = `Au dispensaire, on injecte à un patient une dose de $${nb(D)}$ mg d'un médicament. Chaque heure, son corps en élimine $${pc(p)}$. On note $u_n$ la quantité (en mg) restant dans le sang au bout de $n$ heures.`;
+    if (Math.random() < 0.5) {
+      const n = rand(2, 6), v = +(D * q ** n).toFixed(1);
+      return {
+        enonce: `${intro} Calcule $u_{${n}}$, arrondi au dixième.`,
+        mode: "nombre", prefixe: `$u_{${n}} =$`, suffixe: "mg", attendu: v, tolerance: 0.051,
+        erreurs: [{ valeur: +(D * (1 - (n * p) / 100)).toFixed(1), message: `On n'enlève pas $${pc(p)}$ de la dose **de départ** à chaque heure, mais de la quantité **restante** : on multiplie par $${nb(q)}$ à chaque heure.` }, { valeur: +(D * (p / 100) ** n).toFixed(1), message: `$${nb(p / 100)}$, c'est la part éliminée. Ce qui **reste**, c'est $1 - ${nb(p / 100)} = ${nb(q)}$.` }].filter((e) => Math.abs(e.valeur - v) > 0.1),
+        aides: [`Retirer $${pc(p)}$, c'est multiplier par $${nb(q)}$ : $(u_n)$ est géométrique de raison $${nb(q)}$.`, `$u_n = ${nb(D)} \\times ${nb(q)}^n$.`, `$u_{${n}} = ${nb(D)} \\times ${nb(q)}^{${n}}$.`],
+        solution: `$u_{${n}} = ${nb(D)} \\times ${nb(q)}^{${n}} \\approx ${nb(v)}$ mg.`,
+        figure: graph({ xmin: -0.5, xmax: n + 1.5, ymin: -D * 0.08, ymax: D * 1.12, ystep: D / 10, yetiq: D / 5, h: 240, padL: 34, xlabel: "n (h)", ylabel: "mg", points: Array.from({ length: n + 1 }, (_, k) => ({ x: k, y: D * q ** k })), aria: "Quantité de médicament heure par heure" })
+      };
+    }
+    const A = D / pick([4, 5, 10]);
+    let n = 0; while (D * q ** n >= A) n++;
+    return {
+      enonce: `${intro} Au bout de combien d'heures restera-t-il moins de $${nb(A)}$ mg ?`,
+      mode: "nombre", prefixe: "Heures :", attendu: n,
+      erreurs: [{ valeur: n - 1, message: `$u_{${n - 1}} \\approx ${nb(+(D * q ** (n - 1)).toFixed(1))}$ : ce n'est pas encore moins de $${nb(A)}$ mg.` }],
+      aides: [`$u_n = ${nb(D)} \\times ${nb(q)}^n$ : la suite est décroissante.`, `Calcule les termes un par un (tableau de valeurs de la calculatrice) jusqu'à passer sous $${nb(A)}$.`, `$u_{${n - 1}} \\approx ${nb(+(D * q ** (n - 1)).toFixed(1))}$.`],
+      solution: `$u_{${n - 1}} \\approx ${nb(+(D * q ** (n - 1)).toFixed(1))} \\geqslant ${nb(A)}$ et $u_{${n}} \\approx ${nb(+(D * q ** n).toFixed(1))} < ${nb(A)}$ : il faut $${n}$ heures. La suite étant décroissante, la quantité reste ensuite sous $${nb(A)}$ mg.`,
+      figure: graph({ xmin: -0.5, xmax: n + 1.5, ymin: -D * 0.08, ymax: D * 1.12, ystep: D / 10, yetiq: D / 5, h: 240, padL: 34, xlabel: "n (h)", ylabel: "mg", hlines: [{ y: A, label: `${vir(A)} mg` }], points: Array.from({ length: n + 2 }, (_, k) => ({ x: k, y: D * q ** k })), aria: "Quantité de médicament heure par heure et seuil" })
+    };
+  };
+
+  GEN["su-geo-somme"] = function () {
+    const t = rand(0, 2);
+    if (t === 2) {
+      const n = rand(3, 6), S = 2 - 0.5 ** n;
+      return {
+        enonce: `Calcule $S = 1 + 0{,}5 + 0{,}5^2 + \\dots + 0{,}5^{${n}}$ (valeur exacte en écriture décimale).`,
+        mode: "nombre", prefixe: "$S =$", attendu: S, tolerance: 1e-6,
+        erreurs: [{ valeur: 2 - 0.5 ** (n - 1), message: `Il y a $${n + 1}$ termes (de $0{,}5^0$ à $0{,}5^{${n}}$) : l'exposant dans la formule est $${n + 1}$.` }],
+        aides: ["$1 + q + \\dots + q^n = \\dfrac{1 - q^{n+1}}{1 - q}$ pour $q \\neq 1$.", `Ici $q = 0{,}5$ et l'exposant final est $${n}$, donc $q^{${n + 1}}$ dans la formule.`, `$S = \\dfrac{1 - 0{,}5^{${n + 1}}}{0{,}5}$.`],
+        solution: `$S = \\dfrac{1 - 0{,}5^{${n + 1}}}{1 - 0{,}5} = \\dfrac{1 - ${nb(0.5 ** (n + 1))}}{0{,}5} = ${nb(S)}$.`
+      };
+    }
+    const a = pick([1, 2, 3, 5]), q = pick([2, 3]), n = q === 2 ? rand(4, 9) : rand(3, 6);
+    const S = (a * (q ** (n + 1) - 1)) / (q - 1);
+    const expr = t === 0 ? `u_0 + u_1 + \\dots + u_{${n}}` : `${a} + ${a * q} + ${a * q * q} + \\dots + ${a === 1 ? "" : `${a} \\times `}${q}^{${n}}`;
+    return {
+      enonce: t === 0 ? `$(u_n)$ est géométrique de premier terme $u_0 = ${a}$ et de raison $${q}$. Calcule $S = ${expr}$.` : `Calcule $S = ${expr}$.`,
+      mode: "nombre", prefixe: "$S =$", attendu: S,
+      erreurs: [{ valeur: (a * (q ** n - 1)) / (q - 1), message: `De $u_0$ à $u_{${n}}$, il y a $${n + 1}$ termes, pas $${n}$ : l'exposant dans la formule est $${n + 1}$.` }],
+      aides: [t === 0 ? "Somme de termes consécutifs d'une suite géométrique : $\\text{premier terme} \\times \\dfrac{1 - q^{\\text{nombre de termes}}}{1 - q}$." : `Les termes sont ceux de la suite géométrique de premier terme $${a}$ et de raison $${q}$ : $${a} \\times ${q}^0$, …, $${a} \\times ${q}^{${n}}$.`, `Nombre de termes : de l'exposant $0$ à l'exposant $${n}$, soit $${n + 1}$.`, `$S = ${a} \\times \\dfrac{1 - ${q}^{${n + 1}}}{1 - ${q}}$.`],
+      solution: `$S = ${a} \\times \\dfrac{1 - ${q}^{${n + 1}}}{1 - ${q}} = ${a} \\times \\dfrac{${1 - q ** (n + 1)}}{${1 - q}} = ${nb(S)}$.`
+    };
+  };
+
+  GEN["su-geo-python"] = function () {
+    const D = pick([500, 800, 1000]), q = pick([0.8, 0.5, 0.7, 0.9]), A = pick([100, 200, 250]);
+    const code = (cond) => "```python\ndef heures(A):\n    u = " + D + "\n    n = 0\n    while " + cond + ":\n        u = " + q + " * u\n        n = n + 1\n    return n\n```";
+    const intro = `Une dose de $${D}$ mg de médicament diminue de $${pc(Math.round((1 - q) * 100))}$ par heure. `;
+    const t = rand(0, 2);
+    if (t === 1) {
+      const c = melangeChoix("u >= A", ["u < A", "u == A", "n < A"]);
+      return {
+        enonce: intro + "La fonction doit renvoyer le nombre d'heures au bout duquel il reste **moins** de A mg. Quelle condition faut-il écrire à la place de « … » ?\n\n" + code("…"),
+        mode: "choix", choix: c.choix, attendu: c.attendu,
+        aides: ["La boucle « while » se répète **tant que** la condition est vraie.", "On continue de multiplier tant qu'il reste **au moins** A mg.", "La boucle s'arrête dès que la quantité passe sous A."],
+        solution: "Il faut continuer tant que $u \\geqslant A$ : on écrit « u >= A ». La boucle s'arrête au premier rang où $u < A$, et la fonction renvoie ce rang : c'est l'**algorithme de seuil**."
+      };
+    }
+    if (t === 2) {
+      const c = melangeChoix("Le nombre d'heures au bout duquel il reste moins de A mg", ["La quantité restant au bout de A heures", "La quantité éliminée en une heure", "La quantité restant quand la boucle s'arrête"]);
+      return {
+        enonce: intro + "Que représente le nombre renvoyé par heures(A) ?\n\n" + code("u >= A"),
+        mode: "choix", choix: c.choix, attendu: c.attendu,
+        aides: ["La fonction renvoie $n$, pas $u$.", "$n$ augmente de $1$ à chaque passage dans la boucle, donc à chaque heure.", "La boucle s'arrête dès que $u < A$."],
+        solution: "La fonction renvoie $n$, le nombre de passages dans la boucle : c'est le **premier** nombre d'heures au bout duquel la quantité $u$ est passée sous $A$ mg (le seuil)."
+      };
+    }
+    const vals = [D]; while (vals[vals.length - 1] >= A) vals.push(q * vals[vals.length - 1]);
+    const n = vals.length - 1;
+    return {
+      enonce: intro + "On considère la fonction Python :\n\n" + code("u >= A") + `\n\nQue renvoie heures(${A}) ?`,
+      mode: "nombre", prefixe: "Résultat :", attendu: n,
+      erreurs: [{ valeur: n - 1, message: `Après $${n - 1}$ passages, $u \\approx ${nb(+vals[n - 1].toFixed(2))}$ : la condition $u \\geqslant ${A}$ est encore vraie, la boucle continue.` }, { valeur: +vals[n].toFixed(2), message: "Ça, c'est la valeur finale de $u$. La fonction renvoie $n$." }],
+      aides: [`À chaque passage, $u$ est multiplié par $${nb(q)}$ et $n$ augmente de $1$.`, `Les valeurs de $u$ : $${vals.slice(0, 3).map((v) => nb(+v.toFixed(2))).join("$ ; $")}$…`, `Continue jusqu'à ce que $u < ${A}$, en comptant les passages.`],
+      solution: `$u$ prend les valeurs $${vals.map((v) => nb(+v.toFixed(2))).join("$ ; $")}$. La condition $u \\geqslant ${A}$ devient fausse après $${n}$ passages : heures(${A}) renvoie $${n}$.`
+    };
+  };
+
+  // Logique : négation de « majorée », vrai ou faux avec contre-exemple
+  GEN["su-geo-logique"] = function () {
+    const T = [
+      () => {
+        const c = melangeChoix("Pour tout réel $M$, il existe un entier $n$ tel que $u_n > M$", ["Il existe un réel $M$ tel que, pour tout entier $n$, $u_n > M$", "Pour tout réel $M$ et tout entier $n$, $u_n > M$", "Il existe un entier $n$ tel que $u_n > 0$"]);
+        return { enonce: "« $(u_n)$ est majorée » signifie : il existe un réel $M$ tel que, pour tout entier $n$, $u_n \\leqslant M$. Quelle est la traduction de « $(u_n)$ n'est **pas** majorée » ?", ...c, sol: "Pour nier, on échange « il existe » et « pour tout », puis on nie la fin : $u_n \\leqslant M$ devient $u_n > M$. Aucun nombre $M$ ne peut bloquer tous les termes." };
+      },
+      () => ({ enonce: "Vrai ou faux : « une suite géométrique de raison $q > 1$ est croissante » ?", choix: ["Vrai", "Faux"], attendu: 1, sol: "**Faux**. Contre-exemple : $u_0 = -1$ et $q = 2$ donnent $-1$, $-2$, $-4$… La suite est décroissante. Il faut aussi $u_0 > 0$." }),
+      () => ({ enonce: "Vrai ou faux : « si $(u_n)$ est géométrique de raison $2$, alors $(u_n + 1)$ est aussi géométrique » ?", choix: ["Vrai", "Faux"], attendu: 1, sol: "**Faux**. Contre-exemple : $u_n = 2^n$ donne $u_n + 1$ : $2$, $3$, $5$, $9$… Les quotients $\\dfrac{3}{2}$ et $\\dfrac{5}{3}$ sont différents." }),
+      () => ({ enonce: "Vrai ou faux : « la suite définie par $u_n = 2^n$ n'est pas majorée » ?", choix: ["Vrai", "Faux"], attendu: 0, sol: "**Vrai**. Quel que soit le nombre $M$, les puissances de $2$ finissent par le dépasser : par exemple $2^{10} = 1\\,024 > 1\\,000$ et $2^{20} > 1\\,000\\,000$. Aucun $M$ ne bloque tous les termes." }),
+      () => ({ enonce: "Vrai ou faux : « une hausse de $2\\,\\%$ par an pendant $10$ ans fait une hausse de $20\\,\\%$ » ?", choix: ["Vrai", "Faux"], attendu: 1, sol: "**Faux**. Le coefficient global est $1{,}02^{10} \\approx 1{,}219$ : la hausse est d'environ $21{,}9\\,\\%$. Les pourcentages successifs ne s'additionnent pas." }),
+      () => ({ enonce: "Vrai ou faux : « si $0 < q < 1$, la suite géométrique $u_n = u_0 \\times q^n$ est décroissante » ?", choix: ["Vrai", "Faux"], attendu: 1, sol: "**Faux**. Contre-exemple : $u_0 = -8$ et $q = 0{,}5$ donnent $-8$, $-4$, $-2$… La suite est croissante. Avec $u_0 > 0$, l'affirmation devient vraie." }),
+      () => ({ enonce: "Vrai ou faux : « la suite géométrique de premier terme $8$ et de raison $0{,}5$ est majorée par $8$ » ?", choix: ["Vrai", "Faux"], attendu: 0, sol: "**Vrai**. $u_0 = 8 > 0$ et $0 < q < 1$ : la suite est décroissante, donc pour tout $n$, $u_n \\leqslant u_0 = 8$." }),
+      () => ({ enonce: "Vrai ou faux : « une suite dont les termes changent de signe n'a pas de limite » ?", choix: ["Vrai", "Faux"], attendu: 1, sol: "**Faux**. Contre-exemple : $u_n = 4 \\times (-0{,}5)^n$ donne $4$, $-2$, $1$, $-0{,}5$… Les termes changent de signe mais se rapprochent de $0$ : la limite est $0$." })
+    ];
+    const r = pick(T)();
+    return {
+      enonce: r.enonce, mode: "choix", choix: r.choix, attendu: r.attendu,
+      aides: ["« Pour tout » se réfute avec **un seul** contre-exemple.", "Pense aux cas particuliers : premier terme négatif, raison négative, raison entre $0$ et $1$.", "Pour nier une phrase, « pour tout » devient « il existe » et inversement."],
+      solution: r.sol
+    };
+  };
+
+  GEN["su-geo-limite"] = function () {
+    const T = [
+      () => { const k = pick([200, 50, 3]), q = pick([1.05, 1.2, 2, 3]); return [`${k} \\times ${nb(q)}^n`, "+\\infty", `$q = ${nb(q)} > 1$ : $${nb(q)}^n$ devient aussi grand qu'on veut, et $${k} > 0$. Limite $+\\infty$.`]; },
+      () => { const k = pick([2, 5]), q = pick([1.5, 2, 3]); return [`-${k} \\times ${nb(q)}^n`, "-\\infty", `$${nb(q)}^n$ tend vers $+\\infty$ et on multiplie par $-${k} < 0$ : limite $-\\infty$.`]; },
+      () => { const k = pick([1000, 500, 8]), q = pick([0.3, 0.5, 0.9, -0.5]); return [`${k} \\times ${q < 0 ? `(${nb(q)})` : nb(q)}^n`, "0", `$-1 < ${nb(q)} < 1$ : $${q < 0 ? `(${nb(q)})` : nb(q)}^n$ se rapproche de $0$${q < 0 ? " (en changeant de signe)" : ""}. Limite $0$.`]; },
+      () => { const k = pick([3, 2]), q = pick([-2, -1, -1.5]); return [`${k} \\times (${nb(q)})^n`, "\\text{pas de limite}", `$q = ${nb(q)} \\leqslant -1$ : les termes changent de signe ${q === -1 ? "en valant alternativement $" + k + "$ et $-" + k + "$" : "en s'éloignant de $0$"}. Pas de limite.`]; },
+      () => { const c = pick([5, 150, 3]), k = pick([2, 150, 4]), q = pick([0.5, 0.6, 0.8]); return [`${c} - ${k} \\times ${nb(q)}^n`, `${c}`, `$${nb(q)}^n$ tend vers $0$, donc $${k} \\times ${nb(q)}^n$ aussi : $u_n$ se rapproche de $${c}$.`]; }
+    ];
+    const [expr, bonne, sol] = pick(T)();
+    const tous = ["+\\infty", "-\\infty", "0", "\\text{pas de limite}", "1"];
+    const c = melangeChoix(bonne, shuffle(tous.filter((x) => x !== bonne)).slice(0, 3));
+    return {
+      enonce: `Conjecture la limite de la suite définie par $u_n = ${expr}$.`,
+      mode: "choix", choix: c.choix.map((x) => (x === "\\text{pas de limite}" ? "Pas de limite" : `$${x}$`)), attendu: c.attendu,
+      aides: ["Regarde d'abord $q^n$ : si $q > 1$, limite $+\\infty$ ; si $-1 < q < 1$, limite $0$ ; si $q \\leqslant -1$, pas de limite.", "Puis tiens compte du nombre qui multiplie (son signe) et de ce qu'on ajoute.", "Vérifie avec le tableau de valeurs de la calculatrice : $n = 10$, $50$, $100$."],
+      solution: sol
+    };
+  };
+
+
   /* Séries « flash » d'un thème : mélange de ses générateurs */
   const THEMES = {
     "am-flash-cn": ["am-comparer", "am-fractions", "am-puissances", "am-ecritures", "am-ordre-grandeur", "am-coherence", "auto-conversions"],
