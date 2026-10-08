@@ -11692,6 +11692,129 @@
   };
 
 
+  /* ---------- Terminale maths complémentaires, chapitre 5 : probabilités conditionnelles et inférence bayésienne (préfixe tcb-) ---------- */
+  const tcbVPP = (p, s, e) => (s * p) / (s * p + (1 - e) * (1 - p));
+  const tcbVPN = (p, s, e) => (e * (1 - p)) / (e * (1 - p) + (1 - s) * p);
+  const tcbV = (x) => vir(+x.toFixed(4));
+  FIGURES["tcb-dengue"] = () => arbre(["M", "~M", "T", "~T"], ["0,05", "0,95", "0,9", "0,1", "0,05", "0,95"]);
+  FIGURES["tcb-vpp"] = () => graph({ xmin: -0.06, xmax: 1.08, ymin: -0.08, ymax: 1.12, xstep: 0.1, xetiq: 0.2, ystep: 0.1, yetiq: 0.2, h: 280, padL: 30, xlabel: "prévalence p", ylabel: "VPP", curves: [{ f: (p) => tcbVPP(p, 0.9, 0.95), a: 0, b: 1, closed: false }], points: [{ x: 0.05, y: tcbVPP(0.05, 0.9, 0.95), label: "p = 0,05 : VPP ≈ 0,49" }, { x: 0.3, y: tcbVPP(0.3, 0.9, 0.95), label: "p = 0,3 : VPP ≈ 0,89" }], aria: "Valeur prédictive positive d'un test de sensibilité 0,9 et de spécificité 0,95 en fonction de la prévalence : elle croît vite, environ 0,49 pour une prévalence de 5 % et 0,89 pour 30 %" });
+
+  // un test : prévalence p, sensibilité s, spécificité e
+  const tcbTest = () => ({ p: pick([0.01, 0.02, 0.05, 0.1, 0.2, 0.3]), s: pick([0.9, 0.95, 0.98, 0.99]), e: pick([0.9, 0.95, 0.97, 0.99]), mal: pick(["la dengue", "la leptospirose"]) });
+
+  GEN["tcb-depistage"] = function () {
+    const { p, s, e, mal } = tcbTest();
+    let t = rand(0, 3); if (t === 2 && p < 0.1) t = 1; // la VPN d'une maladie rare vaut presque 1 : peu d'intérêt
+    const fig = arbre(["M", "~M", "T", "~T"], [tcbV(p), tcbV(1 - p), tcbV(s), tcbV(1 - s), tcbV(1 - e), tcbV(e)]);
+    const intro = `Un test de dépistage de ${mal} a une sensibilité de $${fr(s)}$ et une spécificité de $${fr(e)}$. Dans la population étudiée, la prévalence de la maladie est $${fr(p)}$. On note $M$ « la personne est malade » et $T$ « le test est positif ».`;
+    const PT = s * p + (1 - e) * (1 - p);
+    const Q = [
+      ["$P(T)$", PT, `Probabilités totales : $P(T) = P(M \\cap T) + P(\\overline{M} \\cap T) = ${fr(p)} \\times ${fr(s)} + ${fr(+(1 - p).toFixed(4))} \\times ${fr(+(1 - e).toFixed(4))} \\approx ${fr(+PT.toFixed(4))}$.`],
+      ["la valeur prédictive positive $P_T(M)$", tcbVPP(p, s, e), `$P_T(M) = \\dfrac{P(M \\cap T)}{P(T)} = \\dfrac{${fr(+(p * s).toFixed(5))}}{${fr(+PT.toFixed(5))}} \\approx ${fr(+tcbVPP(p, s, e).toFixed(3))}$.`],
+      ["la valeur prédictive négative $P_{\\overline{T}}(\\overline{M})$", tcbVPN(p, s, e), `$P(\\overline{T}) = 1 - P(T) \\approx ${fr(+(1 - PT).toFixed(4))}$ et $P(\\overline{M} \\cap \\overline{T}) = ${fr(+(1 - p).toFixed(4))} \\times ${fr(e)}$, donc $P_{\\overline{T}}(\\overline{M}) \\approx ${fr(+tcbVPN(p, s, e).toFixed(3))}$.`],
+      ["$P(M \\cap T)$", p * s, `Sur l'arbre, on multiplie le long du chemin : $P(M \\cap T) = ${fr(p)} \\times ${fr(s)} = ${fr(+(p * s).toFixed(5))}$.`]
+    ][t];
+    return {
+      enonce: `${intro} Calcule ${Q[0]} (arrondi au millième).`, figure: fig,
+      mode: "nombre", prefixe: "Valeur ≈", attendu: +Q[1].toFixed(3), tolerance: 0.0015,
+      erreurs: t === 1 ? [{ valeur: +s.toFixed(3), message: "Ça, c'est la sensibilité $P_M(T)$ : on demande $P_T(M)$, la probabilité inverse." }] : [],
+      aides: ["Sensibilité $= P_M(T)$, spécificité $= P_{\\overline{M}}(\\overline{T})$, prévalence $= P(M)$ : complète l'arbre.", "$P(T)$ s'obtient avec la formule des probabilités totales.", "$P_T(M) = \\dfrac{P(M \\cap T)}{P(T)}$ (formule de Bayes)."],
+      solution: Q[2]
+    };
+  };
+
+  GEN["tcb-vocabulaire"] = function () {
+    const T = [
+      ["la sensibilité du test", "$P_M(T)$", "Parmi les malades, la proportion de tests positifs."],
+      ["la spécificité du test", "$P_{\\overline{M}}(\\overline{T})$", "Parmi les personnes saines, la proportion de tests négatifs."],
+      ["la valeur prédictive positive", "$P_T(M)$", "Parmi les tests positifs, la proportion de vrais malades."],
+      ["la valeur prédictive négative", "$P_{\\overline{T}}(\\overline{M})$", "Parmi les tests négatifs, la proportion de personnes vraiment saines."],
+      ["la prévalence de la maladie", "$P(M)$", "La proportion de malades dans la population, avant tout test."],
+      ["la probabilité d'un faux positif parmi les personnes saines", "$P_{\\overline{M}}(T)$", "Une personne saine dont le test est positif : $P_{\\overline{M}}(T) = 1 - $ spécificité."],
+      ["la probabilité qu'une personne testée soit malade et positive", "$P(M \\cap T)$", "« Et » : c'est une intersection, pas une probabilité conditionnelle."]
+    ];
+    const [nom, bon, s] = pick(T), c = melangeChoix(bon, shuffle(["$P_M(T)$", "$P_T(M)$", "$P_{\\overline{M}}(\\overline{T})$", "$P_{\\overline{T}}(\\overline{M})$", "$P(M)$", "$P(M \\cap T)$", "$P_{\\overline{M}}(T)$"]));
+    return {
+      enonce: `$M$ : « la personne est malade » ; $T$ : « le test est positif ». Comment note-t-on ${nom} ?`, mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: ["Dans $P_A(B)$, l'événement $A$ en indice est ce que l'on **sait** (la population de référence).", "La sensibilité et la spécificité se mesurent sur des malades et des non-malades connus.", "Les valeurs prédictives répondent à la question du patient : « mon test est positif, suis-je malade ? »."],
+      solution: `${nom.charAt(0).toUpperCase() + nom.slice(1)} se note ${bon}. ${s}`
+    };
+  };
+
+  GEN["tcb-prevalence"] = function () {
+    const s = pick([0.9, 0.95, 0.99]), e = pick([0.9, 0.95, 0.98, 0.99]), t = rand(0, 2);
+    const f = `\\dfrac{${fr(s)}p}{${fr(s)}p + ${fr(+(1 - e).toFixed(2))}(1 - p)}`;
+    if (t === 0) {
+      const p = pick([0.01, 0.02, 0.05, 0.1, 0.2, 0.5]), v = tcbVPP(p, s, e);
+      return { enonce: `Pour un test de sensibilité $${fr(s)}$ et de spécificité $${fr(e)}$, la valeur prédictive positive en fonction de la prévalence $p$ est $f(p) = ${f}$. Calcule $f(${fr(p)})$ (arrondi au centième).`,
+        mode: "nombre", prefixe: `$f(${fr(p)}) \\approx$`, attendu: +v.toFixed(2), tolerance: 0.006,
+        aides: ["Remplace $p$ par sa valeur.", `Numérateur : $${fr(s)} \\times ${fr(p)} = ${fr(+(s * p).toFixed(4))}$.`, `Dénominateur : $${fr(+(s * p).toFixed(4))} + ${fr(+(1 - e).toFixed(2))} \\times ${fr(+(1 - p).toFixed(2))}$.`],
+        solution: `$f(${fr(p)}) = \\dfrac{${fr(+(s * p).toFixed(4))}}{${fr(+(s * p + (1 - e) * (1 - p)).toFixed(4))}} \\approx ${fr(+v.toFixed(2))}$. ${v < 0.5 ? "Moins d'une chance sur deux d'être malade avec un test positif : la maladie est rare." : "Un test positif est assez fiable à cette prévalence."}` };
+    }
+    if (t === 1) {
+      const c = melangeChoix("elle augmente", ["elle diminue", "elle ne change pas", "elle vaut toujours la sensibilité"]);
+      return { enonce: `La valeur prédictive positive d'un test est $f(p) = ${f}$, où $p$ est la prévalence. Que devient la VPP quand la maladie devient plus fréquente ?`, mode: "choix", choix: c.choix, attendu: c.attendu,
+        aides: ["Écris $f(p) = \\dfrac{ap}{bp + c}$ et dérive avec la formule du quotient.", `Le dénominateur vaut $${fr(+(s - (1 - e)).toFixed(2))}p + ${fr(+(1 - e).toFixed(2))}$.`, "Le signe de $f'(p)$ est celui de son numérateur."],
+        solution: `$f(p) = \\dfrac{${fr(s)}p}{${fr(+(s + e - 1).toFixed(2))}p + ${fr(+(1 - e).toFixed(2))}}$, donc $f'(p) = \\dfrac{${fr(s)} \\times ${fr(+(1 - e).toFixed(2))}}{(${fr(+(s + e - 1).toFixed(2))}p + ${fr(+(1 - e).toFixed(2))})^2} > 0$ : $f$ est croissante. Plus la maladie est fréquente, plus un test positif est fiable.` };
+    }
+    const p0 = (1 - e) / (s + 1 - e);
+    return { enonce: `La VPP d'un test de sensibilité $${fr(s)}$ et de spécificité $${fr(e)}$ est $f(p) = ${f}$. À partir de quelle prévalence $p$ la VPP dépasse-t-elle $0{,}5$ ? (Arrondi au millième.)`,
+      mode: "nombre", prefixe: "$p \\approx$", attendu: +p0.toFixed(3), tolerance: 0.0015,
+      aides: [`$f(p) \\geqslant 0{,}5 \\iff ${fr(s)}p \\geqslant 0{,}5\\,(${fr(s)}p + ${fr(+(1 - e).toFixed(2))}(1 - p))$.`,`Cela revient à $${fr(s)}p \\geqslant ${fr(+(1 - e).toFixed(2))}(1 - p)$.`, "Développe et isole $p$."],
+      solution: `$${fr(s)}p \\geqslant ${fr(+(1 - e).toFixed(2))}(1 - p) \\iff ${fr(+(s + 1 - e).toFixed(2))}p \\geqslant ${fr(+(1 - e).toFixed(2))} \\iff p \\geqslant \\dfrac{${fr(+(1 - e).toFixed(2))}}{${fr(+(s + 1 - e).toFixed(2))}} \\approx ${fr(+p0.toFixed(3))}$. En dessous de cette prévalence, un test positif est plus souvent un faux positif qu'un vrai.` };
+  };
+
+  GEN["tcb-bayes"] = function () {
+    const ctx = pick([
+      { A: "la barge est en retard", B: "Inaya arrive en retard au lycée", pa: pick([0.1, 0.2, 0.3]), pba: pick([0.6, 0.7, 0.8]), pbna: pick([0.05, 0.1, 0.15]) },
+      { A: "le régime vient de la parcelle de Combani", B: "le régime pèse plus de 12 kg", pa: pick([0.3, 0.4, 0.6]), pba: pick([0.5, 0.6, 0.7]), pbna: pick([0.2, 0.3]) },
+      { A: "l'élève a révisé avec le site", B: "l'élève a la moyenne au devoir", pa: pick([0.5, 0.6, 0.7]), pba: pick([0.8, 0.85, 0.9]), pbna: pick([0.4, 0.5]) },
+      { A: "il pleut le matin", B: "le match de football est annulé", pa: pick([0.2, 0.25, 0.4]), pba: pick([0.5, 0.6]), pbna: pick([0.02, 0.05]) }
+    ]);
+    const pb = ctx.pa * ctx.pba + (1 - ctx.pa) * ctx.pbna, post = (ctx.pa * ctx.pba) / pb;
+    return {
+      enonce: `On note $A$ : « ${ctx.A} » et $B$ : « ${ctx.B} ». On sait que $P(A) = ${fr(ctx.pa)}$, $P_A(B) = ${fr(ctx.pba)}$ et $P_{\\overline{A}}(B) = ${fr(ctx.pbna)}$. On constate que $B$ est réalisé. Quelle est la probabilité **a posteriori** de $A$, c'est-à-dire $P_B(A)$ ? (Arrondi au centième.)`,
+      figure: arbre(["A", "~A", "B", "~B"], [tcbV(ctx.pa), tcbV(1 - ctx.pa), tcbV(ctx.pba), tcbV(1 - ctx.pba), tcbV(ctx.pbna), tcbV(1 - ctx.pbna)]),
+      mode: "nombre", prefixe: "$P_B(A) \\approx$", attendu: +post.toFixed(2), tolerance: 0.006,
+      erreurs: [{ valeur: +ctx.pba.toFixed(2), message: "Ça, c'est $P_A(B)$ : on demande l'inverse, $P_B(A)$." }, { valeur: +ctx.pa.toFixed(2), message: "Ça, c'est la probabilité **a priori** $P(A)$, avant de savoir que $B$ est réalisé." }],
+      aides: ["Formule des probabilités totales : $P(B) = P(A)P_A(B) + P(\\overline{A})P_{\\overline{A}}(B)$.", `$P(B) = ${fr(ctx.pa)} \\times ${fr(ctx.pba)} + ${fr(+(1 - ctx.pa).toFixed(2))} \\times ${fr(ctx.pbna)} = ${fr(+pb.toFixed(4))}$.`, "Formule de Bayes : $P_B(A) = \\dfrac{P(A)P_A(B)}{P(B)}$."],
+      solution: `$P(B) = ${fr(+pb.toFixed(4))}$, puis $P_B(A) = \\dfrac{${fr(ctx.pa)} \\times ${fr(ctx.pba)}}{${fr(+pb.toFixed(4))}} \\approx ${fr(+post.toFixed(2))}$. La probabilité de $A$ est passée de $${fr(ctx.pa)}$ (a priori) à environ $${fr(+post.toFixed(2))}$ (a posteriori) grâce à l'information « $B$ est réalisé ».`
+    };
+  };
+
+  GEN["tcb-logique"] = function () {
+    const T = [
+      ["« Si $P_A(B) = 0{,}9$, alors $P_B(A) = 0{,}9$. »", false, "En général $P_A(B) \\neq P_B(A)$ : il faut la formule de Bayes pour inverser."],
+      ["« Un test très sensible donne forcément une valeur prédictive positive élevée. »", false, "Si la maladie est rare, la plupart des tests positifs viennent de personnes saines : la VPP peut être faible."],
+      ["« Si $A$ et $B$ sont indépendants et $P(A) \\neq 0$, alors $P_A(B) = P(B)$. »", true, "C'est la définition de l'indépendance (avec $P(A) \\neq 0$)."],
+      ["« La probabilité a posteriori $P_B(A)$ tient compte de l'information « $B$ est réalisé ». »", true, "C'est le sens de « a posteriori » : après l'observation."],
+      ["« La plupart des malades ont un test positif » signifie que la plupart des tests positifs viennent de malades. »", false, "La première phrase parle de $P_M(T)$, la seconde de $P_T(M)$ : ce n'est pas la même chose."],
+      ["« $P(A \\cap B) = P(A) \\times P_A(B)$. »", true, "C'est la règle du produit sur un chemin de l'arbre."],
+      ["« $P_A(B) + P_A(\\overline{B}) = 1$. »", true, "Sachant $A$, soit $B$ se réalise, soit non."],
+      ["« $P_A(B) + P_{\\overline{A}}(B) = 1$. »", false, "Ces deux probabilités ne sont pas complémentaires : par exemple $0{,}9$ et $0{,}05$ pour un test."],
+      ["« Plus la prévalence est faible, plus la valeur prédictive positive est faible (test fixé). »", true, "La VPP est une fonction croissante de la prévalence."],
+      ["« La spécificité d'un test est la probabilité qu'une personne dont le test est négatif soit saine. »", false, "Ça, c'est la valeur prédictive négative $P_{\\overline{T}}(\\overline{M})$. La spécificité est $P_{\\overline{M}}(\\overline{T})$."],
+      ["« Si $P_B(A) > P(A)$, l'information « $B$ est réalisé » rend $A$ plus probable. »", true, "La probabilité a posteriori dépasse la probabilité a priori."]
+    ];
+    const [q, v, s] = pick(T), c = melangeChoix(v ? "Vrai" : "Faux", [v ? "Faux" : "Vrai"]);
+    return {
+      enonce: `Vrai ou faux ? ${q}`, mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: ["Lis bien l'événement en indice : c'est ce que l'on sait.", "Une implication et sa réciproque n'ont pas la même probabilité.", "Pense au dépistage d'une maladie rare."],
+      solution: `**${v ? "Vrai" : "Faux"}.** ${s}`
+    };
+  };
+
+  GEN["tcb-python"] = function () {
+    const { p, s, e } = tcbTest(), v = tcbVPP(p, s, e);
+    return {
+      enonce: "```python\ndef vpp(p, s, e):\n    vrais = p * s\n    faux = (1 - p) * (1 - e)\n    return vrais / (vrais + faux)\n```\n\n" + `Que renvoie vpp(${p}, ${s}, ${e}) ? (Arrondi au centième.)`,
+      mode: "nombre", prefixe: "Résultat ≈", attendu: +v.toFixed(2), tolerance: 0.006,
+      aides: ["vrais est la probabilité d'être malade et positif, faux celle d'être sain et positif.", `vrais $= ${fr(p)} \\times ${fr(s)}$ et faux $= ${fr(+(1 - p).toFixed(2))} \\times ${fr(+(1 - e).toFixed(2))}$.`, "La fonction renvoie la part des vrais positifs parmi tous les positifs."],
+      solution: `vrais $= ${fr(+(p * s).toFixed(5))}$, faux $= ${fr(+((1 - p) * (1 - e)).toFixed(5))}$, et $\\dfrac{${fr(+(p * s).toFixed(5))}}{${fr(+(p * s + (1 - p) * (1 - e)).toFixed(5))}} \\approx ${fr(+v.toFixed(2))}$ : c'est la valeur prédictive positive.`
+    };
+  };
+
+
   /* Séries « flash » d'un thème : mélange de ses générateurs */
   const THEMES = {
     "am-flash-cn": ["am-comparer", "am-fractions", "am-puissances", "am-ecritures", "am-ordre-grandeur", "am-coherence", "auto-conversions"],
@@ -11708,7 +11831,7 @@
 
 
   /* Une « erreur connue » ne doit jamais coïncider avec la bonne réponse (à la tolérance près) */
-  Object.keys(GEN).filter((k) => /^(auto|ld|am|cd|ar|cl|fa|ve|st|vx|tc|co|dr|fr|sg|pc|ec|sy|su|s2|pi|s5|d1|tr|d2|vr|ps|ex|va|sc|gr|sm|ea|tsu|tag|tlf)-/.test(k)).forEach((k) => {
+  Object.keys(GEN).filter((k) => /^(auto|ld|am|cd|ar|cl|fa|ve|st|vx|tc|co|dr|fr|sg|pc|ec|sy|su|s2|pi|s5|d1|tr|d2|vr|ps|ex|va|sc|gr|sm|ea|tsu|tag|tlf|tcb)-/.test(k)).forEach((k) => {
     const g = GEN[k];
     GEN[k] = (i) => { const q = g(i); if (q.erreurs) q.erreurs = q.erreurs.filter((e) => Math.abs(e.valeur - q.attendu) >= (q.tolerance || 1e-9)); return q; };
   });

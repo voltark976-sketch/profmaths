@@ -384,6 +384,13 @@ window.CATALOGUE = {
           titre: "Limites de fonctions et continuité",
           statut: "disponible",
           drive: ""
+        },
+        {
+          id: "terminale-inference-bayesienne",
+          numero: 5,
+          titre: "Probabilités conditionnelles et inférence bayésienne",
+          statut: "disponible",
+          drive: ""
         }
       ]
     }
