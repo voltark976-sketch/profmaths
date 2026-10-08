@@ -94,7 +94,7 @@ a.chap:hover, .serie:hover { border-color: var(--lagon); }
 .pdf { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border: 1px solid var(--trait); border-radius: var(--r); text-decoration: none; color: var(--encre); background: var(--surface); font-size: 0.95rem; }
 .pdf-ico { flex: none; font: 800 0.7rem/1 var(--f-texte); color: var(--faux); border: 1.5px solid currentColor; border-radius: 5px; padding: 6px 5px; }
 .pdf-ico.yt { color: var(--faux); padding: 5px 8px; }
-.pdf-ico.jeu { color: var(--lagon); }
+.pdf-ico.lien { color: var(--lagon); } /* pas « .jeu » : cette classe est celle de la page du Défi */
 .notion { padding: 22px 0; border-top: 1px solid var(--trait); }
 .notion h2 { display: flex; gap: 10px; align-items: baseline; }
 .n { flex: none; font: 800 0.95rem/1 var(--f-titre); color: var(--lagon); min-width: 1.4em; }
