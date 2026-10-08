@@ -130,6 +130,8 @@ pre.code code { font: inherit; }
 .g-clabel .sub { font-size: 9px; }
 .g-bar { stroke: var(--lagon); stroke-width: 9; }
 .g-rect { fill: var(--lagon-pale); stroke: var(--lagon); stroke-width: 1.6; }
+.g-aire { fill: var(--lagon); fill-opacity: 0.28; stroke: none; }
+.g-aire-neg { fill: var(--courbe2); }
 .g-box line, .g-box rect { stroke: var(--lagon); stroke-width: 2; fill: var(--lagon-pale); }
 .g-box .med { stroke-width: 3.2; }
 .g-box-1 line, .g-box-1 rect { stroke: var(--courbe2); }

@@ -433,6 +433,13 @@ window.CATALOGUE = {
           titre: "Primitives et équations différentielles",
           statut: "disponible",
           drive: ""
+        },
+        {
+          id: "terminale-integration",
+          numero: 12,
+          titre: "Intégration",
+          statut: "disponible",
+          drive: ""
         }
       ]
     }

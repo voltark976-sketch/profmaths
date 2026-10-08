@@ -114,6 +114,8 @@
     for (let y = Math.ceil(o.ymin / ystep) * ystep; y <= o.ymax; y += ystep) s += `<line x1="${padL}" y1="${Y(y)}" x2="${W - pad}" y2="${Y(y)}"/>`;
     s += `</g>`;
     // histogramme : rectangles de a à b, de hauteur h (sous les axes et les étiquettes)
+    // aires : domaine entre la courbe f et la courbe g (ou l'axe horizontal) pour x de a à b ; neg : true pour la couleur des parties « en dessous »
+    (o.aires || []).forEach((z) => { const n = 120, g = z.g || (() => y0); let d = ""; for (let k = 0; k <= n; k++) { const x = z.a + ((z.b - z.a) * k) / n; d += (k ? "L" : "M") + X(x) + " " + Y(z.f(x)); } for (let k = n; k >= 0; k--) { const x = z.a + ((z.b - z.a) * k) / n; d += "L" + X(x) + " " + Y(g(x)); } s += `<path class="g-aire${z.neg ? " g-aire-neg" : ""}" d="${d}Z"/>`; });
     (o.rects || []).forEach((r) => { s += `<rect class="g-rect" x="${X(r.a)}" y="${Y(r.h)}" width="${+(X(r.b) - X(r.a)).toFixed(1)}" height="${+(Y(y0) - Y(r.h)).toFixed(1)}"/>`; });
     // axes ; si l'origine n'est pas 0 sur un axe, l'autre axe s'arrête à l'origine
     const axG = y0 !== 0 && x0 > o.xmin ? X(x0) : padL, axB = x0 !== 0 && y0 > o.ymin ? Y(y0) : H - padB;
@@ -12814,6 +12816,761 @@
   };
 
 
+  /* ---------- Terminale maths complémentaires, chapitre 12 : intégration (préfixe tin-) ---------- */
+  FIGURES["tin-aire"] = () => graph({ xmin: -0.5, xmax: 5.5, ymin: -0.4, ymax: 5.5, h: 250, curves: [{ f: (x) => 0.25 * x * x - x + 3, a: 0, b: 5, closed: false, label: "𝒞", lx: 5, dx: -10, dy: -4 }], aires: [{ f: (x) => 0.25 * x * x - x + 3, a: 1, b: 4 }], marques: [{ x: 2.5, y: 0.9, texte: "𝒜" }], aria: "Aire du domaine sous la courbe, au-dessus de l'axe, entre les droites x = 1 et x = 4 : c'est l'intégrale de 1 à 4 de f" });
+  FIGURES["tin-rectangles"] = () => graph({ xmin: -0.08, xmax: 1.12, ymin: -0.08, ymax: 1.12, xstep: 0.25, ystep: 0.25, xetiq: 0.5, yetiq: 0.5, h: 260, rects: [0, 1, 2, 3].map((k) => ({ a: k / 4, b: (k + 1) / 4, h: (k / 4) ** 2 })), curves: [{ f: (x) => x * x, a: 0, b: 1.05, closed: false, label: "y = x²", lx: 0.8, dx: -6, dy: -6 }], aria: "Quatre rectangles sous la parabole y = x² entre 0 et 1 : leur aire totale 0,21875 approche par défaut l'intégrale 1/3" });
+  FIGURES["tin-moyenne"] = () => graph({ xmin: -0.3, xmax: 4.4, ymin: -0.3, ymax: 4.6, h: 250, curves: [{ f: (x) => x * (4 - x), a: 0, b: 4, closed: false }], aires: [{ f: (x) => x * (4 - x), a: 0, b: 4 }], hlines: [{ y: 8 / 3, label: "μ ≈ 2,67" }], aria: "Parabole y = x(4 − x) entre 0 et 4 et sa valeur moyenne 8/3 : le rectangle de hauteur μ a la même aire que le domaine sous la courbe" });
+  FIGURES["tin-entre"] = () => graph({ xmin: -0.3, xmax: 2.5, ymin: -0.3, ymax: 4.5, h: 250, curves: [{ f: (x) => 2 * x, a: 0, b: 2.2, closed: false, label: "y = 2x", lx: 2.2, dx: -4, dy: -2 }, { f: (x) => x * x, a: 0, b: 2.1, closed: false, label: "y = x²", lx: 1.6, dx: 34, dy: 14 }], aires: [{ f: (x) => 2 * x, g: (x) => x * x, a: 0, b: 2 }], aria: "Domaine entre la droite y = 2x (au-dessus) et la parabole y = x² entre 0 et 2 : son aire vaut 4/3" });
+  FIGURES["tin-signe"] = () => graph({ xmin: -1.5, xmax: 3.5, ymin: -2.5, ymax: 2.5, h: 240, curves: [{ f: (x) => x - 1, a: -1, b: 3, closed: false, label: "y = x − 1", lx: 3, dx: -4, dy: -4 }], aires: [{ f: (x) => x - 1, a: -1, b: 1, neg: true }, { f: (x) => x - 1, a: 1, b: 3 }], aria: "Droite y = x − 1 entre −1 et 3 : une partie sous l'axe (comptée négativement) entre −1 et 1, une partie au-dessus entre 1 et 3 ; l'intégrale vaut 0" });
+
+  GEN["tin-aire-geo"] = function () {
+    const m = pick([0, 0.5, 1, -0.5, 2]), a = rand(0, 2), b = a + rand(2, 4), p = m < 0 ? rand(4, 6) : rand(1, 3), f = (x) => m * x + p;
+    const v = ((f(a) + f(b)) / 2) * (b - a), ymax = Math.max(f(a), f(b)) + 1;
+    const fx = m === 0 ? `${p}` : `${m === 1 ? "" : fr(m)}x + ${p}`;
+    return { enonce: `Calcule $\\displaystyle\\int_{${a}}^{${b}} (${fx})\\,\\mathrm{d}x$ en utilisant une aire (la fonction est positive sur l'intervalle).`, mode: "nombre", prefixe: "Intégrale =", attendu: +v.toFixed(4), tolerance: 0.001,
+      figure: graph({ xmin: -0.5, xmax: b + 1, ymin: -0.4, ymax: ymax, h: 220, curves: [{ f, a: -0.3, b: b + 0.7, closed: false }], aires: [{ f, a, b }], aria: `Domaine sous la droite entre x = ${a} et x = ${b}` }),
+      aides: ["L'intégrale d'une fonction positive est l'aire sous la courbe, en unités d'aire.", m === 0 ? "Le domaine est un rectangle." : "Le domaine est un trapèze (côtés parallèles verticaux).", `Aire = $\\dfrac{f(${a}) + f(${b})}{2} \\times (${b} - ${a})$ avec $f(${a}) = ${fr(f(a))}$ et $f(${b}) = ${fr(f(b))}$.`],
+      solution: `Le domaine est un ${m === 0 ? "rectangle" : "trapèze"} : $\\dfrac{${fr(f(a))} + ${fr(f(b))}}{2} \\times ${b - a} = ${fr(v)}$ unités d'aire.` };
+  };
+
+  GEN["tin-chasles"] = function () {
+    const a = rand(0, 2), b = a + rand(1, 3), c = b + rand(1, 3), u = rand(2, 9), v = rand(2, 9), t = rand(0, 2);
+    if (t === 0) return { enonce: `On sait que $\\displaystyle\\int_{${a}}^{${b}} f(x)\\,\\mathrm{d}x = ${u}$ et $\\displaystyle\\int_{${b}}^{${c}} f(x)\\,\\mathrm{d}x = ${v}$. Calcule $\\displaystyle\\int_{${a}}^{${c}} f(x)\\,\\mathrm{d}x$.`, mode: "nombre", prefixe: "Intégrale =", attendu: u + v,
+      aides: ["Relation de Chasles : on peut découper l'intervalle.", `$\\displaystyle\\int_{${a}}^{${c}} = \\int_{${a}}^{${b}} + \\int_{${b}}^{${c}}$.`, `$${u} + ${v}$.`],
+      solution: `Chasles : $\\displaystyle\\int_{${a}}^{${c}} f = ${u} + ${v} = ${u + v}$.` };
+    if (t === 1) return { enonce: `On sait que $\\displaystyle\\int_{${a}}^{${c}} f(x)\\,\\mathrm{d}x = ${u + v}$ et $\\displaystyle\\int_{${a}}^{${b}} f(x)\\,\\mathrm{d}x = ${u}$. Calcule $\\displaystyle\\int_{${b}}^{${c}} f(x)\\,\\mathrm{d}x$.`, mode: "nombre", prefixe: "Intégrale =", attendu: v,
+      aides: ["Relation de Chasles.", `$\\displaystyle\\int_{${a}}^{${c}} = \\int_{${a}}^{${b}} + \\int_{${b}}^{${c}}$.`, `$${u + v} - ${u}$.`],
+      solution: `$\\displaystyle\\int_{${b}}^{${c}} f = ${u + v} - ${u} = ${v}$.` };
+    const k = rand(2, 5);
+    return { enonce: `On sait que $\\displaystyle\\int_{${a}}^{${b}} f(x)\\,\\mathrm{d}x = ${u}$ et $\\displaystyle\\int_{${a}}^{${b}} g(x)\\,\\mathrm{d}x = ${v}$. Calcule $\\displaystyle\\int_{${a}}^{${b}} \\big(${k}f(x) + g(x)\\big)\\,\\mathrm{d}x$.`, mode: "nombre", prefixe: "Intégrale =", attendu: k * u + v,
+      aides: ["Linéarité : l'intégrale d'une somme est la somme des intégrales.", `$\\displaystyle\\int (${k}f + g) = ${k}\\int f + \\int g$.`, `$${k} \\times ${u} + ${v}$.`],
+      solution: `Linéarité : $${k} \\times ${u} + ${v} = ${k * u + v}$.` };
+  };
+
+  GEN["tin-calcul"] = function () {
+    const al = pick([1, 2, -1]), be = rand(-3, 4), ga = rand(-4, 5), a = rand(-1, 1), b = a + rand(1, 3);
+    const F = (x) => al * x ** 3 + be * x * x + ga * x, I = F(b) - F(a);
+    const f = poly([3 * al, 2 * be, ga]), Fs = poly([al, be, ga, 0]);
+    return { enonce: `Calcule $\\displaystyle\\int_{${a}}^{${b}} (${f})\\,\\mathrm{d}x$.`, mode: "nombre", prefixe: "Intégrale =", attendu: I,
+      erreurs: [{ valeur: F(b) + F(a), message: "C'est $F(b) - F(a)$, pas $F(b) + F(a)$." }, { valeur: F(a) - F(b), message: "Attention à l'ordre : $F(b) - F(a)$, la borne du haut d'abord." }],
+      aides: ["Cherche une primitive $F$ de la fonction.", `$F(x) = ${Fs}$.`, `$\\displaystyle\\int_a^b f(x)\\,\\mathrm{d}x = F(b) - F(a) = F(${b}) - F(${a})$.`],
+      solution: `Une primitive est $F(x) = ${Fs}$. Donc l'intégrale vaut $F(${b}) - F(${a}) = ${F(b)} ${sg(-F(a))} = ${I}$.`.replace("- -", "+ ") };
+  };
+
+  GEN["tin-calcul-exp"] = function () {
+    const T = [
+      () => { const k = pick([1, 2, 3]); return [`\\displaystyle\\int_{0}^{${k}} e^{x}\\,\\mathrm{d}x`, Math.exp(k) - 1, `Une primitive de $e^x$ est $e^x$ : $e^{${k}} - e^0 = e^{${k}} - 1$`]; },
+      () => { const k = pick([2, 3, 4]); return [`\\displaystyle\\int_{1}^{${k}} \\dfrac{1}{x}\\,\\mathrm{d}x`, Math.log(k), `Une primitive de $\\dfrac{1}{x}$ est $\\ln x$ : $\\ln ${k} - \\ln 1 = \\ln ${k}$`]; },
+      () => [`\\displaystyle\\int_{1}^{e} \\dfrac{1}{x}\\,\\mathrm{d}x`, 1, "$\\ln e - \\ln 1 = 1 - 0 = 1$"],
+      () => { const k = pick([2, 0.5, -1]); return [`\\displaystyle\\int_{0}^{1} e^{${fr(k)}x}\\,\\mathrm{d}x`.replace("e^{-1x}", "e^{-x}"), (Math.exp(k) - 1) / k, `Une primitive est $\\dfrac{1}{${fr(k)}}e^{${fr(k)}x}$ : $\\dfrac{e^{${fr(k)}} - 1}{${fr(k)}}$`]; },
+      () => { const k = pick([1, 2]); return [`\\displaystyle\\int_{0}^{${k}} 2x e^{x^2}\\,\\mathrm{d}x`, Math.exp(k * k) - 1, `Forme $u'e^u$, primitive $e^{x^2}$ : $e^{${k * k}} - 1$`]; }
+    ];
+    const [e, v, s] = pick(T)();
+    return { enonce: `Calcule $${e}$ (arrondi au centième).`, mode: "nombre", prefixe: "Intégrale ≈", attendu: +v.toFixed(2), tolerance: 0.006,
+      aides: ["Trouve une primitive $F$ (exponentielle, logarithme, forme $u'e^u$).", "L'intégrale vaut $F(b) - F(a)$.", "Calcule à la calculatrice et arrondis."],
+      solution: `${s} $\\approx ${fr(+v.toFixed(2))}$.` };
+  };
+
+  GEN["tin-moyenne"] = function () {
+    const t = rand(0, 1);
+    if (t === 0) { const al = rand(1, 3), ga = rand(0, 6), a = 0, b = rand(1, 3), I = al * b ** 3 + ga * b, mu = I / (b - a);
+      return { enonce: `Calcule la valeur moyenne de $f(x) = ${poly([3 * al, 0, ga])}$ sur $[0\\,;${b}]$ (arrondi au centième si besoin).`, mode: "nombre", prefixe: "$\\mu \\approx$", attendu: +mu.toFixed(2), tolerance: 0.006,
+        erreurs: [{ valeur: +I.toFixed(2), message: "Tu as calculé l'intégrale : il faut encore diviser par la longueur de l'intervalle." }],
+        aides: ["$\\mu = \\dfrac{1}{b - a}\\displaystyle\\int_a^b f(x)\\,\\mathrm{d}x$.", `Une primitive est $F(x) = ${poly([al, 0, ga, 0])}$.`, `$\\displaystyle\\int_0^{${b}} f = F(${b}) - F(0) = ${I}$, puis divise par $${b}$.`],
+        solution: `$\\mu = \\dfrac{1}{${b}} \\times ${I} ${Number.isInteger(mu) ? "=" : "\\approx"} ${fr(+mu.toFixed(2))}$.` }; }
+    const M = pick([30, 31, 32]), k = pick([0.1, 0.15, 0.2, 0.25]), mu = M - 12 * k;
+    return { enonce: `À Mamoudzou, la température (en °C) entre $6$ h et $18$ h est modélisée par $T(t) = ${M} - ${fr(k)}(t - 12)^2$. On admet que $\\displaystyle\\int_6^{18} (t - 12)^2\\,\\mathrm{d}t = 144$. Calcule la température moyenne entre $6$ h et $18$ h.`, mode: "nombre", prefixe: "$\\mu =$", suffixe: "°C", attendu: +mu.toFixed(2), tolerance: 0.006,
+      erreurs: [{ valeur: M, message: "$" + M + "$ °C, c'est la température maximale (à midi), pas la moyenne." }],
+      aides: ["$\\mu = \\dfrac{1}{18 - 6}\\displaystyle\\int_6^{18} T(t)\\,\\mathrm{d}t$.", `Linéarité : $\\displaystyle\\int_6^{18} T = ${M} \\times 12 - ${fr(k)} \\times 144$.`, "Divise par $12$."],
+      solution: `$\\mu = \\dfrac{1}{12}\\left(${12 * M} - ${fr(k)} \\times 144\\right) = ${M} - ${fr(12 * k)} = ${fr(mu)}$ °C.` };
+  };
+
+  GEN["tin-encadrer"] = function () {
+    const a = rand(0, 2), b = a + rand(1, 3), c = rand(1, 5), f = (x) => x * x + c, lo = (b - a) * f(a), hi = (b - a) * f(b);
+    const bon = `$${lo} \\leqslant I \\leqslant ${hi}$`, ch = melangeChoix(bon, [`$${f(a)} \\leqslant I \\leqslant ${f(b)}$`, `$${2 * lo} \\leqslant I \\leqslant ${2 * hi}$`, `$${hi} \\leqslant I \\leqslant ${2 * hi}$`, `$0 \\leqslant I \\leqslant ${f(b)}$`]);
+    return { enonce: `$f(x) = x^2 + ${c}$ est croissante et positive sur $[${a}\\,;${b}]$. Quel encadrement de $I = \\displaystyle\\int_{${a}}^{${b}} f(x)\\,\\mathrm{d}x$ est correct ?`, mode: "choix", choix: ch.choix, attendu: ch.attendu,
+      aides: ["Pour $x$ dans $[a\\,;b]$ : $f(a) \\leqslant f(x) \\leqslant f(b)$.", "On intègre l'encadrement : $(b - a)f(a) \\leqslant I \\leqslant (b - a)f(b)$.", `$f(${a}) = ${f(a)}$, $f(${b}) = ${f(b)}$, $b - a = ${b - a}$.`],
+      solution: `Rectangles sous et au-dessus de la courbe : $${b - a} \\times ${f(a)} \\leqslant I \\leqslant ${b - a} \\times ${f(b)}$, soit ${bon}.` };
+  };
+
+  GEN["tin-entre-courbes"] = function () {
+    const m = rand(1, 4), A = m ** 3 / 6;
+    return { enonce: `Calcule l'aire du domaine compris entre la droite $y = ${m === 1 ? "" : m}x$ et la parabole $y = x^2$, pour $x$ entre $0$ et $${m}$ (arrondi au centième).`, mode: "nombre", prefixe: "Aire ≈", suffixe: "u.a.", attendu: +A.toFixed(2), tolerance: 0.006,
+      figure: graph({ xmin: -0.3, xmax: m + 0.5, ymin: -0.3, ymax: m * m + 0.6, ystep: m > 2 ? 2 : 1, h: 230, curves: [{ f: (x) => m * x, a: 0, b: m + 0.2, closed: false }, { f: (x) => x * x, a: 0, b: Math.min(m + 0.2, Math.sqrt(m * m + 0.6)), closed: false }], aires: [{ f: (x) => m * x, g: (x) => x * x, a: 0, b: m }], aria: "Domaine entre la droite et la parabole" }),
+      aides: [`Sur $[0\\,;${m}]$, la droite est au-dessus : $${m}x - x^2 \\geqslant 0$.`, `Aire $= \\displaystyle\\int_0^{${m}} (${m === 1 ? "" : m}x - x^2)\\,\\mathrm{d}x$.`, `Primitive : $\\dfrac{${m}x^2}{2} - \\dfrac{x^3}{3}$.`],
+      solution: `$\\displaystyle\\int_0^{${m}} (${m === 1 ? "" : m}x - x^2)\\,\\mathrm{d}x = \\dfrac{${m ** 3}}{2} - \\dfrac{${m ** 3}}{3} = \\dfrac{${m ** 3}}{6} \\approx ${fr(+A.toFixed(2))}$ u.a.` };
+  };
+
+  GEN["tin-signe"] = function () {
+    const c = rand(1, 3), a = c - rand(1, 3), b = c + rand(1, 3), I = ((b - c) ** 2 - (c - a) ** 2) / 2, t = rand(0, 1);
+    if (t === 0) return { enonce: `Calcule $\\displaystyle\\int_{${a}}^{${b}} (x - ${c})\\,\\mathrm{d}x$. (La fonction change de signe en $${c}$.)`, mode: "nombre", prefixe: "Intégrale =", attendu: I,
+      figure: graph({ xmin: Math.min(a, 0) - 0.5, xmax: b + 0.5, ymin: a - c - 0.5, ymax: b - c + 0.5, h: 220, curves: [{ f: (x) => x - c, a: a - 0.3, b: b + 0.3, closed: false }], aires: [{ f: (x) => x - c, a, b: c, neg: true }, { f: (x) => x - c, a: c, b }], aria: "Partie sous l'axe comptée négativement, partie au-dessus comptée positivement" }),
+      erreurs: [{ valeur: ((b - c) ** 2 + (c - a) ** 2) / 2, message: "Ça, c'est l'aire totale. L'intégrale compte négativement la partie sous l'axe." }],
+      aides: ["Une primitive de $x - " + c + "$ est $\\dfrac{x^2}{2} - " + c + "x$.", "Ou bien : aire au-dessus de l'axe moins aire en dessous (deux triangles).", `Triangles : $\\dfrac{${b - c}^2}{2}$ et $\\dfrac{${c - a}^2}{2}$.`],
+      solution: `Aire au-dessus $\\dfrac{${(b - c) ** 2}}{2}$, aire en dessous $\\dfrac{${(c - a) ** 2}}{2}$ : l'intégrale vaut $${fr((b - c) ** 2 / 2)} - ${fr((c - a) ** 2 / 2)} = ${fr(I)}$.` };
+    const ch = melangeChoix("l'aire au-dessus de l'axe moins l'aire en dessous", ["l'aire totale entre la courbe et l'axe", "toujours un nombre positif", "l'aire en dessous moins l'aire au-dessus"]);
+    return { enonce: "Pour une fonction continue de signe quelconque, $\\displaystyle\\int_a^b f(x)\\,\\mathrm{d}x$ (avec $a < b$) est égale à :", mode: "choix", choix: ch.choix, attendu: ch.attendu,
+      aides: ["Là où $f \\geqslant 0$, l'aire compte positivement.", "Là où $f \\leqslant 0$, elle compte négativement.", "Une intégrale peut donc être négative ou nulle."],
+      solution: "Aire « au-dessus » moins aire « en dessous ». Par exemple $\\displaystyle\\int_{-1}^{1} x\\,\\mathrm{d}x = 0$." };
+  };
+
+  GEN["tin-fonction-integrale"] = function () {
+    const a = rand(0, 2), T = [
+      [`$F(x) = \\displaystyle\\int_{${a}}^{x} f(t)\\,\\mathrm{d}t$. Que vaut $F'(x)$ ?`, "$f(x)$", ["$f'(x)$", "$F(x)$", `$f(x) - f(${a})$`], "$F$ est la primitive de $f$ qui s'annule en $" + a + "$ : $F' = f$."],
+      [`$F(x) = \\displaystyle\\int_{${a}}^{x} f(t)\\,\\mathrm{d}t$. Que vaut $F(${a})$ ?`, "$0$", [`$f(${a})$`, "$1$", `$${a}$`], "Les deux bornes sont égales : l'intégrale est nulle."],
+      [`$f$ est continue et positive. Comment varie $F(x) = \\displaystyle\\int_{${a}}^{x} f(t)\\,\\mathrm{d}t$ pour $x \\geqslant ${a}$ ?`, "$F$ est croissante", ["$F$ est décroissante", "$F$ est constante", "On ne peut pas savoir"], "$F' = f \\geqslant 0$ : $F$ est croissante (l'aire augmente quand $x$ augmente)."],
+      [`$F(x) = \\displaystyle\\int_{0}^{x} e^{-t^2}\\,\\mathrm{d}t$. Que vaut $F'(1)$ ?`, "$e^{-1}$", ["$0$", "$-2e^{-1}$", "$1$"], "$F'(x) = e^{-x^2}$, donc $F'(1) = e^{-1}$, sans savoir calculer $F$."]
+    ], [q, r, f, s] = pick(T), c = melangeChoix(r, f);
+    return { enonce: q, mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: ["Théorème : si $f$ est continue, $x \\mapsto \\displaystyle\\int_a^x f(t)\\,\\mathrm{d}t$ est dérivable de dérivée $f$.", "C'est la primitive de $f$ qui s'annule en $a$.", "Le signe de $f$ donne les variations de $F$."],
+      solution: s };
+  };
+
+  GEN["tin-parcelle"] = function () {
+    const L = pick([20, 30, 40]), k = pick([0.05, 0.1, 0.15]), A = (k * L ** 3) / 6;
+    return { enonce: `Une parcelle au bord du lagon est limitée par une route droite (l'axe des abscisses) et par la plage, modélisée par la courbe $y = ${fr(k)}x(${L} - x)$ pour $x$ entre $0$ et $${L}$ (en mètres). Calcule l'aire de la parcelle (arrondie au m²).`, mode: "nombre", prefixe: "Aire ≈", suffixe: "m²", attendu: Math.round(A), tolerance: 1.01,
+      aides: [`Aire $= \\displaystyle\\int_0^{${L}} ${fr(k)}(${L}x - x^2)\\,\\mathrm{d}x$.`, `Primitive : $${fr(k)}\\left(\\dfrac{${L}x^2}{2} - \\dfrac{x^3}{3}\\right)$.`, `Calcule en $${L}$ (en $0$ elle vaut $0$).`],
+      solution: `$${fr(k)} \\times \\left(\\dfrac{${L ** 3}}{2} - \\dfrac{${L ** 3}}{3}\\right) = ${fr(k)} \\times \\dfrac{${L ** 3}}{6} \\approx ${Math.round(A)}$ m². On retrouve la quadrature de la parabole d'Archimède : c'est les $\\dfrac{2}{3}$ du rectangle de largeur $${L}$ et de hauteur le sommet $${fr(k * L * L / 4)}$.` };
+  };
+
+  GEN["tin-python"] = function () {
+    const t = rand(0, 2);
+    if (t === 0) { const n = pick([2, 4, 5]); let S = 0; for (let k = 0; k < n; k++) S += (k / n) ** 2 / n;
+      return { enonce: "Méthode des rectangles (à gauche) pour $\\displaystyle\\int_0^1 x^2\\,\\mathrm{d}x$ :\n\n```python\ndef rectangles(n):\n    h = 1 / n\n    s = 0\n    for k in range(n):\n        s = s + h * (k * h) ** 2\n    return s\n```\n\n" + `Que renvoie rectangles(${n}) ? (Arrondi au millième.)`, mode: "nombre", prefixe: "Résultat ≈", attendu: +S.toFixed(3), tolerance: 0.0015,
+        aides: [`$h = \\dfrac{1}{${n}}$ et on additionne $h \\times f(kh)$ pour $k$ de $0$ à $${n - 1}$.`, "Chaque terme est l'aire d'un rectangle de largeur $h$.", "Additionne les aires des rectangles."],
+        solution: `$${fr(+S.toFixed(4))}$ environ, une valeur approchée par défaut de $\\dfrac{1}{3} \\approx 0{,}333$ (meilleure quand $n$ augmente).` }; }
+    if (t === 1) { const n = pick([2, 4]); let S = 0; for (let k = 0; k < n; k++) S += (((k / n) ** 2 + ((k + 1) / n) ** 2) / 2) / n;
+      return { enonce: "Méthode des trapèzes pour $\\displaystyle\\int_0^1 x^2\\,\\mathrm{d}x$ :\n\n```python\ndef trapezes(n):\n    h = 1 / n\n    s = 0\n    for k in range(n):\n        s = s + h * ((k * h) ** 2 + ((k + 1) * h) ** 2) / 2\n    return s\n```\n\n" + `Que renvoie trapezes(${n}) ? (Arrondi au millième.)`, mode: "nombre", prefixe: "Résultat ≈", attendu: +S.toFixed(3), tolerance: 0.0015,
+        aides: ["Chaque trapèze a pour aire $h \\times \\dfrac{f(x_k) + f(x_{k+1})}{2}$.", `$h = \\dfrac{1}{${n}}$.`, "Additionne les aires des trapèzes."],
+        solution: `$${fr(+S.toFixed(4))}$ environ : par excès cette fois, et plus proche de $\\dfrac{1}{3}$ que les rectangles.` }; }
+    const N = pick([1000, 10000]), p = pick([0.31, 0.33, 0.34, 0.785]), dans = Math.round(p * N), B = p > 0.5 ? 1 : 2;
+    return { enonce: `Méthode de Monte-Carlo : on tire $${N}$ points au hasard dans un rectangle d'aire $${B}$ contenant le domaine sous une courbe. $${dans}$ points tombent sous la courbe. Quelle estimation de l'intégrale obtient-on ?`, mode: "nombre", prefixe: "Estimation ≈", attendu: +(dans / N * B).toFixed(4), tolerance: 0.0006,
+      aides: ["La proportion de points sous la courbe estime la part de l'aire du rectangle occupée par le domaine.", `Proportion : $\\dfrac{${dans}}{${N}}$.`, `Multiplie par l'aire du rectangle, $${B}$.`],
+      solution: `$\\dfrac{${dans}}{${N}} \\times ${B} = ${fr(+(dans / N * B).toFixed(4))}$. Plus il y a de points, meilleure est l'estimation.` };
+  };
+
+  GEN["tin-logique"] = function () {
+    const T = [
+      ["« Si $f$ est positive sur $[a\\,;b]$, alors $\\displaystyle\\int_a^b f(x)\\,\\mathrm{d}x \\geqslant 0$. »", true, "C'est une aire (positivité de l'intégrale)."],
+      ["« Une intégrale est toujours positive. »", false, "Si $f$ est négative, l'intégrale est négative : $\\displaystyle\\int_0^1 (-1)\\,\\mathrm{d}x = -1$."],
+      ["« $\\displaystyle\\int_a^a f(x)\\,\\mathrm{d}x = 0$. »", true, "Le domaine est réduit à un segment."],
+      ["« $\\displaystyle\\int_a^b f(x)\\,\\mathrm{d}x = F(b) - F(a)$ pour toute primitive $F$ de $f$. »", true, "La constante disparaît dans la différence."],
+      ["« L'aire entre deux courbes est $\\displaystyle\\int_a^b (f - g)$, quel que soit l'ordre de $f$ et $g$. »", false, "Il faut la courbe du dessus moins celle du dessous : $f \\geqslant g$."],
+      ["« La valeur moyenne de $f$ sur $[a\\,;b]$ est $\\dfrac{f(a) + f(b)}{2}$. »", false, "C'est $\\dfrac{1}{b - a}\\displaystyle\\int_a^b f(x)\\,\\mathrm{d}x$ ; les deux coïncident seulement pour une fonction affine."],
+      ["« Le symbole $\\displaystyle\\int$ est un S allongé, pour « somme ». »", true, "L'intégrale est la limite des sommes $\\sum f(x_k) \\times h$ des aires des rectangles (Leibniz)."],
+      ["« Plus on prend de rectangles, meilleure est l'approximation de l'intégrale. »", true, "Les sommes de rectangles tendent vers l'intégrale quand $n \\to +\\infty$."]
+    ];
+    const [q, v, s] = pick(T), c = melangeChoix(v ? "Vrai" : "Faux", [v ? "Faux" : "Vrai"]);
+    return { enonce: `Vrai ou faux ? ${q}`, mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: ["Pense à l'interprétation en aire.", "Attention au signe de la fonction.", "Cherche un contre-exemple simple si tu penses que c'est faux."],
+      solution: `**${v ? "Vrai" : "Faux"}.** ${s}` };
+  };
+
+
+  /* ---------- Terminale maths complémentaires, chapitre 12 : intégration (préfixe tin-) ---------- */
+  FIGURES["tin-aire"] = () => graph({ xmin: -0.5, xmax: 5.5, ymin: -0.4, ymax: 5.5, h: 250, curves: [{ f: (x) => 0.25 * x * x - x + 3, a: 0, b: 5, closed: false, label: "𝒞", lx: 5, dx: -10, dy: -4 }], aires: [{ f: (x) => 0.25 * x * x - x + 3, a: 1, b: 4 }], marques: [{ x: 2.5, y: 0.9, texte: "𝒜" }], aria: "Aire du domaine sous la courbe, au-dessus de l'axe, entre les droites x = 1 et x = 4 : c'est l'intégrale de 1 à 4 de f" });
+  FIGURES["tin-rectangles"] = () => graph({ xmin: -0.08, xmax: 1.12, ymin: -0.08, ymax: 1.12, xstep: 0.25, ystep: 0.25, xetiq: 0.5, yetiq: 0.5, h: 260, rects: [0, 1, 2, 3].map((k) => ({ a: k / 4, b: (k + 1) / 4, h: (k / 4) ** 2 })), curves: [{ f: (x) => x * x, a: 0, b: 1.05, closed: false, label: "y = x²", lx: 0.8, dx: -6, dy: -6 }], aria: "Quatre rectangles sous la parabole y = x² entre 0 et 1 : leur aire totale 0,21875 approche par défaut l'intégrale 1/3" });
+  FIGURES["tin-moyenne"] = () => graph({ xmin: -0.3, xmax: 4.4, ymin: -0.3, ymax: 4.6, h: 250, curves: [{ f: (x) => x * (4 - x), a: 0, b: 4, closed: false }], aires: [{ f: (x) => x * (4 - x), a: 0, b: 4 }], hlines: [{ y: 8 / 3, label: "μ ≈ 2,67" }], aria: "Parabole y = x(4 − x) entre 0 et 4 et sa valeur moyenne 8/3 : le rectangle de hauteur μ a la même aire que le domaine sous la courbe" });
+  FIGURES["tin-entre"] = () => graph({ xmin: -0.3, xmax: 2.5, ymin: -0.3, ymax: 4.5, h: 250, curves: [{ f: (x) => 2 * x, a: 0, b: 2.2, closed: false, label: "y = 2x", lx: 2.2, dx: -4, dy: -2 }, { f: (x) => x * x, a: 0, b: 2.1, closed: false, label: "y = x²", lx: 1.6, dx: 34, dy: 14 }], aires: [{ f: (x) => 2 * x, g: (x) => x * x, a: 0, b: 2 }], aria: "Domaine entre la droite y = 2x (au-dessus) et la parabole y = x² entre 0 et 2 : son aire vaut 4/3" });
+  FIGURES["tin-signe"] = () => graph({ xmin: -1.5, xmax: 3.5, ymin: -2.5, ymax: 2.5, h: 240, curves: [{ f: (x) => x - 1, a: -1, b: 3, closed: false, label: "y = x − 1", lx: 3, dx: -4, dy: -4 }], aires: [{ f: (x) => x - 1, a: -1, b: 1, neg: true }, { f: (x) => x - 1, a: 1, b: 3 }], aria: "Droite y = x − 1 entre −1 et 3 : une partie sous l'axe (comptée négativement) entre −1 et 1, une partie au-dessus entre 1 et 3 ; l'intégrale vaut 0" });
+
+  GEN["tin-aire-geo"] = function () {
+    const m = pick([0, 0.5, 1, -0.5, 2]), a = rand(0, 2), b = a + rand(2, 4), p = m < 0 ? rand(4, 6) : rand(1, 3), f = (x) => m * x + p;
+    const v = ((f(a) + f(b)) / 2) * (b - a), ymax = Math.max(f(a), f(b)) + 1;
+    const fx = m === 0 ? `${p}` : `${m === 1 ? "" : fr(m)}x + ${p}`;
+    return { enonce: `Calcule $\\displaystyle\\int_{${a}}^{${b}} (${fx})\\,\\mathrm{d}x$ en utilisant une aire (la fonction est positive sur l'intervalle).`, mode: "nombre", prefixe: "Intégrale =", attendu: +v.toFixed(4), tolerance: 0.001,
+      figure: graph({ xmin: -0.5, xmax: b + 1, ymin: -0.4, ymax: ymax, h: 220, curves: [{ f, a: -0.3, b: b + 0.7, closed: false }], aires: [{ f, a, b }], aria: `Domaine sous la droite entre x = ${a} et x = ${b}` }),
+      aides: ["L'intégrale d'une fonction positive est l'aire sous la courbe, en unités d'aire.", m === 0 ? "Le domaine est un rectangle." : "Le domaine est un trapèze (côtés parallèles verticaux).", `Aire = $\\dfrac{f(${a}) + f(${b})}{2} \\times (${b} - ${a})$ avec $f(${a}) = ${fr(f(a))}$ et $f(${b}) = ${fr(f(b))}$.`],
+      solution: `Le domaine est un ${m === 0 ? "rectangle" : "trapèze"} : $\\dfrac{${fr(f(a))} + ${fr(f(b))}}{2} \\times ${b - a} = ${fr(v)}$ unités d'aire.` };
+  };
+
+  GEN["tin-chasles"] = function () {
+    const a = rand(0, 2), b = a + rand(1, 3), c = b + rand(1, 3), u = rand(2, 9), v = rand(2, 9), t = rand(0, 2);
+    if (t === 0) return { enonce: `On sait que $\\displaystyle\\int_{${a}}^{${b}} f(x)\\,\\mathrm{d}x = ${u}$ et $\\displaystyle\\int_{${b}}^{${c}} f(x)\\,\\mathrm{d}x = ${v}$. Calcule $\\displaystyle\\int_{${a}}^{${c}} f(x)\\,\\mathrm{d}x$.`, mode: "nombre", prefixe: "Intégrale =", attendu: u + v,
+      aides: ["Relation de Chasles : on peut découper l'intervalle.", `$\\displaystyle\\int_{${a}}^{${c}} = \\int_{${a}}^{${b}} + \\int_{${b}}^{${c}}$.`, `$${u} + ${v}$.`],
+      solution: `Chasles : $\\displaystyle\\int_{${a}}^{${c}} f = ${u} + ${v} = ${u + v}$.` };
+    if (t === 1) return { enonce: `On sait que $\\displaystyle\\int_{${a}}^{${c}} f(x)\\,\\mathrm{d}x = ${u + v}$ et $\\displaystyle\\int_{${a}}^{${b}} f(x)\\,\\mathrm{d}x = ${u}$. Calcule $\\displaystyle\\int_{${b}}^{${c}} f(x)\\,\\mathrm{d}x$.`, mode: "nombre", prefixe: "Intégrale =", attendu: v,
+      aides: ["Relation de Chasles.", `$\\displaystyle\\int_{${a}}^{${c}} = \\int_{${a}}^{${b}} + \\int_{${b}}^{${c}}$.`, `$${u + v} - ${u}$.`],
+      solution: `$\\displaystyle\\int_{${b}}^{${c}} f = ${u + v} - ${u} = ${v}$.` };
+    const k = rand(2, 5);
+    return { enonce: `On sait que $\\displaystyle\\int_{${a}}^{${b}} f(x)\\,\\mathrm{d}x = ${u}$ et $\\displaystyle\\int_{${a}}^{${b}} g(x)\\,\\mathrm{d}x = ${v}$. Calcule $\\displaystyle\\int_{${a}}^{${b}} \\big(${k}f(x) + g(x)\\big)\\,\\mathrm{d}x$.`, mode: "nombre", prefixe: "Intégrale =", attendu: k * u + v,
+      aides: ["Linéarité : l'intégrale d'une somme est la somme des intégrales.", `$\\displaystyle\\int (${k}f + g) = ${k}\\int f + \\int g$.`, `$${k} \\times ${u} + ${v}$.`],
+      solution: `Linéarité : $${k} \\times ${u} + ${v} = ${k * u + v}$.` };
+  };
+
+  GEN["tin-calcul"] = function () {
+    const al = pick([1, 2, -1]), be = rand(-3, 4), ga = rand(-4, 5), a = rand(-1, 1), b = a + rand(1, 3);
+    const F = (x) => al * x ** 3 + be * x * x + ga * x, I = F(b) - F(a);
+    const f = poly([3 * al, 2 * be, ga]), Fs = poly([al, be, ga, 0]);
+    return { enonce: `Calcule $\\displaystyle\\int_{${a}}^{${b}} (${f})\\,\\mathrm{d}x$.`, mode: "nombre", prefixe: "Intégrale =", attendu: I,
+      erreurs: [{ valeur: F(b) + F(a), message: "C'est $F(b) - F(a)$, pas $F(b) + F(a)$." }, { valeur: F(a) - F(b), message: "Attention à l'ordre : $F(b) - F(a)$, la borne du haut d'abord." }],
+      aides: ["Cherche une primitive $F$ de la fonction.", `$F(x) = ${Fs}$.`, `$\\displaystyle\\int_a^b f(x)\\,\\mathrm{d}x = F(b) - F(a) = F(${b}) - F(${a})$.`],
+      solution: `Une primitive est $F(x) = ${Fs}$. Donc l'intégrale vaut $F(${b}) - F(${a}) = ${F(b)} ${sg(-F(a))} = ${I}$.`.replace("- -", "+ ") };
+  };
+
+  GEN["tin-calcul-exp"] = function () {
+    const T = [
+      () => { const k = pick([1, 2, 3]); return [`\\displaystyle\\int_{0}^{${k}} e^{x}\\,\\mathrm{d}x`, Math.exp(k) - 1, `Une primitive de $e^x$ est $e^x$ : $e^{${k}} - e^0 = e^{${k}} - 1$`]; },
+      () => { const k = pick([2, 3, 4]); return [`\\displaystyle\\int_{1}^{${k}} \\dfrac{1}{x}\\,\\mathrm{d}x`, Math.log(k), `Une primitive de $\\dfrac{1}{x}$ est $\\ln x$ : $\\ln ${k} - \\ln 1 = \\ln ${k}$`]; },
+      () => [`\\displaystyle\\int_{1}^{e} \\dfrac{1}{x}\\,\\mathrm{d}x`, 1, "$\\ln e - \\ln 1 = 1 - 0 = 1$"],
+      () => { const k = pick([2, 0.5, -1]); return [`\\displaystyle\\int_{0}^{1} e^{${fr(k)}x}\\,\\mathrm{d}x`.replace("e^{-1x}", "e^{-x}"), (Math.exp(k) - 1) / k, `Une primitive est $\\dfrac{1}{${fr(k)}}e^{${fr(k)}x}$ : $\\dfrac{e^{${fr(k)}} - 1}{${fr(k)}}$`]; },
+      () => { const k = pick([1, 2]); return [`\\displaystyle\\int_{0}^{${k}} 2x e^{x^2}\\,\\mathrm{d}x`, Math.exp(k * k) - 1, `Forme $u'e^u$, primitive $e^{x^2}$ : $e^{${k * k}} - 1$`]; }
+    ];
+    const [e, v, s] = pick(T)();
+    return { enonce: `Calcule $${e}$ (arrondi au centième).`, mode: "nombre", prefixe: "Intégrale ≈", attendu: +v.toFixed(2), tolerance: 0.006,
+      aides: ["Trouve une primitive $F$ (exponentielle, logarithme, forme $u'e^u$).", "L'intégrale vaut $F(b) - F(a)$.", "Calcule à la calculatrice et arrondis."],
+      solution: `${s} $\\approx ${fr(+v.toFixed(2))}$.` };
+  };
+
+  GEN["tin-moyenne"] = function () {
+    const t = rand(0, 1);
+    if (t === 0) { const al = rand(1, 3), ga = rand(0, 6), a = 0, b = rand(1, 3), I = al * b ** 3 + ga * b, mu = I / (b - a);
+      return { enonce: `Calcule la valeur moyenne de $f(x) = ${poly([3 * al, 0, ga])}$ sur $[0\\,;${b}]$ (arrondi au centième si besoin).`, mode: "nombre", prefixe: "$\\mu \\approx$", attendu: +mu.toFixed(2), tolerance: 0.006,
+        erreurs: [{ valeur: +I.toFixed(2), message: "Tu as calculé l'intégrale : il faut encore diviser par la longueur de l'intervalle." }],
+        aides: ["$\\mu = \\dfrac{1}{b - a}\\displaystyle\\int_a^b f(x)\\,\\mathrm{d}x$.", `Une primitive est $F(x) = ${poly([al, 0, ga, 0])}$.`, `$\\displaystyle\\int_0^{${b}} f = F(${b}) - F(0) = ${I}$, puis divise par $${b}$.`],
+        solution: `$\\mu = \\dfrac{1}{${b}} \\times ${I} ${Number.isInteger(mu) ? "=" : "\\approx"} ${fr(+mu.toFixed(2))}$.` }; }
+    const M = pick([30, 31, 32]), k = pick([0.1, 0.15, 0.2, 0.25]), mu = M - 12 * k;
+    return { enonce: `À Mamoudzou, la température (en °C) entre $6$ h et $18$ h est modélisée par $T(t) = ${M} - ${fr(k)}(t - 12)^2$. On admet que $\\displaystyle\\int_6^{18} (t - 12)^2\\,\\mathrm{d}t = 144$. Calcule la température moyenne entre $6$ h et $18$ h.`, mode: "nombre", prefixe: "$\\mu =$", suffixe: "°C", attendu: +mu.toFixed(2), tolerance: 0.006,
+      erreurs: [{ valeur: M, message: "$" + M + "$ °C, c'est la température maximale (à midi), pas la moyenne." }],
+      aides: ["$\\mu = \\dfrac{1}{18 - 6}\\displaystyle\\int_6^{18} T(t)\\,\\mathrm{d}t$.", `Linéarité : $\\displaystyle\\int_6^{18} T = ${M} \\times 12 - ${fr(k)} \\times 144$.`, "Divise par $12$."],
+      solution: `$\\mu = \\dfrac{1}{12}\\left(${12 * M} - ${fr(k)} \\times 144\\right) = ${M} - ${fr(12 * k)} = ${fr(mu)}$ °C.` };
+  };
+
+  GEN["tin-encadrer"] = function () {
+    const a = rand(0, 2), b = a + rand(1, 3), c = rand(1, 5), f = (x) => x * x + c, lo = (b - a) * f(a), hi = (b - a) * f(b);
+    const bon = `$${lo} \\leqslant I \\leqslant ${hi}$`, ch = melangeChoix(bon, [`$${f(a)} \\leqslant I \\leqslant ${f(b)}$`, `$${2 * lo} \\leqslant I \\leqslant ${2 * hi}$`, `$${hi} \\leqslant I \\leqslant ${2 * hi}$`, `$0 \\leqslant I \\leqslant ${f(b)}$`]);
+    return { enonce: `$f(x) = x^2 + ${c}$ est croissante et positive sur $[${a}\\,;${b}]$. Quel encadrement de $I = \\displaystyle\\int_{${a}}^{${b}} f(x)\\,\\mathrm{d}x$ est correct ?`, mode: "choix", choix: ch.choix, attendu: ch.attendu,
+      aides: ["Pour $x$ dans $[a\\,;b]$ : $f(a) \\leqslant f(x) \\leqslant f(b)$.", "On intègre l'encadrement : $(b - a)f(a) \\leqslant I \\leqslant (b - a)f(b)$.", `$f(${a}) = ${f(a)}$, $f(${b}) = ${f(b)}$, $b - a = ${b - a}$.`],
+      solution: `Rectangles sous et au-dessus de la courbe : $${b - a} \\times ${f(a)} \\leqslant I \\leqslant ${b - a} \\times ${f(b)}$, soit ${bon}.` };
+  };
+
+  GEN["tin-entre-courbes"] = function () {
+    const m = rand(1, 4), A = m ** 3 / 6;
+    return { enonce: `Calcule l'aire du domaine compris entre la droite $y = ${m === 1 ? "" : m}x$ et la parabole $y = x^2$, pour $x$ entre $0$ et $${m}$ (arrondi au centième).`, mode: "nombre", prefixe: "Aire ≈", suffixe: "u.a.", attendu: +A.toFixed(2), tolerance: 0.006,
+      figure: graph({ xmin: -0.3, xmax: m + 0.5, ymin: -0.3, ymax: m * m + 0.6, ystep: m > 2 ? 2 : 1, h: 230, curves: [{ f: (x) => m * x, a: 0, b: m + 0.2, closed: false }, { f: (x) => x * x, a: 0, b: Math.min(m + 0.2, Math.sqrt(m * m + 0.6)), closed: false }], aires: [{ f: (x) => m * x, g: (x) => x * x, a: 0, b: m }], aria: "Domaine entre la droite et la parabole" }),
+      aides: [`Sur $[0\\,;${m}]$, la droite est au-dessus : $${m}x - x^2 \\geqslant 0$.`, `Aire $= \\displaystyle\\int_0^{${m}} (${m === 1 ? "" : m}x - x^2)\\,\\mathrm{d}x$.`, `Primitive : $\\dfrac{${m}x^2}{2} - \\dfrac{x^3}{3}$.`],
+      solution: `$\\displaystyle\\int_0^{${m}} (${m === 1 ? "" : m}x - x^2)\\,\\mathrm{d}x = \\dfrac{${m ** 3}}{2} - \\dfrac{${m ** 3}}{3} = \\dfrac{${m ** 3}}{6} \\approx ${fr(+A.toFixed(2))}$ u.a.` };
+  };
+
+  GEN["tin-signe"] = function () {
+    const c = rand(1, 3), a = c - rand(1, 3), b = c + rand(1, 3), I = ((b - c) ** 2 - (c - a) ** 2) / 2, t = rand(0, 1);
+    if (t === 0) return { enonce: `Calcule $\\displaystyle\\int_{${a}}^{${b}} (x - ${c})\\,\\mathrm{d}x$. (La fonction change de signe en $${c}$.)`, mode: "nombre", prefixe: "Intégrale =", attendu: I,
+      figure: graph({ xmin: Math.min(a, 0) - 0.5, xmax: b + 0.5, ymin: a - c - 0.5, ymax: b - c + 0.5, h: 220, curves: [{ f: (x) => x - c, a: a - 0.3, b: b + 0.3, closed: false }], aires: [{ f: (x) => x - c, a, b: c, neg: true }, { f: (x) => x - c, a: c, b }], aria: "Partie sous l'axe comptée négativement, partie au-dessus comptée positivement" }),
+      erreurs: [{ valeur: ((b - c) ** 2 + (c - a) ** 2) / 2, message: "Ça, c'est l'aire totale. L'intégrale compte négativement la partie sous l'axe." }],
+      aides: ["Une primitive de $x - " + c + "$ est $\\dfrac{x^2}{2} - " + c + "x$.", "Ou bien : aire au-dessus de l'axe moins aire en dessous (deux triangles).", `Triangles : $\\dfrac{${b - c}^2}{2}$ et $\\dfrac{${c - a}^2}{2}$.`],
+      solution: `Aire au-dessus $\\dfrac{${(b - c) ** 2}}{2}$, aire en dessous $\\dfrac{${(c - a) ** 2}}{2}$ : l'intégrale vaut $${fr((b - c) ** 2 / 2)} - ${fr((c - a) ** 2 / 2)} = ${fr(I)}$.` };
+    const ch = melangeChoix("l'aire au-dessus de l'axe moins l'aire en dessous", ["l'aire totale entre la courbe et l'axe", "toujours un nombre positif", "l'aire en dessous moins l'aire au-dessus"]);
+    return { enonce: "Pour une fonction continue de signe quelconque, $\\displaystyle\\int_a^b f(x)\\,\\mathrm{d}x$ (avec $a < b$) est égale à :", mode: "choix", choix: ch.choix, attendu: ch.attendu,
+      aides: ["Là où $f \\geqslant 0$, l'aire compte positivement.", "Là où $f \\leqslant 0$, elle compte négativement.", "Une intégrale peut donc être négative ou nulle."],
+      solution: "Aire « au-dessus » moins aire « en dessous ». Par exemple $\\displaystyle\\int_{-1}^{1} x\\,\\mathrm{d}x = 0$." };
+  };
+
+  GEN["tin-fonction-integrale"] = function () {
+    const a = rand(0, 2), T = [
+      [`$F(x) = \\displaystyle\\int_{${a}}^{x} f(t)\\,\\mathrm{d}t$. Que vaut $F'(x)$ ?`, "$f(x)$", ["$f'(x)$", "$F(x)$", `$f(x) - f(${a})$`], "$F$ est la primitive de $f$ qui s'annule en $" + a + "$ : $F' = f$."],
+      [`$F(x) = \\displaystyle\\int_{${a}}^{x} f(t)\\,\\mathrm{d}t$. Que vaut $F(${a})$ ?`, "$0$", [`$f(${a})$`, "$1$", `$${a}$`], "Les deux bornes sont égales : l'intégrale est nulle."],
+      [`$f$ est continue et positive. Comment varie $F(x) = \\displaystyle\\int_{${a}}^{x} f(t)\\,\\mathrm{d}t$ pour $x \\geqslant ${a}$ ?`, "$F$ est croissante", ["$F$ est décroissante", "$F$ est constante", "On ne peut pas savoir"], "$F' = f \\geqslant 0$ : $F$ est croissante (l'aire augmente quand $x$ augmente)."],
+      [`$F(x) = \\displaystyle\\int_{0}^{x} e^{-t^2}\\,\\mathrm{d}t$. Que vaut $F'(1)$ ?`, "$e^{-1}$", ["$0$", "$-2e^{-1}$", "$1$"], "$F'(x) = e^{-x^2}$, donc $F'(1) = e^{-1}$, sans savoir calculer $F$."]
+    ], [q, r, f, s] = pick(T), c = melangeChoix(r, f);
+    return { enonce: q, mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: ["Théorème : si $f$ est continue, $x \\mapsto \\displaystyle\\int_a^x f(t)\\,\\mathrm{d}t$ est dérivable de dérivée $f$.", "C'est la primitive de $f$ qui s'annule en $a$.", "Le signe de $f$ donne les variations de $F$."],
+      solution: s };
+  };
+
+  GEN["tin-parcelle"] = function () {
+    const L = pick([20, 30, 40]), k = pick([0.05, 0.1, 0.15]), A = (k * L ** 3) / 6;
+    return { enonce: `Une parcelle au bord du lagon est limitée par une route droite (l'axe des abscisses) et par la plage, modélisée par la courbe $y = ${fr(k)}x(${L} - x)$ pour $x$ entre $0$ et $${L}$ (en mètres). Calcule l'aire de la parcelle (arrondie au m²).`, mode: "nombre", prefixe: "Aire ≈", suffixe: "m²", attendu: Math.round(A), tolerance: 1.01,
+      aides: [`Aire $= \\displaystyle\\int_0^{${L}} ${fr(k)}(${L}x - x^2)\\,\\mathrm{d}x$.`, `Primitive : $${fr(k)}\\left(\\dfrac{${L}x^2}{2} - \\dfrac{x^3}{3}\\right)$.`, `Calcule en $${L}$ (en $0$ elle vaut $0$).`],
+      solution: `$${fr(k)} \\times \\left(\\dfrac{${L ** 3}}{2} - \\dfrac{${L ** 3}}{3}\\right) = ${fr(k)} \\times \\dfrac{${L ** 3}}{6} \\approx ${Math.round(A)}$ m². On retrouve la quadrature de la parabole d'Archimède : c'est les $\\dfrac{2}{3}$ du rectangle de largeur $${L}$ et de hauteur le sommet $${fr(k * L * L / 4)}$.` };
+  };
+
+  GEN["tin-python"] = function () {
+    const t = rand(0, 2);
+    if (t === 0) { const n = pick([2, 4, 5]); let S = 0; for (let k = 0; k < n; k++) S += (k / n) ** 2 / n;
+      return { enonce: "Méthode des rectangles (à gauche) pour $\\displaystyle\\int_0^1 x^2\\,\\mathrm{d}x$ :\n\n```python\ndef rectangles(n):\n    h = 1 / n\n    s = 0\n    for k in range(n):\n        s = s + h * (k * h) ** 2\n    return s\n```\n\n" + `Que renvoie rectangles(${n}) ? (Arrondi au millième.)`, mode: "nombre", prefixe: "Résultat ≈", attendu: +S.toFixed(3), tolerance: 0.0015,
+        aides: [`$h = \\dfrac{1}{${n}}$ et on additionne $h \\times f(kh)$ pour $k$ de $0$ à $${n - 1}$.`, "Chaque terme est l'aire d'un rectangle de largeur $h$.", "Additionne les aires des rectangles."],
+        solution: `$${fr(+S.toFixed(4))}$ environ, une valeur approchée par défaut de $\\dfrac{1}{3} \\approx 0{,}333$ (meilleure quand $n$ augmente).` }; }
+    if (t === 1) { const n = pick([2, 4]); let S = 0; for (let k = 0; k < n; k++) S += (((k / n) ** 2 + ((k + 1) / n) ** 2) / 2) / n;
+      return { enonce: "Méthode des trapèzes pour $\\displaystyle\\int_0^1 x^2\\,\\mathrm{d}x$ :\n\n```python\ndef trapezes(n):\n    h = 1 / n\n    s = 0\n    for k in range(n):\n        s = s + h * ((k * h) ** 2 + ((k + 1) * h) ** 2) / 2\n    return s\n```\n\n" + `Que renvoie trapezes(${n}) ? (Arrondi au millième.)`, mode: "nombre", prefixe: "Résultat ≈", attendu: +S.toFixed(3), tolerance: 0.0015,
+        aides: ["Chaque trapèze a pour aire $h \\times \\dfrac{f(x_k) + f(x_{k+1})}{2}$.", `$h = \\dfrac{1}{${n}}$.`, "Additionne les aires des trapèzes."],
+        solution: `$${fr(+S.toFixed(4))}$ environ : par excès cette fois, et plus proche de $\\dfrac{1}{3}$ que les rectangles.` }; }
+    const N = pick([1000, 10000]), p = pick([0.31, 0.33, 0.34, 0.785]), dans = Math.round(p * N), B = p > 0.5 ? 1 : 2;
+    return { enonce: `Méthode de Monte-Carlo : on tire $${N}$ points au hasard dans un rectangle d'aire $${B}$ contenant le domaine sous une courbe. $${dans}$ points tombent sous la courbe. Quelle estimation de l'intégrale obtient-on ?`, mode: "nombre", prefixe: "Estimation ≈", attendu: +(dans / N * B).toFixed(4), tolerance: 0.0006,
+      aides: ["La proportion de points sous la courbe estime la part de l'aire du rectangle occupée par le domaine.", `Proportion : $\\dfrac{${dans}}{${N}}$.`, `Multiplie par l'aire du rectangle, $${B}$.`],
+      solution: `$\\dfrac{${dans}}{${N}} \\times ${B} = ${fr(+(dans / N * B).toFixed(4))}$. Plus il y a de points, meilleure est l'estimation.` };
+  };
+
+  GEN["tin-logique"] = function () {
+    const T = [
+      ["« Si $f$ est positive sur $[a\\,;b]$, alors $\\displaystyle\\int_a^b f(x)\\,\\mathrm{d}x \\geqslant 0$. »", true, "C'est une aire (positivité de l'intégrale)."],
+      ["« Une intégrale est toujours positive. »", false, "Si $f$ est négative, l'intégrale est négative : $\\displaystyle\\int_0^1 (-1)\\,\\mathrm{d}x = -1$."],
+      ["« $\\displaystyle\\int_a^a f(x)\\,\\mathrm{d}x = 0$. »", true, "Le domaine est réduit à un segment."],
+      ["« $\\displaystyle\\int_a^b f(x)\\,\\mathrm{d}x = F(b) - F(a)$ pour toute primitive $F$ de $f$. »", true, "La constante disparaît dans la différence."],
+      ["« L'aire entre deux courbes est $\\displaystyle\\int_a^b (f - g)$, quel que soit l'ordre de $f$ et $g$. »", false, "Il faut la courbe du dessus moins celle du dessous : $f \\geqslant g$."],
+      ["« La valeur moyenne de $f$ sur $[a\\,;b]$ est $\\dfrac{f(a) + f(b)}{2}$. »", false, "C'est $\\dfrac{1}{b - a}\\displaystyle\\int_a^b f(x)\\,\\mathrm{d}x$ ; les deux coïncident seulement pour une fonction affine."],
+      ["« Le symbole $\\displaystyle\\int$ est un S allongé, pour « somme ». »", true, "L'intégrale est la limite des sommes $\\sum f(x_k) \\times h$ des aires des rectangles (Leibniz)."],
+      ["« Plus on prend de rectangles, meilleure est l'approximation de l'intégrale. »", true, "Les sommes de rectangles tendent vers l'intégrale quand $n \\to +\\infty$."]
+    ];
+    const [q, v, s] = pick(T), c = melangeChoix(v ? "Vrai" : "Faux", [v ? "Faux" : "Vrai"]);
+    return { enonce: `Vrai ou faux ? ${q}`, mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: ["Pense à l'interprétation en aire.", "Attention au signe de la fonction.", "Cherche un contre-exemple simple si tu penses que c'est faux."],
+      solution: `**${v ? "Vrai" : "Faux"}.** ${s}` };
+  };
+
+
+  /* ---------- Terminale maths complémentaires, chapitre 12 : intégration (préfixe tin-) ---------- */
+  FIGURES["tin-aire"] = () => graph({ xmin: -0.5, xmax: 5.5, ymin: -0.4, ymax: 5.5, h: 250, curves: [{ f: (x) => 0.25 * x * x - x + 3, a: 0, b: 5, closed: false, label: "𝒞", lx: 5, dx: -10, dy: -4 }], aires: [{ f: (x) => 0.25 * x * x - x + 3, a: 1, b: 4 }], marques: [{ x: 2.5, y: 0.9, texte: "𝒜" }], aria: "Aire du domaine sous la courbe, au-dessus de l'axe, entre les droites x = 1 et x = 4 : c'est l'intégrale de 1 à 4 de f" });
+  FIGURES["tin-rectangles"] = () => graph({ xmin: -0.08, xmax: 1.12, ymin: -0.08, ymax: 1.12, xstep: 0.25, ystep: 0.25, xetiq: 0.5, yetiq: 0.5, h: 260, rects: [0, 1, 2, 3].map((k) => ({ a: k / 4, b: (k + 1) / 4, h: (k / 4) ** 2 })), curves: [{ f: (x) => x * x, a: 0, b: 1.05, closed: false, label: "y = x²", lx: 0.8, dx: -6, dy: -6 }], aria: "Quatre rectangles sous la parabole y = x² entre 0 et 1 : leur aire totale 0,21875 approche par défaut l'intégrale 1/3" });
+  FIGURES["tin-moyenne"] = () => graph({ xmin: -0.3, xmax: 4.4, ymin: -0.3, ymax: 4.6, h: 250, curves: [{ f: (x) => x * (4 - x), a: 0, b: 4, closed: false }], aires: [{ f: (x) => x * (4 - x), a: 0, b: 4 }], hlines: [{ y: 8 / 3, label: "μ ≈ 2,67" }], aria: "Parabole y = x(4 − x) entre 0 et 4 et sa valeur moyenne 8/3 : le rectangle de hauteur μ a la même aire que le domaine sous la courbe" });
+  FIGURES["tin-entre"] = () => graph({ xmin: -0.3, xmax: 2.5, ymin: -0.3, ymax: 4.5, h: 250, curves: [{ f: (x) => 2 * x, a: 0, b: 2.2, closed: false, label: "y = 2x", lx: 2.2, dx: -4, dy: -2 }, { f: (x) => x * x, a: 0, b: 2.1, closed: false, label: "y = x²", lx: 1.6, dx: 34, dy: 14 }], aires: [{ f: (x) => 2 * x, g: (x) => x * x, a: 0, b: 2 }], aria: "Domaine entre la droite y = 2x (au-dessus) et la parabole y = x² entre 0 et 2 : son aire vaut 4/3" });
+  FIGURES["tin-signe"] = () => graph({ xmin: -1.5, xmax: 3.5, ymin: -2.5, ymax: 2.5, h: 240, curves: [{ f: (x) => x - 1, a: -1, b: 3, closed: false, label: "y = x − 1", lx: 3, dx: -4, dy: -4 }], aires: [{ f: (x) => x - 1, a: -1, b: 1, neg: true }, { f: (x) => x - 1, a: 1, b: 3 }], aria: "Droite y = x − 1 entre −1 et 3 : une partie sous l'axe (comptée négativement) entre −1 et 1, une partie au-dessus entre 1 et 3 ; l'intégrale vaut 0" });
+
+  GEN["tin-aire-geo"] = function () {
+    const m = pick([0, 0.5, 1, -0.5, 2]), a = rand(0, 2), b = a + rand(2, 4), p = m < 0 ? rand(4, 6) : rand(1, 3), f = (x) => m * x + p;
+    const v = ((f(a) + f(b)) / 2) * (b - a), ymax = Math.max(f(a), f(b)) + 1;
+    const fx = m === 0 ? `${p}` : `${m === 1 ? "" : fr(m)}x + ${p}`;
+    return { enonce: `Calcule $\\displaystyle\\int_{${a}}^{${b}} (${fx})\\,\\mathrm{d}x$ en utilisant une aire (la fonction est positive sur l'intervalle).`, mode: "nombre", prefixe: "Intégrale =", attendu: +v.toFixed(4), tolerance: 0.001,
+      figure: graph({ xmin: -0.5, xmax: b + 1, ymin: -0.4, ymax: ymax, h: 220, curves: [{ f, a: -0.3, b: b + 0.7, closed: false }], aires: [{ f, a, b }], aria: `Domaine sous la droite entre x = ${a} et x = ${b}` }),
+      aides: ["L'intégrale d'une fonction positive est l'aire sous la courbe, en unités d'aire.", m === 0 ? "Le domaine est un rectangle." : "Le domaine est un trapèze (côtés parallèles verticaux).", `Aire = $\\dfrac{f(${a}) + f(${b})}{2} \\times (${b} - ${a})$ avec $f(${a}) = ${fr(f(a))}$ et $f(${b}) = ${fr(f(b))}$.`],
+      solution: `Le domaine est un ${m === 0 ? "rectangle" : "trapèze"} : $\\dfrac{${fr(f(a))} + ${fr(f(b))}}{2} \\times ${b - a} = ${fr(v)}$ unités d'aire.` };
+  };
+
+  GEN["tin-chasles"] = function () {
+    const a = rand(0, 2), b = a + rand(1, 3), c = b + rand(1, 3), u = rand(2, 9), v = rand(2, 9), t = rand(0, 2);
+    if (t === 0) return { enonce: `On sait que $\\displaystyle\\int_{${a}}^{${b}} f(x)\\,\\mathrm{d}x = ${u}$ et $\\displaystyle\\int_{${b}}^{${c}} f(x)\\,\\mathrm{d}x = ${v}$. Calcule $\\displaystyle\\int_{${a}}^{${c}} f(x)\\,\\mathrm{d}x$.`, mode: "nombre", prefixe: "Intégrale =", attendu: u + v,
+      aides: ["Relation de Chasles : on peut découper l'intervalle.", `$\\displaystyle\\int_{${a}}^{${c}} = \\int_{${a}}^{${b}} + \\int_{${b}}^{${c}}$.`, `$${u} + ${v}$.`],
+      solution: `Chasles : $\\displaystyle\\int_{${a}}^{${c}} f = ${u} + ${v} = ${u + v}$.` };
+    if (t === 1) return { enonce: `On sait que $\\displaystyle\\int_{${a}}^{${c}} f(x)\\,\\mathrm{d}x = ${u + v}$ et $\\displaystyle\\int_{${a}}^{${b}} f(x)\\,\\mathrm{d}x = ${u}$. Calcule $\\displaystyle\\int_{${b}}^{${c}} f(x)\\,\\mathrm{d}x$.`, mode: "nombre", prefixe: "Intégrale =", attendu: v,
+      aides: ["Relation de Chasles.", `$\\displaystyle\\int_{${a}}^{${c}} = \\int_{${a}}^{${b}} + \\int_{${b}}^{${c}}$.`, `$${u + v} - ${u}$.`],
+      solution: `$\\displaystyle\\int_{${b}}^{${c}} f = ${u + v} - ${u} = ${v}$.` };
+    const k = rand(2, 5);
+    return { enonce: `On sait que $\\displaystyle\\int_{${a}}^{${b}} f(x)\\,\\mathrm{d}x = ${u}$ et $\\displaystyle\\int_{${a}}^{${b}} g(x)\\,\\mathrm{d}x = ${v}$. Calcule $\\displaystyle\\int_{${a}}^{${b}} \\big(${k}f(x) + g(x)\\big)\\,\\mathrm{d}x$.`, mode: "nombre", prefixe: "Intégrale =", attendu: k * u + v,
+      aides: ["Linéarité : l'intégrale d'une somme est la somme des intégrales.", `$\\displaystyle\\int (${k}f + g) = ${k}\\int f + \\int g$.`, `$${k} \\times ${u} + ${v}$.`],
+      solution: `Linéarité : $${k} \\times ${u} + ${v} = ${k * u + v}$.` };
+  };
+
+  GEN["tin-calcul"] = function () {
+    const al = pick([1, 2, -1]), be = rand(-3, 4), ga = rand(-4, 5), a = rand(-1, 1), b = a + rand(1, 3);
+    const F = (x) => al * x ** 3 + be * x * x + ga * x, I = F(b) - F(a);
+    const f = poly([3 * al, 2 * be, ga]), Fs = poly([al, be, ga, 0]);
+    return { enonce: `Calcule $\\displaystyle\\int_{${a}}^{${b}} (${f})\\,\\mathrm{d}x$.`, mode: "nombre", prefixe: "Intégrale =", attendu: I,
+      erreurs: [{ valeur: F(b) + F(a), message: "C'est $F(b) - F(a)$, pas $F(b) + F(a)$." }, { valeur: F(a) - F(b), message: "Attention à l'ordre : $F(b) - F(a)$, la borne du haut d'abord." }],
+      aides: ["Cherche une primitive $F$ de la fonction.", `$F(x) = ${Fs}$.`, `$\\displaystyle\\int_a^b f(x)\\,\\mathrm{d}x = F(b) - F(a) = F(${b}) - F(${a})$.`],
+      solution: `Une primitive est $F(x) = ${Fs}$. Donc l'intégrale vaut $F(${b}) - F(${a}) = ${F(b)} ${sg(-F(a))} = ${I}$.`.replace("- -", "+ ") };
+  };
+
+  GEN["tin-calcul-exp"] = function () {
+    const T = [
+      () => { const k = pick([1, 2, 3]); return [`\\displaystyle\\int_{0}^{${k}} e^{x}\\,\\mathrm{d}x`, Math.exp(k) - 1, `Une primitive de $e^x$ est $e^x$ : $e^{${k}} - e^0 = e^{${k}} - 1$`]; },
+      () => { const k = pick([2, 3, 4]); return [`\\displaystyle\\int_{1}^{${k}} \\dfrac{1}{x}\\,\\mathrm{d}x`, Math.log(k), `Une primitive de $\\dfrac{1}{x}$ est $\\ln x$ : $\\ln ${k} - \\ln 1 = \\ln ${k}$`]; },
+      () => [`\\displaystyle\\int_{1}^{e} \\dfrac{1}{x}\\,\\mathrm{d}x`, 1, "$\\ln e - \\ln 1 = 1 - 0 = 1$"],
+      () => { const k = pick([2, 0.5, -1]); return [`\\displaystyle\\int_{0}^{1} e^{${fr(k)}x}\\,\\mathrm{d}x`.replace("e^{-1x}", "e^{-x}"), (Math.exp(k) - 1) / k, `Une primitive est $\\dfrac{1}{${fr(k)}}e^{${fr(k)}x}$ : $\\dfrac{e^{${fr(k)}} - 1}{${fr(k)}}$`]; },
+      () => { const k = pick([1, 2]); return [`\\displaystyle\\int_{0}^{${k}} 2x e^{x^2}\\,\\mathrm{d}x`, Math.exp(k * k) - 1, `Forme $u'e^u$, primitive $e^{x^2}$ : $e^{${k * k}} - 1$`]; }
+    ];
+    const [e, v, s] = pick(T)();
+    return { enonce: `Calcule $${e}$ (arrondi au centième).`, mode: "nombre", prefixe: "Intégrale ≈", attendu: +v.toFixed(2), tolerance: 0.006,
+      aides: ["Trouve une primitive $F$ (exponentielle, logarithme, forme $u'e^u$).", "L'intégrale vaut $F(b) - F(a)$.", "Calcule à la calculatrice et arrondis."],
+      solution: `${s.replace(/e\^\{1\}/g, "e")} $\\approx ${fr(+v.toFixed(2))}$.` };
+  };
+
+  GEN["tin-moyenne"] = function () {
+    const t = rand(0, 1);
+    if (t === 0) { const al = rand(1, 3), ga = rand(0, 6), a = 0, b = rand(1, 3), I = al * b ** 3 + ga * b, mu = I / (b - a);
+      return { enonce: `Calcule la valeur moyenne de $f(x) = ${poly([3 * al, 0, ga])}$ sur $[0\\,;${b}]$ (arrondi au centième si besoin).`, mode: "nombre", prefixe: "$\\mu \\approx$", attendu: +mu.toFixed(2), tolerance: 0.006,
+        erreurs: [{ valeur: +I.toFixed(2), message: "Tu as calculé l'intégrale : il faut encore diviser par la longueur de l'intervalle." }],
+        aides: ["$\\mu = \\dfrac{1}{b - a}\\displaystyle\\int_a^b f(x)\\,\\mathrm{d}x$.", `Une primitive est $F(x) = ${poly([al, 0, ga, 0])}$.`, `$\\displaystyle\\int_0^{${b}} f = F(${b}) - F(0) = ${I}$, puis divise par $${b}$.`],
+        solution: `$\\mu = \\dfrac{1}{${b}} \\times ${I} ${Number.isInteger(mu) ? "=" : "\\approx"} ${fr(+mu.toFixed(2))}$.` }; }
+    const M = pick([30, 31, 32]), k = pick([0.1, 0.15, 0.2, 0.25]), mu = M - 12 * k;
+    return { enonce: `À Mamoudzou, la température (en °C) entre $6$ h et $18$ h est modélisée par $T(t) = ${M} - ${fr(k)}(t - 12)^2$. On admet que $\\displaystyle\\int_6^{18} (t - 12)^2\\,\\mathrm{d}t = 144$. Calcule la température moyenne entre $6$ h et $18$ h.`, mode: "nombre", prefixe: "$\\mu =$", suffixe: "°C", attendu: +mu.toFixed(2), tolerance: 0.006,
+      erreurs: [{ valeur: M, message: "$" + M + "$ °C, c'est la température maximale (à midi), pas la moyenne." }],
+      aides: ["$\\mu = \\dfrac{1}{18 - 6}\\displaystyle\\int_6^{18} T(t)\\,\\mathrm{d}t$.", `Linéarité : $\\displaystyle\\int_6^{18} T = ${M} \\times 12 - ${fr(k)} \\times 144$.`, "Divise par $12$."],
+      solution: `$\\mu = \\dfrac{1}{12}\\left(${12 * M} - ${fr(k)} \\times 144\\right) = ${M} - ${fr(12 * k)} = ${fr(mu)}$ °C.` };
+  };
+
+  GEN["tin-encadrer"] = function () {
+    const a = rand(0, 2), b = a + rand(1, 3), c = rand(1, 5), f = (x) => x * x + c, lo = (b - a) * f(a), hi = (b - a) * f(b);
+    const bon = `$${lo} \\leqslant I \\leqslant ${hi}$`, ch = melangeChoix(bon, [`$${f(a)} \\leqslant I \\leqslant ${f(b)}$`, `$${2 * lo} \\leqslant I \\leqslant ${2 * hi}$`, `$${hi} \\leqslant I \\leqslant ${2 * hi}$`, `$0 \\leqslant I \\leqslant ${f(b)}$`]);
+    return { enonce: `$f(x) = x^2 + ${c}$ est croissante et positive sur $[${a}\\,;${b}]$. Quel encadrement de $I = \\displaystyle\\int_{${a}}^{${b}} f(x)\\,\\mathrm{d}x$ est correct ?`, mode: "choix", choix: ch.choix, attendu: ch.attendu,
+      aides: ["Pour $x$ dans $[a\\,;b]$ : $f(a) \\leqslant f(x) \\leqslant f(b)$.", "On intègre l'encadrement : $(b - a)f(a) \\leqslant I \\leqslant (b - a)f(b)$.", `$f(${a}) = ${f(a)}$, $f(${b}) = ${f(b)}$, $b - a = ${b - a}$.`],
+      solution: `Rectangles sous et au-dessus de la courbe : $${b - a} \\times ${f(a)} \\leqslant I \\leqslant ${b - a} \\times ${f(b)}$, soit ${bon}.` };
+  };
+
+  GEN["tin-entre-courbes"] = function () {
+    const m = rand(1, 4), A = m ** 3 / 6;
+    return { enonce: `Calcule l'aire du domaine compris entre la droite $y = ${m === 1 ? "" : m}x$ et la parabole $y = x^2$, pour $x$ entre $0$ et $${m}$ (arrondi au centième).`, mode: "nombre", prefixe: "Aire ≈", suffixe: "u.a.", attendu: +A.toFixed(2), tolerance: 0.006,
+      figure: graph({ xmin: -0.3, xmax: m + 0.5, ymin: -0.3, ymax: m * m + 0.6, ystep: m > 2 ? 2 : 1, h: 230, curves: [{ f: (x) => m * x, a: 0, b: m + 0.2, closed: false }, { f: (x) => x * x, a: 0, b: Math.min(m + 0.2, Math.sqrt(m * m + 0.6)), closed: false }], aires: [{ f: (x) => m * x, g: (x) => x * x, a: 0, b: m }], aria: "Domaine entre la droite et la parabole" }),
+      aides: [`Sur $[0\\,;${m}]$, la droite est au-dessus : $${m}x - x^2 \\geqslant 0$.`, `Aire $= \\displaystyle\\int_0^{${m}} (${m === 1 ? "" : m}x - x^2)\\,\\mathrm{d}x$.`, `Primitive : $\\dfrac{${m}x^2}{2} - \\dfrac{x^3}{3}$.`],
+      solution: `$\\displaystyle\\int_0^{${m}} (${m === 1 ? "" : m}x - x^2)\\,\\mathrm{d}x = \\dfrac{${m ** 3}}{2} - \\dfrac{${m ** 3}}{3} = \\dfrac{${m ** 3}}{6} \\approx ${fr(+A.toFixed(2))}$ u.a.` };
+  };
+
+  GEN["tin-signe"] = function () {
+    const c = rand(1, 3), a = c - rand(1, 3), b = c + rand(1, 3), I = ((b - c) ** 2 - (c - a) ** 2) / 2, t = rand(0, 1);
+    if (t === 0) return { enonce: `Calcule $\\displaystyle\\int_{${a}}^{${b}} (x - ${c})\\,\\mathrm{d}x$. (La fonction change de signe en $${c}$.)`, mode: "nombre", prefixe: "Intégrale =", attendu: I,
+      figure: graph({ xmin: Math.min(a, 0) - 0.5, xmax: b + 0.5, ymin: a - c - 0.5, ymax: b - c + 0.5, h: 220, curves: [{ f: (x) => x - c, a: a - 0.3, b: b + 0.3, closed: false }], aires: [{ f: (x) => x - c, a, b: c, neg: true }, { f: (x) => x - c, a: c, b }], aria: "Partie sous l'axe comptée négativement, partie au-dessus comptée positivement" }),
+      erreurs: [{ valeur: ((b - c) ** 2 + (c - a) ** 2) / 2, message: "Ça, c'est l'aire totale. L'intégrale compte négativement la partie sous l'axe." }],
+      aides: ["Une primitive de $x - " + c + "$ est $\\dfrac{x^2}{2} - " + c + "x$.", "Ou bien : aire au-dessus de l'axe moins aire en dessous (deux triangles).", `Triangles : $\\dfrac{${b - c}^2}{2}$ et $\\dfrac{${c - a}^2}{2}$.`],
+      solution: `Aire au-dessus $\\dfrac{${(b - c) ** 2}}{2}$, aire en dessous $\\dfrac{${(c - a) ** 2}}{2}$ : l'intégrale vaut $${fr((b - c) ** 2 / 2)} - ${fr((c - a) ** 2 / 2)} = ${fr(I)}$.` };
+    const ch = melangeChoix("l'aire au-dessus de l'axe moins l'aire en dessous", ["l'aire totale entre la courbe et l'axe", "toujours un nombre positif", "l'aire en dessous moins l'aire au-dessus"]);
+    return { enonce: "Pour une fonction continue de signe quelconque, $\\displaystyle\\int_a^b f(x)\\,\\mathrm{d}x$ (avec $a < b$) est égale à :", mode: "choix", choix: ch.choix, attendu: ch.attendu,
+      aides: ["Là où $f \\geqslant 0$, l'aire compte positivement.", "Là où $f \\leqslant 0$, elle compte négativement.", "Une intégrale peut donc être négative ou nulle."],
+      solution: "Aire « au-dessus » moins aire « en dessous ». Par exemple $\\displaystyle\\int_{-1}^{1} x\\,\\mathrm{d}x = 0$." };
+  };
+
+  GEN["tin-fonction-integrale"] = function () {
+    const a = rand(0, 2), T = [
+      [`$F(x) = \\displaystyle\\int_{${a}}^{x} f(t)\\,\\mathrm{d}t$. Que vaut $F'(x)$ ?`, "$f(x)$", ["$f'(x)$", "$F(x)$", `$f(x) - f(${a})$`], "$F$ est la primitive de $f$ qui s'annule en $" + a + "$ : $F' = f$."],
+      [`$F(x) = \\displaystyle\\int_{${a}}^{x} f(t)\\,\\mathrm{d}t$. Que vaut $F(${a})$ ?`, "$0$", [`$f(${a})$`, "$1$", `$${a}$`], "Les deux bornes sont égales : l'intégrale est nulle."],
+      [`$f$ est continue et positive. Comment varie $F(x) = \\displaystyle\\int_{${a}}^{x} f(t)\\,\\mathrm{d}t$ pour $x \\geqslant ${a}$ ?`, "$F$ est croissante", ["$F$ est décroissante", "$F$ est constante", "On ne peut pas savoir"], "$F' = f \\geqslant 0$ : $F$ est croissante (l'aire augmente quand $x$ augmente)."],
+      [`$F(x) = \\displaystyle\\int_{0}^{x} e^{-t^2}\\,\\mathrm{d}t$. Que vaut $F'(1)$ ?`, "$e^{-1}$", ["$0$", "$-2e^{-1}$", "$1$"], "$F'(x) = e^{-x^2}$, donc $F'(1) = e^{-1}$, sans savoir calculer $F$."]
+    ], [q, r, f, s] = pick(T), c = melangeChoix(r, f);
+    return { enonce: q, mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: ["Théorème : si $f$ est continue, $x \\mapsto \\displaystyle\\int_a^x f(t)\\,\\mathrm{d}t$ est dérivable de dérivée $f$.", "C'est la primitive de $f$ qui s'annule en $a$.", "Le signe de $f$ donne les variations de $F$."],
+      solution: s };
+  };
+
+  GEN["tin-parcelle"] = function () {
+    const L = pick([20, 30, 40]), k = pick([0.05, 0.1, 0.15]), A = (k * L ** 3) / 6;
+    return { enonce: `Une parcelle au bord du lagon est limitée par une route droite (l'axe des abscisses) et par la plage, modélisée par la courbe $y = ${fr(k)}x(${L} - x)$ pour $x$ entre $0$ et $${L}$ (en mètres). Calcule l'aire de la parcelle (arrondie au m²).`, mode: "nombre", prefixe: "Aire ≈", suffixe: "m²", attendu: Math.round(A), tolerance: 1.01,
+      aides: [`Aire $= \\displaystyle\\int_0^{${L}} ${fr(k)}(${L}x - x^2)\\,\\mathrm{d}x$.`, `Primitive : $${fr(k)}\\left(\\dfrac{${L}x^2}{2} - \\dfrac{x^3}{3}\\right)$.`, `Calcule en $${L}$ (en $0$ elle vaut $0$).`],
+      solution: `$${fr(k)} \\times \\left(\\dfrac{${L ** 3}}{2} - \\dfrac{${L ** 3}}{3}\\right) = ${fr(k)} \\times \\dfrac{${L ** 3}}{6} \\approx ${Math.round(A)}$ m². On retrouve la quadrature de la parabole d'Archimède : ce sont les $\\dfrac{2}{3}$ du rectangle de largeur $${L}$ et de hauteur le sommet $${fr(k * L * L / 4)}$.` };
+  };
+
+  GEN["tin-python"] = function () {
+    const t = rand(0, 2);
+    if (t === 0) { const n = pick([2, 4, 5]); let S = 0; for (let k = 0; k < n; k++) S += (k / n) ** 2 / n;
+      return { enonce: "Méthode des rectangles (à gauche) pour $\\displaystyle\\int_0^1 x^2\\,\\mathrm{d}x$ :\n\n```python\ndef rectangles(n):\n    h = 1 / n\n    s = 0\n    for k in range(n):\n        s = s + h * (k * h) ** 2\n    return s\n```\n\n" + `Que renvoie rectangles(${n}) ? (Arrondi au millième.)`, mode: "nombre", prefixe: "Résultat ≈", attendu: +S.toFixed(3), tolerance: 0.0015,
+        aides: [`$h = \\dfrac{1}{${n}}$ et on additionne $h \\times f(kh)$ pour $k$ de $0$ à $${n - 1}$.`, "Chaque terme est l'aire d'un rectangle de largeur $h$.", "Additionne les aires des rectangles."],
+        solution: `$${fr(+S.toFixed(4))}$ environ, une valeur approchée par défaut de $\\dfrac{1}{3} \\approx 0{,}333$ (meilleure quand $n$ augmente).` }; }
+    if (t === 1) { const n = pick([2, 4]); let S = 0; for (let k = 0; k < n; k++) S += (((k / n) ** 2 + ((k + 1) / n) ** 2) / 2) / n;
+      return { enonce: "Méthode des trapèzes pour $\\displaystyle\\int_0^1 x^2\\,\\mathrm{d}x$ :\n\n```python\ndef trapezes(n):\n    h = 1 / n\n    s = 0\n    for k in range(n):\n        s = s + h * ((k * h) ** 2 + ((k + 1) * h) ** 2) / 2\n    return s\n```\n\n" + `Que renvoie trapezes(${n}) ? (Arrondi au millième.)`, mode: "nombre", prefixe: "Résultat ≈", attendu: +S.toFixed(3), tolerance: 0.0015,
+        aides: ["Chaque trapèze a pour aire $h \\times \\dfrac{f(x_k) + f(x_{k+1})}{2}$.", `$h = \\dfrac{1}{${n}}$.`, "Additionne les aires des trapèzes."],
+        solution: `$${fr(+S.toFixed(4))}$ environ : par excès cette fois, et plus proche de $\\dfrac{1}{3}$ que les rectangles.` }; }
+    const N = pick([1000, 10000]), p = pick([0.31, 0.33, 0.34, 0.785]), dans = Math.round(p * N), B = p > 0.5 ? 1 : 2;
+    return { enonce: `Méthode de Monte-Carlo : on tire $${N}$ points au hasard dans un rectangle d'aire $${B}$ contenant le domaine sous une courbe. $${dans}$ points tombent sous la courbe. Quelle estimation de l'intégrale obtient-on ?`, mode: "nombre", prefixe: "Estimation ≈", attendu: +(dans / N * B).toFixed(4), tolerance: 0.0006,
+      aides: ["La proportion de points sous la courbe estime la part de l'aire du rectangle occupée par le domaine.", `Proportion : $\\dfrac{${dans}}{${N}}$.`, `Multiplie par l'aire du rectangle, $${B}$.`],
+      solution: `$\\dfrac{${dans}}{${N}} \\times ${B} = ${fr(+(dans / N * B).toFixed(4))}$. Plus il y a de points, meilleure est l'estimation.` };
+  };
+
+  GEN["tin-logique"] = function () {
+    const T = [
+      ["« Si $f$ est positive sur $[a\\,;b]$, alors $\\displaystyle\\int_a^b f(x)\\,\\mathrm{d}x \\geqslant 0$. »", true, "C'est une aire (positivité de l'intégrale)."],
+      ["« Une intégrale est toujours positive. »", false, "Si $f$ est négative, l'intégrale est négative : $\\displaystyle\\int_0^1 (-1)\\,\\mathrm{d}x = -1$."],
+      ["« $\\displaystyle\\int_a^a f(x)\\,\\mathrm{d}x = 0$. »", true, "Le domaine est réduit à un segment."],
+      ["« $\\displaystyle\\int_a^b f(x)\\,\\mathrm{d}x = F(b) - F(a)$ pour toute primitive $F$ de $f$. »", true, "La constante disparaît dans la différence."],
+      ["« L'aire entre deux courbes est $\\displaystyle\\int_a^b (f - g)$, quel que soit l'ordre de $f$ et $g$. »", false, "Il faut la courbe du dessus moins celle du dessous : $f \\geqslant g$."],
+      ["« La valeur moyenne de $f$ sur $[a\\,;b]$ est $\\dfrac{f(a) + f(b)}{2}$. »", false, "C'est $\\dfrac{1}{b - a}\\displaystyle\\int_a^b f(x)\\,\\mathrm{d}x$ ; les deux coïncident seulement pour une fonction affine."],
+      ["« Le symbole $\\displaystyle\\int$ est un S allongé, pour « somme ». »", true, "L'intégrale est la limite des sommes $\\sum f(x_k) \\times h$ des aires des rectangles (Leibniz)."],
+      ["« Plus on prend de rectangles, meilleure est l'approximation de l'intégrale. »", true, "Les sommes de rectangles tendent vers l'intégrale quand $n \\to +\\infty$."]
+    ];
+    const [q, v, s] = pick(T), c = melangeChoix(v ? "Vrai" : "Faux", [v ? "Faux" : "Vrai"]);
+    return { enonce: `Vrai ou faux ? ${q}`, mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: ["Pense à l'interprétation en aire.", "Attention au signe de la fonction.", "Cherche un contre-exemple simple si tu penses que c'est faux."],
+      solution: `**${v ? "Vrai" : "Faux"}.** ${s}` };
+  };
+
+
+  /* ---------- Terminale maths complémentaires, chapitre 12 : intégration (préfixe tin-) ---------- */
+  FIGURES["tin-aire"] = () => graph({ xmin: -0.5, xmax: 5.5, ymin: -0.4, ymax: 5.5, h: 250, curves: [{ f: (x) => 0.25 * x * x - x + 3, a: 0, b: 5, closed: false, label: "𝒞", lx: 5, dx: -10, dy: -4 }], aires: [{ f: (x) => 0.25 * x * x - x + 3, a: 1, b: 4 }], marques: [{ x: 2.5, y: 0.9, texte: "𝒜" }], aria: "Aire du domaine sous la courbe, au-dessus de l'axe, entre les droites x = 1 et x = 4 : c'est l'intégrale de 1 à 4 de f" });
+  FIGURES["tin-rectangles"] = () => graph({ xmin: -0.08, xmax: 1.12, ymin: -0.08, ymax: 1.12, xstep: 0.25, ystep: 0.25, xetiq: 0.5, yetiq: 0.5, h: 260, rects: [0, 1, 2, 3].map((k) => ({ a: k / 4, b: (k + 1) / 4, h: (k / 4) ** 2 })), curves: [{ f: (x) => x * x, a: 0, b: 1.05, closed: false, label: "y = x²", lx: 0.8, dx: -6, dy: -6 }], aria: "Quatre rectangles sous la parabole y = x² entre 0 et 1 : leur aire totale 0,21875 approche par défaut l'intégrale 1/3" });
+  FIGURES["tin-moyenne"] = () => graph({ xmin: -0.3, xmax: 4.4, ymin: -0.3, ymax: 4.6, h: 250, curves: [{ f: (x) => x * (4 - x), a: 0, b: 4, closed: false }], aires: [{ f: (x) => x * (4 - x), a: 0, b: 4 }], hlines: [{ y: 8 / 3, label: "μ ≈ 2,67" }], aria: "Parabole y = x(4 − x) entre 0 et 4 et sa valeur moyenne 8/3 : le rectangle de hauteur μ a la même aire que le domaine sous la courbe" });
+  FIGURES["tin-entre"] = () => graph({ xmin: -0.3, xmax: 2.5, ymin: -0.3, ymax: 4.5, h: 250, curves: [{ f: (x) => 2 * x, a: 0, b: 2.2, closed: false, label: "y = 2x", lx: 2.2, dx: -4, dy: -2 }, { f: (x) => x * x, a: 0, b: 2.1, closed: false, label: "y = x²", lx: 1.6, dx: 34, dy: 14 }], aires: [{ f: (x) => 2 * x, g: (x) => x * x, a: 0, b: 2 }], aria: "Domaine entre la droite y = 2x (au-dessus) et la parabole y = x² entre 0 et 2 : son aire vaut 4/3" });
+  FIGURES["tin-signe"] = () => graph({ xmin: -1.5, xmax: 3.5, ymin: -2.5, ymax: 2.5, h: 240, curves: [{ f: (x) => x - 1, a: -1, b: 3, closed: false, label: "y = x − 1", lx: 3, dx: -4, dy: -4 }], aires: [{ f: (x) => x - 1, a: -1, b: 1, neg: true }, { f: (x) => x - 1, a: 1, b: 3 }], aria: "Droite y = x − 1 entre −1 et 3 : une partie sous l'axe (comptée négativement) entre −1 et 1, une partie au-dessus entre 1 et 3 ; l'intégrale vaut 0" });
+
+  GEN["tin-aire-geo"] = function () {
+    const m = pick([0, 0.5, 1, -0.5, 2]), a = rand(0, 2), b = a + rand(2, 4), p = m < 0 ? rand(4, 6) : rand(1, 3), f = (x) => m * x + p;
+    const v = ((f(a) + f(b)) / 2) * (b - a), ymax = Math.max(f(a), f(b)) + 1;
+    const fx = m === 0 ? `${p}` : `${m === 1 ? "" : fr(m)}x + ${p}`;
+    return { enonce: `Calcule $\\displaystyle\\int_{${a}}^{${b}} (${fx})\\,\\mathrm{d}x$ en utilisant une aire (la fonction est positive sur l'intervalle).`, mode: "nombre", prefixe: "Intégrale =", attendu: +v.toFixed(4), tolerance: 0.001,
+      figure: graph({ xmin: -0.5, xmax: b + 1, ymin: -0.4, ymax: ymax, h: 220, curves: [{ f, a: -0.3, b: b + 0.7, closed: false }], aires: [{ f, a, b }], aria: `Domaine sous la droite entre x = ${a} et x = ${b}` }),
+      aides: ["L'intégrale d'une fonction positive est l'aire sous la courbe, en unités d'aire.", m === 0 ? "Le domaine est un rectangle." : "Le domaine est un trapèze (côtés parallèles verticaux).", `Aire = $\\dfrac{f(${a}) + f(${b})}{2} \\times (${b} - ${a})$ avec $f(${a}) = ${fr(f(a))}$ et $f(${b}) = ${fr(f(b))}$.`],
+      solution: `Le domaine est un ${m === 0 ? "rectangle" : "trapèze"} : $\\dfrac{${fr(f(a))} + ${fr(f(b))}}{2} \\times ${b - a} = ${fr(v)}$ unités d'aire.` };
+  };
+
+  GEN["tin-chasles"] = function () {
+    const a = rand(0, 2), b = a + rand(1, 3), c = b + rand(1, 3), u = rand(2, 9), v = rand(2, 9), t = rand(0, 2);
+    if (t === 0) return { enonce: `On sait que $\\displaystyle\\int_{${a}}^{${b}} f(x)\\,\\mathrm{d}x = ${u}$ et $\\displaystyle\\int_{${b}}^{${c}} f(x)\\,\\mathrm{d}x = ${v}$. Calcule $\\displaystyle\\int_{${a}}^{${c}} f(x)\\,\\mathrm{d}x$.`, mode: "nombre", prefixe: "Intégrale =", attendu: u + v,
+      aides: ["Relation de Chasles : on peut découper l'intervalle.", `$\\displaystyle\\int_{${a}}^{${c}} = \\int_{${a}}^{${b}} + \\int_{${b}}^{${c}}$.`, `$${u} + ${v}$.`],
+      solution: `Chasles : $\\displaystyle\\int_{${a}}^{${c}} f = ${u} + ${v} = ${u + v}$.` };
+    if (t === 1) return { enonce: `On sait que $\\displaystyle\\int_{${a}}^{${c}} f(x)\\,\\mathrm{d}x = ${u + v}$ et $\\displaystyle\\int_{${a}}^{${b}} f(x)\\,\\mathrm{d}x = ${u}$. Calcule $\\displaystyle\\int_{${b}}^{${c}} f(x)\\,\\mathrm{d}x$.`, mode: "nombre", prefixe: "Intégrale =", attendu: v,
+      aides: ["Relation de Chasles.", `$\\displaystyle\\int_{${a}}^{${c}} = \\int_{${a}}^{${b}} + \\int_{${b}}^{${c}}$.`, `$${u + v} - ${u}$.`],
+      solution: `$\\displaystyle\\int_{${b}}^{${c}} f = ${u + v} - ${u} = ${v}$.` };
+    const k = rand(2, 5);
+    return { enonce: `On sait que $\\displaystyle\\int_{${a}}^{${b}} f(x)\\,\\mathrm{d}x = ${u}$ et $\\displaystyle\\int_{${a}}^{${b}} g(x)\\,\\mathrm{d}x = ${v}$. Calcule $\\displaystyle\\int_{${a}}^{${b}} \\big(${k}f(x) + g(x)\\big)\\,\\mathrm{d}x$.`, mode: "nombre", prefixe: "Intégrale =", attendu: k * u + v,
+      aides: ["Linéarité : l'intégrale d'une somme est la somme des intégrales.", `$\\displaystyle\\int (${k}f + g) = ${k}\\int f + \\int g$.`, `$${k} \\times ${u} + ${v}$.`],
+      solution: `Linéarité : $${k} \\times ${u} + ${v} = ${k * u + v}$.` };
+  };
+
+  GEN["tin-calcul"] = function () {
+    const al = pick([1, 2, -1]), be = rand(-3, 4), ga = rand(-4, 5), a = rand(-1, 1), b = a + rand(1, 3);
+    const F = (x) => al * x ** 3 + be * x * x + ga * x, I = F(b) - F(a);
+    const f = poly([3 * al, 2 * be, ga]), Fs = poly([al, be, ga, 0]);
+    return { enonce: `Calcule $\\displaystyle\\int_{${a}}^{${b}} (${f})\\,\\mathrm{d}x$.`, mode: "nombre", prefixe: "Intégrale =", attendu: I,
+      erreurs: [{ valeur: F(b) + F(a), message: "C'est $F(b) - F(a)$, pas $F(b) + F(a)$." }, { valeur: F(a) - F(b), message: "Attention à l'ordre : $F(b) - F(a)$, la borne du haut d'abord." }],
+      aides: ["Cherche une primitive $F$ de la fonction.", `$F(x) = ${Fs}$.`, `$\\displaystyle\\int_a^b f(x)\\,\\mathrm{d}x = F(b) - F(a) = F(${b}) - F(${a})$.`],
+      solution: `Une primitive est $F(x) = ${Fs}$. Donc l'intégrale vaut $F(${b}) - F(${a}) = ${F(b)} ${sg(-F(a))} = ${I}$.`.replace("- -", "+ ") };
+  };
+
+  GEN["tin-calcul-exp"] = function () {
+    const T = [
+      () => { const k = pick([1, 2, 3]); return [`\\displaystyle\\int_{0}^{${k}} e^{x}\\,\\mathrm{d}x`, Math.exp(k) - 1, `Une primitive de $e^x$ est $e^x$ : $e^{${k}} - e^0 = e^{${k}} - 1$`]; },
+      () => { const k = pick([2, 3, 4]); return [`\\displaystyle\\int_{1}^{${k}} \\dfrac{1}{x}\\,\\mathrm{d}x`, Math.log(k), `Une primitive de $\\dfrac{1}{x}$ est $\\ln x$ : $\\ln ${k} - \\ln 1 = \\ln ${k}$`]; },
+      () => [`\\displaystyle\\int_{1}^{e} \\dfrac{1}{x}\\,\\mathrm{d}x`, 1, "$\\ln e - \\ln 1 = 1 - 0 = 1$"],
+      () => { const k = pick([2, 0.5, -1]); return [`\\displaystyle\\int_{0}^{1} e^{${fr(k)}x}\\,\\mathrm{d}x`.replace("e^{-1x}", "e^{-x}"), (Math.exp(k) - 1) / k, `Une primitive est $\\dfrac{1}{${fr(k)}}e^{${fr(k)}x}$ : $\\dfrac{e^{${fr(k)}} - 1}{${fr(k)}}$`]; },
+      () => { const k = pick([1, 2]); return [`\\displaystyle\\int_{0}^{${k}} 2x e^{x^2}\\,\\mathrm{d}x`, Math.exp(k * k) - 1, `Forme $u'e^u$, primitive $e^{x^2}$ : $e^{${k * k}} - 1$`]; }
+    ];
+    const [e, v, s] = pick(T)();
+    return { enonce: `Calcule $${e}$ (arrondi au centième).`, mode: "nombre", prefixe: "Intégrale ≈", attendu: +v.toFixed(2), tolerance: 0.006,
+      aides: ["Trouve une primitive $F$ (exponentielle, logarithme, forme $u'e^u$).", "L'intégrale vaut $F(b) - F(a)$.", "Calcule à la calculatrice et arrondis."],
+      solution: `${s.replace(/e\^\{1\}/g, "e")}${Number.isInteger(v) ? "" : ` $\\approx ${fr(+v.toFixed(2))}$`}.` };
+  };
+
+  GEN["tin-moyenne"] = function () {
+    const t = rand(0, 1);
+    if (t === 0) { const al = rand(1, 3), ga = rand(0, 6), a = 0, b = rand(1, 3), I = al * b ** 3 + ga * b, mu = I / (b - a);
+      return { enonce: `Calcule la valeur moyenne de $f(x) = ${poly([3 * al, 0, ga])}$ sur $[0\\,;${b}]$ (arrondi au centième si besoin).`, mode: "nombre", prefixe: "$\\mu \\approx$", attendu: +mu.toFixed(2), tolerance: 0.006,
+        erreurs: [{ valeur: +I.toFixed(2), message: "Tu as calculé l'intégrale : il faut encore diviser par la longueur de l'intervalle." }],
+        aides: ["$\\mu = \\dfrac{1}{b - a}\\displaystyle\\int_a^b f(x)\\,\\mathrm{d}x$.", `Une primitive est $F(x) = ${poly([al, 0, ga, 0])}$.`, `$\\displaystyle\\int_0^{${b}} f = F(${b}) - F(0) = ${I}$, puis divise par $${b}$.`],
+        solution: `$\\mu = \\dfrac{1}{${b}} \\times ${I} ${Number.isInteger(mu) ? "=" : "\\approx"} ${fr(+mu.toFixed(2))}$.` }; }
+    const M = pick([30, 31, 32]), k = pick([0.1, 0.15, 0.2, 0.25]), mu = M - 12 * k;
+    return { enonce: `À Mamoudzou, la température (en °C) entre $6$ h et $18$ h est modélisée par $T(t) = ${M} - ${fr(k)}(t - 12)^2$. On admet que $\\displaystyle\\int_6^{18} (t - 12)^2\\,\\mathrm{d}t = 144$. Calcule la température moyenne entre $6$ h et $18$ h.`, mode: "nombre", prefixe: "$\\mu =$", suffixe: "°C", attendu: +mu.toFixed(2), tolerance: 0.006,
+      erreurs: [{ valeur: M, message: "$" + M + "$ °C, c'est la température maximale (à midi), pas la moyenne." }],
+      aides: ["$\\mu = \\dfrac{1}{18 - 6}\\displaystyle\\int_6^{18} T(t)\\,\\mathrm{d}t$.", `Linéarité : $\\displaystyle\\int_6^{18} T = ${M} \\times 12 - ${fr(k)} \\times 144$.`, "Divise par $12$."],
+      solution: `$\\mu = \\dfrac{1}{12}\\left(${12 * M} - ${fr(k)} \\times 144\\right) = ${M} - ${fr(12 * k)} = ${fr(mu)}$ °C.` };
+  };
+
+  GEN["tin-encadrer"] = function () {
+    const a = rand(0, 2), b = a + rand(1, 3), c = rand(1, 5), f = (x) => x * x + c, lo = (b - a) * f(a), hi = (b - a) * f(b);
+    const bon = `$${lo} \\leqslant I \\leqslant ${hi}$`, ch = melangeChoix(bon, [`$${f(a)} \\leqslant I \\leqslant ${f(b)}$`, `$${2 * lo} \\leqslant I \\leqslant ${2 * hi}$`, `$${hi} \\leqslant I \\leqslant ${2 * hi}$`, `$0 \\leqslant I \\leqslant ${f(b)}$`]);
+    return { enonce: `$f(x) = x^2 + ${c}$ est croissante et positive sur $[${a}\\,;${b}]$. Quel encadrement de $I = \\displaystyle\\int_{${a}}^{${b}} f(x)\\,\\mathrm{d}x$ est correct ?`, mode: "choix", choix: ch.choix, attendu: ch.attendu,
+      aides: ["Pour $x$ dans $[a\\,;b]$ : $f(a) \\leqslant f(x) \\leqslant f(b)$.", "On intègre l'encadrement : $(b - a)f(a) \\leqslant I \\leqslant (b - a)f(b)$.", `$f(${a}) = ${f(a)}$, $f(${b}) = ${f(b)}$, $b - a = ${b - a}$.`],
+      solution: `Rectangles sous et au-dessus de la courbe : $${b - a} \\times ${f(a)} \\leqslant I \\leqslant ${b - a} \\times ${f(b)}$, soit ${bon}.` };
+  };
+
+  GEN["tin-entre-courbes"] = function () {
+    const m = rand(1, 4), A = m ** 3 / 6;
+    return { enonce: `Calcule l'aire du domaine compris entre la droite $y = ${m === 1 ? "" : m}x$ et la parabole $y = x^2$, pour $x$ entre $0$ et $${m}$ (arrondi au centième).`, mode: "nombre", prefixe: "Aire ≈", suffixe: "u.a.", attendu: +A.toFixed(2), tolerance: 0.006,
+      figure: graph({ xmin: -0.3, xmax: m + 0.5, ymin: -0.3, ymax: m * m + 0.6, ystep: m > 2 ? 2 : 1, h: 230, curves: [{ f: (x) => m * x, a: 0, b: m + 0.2, closed: false }, { f: (x) => x * x, a: 0, b: Math.min(m + 0.2, Math.sqrt(m * m + 0.6)), closed: false }], aires: [{ f: (x) => m * x, g: (x) => x * x, a: 0, b: m }], aria: "Domaine entre la droite et la parabole" }),
+      aides: [`Sur $[0\\,;${m}]$, la droite est au-dessus : $${m}x - x^2 \\geqslant 0$.`, `Aire $= \\displaystyle\\int_0^{${m}} (${m === 1 ? "" : m}x - x^2)\\,\\mathrm{d}x$.`, `Primitive : $\\dfrac{${m}x^2}{2} - \\dfrac{x^3}{3}$.`],
+      solution: `$\\displaystyle\\int_0^{${m}} (${m === 1 ? "" : m}x - x^2)\\,\\mathrm{d}x = \\dfrac{${m ** 3}}{2} - \\dfrac{${m ** 3}}{3} = \\dfrac{${m ** 3}}{6} \\approx ${fr(+A.toFixed(2))}$ u.a.` };
+  };
+
+  GEN["tin-signe"] = function () {
+    const c = rand(1, 3), a = c - rand(1, 3), b = c + rand(1, 3), I = ((b - c) ** 2 - (c - a) ** 2) / 2, t = rand(0, 1);
+    if (t === 0) return { enonce: `Calcule $\\displaystyle\\int_{${a}}^{${b}} (x - ${c})\\,\\mathrm{d}x$. (La fonction change de signe en $${c}$.)`, mode: "nombre", prefixe: "Intégrale =", attendu: I,
+      figure: graph({ xmin: Math.min(a, 0) - 0.5, xmax: b + 0.5, ymin: a - c - 0.5, ymax: b - c + 0.5, h: 220, curves: [{ f: (x) => x - c, a: a - 0.3, b: b + 0.3, closed: false }], aires: [{ f: (x) => x - c, a, b: c, neg: true }, { f: (x) => x - c, a: c, b }], aria: "Partie sous l'axe comptée négativement, partie au-dessus comptée positivement" }),
+      erreurs: [{ valeur: ((b - c) ** 2 + (c - a) ** 2) / 2, message: "Ça, c'est l'aire totale. L'intégrale compte négativement la partie sous l'axe." }],
+      aides: ["Une primitive de $x - " + c + "$ est $\\dfrac{x^2}{2} - " + c + "x$.", "Ou bien : aire au-dessus de l'axe moins aire en dessous (deux triangles).", `Triangles : $\\dfrac{${b - c}^2}{2}$ et $\\dfrac{${c - a}^2}{2}$.`],
+      solution: `Aire au-dessus $\\dfrac{${(b - c) ** 2}}{2}$, aire en dessous $\\dfrac{${(c - a) ** 2}}{2}$ : l'intégrale vaut $${fr((b - c) ** 2 / 2)} - ${fr((c - a) ** 2 / 2)} = ${fr(I)}$.` };
+    const ch = melangeChoix("l'aire au-dessus de l'axe moins l'aire en dessous", ["l'aire totale entre la courbe et l'axe", "toujours un nombre positif", "l'aire en dessous moins l'aire au-dessus"]);
+    return { enonce: "Pour une fonction continue de signe quelconque, $\\displaystyle\\int_a^b f(x)\\,\\mathrm{d}x$ (avec $a < b$) est égale à :", mode: "choix", choix: ch.choix, attendu: ch.attendu,
+      aides: ["Là où $f \\geqslant 0$, l'aire compte positivement.", "Là où $f \\leqslant 0$, elle compte négativement.", "Une intégrale peut donc être négative ou nulle."],
+      solution: "Aire « au-dessus » moins aire « en dessous ». Par exemple $\\displaystyle\\int_{-1}^{1} x\\,\\mathrm{d}x = 0$." };
+  };
+
+  GEN["tin-fonction-integrale"] = function () {
+    const a = rand(0, 2), T = [
+      [`$F(x) = \\displaystyle\\int_{${a}}^{x} f(t)\\,\\mathrm{d}t$. Que vaut $F'(x)$ ?`, "$f(x)$", ["$f'(x)$", "$F(x)$", `$f(x) - f(${a})$`], "$F$ est la primitive de $f$ qui s'annule en $" + a + "$ : $F' = f$."],
+      [`$F(x) = \\displaystyle\\int_{${a}}^{x} f(t)\\,\\mathrm{d}t$. Que vaut $F(${a})$ ?`, "$0$", [`$f(${a})$`, "$1$", `$${a}$`], "Les deux bornes sont égales : l'intégrale est nulle."],
+      [`$f$ est continue et positive. Comment varie $F(x) = \\displaystyle\\int_{${a}}^{x} f(t)\\,\\mathrm{d}t$ pour $x \\geqslant ${a}$ ?`, "$F$ est croissante", ["$F$ est décroissante", "$F$ est constante", "On ne peut pas savoir"], "$F' = f \\geqslant 0$ : $F$ est croissante (l'aire augmente quand $x$ augmente)."],
+      [`$F(x) = \\displaystyle\\int_{0}^{x} e^{-t^2}\\,\\mathrm{d}t$. Que vaut $F'(1)$ ?`, "$e^{-1}$", ["$0$", "$-2e^{-1}$", "$1$"], "$F'(x) = e^{-x^2}$, donc $F'(1) = e^{-1}$, sans savoir calculer $F$."]
+    ], [q, r, f, s] = pick(T), c = melangeChoix(r, f);
+    return { enonce: q, mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: ["Théorème : si $f$ est continue, $x \\mapsto \\displaystyle\\int_a^x f(t)\\,\\mathrm{d}t$ est dérivable de dérivée $f$.", "C'est la primitive de $f$ qui s'annule en $a$.", "Le signe de $f$ donne les variations de $F$."],
+      solution: s };
+  };
+
+  GEN["tin-parcelle"] = function () {
+    const L = pick([20, 30, 40]), k = pick([0.05, 0.1, 0.15]), A = (k * L ** 3) / 6;
+    return { enonce: `Une parcelle au bord du lagon est limitée par une route droite (l'axe des abscisses) et par la plage, modélisée par la courbe $y = ${fr(k)}x(${L} - x)$ pour $x$ entre $0$ et $${L}$ (en mètres). Calcule l'aire de la parcelle (arrondie au m²).`, mode: "nombre", prefixe: "Aire ≈", suffixe: "m²", attendu: Math.round(A), tolerance: 1.01,
+      aides: [`Aire $= \\displaystyle\\int_0^{${L}} ${fr(k)}(${L}x - x^2)\\,\\mathrm{d}x$.`, `Primitive : $${fr(k)}\\left(\\dfrac{${L}x^2}{2} - \\dfrac{x^3}{3}\\right)$.`, `Calcule en $${L}$ (en $0$ elle vaut $0$).`],
+      solution: `$${fr(k)} \\times \\left(\\dfrac{${L ** 3}}{2} - \\dfrac{${L ** 3}}{3}\\right) = ${fr(k)} \\times \\dfrac{${L ** 3}}{6} \\approx ${Math.round(A)}$ m². On retrouve la quadrature de la parabole d'Archimède : ce sont les $\\dfrac{2}{3}$ du rectangle de largeur $${L}$ et de hauteur le sommet $${fr(k * L * L / 4)}$.` };
+  };
+
+  GEN["tin-python"] = function () {
+    const t = rand(0, 2);
+    if (t === 0) { const n = pick([2, 4, 5]); let S = 0; for (let k = 0; k < n; k++) S += (k / n) ** 2 / n;
+      return { enonce: "Méthode des rectangles (à gauche) pour $\\displaystyle\\int_0^1 x^2\\,\\mathrm{d}x$ :\n\n```python\ndef rectangles(n):\n    h = 1 / n\n    s = 0\n    for k in range(n):\n        s = s + h * (k * h) ** 2\n    return s\n```\n\n" + `Que renvoie rectangles(${n}) ? (Arrondi au millième.)`, mode: "nombre", prefixe: "Résultat ≈", attendu: +S.toFixed(3), tolerance: 0.0015,
+        aides: [`$h = \\dfrac{1}{${n}}$ et on additionne $h \\times f(kh)$ pour $k$ de $0$ à $${n - 1}$.`, "Chaque terme est l'aire d'un rectangle de largeur $h$.", "Additionne les aires des rectangles."],
+        solution: `$${fr(+S.toFixed(4))}$ environ, une valeur approchée par défaut de $\\dfrac{1}{3} \\approx 0{,}333$ (meilleure quand $n$ augmente).` }; }
+    if (t === 1) { const n = pick([2, 4]); let S = 0; for (let k = 0; k < n; k++) S += (((k / n) ** 2 + ((k + 1) / n) ** 2) / 2) / n;
+      return { enonce: "Méthode des trapèzes pour $\\displaystyle\\int_0^1 x^2\\,\\mathrm{d}x$ :\n\n```python\ndef trapezes(n):\n    h = 1 / n\n    s = 0\n    for k in range(n):\n        s = s + h * ((k * h) ** 2 + ((k + 1) * h) ** 2) / 2\n    return s\n```\n\n" + `Que renvoie trapezes(${n}) ? (Arrondi au millième.)`, mode: "nombre", prefixe: "Résultat ≈", attendu: +S.toFixed(3), tolerance: 0.0015,
+        aides: ["Chaque trapèze a pour aire $h \\times \\dfrac{f(x_k) + f(x_{k+1})}{2}$.", `$h = \\dfrac{1}{${n}}$.`, "Additionne les aires des trapèzes."],
+        solution: `$${fr(+S.toFixed(4))}$ environ : par excès cette fois, et plus proche de $\\dfrac{1}{3}$ que les rectangles.` }; }
+    const N = pick([1000, 10000]), p = pick([0.31, 0.33, 0.34, 0.785]), dans = Math.round(p * N), B = p > 0.5 ? 1 : 2;
+    return { enonce: `Méthode de Monte-Carlo : on tire $${N}$ points au hasard dans un rectangle d'aire $${B}$ contenant le domaine sous une courbe. $${dans}$ points tombent sous la courbe. Quelle estimation de l'intégrale obtient-on ?`, mode: "nombre", prefixe: "Estimation ≈", attendu: +(dans / N * B).toFixed(4), tolerance: 0.0006,
+      aides: ["La proportion de points sous la courbe estime la part de l'aire du rectangle occupée par le domaine.", `Proportion : $\\dfrac{${dans}}{${N}}$.`, `Multiplie par l'aire du rectangle, $${B}$.`],
+      solution: `$\\dfrac{${dans}}{${N}} \\times ${B} = ${fr(+(dans / N * B).toFixed(4))}$. Plus il y a de points, meilleure est l'estimation.` };
+  };
+
+  GEN["tin-logique"] = function () {
+    const T = [
+      ["« Si $f$ est positive sur $[a\\,;b]$, alors $\\displaystyle\\int_a^b f(x)\\,\\mathrm{d}x \\geqslant 0$. »", true, "C'est une aire (positivité de l'intégrale)."],
+      ["« Une intégrale est toujours positive. »", false, "Si $f$ est négative, l'intégrale est négative : $\\displaystyle\\int_0^1 (-1)\\,\\mathrm{d}x = -1$."],
+      ["« $\\displaystyle\\int_a^a f(x)\\,\\mathrm{d}x = 0$. »", true, "Le domaine est réduit à un segment."],
+      ["« $\\displaystyle\\int_a^b f(x)\\,\\mathrm{d}x = F(b) - F(a)$ pour toute primitive $F$ de $f$. »", true, "La constante disparaît dans la différence."],
+      ["« L'aire entre deux courbes est $\\displaystyle\\int_a^b (f - g)$, quel que soit l'ordre de $f$ et $g$. »", false, "Il faut la courbe du dessus moins celle du dessous : $f \\geqslant g$."],
+      ["« La valeur moyenne de $f$ sur $[a\\,;b]$ est $\\dfrac{f(a) + f(b)}{2}$. »", false, "C'est $\\dfrac{1}{b - a}\\displaystyle\\int_a^b f(x)\\,\\mathrm{d}x$ ; les deux coïncident seulement pour une fonction affine."],
+      ["« Le symbole $\\displaystyle\\int$ est un S allongé, pour « somme ». »", true, "L'intégrale est la limite des sommes $\\sum f(x_k) \\times h$ des aires des rectangles (Leibniz)."],
+      ["« Plus on prend de rectangles, meilleure est l'approximation de l'intégrale. »", true, "Les sommes de rectangles tendent vers l'intégrale quand $n \\to +\\infty$."]
+    ];
+    const [q, v, s] = pick(T), c = melangeChoix(v ? "Vrai" : "Faux", [v ? "Faux" : "Vrai"]);
+    return { enonce: `Vrai ou faux ? ${q}`, mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: ["Pense à l'interprétation en aire.", "Attention au signe de la fonction.", "Cherche un contre-exemple simple si tu penses que c'est faux."],
+      solution: `**${v ? "Vrai" : "Faux"}.** ${s}` };
+  };
+
+
+  /* ---------- Terminale maths complémentaires, chapitre 12 : intégration (préfixe tin-) ---------- */
+  FIGURES["tin-aire"] = () => graph({ xmin: -0.5, xmax: 5.5, ymin: -0.4, ymax: 5.5, h: 250, curves: [{ f: (x) => 0.25 * x * x - x + 3, a: 0, b: 5, closed: false, label: "𝒞", lx: 5, dx: -10, dy: -4 }], aires: [{ f: (x) => 0.25 * x * x - x + 3, a: 1, b: 4 }], marques: [{ x: 2.5, y: 0.9, texte: "𝒜" }], aria: "Aire du domaine sous la courbe, au-dessus de l'axe, entre les droites x = 1 et x = 4 : c'est l'intégrale de 1 à 4 de f" });
+  FIGURES["tin-rectangles"] = () => graph({ xmin: -0.08, xmax: 1.12, ymin: -0.08, ymax: 1.12, xstep: 0.25, ystep: 0.25, xetiq: 0.5, yetiq: 0.5, h: 260, rects: [0, 1, 2, 3].map((k) => ({ a: k / 4, b: (k + 1) / 4, h: (k / 4) ** 2 })), curves: [{ f: (x) => x * x, a: 0, b: 1.05, closed: false, label: "y = x²", lx: 0.8, dx: -6, dy: -6 }], aria: "Quatre rectangles sous la parabole y = x² entre 0 et 1 : leur aire totale 0,21875 approche par défaut l'intégrale 1/3" });
+  FIGURES["tin-moyenne"] = () => graph({ xmin: -0.3, xmax: 4.4, ymin: -0.3, ymax: 4.6, h: 250, curves: [{ f: (x) => x * (4 - x), a: 0, b: 4, closed: false }], aires: [{ f: (x) => x * (4 - x), a: 0, b: 4 }], hlines: [{ y: 8 / 3, label: "μ ≈ 2,67" }], aria: "Parabole y = x(4 − x) entre 0 et 4 et sa valeur moyenne 8/3 : le rectangle de hauteur μ a la même aire que le domaine sous la courbe" });
+  FIGURES["tin-entre"] = () => graph({ xmin: -0.3, xmax: 2.5, ymin: -0.3, ymax: 4.5, h: 250, curves: [{ f: (x) => 2 * x, a: 0, b: 2.2, closed: false, label: "y = 2x", lx: 1.1, dx: -8, dy: -8 }, { f: (x) => x * x, a: 0, b: 2.1, closed: false, label: "y = x²", lx: 1.6, dx: 34, dy: 14 }], aires: [{ f: (x) => 2 * x, g: (x) => x * x, a: 0, b: 2 }], aria: "Domaine entre la droite y = 2x (au-dessus) et la parabole y = x² entre 0 et 2 : son aire vaut 4/3" });
+  FIGURES["tin-signe"] = () => graph({ xmin: -1.5, xmax: 3.5, ymin: -2.5, ymax: 2.5, h: 240, curves: [{ f: (x) => x - 1, a: -1, b: 3, closed: false, label: "y = x − 1", lx: 3, dx: -4, dy: -4 }], aires: [{ f: (x) => x - 1, a: -1, b: 1, neg: true }, { f: (x) => x - 1, a: 1, b: 3 }], aria: "Droite y = x − 1 entre −1 et 3 : une partie sous l'axe (comptée négativement) entre −1 et 1, une partie au-dessus entre 1 et 3 ; l'intégrale vaut 0" });
+
+  GEN["tin-aire-geo"] = function () {
+    const m = pick([0, 0.5, 1, -0.5, 2]), a = rand(0, 2), b = a + rand(2, 4), p = m < 0 ? rand(4, 6) : rand(1, 3), f = (x) => m * x + p;
+    const v = ((f(a) + f(b)) / 2) * (b - a), ymax = Math.max(f(a), f(b)) + 1;
+    const fx = m === 0 ? `${p}` : `${m === 1 ? "" : fr(m)}x + ${p}`;
+    return { enonce: `Calcule $\\displaystyle\\int_{${a}}^{${b}} (${fx})\\,\\mathrm{d}x$ en utilisant une aire (la fonction est positive sur l'intervalle).`, mode: "nombre", prefixe: "Intégrale =", attendu: +v.toFixed(4), tolerance: 0.001,
+      figure: graph({ xmin: -0.5, xmax: b + 1, ymin: -0.4, ymax: ymax, h: 220, curves: [{ f, a: -0.3, b: b + 0.7, closed: false }], aires: [{ f, a, b }], aria: `Domaine sous la droite entre x = ${a} et x = ${b}` }),
+      aides: ["L'intégrale d'une fonction positive est l'aire sous la courbe, en unités d'aire.", m === 0 ? "Le domaine est un rectangle." : "Le domaine est un trapèze (côtés parallèles verticaux).", `Aire = $\\dfrac{f(${a}) + f(${b})}{2} \\times (${b} - ${a})$ avec $f(${a}) = ${fr(f(a))}$ et $f(${b}) = ${fr(f(b))}$.`],
+      solution: `Le domaine est un ${m === 0 ? "rectangle" : "trapèze"} : $\\dfrac{${fr(f(a))} + ${fr(f(b))}}{2} \\times ${b - a} = ${fr(v)}$ unités d'aire.` };
+  };
+
+  GEN["tin-chasles"] = function () {
+    const a = rand(0, 2), b = a + rand(1, 3), c = b + rand(1, 3), u = rand(2, 9), v = rand(2, 9), t = rand(0, 2);
+    if (t === 0) return { enonce: `On sait que $\\displaystyle\\int_{${a}}^{${b}} f(x)\\,\\mathrm{d}x = ${u}$ et $\\displaystyle\\int_{${b}}^{${c}} f(x)\\,\\mathrm{d}x = ${v}$. Calcule $\\displaystyle\\int_{${a}}^{${c}} f(x)\\,\\mathrm{d}x$.`, mode: "nombre", prefixe: "Intégrale =", attendu: u + v,
+      aides: ["Relation de Chasles : on peut découper l'intervalle.", `$\\displaystyle\\int_{${a}}^{${c}} = \\int_{${a}}^{${b}} + \\int_{${b}}^{${c}}$.`, `$${u} + ${v}$.`],
+      solution: `Chasles : $\\displaystyle\\int_{${a}}^{${c}} f = ${u} + ${v} = ${u + v}$.` };
+    if (t === 1) return { enonce: `On sait que $\\displaystyle\\int_{${a}}^{${c}} f(x)\\,\\mathrm{d}x = ${u + v}$ et $\\displaystyle\\int_{${a}}^{${b}} f(x)\\,\\mathrm{d}x = ${u}$. Calcule $\\displaystyle\\int_{${b}}^{${c}} f(x)\\,\\mathrm{d}x$.`, mode: "nombre", prefixe: "Intégrale =", attendu: v,
+      aides: ["Relation de Chasles.", `$\\displaystyle\\int_{${a}}^{${c}} = \\int_{${a}}^{${b}} + \\int_{${b}}^{${c}}$.`, `$${u + v} - ${u}$.`],
+      solution: `$\\displaystyle\\int_{${b}}^{${c}} f = ${u + v} - ${u} = ${v}$.` };
+    const k = rand(2, 5);
+    return { enonce: `On sait que $\\displaystyle\\int_{${a}}^{${b}} f(x)\\,\\mathrm{d}x = ${u}$ et $\\displaystyle\\int_{${a}}^{${b}} g(x)\\,\\mathrm{d}x = ${v}$. Calcule $\\displaystyle\\int_{${a}}^{${b}} \\big(${k}f(x) + g(x)\\big)\\,\\mathrm{d}x$.`, mode: "nombre", prefixe: "Intégrale =", attendu: k * u + v,
+      aides: ["Linéarité : l'intégrale d'une somme est la somme des intégrales.", `$\\displaystyle\\int (${k}f + g) = ${k}\\int f + \\int g$.`, `$${k} \\times ${u} + ${v}$.`],
+      solution: `Linéarité : $${k} \\times ${u} + ${v} = ${k * u + v}$.` };
+  };
+
+  GEN["tin-calcul"] = function () {
+    const al = pick([1, 2, -1]), be = rand(-3, 4), ga = rand(-4, 5), a = rand(-1, 1), b = a + rand(1, 3);
+    const F = (x) => al * x ** 3 + be * x * x + ga * x, I = F(b) - F(a);
+    const f = poly([3 * al, 2 * be, ga]), Fs = poly([al, be, ga, 0]);
+    return { enonce: `Calcule $\\displaystyle\\int_{${a}}^{${b}} (${f})\\,\\mathrm{d}x$.`, mode: "nombre", prefixe: "Intégrale =", attendu: I,
+      erreurs: [{ valeur: F(b) + F(a), message: "C'est $F(b) - F(a)$, pas $F(b) + F(a)$." }, { valeur: F(a) - F(b), message: "Attention à l'ordre : $F(b) - F(a)$, la borne du haut d'abord." }],
+      aides: ["Cherche une primitive $F$ de la fonction.", `$F(x) = ${Fs}$.`, `$\\displaystyle\\int_a^b f(x)\\,\\mathrm{d}x = F(b) - F(a) = F(${b}) - F(${a})$.`],
+      solution: `Une primitive est $F(x) = ${Fs}$. Donc l'intégrale vaut $F(${b}) - F(${a}) = ${F(b)} ${sg(-F(a))} = ${I}$.`.replace("- -", "+ ") };
+  };
+
+  GEN["tin-calcul-exp"] = function () {
+    const T = [
+      () => { const k = pick([1, 2, 3]); return [`\\displaystyle\\int_{0}^{${k}} e^{x}\\,\\mathrm{d}x`, Math.exp(k) - 1, `Une primitive de $e^x$ est $e^x$ : $e^{${k}} - e^0 = e^{${k}} - 1$`]; },
+      () => { const k = pick([2, 3, 4]); return [`\\displaystyle\\int_{1}^{${k}} \\dfrac{1}{x}\\,\\mathrm{d}x`, Math.log(k), `Une primitive de $\\dfrac{1}{x}$ est $\\ln x$ : $\\ln ${k} - \\ln 1 = \\ln ${k}$`]; },
+      () => [`\\displaystyle\\int_{1}^{e} \\dfrac{1}{x}\\,\\mathrm{d}x`, 1, "$\\ln e - \\ln 1 = 1 - 0 = 1$"],
+      () => { const k = pick([2, 0.5, -1]); return [`\\displaystyle\\int_{0}^{1} e^{${fr(k)}x}\\,\\mathrm{d}x`.replace("e^{-1x}", "e^{-x}"), (Math.exp(k) - 1) / k, `Une primitive est $\\dfrac{1}{${fr(k)}}e^{${fr(k)}x}$ : $\\dfrac{e^{${fr(k)}} - 1}{${fr(k)}}$`]; },
+      () => { const k = pick([1, 2]); return [`\\displaystyle\\int_{0}^{${k}} 2x e^{x^2}\\,\\mathrm{d}x`, Math.exp(k * k) - 1, `Forme $u'e^u$, primitive $e^{x^2}$ : $e^{${k * k}} - 1$`]; }
+    ];
+    const [e, v, s] = pick(T)();
+    return { enonce: `Calcule $${e}$ (arrondi au centième).`, mode: "nombre", prefixe: "Intégrale ≈", attendu: +v.toFixed(2), tolerance: 0.006,
+      aides: ["Trouve une primitive $F$ (exponentielle, logarithme, forme $u'e^u$).", "L'intégrale vaut $F(b) - F(a)$.", "Calcule à la calculatrice et arrondis."],
+      solution: `${s.replace(/e\^\{1\}/g, "e")}${Number.isInteger(v) ? "" : ` $\\approx ${fr(+v.toFixed(2))}$`}.` };
+  };
+
+  GEN["tin-moyenne"] = function () {
+    const t = rand(0, 1);
+    if (t === 0) { const al = rand(1, 3), ga = rand(0, 6), a = 0, b = rand(1, 3), I = al * b ** 3 + ga * b, mu = I / (b - a);
+      return { enonce: `Calcule la valeur moyenne de $f(x) = ${poly([3 * al, 0, ga])}$ sur $[0\\,;${b}]$ (arrondi au centième si besoin).`, mode: "nombre", prefixe: "$\\mu \\approx$", attendu: +mu.toFixed(2), tolerance: 0.006,
+        erreurs: [{ valeur: +I.toFixed(2), message: "Tu as calculé l'intégrale : il faut encore diviser par la longueur de l'intervalle." }],
+        aides: ["$\\mu = \\dfrac{1}{b - a}\\displaystyle\\int_a^b f(x)\\,\\mathrm{d}x$.", `Une primitive est $F(x) = ${poly([al, 0, ga, 0])}$.`, `$\\displaystyle\\int_0^{${b}} f = F(${b}) - F(0) = ${I}$, puis divise par $${b}$.`],
+        solution: `$\\mu = \\dfrac{1}{${b}} \\times ${I} ${Number.isInteger(mu) ? "=" : "\\approx"} ${fr(+mu.toFixed(2))}$.` }; }
+    const M = pick([30, 31, 32]), k = pick([0.1, 0.15, 0.2, 0.25]), mu = M - 12 * k;
+    return { enonce: `À Mamoudzou, la température (en °C) entre $6$ h et $18$ h est modélisée par $T(t) = ${M} - ${fr(k)}(t - 12)^2$. On admet que $\\displaystyle\\int_6^{18} (t - 12)^2\\,\\mathrm{d}t = 144$. Calcule la température moyenne entre $6$ h et $18$ h.`, mode: "nombre", prefixe: "$\\mu =$", suffixe: "°C", attendu: +mu.toFixed(2), tolerance: 0.006,
+      erreurs: [{ valeur: M, message: "$" + M + "$ °C, c'est la température maximale (à midi), pas la moyenne." }],
+      aides: ["$\\mu = \\dfrac{1}{18 - 6}\\displaystyle\\int_6^{18} T(t)\\,\\mathrm{d}t$.", `Linéarité : $\\displaystyle\\int_6^{18} T = ${M} \\times 12 - ${fr(k)} \\times 144$.`, "Divise par $12$."],
+      solution: `$\\mu = \\dfrac{1}{12}\\left(${12 * M} - ${fr(k)} \\times 144\\right) = ${M} - ${fr(12 * k)} = ${fr(mu)}$ °C.` };
+  };
+
+  GEN["tin-encadrer"] = function () {
+    const a = rand(0, 2), b = a + rand(1, 3), c = rand(1, 5), f = (x) => x * x + c, lo = (b - a) * f(a), hi = (b - a) * f(b);
+    const bon = `$${lo} \\leqslant I \\leqslant ${hi}$`, ch = melangeChoix(bon, [`$${f(a)} \\leqslant I \\leqslant ${f(b)}$`, `$${2 * lo} \\leqslant I \\leqslant ${2 * hi}$`, `$${hi} \\leqslant I \\leqslant ${2 * hi}$`, `$0 \\leqslant I \\leqslant ${f(b)}$`]);
+    return { enonce: `$f(x) = x^2 + ${c}$ est croissante et positive sur $[${a}\\,;${b}]$. Quel encadrement de $I = \\displaystyle\\int_{${a}}^{${b}} f(x)\\,\\mathrm{d}x$ est correct ?`, mode: "choix", choix: ch.choix, attendu: ch.attendu,
+      aides: ["Pour $x$ dans $[a\\,;b]$ : $f(a) \\leqslant f(x) \\leqslant f(b)$.", "On intègre l'encadrement : $(b - a)f(a) \\leqslant I \\leqslant (b - a)f(b)$.", `$f(${a}) = ${f(a)}$, $f(${b}) = ${f(b)}$, $b - a = ${b - a}$.`],
+      solution: `Rectangles sous et au-dessus de la courbe : $${b - a} \\times ${f(a)} \\leqslant I \\leqslant ${b - a} \\times ${f(b)}$, soit ${bon}.` };
+  };
+
+  GEN["tin-entre-courbes"] = function () {
+    const m = rand(1, 4), A = m ** 3 / 6;
+    return { enonce: `Calcule l'aire du domaine compris entre la droite $y = ${m === 1 ? "" : m}x$ et la parabole $y = x^2$, pour $x$ entre $0$ et $${m}$ (arrondi au centième).`, mode: "nombre", prefixe: "Aire ≈", suffixe: "u.a.", attendu: +A.toFixed(2), tolerance: 0.006,
+      figure: graph({ xmin: -0.3, xmax: m + 0.5, ymin: -0.3, ymax: m * m + 0.6, ystep: m > 2 ? 2 : 1, h: 230, curves: [{ f: (x) => m * x, a: 0, b: m + 0.2, closed: false }, { f: (x) => x * x, a: 0, b: Math.min(m + 0.2, Math.sqrt(m * m + 0.6)), closed: false }], aires: [{ f: (x) => m * x, g: (x) => x * x, a: 0, b: m }], aria: "Domaine entre la droite et la parabole" }),
+      aides: [`Sur $[0\\,;${m}]$, la droite est au-dessus : $${m}x - x^2 \\geqslant 0$.`, `Aire $= \\displaystyle\\int_0^{${m}} (${m === 1 ? "" : m}x - x^2)\\,\\mathrm{d}x$.`, `Primitive : $\\dfrac{${m}x^2}{2} - \\dfrac{x^3}{3}$.`],
+      solution: `$\\displaystyle\\int_0^{${m}} (${m === 1 ? "" : m}x - x^2)\\,\\mathrm{d}x = \\dfrac{${m ** 3}}{2} - \\dfrac{${m ** 3}}{3} = \\dfrac{${m ** 3}}{6} \\approx ${fr(+A.toFixed(2))}$ u.a.` };
+  };
+
+  GEN["tin-signe"] = function () {
+    const c = rand(1, 3), a = c - rand(1, 3), b = c + rand(1, 3), I = ((b - c) ** 2 - (c - a) ** 2) / 2, t = rand(0, 1);
+    if (t === 0) return { enonce: `Calcule $\\displaystyle\\int_{${a}}^{${b}} (x - ${c})\\,\\mathrm{d}x$. (La fonction change de signe en $${c}$.)`, mode: "nombre", prefixe: "Intégrale =", attendu: I,
+      figure: graph({ xmin: Math.min(a, 0) - 0.5, xmax: b + 0.5, ymin: a - c - 0.5, ymax: b - c + 0.5, h: 220, curves: [{ f: (x) => x - c, a: a - 0.3, b: b + 0.3, closed: false }], aires: [{ f: (x) => x - c, a, b: c, neg: true }, { f: (x) => x - c, a: c, b }], aria: "Partie sous l'axe comptée négativement, partie au-dessus comptée positivement" }),
+      erreurs: [{ valeur: ((b - c) ** 2 + (c - a) ** 2) / 2, message: "Ça, c'est l'aire totale. L'intégrale compte négativement la partie sous l'axe." }],
+      aides: ["Une primitive de $x - " + c + "$ est $\\dfrac{x^2}{2} - " + c + "x$.", "Ou bien : aire au-dessus de l'axe moins aire en dessous (deux triangles).", `Triangles : $\\dfrac{${b - c}^2}{2}$ et $\\dfrac{${c - a}^2}{2}$.`],
+      solution: `Aire au-dessus $\\dfrac{${(b - c) ** 2}}{2}$, aire en dessous $\\dfrac{${(c - a) ** 2}}{2}$ : l'intégrale vaut $${fr((b - c) ** 2 / 2)} - ${fr((c - a) ** 2 / 2)} = ${fr(I)}$.` };
+    const ch = melangeChoix("l'aire au-dessus de l'axe moins l'aire en dessous", ["l'aire totale entre la courbe et l'axe", "toujours un nombre positif", "l'aire en dessous moins l'aire au-dessus"]);
+    return { enonce: "Pour une fonction continue de signe quelconque, $\\displaystyle\\int_a^b f(x)\\,\\mathrm{d}x$ (avec $a < b$) est égale à :", mode: "choix", choix: ch.choix, attendu: ch.attendu,
+      aides: ["Là où $f \\geqslant 0$, l'aire compte positivement.", "Là où $f \\leqslant 0$, elle compte négativement.", "Une intégrale peut donc être négative ou nulle."],
+      solution: "Aire « au-dessus » moins aire « en dessous ». Par exemple $\\displaystyle\\int_{-1}^{1} x\\,\\mathrm{d}x = 0$." };
+  };
+
+  GEN["tin-fonction-integrale"] = function () {
+    const a = rand(0, 2), T = [
+      [`$F(x) = \\displaystyle\\int_{${a}}^{x} f(t)\\,\\mathrm{d}t$. Que vaut $F'(x)$ ?`, "$f(x)$", ["$f'(x)$", "$F(x)$", `$f(x) - f(${a})$`], "$F$ est la primitive de $f$ qui s'annule en $" + a + "$ : $F' = f$."],
+      [`$F(x) = \\displaystyle\\int_{${a}}^{x} f(t)\\,\\mathrm{d}t$. Que vaut $F(${a})$ ?`, "$0$", [`$f(${a})$`, "$1$", `$${a}$`], "Les deux bornes sont égales : l'intégrale est nulle."],
+      [`$f$ est continue et positive. Comment varie $F(x) = \\displaystyle\\int_{${a}}^{x} f(t)\\,\\mathrm{d}t$ pour $x \\geqslant ${a}$ ?`, "$F$ est croissante", ["$F$ est décroissante", "$F$ est constante", "On ne peut pas savoir"], "$F' = f \\geqslant 0$ : $F$ est croissante (l'aire augmente quand $x$ augmente)."],
+      [`$F(x) = \\displaystyle\\int_{0}^{x} e^{-t^2}\\,\\mathrm{d}t$. Que vaut $F'(1)$ ?`, "$e^{-1}$", ["$0$", "$-2e^{-1}$", "$1$"], "$F'(x) = e^{-x^2}$, donc $F'(1) = e^{-1}$, sans savoir calculer $F$."]
+    ], [q, r, f, s] = pick(T), c = melangeChoix(r, f);
+    return { enonce: q, mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: ["Théorème : si $f$ est continue, $x \\mapsto \\displaystyle\\int_a^x f(t)\\,\\mathrm{d}t$ est dérivable de dérivée $f$.", "C'est la primitive de $f$ qui s'annule en $a$.", "Le signe de $f$ donne les variations de $F$."],
+      solution: s };
+  };
+
+  GEN["tin-parcelle"] = function () {
+    const L = pick([20, 30, 40]), k = pick([0.05, 0.1, 0.15]), A = (k * L ** 3) / 6;
+    return { enonce: `Une parcelle au bord du lagon est limitée par une route droite (l'axe des abscisses) et par la plage, modélisée par la courbe $y = ${fr(k)}x(${L} - x)$ pour $x$ entre $0$ et $${L}$ (en mètres). Calcule l'aire de la parcelle (arrondie au m²).`, mode: "nombre", prefixe: "Aire ≈", suffixe: "m²", attendu: Math.round(A), tolerance: 1.01,
+      aides: [`Aire $= \\displaystyle\\int_0^{${L}} ${fr(k)}(${L}x - x^2)\\,\\mathrm{d}x$.`, `Primitive : $${fr(k)}\\left(\\dfrac{${L}x^2}{2} - \\dfrac{x^3}{3}\\right)$.`, `Calcule en $${L}$ (en $0$ elle vaut $0$).`],
+      solution: `$${fr(k)} \\times \\left(\\dfrac{${L ** 3}}{2} - \\dfrac{${L ** 3}}{3}\\right) = ${fr(k)} \\times \\dfrac{${L ** 3}}{6} \\approx ${Math.round(A)}$ m². On retrouve la quadrature de la parabole d'Archimède : ce sont les $\\dfrac{2}{3}$ du rectangle de largeur $${L}$ et de hauteur le sommet $${fr(k * L * L / 4)}$.` };
+  };
+
+  GEN["tin-python"] = function () {
+    const t = rand(0, 2);
+    if (t === 0) { const n = pick([2, 4, 5]); let S = 0; for (let k = 0; k < n; k++) S += (k / n) ** 2 / n;
+      return { enonce: "Méthode des rectangles (à gauche) pour $\\displaystyle\\int_0^1 x^2\\,\\mathrm{d}x$ :\n\n```python\ndef rectangles(n):\n    h = 1 / n\n    s = 0\n    for k in range(n):\n        s = s + h * (k * h) ** 2\n    return s\n```\n\n" + `Que renvoie rectangles(${n}) ? (Arrondi au millième.)`, mode: "nombre", prefixe: "Résultat ≈", attendu: +S.toFixed(3), tolerance: 0.0015,
+        aides: [`$h = \\dfrac{1}{${n}}$ et on additionne $h \\times f(kh)$ pour $k$ de $0$ à $${n - 1}$.`, "Chaque terme est l'aire d'un rectangle de largeur $h$.", "Additionne les aires des rectangles."],
+        solution: `$${fr(+S.toFixed(4))}$ environ, une valeur approchée par défaut de $\\dfrac{1}{3} \\approx 0{,}333$ (meilleure quand $n$ augmente).` }; }
+    if (t === 1) { const n = pick([2, 4]); let S = 0; for (let k = 0; k < n; k++) S += (((k / n) ** 2 + ((k + 1) / n) ** 2) / 2) / n;
+      return { enonce: "Méthode des trapèzes pour $\\displaystyle\\int_0^1 x^2\\,\\mathrm{d}x$ :\n\n```python\ndef trapezes(n):\n    h = 1 / n\n    s = 0\n    for k in range(n):\n        s = s + h * ((k * h) ** 2 + ((k + 1) * h) ** 2) / 2\n    return s\n```\n\n" + `Que renvoie trapezes(${n}) ? (Arrondi au millième.)`, mode: "nombre", prefixe: "Résultat ≈", attendu: +S.toFixed(3), tolerance: 0.0015,
+        aides: ["Chaque trapèze a pour aire $h \\times \\dfrac{f(x_k) + f(x_{k+1})}{2}$.", `$h = \\dfrac{1}{${n}}$.`, "Additionne les aires des trapèzes."],
+        solution: `$${fr(+S.toFixed(4))}$ environ : par excès cette fois, et plus proche de $\\dfrac{1}{3}$ que les rectangles.` }; }
+    const N = pick([1000, 10000]), p = pick([0.31, 0.33, 0.34, 0.785]), dans = Math.round(p * N), B = p > 0.5 ? 1 : 2;
+    return { enonce: `Méthode de Monte-Carlo : on tire $${N}$ points au hasard dans un rectangle d'aire $${B}$ contenant le domaine sous une courbe. $${dans}$ points tombent sous la courbe. Quelle estimation de l'intégrale obtient-on ?`, mode: "nombre", prefixe: "Estimation ≈", attendu: +(dans / N * B).toFixed(4), tolerance: 0.0006,
+      aides: ["La proportion de points sous la courbe estime la part de l'aire du rectangle occupée par le domaine.", `Proportion : $\\dfrac{${dans}}{${N}}$.`, `Multiplie par l'aire du rectangle, $${B}$.`],
+      solution: `$\\dfrac{${dans}}{${N}} \\times ${B} = ${fr(+(dans / N * B).toFixed(4))}$. Plus il y a de points, meilleure est l'estimation.` };
+  };
+
+  GEN["tin-logique"] = function () {
+    const T = [
+      ["« Si $f$ est positive sur $[a\\,;b]$, alors $\\displaystyle\\int_a^b f(x)\\,\\mathrm{d}x \\geqslant 0$. »", true, "C'est une aire (positivité de l'intégrale)."],
+      ["« Une intégrale est toujours positive. »", false, "Si $f$ est négative, l'intégrale est négative : $\\displaystyle\\int_0^1 (-1)\\,\\mathrm{d}x = -1$."],
+      ["« $\\displaystyle\\int_a^a f(x)\\,\\mathrm{d}x = 0$. »", true, "Le domaine est réduit à un segment."],
+      ["« $\\displaystyle\\int_a^b f(x)\\,\\mathrm{d}x = F(b) - F(a)$ pour toute primitive $F$ de $f$. »", true, "La constante disparaît dans la différence."],
+      ["« L'aire entre deux courbes est $\\displaystyle\\int_a^b (f - g)$, quel que soit l'ordre de $f$ et $g$. »", false, "Il faut la courbe du dessus moins celle du dessous : $f \\geqslant g$."],
+      ["« La valeur moyenne de $f$ sur $[a\\,;b]$ est $\\dfrac{f(a) + f(b)}{2}$. »", false, "C'est $\\dfrac{1}{b - a}\\displaystyle\\int_a^b f(x)\\,\\mathrm{d}x$ ; les deux coïncident seulement pour une fonction affine."],
+      ["« Le symbole $\\displaystyle\\int$ est un S allongé, pour « somme ». »", true, "L'intégrale est la limite des sommes $\\sum f(x_k) \\times h$ des aires des rectangles (Leibniz)."],
+      ["« Plus on prend de rectangles, meilleure est l'approximation de l'intégrale. »", true, "Les sommes de rectangles tendent vers l'intégrale quand $n \\to +\\infty$."]
+    ];
+    const [q, v, s] = pick(T), c = melangeChoix(v ? "Vrai" : "Faux", [v ? "Faux" : "Vrai"]);
+    return { enonce: `Vrai ou faux ? ${q}`, mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: ["Pense à l'interprétation en aire.", "Attention au signe de la fonction.", "Cherche un contre-exemple simple si tu penses que c'est faux."],
+      solution: `**${v ? "Vrai" : "Faux"}.** ${s}` };
+  };
+
+
   /* Séries « flash » d'un thème : mélange de ses générateurs */
   const THEMES = {
     "am-flash-cn": ["am-comparer", "am-fractions", "am-puissances", "am-ecritures", "am-ordre-grandeur", "am-coherence", "auto-conversions"],
@@ -12830,7 +13587,7 @@
 
 
   /* Une « erreur connue » ne doit jamais coïncider avec la bonne réponse (à la tolérance près) */
-  Object.keys(GEN).filter((k) => /^(auto|ld|am|cd|ar|cl|fa|ve|st|vx|tc|co|dr|fr|sg|pc|ec|sy|su|s2|pi|s5|d1|tr|d2|vr|ps|ex|va|sc|gr|sm|ea|tsu|tag|tlf|tcb|tsd|tdc|tln|tcv|tlg|tpe)-/.test(k)).forEach((k) => {
+  Object.keys(GEN).filter((k) => /^(auto|ld|am|cd|ar|cl|fa|ve|st|vx|tc|co|dr|fr|sg|pc|ec|sy|su|s2|pi|s5|d1|tr|d2|vr|ps|ex|va|sc|gr|sm|ea|tsu|tag|tlf|tcb|tsd|tdc|tln|tcv|tlg|tpe|tin)-/.test(k)).forEach((k) => {
     const g = GEN[k];
     GEN[k] = (i) => { const q = g(i); if (q.erreurs) q.erreurs = q.erreurs.filter((e) => Math.abs(e.valeur - q.attendu) >= (q.tolerance || 1e-9)); return q; };
   });
