@@ -13571,6 +13571,441 @@
   };
 
 
+  /* ---------- Terminale maths complémentaires, chapitre 13 : lois à densité (préfixe tld-) ---------- */
+  FIGURES["tld-densite"] = () => graph({ xmin: -0.12, xmax: 1.25, ymin: -0.15, ymax: 2.3, xstep: 0.25, xetiq: 0.5, ystep: 0.5, yetiq: 1, h: 240, curves: [{ f: (x) => 2 * x, a: 0, b: 1, label: "f(x) = 2x", lx: 0.55, dx: -8, dy: -8 }], aires: [{ f: (x) => 2 * x, a: 0.5, b: 0.8 }], marques: [{ x: 0.66, y: 0.35, texte: "P" }], aria: "Densité f(x) = 2x sur [0 ; 1] : la probabilité P(0,5 ⩽ X ⩽ 0,8) est l'aire hachurée, 0,39 ; l'aire totale du triangle vaut 1" });
+  FIGURES["tld-uniforme"] = () => graph({ xmin: -3, xmax: 33, ymin: -0.012, ymax: 0.05, xstep: 5, xetiq: 10, ystep: 0.01, yetiq: 0.02, h: 220, padL: 34, xlabel: "min", curves: [{ f: () => 1 / 30, a: 0, b: 30, label: "1/30", lx: 28, dx: 2, dy: -8 }], aires: [{ f: () => 1 / 30, a: 10, b: 30 }], aria: "Loi uniforme sur [0 ; 30] : densité constante 1/30 ; la probabilité d'attendre plus de 10 minutes est l'aire du rectangle de 10 à 30, soit 2/3" });
+  FIGURES["tld-exponentielle"] = () => graph({ xmin: -0.4, xmax: 8.4, ymin: -0.08, ymax: 0.6, ystep: 0.1, yetiq: 0.2, h: 230, xlabel: "t", curves: [{ f: (x) => 0.5 * Math.exp(-0.5 * x), a: 0, b: 8, closed: false, label: "λe^(−λt)", lx: 1.2, dx: 70, dy: -14 }], aires: [{ f: (x) => 0.5 * Math.exp(-0.5 * x), a: 2, b: 8 }], aria: "Densité de la loi exponentielle de paramètre 0,5 : l'aire hachurée à droite de 2 vaut P(X > 2) = e^(−1) ≈ 0,37" }).replace("λe^(−λt)", "λe<tspan dy=\"-5\" font-size=\"9\">−λt</tspan>");
+
+  GEN["tld-densite"] = function () {
+    const t = rand(0, 2);
+    if (t === 0) { const a = rand(0, 3), b = a + pick([2, 4, 5, 10]); return { enonce: `$f(x) = k$ sur $[${a}\\,;${b}]$ (et $0$ ailleurs). Pour quelle valeur de $k$ la fonction $f$ est-elle une densité ? (Valeur décimale.)`, mode: "nombre", prefixe: "$k =$", attendu: 1 / (b - a), tolerance: 0.0001,
+      aides: ["Une densité est positive et l'aire totale sous la courbe vaut $1$.", `L'aire est celle d'un rectangle de largeur $${b - a}$ et de hauteur $k$.`, `$${b - a}k = 1$.`],
+      solution: `$${b - a}k = 1$, donc $k = \\dfrac{1}{${b - a}} = ${fr(1 / (b - a))}$ : c'est la loi uniforme sur $[${a}\\,;${b}]$.` }; }
+    if (t === 1) { const c = pick([1, 2, 4, 5]); return { enonce: `$f(x) = kx$ sur $[0\\,;${c}]$ (et $0$ ailleurs). Pour quelle valeur de $k$ la fonction $f$ est-elle une densité ? (Valeur décimale.)`, mode: "nombre", prefixe: "$k =$", attendu: 2 / (c * c), tolerance: 0.0001,
+      aides: ["L'aire totale sous la courbe doit valoir $1$.", `$\\displaystyle\\int_0^{${c}} kx\\,\\mathrm{d}x = k \\times \\dfrac{${c * c}}{2}$.`, `Résous $k \\times \\dfrac{${c * c}}{2} = 1$.`],
+      solution: `$\\displaystyle\\int_0^{${c}} kx\\,\\mathrm{d}x = \\dfrac{${c * c}k}{2} = 1$, donc $k = \\dfrac{2}{${c * c}} = ${fr(2 / (c * c))}$.` }; }
+    const n = pick([2, 3]); return { enonce: `$f(x) = kx^{${n}}$ sur $[0\\,;1]$ (et $0$ ailleurs). Pour quelle valeur de $k$ la fonction $f$ est-elle une densité ?`, mode: "nombre", prefixe: "$k =$", attendu: n + 1,
+      aides: ["L'intégrale de $f$ sur $[0\\,;1]$ doit valoir $1$.", `Une primitive de $x^{${n}}$ est $\\dfrac{x^{${n + 1}}}{${n + 1}}$.`, `$\\dfrac{k}{${n + 1}} = 1$.`],
+      solution: `$\\displaystyle\\int_0^1 kx^{${n}}\\,\\mathrm{d}x = \\dfrac{k}{${n + 1}} = 1$, donc $k = ${n + 1}$.` };
+  };
+
+  GEN["tld-proba-densite"] = function () {
+    const n = pick([1, 2]), a = pick([0, 0.1, 0.2, 0.3, 0.5]), b = +(a + pick([0.2, 0.3, 0.4, 0.5])).toFixed(1), p = b ** (n + 1) - a ** (n + 1);
+    const fx = n === 1 ? "2x" : "3x^2", Fx = n === 1 ? "x^2" : "x^3";
+    return { enonce: `$X$ a pour densité $f(x) = ${fx}$ sur $[0\\,;1]$. Calcule $P(${fr(a)} \\leqslant X \\leqslant ${fr(b)})$ (arrondi au millième).`, mode: "nombre", prefixe: "$P \\approx$", attendu: +p.toFixed(3), tolerance: 0.0006,
+      erreurs: [{ valeur: +(b - a).toFixed(3), message: "Ce serait vrai pour une loi uniforme. Ici il faut intégrer la densité." }],
+      aides: ["$P(a \\leqslant X \\leqslant b) = \\displaystyle\\int_a^b f(x)\\,\\mathrm{d}x$ (aire sous la densité).", `Une primitive de $${fx}$ est $${Fx}$.`, `Calcule $${fr(b)}^{${n + 1}} - ${fr(a)}^{${n + 1}}$.`],
+      solution: `$\\big[${Fx}\\big]_{${fr(a)}}^{${fr(b)}} = ${fr(b)}^{${n + 1}} - ${fr(a)}^{${n + 1}} \\approx ${fr(+p.toFixed(3))}$.` };
+  };
+
+  GEN["tld-uniforme"] = function () {
+    const t = rand(0, 2), T = pick([15, 20, 30, 40, 60]), c = pick([5, 10]) * (T >= 30 ? 1 : 0.5);
+    if (t === 0) return { enonce: `La barge Mamoudzou – Dzaoudzi part toutes les $${T}$ minutes. Tu arrives au hasard : ton temps d'attente $X$ (en min) suit la loi uniforme sur $[0\\,;${T}]$. Calcule la probabilité d'attendre plus de $${fr(c)}$ minutes (arrondie au centième).`, mode: "nombre", prefixe: "$P \\approx$", attendu: +((T - c) / T).toFixed(2), tolerance: 0.006,
+      erreurs: [{ valeur: +(c / T).toFixed(2), message: "Ça, c'est la probabilité d'attendre **moins** de " + fr(c) + " minutes." }],
+      aides: ["Pour la loi uniforme sur $[a\\,;b]$ : $P(c \\leqslant X \\leqslant d) = \\dfrac{d - c}{b - a}$.", `Attendre plus de $${fr(c)}$ min : $X \\in [${fr(c)}\\,;${T}]$.`, `$\\dfrac{${T} - ${fr(c)}}{${T}}$.`],
+      solution: `$P(X > ${fr(c)}) = \\dfrac{${T} - ${fr(c)}}{${T}} \\approx ${fr(+((T - c) / T).toFixed(2))}$.` };
+    const a = rand(1, 5), b = a + pick([4, 6, 10]);
+    if (t === 1) return { enonce: `$X$ suit la loi uniforme sur $[${a}\\,;${b}]$. Calcule $E(X)$.`, mode: "nombre", prefixe: "$E(X) =$", attendu: (a + b) / 2,
+      aides: ["Pour la loi uniforme sur $[a\\,;b]$, $E(X) = \\dfrac{a + b}{2}$.", "C'est le milieu de l'intervalle.", `$\\dfrac{${a} + ${b}}{2}$.`],
+      solution: `$E(X) = \\dfrac{${a} + ${b}}{2} = ${fr((a + b) / 2)}$ : le milieu de l'intervalle.` };
+    const c1 = a + 1, d1 = b - 1;
+    return { enonce: `$X$ suit la loi uniforme sur $[${a}\\,;${b}]$. Calcule $P(${c1} \\leqslant X \\leqslant ${d1})$ (arrondie au centième).`, mode: "nombre", prefixe: "$P \\approx$", attendu: +((d1 - c1) / (b - a)).toFixed(2), tolerance: 0.006,
+      aides: ["La densité vaut $\\dfrac{1}{b - a}$ sur $[a\\,;b]$.", "La probabilité est l'aire d'un rectangle.", `$\\dfrac{${d1} - ${c1}}{${b} - ${a}}$.`],
+      solution: `$P = \\dfrac{${d1 - c1}}{${b - a}} \\approx ${fr(+((d1 - c1) / (b - a)).toFixed(2))}$.` };
+  };
+
+  GEN["tld-exp-proba"] = function () {
+    const l = pick([0.1, 0.2, 0.5, 0.05, 0.02]), t1 = pick([1, 2, 5, 10]), t2 = t1 + pick([2, 5, 10]), k = rand(0, 2);
+    const E = (x) => Math.exp(-l * x), Q = [
+      [`P(X \\leqslant ${t1})`, 1 - E(t1), `1 - e^{-${fr(l)} \\times ${t1}}`],
+      [`P(X > ${t1})`, E(t1), `e^{-${fr(l)} \\times ${t1}}`],
+      [`P(${t1} \\leqslant X \\leqslant ${t2})`, E(t1) - E(t2), `e^{-${fr(l)} \\times ${t1}} - e^{-${fr(l)} \\times ${t2}}`]
+    ][k];
+    return { enonce: `$X$ suit la loi exponentielle de paramètre $\\lambda = ${fr(l)}$. Calcule $${Q[0]}$ (arrondie au millième).`, mode: "nombre", prefixe: "$P \\approx$", attendu: +Q[1].toFixed(3), tolerance: 0.0006,
+      aides: ["$P(X \\leqslant t) = 1 - e^{-\\lambda t}$ et $P(X > t) = e^{-\\lambda t}$.", "$P(a \\leqslant X \\leqslant b) = e^{-\\lambda a} - e^{-\\lambda b}$.", `Ici : $${Q[2]}$.`],
+      solution: `$${Q[0]} = ${Q[2]} \\approx ${fr(+Q[1].toFixed(3))}$.` };
+  };
+
+  GEN["tld-exp-esperance"] = function () {
+    const m = pick([2, 4, 5, 10, 20, 2000, 500]), t = rand(0, 1), l = 1 / m;
+    if (t === 0) return { enonce: `La durée de vie (en ${m > 100 ? "heures" : "années"}) d'un appareil suit une loi exponentielle de durée de vie moyenne $${m}$. Quel est le paramètre $\\lambda$ ? (Valeur décimale.)`, mode: "nombre", prefixe: "$\\lambda =$", attendu: l, tolerance: l / 1000,
+      aides: ["Pour la loi exponentielle, $E(X) = \\dfrac{1}{\\lambda}$.", `$\\dfrac{1}{\\lambda} = ${m}$.`, `$\\lambda = \\dfrac{1}{${m}}$.`],
+      solution: `$\\lambda = \\dfrac{1}{${m}} = ${fr(l)}$.` };
+    const s = m * pick([0.5, 1, 2]), p = Math.exp(-s / m);
+    return { enonce: `La durée de vie (en ${m > 100 ? "heures" : "années"}) d'un appareil suit une loi exponentielle d'espérance $${m}$. Quelle est la probabilité qu'il dure plus de $${fr(s)}$ ${m > 100 ? "heures" : "ans"} ? (Arrondie au millième.)`, mode: "nombre", prefixe: "$P \\approx$", attendu: +p.toFixed(3), tolerance: 0.0006,
+      aides: ["$\\lambda = \\dfrac{1}{E(X)}$.", "$P(X > t) = e^{-\\lambda t}$.", `$e^{-${fr(s)}/${m}}$.`],
+      solution: `$\\lambda = \\dfrac{1}{${m}}$ et $P(X > ${fr(s)}) = e^{-${fr(s / m)}} \\approx ${fr(+p.toFixed(3))}$.${s === m ? " Seulement $37\\,\\%$ des appareils dépassent la durée moyenne." : ""}` };
+  };
+
+  GEN["tld-memoire"] = function () {
+    const l = pick([0.1, 0.2, 0.05]), s = pick([3, 5, 10]), t = pick([2, 4, 5]), p = Math.exp(-l * t);
+    return { enonce: `La durée de vie $X$ (en années) d'un composant suit la loi exponentielle de paramètre $${fr(l)}$. Il fonctionne déjà depuis $${s}$ ans. Quelle est la probabilité qu'il fonctionne encore au moins $${t}$ ans de plus ? (Arrondie au millième.)`, mode: "nombre", prefixe: "$P \\approx$", attendu: +p.toFixed(3), tolerance: 0.0006,
+      erreurs: [{ valeur: +Math.exp(-l * (s + t)).toFixed(3), message: "Tu as calculé $P(X > " + (s + t) + ")$. On sait déjà que $X > " + s + "$ : c'est une probabilité conditionnelle." }],
+      aides: ["On cherche $P_{X > " + s + "}(X > " + (s + t) + ")$.", "Absence de mémoire : $P_{X > s}(X > s + t) = P(X > t)$.", `$e^{-${fr(l)} \\times ${t}}$.`],
+      solution: `Absence de mémoire (durée de vie sans vieillissement) : $P_{X > ${s}}(X > ${s + t}) = P(X > ${t}) = e^{-${fr(l * t)}} \\approx ${fr(+p.toFixed(3))}$. L'âge du composant ne compte pas.` };
+  };
+
+  GEN["tld-demi-vie"] = function () {
+    const at = pick([["carbone 14", 1.21e-4, "ans"], ["iode 131", 0.0866, "jours"], ["radon 222", 0.181, "jours"], ["césium 137", 0.023, "ans"]]), T = Math.log(2) / at[1], t = rand(0, 1);
+    if (t === 0) return { enonce: `La durée de vie d'un atome de ${at[0]} suit la loi exponentielle de paramètre $\\lambda = ${fr(at[1])}$ (en ${at[2]}). Détermine $t$ tel que $P(X \\leqslant t) = 0{,}5$ (la demi-vie), arrondi à l'unité.`, mode: "nombre", prefixe: "$t \\approx$", suffixe: at[2], attendu: Math.round(T), tolerance: 1.01,
+      aides: ["$1 - e^{-\\lambda t} = 0{,}5 \\iff e^{-\\lambda t} = 0{,}5$.", "$-\\lambda t = \\ln 0{,}5 = -\\ln 2$.", "$t = \\dfrac{\\ln 2}{\\lambda}$."],
+      solution: `$t = \\dfrac{\\ln 2}{${fr(at[1])}} \\approx ${Math.round(T)}$ ${at[2]} : au bout de ce temps, la moitié des atomes se sont désintégrés.` };
+    const m = 1 / at[1];
+    return { enonce: `La durée de vie d'un atome de ${at[0]} suit la loi exponentielle de paramètre $\\lambda = ${fr(at[1])}$ (en ${at[2]}). Quelle est sa durée de vie moyenne ? (Arrondie à l'unité.)`, mode: "nombre", prefixe: "$E(X) \\approx$", suffixe: at[2], attendu: Math.round(m), tolerance: 1.01,
+      aides: ["$E(X) = \\dfrac{1}{\\lambda}$.", `$\\dfrac{1}{${fr(at[1])}}$.`, "Arrondis à l'unité."],
+      solution: `$E(X) = \\dfrac{1}{${fr(at[1])}} \\approx ${Math.round(m)}$ ${at[2]} (plus long que la demi-vie, $\\dfrac{\\ln 2}{\\lambda} \\approx ${Math.round(T)}$).` };
+  };
+
+  GEN["tld-esperance"] = function () {
+    const T = [
+      ["f(x) = 2x \\text{ sur } [0\\,;1]", 2 / 3, "\\displaystyle\\int_0^1 x \\times 2x\\,\\mathrm{d}x = \\left[\\dfrac{2x^3}{3}\\right]_0^1 = \\dfrac{2}{3}"],
+      ["f(x) = 3x^2 \\text{ sur } [0\\,;1]", 0.75, "\\displaystyle\\int_0^1 x \\times 3x^2\\,\\mathrm{d}x = \\left[\\dfrac{3x^4}{4}\\right]_0^1 = \\dfrac{3}{4}"],
+      ["f(x) = 2 - 2x \\text{ sur } [0\\,;1]", 1 / 3, "\\displaystyle\\int_0^1 (2x - 2x^2)\\,\\mathrm{d}x = 1 - \\dfrac{2}{3} = \\dfrac{1}{3}"],
+      ["f(x) = \\dfrac{x}{2} \\text{ sur } [0\\,;2]", 4 / 3, "\\displaystyle\\int_0^2 \\dfrac{x^2}{2}\\,\\mathrm{d}x = \\left[\\dfrac{x^3}{6}\\right]_0^2 = \\dfrac{4}{3}"],
+      ["f(x) = \\dfrac{1}{4} \\text{ sur } [2\\,;6]", 4, "\\displaystyle\\int_2^6 \\dfrac{x}{4}\\,\\mathrm{d}x = \\left[\\dfrac{x^2}{8}\\right]_2^6 = \\dfrac{36 - 4}{8} = 4"]
+    ], [f, v, s] = pick(T);
+    return { enonce: `$X$ a pour densité $${f}$. Calcule $E(X)$ (arrondie au centième).`, mode: "nombre", prefixe: "$E(X) \\approx$", attendu: +v.toFixed(2), tolerance: 0.006,
+      aides: ["$E(X) = \\displaystyle\\int_a^b x f(x)\\,\\mathrm{d}x$.", "Multiplie la densité par $x$, puis cherche une primitive.", "Calcule $F(b) - F(a)$."],
+      solution: `$E(X) = ${s} \\approx ${fr(+v.toFixed(2))}$.` };
+  };
+
+  GEN["tld-repartition"] = function () {
+    const T = [
+      ["La fonction de répartition de $X$ est $F(x) = P(X \\leqslant x)$. Pour la loi exponentielle de paramètre $\\lambda$, $F(x) =$ (pour $x \\geqslant 0$) :", "$1 - e^{-\\lambda x}$", ["$e^{-\\lambda x}$", "$\\lambda e^{-\\lambda x}$", "$\\dfrac{1}{\\lambda}$"], "$F(x) = \\displaystyle\\int_0^x \\lambda e^{-\\lambda t}\\,\\mathrm{d}t = \\big[-e^{-\\lambda t}\\big]_0^x = 1 - e^{-\\lambda x}$."],
+      ["Pour la loi uniforme sur $[a\\,;b]$, la fonction de répartition vaut, pour $x$ dans $[a\\,;b]$ :", "$\\dfrac{x - a}{b - a}$", ["$\\dfrac{1}{b - a}$", "$\\dfrac{b - x}{b - a}$", "$x$"], "$F(x) = \\displaystyle\\int_a^x \\dfrac{1}{b - a}\\,\\mathrm{d}t = \\dfrac{x - a}{b - a}$."],
+      ["$F$ est la fonction de répartition de $X$. $P(a < X \\leqslant b) =$", "$F(b) - F(a)$", ["$F(a) - F(b)$", "$F(b)$", "$f(b) - f(a)$"], "$P(X \\leqslant b) - P(X \\leqslant a)$."],
+      ["Comment varie une fonction de répartition ?", "elle est croissante, de $0$ à $1$", ["elle est décroissante", "elle peut dépasser $1$", "elle est constante"], "C'est une probabilité cumulée : elle augmente de $0$ à $1$ ; sa dérivée est la densité."],
+      ["Pour une loi à densité, $P(X = 2) =$", "$0$", ["$f(2)$", "$F(2)$", "$\\dfrac{1}{2}$"], "L'aire d'un segment est nulle : $\\displaystyle\\int_2^2 f = 0$."]
+    ], [q, r, f, s] = pick(T), c = melangeChoix(r, f);
+    return { enonce: q, mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: ["$F(x) = P(X \\leqslant x) = \\displaystyle\\int_a^x f(t)\\,\\mathrm{d}t$.", "$F$ est une primitive de la densité.", "Les probabilités sont des aires sous la densité."],
+      solution: s };
+  };
+
+  GEN["tld-python"] = function () {
+    const t = rand(0, 2);
+    if (t === 0) { const l = pick([0.5, 2, 0.1]), u = pick([0.5, 0.75, 0.9]), x = -Math.log(1 - u) / l;
+      return { enonce: "On simule une loi exponentielle à partir d'un nombre au hasard entre $0$ et $1$ :\n\n```python\nfrom random import random\nfrom math import log\n\ndef expo(lam):\n    u = random()\n    return -log(1 - u) / lam\n```\n\n" + `Si random() renvoie $${fr(u)}$, que renvoie expo(${l}) ? (Arrondi au centième.)`, mode: "nombre", prefixe: "Résultat ≈", attendu: +x.toFixed(2), tolerance: 0.006,
+        aides: ["log est le logarithme népérien $\\ln$.", `$x = -\\dfrac{\\ln(1 - ${fr(u)})}{${fr(l)}}$.`, `$\\ln(${fr(+(1 - u).toFixed(2))}) \\approx ${fr(+Math.log(1 - u).toFixed(4))}$.`],
+        solution: `$x = -\\dfrac{\\ln ${fr(+(1 - u).toFixed(2))}}{${fr(l)}} \\approx ${fr(+x.toFixed(2))}$. On a résolu $1 - e^{-\\lambda x} = u$ : $x$ est la valeur dont la fonction de répartition vaut $u$.` }; }
+    if (t === 1) { const n = pick([10, 12, 20, 50]);
+      return { enonce: "On additionne des nombres au hasard de la loi uniforme sur $[0\\,;1]$ :\n\n```python\nfrom random import random\n\ndef somme(n):\n    s = 0\n    for i in range(n):\n        s = s + random()\n    return s\n```\n\n" + `Autour de quelle valeur se répartissent les résultats de somme(${n}) ?`, mode: "nombre", prefixe: "Environ", attendu: n / 2,
+        aides: ["Chaque random() suit la loi uniforme sur $[0\\,;1]$, d'espérance $0{,}5$.", "L'espérance d'une somme est la somme des espérances.", `$${n} \\times 0{,}5$.`],
+        solution: `$E(S) = ${n} \\times 0{,}5 = ${fr(n / 2)}$. En répétant beaucoup de fois, l'histogramme des sommes prend une forme de cloche centrée sur $${fr(n / 2)}$.` }; }
+    const c = melangeChoix("la loi uniforme sur $[0\\,;1]$", ["la loi exponentielle", "la loi binomiale", "la loi géométrique"]);
+    return { enonce: "En Python, quelle loi suit le nombre renvoyé par random() ?", mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: ["random() renvoie un nombre décimal entre $0$ et $1$.", "Tous les sous-intervalles de même longueur ont la même probabilité.", "C'est une loi à densité constante."],
+      solution: "La loi uniforme sur $[0\\,;1]$ : c'est la base de toutes les simulations." };
+  };
+
+  GEN["tld-logique"] = function () {
+    const T = [
+      ["« Une densité est une fonction positive dont l'intégrale sur l'intervalle vaut $1$. »", true, "C'est la définition (avec la continuité)."],
+      ["« Une densité ne peut pas dépasser $1$. »", false, "La densité $f(x) = 2x$ sur $[0\\,;1]$ vaut $2$ en $1$ : c'est l'aire totale qui vaut $1$, pas la hauteur."],
+      ["« Pour une loi à densité, $P(X \\leqslant 3) = P(X < 3)$. »", true, "$P(X = 3) = 0$."],
+      ["« La loi exponentielle modélise une durée de vie sans vieillissement. »", true, "Absence de mémoire : $P_{X > s}(X > s + t) = P(X > t)$."],
+      ["« Pour la loi exponentielle, $P(X > E(X)) = 0{,}5$. »", false, "$P(X > \\dfrac{1}{\\lambda}) = e^{-1} \\approx 0{,}37$."],
+      ["« L'espérance de la loi uniforme sur $[a\\,;b]$ est le milieu de $[a\\,;b]$. »", true, "$E(X) = \\dfrac{a + b}{2}$."],
+      ["« La loi exponentielle est l'analogue continu de la loi géométrique. »", true, "Toutes deux modélisent un temps d'attente sans mémoire (ch. 10)."],
+      ["« Plus $\\lambda$ est grand, plus la durée de vie moyenne est longue. »", false, "$E(X) = \\dfrac{1}{\\lambda}$ diminue quand $\\lambda$ augmente."]
+    ];
+    const [q, v, s] = pick(T), c = melangeChoix(v ? "Vrai" : "Faux", [v ? "Faux" : "Vrai"]);
+    return { enonce: `Vrai ou faux ? ${q}`, mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: ["Une probabilité est une aire sous la densité.", "Loi exponentielle : $P(X > t) = e^{-\\lambda t}$, $E(X) = \\dfrac{1}{\\lambda}$.", "Cherche un contre-exemple si tu penses que c'est faux."],
+      solution: `**${v ? "Vrai" : "Faux"}.** ${s}` };
+  };
+
+
+  /* ---------- Terminale maths complémentaires, chapitre 13 : lois à densité (préfixe tld-) ---------- */
+  FIGURES["tld-densite"] = () => graph({ xmin: -0.12, xmax: 1.25, ymin: -0.15, ymax: 2.3, xstep: 0.25, xetiq: 0.5, ystep: 0.5, yetiq: 1, h: 240, curves: [{ f: (x) => 2 * x, a: 0, b: 1, label: "f(x) = 2x", lx: 0.55, dx: -8, dy: -8 }], aires: [{ f: (x) => 2 * x, a: 0.5, b: 0.8 }], marques: [{ x: 0.66, y: 0.35, texte: "P" }], aria: "Densité f(x) = 2x sur [0 ; 1] : la probabilité P(0,5 ⩽ X ⩽ 0,8) est l'aire hachurée, 0,39 ; l'aire totale du triangle vaut 1" });
+  FIGURES["tld-uniforme"] = () => graph({ xmin: -3, xmax: 33, ymin: -0.012, ymax: 0.05, xstep: 5, xetiq: 10, ystep: 0.01, yetiq: 0.02, h: 220, padL: 34, xlabel: "min", curves: [{ f: () => 1 / 30, a: 0, b: 30, label: "1/30", lx: 28, dx: 2, dy: -8 }], aires: [{ f: () => 1 / 30, a: 10, b: 30 }], aria: "Loi uniforme sur [0 ; 30] : densité constante 1/30 ; la probabilité d'attendre plus de 10 minutes est l'aire du rectangle de 10 à 30, soit 2/3" });
+  FIGURES["tld-exponentielle"] = () => graph({ xmin: -0.4, xmax: 8.4, ymin: -0.08, ymax: 0.6, ystep: 0.1, yetiq: 0.2, h: 230, xlabel: "t", curves: [{ f: (x) => 0.5 * Math.exp(-0.5 * x), a: 0, b: 8, closed: false, label: "λe^(−λt)", lx: 1.2, dx: 70, dy: -14 }], aires: [{ f: (x) => 0.5 * Math.exp(-0.5 * x), a: 2, b: 8 }], aria: "Densité de la loi exponentielle de paramètre 0,5 : l'aire hachurée à droite de 2 vaut P(X > 2) = e^(−1) ≈ 0,37" }).replace("λe^(−λt)", "λe<tspan dy=\"-5\" font-size=\"9\">−λt</tspan>");
+
+  GEN["tld-densite"] = function () {
+    const t = rand(0, 2);
+    if (t === 0) { const a = rand(0, 3), b = a + pick([2, 4, 5, 10]); return { enonce: `$f(x) = k$ sur $[${a}\\,;${b}]$ (et $0$ ailleurs). Pour quelle valeur de $k$ la fonction $f$ est-elle une densité ? (Valeur décimale.)`, mode: "nombre", prefixe: "$k =$", attendu: 1 / (b - a), tolerance: 0.0001,
+      aides: ["Une densité est positive et l'aire totale sous la courbe vaut $1$.", `L'aire est celle d'un rectangle de largeur $${b - a}$ et de hauteur $k$.`, `$${b - a}k = 1$.`],
+      solution: `$${b - a}k = 1$, donc $k = \\dfrac{1}{${b - a}} = ${fr(1 / (b - a))}$ : c'est la loi uniforme sur $[${a}\\,;${b}]$.` }; }
+    if (t === 1) { const c = pick([1, 2, 4, 5]); return { enonce: `$f(x) = kx$ sur $[0\\,;${c}]$ (et $0$ ailleurs). Pour quelle valeur de $k$ la fonction $f$ est-elle une densité ? (Valeur décimale.)`, mode: "nombre", prefixe: "$k =$", attendu: 2 / (c * c), tolerance: 0.0001,
+      aides: ["L'aire totale sous la courbe doit valoir $1$.", `$\\displaystyle\\int_0^{${c}} kx\\,\\mathrm{d}x = k \\times \\dfrac{${c * c}}{2}$.`, `Résous $k \\times \\dfrac{${c * c}}{2} = 1$.`],
+      solution: `$\\displaystyle\\int_0^{${c}} kx\\,\\mathrm{d}x = \\dfrac{${c * c}k}{2} = 1$, donc $k = \\dfrac{2}{${c * c}} = ${fr(2 / (c * c))}$.` }; }
+    const n = pick([2, 3]); return { enonce: `$f(x) = kx^{${n}}$ sur $[0\\,;1]$ (et $0$ ailleurs). Pour quelle valeur de $k$ la fonction $f$ est-elle une densité ?`, mode: "nombre", prefixe: "$k =$", attendu: n + 1,
+      aides: ["L'intégrale de $f$ sur $[0\\,;1]$ doit valoir $1$.", `Une primitive de $x^{${n}}$ est $\\dfrac{x^{${n + 1}}}{${n + 1}}$.`, `$\\dfrac{k}{${n + 1}} = 1$.`],
+      solution: `$\\displaystyle\\int_0^1 kx^{${n}}\\,\\mathrm{d}x = \\dfrac{k}{${n + 1}} = 1$, donc $k = ${n + 1}$.` };
+  };
+
+  GEN["tld-proba-densite"] = function () {
+    const n = pick([1, 2]), a = pick([0, 0.1, 0.2, 0.3, 0.5]), b = +(a + pick([0.2, 0.3, 0.4, 0.5])).toFixed(1), p = b ** (n + 1) - a ** (n + 1);
+    const fx = n === 1 ? "2x" : "3x^2", Fx = n === 1 ? "x^2" : "x^3";
+    return { enonce: `$X$ a pour densité $f(x) = ${fx}$ sur $[0\\,;1]$. Calcule $P(${fr(a)} \\leqslant X \\leqslant ${fr(b)})$ (arrondi au millième).`, mode: "nombre", prefixe: "$P \\approx$", attendu: +p.toFixed(3), tolerance: 0.0006,
+      erreurs: [{ valeur: +(b - a).toFixed(3), message: "Ce serait vrai pour une loi uniforme. Ici il faut intégrer la densité." }],
+      aides: ["$P(a \\leqslant X \\leqslant b) = \\displaystyle\\int_a^b f(x)\\,\\mathrm{d}x$ (aire sous la densité).", `Une primitive de $${fx}$ est $${Fx}$.`, `Calcule $${fr(b)}^{${n + 1}} - ${fr(a)}^{${n + 1}}$.`],
+      solution: `$\\big[${Fx}\\big]_{${fr(a)}}^{${fr(b)}} = ${fr(b)}^{${n + 1}} - ${fr(a)}^{${n + 1}} \\approx ${fr(+p.toFixed(3))}$.` };
+  };
+
+  GEN["tld-uniforme"] = function () {
+    const t = rand(0, 2), T = pick([15, 20, 30, 40, 60]), c = pick([5, 10]) * (T >= 30 ? 1 : 0.5);
+    if (t === 0) return { enonce: `La barge Mamoudzou – Dzaoudzi part toutes les $${T}$ minutes. Tu arrives au hasard : ton temps d'attente $X$ (en min) suit la loi uniforme sur $[0\\,;${T}]$. Calcule la probabilité d'attendre plus de $${fr(c)}$ minutes (arrondie au centième).`, mode: "nombre", prefixe: "$P \\approx$", attendu: +((T - c) / T).toFixed(2), tolerance: 0.006,
+      erreurs: [{ valeur: +(c / T).toFixed(2), message: "Ça, c'est la probabilité d'attendre **moins** de " + fr(c) + " minutes." }],
+      aides: ["Pour la loi uniforme sur $[a\\,;b]$ : $P(c \\leqslant X \\leqslant d) = \\dfrac{d - c}{b - a}$.", `Attendre plus de $${fr(c)}$ min : $X \\in [${fr(c)}\\,;${T}]$.`, `$\\dfrac{${T} - ${fr(c)}}{${T}}$.`],
+      solution: `$P(X > ${fr(c)}) = \\dfrac{${T} - ${fr(c)}}{${T}} \\approx ${fr(+((T - c) / T).toFixed(2))}$.` };
+    const a = rand(1, 5), b = a + pick([4, 6, 10]);
+    if (t === 1) return { enonce: `$X$ suit la loi uniforme sur $[${a}\\,;${b}]$. Calcule $E(X)$.`, mode: "nombre", prefixe: "$E(X) =$", attendu: (a + b) / 2,
+      aides: ["Pour la loi uniforme sur $[a\\,;b]$, $E(X) = \\dfrac{a + b}{2}$.", "C'est le milieu de l'intervalle.", `$\\dfrac{${a} + ${b}}{2}$.`],
+      solution: `$E(X) = \\dfrac{${a} + ${b}}{2} = ${fr((a + b) / 2)}$ : le milieu de l'intervalle.` };
+    const c1 = a + 1, d1 = b - 1;
+    return { enonce: `$X$ suit la loi uniforme sur $[${a}\\,;${b}]$. Calcule $P(${c1} \\leqslant X \\leqslant ${d1})$ (arrondie au centième).`, mode: "nombre", prefixe: "$P \\approx$", attendu: +((d1 - c1) / (b - a)).toFixed(2), tolerance: 0.006,
+      aides: ["La densité vaut $\\dfrac{1}{b - a}$ sur $[a\\,;b]$.", "La probabilité est l'aire d'un rectangle.", `$\\dfrac{${d1} - ${c1}}{${b} - ${a}}$.`],
+      solution: `$P = \\dfrac{${d1 - c1}}{${b - a}} \\approx ${fr(+((d1 - c1) / (b - a)).toFixed(2))}$.` };
+  };
+
+  GEN["tld-exp-proba"] = function () {
+    const l = pick([0.1, 0.2, 0.5, 0.05, 0.02]), t1 = pick([1, 2, 5, 10]), t2 = t1 + pick([2, 5, 10]), k = rand(0, 2);
+    const E = (x) => Math.exp(-l * x), Q = [
+      [`P(X \\leqslant ${t1})`, 1 - E(t1), `1 - e^{-${fr(l)} \\times ${t1}}`],
+      [`P(X > ${t1})`, E(t1), `e^{-${fr(l)} \\times ${t1}}`],
+      [`P(${t1} \\leqslant X \\leqslant ${t2})`, E(t1) - E(t2), `e^{-${fr(l)} \\times ${t1}} - e^{-${fr(l)} \\times ${t2}}`]
+    ][k];
+    return { enonce: `$X$ suit la loi exponentielle de paramètre $\\lambda = ${fr(l)}$. Calcule $${Q[0]}$ (arrondie au millième).`, mode: "nombre", prefixe: "$P \\approx$", attendu: +Q[1].toFixed(3), tolerance: 0.0006,
+      aides: ["$P(X \\leqslant t) = 1 - e^{-\\lambda t}$ et $P(X > t) = e^{-\\lambda t}$.", "$P(a \\leqslant X \\leqslant b) = e^{-\\lambda a} - e^{-\\lambda b}$.", `Ici : $${Q[2]}$.`],
+      solution: `$${Q[0]} = ${Q[2]} \\approx ${fr(+Q[1].toFixed(3))}$.` };
+  };
+
+  GEN["tld-exp-esperance"] = function () {
+    const m = pick([2, 4, 5, 10, 20, 2000, 500]), t = rand(0, 1), l = 1 / m;
+    if (t === 0) return { enonce: `La durée de vie (en ${m > 100 ? "heures" : "années"}) d'un appareil suit une loi exponentielle de durée de vie moyenne $${m}$. Quel est le paramètre $\\lambda$ ? (Valeur décimale.)`, mode: "nombre", prefixe: "$\\lambda =$", attendu: l, tolerance: l / 1000,
+      aides: ["Pour la loi exponentielle, $E(X) = \\dfrac{1}{\\lambda}$.", `$\\dfrac{1}{\\lambda} = ${m}$.`, `$\\lambda = \\dfrac{1}{${m}}$.`],
+      solution: `$\\lambda = \\dfrac{1}{${m}} = ${fr(l)}$.` };
+    const s = m * pick([0.5, 1, 2]), p = Math.exp(-s / m);
+    return { enonce: `La durée de vie (en ${m > 100 ? "heures" : "années"}) d'un appareil suit une loi exponentielle d'espérance $${m}$. Quelle est la probabilité qu'il dure plus de $${fr(s)}$ ${m > 100 ? "heures" : "ans"} ? (Arrondie au millième.)`, mode: "nombre", prefixe: "$P \\approx$", attendu: +p.toFixed(3), tolerance: 0.0006,
+      aides: ["$\\lambda = \\dfrac{1}{E(X)}$.", "$P(X > t) = e^{-\\lambda t}$.", `$e^{-${fr(s)}/${m}}$.`],
+      solution: `$\\lambda = \\dfrac{1}{${m}}$ et $P(X > ${fr(s)}) = e^{-${fr(s / m)}} \\approx ${fr(+p.toFixed(3))}$.${s === m ? " Seulement $37\\,\\%$ des appareils dépassent la durée moyenne." : ""}` };
+  };
+
+  GEN["tld-memoire"] = function () {
+    const l = pick([0.1, 0.2, 0.05]), s = pick([3, 5, 10]), t = pick([2, 4, 5]), p = Math.exp(-l * t);
+    return { enonce: `La durée de vie $X$ (en années) d'un composant suit la loi exponentielle de paramètre $${fr(l)}$. Il fonctionne déjà depuis $${s}$ ans. Quelle est la probabilité qu'il fonctionne encore au moins $${t}$ ans de plus ? (Arrondie au millième.)`, mode: "nombre", prefixe: "$P \\approx$", attendu: +p.toFixed(3), tolerance: 0.0006,
+      erreurs: [{ valeur: +Math.exp(-l * (s + t)).toFixed(3), message: "Tu as calculé $P(X > " + (s + t) + ")$. On sait déjà que $X > " + s + "$ : c'est une probabilité conditionnelle." }],
+      aides: ["On cherche $P_{X > " + s + "}(X > " + (s + t) + ")$.", "Absence de mémoire : $P_{X > s}(X > s + t) = P(X > t)$.", `$e^{-${fr(l)} \\times ${t}}$.`],
+      solution: `Absence de mémoire (durée de vie sans vieillissement) : $P_{X > ${s}}(X > ${s + t}) = P(X > ${t}) = e^{-${fr(l * t)}} \\approx ${fr(+p.toFixed(3))}$. L'âge du composant ne compte pas.` };
+  };
+
+  GEN["tld-demi-vie"] = function () {
+    const at = pick([["carbone 14", 1.21e-4, "ans"], ["iode 131", 0.0866, "jours"], ["radon 222", 0.181, "jours"], ["césium 137", 0.023, "ans"]]), T = Math.log(2) / at[1], t = rand(0, 1);
+    if (t === 0) return { enonce: `La durée de vie d'un atome de ${at[0]} suit la loi exponentielle de paramètre $\\lambda = ${fr(at[1])}$ (${at[2] === "ans" ? "en années" : "en jours"}). Détermine $t$ tel que $P(X \\leqslant t) = 0{,}5$ (la demi-vie), arrondi à l'unité.`, mode: "nombre", prefixe: "$t \\approx$", suffixe: at[2], attendu: Math.round(T), tolerance: 1.01,
+      aides: ["$1 - e^{-\\lambda t} = 0{,}5 \\iff e^{-\\lambda t} = 0{,}5$.", "$-\\lambda t = \\ln 0{,}5 = -\\ln 2$.", "$t = \\dfrac{\\ln 2}{\\lambda}$."],
+      solution: `$t = \\dfrac{\\ln 2}{${fr(at[1])}} \\approx ${Math.round(T)}$ ${at[2]} : au bout de ce temps, la moitié des atomes se sont désintégrés.` };
+    const m = 1 / at[1];
+    return { enonce: `La durée de vie d'un atome de ${at[0]} suit la loi exponentielle de paramètre $\\lambda = ${fr(at[1])}$ (${at[2] === "ans" ? "en années" : "en jours"}). Quelle est sa durée de vie moyenne ? (Arrondie à l'unité.)`, mode: "nombre", prefixe: "$E(X) \\approx$", suffixe: at[2], attendu: Math.round(m), tolerance: 1.01,
+      aides: ["$E(X) = \\dfrac{1}{\\lambda}$.", `$\\dfrac{1}{${fr(at[1])}}$.`, "Arrondis à l'unité."],
+      solution: `$E(X) = \\dfrac{1}{${fr(at[1])}} \\approx ${Math.round(m)}$ ${at[2]} (plus long que la demi-vie, $\\dfrac{\\ln 2}{\\lambda} \\approx ${Math.round(T)}$).` };
+  };
+
+  GEN["tld-esperance"] = function () {
+    const T = [
+      ["f(x) = 2x \\text{ sur } [0\\,;1]", 2 / 3, "\\displaystyle\\int_0^1 x \\times 2x\\,\\mathrm{d}x = \\left[\\dfrac{2x^3}{3}\\right]_0^1 = \\dfrac{2}{3}"],
+      ["f(x) = 3x^2 \\text{ sur } [0\\,;1]", 0.75, "\\displaystyle\\int_0^1 x \\times 3x^2\\,\\mathrm{d}x = \\left[\\dfrac{3x^4}{4}\\right]_0^1 = \\dfrac{3}{4}"],
+      ["f(x) = 2 - 2x \\text{ sur } [0\\,;1]", 1 / 3, "\\displaystyle\\int_0^1 (2x - 2x^2)\\,\\mathrm{d}x = 1 - \\dfrac{2}{3} = \\dfrac{1}{3}"],
+      ["f(x) = \\dfrac{x}{2} \\text{ sur } [0\\,;2]", 4 / 3, "\\displaystyle\\int_0^2 \\dfrac{x^2}{2}\\,\\mathrm{d}x = \\left[\\dfrac{x^3}{6}\\right]_0^2 = \\dfrac{4}{3}"],
+      ["f(x) = \\dfrac{1}{4} \\text{ sur } [2\\,;6]", 4, "\\displaystyle\\int_2^6 \\dfrac{x}{4}\\,\\mathrm{d}x = \\left[\\dfrac{x^2}{8}\\right]_2^6 = \\dfrac{36 - 4}{8} = 4"]
+    ], [f, v, s] = pick(T);
+    return { enonce: `$X$ a pour densité $${f}$. Calcule $E(X)$ (arrondie au centième).`, mode: "nombre", prefixe: "$E(X) \\approx$", attendu: +v.toFixed(2), tolerance: 0.006,
+      aides: ["$E(X) = \\displaystyle\\int_a^b x f(x)\\,\\mathrm{d}x$.", "Multiplie la densité par $x$, puis cherche une primitive.", "Calcule $F(b) - F(a)$."],
+      solution: `$E(X) = ${s} \\approx ${fr(+v.toFixed(2))}$.` };
+  };
+
+  GEN["tld-repartition"] = function () {
+    const T = [
+      ["La fonction de répartition de $X$ est $F(x) = P(X \\leqslant x)$. Pour la loi exponentielle de paramètre $\\lambda$, $F(x) =$ (pour $x \\geqslant 0$) :", "$1 - e^{-\\lambda x}$", ["$e^{-\\lambda x}$", "$\\lambda e^{-\\lambda x}$", "$\\dfrac{1}{\\lambda}$"], "$F(x) = \\displaystyle\\int_0^x \\lambda e^{-\\lambda t}\\,\\mathrm{d}t = \\big[-e^{-\\lambda t}\\big]_0^x = 1 - e^{-\\lambda x}$."],
+      ["Pour la loi uniforme sur $[a\\,;b]$, la fonction de répartition vaut, pour $x$ dans $[a\\,;b]$ :", "$\\dfrac{x - a}{b - a}$", ["$\\dfrac{1}{b - a}$", "$\\dfrac{b - x}{b - a}$", "$x$"], "$F(x) = \\displaystyle\\int_a^x \\dfrac{1}{b - a}\\,\\mathrm{d}t = \\dfrac{x - a}{b - a}$."],
+      ["$F$ est la fonction de répartition de $X$. $P(a < X \\leqslant b) =$", "$F(b) - F(a)$", ["$F(a) - F(b)$", "$F(b)$", "$f(b) - f(a)$"], "$P(X \\leqslant b) - P(X \\leqslant a)$."],
+      ["Comment varie une fonction de répartition ?", "elle est croissante, de $0$ à $1$", ["elle est décroissante", "elle peut dépasser $1$", "elle est constante"], "C'est une probabilité cumulée : elle augmente de $0$ à $1$ ; sa dérivée est la densité."],
+      ["Pour une loi à densité, $P(X = 2) =$", "$0$", ["$f(2)$", "$F(2)$", "$\\dfrac{1}{2}$"], "L'aire d'un segment est nulle : $\\displaystyle\\int_2^2 f = 0$."]
+    ], [q, r, f, s] = pick(T), c = melangeChoix(r, f);
+    return { enonce: q, mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: ["$F(x) = P(X \\leqslant x) = \\displaystyle\\int_a^x f(t)\\,\\mathrm{d}t$.", "$F$ est une primitive de la densité.", "Les probabilités sont des aires sous la densité."],
+      solution: s };
+  };
+
+  GEN["tld-python"] = function () {
+    const t = rand(0, 2);
+    if (t === 0) { const l = pick([0.5, 2, 0.1]), u = pick([0.5, 0.75, 0.9]), x = -Math.log(1 - u) / l;
+      return { enonce: "On simule une loi exponentielle à partir d'un nombre au hasard entre $0$ et $1$ :\n\n```python\nfrom random import random\nfrom math import log\n\ndef expo(lam):\n    u = random()\n    return -log(1 - u) / lam\n```\n\n" + `Si random() renvoie $${fr(u)}$, que renvoie expo(${l}) ? (Arrondi au centième.)`, mode: "nombre", prefixe: "Résultat ≈", attendu: +x.toFixed(2), tolerance: 0.006,
+        aides: ["log est le logarithme népérien $\\ln$.", `$x = -\\dfrac{\\ln(1 - ${fr(u)})}{${fr(l)}}$.`, `$\\ln(${fr(+(1 - u).toFixed(2))}) \\approx ${fr(+Math.log(1 - u).toFixed(4))}$.`],
+        solution: `$x = -\\dfrac{\\ln ${fr(+(1 - u).toFixed(2))}}{${fr(l)}} \\approx ${fr(+x.toFixed(2))}$. On a résolu $1 - e^{-\\lambda x} = u$ : $x$ est la valeur dont la fonction de répartition vaut $u$.` }; }
+    if (t === 1) { const n = pick([10, 12, 20, 50]);
+      return { enonce: "On additionne des nombres au hasard de la loi uniforme sur $[0\\,;1]$ :\n\n```python\nfrom random import random\n\ndef somme(n):\n    s = 0\n    for i in range(n):\n        s = s + random()\n    return s\n```\n\n" + `Autour de quelle valeur se répartissent les résultats de somme(${n}) ?`, mode: "nombre", prefixe: "Environ", attendu: n / 2,
+        aides: ["Chaque random() suit la loi uniforme sur $[0\\,;1]$, d'espérance $0{,}5$.", "L'espérance d'une somme est la somme des espérances.", `$${n} \\times 0{,}5$.`],
+        solution: `$E(S) = ${n} \\times 0{,}5 = ${fr(n / 2)}$. En répétant beaucoup de fois, l'histogramme des sommes prend une forme de cloche centrée sur $${fr(n / 2)}$.` }; }
+    const c = melangeChoix("la loi uniforme sur $[0\\,;1]$", ["la loi exponentielle", "la loi binomiale", "la loi géométrique"]);
+    return { enonce: "En Python, quelle loi suit le nombre renvoyé par random() ?", mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: ["random() renvoie un nombre décimal entre $0$ et $1$.", "Tous les sous-intervalles de même longueur ont la même probabilité.", "C'est une loi à densité constante."],
+      solution: "La loi uniforme sur $[0\\,;1]$ : c'est la base de toutes les simulations." };
+  };
+
+  GEN["tld-logique"] = function () {
+    const T = [
+      ["« Une densité est une fonction positive dont l'intégrale sur l'intervalle vaut $1$. »", true, "C'est la définition (avec la continuité)."],
+      ["« Une densité ne peut pas dépasser $1$. »", false, "La densité $f(x) = 2x$ sur $[0\\,;1]$ vaut $2$ en $1$ : c'est l'aire totale qui vaut $1$, pas la hauteur."],
+      ["« Pour une loi à densité, $P(X \\leqslant 3) = P(X < 3)$. »", true, "$P(X = 3) = 0$."],
+      ["« La loi exponentielle modélise une durée de vie sans vieillissement. »", true, "Absence de mémoire : $P_{X > s}(X > s + t) = P(X > t)$."],
+      ["« Pour la loi exponentielle, $P(X > E(X)) = 0{,}5$. »", false, "$P(X > \\dfrac{1}{\\lambda}) = e^{-1} \\approx 0{,}37$."],
+      ["« L'espérance de la loi uniforme sur $[a\\,;b]$ est le milieu de $[a\\,;b]$. »", true, "$E(X) = \\dfrac{a + b}{2}$."],
+      ["« La loi exponentielle est l'analogue continu de la loi géométrique. »", true, "Toutes deux modélisent un temps d'attente sans mémoire (ch. 10)."],
+      ["« Plus $\\lambda$ est grand, plus la durée de vie moyenne est longue. »", false, "$E(X) = \\dfrac{1}{\\lambda}$ diminue quand $\\lambda$ augmente."]
+    ];
+    const [q, v, s] = pick(T), c = melangeChoix(v ? "Vrai" : "Faux", [v ? "Faux" : "Vrai"]);
+    return { enonce: `Vrai ou faux ? ${q}`, mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: ["Une probabilité est une aire sous la densité.", "Loi exponentielle : $P(X > t) = e^{-\\lambda t}$, $E(X) = \\dfrac{1}{\\lambda}$.", "Cherche un contre-exemple si tu penses que c'est faux."],
+      solution: `**${v ? "Vrai" : "Faux"}.** ${s}` };
+  };
+
+
+  /* ---------- Terminale maths complémentaires, chapitre 13 : lois à densité (préfixe tld-) ---------- */
+  FIGURES["tld-densite"] = () => graph({ xmin: -0.12, xmax: 1.25, ymin: -0.15, ymax: 2.3, xstep: 0.25, xetiq: 0.5, ystep: 0.5, yetiq: 1, h: 240, curves: [{ f: (x) => 2 * x, a: 0, b: 1, label: "f(x) = 2x", lx: 0.55, dx: -8, dy: -8 }], aires: [{ f: (x) => 2 * x, a: 0.5, b: 0.8 }], marques: [{ x: 0.66, y: 0.35, texte: "P" }], aria: "Densité f(x) = 2x sur [0 ; 1] : la probabilité P(0,5 ⩽ X ⩽ 0,8) est l'aire hachurée, 0,39 ; l'aire totale du triangle vaut 1" });
+  FIGURES["tld-uniforme"] = () => graph({ xmin: -3, xmax: 33, ymin: -0.012, ymax: 0.05, xstep: 5, xetiq: 10, ystep: 0.01, yetiq: 0.02, h: 220, padL: 34, xlabel: "min", curves: [{ f: () => 1 / 30, a: 0, b: 30, label: "1/30", lx: 28, dx: 2, dy: -8 }], aires: [{ f: () => 1 / 30, a: 10, b: 30 }], aria: "Loi uniforme sur [0 ; 30] : densité constante 1/30 ; la probabilité d'attendre plus de 10 minutes est l'aire du rectangle de 10 à 30, soit 2/3" });
+  FIGURES["tld-exponentielle"] = () => graph({ xmin: -0.4, xmax: 8.4, ymin: -0.08, ymax: 0.6, ystep: 0.1, yetiq: 0.2, h: 230, xlabel: "t", curves: [{ f: (x) => 0.5 * Math.exp(-0.5 * x), a: 0, b: 8, closed: false, label: "λe^(−λt)", lx: 1.2, dx: 70, dy: -14 }], aires: [{ f: (x) => 0.5 * Math.exp(-0.5 * x), a: 2, b: 8 }], aria: "Densité de la loi exponentielle de paramètre 0,5 : l'aire hachurée à droite de 2 vaut P(X > 2) = e^(−1) ≈ 0,37" }).replace("λe^(−λt)", "λe<tspan dy=\"-5\" font-size=\"9\">−λt</tspan>");
+
+  GEN["tld-densite"] = function () {
+    const t = rand(0, 2);
+    if (t === 0) { const a = rand(0, 3), b = a + pick([2, 4, 5, 10]); return { enonce: `$f(x) = k$ sur $[${a}\\,;${b}]$ (et $0$ ailleurs). Pour quelle valeur de $k$ la fonction $f$ est-elle une densité ? (Valeur décimale.)`, mode: "nombre", prefixe: "$k =$", attendu: 1 / (b - a), tolerance: 0.0001,
+      aides: ["Une densité est positive et l'aire totale sous la courbe vaut $1$.", `L'aire est celle d'un rectangle de largeur $${b - a}$ et de hauteur $k$.`, `$${b - a}k = 1$.`],
+      solution: `$${b - a}k = 1$, donc $k = \\dfrac{1}{${b - a}} = ${fr(1 / (b - a))}$ : c'est la loi uniforme sur $[${a}\\,;${b}]$.` }; }
+    if (t === 1) { const c = pick([1, 2, 4, 5]); return { enonce: `$f(x) = kx$ sur $[0\\,;${c}]$ (et $0$ ailleurs). Pour quelle valeur de $k$ la fonction $f$ est-elle une densité ? (Valeur décimale.)`, mode: "nombre", prefixe: "$k =$", attendu: 2 / (c * c), tolerance: 0.0001,
+      aides: ["L'aire totale sous la courbe doit valoir $1$.", `$\\displaystyle\\int_0^{${c}} kx\\,\\mathrm{d}x = k \\times \\dfrac{${c * c}}{2}$.`, `Résous $k \\times \\dfrac{${c * c}}{2} = 1$.`],
+      solution: `$\\displaystyle\\int_0^{${c}} kx\\,\\mathrm{d}x = \\dfrac{${c * c}k}{2} = 1$, donc $k = \\dfrac{2}{${c * c}} = ${fr(2 / (c * c))}$.` }; }
+    const n = pick([2, 3]); return { enonce: `$f(x) = kx^{${n}}$ sur $[0\\,;1]$ (et $0$ ailleurs). Pour quelle valeur de $k$ la fonction $f$ est-elle une densité ?`, mode: "nombre", prefixe: "$k =$", attendu: n + 1,
+      aides: ["L'intégrale de $f$ sur $[0\\,;1]$ doit valoir $1$.", `Une primitive de $x^{${n}}$ est $\\dfrac{x^{${n + 1}}}{${n + 1}}$.`, `$\\dfrac{k}{${n + 1}} = 1$.`],
+      solution: `$\\displaystyle\\int_0^1 kx^{${n}}\\,\\mathrm{d}x = \\dfrac{k}{${n + 1}} = 1$, donc $k = ${n + 1}$.` };
+  };
+
+  GEN["tld-proba-densite"] = function () {
+    const n = pick([1, 2]), a = pick([0, 0.1, 0.2, 0.3, 0.5]), b = +(a + pick([0.2, 0.3, 0.4, 0.5])).toFixed(1), p = b ** (n + 1) - a ** (n + 1);
+    const fx = n === 1 ? "2x" : "3x^2", Fx = n === 1 ? "x^2" : "x^3";
+    return { enonce: `$X$ a pour densité $f(x) = ${fx}$ sur $[0\\,;1]$. Calcule $P(${fr(a)} \\leqslant X \\leqslant ${fr(b)})$ (arrondi au millième).`, mode: "nombre", prefixe: "$P \\approx$", attendu: +p.toFixed(3), tolerance: 0.0006,
+      erreurs: [{ valeur: +(b - a).toFixed(3), message: "Ce serait vrai pour une loi uniforme. Ici il faut intégrer la densité." }],
+      aides: ["$P(a \\leqslant X \\leqslant b) = \\displaystyle\\int_a^b f(x)\\,\\mathrm{d}x$ (aire sous la densité).", `Une primitive de $${fx}$ est $${Fx}$.`, `Calcule $${fr(b)}^{${n + 1}} - ${fr(a)}^{${n + 1}}$.`],
+      solution: `$\\big[${Fx}\\big]_{${fr(a)}}^{${fr(b)}} = ${fr(b)}^{${n + 1}} - ${fr(a)}^{${n + 1}} \\approx ${fr(+p.toFixed(3))}$.` };
+  };
+
+  GEN["tld-uniforme"] = function () {
+    const t = rand(0, 2), T = pick([15, 20, 30, 40, 60]), c = pick([5, 10]) * (T >= 30 ? 1 : 0.5);
+    if (t === 0) return { enonce: `La barge Mamoudzou – Dzaoudzi part toutes les $${T}$ minutes. Tu arrives au hasard : ton temps d'attente $X$ (en min) suit la loi uniforme sur $[0\\,;${T}]$. Calcule la probabilité d'attendre plus de $${fr(c)}$ minutes (arrondie au centième).`, mode: "nombre", prefixe: "$P \\approx$", attendu: +((T - c) / T).toFixed(2), tolerance: 0.006,
+      erreurs: [{ valeur: +(c / T).toFixed(2), message: "Ça, c'est la probabilité d'attendre **moins** de $" + fr(c) + "$ minutes." }],
+      aides: ["Pour la loi uniforme sur $[a\\,;b]$ : $P(c \\leqslant X \\leqslant d) = \\dfrac{d - c}{b - a}$.", `Attendre plus de $${fr(c)}$ min : $X \\in [${fr(c)}\\,;${T}]$.`, `$\\dfrac{${T} - ${fr(c)}}{${T}}$.`],
+      solution: `$P(X > ${fr(c)}) = \\dfrac{${T} - ${fr(c)}}{${T}} \\approx ${fr(+((T - c) / T).toFixed(2))}$.` };
+    const a = rand(1, 5), b = a + pick([4, 6, 10]);
+    if (t === 1) return { enonce: `$X$ suit la loi uniforme sur $[${a}\\,;${b}]$. Calcule $E(X)$.`, mode: "nombre", prefixe: "$E(X) =$", attendu: (a + b) / 2,
+      aides: ["Pour la loi uniforme sur $[a\\,;b]$, $E(X) = \\dfrac{a + b}{2}$.", "C'est le milieu de l'intervalle.", `$\\dfrac{${a} + ${b}}{2}$.`],
+      solution: `$E(X) = \\dfrac{${a} + ${b}}{2} = ${fr((a + b) / 2)}$ : le milieu de l'intervalle.` };
+    const c1 = a + 1, d1 = b - 1;
+    return { enonce: `$X$ suit la loi uniforme sur $[${a}\\,;${b}]$. Calcule $P(${c1} \\leqslant X \\leqslant ${d1})$ (arrondie au centième).`, mode: "nombre", prefixe: "$P \\approx$", attendu: +((d1 - c1) / (b - a)).toFixed(2), tolerance: 0.006,
+      aides: ["La densité vaut $\\dfrac{1}{b - a}$ sur $[a\\,;b]$.", "La probabilité est l'aire d'un rectangle.", `$\\dfrac{${d1} - ${c1}}{${b} - ${a}}$.`],
+      solution: `$P = \\dfrac{${d1 - c1}}{${b - a}} \\approx ${fr(+((d1 - c1) / (b - a)).toFixed(2))}$.` };
+  };
+
+  GEN["tld-exp-proba"] = function () {
+    const l = pick([0.1, 0.2, 0.5, 0.05, 0.02]), t1 = pick([1, 2, 5, 10]), t2 = t1 + pick([2, 5, 10]), k = rand(0, 2);
+    const E = (x) => Math.exp(-l * x), Q = [
+      [`P(X \\leqslant ${t1})`, 1 - E(t1), `1 - e^{-${fr(l)} \\times ${t1}}`],
+      [`P(X > ${t1})`, E(t1), `e^{-${fr(l)} \\times ${t1}}`],
+      [`P(${t1} \\leqslant X \\leqslant ${t2})`, E(t1) - E(t2), `e^{-${fr(l)} \\times ${t1}} - e^{-${fr(l)} \\times ${t2}}`]
+    ][k];
+    return { enonce: `$X$ suit la loi exponentielle de paramètre $\\lambda = ${fr(l)}$. Calcule $${Q[0]}$ (arrondie au millième).`, mode: "nombre", prefixe: "$P \\approx$", attendu: +Q[1].toFixed(3), tolerance: 0.0006,
+      aides: ["$P(X \\leqslant t) = 1 - e^{-\\lambda t}$ et $P(X > t) = e^{-\\lambda t}$.", "$P(a \\leqslant X \\leqslant b) = e^{-\\lambda a} - e^{-\\lambda b}$.", `Ici : $${Q[2]}$.`],
+      solution: `$${Q[0]} = ${Q[2]} \\approx ${fr(+Q[1].toFixed(3))}$.` };
+  };
+
+  GEN["tld-exp-esperance"] = function () {
+    const m = pick([2, 4, 5, 10, 20, 2000, 500]), t = rand(0, 1), l = 1 / m;
+    if (t === 0) return { enonce: `La durée de vie (en ${m > 100 ? "heures" : "années"}) d'un appareil suit une loi exponentielle de durée de vie moyenne $${m}$. Quel est le paramètre $\\lambda$ ? (Valeur décimale.)`, mode: "nombre", prefixe: "$\\lambda =$", attendu: l, tolerance: l / 1000,
+      aides: ["Pour la loi exponentielle, $E(X) = \\dfrac{1}{\\lambda}$.", `$\\dfrac{1}{\\lambda} = ${m}$.`, `$\\lambda = \\dfrac{1}{${m}}$.`],
+      solution: `$\\lambda = \\dfrac{1}{${m}} = ${fr(l)}$.` };
+    const s = m * pick([0.5, 1, 2]), p = Math.exp(-s / m);
+    return { enonce: `La durée de vie (en ${m > 100 ? "heures" : "années"}) d'un appareil suit une loi exponentielle d'espérance $${m}$. Quelle est la probabilité qu'il dure plus de $${fr(s)}$ ${m > 100 ? "heures" : "ans"} ? (Arrondie au millième.)`, mode: "nombre", prefixe: "$P \\approx$", attendu: +p.toFixed(3), tolerance: 0.0006,
+      aides: ["$\\lambda = \\dfrac{1}{E(X)}$.", "$P(X > t) = e^{-\\lambda t}$.", `$e^{-${fr(s)}/${m}}$.`],
+      solution: `$\\lambda = \\dfrac{1}{${m}}$ et $P(X > ${fr(s)}) = e^{-${fr(s / m)}} \\approx ${fr(+p.toFixed(3))}$.${s === m ? " Seulement $37\\,\\%$ des appareils dépassent la durée moyenne." : ""}` };
+  };
+
+  GEN["tld-memoire"] = function () {
+    const l = pick([0.1, 0.2, 0.05]), s = pick([3, 5, 10]), t = pick([2, 4, 5]), p = Math.exp(-l * t);
+    return { enonce: `La durée de vie $X$ (en années) d'un composant suit la loi exponentielle de paramètre $${fr(l)}$. Il fonctionne déjà depuis $${s}$ ans. Quelle est la probabilité qu'il fonctionne encore au moins $${t}$ ans de plus ? (Arrondie au millième.)`, mode: "nombre", prefixe: "$P \\approx$", attendu: +p.toFixed(3), tolerance: 0.0006,
+      erreurs: [{ valeur: +Math.exp(-l * (s + t)).toFixed(3), message: "Tu as calculé $P(X > " + (s + t) + ")$. On sait déjà que $X > " + s + "$ : c'est une probabilité conditionnelle." }],
+      aides: ["On cherche $P_{X > " + s + "}(X > " + (s + t) + ")$.", "Absence de mémoire : $P_{X > s}(X > s + t) = P(X > t)$.", `$e^{-${fr(l)} \\times ${t}}$.`],
+      solution: `Absence de mémoire (durée de vie sans vieillissement) : $P_{X > ${s}}(X > ${s + t}) = P(X > ${t}) = e^{-${fr(l * t)}} \\approx ${fr(+p.toFixed(3))}$. L'âge du composant ne compte pas.` };
+  };
+
+  GEN["tld-demi-vie"] = function () {
+    const at = pick([["carbone 14", 1.21e-4, "ans"], ["iode 131", 0.0866, "jours"], ["radon 222", 0.181, "jours"], ["césium 137", 0.023, "ans"]]), T = Math.log(2) / at[1], t = rand(0, 1);
+    if (t === 0) return { enonce: `La durée de vie d'un atome de ${at[0]} suit la loi exponentielle de paramètre $\\lambda = ${fr(at[1])}$ (${at[2] === "ans" ? "en années" : "en jours"}). Détermine $t$ tel que $P(X \\leqslant t) = 0{,}5$ (la demi-vie), arrondi à l'unité.`, mode: "nombre", prefixe: "$t \\approx$", suffixe: at[2], attendu: Math.round(T), tolerance: 1.01,
+      aides: ["$1 - e^{-\\lambda t} = 0{,}5 \\iff e^{-\\lambda t} = 0{,}5$.", "$-\\lambda t = \\ln 0{,}5 = -\\ln 2$.", "$t = \\dfrac{\\ln 2}{\\lambda}$."],
+      solution: `$t = \\dfrac{\\ln 2}{${fr(at[1])}} \\approx ${Math.round(T)}$ ${at[2]} : au bout de ce temps, la moitié des atomes se sont désintégrés.` };
+    const m = 1 / at[1];
+    return { enonce: `La durée de vie d'un atome de ${at[0]} suit la loi exponentielle de paramètre $\\lambda = ${fr(at[1])}$ (${at[2] === "ans" ? "en années" : "en jours"}). Quelle est sa durée de vie moyenne ? (Arrondie à l'unité.)`, mode: "nombre", prefixe: "$E(X) \\approx$", suffixe: at[2], attendu: Math.round(m), tolerance: 1.01,
+      aides: ["$E(X) = \\dfrac{1}{\\lambda}$.", `$\\dfrac{1}{${fr(at[1])}}$.`, "Arrondis à l'unité."],
+      solution: `$E(X) = \\dfrac{1}{${fr(at[1])}} \\approx ${Math.round(m)}$ ${at[2]} (plus long que la demi-vie, $\\dfrac{\\ln 2}{\\lambda} \\approx ${Math.round(T)}$).` };
+  };
+
+  GEN["tld-esperance"] = function () {
+    const T = [
+      ["f(x) = 2x \\text{ sur } [0\\,;1]", 2 / 3, "\\displaystyle\\int_0^1 x \\times 2x\\,\\mathrm{d}x = \\left[\\dfrac{2x^3}{3}\\right]_0^1 = \\dfrac{2}{3}"],
+      ["f(x) = 3x^2 \\text{ sur } [0\\,;1]", 0.75, "\\displaystyle\\int_0^1 x \\times 3x^2\\,\\mathrm{d}x = \\left[\\dfrac{3x^4}{4}\\right]_0^1 = \\dfrac{3}{4}"],
+      ["f(x) = 2 - 2x \\text{ sur } [0\\,;1]", 1 / 3, "\\displaystyle\\int_0^1 (2x - 2x^2)\\,\\mathrm{d}x = 1 - \\dfrac{2}{3} = \\dfrac{1}{3}"],
+      ["f(x) = \\dfrac{x}{2} \\text{ sur } [0\\,;2]", 4 / 3, "\\displaystyle\\int_0^2 \\dfrac{x^2}{2}\\,\\mathrm{d}x = \\left[\\dfrac{x^3}{6}\\right]_0^2 = \\dfrac{4}{3}"],
+      ["f(x) = \\dfrac{1}{4} \\text{ sur } [2\\,;6]", 4, "\\displaystyle\\int_2^6 \\dfrac{x}{4}\\,\\mathrm{d}x = \\left[\\dfrac{x^2}{8}\\right]_2^6 = \\dfrac{36 - 4}{8} = 4"]
+    ], [f, v, s] = pick(T);
+    return { enonce: `$X$ a pour densité $${f}$. Calcule $E(X)$ (arrondie au centième).`, mode: "nombre", prefixe: "$E(X) \\approx$", attendu: +v.toFixed(2), tolerance: 0.006,
+      aides: ["$E(X) = \\displaystyle\\int_a^b x f(x)\\,\\mathrm{d}x$.", "Multiplie la densité par $x$, puis cherche une primitive.", "Calcule $F(b) - F(a)$."],
+      solution: `$E(X) = ${s} \\approx ${fr(+v.toFixed(2))}$.` };
+  };
+
+  GEN["tld-repartition"] = function () {
+    const T = [
+      ["La fonction de répartition de $X$ est $F(x) = P(X \\leqslant x)$. Pour la loi exponentielle de paramètre $\\lambda$, $F(x) =$ (pour $x \\geqslant 0$) :", "$1 - e^{-\\lambda x}$", ["$e^{-\\lambda x}$", "$\\lambda e^{-\\lambda x}$", "$\\dfrac{1}{\\lambda}$"], "$F(x) = \\displaystyle\\int_0^x \\lambda e^{-\\lambda t}\\,\\mathrm{d}t = \\big[-e^{-\\lambda t}\\big]_0^x = 1 - e^{-\\lambda x}$."],
+      ["Pour la loi uniforme sur $[a\\,;b]$, la fonction de répartition vaut, pour $x$ dans $[a\\,;b]$ :", "$\\dfrac{x - a}{b - a}$", ["$\\dfrac{1}{b - a}$", "$\\dfrac{b - x}{b - a}$", "$x$"], "$F(x) = \\displaystyle\\int_a^x \\dfrac{1}{b - a}\\,\\mathrm{d}t = \\dfrac{x - a}{b - a}$."],
+      ["$F$ est la fonction de répartition de $X$. $P(a < X \\leqslant b) =$", "$F(b) - F(a)$", ["$F(a) - F(b)$", "$F(b)$", "$f(b) - f(a)$"], "$P(X \\leqslant b) - P(X \\leqslant a)$."],
+      ["Comment varie une fonction de répartition ?", "elle est croissante, de $0$ à $1$", ["elle est décroissante", "elle peut dépasser $1$", "elle est constante"], "C'est une probabilité cumulée : elle augmente de $0$ à $1$ ; sa dérivée est la densité."],
+      ["Pour une loi à densité, $P(X = 2) =$", "$0$", ["$f(2)$", "$F(2)$", "$\\dfrac{1}{2}$"], "L'aire d'un segment est nulle : $\\displaystyle\\int_2^2 f = 0$."]
+    ], [q, r, f, s] = pick(T), c = melangeChoix(r, f);
+    return { enonce: q, mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: ["$F(x) = P(X \\leqslant x) = \\displaystyle\\int_a^x f(t)\\,\\mathrm{d}t$.", "$F$ est une primitive de la densité.", "Les probabilités sont des aires sous la densité."],
+      solution: s };
+  };
+
+  GEN["tld-python"] = function () {
+    const t = rand(0, 2);
+    if (t === 0) { const l = pick([0.5, 2, 0.1]), u = pick([0.5, 0.75, 0.9]), x = -Math.log(1 - u) / l;
+      return { enonce: "On simule une loi exponentielle à partir d'un nombre au hasard entre $0$ et $1$ :\n\n```python\nfrom random import random\nfrom math import log\n\ndef expo(lam):\n    u = random()\n    return -log(1 - u) / lam\n```\n\n" + `Si random() renvoie $${fr(u)}$, que renvoie expo(${l}) ? (Arrondi au centième.)`, mode: "nombre", prefixe: "Résultat ≈", attendu: +x.toFixed(2), tolerance: 0.006,
+        aides: ["log est le logarithme népérien $\\ln$.", `$x = -\\dfrac{\\ln(1 - ${fr(u)})}{${fr(l)}}$.`, `$\\ln(${fr(+(1 - u).toFixed(2))}) \\approx ${fr(+Math.log(1 - u).toFixed(4))}$.`],
+        solution: `$x = -\\dfrac{\\ln ${fr(+(1 - u).toFixed(2))}}{${fr(l)}} \\approx ${fr(+x.toFixed(2))}$. On a résolu $1 - e^{-\\lambda x} = u$ : $x$ est la valeur dont la fonction de répartition vaut $u$.` }; }
+    if (t === 1) { const n = pick([10, 12, 20, 50]);
+      return { enonce: "On additionne des nombres au hasard de la loi uniforme sur $[0\\,;1]$ :\n\n```python\nfrom random import random\n\ndef somme(n):\n    s = 0\n    for i in range(n):\n        s = s + random()\n    return s\n```\n\n" + `Autour de quelle valeur se répartissent les résultats de somme(${n}) ?`, mode: "nombre", prefixe: "Environ", attendu: n / 2,
+        aides: ["Chaque random() suit la loi uniforme sur $[0\\,;1]$, d'espérance $0{,}5$.", "L'espérance d'une somme est la somme des espérances.", `$${n} \\times 0{,}5$.`],
+        solution: `$E(S) = ${n} \\times 0{,}5 = ${fr(n / 2)}$. En répétant beaucoup de fois, l'histogramme des sommes prend une forme de cloche centrée sur $${fr(n / 2)}$.` }; }
+    const c = melangeChoix("la loi uniforme sur $[0\\,;1]$", ["la loi exponentielle", "la loi binomiale", "la loi géométrique"]);
+    return { enonce: "En Python, quelle loi suit le nombre renvoyé par random() ?", mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: ["random() renvoie un nombre décimal entre $0$ et $1$.", "Tous les sous-intervalles de même longueur ont la même probabilité.", "C'est une loi à densité constante."],
+      solution: "La loi uniforme sur $[0\\,;1]$ : c'est la base de toutes les simulations." };
+  };
+
+  GEN["tld-logique"] = function () {
+    const T = [
+      ["« Une densité est une fonction positive dont l'intégrale sur l'intervalle vaut $1$. »", true, "C'est la définition (avec la continuité)."],
+      ["« Une densité ne peut pas dépasser $1$. »", false, "La densité $f(x) = 2x$ sur $[0\\,;1]$ vaut $2$ en $1$ : c'est l'aire totale qui vaut $1$, pas la hauteur."],
+      ["« Pour une loi à densité, $P(X \\leqslant 3) = P(X < 3)$. »", true, "$P(X = 3) = 0$."],
+      ["« La loi exponentielle modélise une durée de vie sans vieillissement. »", true, "Absence de mémoire : $P_{X > s}(X > s + t) = P(X > t)$."],
+      ["« Pour la loi exponentielle, $P(X > E(X)) = 0{,}5$. »", false, "$P(X > \\dfrac{1}{\\lambda}) = e^{-1} \\approx 0{,}37$."],
+      ["« L'espérance de la loi uniforme sur $[a\\,;b]$ est le milieu de $[a\\,;b]$. »", true, "$E(X) = \\dfrac{a + b}{2}$."],
+      ["« La loi exponentielle est l'analogue continu de la loi géométrique. »", true, "Toutes deux modélisent un temps d'attente sans mémoire (ch. 10)."],
+      ["« Plus $\\lambda$ est grand, plus la durée de vie moyenne est longue. »", false, "$E(X) = \\dfrac{1}{\\lambda}$ diminue quand $\\lambda$ augmente."]
+    ];
+    const [q, v, s] = pick(T), c = melangeChoix(v ? "Vrai" : "Faux", [v ? "Faux" : "Vrai"]);
+    return { enonce: `Vrai ou faux ? ${q}`, mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: ["Une probabilité est une aire sous la densité.", "Loi exponentielle : $P(X > t) = e^{-\\lambda t}$, $E(X) = \\dfrac{1}{\\lambda}$.", "Cherche un contre-exemple si tu penses que c'est faux."],
+      solution: `**${v ? "Vrai" : "Faux"}.** ${s}` };
+  };
+
+
   /* Séries « flash » d'un thème : mélange de ses générateurs */
   const THEMES = {
     "am-flash-cn": ["am-comparer", "am-fractions", "am-puissances", "am-ecritures", "am-ordre-grandeur", "am-coherence", "auto-conversions"],
@@ -13587,7 +14022,7 @@
 
 
   /* Une « erreur connue » ne doit jamais coïncider avec la bonne réponse (à la tolérance près) */
-  Object.keys(GEN).filter((k) => /^(auto|ld|am|cd|ar|cl|fa|ve|st|vx|tc|co|dr|fr|sg|pc|ec|sy|su|s2|pi|s5|d1|tr|d2|vr|ps|ex|va|sc|gr|sm|ea|tsu|tag|tlf|tcb|tsd|tdc|tln|tcv|tlg|tpe|tin)-/.test(k)).forEach((k) => {
+  Object.keys(GEN).filter((k) => /^(auto|ld|am|cd|ar|cl|fa|ve|st|vx|tc|co|dr|fr|sg|pc|ec|sy|su|s2|pi|s5|d1|tr|d2|vr|ps|ex|va|sc|gr|sm|ea|tsu|tag|tlf|tcb|tsd|tdc|tln|tcv|tlg|tpe|tin|tld)-/.test(k)).forEach((k) => {
     const g = GEN[k];
     GEN[k] = (i) => { const q = g(i); if (q.erreurs) q.erreurs = q.erreurs.filter((e) => Math.abs(e.valeur - q.attendu) >= (q.tolerance || 1e-9)); return q; };
   });

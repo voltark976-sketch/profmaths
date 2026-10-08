@@ -440,6 +440,13 @@ window.CATALOGUE = {
           titre: "Intégration",
           statut: "disponible",
           drive: ""
+        },
+        {
+          id: "terminale-lois-densite",
+          numero: 13,
+          titre: "Lois à densité",
+          statut: "disponible",
+          drive: ""
         }
       ]
     }
