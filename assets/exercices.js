@@ -7823,6 +7823,178 @@
   };
 
 
+  /* ---------- Première, chapitre 16 : expérimentations, échantillons (préfixe sm-) ---------- */
+  // Générateur pseudo-aléatoire à graine fixe : les figures restent identiques d'un affichage à l'autre
+  function smGraine(g) { let s = g; return () => { s = (s * 16807) % 2147483647; return (s - 1) / 2147483646; }; }
+  // Masse d'un régime de bananes : 8, 10, 12, 14 kg avec les probabilités 0,1 ; 0,3 ; 0,4 ; 0,2 (μ = 11,4 ; σ = 1,8)
+  const smRegime = (r) => { const u = r(); return u < 0.1 ? 8 : u < 0.4 ? 10 : u < 0.8 ? 12 : 14; };
+  // Le segment [0 ; 1[ découpé selon la loi : random() tombe dans chaque morceau avec une probabilité égale à sa longueur
+  FIGURES["sm-decoupage"] = () => {
+    const W = 320, H = 112, X = (t) => +(20 + t * 280).toFixed(1);
+    let s = `<svg class="graph" viewBox="0 0 ${W} ${H}" role="img" aria-label="Le segment de 0 à 1 découpé en quatre morceaux de longueurs 0,1 ; 0,3 ; 0,4 et 0,2 : le régime pèse 8, 10, 12 ou 14 kg selon le morceau où tombe random()">`;
+    [[0, 0.1, 8], [0.1, 0.4, 10], [0.4, 0.8, 12], [0.8, 1, 14]].forEach(([a, b, v], i) => {
+      const m = +((X(a) + X(b)) / 2).toFixed(1);
+      s += `<rect x="${X(a)}" y="32" width="${+(X(b) - X(a)).toFixed(1)}" height="28" style="fill:var(${i % 2 ? "--ylang" : "--lagon"});fill-opacity:.28;stroke:var(--encre);stroke-width:1"/>`;
+      s += `<text class="g-label" x="${m}" y="50" text-anchor="middle">${v} kg</text><text class="g-label" x="${m}" y="24" text-anchor="middle" style="fill:var(${i % 2 ? "--ylang" : "--lagon"})">${vir(b - a)}</text>`;
+    });
+    [0, 0.1, 0.4, 0.8, 1].forEach((t) => { s += `<text class="g-tick" x="${X(t)}" y="76" text-anchor="middle">${vir(t)}</text>`; });
+    return s + `<text class="g-label" x="${W / 2}" y="${H - 8}" text-anchor="middle">en couleur : longueur du morceau = probabilité</text></svg>`;
+  };
+  // 40 moyennes d'échantillons de taille 100 et la bande μ ± 2σ/√n
+  FIGURES["echantillons"] = () => {
+    const r = smGraine(2994), pts = Array.from({ length: 40 }, (_, k) => { let s = 0; for (let i = 0; i < 100; i++) s += smRegime(r); return { x: k + 1, y: s / 100 }; });
+    return graph({ xmin: -1, xmax: 52, ymin: 10.7, ymax: 12.1, xstep: 5, xetiq: 10, ystep: 0.1, yetiq: 0.2, h: 270, padL: 34, padB: 20, xlabel: "échantillon", ylabel: "moyenne (kg)", hlines: [{ y: 11.4, label: "μ = 11,4" }, { y: 11.76, label: "μ + 0,36" }, { y: 11.04, label: "μ − 0,36" }], points: pts, aria: "Quarante moyennes d'échantillons de 100 régimes : presque toutes sont entre 11,04 et 11,76 kg, autour de l'espérance 11,4 kg" });
+  };
+  // Monte-Carlo : 200 points au hasard dans le carré unité, colorés selon qu'ils vérifient une condition
+  function smNuage(graine, dedans, couleur, courbe, legende, aria) {
+    const r = smGraine(graine), oui = [], non = [];
+    for (let i = 0; i < 200; i++) { const x = r(), y = r(); (dedans(x, y) ? oui : non).push({ x, y }); }
+    const W = 320, H = 300, o = 34, L = 230, X = (x) => +(o + x * L).toFixed(1), Y = (y) => +(H - 44 - y * L).toFixed(1);
+    let s = `<svg class="graph" viewBox="0 0 ${W} ${H}" role="img" aria-label="${aria(oui.length)}">`;
+    s += `<rect x="${X(0)}" y="${Y(1)}" width="${L}" height="${L}" style="fill:none;stroke:var(--doux);stroke-width:1.4"/>`;
+    non.forEach((p) => { s += `<circle cx="${X(p.x)}" cy="${Y(p.y)}" r="2.6" style="fill:var(--doux);opacity:.6"/>`; });
+    oui.forEach((p) => { s += `<circle cx="${X(p.x)}" cy="${Y(p.y)}" r="2.6" style="fill:var(${couleur})"/>`; });
+    s += courbe(X, Y, L);
+    s += `<text class="g-label" x="${X(0) - 6}" y="${Y(0) + 4}" text-anchor="end">0</text><text class="g-label" x="${X(1)}" y="${Y(0) + 15}" text-anchor="middle">1</text><text class="g-label" x="${X(0) - 6}" y="${Y(1) + 4}" text-anchor="end">1</text>`;
+    return s + `<text class="g-label" x="${W / 2}" y="${H - 8}" text-anchor="middle">${legende(oui.length)}</text></svg>`;
+  }
+  FIGURES["monte-carlo"] = () => smNuage(4988, (x, y) => y <= x * x, "--ylang", (X, Y) => {
+    let d = ""; for (let k = 0; k <= 60; k++) { const x = k / 60; d += (k ? "L" : "M") + X(x) + " " + Y(x * x); }
+    return `<path d="${d}" class="g-curve" style="fill:none"/><text class="g-clabel g-curve-0" x="${X(1) + 5}" y="${Y(1) + 14}">y = x²</text>`;
+  }, (k) => `${k} points sur 200 sous la courbe : aire ≈ ${vir(k / 200)}`, (k) => `Méthode de Monte-Carlo : ${k} points sur 200 tombent sous la parabole y = x², l'aire sous la courbe vaut environ ${vir(k / 200)}`);
+  FIGURES["monte-carlo-pi"] = () => smNuage(12964, (x, y) => x * x + y * y <= 1, "--lagon", (X, Y, L) => `<path d="M${X(1)} ${Y(0)} A${L} ${L} 0 0 0 ${X(0)} ${Y(1)}" class="g-curve" style="fill:none"/>`,
+    (k) => `${k} points sur 200 : π ≈ 4 × ${vir(k / 200)} = ${vir((4 * k) / 200)}`, (k) => `${k} points sur 200 tombent dans le quart de disque : π est environ 4 × ${vir(k / 200)}`);
+
+  GEN["sm-simulation"] = function () {
+    const vals = shuffle([5, 8, 10, 12, 14, 20]).slice(0, 3).sort((a, b) => a - b);
+    let s1, s2; do { s1 = rand(1, 6) / 10; s2 = s1 + rand(1, 6) / 10; } while (s2 >= 1);
+    const ps = [s1, +(s2 - s1).toFixed(1), +(1 - s2).toFixed(1)], k = rand(0, 2);
+    const code = "```python\nfrom random import random\n\ndef regime():\n    r = random()\n    if r < " + s1 + ":\n        return " + vals[0] + "\n    elif r < " + s2.toFixed(1) + ":\n        return " + vals[1] + "\n    else:\n        return " + vals[2] + "\n```";
+    if (Math.random() < 0.6) {
+      return {
+        enonce: `random() renvoie un nombre au hasard dans $[0\\,;1[$. Cette fonction simule la masse (en kg) d'un régime de bananes :\n\n${code}\n\nAvec quelle probabilité renvoie-t-elle $${vals[k]}$ ?`,
+        mode: "nombre", prefixe: "Probabilité :", attendu: ps[k], tolerance: 1e-6,
+        erreurs: k ? [{ valeur: +s2.toFixed(1), message: "Regarde la **longueur** de l'intervalle où tombe r, pas seulement sa borne." }].filter((e) => Math.abs(e.valeur - ps[k]) > 1e-9) : [],
+        aides: ["La probabilité que random() tombe dans un intervalle de $[0\\,;1[$ est la longueur de cet intervalle.", `On renvoie $${vals[k]}$ quand $r$ est dans ${k === 0 ? `$[0\\,;${fr(s1)}[$` : k === 1 ? `$[${fr(s1)}\\,;${fr(s2)}[$` : `$[${fr(s2)}\\,;1[$`}.`, "Calcule la longueur de cet intervalle."],
+        solution: `La valeur $${vals[k]}$ correspond à $r \\in ${k === 0 ? `[0\\,;${fr(s1)}[` : k === 1 ? `[${fr(s1)}\\,;${fr(s2)}[` : `[${fr(s2)}\\,;1[`}$, de longueur $${fr(ps[k])}$ : c'est la probabilité cherchée.`
+      };
+    }
+    const E = +vals.reduce((s, v, i) => s + v * ps[i], 0).toFixed(4);
+    return {
+      enonce: `random() renvoie un nombre au hasard dans $[0\\,;1[$. On considère :\n\n${code}\n\nVers quelle valeur se rapproche la moyenne de $10\\,000$ appels à regime() ?`,
+      mode: "nombre", prefixe: "Valeur :", suffixe: "kg", attendu: E, tolerance: 0.006,
+      erreurs: [{ valeur: +((vals[0] + vals[1] + vals[2]) / 3).toFixed(4), message: "Les trois valeurs n'ont pas la même probabilité : pondère par les probabilités." }].filter((e) => Math.abs(e.valeur - E) > 0.006),
+      aides: ["La loi simulée : chaque valeur a pour probabilité la longueur de son intervalle.", `Probabilités : $${ps.map(fr).join("$ ; $")}$.`, "La moyenne d'un grand échantillon se rapproche de l'espérance $E(X) = \\sum p_ix_i$."],
+      solution: `$E(X) = ${vals.map((v, i) => `${v} \\times ${fr(ps[i])}`).join(" + ")} = ${fr(E)}$ : la moyenne de $10\\,000$ régimes simulés sera proche de $${fr(E)}$ kg.`
+    };
+  };
+
+  GEN["sm-moyenne"] = function () {
+    const n = pick([5, 6, 8, 10]), ech = Array.from({ length: n }, () => pick([8, 10, 12, 14])), m = +(ech.reduce((a, b) => a + b, 0) / n).toFixed(4);
+    if (Math.random() < 0.5) {
+      return {
+        enonce: `On pèse un échantillon de $${n}$ régimes de bananes d'une parcelle (en kg) : $${ech.join("$ ; $")}$. Calcule la moyenne $m$ de cet échantillon.`,
+        mode: "nombre", prefixe: "$m =$", suffixe: "kg", attendu: m, tolerance: 0.006,
+        aides: ["La moyenne est la somme des valeurs divisée par leur nombre.", `Somme : $${ech.reduce((a, b) => a + b, 0)}$.`, `Divise par $${n}$.`],
+        solution: `$m = \\dfrac{${ech.reduce((a, b) => a + b, 0)}}{${n}} = ${fr(m)}$ kg. Un autre échantillon donnerait une autre moyenne : c'est la fluctuation d'échantillonnage.`
+      };
+    }
+    const code = "```python\ndef moyenne(liste):\n    s = 0\n    for x in liste:\n        s = s + x\n    return s / len(liste)\n```";
+    return {
+      enonce: `${code}\n\nQue renvoie moyenne([${ech.join(", ")}]) ?`,
+      mode: "nombre", prefixe: "Résultat :", attendu: m, tolerance: 0.006,
+      erreurs: [{ valeur: ech.reduce((a, b) => a + b, 0), message: "La fonction divise la somme par len(liste), le nombre de valeurs." }],
+      aides: ["La boucle additionne toutes les valeurs de la liste dans s.", `s vaut $${ech.reduce((a, b) => a + b, 0)}$ à la fin.`, `len(liste) vaut $${n}$.`],
+      solution: `$\\dfrac{${ech.reduce((a, b) => a + b, 0)}}{${n}} = ${fr(m)}$.`
+    };
+  };
+
+  GEN["sm-intervalle"] = function () {
+    const [mu, sigma] = pick([[11.4, 1.8], [50, 10], [2, 0.5], [120, 15], [7, 2]]), n = pick([25, 100, 400, 16]), e = (2 * sigma) / Math.sqrt(n), t = rand(0, 2);
+    if (t === 2) {
+      const c = melangeChoix("environ $95\\,\\%$", ["environ $50\\,\\%$", "exactement $100\\,\\%$", "environ $5\\,\\%$"]);
+      return {
+        enonce: `On simule $N = 1\\,000$ échantillons de taille $n = ${n}$ d'une variable aléatoire d'espérance $\\mu = ${fr(mu)}$ et d'écart type $\\sigma = ${fr(sigma)}$. Dans quelle proportion des échantillons la moyenne $m$ vérifie-t-elle $|m - \\mu| \\leqslant \\dfrac{2\\sigma}{\\sqrt{n}}$ ?`,
+        mode: "choix", choix: c.choix, attendu: c.attendu,
+        aides: ["La moyenne d'un échantillon fluctue autour de $\\mu$.", "L'écart type de cette moyenne vaut $\\dfrac{\\sigma}{\\sqrt{n}}$.", "On observe qu'environ $95\\,\\%$ des moyennes sont à moins de $2\\dfrac{\\sigma}{\\sqrt{n}}$ de $\\mu$."],
+        solution: `On observe, par simulation, qu'**environ $95\\,\\%$** des échantillons vérifient $|m - \\mu| \\leqslant \\dfrac{2\\sigma}{\\sqrt{n}} = ${fr(+e.toFixed(3))}$. Ce n'est pas $100\\,\\%$ : quelques échantillons s'en écartent plus.`
+      };
+    }
+    return {
+      enonce: `Une variable aléatoire a pour espérance $\\mu = ${fr(mu)}$ et pour écart type $\\sigma = ${fr(sigma)}$. Pour des échantillons de taille $n = ${n}$, ${t === 0 ? "calcule $\\dfrac{2\\sigma}{\\sqrt{n}}$." : "quelle est la borne inférieure de l'intervalle $\\left[\\mu - \\dfrac{2\\sigma}{\\sqrt{n}}\\,;\\mu + \\dfrac{2\\sigma}{\\sqrt{n}}\\right]$ ?"}`,
+      mode: "nombre", prefixe: t === 0 ? "$\\dfrac{2\\sigma}{\\sqrt{n}} =$" : "Borne :", attendu: +(t === 0 ? e : mu - e).toFixed(4), tolerance: 0.006,
+      erreurs: [{ valeur: +(t === 0 ? (2 * sigma) / n : mu - (2 * sigma) / n).toFixed(4), message: `On divise par $\\sqrt{n} = ${Math.sqrt(n)}$, pas par $n$.` }],
+      aides: [`$\\sqrt{${n}} = ${Math.sqrt(n)}$.`, `$\\dfrac{2 \\times ${fr(sigma)}}{${Math.sqrt(n)}} = ${fr(+e.toFixed(4))}$.`, t === 0 ? "C'est la demi-largeur de l'intervalle." : `Borne inférieure : $${fr(mu)} - ${fr(+e.toFixed(4))}$.`],
+      solution: `$\\dfrac{2\\sigma}{\\sqrt{n}} = \\dfrac{${fr(2 * sigma)}}{${Math.sqrt(n)}} = ${fr(+e.toFixed(4))}$${t === 0 ? "" : `, donc la borne inférieure vaut $${fr(mu)} - ${fr(+e.toFixed(4))} = ${fr(+(mu - e).toFixed(4))}$`}. Environ $95\\,\\%$ des moyennes d'échantillons tombent dans cet intervalle.`
+    };
+  };
+
+  GEN["sm-taille"] = function () {
+    if (Math.random() < 0.5) {
+      const k = pick([4, 9, 16, 100]), c = melangeChoix(`elle est divisée par $${Math.sqrt(k)}$`, [`elle est divisée par $${k}$`, `elle est multipliée par $${Math.sqrt(k)}$`, "elle ne change pas"]);
+      return {
+        enonce: `On multiplie la taille $n$ des échantillons par $${k}$. Que devient la demi-largeur $\\dfrac{2\\sigma}{\\sqrt{n}}$ de l'intervalle où tombent environ $95\\,\\%$ des moyennes ?`,
+        mode: "choix", choix: c.choix, attendu: c.attendu,
+        aides: [`$\\sqrt{${k}n} = \\sqrt{${k}} \\times \\sqrt{n}$.`, `$\\sqrt{${k}} = ${Math.sqrt(k)}$.`, "Le dénominateur est multiplié, donc la fraction est divisée."],
+        solution: `$\\dfrac{2\\sigma}{\\sqrt{${k}n}} = \\dfrac{1}{${Math.sqrt(k)}} \\times \\dfrac{2\\sigma}{\\sqrt{n}}$ : la demi-largeur est divisée par $${Math.sqrt(k)}$. Pour être $${Math.sqrt(k)}$ fois plus précis, il faut $${k}$ fois plus de données.`
+      };
+    }
+    const sigma = pick([1.8, 2, 5, 10]), e = pick([0.1, 0.2, 0.5, 1, 2]), n = Math.ceil(+(((2 * sigma) / e) ** 2).toFixed(6));
+    return {
+      enonce: `L'écart type de la masse d'un régime de bananes est $\\sigma = ${fr(sigma)}$ kg. Quelle taille $n$ d'échantillon faut-il au minimum pour que $\\dfrac{2\\sigma}{\\sqrt{n}} \\leqslant ${fr(e)}$ ?`,
+      mode: "nombre", prefixe: "$n \\geqslant$", attendu: n,
+      aides: ["$\\dfrac{2\\sigma}{\\sqrt{n}} \\leqslant e \\iff \\sqrt{n} \\geqslant \\dfrac{2\\sigma}{e}$.", `$\\dfrac{2\\sigma}{e} = \\dfrac{${fr(2 * sigma)}}{${fr(e)}} = ${fr(+((2 * sigma) / e).toFixed(4))}$.`, "Élève au carré, puis prends le premier entier qui convient."],
+      solution: `$\\sqrt{n} \\geqslant ${fr(+((2 * sigma) / e).toFixed(4))} \\iff n \\geqslant ${fr(+(((2 * sigma) / e) ** 2).toFixed(4))}$ : il faut au moins $${n}$ régimes.`
+    };
+  };
+
+  GEN["sm-montecarlo"] = function () {
+    const t = rand(0, 2), N = pick([1000, 10000]);
+    if (t === 0) {
+      const k = Math.round(N * (0.333 + (rand(-12, 12) / 1000))), a = k / N;
+      return {
+        enonce: `Méthode de Monte-Carlo : on tire $${nb(N)}$ points au hasard dans le carré $[0\\,;1] \\times [0\\,;1]$, et $${nb(k)}$ tombent sous la courbe de $y = x^2$. Quelle estimation de l'aire sous la courbe en déduit-on ?`,
+        mode: "nombre", prefixe: "Aire ≈", attendu: a, tolerance: 1e-6,
+        aides: ["Le carré a une aire de $1$.", "La proportion de points sous la courbe estime la part de l'aire du carré située sous la courbe.", `$\\dfrac{${nb(k)}}{${nb(N)}}$.`],
+        solution: `Aire $\\approx \\dfrac{${nb(k)}}{${nb(N)}} = ${fr(a)}$. La valeur exacte est $\\dfrac{1}{3} \\approx 0{,}333$ (calculée en Terminale).`
+      };
+    }
+    if (t === 1) {
+      const k = Math.round(N * (0.785 + rand(-10, 10) / 1000)), p = +((4 * k) / N).toFixed(4);
+      return {
+        enonce: `On tire $${nb(N)}$ points au hasard dans le carré $[0\\,;1] \\times [0\\,;1]$ ; $${nb(k)}$ vérifient $x^2 + y^2 \\leqslant 1$ (quart de disque). Quelle valeur approchée de $\\pi$ en déduit-on ?`,
+        mode: "nombre", prefixe: "$\\pi \\approx$", attendu: p, tolerance: 1e-6,
+        erreurs: [{ valeur: +(k / N).toFixed(4), message: "Ça, c'est l'aire du quart de disque, $\\dfrac{\\pi}{4}$ : multiplie par $4$." }],
+        aides: ["Le quart de disque de rayon $1$ a pour aire $\\dfrac{\\pi}{4}$.", `La proportion $\\dfrac{${nb(k)}}{${nb(N)}}$ estime $\\dfrac{\\pi}{4}$.`, "Multiplie par $4$."],
+        solution: `$\\dfrac{\\pi}{4} \\approx \\dfrac{${nb(k)}}{${nb(N)}}$, donc $\\pi \\approx 4 \\times ${fr(k / N)} = ${fr(p)}$.`
+      };
+    }
+    const c = melangeChoix("y <= x*x", ["y >= x*x", "x <= y*y", "x + y <= 1"]);
+    return {
+      enonce: "On veut estimer l'aire sous la courbe de $y = x^2$ entre $0$ et $1$ :\n\n```python\nfrom random import random\n\ndef aire(N):\n    c = 0\n    for i in range(N):\n        x = random()\n        y = random()\n        if …:\n            c = c + 1\n    return c / N\n```\n\nQuelle condition faut-il écrire à la place de « … » ?",
+      mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: ["On compte les points situés **sous** la courbe.", "Le point $(x\\,;y)$ est sous la courbe quand son ordonnée est inférieure à $x^2$.", "En Python, le carré de x peut s'écrire x*x."],
+      solution: "Le point est sous la courbe quand $y \\leqslant x^2$ : on écrit « y <= x*x ». La fonction renvoie la proportion de points sous la courbe, qui se rapproche de l'aire $\\dfrac{1}{3}$ quand $N$ grandit."
+    };
+  };
+
+  GEN["sm-lecture"] = function () {
+    const T = [
+      ["Vrai ou faux : « la moyenne d'un échantillon est toujours égale à l'espérance $E(X)$ ».", "Faux", ["Vrai"], "Faux : la moyenne d'un échantillon **fluctue** d'un échantillon à l'autre, autour de $E(X)$."],
+      ["Vrai ou faux : « plus la taille $n$ de l'échantillon est grande, moins sa moyenne s'écarte de $E(X)$ en général ».", "Vrai", ["Faux"], "Vrai : l'écart typique est de l'ordre de $\\dfrac{\\sigma}{\\sqrt{n}}$, qui diminue quand $n$ augmente (loi des grands nombres)."],
+      ["Deux élèves simulent chacun $100$ régimes de bananes et trouvent des moyennes de $11{,}2$ kg et $11{,}6$ kg. Que peut-on dire ?", "C'est la fluctuation d'échantillonnage", ["L'un des deux s'est trompé", "L'espérance vaut forcément $11{,}4$ kg", "La simulation est fausse"], "Deux échantillons différents donnent des moyennes différentes : c'est normal."],
+      ["On pèse $400$ régimes et on trouve une moyenne de $11{,}3$ kg. Cette valeur est :", "une estimation de la masse moyenne des régimes de la parcelle", ["exactement l'espérance", "la masse de chaque régime", "sans aucun rapport avec l'espérance"], "Avec un grand échantillon, la moyenne observée est une bonne **estimation** de l'espérance, avec une incertitude de l'ordre de $\\dfrac{2\\sigma}{\\sqrt{n}}$."],
+      ["Dans la méthode de Monte-Carlo, pourquoi tire-t-on beaucoup de points ?", "Pour que la proportion observée se rapproche de l'aire cherchée", ["Pour que le dessin soit joli", "Parce que Python l'exige", "Pour que chaque point tombe sous la courbe"], "La proportion de points sous la courbe est une fréquence : elle se rapproche de la probabilité (l'aire) quand le nombre de points grandit."]
+    ];
+    const [q, b, f, s] = pick(T), c = melangeChoix(b, f);
+    return {
+      enonce: q, mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: ["Une moyenne d'échantillon est une observation ; l'espérance est une valeur théorique.", "Quand la taille de l'échantillon augmente, la moyenne fluctue moins.", "Une fréquence observée sur beaucoup d'essais estime une probabilité."],
+      solution: s
+    };
+  };
+
+
   /* Séries « flash » d'un thème : mélange de ses générateurs */
   const THEMES = {
     "am-flash-cn": ["am-comparer", "am-fractions", "am-puissances", "am-ecritures", "am-ordre-grandeur", "am-coherence", "auto-conversions"],
@@ -7839,7 +8011,7 @@
 
 
   /* Une « erreur connue » ne doit jamais coïncider avec la bonne réponse (à la tolérance près) */
-  Object.keys(GEN).filter((k) => /^(ld|am|cd|ar|cl|fa|ve|st|vx|tc|co|dr|fr|sg|pc|ec|sy|su|s2|pi|s5|d1|tr|d2|vr|ps|ex|va|sc|gr)-/.test(k)).forEach((k) => {
+  Object.keys(GEN).filter((k) => /^(ld|am|cd|ar|cl|fa|ve|st|vx|tc|co|dr|fr|sg|pc|ec|sy|su|s2|pi|s5|d1|tr|d2|vr|ps|ex|va|sc|gr|sm)-/.test(k)).forEach((k) => {
     const g = GEN[k];
     GEN[k] = (i) => { const q = g(i); if (q.erreurs) q.erreurs = q.erreurs.filter((e) => Math.abs(e.valeur - q.attendu) >= (q.tolerance || 1e-9)); return q; };
   });

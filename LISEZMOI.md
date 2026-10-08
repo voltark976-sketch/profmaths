@@ -40,6 +40,7 @@ Site statique : aucune base de données, aucun compte élève. Ouvrir `index.htm
   - `variables-aleatoires.js` : chapitre 13, variables aléatoires (loi, espérance, variance, tombola, épreuves répétées en arbre). Générateurs `va-` (et `ld-loi-esperance`).
   - `produit-scalaire-2.js` : chapitre 14, produit scalaire (bilinéarité, identités, Al-Kashi, îlots du lagon, MA · MB = 0, contraposée). Générateurs `sc-`.
   - `geometrie-reperee.js` : chapitre 15, géométrie repérée (vecteur normal, projeté orthogonal, cercles, antenne relais). Générateurs `gr-`.
+  - `echantillons.js` : chapitre 16, expérimentations sur les échantillons (simulation avec random() et un tableur, moyenne d'un échantillon, écart 2σ/√n, Monte-Carlo pour une aire et pour π, régimes de bananes). Générateurs `sm-` (et `ec-python`, `ec-lgn` de Seconde).
 - `data/terminale-spe/denombrement.js` : chapitre 14 de Terminale spécialité (combinatoire et dénombrement). Les générateurs d'exercices correspondants commencent par `cd-` dans `assets/exercices.js`.
 - `data/terminale/lois-discretes.js` : chapitre 2 de Terminale maths complémentaires.
 

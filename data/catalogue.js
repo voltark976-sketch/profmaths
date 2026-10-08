@@ -323,6 +323,13 @@ window.CATALOGUE = {
           titre: "Géométrie repérée",
           statut: "disponible",
           drive: ""
+        },
+        {
+          id: "premiere-echantillons",
+          numero: 16,
+          titre: "Expérimentations : échantillons",
+          statut: "disponible",
+          drive: ""
         }
       ]
     },

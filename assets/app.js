@@ -130,7 +130,8 @@
   function tex(src, display) {
     if (window.katex) {
       // Intervalles : ]a ; b[ s'écrit comme d'habitude, l'espacement des crochets est corrigé ici
-      src = src.replace(/([\[\]])([^\[\];$]*?)\\,;([^\[\];$]*?)([\[\]])/g, "\\mathopen{$1}$2\\,;$3\\mathclose{$4}");
+      // (sauf après \left : \left[ … \right] s'ajuste déjà tout seul)
+      src = src.replace(/([\[\]])([^\[\];$]*?)\\,;([^\[\];$]*?)([\[\]])/g, (m, o, a, b, f, i, t) => (/\\left$/.test(t.slice(0, i)) ? m : `\\mathopen{${o}}${a}\\,;${b}\\mathclose{${f}}`));
       try { return katex.renderToString(src, { throwOnError: false, displayMode: !!display }); } catch (e) {}
     }
     return `<code>${esc(src)}</code>`;
