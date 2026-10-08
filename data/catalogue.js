@@ -358,6 +358,13 @@ window.CATALOGUE = {
       nom: "Terminale maths complémentaires",
       chapitres: [
         {
+          id: "terminale-suites",
+          numero: 1,
+          titre: "Suites et modèles discrets",
+          statut: "disponible",
+          drive: ""
+        },
+        {
           id: "terminale-lois-discretes",
           numero: 2,
           titre: "Lois discrètes",

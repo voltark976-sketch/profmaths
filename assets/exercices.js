@@ -169,6 +169,8 @@
       // petite flèche au-dessus du nom du vecteur
       if (f.label && /^[A-Za-z]{1,2}$/.test(f.label)) s += `<text class="g-clabel g-curve-${c} g-fleche-nom" style="font-size:10px" x="${+((ax + bx) / 2 + dd * Math.sin(t)).toFixed(1)}" y="${+((ay + by) / 2 - dd * Math.cos(t) - 7).toFixed(1)}" text-anchor="middle">→</text>`;
     });
+    // chemins : lignes brisées pointillées (par exemple l'escalier d'une suite récurrente)
+    (o.chemins || []).forEach((ch) => { s += `<path class="g-curve g-curve-1" d="${ch.map(([x, y], k) => (k ? "L" : "M") + X(x) + " " + Y(y)).join("")}" style="fill:none;stroke-width:1.6;stroke-dasharray:5 3"/>`; });
     (o.points || []).forEach((p, k) => {
       s += `<circle class="g-point" cx="${X(p.x)}" cy="${Y(p.y)}" r="3.5"/>`;
       const e = placesPoints[k];
@@ -11214,6 +11216,187 @@
   // Logique : ensembles {X = a}, intersections, négations
 
 
+  /* ---------- Terminale maths complémentaires, chapitre 1 : suites et modèles discrets (préfixe tsu-) ---------- */
+  // Escalier d'une suite u(n+1) = f(u(n)) : courbe de f, droite y = x, termes marqués sur l'axe
+  function tsuEscalier(f, u0, n, xmax, ymax, aria) {
+    const u = [u0]; for (let k = 0; k < n; k++) u.push(f(u[k]));
+    const ch = [[u0, 0]];
+    for (let k = 0; k < n; k++) { ch.push([u[k], u[k + 1]]); ch.push([u[k + 1], u[k + 1]]); }
+    const noms = ["u₀", "u₁", "u₂", "u₃", "u₄"];
+    return graph({ xmin: -0.6, xmax, ymin: -0.9, ymax, h: 290, curves: [{ f, a: 0, b: xmax - 0.4, closed: false, label: "C<tspan class=\"sub\" dy=\"3\">f</tspan>", lx: xmax - 0.6, dx: -4, dy: -8 }, { f: (x) => x, a: 0, b: Math.min(xmax, ymax) - 0.4, closed: false, label: "y = x", lx: Math.min(xmax, ymax) - 0.5, dx: -6, dy: 14 }], chemins: [ch], marques: u.slice(0, Math.min(n, 3) + 1).map((x, k) => ({ x, y: -0.55, texte: noms[k] })).filter((m, k, t) => t.slice(0, k).every((p) => Math.abs(p.x - m.x) > 0.5)), aria });
+  }
+  FIGURES["tsu-escalier"] = () => tsuEscalier((x) => 0.5 * x + 2, 0.5, 4, 6.4, 5.6, "Escalier de la suite u(n+1) = 0,5 u(n) + 2 partant de 0,5 : les termes montent vers 4, abscisse du point où la courbe coupe la droite y = x");
+  FIGURES["tsu-limite"] = () => {
+    const pts = Array.from({ length: 16 }, (_, n) => ({ x: n + 1, y: 3 + 2 / (n + 1) }));
+    return graph({ xmin: -0.8, xmax: 17.5, ymin: -0.6, ymax: 5.6, xstep: 1, xetiq: 5, h: 240, xlabel: "n", ylabel: "uₙ", hlines: [{ y: 3, label: "ℓ = 3" }], points: pts, aria: "Les termes u(n) = 3 + 2/n se rapprochent de 3 : à partir d'un certain rang, ils restent aussi près de 3 qu'on veut" });
+  };
+  FIGURES["tsu-malthus"] = () => {
+    const pts = Array.from({ length: 11 }, (_, n) => ({ x: n, y: 320 * 1.03 ** n }));
+    return graph({ xmin: -0.8, xmax: 11.5, ymin: -40, ymax: 480, ystep: 50, yetiq: 100, padL: 32, h: 250, xlabel: "n (années après 2024)", ylabel: "milliers d'habitants", points: pts, aria: "Modèle de Malthus : 320 000 habitants en 2024, plus 3 % par an ; environ 430 000 au bout de 10 ans" });
+  };
+
+  GEN["tsu-escalier"] = function () {
+    const a = pick([0.5, 0.5, 0.25, 0.75]), L = rand(2, 4), b = +(L * (1 - a)).toFixed(4);
+    const u0 = pick([0, 0.5, 1, L + 1.5, L + 2]).valueOf(), f = (x) => a * x + b;
+    const t = rand(0, 2), u1 = +f(u0).toFixed(4), u2 = +f(u1).toFixed(4);
+    const fig = tsuEscalier(f, u0, 4, L + 2.8, L + 2.4, `Escalier de la suite u(n+1) = ${vir(a)} u(n) + ${vir(b)} à partir de u0 = ${vir(u0)}`);
+    const ftex = `${fr(a)}x + ${fr(b)}`;
+    if (t === 0) {
+      const c = melangeChoix(`$${L}$`, [`$${fr(b)}$`, "$+\\infty$", `$${fr(u0)}$`, "$0$"].filter((x) => x !== `$${L}$`));
+      return {
+        enonce: `La suite $(u_n)$ est définie par $u_0 = ${fr(u0)}$ et $u_{n+1} = f(u_n)$ avec $f(x) = ${ftex}$. On a tracé l'escalier de la suite. Quelle limite peut-on conjecturer ?`,
+        figure: fig, mode: "choix", choix: c.choix, attendu: c.attendu,
+        aides: ["Suis l'escalier : il va de la courbe de $f$ à la droite $y = x$, puis remonte (ou redescend) vers la courbe.", "Les marches se resserrent autour d'un point d'intersection.", `Ce point vérifie $f(\\ell) = \\ell$ : $${fr(a)}\\ell + ${fr(b)} = \\ell$.`],
+        solution: `Les termes se rapprochent de l'abscisse du point d'intersection de la courbe et de la droite $y = x$ : $${fr(a)}\\ell + ${fr(b)} = \\ell \\iff ${fr(+(1 - a).toFixed(4))}\\ell = ${fr(b)} \\iff \\ell = ${L}$. On conjecture $\\lim u_n = ${L}$.`
+      };
+    }
+    if (t === 1) return {
+      enonce: `La suite $(u_n)$ est définie par $u_0 = ${fr(u0)}$ et $u_{n+1} = ${fr(a)}u_n + ${fr(b)}$. Calcule $u_2$.`,
+      figure: fig, mode: "nombre", prefixe: "$u_2 =$", attendu: u2, tolerance: 1e-6,
+      erreurs: [{ valeur: u1, message: "Ça, c'est $u_1$ : applique la relation une deuxième fois." }],
+      aides: ["$u_1 = f(u_0)$, puis $u_2 = f(u_1)$.", `$u_1 = ${fr(a)} \\times ${fr(u0)} + ${fr(b)} = ${fr(u1)}$.`, `$u_2 = ${fr(a)} \\times ${fr(u1)} + ${fr(b)}$.`],
+      solution: `$u_1 = ${fr(u1)}$ puis $u_2 = ${fr(a)} \\times ${fr(u1)} + ${fr(b)} = ${fr(u2)}$. Sur l'escalier, $u_2$ se lit sur l'axe horizontal après deux marches.`
+    };
+    const monte = u0 < L, c = melangeChoix(monte ? "croissante" : "décroissante", [monte ? "décroissante" : "croissante", "ni croissante ni décroissante"]);
+    return {
+      enonce: `D'après l'escalier de la suite définie par $u_0 = ${fr(u0)}$ et $u_{n+1} = ${ftex.replace("x", "u_n")}$, la suite semble :`,
+      figure: fig, mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: ["Regarde les termes $u_0$, $u_1$, $u_2$… marqués sur l'axe horizontal.", "Ils vont-ils vers la droite ou vers la gauche ?", `$u_0 = ${fr(u0)}$ et $u_1 = ${fr(u1)}$.`],
+      solution: `$u_0 = ${fr(u0)}$, $u_1 = ${fr(u1)}$, $u_2 = ${fr(u2)}$ : les termes ${monte ? "augmentent" : "diminuent"} et se rapprochent de $${L}$. La suite semble **${monte ? "croissante" : "décroissante"}**.`
+    };
+  };
+
+  GEN["tsu-limite"] = function () {
+    const a = randNZ(-6, 6), b = randNZ(-9, 9), c = rand(2, 7);
+    const T = [
+      [`${a} + \\dfrac{${b}}{n}`, `${a}`, `$\\dfrac{${b}}{n}$ tend vers $0$ (on divise un nombre fixe par un nombre de plus en plus grand), donc $u_n$ tend vers $${a}$.`],
+      [`${a === 1 ? "" : a === -1 ? "-" : a}n ${sg(b)}`, a > 0 ? "+\\infty" : "-\\infty", `$n$ tend vers $+\\infty$ ; multiplié par $${a}$ ${a > 0 ? "(positif)" : "(négatif)"}, puis on ajoute $${b}$ : limite $${a > 0 ? "+\\infty" : "-\\infty"}$.`],
+      [`${a === 1 ? "" : a === -1 ? "-" : a}n^2 ${sg(b)}`, a > 0 ? "+\\infty" : "-\\infty", `$n^2$ tend vers $+\\infty$ ; le facteur $${a}$ ${a > 0 ? "positif garde" : "négatif change"} le signe : limite $${a > 0 ? "+\\infty" : "-\\infty"}$.`],
+      [`\\dfrac{${b}}{n^2 + ${c}}`, "0", `Le dénominateur $n^2 + ${c}$ tend vers $+\\infty$ et le numérateur reste égal à $${b}$ : le quotient tend vers $0$.`],
+      [`\\left(${a} + \\dfrac{1}{n}\\right)\\left(${c} - \\dfrac{1}{n}\\right)`, `${a * c}`, `$${a} + \\dfrac{1}{n} \\to ${a}$ et $${c} - \\dfrac{1}{n} \\to ${c}$ : le produit tend vers $${a} \\times ${c} = ${a * c}$.`],
+      [`\\sqrt{n} ${sg(b)}`, "+\\infty", `$\\sqrt{n}$ tend vers $+\\infty$, donc $\\sqrt{n} ${sg(b)}$ aussi.`],
+      [`${c} - \\dfrac{${Math.abs(b)}}{\\sqrt{n}}`, `${c}`, `$\\sqrt{n} \\to +\\infty$, donc $\\dfrac{${Math.abs(b)}}{\\sqrt{n}} \\to 0$ et $u_n \\to ${c}$.`],
+      [`n^2 + ${c}n`, "+\\infty", "Somme de deux termes qui tendent vers $+\\infty$ : limite $+\\infty$."],
+      [`\\dfrac{${c}}{n} \\times \\left(${a} + \\dfrac{1}{n}\\right)`, "0", `$\\dfrac{${c}}{n} \\to 0$ et $${a} + \\dfrac{1}{n} \\to ${a}$ : le produit tend vers $0 \\times ${a} = 0$.`],
+      [`-n^3 ${sg(b)}`, "-\\infty", "$n^3 \\to +\\infty$, donc $-n^3 \\to -\\infty$ : limite $-\\infty$."]
+    ];
+    const [u, l, s] = pick(T);
+    const c2 = melangeChoix(`$${l}$`, shuffle(["$+\\infty$", "$-\\infty$", "$0$", `$${a}$`, `$${c}$`, `$${a * c}$`]));
+    return {
+      enonce: `Pour $n \\geqslant 1$, $u_n = ${u}$. Quelle est la limite de $(u_n)$ ?`, mode: "choix", choix: c2.choix, attendu: c2.attendu,
+      aides: ["Cherche la limite de chaque morceau quand $n$ devient très grand.", "Un nombre fixe divisé par un nombre qui tend vers $+\\infty$ tend vers $0$.", "Additionne, multiplie : ici, aucune forme indéterminée."],
+      solution: `${s} $\\lim\\limits_{n \\to +\\infty} u_n = ${l}$.`
+    };
+  };
+
+  GEN["tsu-comparaison"] = function () {
+    const a = randNZ(-5, 6), k = rand(2, 6);
+    const T = [
+      [`Pour tout $n \\geqslant 1$, $${a} - \\dfrac{1}{n} \\leqslant u_n \\leqslant ${a} + \\dfrac{1}{n}$. Que peut-on dire de $(u_n)$ ?`, `elle tend vers $${a}$`, [`elle tend vers $+\\infty$`, "on ne peut rien dire", `elle tend vers $${a + 1}$`], `Les deux suites qui encadrent $u_n$ tendent vers $${a}$ : par le **théorème des gendarmes**, $u_n$ tend aussi vers $${a}$.`],
+      [`Pour tout $n$, $u_n \\geqslant n^2$. Que peut-on dire de $(u_n)$ ?`, "elle tend vers $+\\infty$", ["elle tend vers $0$", "on ne peut rien dire", "elle est bornée"], "$n^2 \\to +\\infty$ et $u_n$ est plus grand : par **comparaison**, $u_n \\to +\\infty$."],
+      [`Pour tout $n$, $u_n \\leqslant ${k} - n$. Que peut-on dire de $(u_n)$ ?`, "elle tend vers $-\\infty$", ["elle tend vers $+\\infty$", "elle tend vers $" + k + "$", "on ne peut rien dire"], `$${k} - n \\to -\\infty$ et $u_n$ est plus petit : par comparaison, $u_n \\to -\\infty$.`],
+      [`$u_n = ${a} + \\dfrac{(-1)^n}{n}$ pour $n \\geqslant 1$. Quelle est la limite de $(u_n)$ ?`, `$${a}$`, ["$+\\infty$", "elle n'en a pas", `$${a + 1}$`], `$-\\dfrac{1}{n} \\leqslant \\dfrac{(-1)^n}{n} \\leqslant \\dfrac{1}{n}$, donc $${a} - \\dfrac{1}{n} \\leqslant u_n \\leqslant ${a} + \\dfrac{1}{n}$ : par les gendarmes, $u_n \\to ${a}$.`],
+      [`Pour tout $n \\geqslant 1$, $0 \\leqslant u_n \\leqslant \\dfrac{${k}}{n}$. Quelle est la limite de $(u_n)$ ?`, "$0$", [`$${k}$`, "$+\\infty$", "on ne peut rien dire"], `$\\dfrac{${k}}{n} \\to 0$ : $u_n$ est coincée entre $0$ et une suite qui tend vers $0$, donc $u_n \\to 0$.`],
+      [`On sait que $u_n \\leqslant v_n$ pour tout $n$ et que $\\lim u_n = +\\infty$. Alors :`, "$\\lim v_n = +\\infty$", ["$\\lim v_n = -\\infty$", "on ne peut rien dire de $(v_n)$", "$(v_n)$ est bornée"], "Théorème de comparaison : une suite plus grande qu'une suite qui tend vers $+\\infty$ tend aussi vers $+\\infty$."],
+      [`On sait que $u_n \\leqslant v_n$ pour tout $n$ et que $\\lim v_n = +\\infty$. Alors :`, "on ne peut rien dire de $(u_n)$", ["$\\lim u_n = +\\infty$", "$\\lim u_n = -\\infty$", "$\\lim u_n = 0$"], "Contre-exemple : $u_n = 0$ et $v_n = n$. Être plus petite qu'une suite qui tend vers $+\\infty$ ne dit rien."],
+      [`Pour tout $n \\geqslant 1$, $\\dfrac{${k}n - 1}{n} \\leqslant u_n \\leqslant \\dfrac{${k}n + 1}{n}$. Quelle est la limite de $(u_n)$ ?`, `$${k}$`, ["$+\\infty$", `$${k + 1}$`, "on ne peut rien dire"], `$\\dfrac{${k}n \\pm 1}{n} = ${k} \\pm \\dfrac{1}{n} \\to ${k}$ : par les gendarmes, $u_n \\to ${k}$.`]
+    ];
+    const [q, b, f, s] = pick(T), c = melangeChoix(b, f);
+    return {
+      enonce: q, mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: ["Comparaison : une suite plus grande qu'une suite qui tend vers $+\\infty$ tend vers $+\\infty$ (et de même vers $-\\infty$ en dessous).", "Gendarmes : une suite coincée entre deux suites qui ont la même limite $\\ell$ tend vers $\\ell$.", "Pour un cas qui ne marche pas, cherche un contre-exemple simple."],
+      solution: s
+    };
+  };
+
+  GEN["tsu-somme-limite"] = function () {
+    const q = pick([0.5, 0.2, 0.25, 0.8, 0.9, 0.75, 0.6, 0.4]), L = pick([2, 4, 5, 10, 20, 50, 100]), a = +(L * (1 - q)).toFixed(4);
+    if (Math.random() < 0.6) return {
+      enonce: `On pose $S_n = ${fr(a)} + ${fr(a)} \\times ${fr(q)} + ${fr(a)} \\times ${fr(q)}^2 + \\dots + ${fr(a)} \\times ${fr(q)}^n$. Quelle est la limite de $S_n$ ?`,
+      mode: "nombre", prefixe: "$\\lim S_n =$", attendu: L, tolerance: 1e-6,
+      erreurs: [{ valeur: +(a / q).toFixed(4), message: "La formule est $\\dfrac{\\text{premier terme}}{1 - q}$." }, { valeur: a, message: "Les termes s'ajoutent : la somme dépasse le premier terme." }],
+      aides: [`$S_n = ${fr(a)} \\times \\dfrac{1 - ${fr(q)}^{n+1}}{1 - ${fr(q)}}$.`, `$0 < ${fr(q)} < 1$, donc $${fr(q)}^{n+1} \\to 0$.`, `La limite vaut $\\dfrac{${fr(a)}}{1 - ${fr(q)}}$.`],
+      solution: `$S_n = ${fr(a)} \\times \\dfrac{1 - ${fr(q)}^{n+1}}{1 - ${fr(q)}}$. Comme $0 < ${fr(q)} < 1$, $${fr(q)}^{n+1} \\to 0$, donc $\\lim S_n = \\dfrac{${fr(a)}}{${fr(+(1 - q).toFixed(4))}} = ${L}$.`
+    };
+    const c = melangeChoix(`$${fr(a)} \\times \\dfrac{1 - ${fr(q)}^{n+1}}{1 - ${fr(q)}}$`, [`$${fr(a)} \\times \\dfrac{1 - ${fr(q)}^{n}}{1 - ${fr(q)}}$`, `$${fr(a)} \\times ${fr(q)}^{n+1}$`, `$\\dfrac{${fr(a)}}{1 - ${fr(q)}}$`]);
+    return {
+      enonce: `Une balle lâchée remonte à chaque rebond à $${fr(q * 100)}\\,\\%$ de sa hauteur précédente. La première montée mesure $${fr(a)}$ m. La distance totale parcourue en montée après les rebonds $0$ à $n$ vaut $S_n = ${fr(a)} + ${fr(a)} \\times ${fr(q)} + \\dots + ${fr(a)} \\times ${fr(q)}^n$. Quelle est l'expression de $S_n$ ?`,
+      mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: ["Somme de termes d'une suite géométrique : premier terme $\\times \\dfrac{1 - q^{\\text{nombre de termes}}}{1 - q}$.", "De $q^0$ à $q^n$, il y a $n + 1$ termes.", `Ici le premier terme est $${fr(a)}$ et $q = ${fr(q)}$.`],
+      solution: `Il y a $n + 1$ termes, donc $S_n = ${fr(a)} \\times \\dfrac{1 - ${fr(q)}^{n+1}}{1 - ${fr(q)}}$. Quand $n \\to +\\infty$, $S_n$ tend vers $\\dfrac{${fr(a)}}{1 - ${fr(q)}} = ${L}$ m.`
+    };
+  };
+
+  GEN["tsu-modele"] = function () {
+    const ctx = pick([
+      { nom: "population de Mayotte", u: "habitants", P0: 320000, t: pick([2, 2.5, 3, 3.5, 4]), an: 2024, seuils: [400000, 450000, 500000] },
+      { nom: "capital placé sur un livret", u: "€", P0: pick([1000, 2000, 5000, 1500]), t: pick([1.5, 2, 2.5, 3, 4]), an: 2026, seuils: null },
+      { nom: "nombre d'abonnés d'une radio locale", u: "abonnés", P0: pick([800, 1200, 2500]), t: pick([5, 8, 10, 12]), an: 2026, seuils: null }
+    ]);
+    const q = 1 + ctx.t / 100, k = rand(0, 3);
+    const enon = `On modélise le ${ctx.nom} par une suite $(P_n)$ : $P_0 = ${nb(ctx.P0)}$ en ${ctx.an}, puis une hausse de $${fr(ctx.t)}\\,\\%$ par an (modèle de Malthus, une hypothèse).`;
+    if (k === 0) {
+      const c = melangeChoix(`$P_n = ${nb(ctx.P0)} \\times ${fr(q)}^n$`, [`$P_n = ${nb(ctx.P0)} + ${fr(ctx.t)}n$`, `$P_n = ${nb(ctx.P0)} \\times ${fr(ctx.t)}^n$`, `$P_n = ${nb(ctx.P0)} \\times ${fr(+(ctx.t / 100).toFixed(4))}^n$`]);
+      return { enonce: `${enon} Quelle est l'expression de $P_n$ ?`, mode: "choix", choix: c.choix, attendu: c.attendu,
+        aides: ["Augmenter de $t\\,\\%$, c'est multiplier par $1 + \\dfrac{t}{100}$.", `Ici le coefficient multiplicateur est $${fr(q)}$.`, "La suite est géométrique : $P_n = P_0 \\times q^n$."],
+        solution: `$P_{n+1} = ${fr(q)}P_n$ : suite géométrique de raison $${fr(q)}$, donc $P_n = ${nb(ctx.P0)} \\times ${fr(q)}^n$.` };
+    }
+    if (k === 1) {
+      const n = pick([5, 8, 10]), v = Math.round(ctx.P0 * q ** n);
+      return { enonce: `${enon} Selon ce modèle, combien y aura-t-il de ${ctx.u === "€" ? "euros" : ctx.u} en ${ctx.an + n} ? (Arrondis à l'unité.)`, mode: "nombre", prefixe: `$P_{${n}} \\approx$`, attendu: v, tolerance: 1.01,
+        erreurs: [{ valeur: Math.round(ctx.P0 * (1 + n * ctx.t / 100)), message: "Les hausses en pourcentage se **multiplient**, elles ne s'additionnent pas." }],
+        aides: [`${ctx.an + n} correspond à $n = ${n}$.`, `$P_{${n}} = ${nb(ctx.P0)} \\times ${fr(q)}^{${n}}$.`, "Calcule à la calculatrice et arrondis."],
+        solution: `$P_{${n}} = ${nb(ctx.P0)} \\times ${fr(q)}^{${n}} \\approx ${nb(v)}$.` };
+    }
+    if (k === 2) {
+      const S = ctx.seuils ? pick(ctx.seuils) : Math.round(ctx.P0 * pick([1.5, 2, 3])); let n = 0; while (ctx.P0 * q ** n <= S) n++;
+      return { enonce: `${enon} À partir de quelle année $P_n$ dépassera-t-il $${nb(S)}$ ?`, mode: "nombre", prefixe: "Année :", attendu: ctx.an + n,
+        erreurs: [{ valeur: n, message: `On demande l'année : ajoute le rang $n$ à ${ctx.an}.` }],
+        aides: ["Calcule les termes avec la calculatrice (tableau de valeurs) ou un programme de seuil.", `Cherche le plus petit $n$ tel que $${nb(ctx.P0)} \\times ${fr(q)}^n > ${nb(S)}$.`, `Puis l'année est ${ctx.an} $+ n$.`],
+        solution: `$P_{${n - 1}} \\approx ${nb(Math.round(ctx.P0 * q ** (n - 1)))}$ et $P_{${n}} \\approx ${nb(Math.round(ctx.P0 * q ** n))}$ : le seuil est dépassé pour $n = ${n}$, soit en ${ctx.an + n}.` };
+    }
+    const c = melangeChoix("$+\\infty$ : le modèle ne peut être valable que sur une courte durée", ["$0$", `$${nb(ctx.P0)}$`, `$${fr(q)}$`]);
+    return { enonce: `${enon} Quelle est la limite de $(P_n)$ et qu'en penser ?`, mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: ["$P_n = P_0 \\times q^n$ avec $q > 1$.", "Si $q > 1$, $q^n$ tend vers $+\\infty$.", "Une population ou une somme peut-elle augmenter sans limite ?"],
+      solution: `$q = ${fr(q)} > 1$, donc $${fr(q)}^n \\to +\\infty$ et $P_n \\to +\\infty$. Une croissance sans fin n'est pas réaliste : le modèle de Malthus ne vaut que sur quelques années.` };
+  };
+
+  GEN["tsu-logique"] = function () {
+    const q1 = pick([0.3, 0.5, 0.8, 0.95, 0.99]), q2 = pick([1.001, 1.02, 1.5, 2, 3]), m = pick([2, 5, 10, 100]), e = pick([2, 3, 4]), a = randNZ(-5, 8);
+    const T = [
+      [`« La suite $u_n = ${fr(q1)}^n$ tend vers $0$. »`, true, `$0 < ${fr(q1)} < 1$ : $${fr(q1)}^n$ tend vers $0$, même si c'est ${q1 > 0.9 ? "lentement" : "vite"}.`],
+      [`« La suite $u_n = ${fr(q2)}^n$ est majorée. »`, false, `$${fr(q2)} > 1$ : $${fr(q2)}^n \\to +\\infty$, elle dépasse n'importe quel nombre. Elle n'est pas majorée.`],
+      [`« La suite $u_n = ${m} \\times ${fr(q1)}^n$ tend vers $${m}$. »`, false, `$${fr(q1)}^n \\to 0$, donc $${m} \\times ${fr(q1)}^n \\to 0$, pas $${m}$.`],
+      [`« La suite $u_n = ${a} + ${fr(q1)}^n$ tend vers $${a}$. »`, true, `$${fr(q1)}^n \\to 0$, donc $u_n \\to ${a}$.`],
+      [`« À partir d'un certain rang, $\\dfrac{1}{n}$ est inférieur à $10^{-${e}}$. »`, true, `Dès que $n > 10^{${e}}$, $\\dfrac{1}{n} < 10^{-${e}}$.`],
+      [`« À partir d'un certain rang, $n^2$ dépasse $10^{${2 * e}}$. »`, true, `Dès que $n > 10^{${e}}$, $n^2 > 10^{${2 * e}}$ : $n^2$ tend vers $+\\infty$.`],
+      [`« La suite $u_n = ${a} - \\dfrac{${m}}{n}$ est, à partir d'un certain rang, supérieure à $${a + 1}$. »`, false, `$u_n < ${a}$ pour tout $n \\geqslant 1$ : elle ne dépasse jamais $${a}$, encore moins $${a + 1}$.`],
+      [`« La somme $1 + ${fr(q1)} + ${fr(q1)}^2 + \\dots + ${fr(q1)}^n$ reste inférieure à $${fr(+(1 / (1 - q1)).toFixed(3))}$. »`, true, `Elle vaut $\\dfrac{1 - ${fr(q1)}^{n+1}}{1 - ${fr(q1)}} < \\dfrac{1}{1 - ${fr(q1)}}$ et elle tend vers cette valeur.`],
+
+      ["« La suite $u_n = \\dfrac{1}{n}$ est, à partir d'un certain rang, inférieure à $0{,}001$. »", true, "Dès $n > 1\\,000$, $\\dfrac{1}{n} < 0{,}001$ : c'est vrai à partir du rang $1\\,001$."],
+      ["« Si une suite tend vers $+\\infty$, alors elle dépasse $10^6$ à partir d'un certain rang. »", true, "C'est la définition intuitive : elle finit par dépasser n'importe quel nombre et rester au-dessus."],
+      ["« Si une suite est croissante, alors elle tend vers $+\\infty$. »", false, "Contre-exemple : $u_n = 2 - \\dfrac{1}{n}$ est croissante et tend vers $2$."],
+      ["« Si une suite tend vers $+\\infty$, alors elle est croissante. »", false, "Contre-exemple : $u_n = n + 3 \\times (-1)^n$ tend vers $+\\infty$ mais monte et descend."],
+      ["« La suite $(-1)^n$ a une limite. »", false, "Elle vaut $1$, $-1$, $1$… : elle ne se rapproche d'aucun nombre. Pas de limite."],
+      ["« Si $0 < q < 1$, alors $q^n$ tend vers $0$. »", true, "C'est la limite d'une suite géométrique de raison comprise entre $0$ et $1$."],
+      ["« Si $q > 1$, alors $q^n$ tend vers $+\\infty$. »", true, "Par exemple $1{,}01^n$ dépasse n'importe quel nombre, même si c'est lentement."],
+      ["« La suite $1{,}0001^n$ est bornée, car $1{,}0001$ est très proche de $1$. »", false, "$1{,}0001 > 1$, donc $1{,}0001^n \\to +\\infty$ : elle n'est pas bornée."],
+      ["« Si $u_n \\to 3$, alors à partir d'un certain rang, $2{,}9 < u_n < 3{,}1$. »", true, "Tout intervalle ouvert autour de la limite contient tous les termes à partir d'un certain rang."],
+      ["« La somme $1 + 0{,}5 + 0{,}5^2 + \\dots + 0{,}5^n$ tend vers $+\\infty$, car on ajoute toujours des termes positifs. »", false, "Elle tend vers $\\dfrac{1}{1 - 0{,}5} = 2$ : les termes ajoutés deviennent de plus en plus petits."],
+      ["« Si $u_n \\leqslant 5$ pour tout $n$ et $u_n \\to \\ell$, alors $\\ell \\leqslant 5$. »", true, "Passage à la limite dans une inégalité large : $\\ell \\leqslant 5$."],
+      ["« Si $u_n < 5$ pour tout $n$ et $u_n \\to \\ell$, alors $\\ell < 5$. »", false, "Contre-exemple : $u_n = 5 - \\dfrac{1}{n} < 5$ tend vers $5$. Le passage à la limite donne seulement $\\ell \\leqslant 5$."],
+      ["« Une suite qui tend vers $0$ a tous ses termes positifs. »", false, "Contre-exemple : $u_n = -\\dfrac{1}{n}$ tend vers $0$ et tous ses termes sont négatifs."],
+      ["« Si $u_n \\to 2$ et $v_n \\to 3$, alors $u_n \\times v_n \\to 6$. »", true, "Produit des limites : $2 \\times 3 = 6$."]
+    ];
+    const [q, v, s] = pick(T), c = melangeChoix(v ? "Vrai" : "Faux", [v ? "Faux" : "Vrai"]);
+    return {
+      enonce: `Vrai ou faux ? ${q}`, mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: ["« À partir d'un certain rang » : la propriété peut être fausse pour les premiers termes, mais vraie ensuite pour tous.", "Pour montrer qu'une affirmation est fausse, un contre-exemple suffit.", "Pense aux suites simples : $\\dfrac{1}{n}$, $n$, $(-1)^n$, $q^n$."],
+      solution: `**${v ? "Vrai" : "Faux"}.** ${s}`
+    };
+  };
+
+
   /* Séries « flash » d'un thème : mélange de ses générateurs */
   const THEMES = {
     "am-flash-cn": ["am-comparer", "am-fractions", "am-puissances", "am-ecritures", "am-ordre-grandeur", "am-coherence", "auto-conversions"],
@@ -11230,7 +11413,7 @@
 
 
   /* Une « erreur connue » ne doit jamais coïncider avec la bonne réponse (à la tolérance près) */
-  Object.keys(GEN).filter((k) => /^(auto|ld|am|cd|ar|cl|fa|ve|st|vx|tc|co|dr|fr|sg|pc|ec|sy|su|s2|pi|s5|d1|tr|d2|vr|ps|ex|va|sc|gr|sm|ea)-/.test(k)).forEach((k) => {
+  Object.keys(GEN).filter((k) => /^(auto|ld|am|cd|ar|cl|fa|ve|st|vx|tc|co|dr|fr|sg|pc|ec|sy|su|s2|pi|s5|d1|tr|d2|vr|ps|ex|va|sc|gr|sm|ea|tsu)-/.test(k)).forEach((k) => {
     const g = GEN[k];
     GEN[k] = (i) => { const q = g(i); if (q.erreurs) q.erreurs = q.erreurs.filter((e) => Math.abs(e.valeur - q.attendu) >= (q.tolerance || 1e-9)); return q; };
   });

@@ -43,7 +43,9 @@ Site statique : aucune base de données, aucun compte élève. Ouvrir `index.htm
   - `echantillons.js` : chapitre 16, expérimentations sur les échantillons (simulation avec random() et un tableur, moyenne d'un échantillon, écart 2σ/√n, Monte-Carlo pour une aire et pour π, régimes de bananes). Générateurs `sm-` (et `ec-python`, `ec-lgn` de Seconde).
   - `epreuve-anticipee.js` : chapitre 17, préparation à l'épreuve anticipée (format de l'épreuve, automatismes, rédaction, bilan des raisonnements, cinq sujets types à Mayotte, liens vers les sujets zéro d'Eduscol). Générateurs `ea-` : `ea-flash-1re`, `ea-partie1`, des séries par thème qui mélangent les générateurs des chapitres 1 à 15 (liste `EA_THEMES`), et `ea-redaction`, `ea-raisonnement`, `ea-cncs`, `ea-vrai-faux`.
 - `data/terminale-spe/denombrement.js` : chapitre 14 de Terminale spécialité (combinatoire et dénombrement). Les générateurs d'exercices correspondants commencent par `cd-` dans `assets/exercices.js`.
-- `data/terminale/lois-discretes.js` : chapitre 2 de Terminale maths complémentaires.
+- `data/terminale/` : Terminale maths complémentaires, d'après la progression spiralée 2026-2027 (programme de 2019, toujours en vigueur pour ce niveau).
+  - `suites.js` : chapitre 1, suites et modèles discrets (récurrence, escalier, limites, gendarmes, suites et sommes géométriques, modèle de Malthus, Python). Générateurs `tsu-` (et `suite-`, `su-geo-limite`). `graph()` accepte une option `chemins` (lignes brisées pointillées, pour l'escalier).
+  - `lois-discretes.js` : chapitre 2 (et la loi géométrique du chapitre 10).
 
 Les niveaux du catalogue sont Seconde, Automatismes, Première spécialité, Terminale spécialité (`terminale-spe`) et Terminale maths complémentaires (`terminale`). Chaque niveau a sa couleur dans `assets/style.css` (règles `[data-niv="..."]`), et chaque classe des comptes a son nom court dans le classement du Défi (`COURTES` dans `assets/app.js`).
 - `data/seconde/fonctions.js` : tout le contenu du chapitre pilote (cours, liens des vidéos YouTube, PDF, QCM, fiche méthode).
