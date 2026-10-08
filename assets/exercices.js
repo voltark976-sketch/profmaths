@@ -12241,6 +12241,129 @@
   };
 
 
+  /* ---------- Terminale maths complémentaires, chapitre 9 : fonctions convexes (préfixe tcv-) ---------- */
+  FIGURES["tcv-convexe"] = () => graph({ xmin: -3.4, xmax: 3.4, ymin: -1.4, ymax: 6.4, h: 280, curves: [{ f: (x) => 0.6 * x * x, a: -3, b: 3, closed: false, label: "C<tspan class=\"sub\" dy=\"3\">f</tspan>", lx: 3, dx: -6, dy: -4 }, { f: (x) => 0.6 * (x + 2) * (x - 2.5) * 0 + (0.6 * 4 + (0.6 * 6.25 - 0.6 * 4) * ((x + 2) / 4.5)), a: -2, b: 2.5, closed: true }, { f: (x) => 1.2 * x - 0.6, a: -1.2, b: 3.2, closed: false, label: "tangente", lx: 3.2, dx: -4, dy: 16 }], aria: "Fonction convexe : la courbe est sous la sécante entre deux de ses points, et au-dessus de ses tangentes" });
+  FIGURES["tcv-inflexion"] = () => graph({ xmin: -1.4, xmax: 4.4, ymin: -2.6, ymax: 4.4, h: 280, curves: [{ f: (x) => 0.5 * (x - 1.5) ** 3 - 1.5 * (x - 1.5) + 1, a: -0.7, b: 3.7, closed: false, label: "C<tspan class=\"sub\" dy=\"3\">f</tspan>", lx: 3.6, dx: -10, dy: 12 }, { f: (x) => -1.5 * (x - 1.5) + 1, a: -0.4, b: 3.4, closed: false, label: "T", lx: 3.4, dx: -4, dy: 16 }], points: [{ x: 1.5, y: 1, label: "I" }], marques: [{ x: 0.6, y: 3.8, texte: "concave" }, { x: 3.3, y: 3.8, texte: "convexe" }], aria: "Point d'inflexion I : la courbe est concave à gauche, convexe à droite, et traverse sa tangente T en I" });
+  FIGURES["tcv-epidemie"] = () => graph({ xmin: -1, xmax: 21, ymin: -80, ymax: 1100, xstep: 2, xetiq: 4, ystep: 100, yetiq: 200, padL: 34, h: 260, xlabel: "jours", ylabel: "cas cumulés", curves: [{ f: (t) => 1000 / (1 + Math.exp(-0.5 * (t - 10))), a: 0, b: 20, closed: false }], points: [{ x: 10, y: 500, label: "inflexion (jour 10)" }], aria: "Nombre cumulé de cas d'une épidémie : la courbe est convexe puis concave ; au point d'inflexion, au jour 10, les nouveaux cas quotidiens commencent à diminuer" });
+
+  GEN["tcv-seconde"] = function () {
+    const t = rand(0, 2), x0 = rand(-2, 3);
+    if (t === 0) {
+      const a = randNZ(-3, 3), b = randNZ(-5, 5), c = rand(-5, 5), v = 6 * a * x0 + 2 * b;
+      return { enonce: `$f(x) = ${poly([a, b, c, rand(-4, 4)])}$. Calcule $f''(${x0})$.`, mode: "nombre", prefixe: `$f''(${x0}) =$`, attendu: v,
+        erreurs: [{ valeur: 3 * a * x0 * x0 + 2 * b * x0 + c, message: "Ça, c'est $f'(" + x0 + ")$ : il faut dériver deux fois." }],
+        aides: ["$f''$ est la dérivée de $f'$.", `$f'(x) = ${poly([3 * a, 2 * b, c])}$.`, `$f''(x) = ${poly([6 * a, 2 * b])}$.`],
+        solution: `$f'(x) = ${poly([3 * a, 2 * b, c])}$ et $f''(x) = ${poly([6 * a, 2 * b])}$, donc $f''(${x0}) = ${v}$.` };
+    }
+    if (t === 1) {
+      const k = pick([2, 3, -1, -2, 0.5]), c = melangeChoix(`$${fr(k * k)}e^{${fr(k)}x}$`, [`$${fr(k)}e^{${fr(k)}x}$`, `$e^{${fr(k)}x}$`, `$${fr(2 * k)}e^{${fr(k)}x}$`]);
+      return { enonce: `$f(x) = e^{${fr(k)}x}$. Quelle est $f''(x)$ ?`, mode: "choix", choix: c.choix, attendu: c.attendu,
+        aides: ["$\\left(e^{kx}\\right)' = ke^{kx}$.", `$f'(x) = ${fr(k)}e^{${fr(k)}x}$.`, "Dérive encore une fois."],
+        solution: `$f'(x) = ${fr(k)}e^{${fr(k)}x}$ et $f''(x) = ${fr(k)} \\times ${fr(k)}e^{${fr(k)}x} = ${fr(k * k)}e^{${fr(k)}x}$. Comme $f''(x) > 0$, $f$ est convexe sur $\\mathbb{R}$.` };
+    }
+    const c = melangeChoix("$-\\dfrac{1}{x^2}$", ["$\\dfrac{1}{x^2}$", "$\\dfrac{1}{x}$", "$-\\dfrac{2}{x^3}$"]);
+    return { enonce: "$f(x) = \\ln x$ sur $]0\\,;+\\infty[$. Quelle est $f''(x)$ ?", mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: ["$(\\ln x)' = \\dfrac{1}{x}$.", "$\\left(\\dfrac{1}{x}\\right)' = -\\dfrac{1}{x^2}$.", "Que dit le signe de $f''$ ?"],
+      solution: "$f'(x) = \\dfrac{1}{x}$ et $f''(x) = -\\dfrac{1}{x^2} < 0$ : $\\ln$ est concave sur $]0\\,;+\\infty[$." };
+  };
+
+  GEN["tcv-etude"] = function () {
+    const t = rand(0, 2);
+    if (t === 0) {
+      const p = randNZ(-3, 3), a = pick([1, -1, 2]), q = rand(-4, 4);
+      // f(x) = a x³ − 3 a p x² + q x : f''(x) = 6a(x − p)
+      const f = poly([a, -3 * a * p, q, 0]);
+      if (Math.random() < 0.5) return { enonce: `$f(x) = ${f}$. Quelle est l'abscisse du point d'inflexion de sa courbe ?`, mode: "nombre", prefixe: "$x =$", attendu: p,
+        aides: ["Calcule $f''(x)$.", `$f''(x) = ${poly([6 * a, -6 * a * p])}$.`, "Le point d'inflexion est là où $f''$ s'annule en changeant de signe."],
+        solution: `$f''(x) = ${poly([6 * a, -6 * a * p])} = ${6 * a}(x ${sg(-p)})$ s'annule en changeant de signe en $x = ${p}$ : point d'inflexion d'abscisse $${p}$.` };
+      const conv = a > 0 ? `$[${p}\\,;+\\infty[$` : `$]-\\infty\\,;${p}]$`, c = melangeChoix(conv, [a > 0 ? `$]-\\infty\\,;${p}]$` : `$[${p}\\,;+\\infty[$`, "$\\mathbb{R}$", `$[${-p}\\,;+\\infty[$`]);
+      return { enonce: `$f(x) = ${f}$. Sur quel intervalle $f$ est-elle convexe ?`, mode: "choix", choix: c.choix, attendu: c.attendu,
+        aides: ["$f$ est convexe là où $f''(x) \\geqslant 0$.", `$f''(x) = ${poly([6 * a, -6 * a * p])}$.`, "Étudie le signe de cette expression affine."],
+        solution: `$f''(x) = ${6 * a}(x ${sg(-p)})$ est positive sur ${conv} : $f$ y est convexe (et concave sur l'autre intervalle).` };
+    }
+    if (t === 1) {
+      // f(x) = (x + k) e^x : f'(x) = (x + k + 1) e^x et f''(x) = (x + k + 2) e^x
+      const k = pick([1, 2, 3]), c = melangeChoix(`$x = ${-(k + 2)}$`, [`$x = ${-k}$`, "$x = 0$", `$x = ${k + 2}$`]);
+      return { enonce: `$f(x) = (x + ${k})e^x$. On admet que $f''(x) = (x + ${k + 2})e^x$. Où la courbe de $f$ a-t-elle un point d'inflexion ?`, mode: "choix", choix: c.choix, attendu: c.attendu,
+        aides: ["$e^x > 0$ : le signe de $f''$ est celui de $x + " + (k + 2) + "$.", "Un point d'inflexion : $f''$ s'annule **en changeant de signe**.", `$x + ${k + 2} = 0$.`],
+        solution: `$f''(x) = (x + ${k + 2})e^x$ change de signe en $x = ${-(k + 2)}$ : point d'inflexion en $x = ${-(k + 2)}$ ; $f$ est concave avant, convexe après.` };
+    }
+    const T = [["e^x", "convexe sur $\\mathbb{R}$", "$f''(x) = e^x > 0$"], ["\\ln x", "concave sur $]0\\,;+\\infty[$", "$f''(x) = -\\dfrac{1}{x^2} < 0$"], ["x^2", "convexe sur $\\mathbb{R}$", "$f''(x) = 2 > 0$"], ["\\sqrt{x}", "concave sur $]0\\,;+\\infty[$", "$f'(x) = \\dfrac{1}{2\\sqrt{x}}$ est décroissante"], ["\\dfrac{1}{x}", "convexe sur $]0\\,;+\\infty[$", "$f''(x) = \\dfrac{2}{x^3} > 0$ pour $x > 0$"], ["-x^2 + 3x", "concave sur $\\mathbb{R}$", "$f''(x) = -2 < 0$"]];
+    const [f, bon, s] = pick(T), opts = ["convexe sur $\\mathbb{R}$", "concave sur $\\mathbb{R}$", "convexe sur $]0\\,;+\\infty[$", "concave sur $]0\\,;+\\infty[$"], c = melangeChoix(bon, opts);
+    return { enonce: `La fonction $x \\mapsto ${f}$ est :`, mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: ["Convexe : $f'' \\geqslant 0$ (ou $f'$ croissante). Concave : $f'' \\leqslant 0$.", "Calcule la dérivée seconde.", "Pense à l'allure de la courbe : en « U » ou en « ∩ »."],
+      solution: `${s} : la fonction est **${bon}**.` };
+  };
+
+  GEN["tcv-graphique"] = function () {
+    const p = rand(-1, 2), a = pick([0.3, 0.5, -0.4, -0.5]), b = pick([-1.5, -1, 1, 0.5]), cst = rand(-1, 2);
+    const f = (x) => a * (x - p) ** 3 + b * (x - p) + cst;
+    const fig = graph({ xmin: p - 3.4, xmax: p + 3.4, ymin: cst - 4.4, ymax: cst + 4.4, h: 280, curves: [{ f, a: p - 3, b: p + 3, closed: false }], aria: "Courbe d'une fonction avec un point d'inflexion" });
+    if (Math.random() < 0.5) return { enonce: "Lis sur la courbe l'abscisse de son point d'inflexion (là où la courbe change de concavité).", figure: fig, mode: "nombre", prefixe: "$x =$", attendu: p,
+      figureSolution: graph({ xmin: p - 3.4, xmax: p + 3.4, ymin: cst - 4.4, ymax: cst + 4.4, h: 280, curves: [{ f, a: p - 3, b: p + 3, closed: false }, { f: (x) => b * (x - p) + cst, a: p - 2.2, b: p + 2.2, closed: false }], points: [{ x: p, y: cst, label: "I" }], aria: "Le point d'inflexion I et la tangente qui traverse la courbe" }),
+      aides: ["Convexe : la courbe est « en U », au-dessus de ses tangentes. Concave : « en ∩ ».", "Repère où la courbe passe de l'un à l'autre.", "En ce point, la tangente traverse la courbe."],
+      solution: `La courbe change de concavité en $x = ${p}$ : c'est le point d'inflexion $I(${p}\\,;${cst})$ ; la tangente y traverse la courbe.` };
+    const conv = a > 0 ? `$[${p}\\,;${p + 3}]$` : `$[${p - 3}\\,;${p}]$`, c = melangeChoix(conv, [a > 0 ? `$[${p - 3}\\,;${p}]$` : `$[${p}\\,;${p + 3}]$`, `$[${p - 3}\\,;${p + 3}]$`]);
+    return { enonce: `La courbe représente une fonction $f$ sur $[${p - 3}\\,;${p + 3}]$. Sur quel intervalle $f$ est-elle convexe ?`, figure: fig, mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: ["Convexe : courbe « tournée vers le haut », au-dessus de ses tangentes.", "Repère le point où la courbure change.", "Choisis le côté où la courbe est en « U »."],
+      solution: `La courbe est en « U » sur ${conv} : $f$ y est convexe. Le changement a lieu au point d'inflexion d'abscisse $${p}$.` };
+  };
+
+  GEN["tcv-inegalite"] = function () {
+    const T = [
+      ["La fonction exponentielle est convexe et sa tangente en $0$ est $y = x + 1$. On en déduit, pour tout réel $x$ :", "$e^x \\geqslant x + 1$", ["$e^x \\leqslant x + 1$", "$e^x = x + 1$", "$e^x \\geqslant x$ seulement pour $x > 0$"], "Une fonction convexe est au-dessus de ses tangentes : $e^x \\geqslant x + 1$."],
+      ["La fonction $\\ln$ est concave et sa tangente en $1$ est $y = x - 1$. On en déduit, pour tout $x > 0$ :", "$\\ln x \\leqslant x - 1$", ["$\\ln x \\geqslant x - 1$", "$\\ln x = x - 1$", "$\\ln x \\leqslant x$ seulement pour $x > 1$"], "Une fonction concave est sous ses tangentes : $\\ln x \\leqslant x - 1$."],
+      ["$f(x) = x^2$ est convexe. Entre les points d'abscisses $0$ et $2$, la courbe est :", "sous la sécante", ["au-dessus de la sécante", "confondue avec la sécante", "on ne peut pas savoir"], "Une fonction convexe est sous ses sécantes entre les deux points : par exemple $1^2 = 1 < 2$, valeur de la sécante $y = 2x$ en $1$."],
+      ["$f$ est concave sur $[0\\,;4]$. Entre $0$ et $4$, la courbe est :", "au-dessus de la sécante", ["sous la sécante", "sous ses tangentes et sous la sécante", "toujours croissante"], "Concave : au-dessus des sécantes, sous les tangentes."],
+      ["Avec $e^x \\geqslant x + 1$, que peut-on dire de $e^{0{,}1}$ ?", "$e^{0{,}1} \\geqslant 1{,}1$", ["$e^{0{,}1} \\leqslant 1{,}1$", "$e^{0{,}1} = 1{,}1$", "$e^{0{,}1} \\leqslant 1$"], "On remplace $x$ par $0{,}1$ : $e^{0{,}1} \\geqslant 1{,}1$ (en fait $e^{0{,}1} \\approx 1{,}105$)."]
+    ];
+    const [q, b, f, s] = pick(T), c = melangeChoix(b, f);
+    return { enonce: q, mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: ["Convexe : sous les sécantes, au-dessus des tangentes.", "Concave : au-dessus des sécantes, sous les tangentes.", "Fais un petit dessin."],
+      solution: s };
+  };
+
+  GEN["tcv-logique"] = function () {
+    const T = [
+      ["« Si $f''(a) = 0$, alors la courbe de $f$ a un point d'inflexion en $a$. »", false, "Contre-exemple : $f(x) = x^4$, $f''(0) = 0$ mais $f'' = 12x^2 \\geqslant 0$ ne change pas de signe : pas d'inflexion."],
+      ["« $f$ est convexe sur $I$ si et seulement si $f'$ est croissante sur $I$. »", true, "C'est une caractérisation (pour $f$ dérivable)."],
+      ["« La négation de « $f$ est convexe sur $I$ » est « $f$ est concave sur $I$ ». »", false, "La négation est « il existe deux points de $I$ entre lesquels la courbe n'est pas sous la sécante » : une fonction peut n'être ni convexe ni concave (comme $x^3$ sur $\\mathbb{R}$)."],
+      ["« Une fonction convexe est toujours croissante. »", false, "Contre-exemple : $x^2$ est convexe mais décroissante sur $]-\\infty\\,;0]$."],
+      ["« Une fonction affine est à la fois convexe et concave. »", true, "Sa dérivée seconde est nulle : $f'' \\geqslant 0$ et $f'' \\leqslant 0$."],
+      ["« Si $f'' > 0$ sur $I$, la courbe est au-dessus de ses tangentes sur $I$. »", true, "$f'' > 0$ : $f$ est convexe, donc au-dessus de ses tangentes."],
+      ["« Au point d'inflexion, la tangente traverse la courbe. »", true, "La courbe passe d'un côté de la tangente à l'autre."],
+      ["« $x \\mapsto x^3$ est convexe sur $\\mathbb{R}$. »", false, "$f''(x) = 6x$ est négatif pour $x < 0$ : concave sur $]-\\infty\\,;0]$, convexe sur $[0\\,;+\\infty[$."]
+    ];
+    const [q, v, s] = pick(T), c = melangeChoix(v ? "Vrai" : "Faux", [v ? "Faux" : "Vrai"]);
+    return { enonce: `Vrai ou faux ? ${q}`, mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: ["Point d'inflexion : $f''$ s'annule **en changeant de signe**.", "Convexe ⇔ $f'$ croissante ⇔ $f'' \\geqslant 0$ (pour $f$ deux fois dérivable).", "Pour la négation d'une propriété « pour tout », il suffit d'un contre-exemple."],
+      solution: `**${v ? "Vrai" : "Faux"}.** ${s}` };
+  };
+
+  GEN["tcv-epidemie"] = function () {
+    const t0 = pick([8, 10, 12, 15]), N = pick([500, 1000, 2000]), k = pick([0.4, 0.5, 0.6]);
+    const f = (t) => N / (1 + Math.exp(-k * (t - t0)));
+    const fig = graph({ xmin: -1, xmax: 2 * t0 + 1, ymin: -N * 0.08, ymax: N * 1.1, xstep: 2, xetiq: 4, ystep: N / 10, yetiq: N / 5, padL: 38, h: 250, xlabel: "jours", ylabel: "cas cumulés", curves: [{ f, a: 0, b: 2 * t0, closed: false }], aria: "Nombre cumulé de cas d'une épidémie en fonction du temps" });
+    if (Math.random() < 0.5) return { enonce: "La courbe donne le nombre cumulé de cas d'une épidémie de dengue. Au point d'inflexion, la vitesse de propagation (nouveaux cas par jour) est maximale, puis l'épidémie ralentit. Lis le jour du point d'inflexion.", figure: fig, mode: "nombre", prefixe: "Jour :", attendu: t0, tolerance: 0.6,
+      aides: ["Avant l'inflexion, la courbe est convexe : elle monte de plus en plus vite.", "Après, elle est concave : elle monte de moins en moins vite.", `C'est aussi le moment où la moitié du total final ($${N / 2}$ cas) est atteinte.`],
+      solution: `La courbe passe de convexe à concave au jour $${t0}$ (on a alors $${N / 2}$ cas, la moitié du total). À partir de là, les nouveaux cas quotidiens diminuent : l'épidémie ralentit.` };
+    const c = melangeChoix("la vitesse de propagation (dérivée) est maximale", ["le nombre de cas est maximal", "l'épidémie s'arrête", "il n'y a plus de nouveaux cas"]);
+    return { enonce: "Pour la courbe du nombre cumulé de cas d'une épidémie, que signifie le point d'inflexion ?", figure: fig, mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: ["La dérivée du nombre cumulé est le nombre de nouveaux cas par jour.", "Avant l'inflexion, $f'$ croît (convexe) ; après, $f'$ décroît (concave).", "Donc en ce point, $f'$ est …"],
+      solution: "Au point d'inflexion, $f'$ passe de croissante à décroissante : elle y est **maximale**. C'est le pic des nouveaux cas ; ensuite l'épidémie ralentit, même si le nombre cumulé continue d'augmenter." };
+  };
+
+  GEN["tcv-python"] = function () {
+    const F = pick([["x**2", (x) => x * x, true], ["x**3", (x) => x ** 3, false], ["2**x", (x) => 2 ** x, true], ["-x**2", (x) => -x * x, false]]);
+    const a = pick([-2, -1, 0]), b = pick([1, 2, 3]);
+    let sous = true; for (let k = 1; k < 100; k++) { const x = a + (b - a) * k / 100; const sec = F[1](a) + (F[1](b) - F[1](a)) * (x - a) / (b - a); if (F[1](x) > sec + 1e-12) sous = false; }
+    const c = melangeChoix(sous ? "True" : "False", [sous ? "False" : "True"]);
+    return { enonce: "On teste numériquement si la courbe est sous sa sécante entre $a$ et $b$ :\n\n```python\ndef f(x):\n    return " + F[0] + "\n\ndef sous_secante(a, b):\n    for k in range(1, 100):\n        x = a + (b - a) * k / 100\n        s = f(a) + (f(b) - f(a)) * (x - a) / (b - a)\n        if f(x) > s:\n            return False\n    return True\n```\n\n" + `Que renvoie la fonction pour $a = ${a}$ et $b = ${b}$ ?`, mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: ["s est la valeur de la sécante en $x$.", "La fonction renvoie False dès qu'un point de la courbe est au-dessus de la sécante.", "Une fonction convexe sur $[a\\,;b]$ est sous ses sécantes."],
+      solution: sous ? `Sur $[${a}\\,;${b}]$, la fonction est convexe : la courbe reste sous la sécante, la fonction renvoie True.` : `Sur $[${a}\\,;${b}]$, la fonction n'est pas convexe : un point de la courbe passe au-dessus de la sécante, la fonction renvoie False.` };
+  };
+
+
   /* Séries « flash » d'un thème : mélange de ses générateurs */
   const THEMES = {
     "am-flash-cn": ["am-comparer", "am-fractions", "am-puissances", "am-ecritures", "am-ordre-grandeur", "am-coherence", "auto-conversions"],
@@ -12257,7 +12380,7 @@
 
 
   /* Une « erreur connue » ne doit jamais coïncider avec la bonne réponse (à la tolérance près) */
-  Object.keys(GEN).filter((k) => /^(auto|ld|am|cd|ar|cl|fa|ve|st|vx|tc|co|dr|fr|sg|pc|ec|sy|su|s2|pi|s5|d1|tr|d2|vr|ps|ex|va|sc|gr|sm|ea|tsu|tag|tlf|tcb|tsd|tdc|tln)-/.test(k)).forEach((k) => {
+  Object.keys(GEN).filter((k) => /^(auto|ld|am|cd|ar|cl|fa|ve|st|vx|tc|co|dr|fr|sg|pc|ec|sy|su|s2|pi|s5|d1|tr|d2|vr|ps|ex|va|sc|gr|sm|ea|tsu|tag|tlf|tcb|tsd|tdc|tln|tcv)-/.test(k)).forEach((k) => {
     const g = GEN[k];
     GEN[k] = (i) => { const q = g(i); if (q.erreurs) q.erreurs = q.erreurs.filter((e) => Math.abs(e.valeur - q.attendu) >= (q.tolerance || 1e-9)); return q; };
   });

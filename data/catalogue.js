@@ -412,6 +412,13 @@ window.CATALOGUE = {
           titre: "Fonction logarithme népérien",
           statut: "disponible",
           drive: ""
+        },
+        {
+          id: "terminale-convexite",
+          numero: 9,
+          titre: "Fonctions convexes",
+          statut: "disponible",
+          drive: ""
         }
       ]
     }

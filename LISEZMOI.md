@@ -51,6 +51,7 @@ Site statique : aucune base de données, aucun compte élève. Ouvrir `index.htm
   - `deux-variables.js` : chapitre 6 (nuage, point moyen, moindres carrés, corrélation, interpolation et extrapolation, changement de variable, corrélation et causalité). Générateurs `tsd-`.
   - `derivation-composees.js` : chapitre 7 (g(ax + b), exp(u), u², étude de fonctions composées, racine carrée réciproque du carré, boîte et enclos). Générateurs `tdc-`.
   - `logarithme.js` : chapitre 8 (réciproque de exp, propriétés, équations, seuils avec ln qⁿ, étude de ln, ln u, Neper et Briggs, Brouncker). Générateurs `tln-`.
+  - `convexite.js` : chapitre 9 (dérivée seconde, convexité, sécantes et tangentes, inflexion, inégalités, épidémie). Générateurs `tcv-`.
   - `arithmetico-geometriques.js` : chapitre 3 (suite constante, suite auxiliaire, limite, seuil, plat qui refroidit, dette). Générateurs `tag-`.
 
 Les niveaux du catalogue sont Seconde, Automatismes, Première spécialité, Terminale spécialité (`terminale-spe`) et Terminale maths complémentaires (`terminale`). Chaque niveau a sa couleur dans `assets/style.css` (règles `[data-niv="..."]`), et chaque classe des comptes a son nom court dans le classement du Défi (`COURTES` dans `assets/app.js`).
