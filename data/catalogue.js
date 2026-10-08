@@ -419,6 +419,13 @@ window.CATALOGUE = {
           titre: "Fonctions convexes",
           statut: "disponible",
           drive: ""
+        },
+        {
+          id: "terminale-loi-geometrique",
+          numero: 10,
+          titre: "Loi géométrique et temps d'attente",
+          statut: "disponible",
+          drive: ""
         }
       ]
     }

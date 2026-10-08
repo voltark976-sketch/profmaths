@@ -12364,6 +12364,114 @@
   };
 
 
+  /* ---------- Terminale maths complémentaires, chapitre 10 : loi géométrique et temps d'attente (préfixe tlg-) ---------- */
+  FIGURES["tlg-batons"] = () => graph({ xmin: -0.4, xmax: 11, ymin: -0.03, ymax: 0.36, ystep: 0.05, yetiq: 0.1, xetiq: 2, padL: 34, h: 230, xlabel: "k", ylabel: "P(X = k)", bars: Array.from({ length: 10 }, (_, i) => ({ x: i + 1, y: 0.3 * 0.7 ** i })), aria: "Loi géométrique de paramètre 0,3 : P(X = k) = 0,7 puissance k−1 fois 0,3, des bâtons qui diminuent : 0,3 ; 0,21 ; 0,147…" });
+  FIGURES["tlg-crue"] = () => graph({ xmin: -10, xmax: 310, ymin: -0.06, ymax: 1.12, xstep: 50, xetiq: 100, ystep: 0.1, yetiq: 0.2, padL: 30, h: 250, xlabel: "années", ylabel: "probabilité", curves: [{ f: (n) => 1 - 0.99 ** n, a: 0, b: 300, closed: false }], hlines: [{ y: 0.5, label: "0,5" }], points: [{ x: 69, y: 1 - 0.99 ** 69, label: "69 ans" }, { x: 100, y: 1 - 0.99 ** 100, label: "100 ans : ≈ 0,63" }], aria: "Probabilité d'au moins une crue centennale en n années : 0,5 vers 69 ans, environ 0,63 en 100 ans" });
+
+  const tlgP = () => pick([0.1, 0.2, 0.25, 0.3, 0.4, 0.5, 1 / 6]);
+  const tlgTex = (p) => (Math.abs(p - 1 / 6) < 1e-9 ? "\\dfrac{1}{6}" : fr(p));
+  const tlgTexQ = (p) => (Math.abs(p - 1 / 6) < 1e-9 ? "\\dfrac{5}{6}" : fr(+(1 - p).toFixed(4)));
+
+  GEN["tlg-attente"] = function () {
+    const p = tlgP(), t = rand(0, 2), k = rand(2, 6), q = 1 - p;
+    const ctx = pick(["On lance un dé équilibré jusqu'à obtenir un six", "Un basketteur tente des tirs à trois points jusqu'au premier panier", "On interroge des habitants au hasard jusqu'à trouver quelqu'un qui a déjà eu la dengue", "Chaque matin, on regarde si la barge part à l'heure, jusqu'au premier retard"]);
+    const pp = Math.abs(p - 1 / 6) < 1e-9 ? 1 / 6 : p;
+    const Q = [
+      [`$P(X = ${k})$`, q ** (k - 1) * pp, `$P(X = ${k}) = (1 - p)^{${k - 1}} \\times p = ${tlgTexQ(p)}^{${k - 1}} \\times ${tlgTex(p)}$`],
+      [`$P(X > ${k})$`, q ** k, `$P(X > ${k})$ : les $${k}$ premières épreuves sont des échecs, donc $P(X > ${k}) = (1 - p)^{${k}} = ${tlgTexQ(p)}^{${k}}$`],
+      [`$P(X \\leqslant ${k})$`, 1 - q ** k, `$P(X \\leqslant ${k}) = 1 - P(X > ${k}) = 1 - ${tlgTexQ(p)}^{${k}}$`]
+    ][t];
+    return {
+      enonce: `${ctx}. Chaque épreuve est un succès avec la probabilité $p = ${tlgTex(p)}$, indépendamment des autres. $X$ est le rang du premier succès. Calcule ${Q[0]} (arrondi au millième).`,
+      mode: "nombre", prefixe: "Valeur ≈", attendu: +Q[1].toFixed(3), tolerance: 0.0015,
+      aides: ["$X$ suit la loi géométrique de paramètre $p$ : $P(X = k) = (1 - p)^{k-1}p$.", "« $X > n$ » signifie : les $n$ premières épreuves sont des échecs, donc $P(X > n) = (1 - p)^n$.", "$P(X \\leqslant n) = 1 - P(X > n)$."],
+      solution: `${Q[2]} \\approx ${fr(+Q[1].toFixed(3))}$.`.replace("$ \\approx", " \\approx")
+    };
+  };
+
+  GEN["tlg-esperance"] = function () {
+    const t = rand(0, 2);
+    if (t === 0) { const p = pick([0.1, 0.2, 0.25, 0.5, 0.05, 0.04]); return { enonce: `$X$ suit la loi géométrique de paramètre $p = ${fr(p)}$. Combien d'épreuves faut-il attendre en moyenne pour le premier succès ?`, mode: "nombre", prefixe: "$E(X) =$", attendu: +(1 / p).toFixed(4),
+      erreurs: [{ valeur: p, message: "$E(X) = \\dfrac{1}{p}$ : plus le succès est rare, plus l'attente est longue." }],
+      aides: ["L'espérance de la loi géométrique de paramètre $p$ est $\\dfrac{1}{p}$ (admis).", `$\\dfrac{1}{${fr(p)}}$.`, "Interprète : en moyenne sur de nombreuses répétitions."],
+      solution: `$E(X) = \\dfrac{1}{${fr(p)}} = ${fr(+(1 / p).toFixed(4))}$ : en moyenne, le premier succès arrive à la $${fr(+(1 / p).toFixed(4))}$e épreuve.` }; }
+    if (t === 1) { const T = pick([10, 20, 50, 100]); return { enonce: `Une crue « ${T === 10 ? "décennale" : T === 100 ? "centennale" : `de période de retour ${T} ans`} » de la rivière a, chaque année, la probabilité $p = \\dfrac{1}{${T}}$ de se produire, indépendamment des autres années. Quel est le temps d'attente moyen (en années) avant la prochaine ?`, mode: "nombre", prefixe: "$E(X) =$", suffixe: "ans", attendu: T,
+      aides: ["$X$, l'année de la prochaine crue, suit une loi géométrique.", "$E(X) = \\dfrac{1}{p}$.", `$p = \\dfrac{1}{${T}}$.`],
+      solution: `$E(X) = \\dfrac{1}{1/${T}} = ${T}$ ans : c'est le sens de « période de retour de $${T}$ ans ». Cela ne veut pas dire qu'elle arrivera exactement dans $${T}$ ans !` }; }
+    const p = pick([0.2, 0.25, 0.5, 0.1]), c = melangeChoix(`$\\dfrac{1}{${fr(p)}} = ${fr(1 / p)}$`, [`$${fr(p)}$`, `$1 - ${fr(p)} = ${fr(+(1 - p).toFixed(2))}$`, `$\\dfrac{1 - ${fr(p)}}{${fr(p)}}$`]);
+    return { enonce: `Pour un temps d'attente $X$ de loi géométrique de paramètre $p = ${fr(p)}$, l'espérance vaut :`, mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: ["Retiens : $E(X) = \\dfrac{1}{p}$.", "Vérifie avec un dé : $p = \\dfrac{1}{6}$ donne $6$ lancers en moyenne.", "Plus $p$ est petit, plus l'attente moyenne est longue."],
+      solution: `$E(X) = \\dfrac{1}{p} = ${fr(1 / p)}$.` };
+  };
+
+  GEN["tlg-crue"] = function () {
+    const T = pick([10, 20, 50, 100]), n = pick([5, 10, 20, 30, 50]), p = 1 / T, v = 1 - (1 - p) ** n;
+    return {
+      enonce: `Une crue a chaque année la probabilité $\\dfrac{1}{${T}}$ de se produire, indépendamment des autres années. Quelle est la probabilité qu'il y ait **au moins une** crue en $${n}$ ans ? (Arrondi au centième.)`,
+      mode: "nombre", prefixe: "Probabilité ≈", attendu: +v.toFixed(2), tolerance: 0.006,
+      erreurs: [{ valeur: +(n / T).toFixed(2), message: "On ne multiplie pas : passe par l'événement contraire « aucune crue en " + n + " ans »." }],
+      aides: ["Événement contraire : aucune crue pendant $" + n + "$ ans.", `$P(\\text{aucune crue}) = \\left(1 - \\dfrac{1}{${T}}\\right)^{${n}}$.`, "Probabilité cherchée : $1 - $ ce nombre."],
+      solution: `$1 - \\left(1 - \\dfrac{1}{${T}}\\right)^{${n}} = 1 - ${fr(+(1 - p).toFixed(4))}^{${n}} \\approx ${fr(+v.toFixed(2))}$. ${n >= T ? "Même sur une durée égale à la période de retour, la crue n'est pas certaine." : "Une crue « rare » n'est pas improbable sur plusieurs années."}`
+    };
+  };
+
+  GEN["tlg-seuil"] = function () {
+    const p = pick([0.1, 0.2, 0.05, 0.3, 0.01]), a = pick([0.9, 0.95, 0.99]), n = Math.ceil(Math.log(1 - a) / Math.log(1 - p) - 1e-12);
+    return {
+      enonce: `$X$ suit la loi géométrique de paramètre $${fr(p)}$. Quel est le plus petit entier $n$ tel que $P(X \\leqslant n) \\geqslant ${fr(a)}$ ?`,
+      mode: "nombre", prefixe: "$n =$", attendu: n,
+      aides: [`$P(X \\leqslant n) = 1 - ${fr(+(1 - p).toFixed(2))}^n \\geqslant ${fr(a)} \\iff ${fr(+(1 - p).toFixed(2))}^n \\leqslant ${fr(+(1 - a).toFixed(2))}$.`, `Applique $\\ln$ : $n\\ln ${fr(+(1 - p).toFixed(2))} \\leqslant \\ln ${fr(+(1 - a).toFixed(2))}$.`, `$\\ln ${fr(+(1 - p).toFixed(2))} < 0$ : le sens change en divisant.`],
+      solution: `$n \\geqslant \\dfrac{\\ln ${fr(+(1 - a).toFixed(2))}}{\\ln ${fr(+(1 - p).toFixed(2))}} \\approx ${fr(+(Math.log(1 - a) / Math.log(1 - p)).toFixed(2))}$ : le plus petit entier est $${n}$.`
+    };
+  };
+
+  GEN["tlg-memoire"] = function () {
+    const p = pick([0.1, 0.2, 0.25, 0.3]), m = rand(2, 6), n = rand(1, 4);
+    if (Math.random() < 0.6) return {
+      enonce: `$X$ suit la loi géométrique de paramètre $${fr(p)}$. Sachant que $X > ${m}$ (pas de succès lors des $${m}$ premières épreuves), quelle est la probabilité que $X > ${m + n}$ ? (Arrondi au millième.)`,
+      mode: "nombre", prefixe: "Probabilité ≈", attendu: +((1 - p) ** n).toFixed(3), tolerance: 0.0015,
+      erreurs: [{ valeur: +((1 - p) ** (m + n)).toFixed(3), message: "On sait déjà que $X > " + m + "$ : c'est une probabilité **conditionnelle**." }],
+      aides: ["Absence de mémoire : $P_{X > m}(X > m + n) = P(X > n)$.", `Ici, cela vaut $P(X > ${n})$.`, `$P(X > ${n}) = ${fr(+(1 - p).toFixed(2))}^{${n}}$.`],
+      solution: `$P_{X > ${m}}(X > ${m + n}) = \\dfrac{${fr(+(1 - p).toFixed(2))}^{${m + n}}}{${fr(+(1 - p).toFixed(2))}^{${m}}} = ${fr(+(1 - p).toFixed(2))}^{${n}} \\approx ${fr(+((1 - p) ** n).toFixed(3))}$ : la loi « oublie » les $${m}$ échecs déjà observés.`
+    };
+    const c = melangeChoix("toujours $\\dfrac{1}{6}$", ["plus grande, car le six « doit » arriver", "plus petite", "égale à $\\dfrac{10}{6}$"]);
+    return { enonce: "On lance un dé équilibré. Le six n'est pas sorti depuis $10$ lancers. La probabilité d'obtenir six au prochain lancer est :", mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: ["Les lancers sont indépendants.", "Le dé n'a pas de mémoire.", "C'est l'absence de mémoire de la loi géométrique."],
+      solution: "Les lancers sont indépendants : la probabilité reste **$\\dfrac{1}{6}$**. Croire que le six « doit » sortir est l'erreur du joueur." };
+  };
+
+  GEN["tlg-python"] = function () {
+    const p = pick([0.1, 0.2, 0.25, 0.5]);
+    if (Math.random() < 0.5) {
+      const c = melangeChoix(`environ $${fr(1 / p)}$`, [`environ $${fr(p)}$`, `exactement $${fr(1 / p)}$`, `environ $${fr(+(1 - p).toFixed(2))}$`]);
+      return { enonce: "```python\nfrom random import random\n\ndef attente(p):\n    n = 1\n    while random() >= p:\n        n = n + 1\n    return n\n\ndef moyenne(p, N):\n    s = 0\n    for i in range(N):\n        s = s + attente(p)\n    return s / N\n```\n\n" + `Pour $N$ très grand, moyenne(${p}, N) donne :`, mode: "choix", choix: c.choix, attendu: c.attendu,
+        aides: ["attente(p) simule le rang du premier succès : loi géométrique de paramètre $p$.", "La moyenne de nombreuses simulations se rapproche de l'espérance (loi des grands nombres).", "$E(X) = \\dfrac{1}{p}$."],
+        solution: `attente simule une loi géométrique de paramètre $${fr(p)}$. Par la loi des grands nombres, la moyenne se rapproche de $E(X) = \\dfrac{1}{${fr(p)}} = ${fr(1 / p)}$, mais pas exactement (simulation).` };
+    }
+    const c = melangeChoix("le rang du premier succès", ["le nombre de succès", "la probabilité de succès", "le nombre d'échecs après le premier succès"]);
+    return { enonce: "```python\nfrom random import random\n\ndef attente(p):\n    n = 1\n    while random() >= p:\n        n = n + 1\n    return n\n```\n\nQue renvoie attente(p) ?", mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: ["random() < p simule un succès de probabilité $p$.", "La boucle continue tant que c'est un échec.", "n compte les épreuves jusqu'au succès inclus."],
+      solution: "La boucle s'arrête au premier succès ; n compte les épreuves : la fonction renvoie **le rang du premier succès**, qui suit une loi géométrique." };
+  };
+
+  GEN["tlg-logique"] = function () {
+    const T = [
+      ["« Si une crue a une période de retour de $100$ ans, elle arrivera dans exactement $100$ ans. »", false, "$100$ ans est le temps d'attente **moyen**. La crue peut arriver l'an prochain, ou dans $200$ ans."],
+      ["« Pour une loi géométrique, $P(X > n) = (1 - p)^n$. »", true, "Les $n$ premières épreuves sont des échecs."],
+      ["« Si le six n'est pas sorti depuis longtemps, il a plus de chances de sortir. »", false, "Les lancers sont indépendants : absence de mémoire."],
+      ["« Plus $p$ est grand, plus l'attente moyenne $\\dfrac{1}{p}$ est longue. »", false, "C'est l'inverse : un succès fréquent arrive vite."],
+      ["« La loi géométrique est la seule loi discrète sans mémoire sur $\\mathbb{N}^*$. »", true, "On l'admet (et on le démontre dans des cas simples) : c'est une caractérisation."],
+      ["« $P(X = 1) = p$. »", true, "Le succès arrive dès la première épreuve."],
+      ["« La somme des $P(X = k)$, pour $k$ de $1$ à $+\\infty$, vaut $1$. »", true, "C'est une somme géométrique : $p \\times \\dfrac{1}{1 - (1 - p)} = 1$."],
+      ["« Si un événement a une probabilité $\\dfrac{1}{100}$ chaque année, il est certain de se produire en $100$ ans. »", false, "$1 - 0{,}99^{100} \\approx 0{,}63$ seulement."]
+    ];
+    const [q, v, s] = pick(T), c = melangeChoix(v ? "Vrai" : "Faux", [v ? "Faux" : "Vrai"]);
+    return { enonce: `Vrai ou faux ? ${q}`, mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: ["Loi géométrique : $P(X = k) = (1 - p)^{k-1}p$, $P(X > n) = (1 - p)^n$, $E(X) = \\dfrac{1}{p}$.", "Absence de mémoire : le passé ne change pas l'avenir.", "Une espérance est une moyenne, pas une certitude."],
+      solution: `**${v ? "Vrai" : "Faux"}.** ${s}` };
+  };
+
+
   /* Séries « flash » d'un thème : mélange de ses générateurs */
   const THEMES = {
     "am-flash-cn": ["am-comparer", "am-fractions", "am-puissances", "am-ecritures", "am-ordre-grandeur", "am-coherence", "auto-conversions"],
@@ -12380,7 +12488,7 @@
 
 
   /* Une « erreur connue » ne doit jamais coïncider avec la bonne réponse (à la tolérance près) */
-  Object.keys(GEN).filter((k) => /^(auto|ld|am|cd|ar|cl|fa|ve|st|vx|tc|co|dr|fr|sg|pc|ec|sy|su|s2|pi|s5|d1|tr|d2|vr|ps|ex|va|sc|gr|sm|ea|tsu|tag|tlf|tcb|tsd|tdc|tln|tcv)-/.test(k)).forEach((k) => {
+  Object.keys(GEN).filter((k) => /^(auto|ld|am|cd|ar|cl|fa|ve|st|vx|tc|co|dr|fr|sg|pc|ec|sy|su|s2|pi|s5|d1|tr|d2|vr|ps|ex|va|sc|gr|sm|ea|tsu|tag|tlf|tcb|tsd|tdc|tln|tcv|tlg)-/.test(k)).forEach((k) => {
     const g = GEN[k];
     GEN[k] = (i) => { const q = g(i); if (q.erreurs) q.erreurs = q.erreurs.filter((e) => Math.abs(e.valeur - q.attendu) >= (q.tolerance || 1e-9)); return q; };
   });
