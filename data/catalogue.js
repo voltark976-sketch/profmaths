@@ -391,6 +391,13 @@ window.CATALOGUE = {
           titre: "Probabilités conditionnelles et inférence bayésienne",
           statut: "disponible",
           drive: ""
+        },
+        {
+          id: "terminale-deux-variables",
+          numero: 6,
+          titre: "Statistique à deux variables quantitatives",
+          statut: "disponible",
+          drive: ""
         }
       ]
     }

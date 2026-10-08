@@ -11815,6 +11815,165 @@
   };
 
 
+  /* ---------- Terminale maths complémentaires, chapitre 6 : statistique à deux variables (préfixe tsd-) ---------- */
+  function tsdStats(xs, ys) {
+    const n = xs.length, mx = xs.reduce((s, v) => s + v, 0) / n, my = ys.reduce((s, v) => s + v, 0) / n;
+    const vx = xs.reduce((s, v) => s + (v - mx) ** 2, 0) / n, vy = ys.reduce((s, v) => s + (v - my) ** 2, 0) / n;
+    const cov = xs.reduce((s, v, i) => s + (v - mx) * (ys[i] - my), 0) / n, a = cov / vx;
+    return { n, mx, my, a, b: my - a * mx, r: cov / Math.sqrt(vx * vy) };
+  }
+  // nuage de points (et éventuellement droite d'ajustement)
+  function tsdNuage(xs, ys, o) {
+    o = o || {};
+    const x0 = Math.min(...xs), x1 = Math.max(...xs), y0 = Math.min(...ys), y1 = Math.max(...ys);
+    const dx = x1 - x0 || 1, dy = y1 - y0 || 1;
+    const pasX = dx > 30 ? 10 : dx > 12 ? 5 : dx > 6 ? 2 : 1, pasY = dy > 60 ? 20 : dy > 30 ? 10 : dy > 12 ? 5 : dy > 6 ? 2 : dy > 2.5 ? 1 : 0.5;
+    const xmin = Math.min(0, x0 - pasX), xmax = x1 + pasX, ymin = y0 > 3 * dy ? y0 - pasY : Math.min(0, y0 - pasY), ymax = y1 + 2 * pasY;
+    const curves = o.droite ? [{ f: (x) => o.droite[0] * x + o.droite[1], a: Math.max(xmin, x0 - pasX / 2), b: xmax - pasX / 3, closed: false }] : [];
+    return graph({ xmin: xmin - pasX / 3, xmax, ymin: ymin - pasY / 3, ymax, xstep: pasX, ystep: pasY, yetiq: (ymax - ymin) / pasY > 10 ? 2 * pasY : pasY, h: 260, padL: 34, xlabel: o.xl || "x", ylabel: o.yl || "y", curves, points: xs.map((x, i) => ({ x, y: ys[i] })).concat(o.moyen ? [{ x: o.moyen[0], y: o.moyen[1], label: "G" }] : []), aria: o.aria || "Nuage de points" });
+  }
+  const TSD_CTX = [
+    { xl: "rang de l'année", yl: "°C", nom: "température moyenne annuelle (en °C) à Pamandzi selon le rang $x$ de l'année (rang $1$ pour 2015)", a: () => pick([0.03, 0.04, 0.05]), b: () => pick([26.2, 26.5, 26.8]), bruit: 0.08, dec: 2, xs: () => [1, 2, 3, 4, 5, 6, 7, 8] },
+    { xl: "heures", yl: "mg/L", nom: "concentration (en mg/L) d'un médicament dans le sang, $x$ heures après la prise", a: () => -pick([1.5, 2, 2.5]), b: () => pick([20, 24, 30]), bruit: 0.4, dec: 1, xs: () => [1, 2, 3, 4, 5, 6, 7] },
+    { xl: "jours", yl: "kg", nom: "masse (en kg) de mangues vendues au marché de Mamoudzou selon le jour $x$ de la saison", a: () => pick([4, 5, 6]), b: () => pick([20, 30, 40]), bruit: 3, dec: 0, xs: () => [1, 3, 5, 7, 9, 11, 13] },
+    { xl: "heures de révision", yl: "note", nom: "note sur $20$ au devoir selon le nombre $x$ d'heures de révision", a: () => pick([1.2, 1.5, 1.8]), b: () => pick([5, 6, 7]), bruit: 0.8, dec: 1, xs: () => [1, 2, 3, 4, 5, 6] }
+  ];
+  function tsdDonnees() {
+    const c = pick(TSD_CTX), a = c.a(), b = c.b(), xs = c.xs();
+    const ys = xs.map((x) => +(a * x + b + (Math.random() * 2 - 1) * c.bruit).toFixed(c.dec));
+    return { c, xs, ys, S: tsdStats(xs, ys) };
+  }
+  const tsdTableau = (xs, ys) => ({ lignes: [["x_i", ...xs.map(String)], ["y_i", ...ys.map((y) => fr(y))]] });
+  FIGURES["tsd-nuage"] = () => {
+    const xs = [1, 2, 3, 4, 5, 6, 7, 8], ys = [26.5, 26.6, 26.5, 26.7, 26.8, 26.7, 26.9, 26.9], S = tsdStats(xs, ys);
+    return tsdNuage(xs, ys, { droite: [S.a, S.b], moyen: [S.mx, S.my], xl: "rang", yl: "°C", aria: "Températures moyennes annuelles à Pamandzi : le nuage monte légèrement ; la droite d'ajustement passe par le point moyen G" });
+  };
+  FIGURES["tsd-correlations"] = () => {
+    const pts = []; const r = smGraine(11);
+    for (let i = 0; i < 12; i++) { const x = 0.4 + i * 0.75; pts.push({ x, y: 0.9 * x + 0.6 + (r() - 0.5) * 1.2 }); }
+    return graph({ xmin: -0.4, xmax: 9.8, ymin: -0.4, ymax: 10.6, h: 280, xlabel: "x", ylabel: "y", points: pts, aria: "Nuage de points allongé le long d'une droite croissante : corrélation forte et positive (r proche de 1)" });
+  };
+
+  GEN["tsd-point-moyen"] = function () {
+    const { c, xs, ys, S } = tsdDonnees(), quoi = Math.random() < 0.5 ? "x" : "y";
+    const v = quoi === "x" ? S.mx : S.my;
+    return {
+      enonce: `Le tableau donne la ${c.nom}. Calcule la coordonnée ${quoi === "x" ? "$\\bar{x}$" : "$\\bar{y}$"} du point moyen $G$ (arrondie au centième).`,
+      tableau: tsdTableau(xs, ys), figure: tsdNuage(xs, ys, { xl: c.xl, yl: c.yl }),
+      mode: "nombre", prefixe: quoi === "x" ? "$\\bar{x} =$" : "$\\bar{y} \\approx$", attendu: +v.toFixed(2), tolerance: 0.006,
+      aides: ["Le point moyen $G$ a pour coordonnées les moyennes : $G(\\bar{x}\\,;\\bar{y})$.", `Additionne les $${quoi}_i$ et divise par $${S.n}$.`, `Somme des $${quoi}_i$ : $${fr(+(quoi === "x" ? xs : ys).reduce((s, t) => s + t, 0).toFixed(4))}$.`],
+      solution: `${quoi === "x" ? "$\\bar{x}$" : "$\\bar{y}$"} $= \\dfrac{${fr(+(quoi === "x" ? xs : ys).reduce((s, t) => s + t, 0).toFixed(4))}}{${S.n}} \\approx ${fr(+v.toFixed(2))}$.`
+    };
+  };
+
+  GEN["tsd-droite"] = function () {
+    const { c, xs, ys, S } = tsdDonnees(), quoi = Math.random() < 0.6 ? "a" : "b";
+    const v = quoi === "a" ? S.a : S.b, d = Math.abs(S.a) < 0.1 ? 3 : 2;
+    return {
+      enonce: `Le tableau donne la ${c.nom}. À la calculatrice, détermine la droite d'ajustement de $y$ en $x$ par la méthode des moindres carrés, $y = ax + b$. Donne ${quoi === "a" ? "$a$" : "$b$"} arrondi ${d === 3 ? "au millième" : "au centième"}.`,
+      tableau: tsdTableau(xs, ys), figure: tsdNuage(xs, ys, { xl: c.xl, yl: c.yl }),
+      mode: "nombre", prefixe: `$${quoi} \\approx$`, attendu: +v.toFixed(d), tolerance: d === 3 ? 0.0015 : 0.011,
+      aides: ["Entre les deux listes dans le mode statistique de la calculatrice (listes L1 et L2 ou équivalent).", "Choisis la régression linéaire (LinReg, ax + b).", "Vérifie : la droite passe par le point moyen $G(\\bar{x}\\,;\\bar{y})$."],
+      solution: `La calculatrice donne $y \\approx ${fr(+S.a.toFixed(d))}x ${S.b < 0 ? "-" : "+"} ${fr(+Math.abs(S.b).toFixed(2))}$ (coefficient de corrélation $r \\approx ${fr(+S.r.toFixed(3))}$). Elle passe par $G(${fr(+S.mx.toFixed(2))}\\,;${fr(+S.my.toFixed(2))})$.`
+    };
+  };
+
+  GEN["tsd-prevision"] = function () {
+    const c = pick(TSD_CTX), a = +c.a().toFixed(3), b = c.b(), xs = c.xs(), t = rand(0, 2);
+    const xIn = xs[0] + (xs[xs.length - 1] - xs[0]) * pick([0.3, 0.5, 0.7]), xOut = xs[xs.length - 1] + pick([2, 4, 6]);
+    if (t === 2) {
+      const dedans = Math.random() < 0.5, x = +(dedans ? xIn : xOut).toFixed(1), cc = melangeChoix(dedans ? "une interpolation" : "une extrapolation", [dedans ? "une extrapolation" : "une interpolation", "une corrélation"]);
+      return { enonce: `Les données portent sur $x$ de $${xs[0]}$ à $${xs[xs.length - 1]}$. On utilise la droite d'ajustement pour estimer $y$ quand $x = ${fr(x)}$. C'est :`, mode: "choix", choix: cc.choix, attendu: cc.attendu,
+        aides: ["Interpolation : on estime **à l'intérieur** de l'intervalle des données.", "Extrapolation : on estime **en dehors**.", `$${fr(x)}$ est-il entre $${xs[0]}$ et $${xs[xs.length - 1]}$ ?`],
+        solution: `$${fr(x)}$ est ${dedans ? "à l'intérieur" : "en dehors"} de l'intervalle des données : c'est ${dedans ? "une interpolation" : "une **extrapolation**, à utiliser avec prudence : rien ne garantit que la tendance continue"}.` };
+    }
+    if (t === 0) {
+      const x = +xOut.toFixed(1), y = a * x + b;
+      return { enonce: `Pour la ${c.nom}, la droite d'ajustement est $y = ${fr(a)}x ${b < 0 ? "-" : "+"} ${fr(Math.abs(b))}$. Quelle valeur de $y$ ce modèle prévoit-il pour $x = ${fr(x)}$ ? (Arrondi au dixième.)`,
+        mode: "nombre", prefixe: "$y \\approx$", attendu: +y.toFixed(1), tolerance: 0.06,
+        aides: ["Remplace $x$ par sa valeur dans l'équation de la droite.", `$y = ${fr(a)} \\times ${fr(x)} ${b < 0 ? "-" : "+"} ${fr(Math.abs(b))}$.`, "Arrondis au dixième."],
+        solution: `$y = ${fr(a)} \\times ${fr(x)} ${b < 0 ? "-" : "+"} ${fr(Math.abs(b))} \\approx ${fr(+y.toFixed(1))}$. Comme $x = ${fr(x)}$ est en dehors des données, c'est une extrapolation : une estimation fragile.` };
+    }
+    const cible = +(a * (xs[xs.length - 1] + pick([3, 5])) + b).toFixed(0), x = (cible - b) / a;
+    return { enonce: `Pour la ${c.nom}, la droite d'ajustement est $y = ${fr(a)}x ${b < 0 ? "-" : "+"} ${fr(Math.abs(b))}$. Pour quelle valeur de $x$ le modèle donne-t-il $y = ${cible}$ ? (Arrondi au dixième.)`,
+      mode: "nombre", prefixe: "$x \\approx$", attendu: +x.toFixed(1), tolerance: 0.06,
+      aides: [`Résous $${fr(a)}x ${b < 0 ? "-" : "+"} ${fr(Math.abs(b))} = ${cible}$.`, `$${fr(a)}x = ${fr(+(cible - b).toFixed(3))}$.`, `Divise par $${fr(a)}$.`],
+      solution: `$${fr(a)}x = ${cible} - ${par(fr(b))} = ${fr(+(cible - b).toFixed(3))}$, donc $x = \\dfrac{${fr(+(cible - b).toFixed(3))}}{${fr(a)}} \\approx ${fr(+x.toFixed(1))}$.` };
+  };
+
+  GEN["tsd-correlation"] = function () {
+    const T = [
+      [pick([0.97, 0.95, 0.99, 0.92]), "forte et positive : les points sont presque alignés sur une droite croissante"],
+      [-pick([0.97, 0.95, 0.99, 0.92]), "forte et négative : les points sont presque alignés sur une droite décroissante"],
+      [pick([0.1, -0.05, 0.15, -0.12, 0.02]), "très faible : un ajustement affine n'a pas de sens"],
+      [pick([0.6, 0.55, -0.6]), "moyenne : la tendance existe mais les points sont dispersés"]
+    ];
+    const [r, s] = pick(T), opts = T.map((x) => x[1]), c = melangeChoix(s, opts);
+    return {
+      enonce: `Le coefficient de corrélation linéaire d'une série statistique à deux variables vaut $r = ${fr(r)}$. La corrélation est :`, mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: ["$r$ est toujours entre $-1$ et $1$.", "Plus $|r|$ est proche de $1$, plus les points sont proches d'une droite.", "Le signe de $r$ est celui de la pente de la droite d'ajustement."],
+      solution: `$|r| = ${fr(Math.abs(r))}$ : la corrélation est ${s}.${Math.abs(r) > 0.9 ? " Un ajustement affine est justifié." : ""}`
+    };
+  };
+
+  GEN["tsd-moindres-carres"] = function () {
+    const xs = [1, 2, 3, 4], a = pick([1, 2, 3]), b = pick([0, 1, 2]), ys = xs.map((x) => a * x + b + pick([-1, 0, 1]));
+    const d1 = [a, b], d2 = [a + pick([1, -1]), b + pick([0, 1, 2])];
+    const S = (d) => xs.reduce((s, x, i) => s + (ys[i] - (d[0] * x + d[1])) ** 2, 0), s1 = S(d1), s2 = S(d2);
+    const eq = (d) => `$y = ${d[0] === 1 ? "" : d[0]}x${d[1] ? ` + ${d[1]}` : ""}$`;
+    if (Math.random() < 0.5) return {
+      enonce: `Points : $(1\\,;${ys[0]})$, $(2\\,;${ys[1]})$, $(3\\,;${ys[2]})$, $(4\\,;${ys[3]})$. Calcule la somme des carrés des écarts verticaux entre ces points et la droite ${eq(d1)}.`,
+      mode: "nombre", prefixe: "Somme :", attendu: s1,
+      aides: ["Pour chaque point, calcule l'écart $y_i - (ax_i + b)$.", "Élève chaque écart au carré.", "Additionne."],
+      solution: `Écarts : ${xs.map((x, i) => `$${ys[i] - (d1[0] * x + d1[1])}$`).join(", ")}. Somme des carrés : $${xs.map((x, i) => `${par(ys[i] - (d1[0] * x + d1[1]))}^2`).join(" + ")} = ${s1}$.`
+    };
+    const meilleure = s1 <= s2 ? d1 : d2, c = melangeChoix(eq(meilleure), [eq(s1 <= s2 ? d2 : d1)]);
+    return {
+      enonce: `Points : $(1\\,;${ys[0]})$, $(2\\,;${ys[1]})$, $(3\\,;${ys[2]})$, $(4\\,;${ys[3]})$. Selon le critère des moindres carrés, quelle droite est la meilleure ?`,
+      mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: ["Le critère : la somme des carrés des écarts verticaux doit être la plus petite possible.", "Calcule cette somme pour chaque droite.", "Compare."],
+      solution: `Somme des carrés : $${s1}$ pour ${eq(d1)} et $${s2}$ pour ${eq(d2)}. La meilleure est ${eq(meilleure)}.${s1 === s2 ? " (Ici les deux sommes sont égales : les deux droites sont aussi bonnes l'une que l'autre.)" : ""}`
+    };
+  };
+
+  GEN["tsd-changement"] = function () {
+    const ch = pick([
+      { z: "x^2", f: (x) => x * x, nom: "$z = x^2$" },
+      { z: "\\dfrac{1}{x}", f: (x) => 1 / x, nom: "$z = \\dfrac{1}{x}$" },
+      { z: "\\sqrt{x}", f: (x) => Math.sqrt(x), nom: "$z = \\sqrt{x}$" }
+    ]);
+    const a = pick([0.5, 2, 3, 1.5]), b = pick([1, 4, 10, -2]), x = pick([4, 9, 16, 2, 5]), y = a * ch.f(x) + b;
+    return {
+      enonce: `Le nuage de $(x\\,;y)$ n'est pas allongé le long d'une droite. On pose ${ch.nom} : le nuage de $(z\\,;y)$ est presque aligné, et l'ajustement donne $y = ${fr(a)}z ${b < 0 ? "-" : "+"} ${Math.abs(b)}$. Estime $y$ pour $x = ${x}$ (arrondi au centième).`,
+      mode: "nombre", prefixe: "$y \\approx$", attendu: +y.toFixed(2), tolerance: 0.006,
+      erreurs: [{ valeur: +(a * x + b).toFixed(2), message: `Il faut d'abord calculer $z = ${ch.z.replace(/x/g, String(x))}$, puis remplacer $z$ (pas $x$).` }],
+      aides: ["On ajuste $y$ en fonction de $z$, pas de $x$.", `Calcule $z$ pour $x = ${x}$.`, `Puis $y = ${fr(a)}z ${b < 0 ? "-" : "+"} ${Math.abs(b)}$.`],
+      solution: `$z = ${fr(+ch.f(x).toFixed(4))}$, donc $y = ${fr(a)} \\times ${fr(+ch.f(x).toFixed(4))} ${b < 0 ? "-" : "+"} ${Math.abs(b)} \\approx ${fr(+y.toFixed(2))}$. En revenant à $x$ : $y = ${fr(a)}${ch.z} ${b < 0 ? "-" : "+"} ${Math.abs(b)}$.`
+    };
+  };
+
+  GEN["tsd-logique"] = function () {
+    const T = [
+      ["« Si deux variables sont fortement corrélées, alors l'une est la cause de l'autre. »", false, "Contre-exemple : les ventes de glaces et les noyades augmentent ensemble, à cause d'un troisième facteur, la chaleur. Corrélation n'est pas causalité."],
+      ["« Le coefficient de corrélation $r$ est toujours compris entre $-1$ et $1$. »", true, "C'est une propriété de $r$."],
+      ["« La droite des moindres carrés passe par le point moyen $G(\\bar{x}\\,;\\bar{y})$. »", true, "C'est une propriété de la droite des moindres carrés."],
+      ["« Si $r = 0{,}2$, un ajustement affine est pertinent. »", false, "$|r|$ est faible : les points ne sont pas proches d'une droite."],
+      ["« Une extrapolation lointaine est toujours fiable si $r$ est proche de $1$. »", false, "Le modèle n'est validé que sur la plage des données : loin de celle-ci, la tendance peut changer."],
+      ["« Si $r$ est négatif, la droite d'ajustement est décroissante. »", true, "$r$ et la pente $a$ ont le même signe."],
+      ["« Un nombre de noyades et un nombre de glaces vendues corrélés positivement prouvent que manger une glace fait couler. »", false, "Un facteur commun (la chaleur, l'été) explique les deux. C'est l'exemple classique de corrélation sans causalité."],
+      ["« La méthode des moindres carrés minimise la somme des carrés des écarts verticaux. »", true, "C'est sa définition."],
+      ["« Changer de variable (par exemple $z = x^2$) peut rendre un nuage presque aligné. »", true, "C'est l'idée de l'ajustement par changement de variable."],
+      ["« Si $r = 1$, tous les points sont exactement sur une droite croissante. »", true, "$|r| = 1$ correspond à un alignement parfait ; $r > 0$ : droite croissante."]
+    ];
+    const [q, v, s] = pick(T), c = melangeChoix(v ? "Vrai" : "Faux", [v ? "Faux" : "Vrai"]);
+    return {
+      enonce: `Vrai ou faux ? ${q}`, mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: ["$r$ mesure la qualité d'un alignement, pas une relation de cause à effet.", "Une extrapolation sort du domaine où le modèle a été construit.", "Pour une affirmation fausse, un contre-exemple suffit."],
+      solution: `**${v ? "Vrai" : "Faux"}.** ${s}`
+    };
+  };
+
+
   /* Séries « flash » d'un thème : mélange de ses générateurs */
   const THEMES = {
     "am-flash-cn": ["am-comparer", "am-fractions", "am-puissances", "am-ecritures", "am-ordre-grandeur", "am-coherence", "auto-conversions"],
@@ -11831,7 +11990,7 @@
 
 
   /* Une « erreur connue » ne doit jamais coïncider avec la bonne réponse (à la tolérance près) */
-  Object.keys(GEN).filter((k) => /^(auto|ld|am|cd|ar|cl|fa|ve|st|vx|tc|co|dr|fr|sg|pc|ec|sy|su|s2|pi|s5|d1|tr|d2|vr|ps|ex|va|sc|gr|sm|ea|tsu|tag|tlf|tcb)-/.test(k)).forEach((k) => {
+  Object.keys(GEN).filter((k) => /^(auto|ld|am|cd|ar|cl|fa|ve|st|vx|tc|co|dr|fr|sg|pc|ec|sy|su|s2|pi|s5|d1|tr|d2|vr|ps|ex|va|sc|gr|sm|ea|tsu|tag|tlf|tcb|tsd)-/.test(k)).forEach((k) => {
     const g = GEN[k];
     GEN[k] = (i) => { const q = g(i); if (q.erreurs) q.erreurs = q.erreurs.filter((e) => Math.abs(e.valeur - q.attendu) >= (q.tolerance || 1e-9)); return q; };
   });
