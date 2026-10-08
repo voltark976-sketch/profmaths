@@ -398,6 +398,13 @@ window.CATALOGUE = {
           titre: "Statistique à deux variables quantitatives",
           statut: "disponible",
           drive: ""
+        },
+        {
+          id: "terminale-derivation-composees",
+          numero: 7,
+          titre: "Dérivation : fonctions composées et réciproques",
+          statut: "disponible",
+          drive: ""
         }
       ]
     }

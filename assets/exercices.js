@@ -11974,6 +11974,130 @@
   };
 
 
+  /* ---------- Terminale maths complémentaires, chapitre 7 : dérivation, fonctions composées et réciproques (préfixe tdc-) ---------- */
+  FIGURES["tdc-symetrie"] = () => graph({ xmin: -0.5, xmax: 6.6, ymin: -0.5, ymax: 6.6, h: 300, curves: [{ f: (x) => x * x, a: 0, b: 2.5, closed: false, label: "y = x²", lx: 2.45, dx: -8, dy: 4 }, { f: (x) => Math.sqrt(x), a: 0, b: 6.3, closed: false, label: "y = √x", lx: 6.2, dx: -2, dy: 18 }], chemins: [[[0, 0], [6.4, 6.4]]], points: [{ x: 2, y: 4, label: "(2 ; 4)", gauche: true }, { x: 4, y: 2, label: "(4 ; 2)" }], aria: "Sur [0 ; +∞[, les courbes de x² et de √x sont symétriques par rapport à la droite y = x : le point (2 ; 4) correspond au point (4 ; 2)" });
+  FIGURES["tdc-gauss"] = () => graph({ xmin: -3.4, xmax: 3.4, ymin: -0.3, ymax: 1.4, ystep: 0.25, yetiq: 0.5, h: 220, curves: [{ f: (x) => Math.exp(-x * x), a: -3.2, b: 3.2, closed: false, label: "y = e<tspan dy=\"-6\" style=\"font-size:9px\">−x²</tspan>", lx: 1.6, dx: 70, dy: -14 }], points: [{ x: 0, y: 1, label: "max (0 ; 1)" }], aria: "Courbe de f(x) = e^(−x²) : croissante puis décroissante, maximum 1 en 0, elle se rapproche de 0 aux deux bouts" });
+  FIGURES["tdc-boite"] = () => {
+    const W = 320, H = 210, o = 30, L = 150, c = 30;
+    let s = `<svg class="graph" viewBox="0 0 ${W} ${H}" role="img" aria-label="Une feuille carrée de côté 30 cm dont on coupe un carré de côté x à chaque coin, puis on plie les bords pour former une boîte sans couvercle">`;
+    s += `<rect x="${o}" y="${o}" width="${L}" height="${L}" style="fill:var(--lagon);fill-opacity:.15;stroke:var(--encre);stroke-width:1.2"/>`;
+    [[o, o], [o + L - c, o], [o, o + L - c], [o + L - c, o + L - c]].forEach(([x, y]) => { s += `<rect x="${x}" y="${y}" width="${c}" height="${c}" style="fill:var(--ylang);fill-opacity:.35;stroke:var(--encre);stroke-width:1;stroke-dasharray:4 3"/>`; });
+    s += `<text class="g-label" x="${o + c / 2}" y="${o - 6}" text-anchor="middle">x</text><text class="g-label" x="${o - 6}" y="${o + c / 2 + 4}" text-anchor="end">x</text><text class="g-label" x="${o + L / 2}" y="${o + L + 18}" text-anchor="middle">30 cm</text>`;
+    // la boîte pliée, en perspective
+    const bx = 215, by = 95, w = 70, h = 26, d = 22;
+    s += `<path d="M${bx} ${by} h${w} v${h} h${-w} Z" style="fill:var(--lagon);fill-opacity:.25;stroke:var(--encre)"/><path d="M${bx} ${by} l${d} ${-d} h${w} l${-d} ${d} Z" style="fill:none;stroke:var(--encre)"/><path d="M${bx + w} ${by} l${d} ${-d} v${h} l${-d} ${d}" style="fill:var(--lagon);fill-opacity:.15;stroke:var(--encre)"/>`;
+    s += `<text class="g-label" x="${bx + w / 2}" y="${by + h + 16}" text-anchor="middle">30 − 2x</text><text class="g-label" x="${bx - 6}" y="${by + h / 2 + 4}" text-anchor="end">x</text>`;
+    return s + `</svg>`;
+  };
+
+  const tdcLin = (a, b) => `${a === 1 ? "" : a === -1 ? "-" : a}x ${b < 0 ? "-" : "+"} ${Math.abs(b)}`;
+  GEN["tdc-affine"] = function () {
+    const a = pick([2, 3, -2, 4, -1, 5]), b = randNZ(-5, 6), u = tdcLin(a, b), t = rand(0, 4);
+    const F = [
+      [`(${u})^2`, `${2 * a}(${u})`, [`2(${u})`, `${a}(${u})^2`, `${2 * a}x`], "$(g(ax + b))' = a\\,g'(ax + b)$ avec $g(X) = X^2$, $g'(X) = 2X$"],
+      [`(${u})^3`, `${3 * a}(${u})^2`, [`3(${u})^2`, `${a}(${u})^3`, `${3 * a}(${u})`], "$g(X) = X^3$, $g'(X) = 3X^2$"],
+      [`e^{${u}}`, `${a === -1 ? "-" : a}e^{${u}}`, [`e^{${u}}`, `${a}e^{${a}}`, `(${u})e^{${u}}`], "$g(X) = e^X$, $g'(X) = e^X$"],
+      [`\\dfrac{1}{${u}}`, `\\dfrac{${-a}}{(${u})^2}`, [`\\dfrac{-1}{(${u})^2}`, `\\dfrac{${a}}{(${u})^2}`, `\\dfrac{1}{${a}}`], "$g(X) = \\dfrac{1}{X}$, $g'(X) = -\\dfrac{1}{X^2}$"],
+      [`\\sqrt{${u}}`, `\\dfrac{${a}}{2\\sqrt{${u}}}`, [`\\dfrac{1}{2\\sqrt{${u}}}`, `${a}\\sqrt{${u}}`, `\\dfrac{${a}}{\\sqrt{${u}}}`], "$g(X) = \\sqrt{X}$, $g'(X) = \\dfrac{1}{2\\sqrt{X}}$"]
+    ][t];
+    const c = melangeChoix(`$${F[1]}$`, F[2].map((x) => `$${x}$`));
+    return {
+      enonce: `Quelle est la dérivée de $f(x) = ${F[0]}$ (sur un intervalle où elle est définie) ?`, mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: ["Formule : $\\left(g(ax + b)\\right)' = a \\times g'(ax + b)$.", `Ici $a = ${a}$.`, F[3] + "."],
+      solution: `${F[3]}, et $a = ${a}$ : $f'(x) = ${F[1]}$.`
+    };
+  };
+
+  GEN["tdc-exp-u"] = function () {
+    const p = randNZ(-4, 4), q = rand(-3, 3), x0 = rand(-2, 2), t = Math.random() < 0.55;
+    const u = `x^2 ${p < 0 ? "-" : "+"} ${Math.abs(p) === 1 ? "" : Math.abs(p)}x${q ? ` ${q < 0 ? "-" : "+"} ${Math.abs(q)}` : ""}`, du = `2x ${p < 0 ? "-" : "+"} ${Math.abs(p)}`;
+    if (t) {
+      const c = melangeChoix(`$(${du})e^{${u}}$`, [`$e^{${u}}$`, `$(${du})e^{${du}}$`, `$(${u})e^{${u} - 1}$`]);
+      return { enonce: `Quelle est la dérivée de $f(x) = e^{${u}}$ ?`, mode: "choix", choix: c.choix, attendu: c.attendu,
+        aides: ["$(e^{u})' = u'e^{u}$.", `$u(x) = ${u}$.`, `$u'(x) = ${du}$.`],
+        solution: `$f = e^u$ avec $u(x) = ${u}$ et $u'(x) = ${du}$ : $f'(x) = (${du})e^{${u}}$.` };
+    }
+    const xm = -p / 2, c = melangeChoix(`un minimum en $x = ${fr(xm)}$`, [`un maximum en $x = ${fr(xm)}$`, `un minimum en $x = ${fr(-xm)}$`, "aucun extremum"]);
+    return { enonce: `$f(x) = e^{${u}}$. D'après le signe de $f'(x)$, la fonction $f$ admet :`, mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: ["$f'(x) = u'(x)e^{u(x)}$ et $e^{u(x)} > 0$.", `Le signe de $f'$ est celui de $u'(x) = ${du}$.`, `$${du} = 0$ pour $x = ${fr(xm)}$ ; négatif avant, positif après.`],
+      solution: `$f'(x) = (${du})e^{${u}}$ a le signe de $${du}$ : négatif pour $x < ${fr(xm)}$, positif après. $f$ décroît puis croît : **minimum en $x = ${fr(xm)}$**.` };
+  };
+
+  GEN["tdc-carre-u"] = function () {
+    const a = pick([1, 2, 3]), b = randNZ(-4, 4), x0 = rand(-2, 3), t = Math.random() < 0.5;
+    const u = `${a === 1 ? "" : a}x^2 ${b < 0 ? "-" : "+"} ${Math.abs(b)}`, du = `${2 * a}x`;
+    const val = 2 * (2 * a * x0) * (a * x0 * x0 + b);
+    if (t) {
+      const c = melangeChoix(`$2 \\times ${du} \\times (${u})$`, [`$2(${u})$`, `$(${du})^2$`, `$${du} \\times (${u})$`]);
+      return { enonce: `Quelle est la dérivée de $f(x) = (${u})^2$ ?`, mode: "choix", choix: c.choix, attendu: c.attendu,
+        aides: ["$(u^2)' = 2u'u$ (c'est la dérivée du produit $u \\times u$).", `$u(x) = ${u}$.`, `$u'(x) = ${du}$.`],
+        solution: `$(u^2)' = 2u'u$ avec $u'(x) = ${du}$ : $f'(x) = 2 \\times ${du} \\times (${u})$.` };
+    }
+    return { enonce: `$f(x) = (${u})^2$. Calcule $f'(${x0})$.`, mode: "nombre", prefixe: `$f'(${x0}) =$`, attendu: val,
+      erreurs: [{ valeur: 2 * (a * x0 * x0 + b), message: "N'oublie pas le facteur $u'(x)$ : $(u^2)' = 2u'u$." }],
+      aides: ["$(u^2)' = 2u'u$.", `$u(${x0}) = ${a * x0 * x0 + b}$ et $u'(${x0}) = ${2 * a * x0}$.`, `$f'(${x0}) = 2 \\times ${par(2 * a * x0)} \\times ${par(a * x0 * x0 + b)}$.`],
+      solution: `$f'(x) = 2 \\times ${du} \\times (${u})$, donc $f'(${x0}) = 2 \\times ${par(2 * a * x0)} \\times ${par(a * x0 * x0 + b)} = ${val}$.` };
+  };
+
+  GEN["tdc-reciproque"] = function () {
+    const a = rand(2, 9), T = [
+      [`Sur $[0\\,;+\\infty[$, l'équation $x^2 = ${a * a}$ a pour solution :`, `$x = ${a}$`, [`$x = -${a}$`, `$x = ${a}$ ou $x = -${a}$`, `$x = ${a * a * a * a}$`], `Sur $[0\\,;+\\infty[$, $x^2 = y \\iff x = \\sqrt{y}$ : $x = \\sqrt{${a * a}} = ${a}$.`],
+      [`Sur $\\mathbb{R}$, l'équation $x^2 = ${a * a}$ a pour solutions :`, `$x = ${a}$ ou $x = -${a}$`, [`$x = ${a}$`, `$x = -${a}$`, "aucune solution"], "Sur $\\mathbb{R}$ tout entier, la fonction carré n'est pas strictement monotone : deux solutions."],
+      [`Le point $(${a}\\,;${a * a})$ est sur la courbe de $x \\mapsto x^2$. Quel point est sur la courbe de $x \\mapsto \\sqrt{x}$ ?`, `$(${a * a}\\,;${a})$`, [`$(${a}\\,;${a * a})$`, `$(${a}\\,;\\sqrt{${a}})$`, `$(-${a}\\,;${a * a})$`], "Les deux courbes sont symétriques par rapport à la droite $y = x$ : on échange abscisse et ordonnée."],
+      [`$\\sqrt{${a * a}} =$`, `$${a}$`, [`$${a * a / 2}$`, `$-${a}$`, `$${2 * a}$`], `$${a}^2 = ${a * a}$ et $${a} \\geqslant 0$.`],
+      [`Pour $x \\geqslant 0$, $\\sqrt{x^2} =$`, "$x$", ["$-x$", "$x^2$", "$2x$"], "Sur $[0\\,;+\\infty[$, racine carrée et carré se « défont » l'une l'autre."],
+      [`Pour $x = -${a}$, $\\sqrt{x^2} =$`, `$${a}$`, [`$-${a}$`, `$${a * a}$`, "n'existe pas"], `$\\sqrt{(-${a})^2} = \\sqrt{${a * a}} = ${a}$ : ici $\\sqrt{x^2} = -x$, c'est la valeur absolue.`],
+      ["La fonction racine carrée est la réciproque de la fonction carré sur :", "$[0\\,;+\\infty[$", ["$\\mathbb{R}$", "$]-\\infty\\,;0]$", "$[0\\,;1]$"], "La fonction carré est continue et strictement croissante sur $[0\\,;+\\infty[$ : elle y a une réciproque, la racine carrée."]
+    ];
+    const [q, b, f, s] = pick(T), c = melangeChoix(b, f);
+    return {
+      enonce: q, mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: ["Sur $[0\\,;+\\infty[$ : $y = x^2 \\iff x = \\sqrt{y}$.", "Les courbes de $x^2$ (pour $x \\geqslant 0$) et de $\\sqrt{x}$ sont symétriques par rapport à $y = x$.", "Sur $\\mathbb{R}$, un carré a deux antécédents opposés."],
+      solution: s
+    };
+  };
+
+  GEN["tdc-optimisation"] = function () {
+    if (Math.random() < 0.5) {
+      const c = pick([12, 18, 24, 30, 36, 42]), x = c / 6, V = x * (c - 2 * x) ** 2;
+      return {
+        enonce: `Dans une feuille de tôle carrée de côté $${c}$ cm, on découpe un carré de côté $x$ à chaque coin pour plier une boîte sans couvercle. Son volume est $V(x) = x(${c} - 2x)^2$ pour $0 < x < ${c / 2}$. Pour quelle valeur de $x$ le volume est-il maximal ?`,
+        mode: "nombre", prefixe: "$x =$", suffixe: "cm", attendu: x,
+        erreurs: [{ valeur: c / 2, message: `Pour $x = ${c / 2}$, la boîte n'a plus de fond : le volume est nul.` }],
+        aides: ["Dérive le produit $x \\times (" + c + " - 2x)^2$ : $(u^2)' = 2u'u$.", `$V'(x) = (${c} - 2x)^2 - 4x(${c} - 2x) = (${c} - 2x)(${c} - 6x)$.`, `Sur $]0\\,;${c / 2}[$, $${c} - 2x > 0$ : le signe de $V'$ est celui de $${c} - 6x$.`],
+        solution: `$V'(x) = (${c} - 2x)(${c} - 6x)$ : positif pour $x < ${x}$, négatif après. Le volume est maximal pour $x = ${x}$ cm : $V(${x}) = ${x} \\times ${c - 2 * x}^2 = ${nb(V)}$ cm³.`
+      };
+    }
+    const P = pick([20, 24, 30, 40, 60]), x = P / 4, A = x * (P - 2 * x);
+    return {
+      enonce: `Un éleveur de Mayotte construit un enclos rectangulaire pour ses cabris le long d'un mur, avec $${P}$ m de grillage pour les trois autres côtés. Si $x$ est la largeur (côtés perpendiculaires au mur), l'aire est $A(x) = x(${P} - 2x)$. Pour quelle largeur l'aire est-elle maximale ?`,
+      mode: "nombre", prefixe: "$x =$", suffixe: "m", attendu: x,
+      erreurs: [{ valeur: P / 2, message: `Pour $x = ${P / 2}$, la longueur parallèle au mur est nulle.` }, { valeur: P / 3, message: "Le côté le long du mur n'est pas forcément égal à la largeur." }],
+      aides: [`$A(x) = ${P}x - 2x^2$.`, `$A'(x) = ${P} - 4x$.`, "$A'$ s'annule en changeant de signe : c'est un maximum."],
+      solution: `$A'(x) = ${P} - 4x$ s'annule pour $x = ${x}$, positif avant, négatif après : l'aire est maximale pour $x = ${x}$ m, et vaut $${x} \\times ${P - 2 * x} = ${A}$ m².`
+    };
+  };
+
+  GEN["tdc-logique"] = function () {
+    const a = rand(2, 9), T = [
+      [`« Pour tout réel $x$, $x^2 = ${a * a} \\iff x = ${a}$. »`, false, `Faux : $x = -${a}$ vérifie aussi $x^2 = ${a * a}$. L'implication « $x = ${a} \\Rightarrow x^2 = ${a * a}$ » est vraie, mais pas la réciproque.`],
+      [`« Pour tout réel $x \\geqslant 0$, $x^2 = ${a * a} \\iff x = ${a}$. »`, true, "Sur $[0\\,;+\\infty[$, la fonction carré est strictement croissante : l'équivalence est vraie."],
+      ["« Si $f$ est dérivable, alors $x \\mapsto f(3x + 1)$ a pour dérivée $f'(3x + 1)$. »", false, "Il manque le facteur $3$ : la dérivée est $3f'(3x + 1)$."],
+      ["« La fonction $x \\mapsto e^{u(x)}$ a les mêmes variations que $u$. »", true, "$(e^u)' = u'e^u$ et $e^u > 0$ : le signe de la dérivée est celui de $u'$."],
+      ["« $(u^2)' = 2u$. »", false, "Il manque $u'$ : $(u^2)' = 2u'u$. Par exemple $((3x)^2)' = 18x$, pas $6x$."],
+      ["« $(e^{-x})' = e^{-x}$. »", false, "$(e^{-x})' = -e^{-x}$ : ici $a = -1$."],
+      ["« Pour $y \\geqslant 0$, $\\sqrt{y}$ est l'unique nombre positif dont le carré vaut $y$. »", true, "C'est la définition de la racine carrée, réciproque du carré sur $[0\\,;+\\infty[$."],
+      ["« Les courbes de $x \\mapsto x^2$ (pour $x \\geqslant 0$) et de $x \\mapsto \\sqrt{x}$ sont symétriques par rapport à l'axe des ordonnées. »", false, "Elles sont symétriques par rapport à la droite $y = x$."]
+    ];
+    const [q, v, s] = pick(T), c = melangeChoix(v ? "Vrai" : "Faux", [v ? "Faux" : "Vrai"]);
+    return {
+      enonce: `Vrai ou faux ? ${q}`, mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: ["Une équivalence demande que l'implication et sa réciproque soient vraies.", "Pense au cas des nombres négatifs pour la fonction carré.", "Pour les dérivées composées, n'oublie pas le facteur $a$ ou $u'$."],
+      solution: `**${v ? "Vrai" : "Faux"}.** ${s}`
+    };
+  };
+
+
   /* Séries « flash » d'un thème : mélange de ses générateurs */
   const THEMES = {
     "am-flash-cn": ["am-comparer", "am-fractions", "am-puissances", "am-ecritures", "am-ordre-grandeur", "am-coherence", "auto-conversions"],
@@ -11990,7 +12114,7 @@
 
 
   /* Une « erreur connue » ne doit jamais coïncider avec la bonne réponse (à la tolérance près) */
-  Object.keys(GEN).filter((k) => /^(auto|ld|am|cd|ar|cl|fa|ve|st|vx|tc|co|dr|fr|sg|pc|ec|sy|su|s2|pi|s5|d1|tr|d2|vr|ps|ex|va|sc|gr|sm|ea|tsu|tag|tlf|tcb|tsd)-/.test(k)).forEach((k) => {
+  Object.keys(GEN).filter((k) => /^(auto|ld|am|cd|ar|cl|fa|ve|st|vx|tc|co|dr|fr|sg|pc|ec|sy|su|s2|pi|s5|d1|tr|d2|vr|ps|ex|va|sc|gr|sm|ea|tsu|tag|tlf|tcb|tsd|tdc)-/.test(k)).forEach((k) => {
     const g = GEN[k];
     GEN[k] = (i) => { const q = g(i); if (q.erreurs) q.erreurs = q.erreurs.filter((e) => Math.abs(e.valeur - q.attendu) >= (q.tolerance || 1e-9)); return q; };
   });
