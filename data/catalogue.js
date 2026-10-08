@@ -330,6 +330,13 @@ window.CATALOGUE = {
           titre: "Expérimentations : échantillons",
           statut: "disponible",
           drive: ""
+        },
+        {
+          id: "premiere-epreuve-anticipee",
+          numero: 17,
+          titre: "Préparation à l'épreuve anticipée",
+          statut: "disponible",
+          drive: ""
         }
       ]
     },

@@ -7837,7 +7837,7 @@
       s += `<rect x="${X(a)}" y="32" width="${+(X(b) - X(a)).toFixed(1)}" height="28" style="fill:var(${i % 2 ? "--ylang" : "--lagon"});fill-opacity:.28;stroke:var(--encre);stroke-width:1"/>`;
       s += `<text class="g-label" x="${m}" y="50" text-anchor="middle">${v} kg</text><text class="g-label" x="${m}" y="24" text-anchor="middle" style="fill:var(${i % 2 ? "--ylang" : "--lagon"})">${vir(b - a)}</text>`;
     });
-    [0, 0.1, 0.4, 0.8, 1].forEach((t) => { s += `<text class="g-tick" x="${X(t)}" y="76" text-anchor="middle">${vir(t)}</text>`; });
+    [0, 0.1, 0.4, 0.8, 1].forEach((t) => { s += `<text class="g-label" style="font-weight:400" x="${X(t)}" y="76" text-anchor="middle">${vir(t)}</text>`; });
     return s + `<text class="g-label" x="${W / 2}" y="${H - 8}" text-anchor="middle">en couleur : longueur du morceau = probabilité</text></svg>`;
   };
   // 40 moyennes d'échantillons de taille 100 et la bande μ ± 2σ/√n
@@ -7995,6 +7995,304 @@
   };
 
 
+  /* ---------- Première, chapitre 17 : préparation à l'épreuve anticipée (préfixe ea-) ---------- */
+  // Les 2 heures de l'épreuve
+  FIGURES["ea-temps"] = () => {
+    const W = 320, H = 112, X = (t) => +(20 + (t * 280) / 120).toFixed(1);
+    let s = `<svg class="graph" viewBox="0 0 ${W} ${H}" role="img" aria-label="Les deux heures de l'épreuve : environ 25 minutes pour la partie 1 (6 points), 85 minutes pour la partie 2 (14 points), 10 minutes pour relire">`;
+    [[0, 25, "Partie 1", "6 points", "--lagon"], [25, 110, "Partie 2 : exercices", "14 points", "--ylang"], [110, 120, "", "relire", "--doux"]].forEach(([a, b, t, h, c]) => {
+      const m = +((X(a) + X(b)) / 2).toFixed(1);
+      s += `<rect x="${X(a)}" y="32" width="${+(X(b) - X(a)).toFixed(1)}" height="28" style="fill:var(${c});fill-opacity:.28;stroke:var(--encre);stroke-width:1"/>`;
+      if (t) s += `<text class="g-label" x="${m}" y="50" text-anchor="middle">${t}</text>`;
+      s += `<text class="g-label" x="${m}" y="24" text-anchor="middle" style="fill:var(${c})">${h}</text>`;
+    });
+    [[0, "0"], [25, "25 min"], [110, "1 h 50"], [120, "2 h"]].forEach(([t, l], i) => { s += `<text class="g-label" style="font-weight:400" x="${X(t)}" y="76" text-anchor="${i === 2 ? "end" : i === 3 ? "start" : "middle"}">${l}</text>`; });
+    return s + `<text class="g-label" x="${W / 2}" y="${H - 8}" text-anchor="middle">2 heures, sans calculatrice, notée sur 20</text></svg>`;
+  };
+  // Fiche bilan : quel raisonnement pour quelle situation ?
+  FIGURES["ea-raisonnements"] = () => {
+    const L = [
+      [["Montrer qu'une phrase", "« pour tout… » est fausse"], ["Un contre-exemple"]],
+      [["Montrer « si P, alors Q »", "si c'est difficile en direct"], ["La contraposée :", "si non Q, alors non P"]],
+      [["Montrer qu'une chose", "est impossible"], ["Par l'absurde"]],
+      [["Le résultat dépend des valeurs", "(signe de x, parité de n…)"], ["Disjonction des cas"]],
+      [["Enchaîner des propriétés", "et des calculs"], ["Raisonnement direct"]]
+    ];
+    const W = 320, h = 44, H = 30 + L.length * h + 4, g = 176;
+    let s = `<svg class="graph" viewBox="0 0 ${W} ${H}" role="img" aria-label="Fiche bilan des raisonnements : contre-exemple, contraposée, absurde, disjonction des cas, raisonnement direct, selon la situation">`;
+    s += `<text class="g-label" x="10" y="20">Situation</text><text class="g-label" x="${g + 8}" y="20">Raisonnement</text>`;
+    L.forEach(([a, b], i) => {
+      const y = 28 + i * h;
+      s += `<rect x="4" y="${y}" width="${W - 8}" height="${h - 4}" rx="6" style="fill:var(${i % 2 ? "--ylang" : "--lagon"});fill-opacity:.14;stroke:none"/>`;
+      a.forEach((t, k) => { s += `<text class="g-label" x="10" y="${y + 16 + k * 14}" style="font-weight:400;font-size:10px">${t}</text>`; });
+      b.forEach((t, k) => { s += `<text class="g-label" x="${g + 8}" y="${y + (b.length === 1 ? 23 : 16) + k * 14}"${k ? ' style="font-weight:400;font-size:10px"' : ""}>${t}</text>`; });
+    });
+    return s + `<line x1="${g}" y1="28" x2="${g}" y2="${H - 6}" style="stroke:var(--doux);stroke-width:1"/></svg>`;
+  };
+  // Exercice type : trois bouées dans le lagon et le cercle circonscrit
+  FIGURES["ea-bouees"] = () => {
+    const r = (x) => Math.sqrt(Math.max(0, 6.25 - (x - 0.5) ** 2));
+    return graph({ xmin: -3, xmax: 4.4, ymin: -1.8, ymax: 4.2, h: 270, curves: [{ f: (x) => 1 + (x + 2) / 2, a: -2, b: 2, closed: false }, { f: (x) => 3 - 2 * (x - 2), a: 2, b: 3, closed: false }, { f: () => 1, a: -2, b: 3, closed: false }, { f: (x) => 1 + r(x), a: -2, b: 3, closed: false }, { f: (x) => 1 - r(x), a: -2, b: 3, closed: false }], points: [{ x: -2, y: 1, label: "A", gauche: true }, { x: 2, y: 3, label: "B" }, { x: 3, y: 1, label: "C" }, { x: 0.5, y: 1, label: "Ω" }], aria: "Les bouées A(−2 ; 1), B(2 ; 3) et C(3 ; 1) forment un triangle rectangle en B, inscrit dans le cercle de diamètre [AC]" }).replace(/g-curve-[12]\b/g, "g-curve-0").replace(/g-curve-[34]\b/g, "g-curve-1");
+  };
+  // Exercice type : f(x) = (x − 1)eˣ et sa tangente en 1
+  FIGURES["ea-expo"] = () => graph({ xmin: -4.4, xmax: 1.8, ymin: -1.4, ymax: 2.6, xetiq: 2, h: 230, curves: [{ f: (x) => (x - 1) * Math.exp(x), a: -4.2, b: 1.5, closed: false, label: "C<tspan class=\"sub\" dy=\"3\">f</tspan>", lx: 1.5, dx: -8, dy: 2 }, { f: (x) => Math.E * (x - 1), a: 0.55, b: 1.6, closed: false, label: lab("T"), lx: 1.6, dx: 12, dy: 12 }], points: [{ x: 0, y: -1, label: "(0 ; −1)" }, { x: 1, y: 0, label: "(1 ; 0)", gauche: true }], aria: "Courbe de f(x) = (x − 1)eˣ : minimum −1 en 0, tangente T en 1 de coefficient directeur e" });
+
+  // Exercices types : la ferme aquacole (suite), les paniers (tableau de variations), la barge (arbre)
+  FIGURES["ea-poissons"] = () => {
+    let u = 400; const pts = [];
+    for (let n = 0; n <= 8; n++) { pts.push({ x: n, y: u }); u = 0.5 * u + 600; }
+    return graph({ xmin: -0.6, xmax: 10.4, ymin: -100, ymax: 1450, ystep: 100, yetiq: 200, padL: 40, h: 250, xlabel: "n (mois)", ylabel: "uₙ", hlines: [{ y: 1200, label: "1 200" }], points: pts, aria: "Nombre de poissons mois après mois : 400, 800, 1 000, 1 100, 1 150… La suite croît et se rapproche de 1 200 sans le dépasser" });
+  };
+  FIGURES["ea-tabvar-paniers"] = () => tabSV(["0", "20", "40"], ["+", "0", "-"], ["−600", "200", "−600"], "B");
+  FIGURES["ea-barge"] = () => arbre(["B", "~B", "R", "~R"], ["0,2", "0,8", "0,7", "0,3", "0,1", "0,9"]);
+
+  // Automatismes de Première, sans calculatrice
+  GEN["ea-flash-1re"] = function () {
+    const lin = (a, b) => `${a === 1 ? "" : a === -1 ? "-" : a}x${b ? ` ${sg(b)}` : ""}`;
+    const T = [
+      () => {
+        const n = pick([2, 3, 4]), a = pick([-2, -1, 1, 2, 3]), r = n * a ** (n - 1);
+        return { enonce: `$f(x) = x^{${n}}$. Calcule $f'(${a})$.`, mode: "nombre", prefixe: `$f'(${a}) =$`, attendu: r,
+          aides: ["$(x^n)' = nx^{n-1}$.", `$f'(x) = ${n}${n - 1 === 1 ? "x" : `x^{${n - 1}}`}$.`, `$f'(${a}) = ${n} \\times ${par(a)}${n - 1 === 1 ? "" : `^{${n - 1}}`}$.`],
+          solution: `$f'(x) = ${n}${n - 1 === 1 ? "x" : `x^{${n - 1}}`}$, donc $f'(${a}) = ${r}$.` };
+      },
+      () => {
+        const a = randNZ(-3, 3), b = randNZ(-6, 6), c = rand(-5, 5), x0 = randNZ(-3, 3), r = 2 * a * x0 + b;
+        return { enonce: `$f(x) = ${poly([a, b, c])}$. Quel est le coefficient directeur de la tangente à la courbe de $f$ au point d'abscisse $${x0}$ ?`, mode: "nombre", prefixe: "Coefficient :", attendu: r,
+          erreurs: [{ valeur: a * x0 * x0 + b * x0 + c, message: "Ça, c'est $f(" + x0 + ")$ : le coefficient directeur de la tangente est le nombre dérivé." }],
+          aides: ["Le coefficient directeur de la tangente en $a$ est $f'(a)$.", `$f'(x) = ${poly([2 * a, b])}$.`, `Calcule $f'(${x0})$.`],
+          solution: `$f'(x) = ${poly([2 * a, b])}$, donc $f'(${x0}) = ${2 * a} \\times ${par(x0)} ${sg(b)} = ${r}$.` };
+      },
+      () => {
+        const a = randNZ(-3, 3), b = rand(-6, 6), c = randNZ(-5, 5), d = b * b - 4 * a * c;
+        return { enonce: `Calcule le discriminant de $${poly([a, b, c])}$.`, mode: "nombre", prefixe: "$\\Delta =$", attendu: d,
+          erreurs: [{ valeur: b * b + 4 * a * c, message: "Attention au signe : $\\Delta = b^2 - 4ac$." }],
+          aides: ["$\\Delta = b^2 - 4ac$.", `$a = ${a}$, $b = ${b}$, $c = ${c}$.`, `$\\Delta = ${par(b)}^2 - 4 \\times ${par(a)} \\times ${par(c)}$.`],
+          solution: `$\\Delta = ${par(b)}^2 - 4 \\times ${par(a)} \\times ${par(c)} = ${b * b} ${sg(-4 * a * c)} = ${d}$.` };
+      },
+      () => {
+        const k = rand(0, 2), r1 = randNZ(-4, 4), a = pick([1, -1, 2]);
+        // k = 0 : a((x + r1)² + d) avec d > 0 ; k = 1 : a(x − r1)² ; k = 2 : a(x − r1)(x − r2)
+        let b, c;
+        if (k === 0) { b = 2 * a * r1; c = a * (r1 * r1 + rand(1, 4)); } else if (k === 1) { b = -2 * a * r1; c = a * r1 * r1; } else { const r2 = r1 + rand(1, 4); b = -a * (r1 + r2); c = a * r1 * r2; }
+        const d = b * b - 4 * a * c, n = d < 0 ? 0 : d === 0 ? 1 : 2, ch = melangeChoix(`${n}`, ["0", "1", "2"]);
+        return { enonce: `Combien de solutions réelles l'équation $${poly([a, b, c])} = 0$ a-t-elle ?`, mode: "choix", choix: ch.choix, attendu: ch.attendu,
+          aides: ["Calcule $\\Delta = b^2 - 4ac$.", `$\\Delta = ${d}$.`, "$\\Delta > 0$ : deux solutions ; $\\Delta = 0$ : une seule ; $\\Delta < 0$ : aucune."],
+          solution: `$\\Delta = ${par(b)}^2 - 4 \\times ${par(a)} \\times ${par(c)} = ${d}$ ${d > 0 ? "> 0 : deux solutions" : d === 0 ? ": une seule solution" : "< 0 : aucune solution réelle"}.` };
+      },
+      () => {
+        const u0 = rand(-5, 12), r = randNZ(-4, 6), n = pick([5, 10, 20, 50]), v = u0 + n * r;
+        return { enonce: `$(u_n)$ est arithmétique, de premier terme $u_0 = ${u0}$ et de raison $${r}$. Calcule $u_{${n}}$.`, mode: "nombre", prefixe: `$u_{${n}} =$`, attendu: v,
+          erreurs: [{ valeur: u0 + (n - 1) * r, message: `De $u_0$ à $u_{${n}}$, on ajoute $${n}$ fois la raison.` }],
+          aides: ["$u_n = u_0 + nr$.", `$u_{${n}} = ${u0} + ${n} \\times ${par(r)}$.`, `$${n} \\times ${par(r)} = ${n * r}$.`],
+          solution: `$u_{${n}} = ${u0} + ${n} \\times ${par(r)} = ${v}$.` };
+      },
+      () => {
+        const [u0, q] = pick([[1, 2], [3, 2], [5, 2], [2, 3], [1, -2], [64, 0.5], [32, 0.5], [1000, 0.1]]), n = pick([3, 4]), v = +(u0 * q ** n).toFixed(6);
+        return { enonce: `$(u_n)$ est géométrique, de premier terme $u_0 = ${fr(u0)}$ et de raison $${fr(q)}$. Calcule $u_{${n}}$.`, mode: "nombre", prefixe: `$u_{${n}} =$`, attendu: v,
+          erreurs: [{ valeur: u0 + n * q, message: "Suite géométrique : on **multiplie** par la raison à chaque étape." }],
+          aides: ["$u_n = u_0 \\times q^n$.", `$u_{${n}} = ${fr(u0)} \\times ${par(fr(q))}^{${n}}$.`, `$${par(fr(q))}^{${n}} = ${fr(+(q ** n).toFixed(6))}$.`],
+          solution: `$u_{${n}} = ${fr(u0)} \\times ${par(fr(q))}^{${n}} = ${fr(u0)} \\times ${fr(+(q ** n).toFixed(6))} = ${fr(v)}$.` };
+      },
+      () => {
+        const n = pick([10, 20, 30, 40, 50, 100]), s = (n * (n + 1)) / 2;
+        return { enonce: `Calcule $1 + 2 + 3 + \\dots + ${n}$.`, mode: "nombre", prefixe: "Somme :", attendu: s,
+          erreurs: [{ valeur: n * n / 2, message: "La formule est $\\dfrac{n(n+1)}{2}$." }],
+          aides: ["$1 + 2 + \\dots + n = \\dfrac{n(n+1)}{2}$.", `Ici $n = ${n}$.`, `$\\dfrac{${n} \\times ${n + 1}}{2}$.`],
+          solution: `$1 + 2 + \\dots + ${n} = \\dfrac{${n} \\times ${n + 1}}{2} = ${s}$.` };
+      },
+      () => {
+        const a = randNZ(-4, 6), b = randNZ(-4, 6), c = randNZ(-4, 6), k = a + b - c;
+        return { enonce: `Écris $\\dfrac{e^{${a}} \\times e^{${b}}}{e^{${c}}}$ sous la forme $e^k$.`, mode: "nombre", prefixe: "$k =$", attendu: k,
+          erreurs: [{ valeur: a * b - c, message: "$e^a \\times e^b = e^{a+b}$ : les exposants s'**additionnent**." }],
+          aides: ["$e^a \\times e^b = e^{a+b}$.", "$\\dfrac{e^a}{e^b} = e^{a-b}$.", `$k = ${a} + ${par(b)} - ${par(c)}$.`],
+          solution: `$\\dfrac{e^{${a}} \\times e^{${b}}}{e^{${c}}} = e^{${a} + ${par(b)} - ${par(c)}} = e^{${k}}$.` };
+      },
+      () => {
+        const a = pick([1, 2, 3, -1, -2]), x0 = randNZ(-4, 4), b = -a * x0;
+        return { enonce: `Résous dans $\\mathbb{R}$ l'équation $e^{${lin(a, b)}} = 1$.`, mode: "nombre", prefixe: "$x =$", attendu: x0,
+          aides: ["$1 = e^0$.", "$e^X = e^0 \\iff X = 0$.", `Résous $${lin(a, b)} = 0$.`],
+          solution: `$e^{${lin(a, b)}} = e^0 \\iff ${lin(a, b)} = 0 \\iff x = ${x0}$.` };
+      },
+      () => {
+        const A = [["0", "1", "0"], ["\\dfrac{\\pi}{6}", "\\dfrac{\\sqrt{3}}{2}", "\\dfrac{1}{2}"], ["\\dfrac{\\pi}{4}", "\\dfrac{\\sqrt{2}}{2}", "\\dfrac{\\sqrt{2}}{2}"], ["\\dfrac{\\pi}{3}", "\\dfrac{1}{2}", "\\dfrac{\\sqrt{3}}{2}"], ["\\dfrac{\\pi}{2}", "0", "1"], ["\\pi", "-1", "0"]];
+        const [t, c, s] = pick(A), f = pick(["cos", "sin"]), v = f === "cos" ? c : s;
+        const tous = ["0", "1", "-1", "\\dfrac{1}{2}", "\\dfrac{\\sqrt{2}}{2}", "\\dfrac{\\sqrt{3}}{2}"].map((x) => `$${x}$`), ch = melangeChoix(`$${v}$`, shuffle(tous));
+        return { enonce: `Donne la valeur exacte de $\\${f}\\left(${t}\\right)$.`, mode: "choix", choix: ch.choix, attendu: ch.attendu,
+          aides: ["Place le point sur le cercle trigonométrique.", "Le cosinus est l'abscisse, le sinus est l'ordonnée.", "Valeurs à connaître : $\\dfrac{1}{2}$, $\\dfrac{\\sqrt{2}}{2}$, $\\dfrac{\\sqrt{3}}{2}$ pour $\\dfrac{\\pi}{3}$, $\\dfrac{\\pi}{4}$, $\\dfrac{\\pi}{6}$."],
+          solution: `$\\${f}\\left(${t}\\right) = ${v}$.` };
+      },
+      () => {
+        const a = randNZ(-5, 5), b = randNZ(-5, 5), c = randNZ(-5, 5), d = randNZ(-5, 5), r = a * c + b * d;
+        return { enonce: `Dans un repère orthonormé, $\\vec{u}(${a}\\,;${b})$ et $\\vec{v}(${c}\\,;${d})$. Calcule $\\vec{u} \\cdot \\vec{v}$.`, mode: "nombre", prefixe: "$\\vec{u} \\cdot \\vec{v} =$", attendu: r,
+          erreurs: [{ valeur: a * d - b * c, message: "Ça, c'est le déterminant : le produit scalaire est $xx' + yy'$." }],
+          aides: ["$\\vec{u} \\cdot \\vec{v} = xx' + yy'$.", `$${par(a)} \\times ${par(c)} + ${par(b)} \\times ${par(d)}$.`, `$${a * c} ${sg(b * d)}$.`],
+          solution: `$\\vec{u} \\cdot \\vec{v} = ${par(a)} \\times ${par(c)} + ${par(b)} \\times ${par(d)} = ${r}$.` };
+      },
+      () => {
+        const m0 = randNZ(-4, 4), k = pick([1, 2, 3]), s = pick([1, 2]), c = k * s, d = -s * m0;
+        return { enonce: `Pour quelle valeur de $m$ les vecteurs $\\vec{u}(m\\,;${k})$ et $\\vec{v}(${c}\\,;${d})$ sont-ils orthogonaux ?`, mode: "nombre", prefixe: "$m =$", attendu: m0,
+          aides: ["Orthogonaux $\\iff \\vec{u} \\cdot \\vec{v} = 0$.", `$\\vec{u} \\cdot \\vec{v} = m \\times ${c} + ${k} \\times ${par(d)}$.`, `Résous $${c === 1 ? "" : c}m ${sg(k * d)} = 0$.`],
+          solution: `$\\vec{u} \\cdot \\vec{v} = ${c === 1 ? "" : c}m ${sg(k * d)} = 0 \\iff m = ${m0}$.` };
+      },
+      () => {
+        const pA = pick([0.2, 0.4, 0.5, 0.8]), pB = pick([0.25, 0.5, 0.75, 0.1, 0.3]), inter = +(pA * pB).toFixed(4);
+        if (Math.random() < 0.5) return { enonce: `$P(A) = ${fr(pA)}$ et $P(A \\cap B) = ${fr(inter)}$. Calcule $P_A(B)$.`, mode: "nombre", prefixe: "$P_A(B) =$", attendu: pB, tolerance: 1e-6,
+          erreurs: [{ valeur: inter, message: "On divise $P(A \\cap B)$ par $P(A)$." }],
+          aides: ["$P_A(B) = \\dfrac{P(A \\cap B)}{P(A)}$.", `$\\dfrac{${fr(inter)}}{${fr(pA)}}$.`, "Multiplie en haut et en bas par une puissance de $10$ pour simplifier."],
+          solution: `$P_A(B) = \\dfrac{${fr(inter)}}{${fr(pA)}} = ${fr(pB)}$.` };
+        return { enonce: `$P(A) = ${fr(pA)}$ et $P_A(B) = ${fr(pB)}$. Calcule $P(A \\cap B)$.`, mode: "nombre", prefixe: "$P(A \\cap B) =$", attendu: inter, tolerance: 1e-6,
+          aides: ["Sur l'arbre, on multiplie les probabilités le long d'un chemin.", "$P(A \\cap B) = P(A) \\times P_A(B)$.", `$${fr(pA)} \\times ${fr(pB)}$.`],
+          solution: `$P(A \\cap B) = ${fr(pA)} \\times ${fr(pB)} = ${fr(inter)}$.` };
+      },
+      () => {
+        const v = pick([[0, 1, 2], [-1, 0, 2], [0, 2, 5], [-2, 1, 3]]), p = pick([[0.5, 0.3, 0.2], [0.2, 0.5, 0.3], [0.1, 0.6, 0.3], [0.4, 0.4, 0.2]]), E = +(v[0] * p[0] + v[1] * p[1] + v[2] * p[2]).toFixed(4);
+        return { enonce: `$X$ prend les valeurs $${v.join("$ ; $")}$ avec les probabilités $${p.map(fr).join("$ ; $")}$. Calcule $E(X)$.`, mode: "nombre", prefixe: "$E(X) =$", attendu: E, tolerance: 1e-6,
+          aides: ["$E(X) = \\sum p_ix_i$.", `$${v.map((x, i) => `${par(x)} \\times ${fr(p[i])}`).join(" + ")}$.`, "Additionne les trois produits."],
+          solution: `$E(X) = ${v.map((x, i) => `${par(x)} \\times ${fr(p[i])}`).join(" + ")} = ${fr(E)}$.` };
+      },
+      () => {
+        const a = randNZ(-3, 3), al = randNZ(-4, 4), be = randNZ(-6, 6), mx = a > 0 ? "minimum" : "maximum";
+        const quoi = Math.random() < 0.5;
+        return { enonce: `$f(x) = ${a === 1 ? "" : a === -1 ? "-" : a}(x ${sg(-al)})^2 ${sg(be)}$. ${quoi ? `Quelle est la valeur du ${mx} de $f$ sur $\\mathbb{R}$ ?` : `En quelle valeur de $x$ la fonction $f$ atteint-elle son ${mx} ?`}`, mode: "nombre", prefixe: quoi ? `Le ${mx} vaut` : "$x =$", attendu: quoi ? be : al,
+          erreurs: [{ valeur: quoi ? al : -al, message: quoi ? "C'est l'abscisse du sommet ; la valeur de l'extremum est $\\beta$." : "Dans $(x - \\alpha)^2$, le sommet a pour abscisse $\\alpha$ : attention au signe." }],
+          aides: ["Forme canonique : $a(x - \\alpha)^2 + \\beta$, sommet $S(\\alpha\\,;\\beta)$.", `Ici $\\alpha = ${al}$ et $\\beta = ${be}$.`, `$a = ${a}$ ${a > 0 ? "> 0 : parabole tournée vers le haut, donc un minimum" : "< 0 : parabole tournée vers le bas, donc un maximum"}.`],
+          solution: `Le sommet est $S(${al}\\,;${be})$ et $a ${a > 0 ? ">" : "<"} 0$ : $f$ atteint son ${mx} $${be}$ en $x = ${al}$.` };
+      },
+      () => {
+        const r1 = randNZ(-5, 3), r2 = r1 + rand(2, 5), neg = Math.random() < 0.5;
+        const dedans = `$]${r1}\\,;${r2}[$`, dehors = `$]-\\infty\\,;${r1}[ \\cup ]${r2}\\,;+\\infty[$`;
+        const ch = melangeChoix(neg ? dedans : dehors, [neg ? dehors : dedans, `$]${r1}\\,;+\\infty[$`, `$]-\\infty\\,;${r2}[$`]);
+        return { enonce: `Sur quel ensemble a-t-on $(x ${sg(-r1)})(x ${sg(-r2)}) ${neg ? "<" : ">"} 0$ ?`, mode: "choix", choix: ch.choix, attendu: ch.attendu,
+          aides: [`Les racines sont $${r1}$ et $${r2}$.`, "Un trinôme est du signe de $a$ à l'extérieur des racines, du signe contraire entre elles.", "Ici $a = 1 > 0$."],
+          solution: `Racines $${r1}$ et $${r2}$, $a = 1 > 0$ : le produit est négatif entre les racines et positif à l'extérieur. Réponse : ${neg ? dedans : dehors}.` };
+      }
+    ];
+    return pick(T)();
+  };
+
+  // Partie 1 blanche : une question de Seconde, une question de Première
+  GEN["ea-partie1"] = (i) => (i % 2 ? GEN["ea-flash-1re"](i) : GEN["am-flash-tout"](i));
+
+  // Partie 2 : exercices par thème, tirés des chapitres de l'année
+  const EA_THEMES = {
+    "ea-suites": ["su-arith-modele", "su-somme-entiers", "su-geo-deux-termes", "su-geo-taux", "su-geo-somme", "su-geo-limite", "suite-seuil", "ex-suite"],
+    "ea-second-degre": ["sd-discriminant", "sd-resoudre", "sd-inequation-delta", "sd-canonique-construire", "sd-somme-produit", "s5-factoriser", "s5-forme-adaptee"],
+    "ea-derivation": ["d1-nombre-derive", "d1-tangente-eq", "d2-produit", "d2-quotient", "d2-compo", "vr-tableau", "vr-lecture-derivee", "vr-optimisation"],
+    "ea-exponentielle": ["ex-simplifier", "ex-equation", "ex-derivee", "ex-variations", "ex-modele"],
+    "ea-probabilites": ["pi-totales", "pi-inverser", "pi-independance", "ld-loi-esperance", "va-variance", "va-equitable", "va-bernoulli"],
+    "ea-geometrie": ["tr-valeurs", "ps-coordonnees", "ps-orthogonal", "sc-normes", "sc-alkashi", "gr-normal", "gr-projete", "gr-centre-rayon"]
+  };
+  Object.keys(EA_THEMES).forEach((k) => { GEN[k] = () => GEN[pick(EA_THEMES[k])](rand(0, 4)); });
+
+  GEN["ea-raisonnement"] = function () {
+    const TYPES = ["Raisonnement direct", "Contre-exemple", "Raisonnement par contraposée", "Raisonnement par l'absurde", "Disjonction des cas"];
+    const T = [
+      ["Pour montrer que « pour tout réel $x$, $x^2 \\geqslant x$ » est faux, on remarque que pour $x = \\dfrac{1}{2}$, $x^2 = \\dfrac{1}{4} < \\dfrac{1}{2}$.", 1, "Un seul cas où la phrase « pour tout » est fausse suffit : c'est un **contre-exemple**."],
+      ["Pour montrer « si $n^2$ est pair, alors $n$ est pair », on montre que « si $n$ est impair, alors $n^2$ est impair ».", 2, "On démontre « si non Q, alors non P » à la place de « si P, alors Q » : c'est la **contraposée**, qui est équivalente."],
+      ["On suppose qu'il existe un réel $x$ tel que $e^x = 0$. Alors $e^x \\times e^{-x} = 0$, alors que $e^x \\times e^{-x} = e^0 = 1$. C'est impossible.", 3, "On suppose le contraire de ce qu'on veut montrer et on aboutit à une contradiction : raisonnement **par l'absurde**."],
+      ["Pour étudier $|x - 1|$, on distingue le cas $x \\geqslant 1$ (où $|x - 1| = x - 1$) et le cas $x < 1$ (où $|x - 1| = 1 - x$).", 4, "On traite séparément plusieurs cas qui couvrent toutes les possibilités : **disjonction des cas**."],
+      ["$f'(x) = 3(x - 1)^2$ et un carré est positif, donc $f'(x) \\geqslant 0$ pour tout $x$ : $f$ est croissante sur $\\mathbb{R}$.", 0, "On enchaîne un calcul et une propriété du cours jusqu'à la conclusion : **raisonnement direct**."],
+      ["Une suite croissante n'a pas forcément pour limite $+\\infty$ : la suite $u_n = 1 - \\dfrac{1}{n+1}$ est croissante et se rapproche de $1$.", 1, "Un exemple qui contredit l'affirmation générale : **contre-exemple**."],
+      ["Pour montrer que $n(n + 1)$ est pair pour tout entier $n$, on étudie le cas où $n$ est pair, puis le cas où $n$ est impair.", 4, "Deux cas (pair, impair) couvrent tous les entiers : **disjonction des cas**."],
+      ["On suppose que $\\sqrt{2} = \\dfrac{p}{q}$ (fraction irréductible) ; on montre que $p$ et $q$ sont alors tous les deux pairs, ce qui contredit l'irréductibilité.", 3, "La supposition mène à une contradiction : raisonnement **par l'absurde**."],
+      ["Pour montrer « si $\\vec{u} \\cdot \\vec{v} \\neq 0$, alors $\\vec{u}$ et $\\vec{v}$ ne sont pas orthogonaux », on utilise « si $\\vec{u}$ et $\\vec{v}$ sont orthogonaux, alors $\\vec{u} \\cdot \\vec{v} = 0$ ».", 2, "C'est la **contraposée** de la propriété du cours."],
+      ["$\\Delta = 1 - 8 = -7 < 0$ et $a = 2 > 0$, donc $2x^2 + x + 1 > 0$ pour tout réel $x$.", 0, "On applique directement la propriété du signe d'un trinôme : **raisonnement direct**."]
+    ];
+    const [q, k, s] = pick(T), ch = melangeChoix(TYPES[k], shuffle(TYPES.filter((_, j) => j !== k)));
+    return {
+      enonce: `Quel type de raisonnement est utilisé ?\n\n${q}`, mode: "choix", choix: ch.choix, attendu: ch.attendu,
+      aides: ["Cherche si l'on donne un seul exemple, si l'on suppose le contraire, si l'on sépare des cas…", "Contraposée : on montre « non Q ⇒ non P ». Absurde : on aboutit à une contradiction.", "Contre-exemple : un cas où une phrase « pour tout » est fausse."],
+      solution: s
+    };
+  };
+
+  GEN["ea-cncs"] = function () {
+    const R = ["suffisante, mais pas nécessaire", "nécessaire, mais pas suffisante", "nécessaire et suffisante", "ni nécessaire ni suffisante"];
+    const T = [
+      ["$x = 3$", "$x^2 = 9$", 0, "Si $x = 3$, alors $x^2 = 9$ ; mais $x^2 = 9$ n'impose pas $x = 3$ (on peut avoir $x = -3$)."],
+      ["$x^2 = 9$", "$x = 3$", 1, "Si $x = 3$, alors forcément $x^2 = 9$ : c'est nécessaire. Mais $x = -3$ vérifie $x^2 = 9$ sans que $x = 3$."],
+      ["$\\Delta > 0$", "l'équation $ax^2 + bx + c = 0$ (avec $a \\neq 0$) a deux solutions distinctes", 2, "C'est une équivalence du cours : deux solutions distinctes $\\iff \\Delta > 0$."],
+      ["$f'(a) = 0$", "$f$ (dérivable sur un intervalle ouvert contenant $a$) a un extremum local en $a$", 1, "Un extremum en $a$ impose $f'(a) = 0$, mais la réciproque est fausse : $x \\mapsto x^3$ en $0$."],
+      ["$\\vec{u} \\cdot \\vec{v} = 0$", "$\\vec{u}$ et $\\vec{v}$ sont orthogonaux", 2, "C'est la caractérisation du cours : orthogonaux $\\iff \\vec{u} \\cdot \\vec{v} = 0$."],
+      ["$n$ est divisible par $4$", "$n$ est pair", 0, "Un multiple de $4$ est pair, mais $6$ est pair sans être divisible par $4$."],
+      ["$n$ est pair", "$n$ est divisible par $4$", 1, "Pour être divisible par $4$, il faut être pair ; mais $6$ est pair et pas divisible par $4$."],
+      ["$x > 3$", "$x^2 > 9$", 0, "Si $x > 3$, alors $x^2 > 9$ ; mais $x = -4$ vérifie $x^2 > 9$ sans que $x > 3$."],
+      ["$P(A \\cap B) = P(A) \\times P(B)$", "$A$ et $B$ sont indépendants", 2, "C'est la définition de l'indépendance : les deux phrases sont équivalentes."],
+      ["$x > 0$", "$e^x > 1$", 2, "La fonction exponentielle est strictement croissante et $e^0 = 1$ : $e^x > 1 \\iff x > 0$."],
+      ["$(u_n)$ est croissante", "$(u_n)$ a pour limite $+\\infty$", 3, "$u_n = 1 - \\dfrac{1}{n+1}$ est croissante sans tendre vers $+\\infty$ ; $u_n = n + 2 \\times (-1)^n$ tend vers $+\\infty$ sans être croissante."]
+    ];
+    const [a, b, k, s] = pick(T), ch = melangeChoix(R[k], R);
+    return {
+      enonce: `On considère les affirmations A : « ${a} » et B : « ${b} ». Pour B, la condition A est :`, mode: "choix", choix: ch.choix, attendu: ch.attendu,
+      aides: ["« A suffisante pour B » signifie : si A est vraie, alors B est vraie.", "« A nécessaire pour B » signifie : si B est vraie, alors A est vraie.", "Teste les deux implications, et cherche un contre-exemple quand l'une te semble fausse."],
+      solution: `La condition est **${R[k]}**. ${s}`
+    };
+  };
+
+  GEN["ea-redaction"] = function () {
+    const T = [
+      ["Pour tout $n$, $u_n = 3 \\times 2^n$. Quelle rédaction justifie correctement que $(u_n)$ est géométrique ?",
+        "Pour tout $n$, $u_{n+1} = 3 \\times 2^{n+1} = 2 \\times 3 \\times 2^n = 2u_n$ : $(u_n)$ est géométrique de raison $2$.",
+        ["$u_1 = 6 = 2u_0$, donc $(u_n)$ est géométrique de raison $2$.", "$u_0 = 3$, $u_1 = 6$, $u_2 = 12$ : la suite double, elle est géométrique.", "$(u_n)$ est géométrique car il y a une puissance."],
+        "Il faut une égalité valable **pour tout** $n$ : vérifier quelques termes ne prouve rien."],
+      ["$f'(x) = 2(x - 3)$. Quelle rédaction justifie que $f$ admet un minimum en $3$ ?",
+        "$f'(x) < 0$ pour $x < 3$ et $f'(x) > 0$ pour $x > 3$ : $f$ est décroissante puis croissante, elle admet un minimum en $3$.",
+        ["$f'(3) = 0$, donc $f$ admet un minimum en $3$.", "La courbe descend puis remonte.", "$f(3)$ est le plus petit car $3$ est la racine."],
+        "$f'(3) = 0$ ne suffit pas : il faut que $f'$ **change de signe** (de $-$ à $+$) en $3$."],
+      ["$P(A) = 0{,}4$, $P(B) = 0{,}5$ et $P(A \\cap B) = 0{,}2$. Quelle rédaction est correcte ?",
+        "$P(A) \\times P(B) = 0{,}4 \\times 0{,}5 = 0{,}2 = P(A \\cap B)$, donc $A$ et $B$ sont indépendants.",
+        ["$A$ et $B$ n'ont rien à voir, donc ils sont indépendants.", "$P(A \\cap B) = 0{,}2$, donc $A$ et $B$ sont indépendants.", "$P(A) + P(B) = 0{,}9 \\neq 1$, donc ils sont indépendants."],
+        "On compare $P(A \\cap B)$ et $P(A) \\times P(B)$, puis on conclut par une phrase."],
+      ["$\\vec{u}(2\\,;-3)$ et $\\vec{v}(3\\,;2)$. Quelle rédaction prouve que les droites dirigées par $\\vec{u}$ et $\\vec{v}$ sont perpendiculaires ?",
+        "$\\vec{u} \\cdot \\vec{v} = 2 \\times 3 + (-3) \\times 2 = 0$, donc $\\vec{u}$ et $\\vec{v}$ sont orthogonaux et les droites sont perpendiculaires.",
+        ["Sur la figure, les droites ont l'air perpendiculaires.", "$2 \\times 3 = 6$ et $-3 \\times 2 = -6$, donc c'est perpendiculaire.", "Les coordonnées sont inversées, donc les droites sont perpendiculaires."],
+        "Une figure ne prouve rien : on calcule le produit scalaire, on cite la propriété, on conclut."],
+      ["Résoudre $e^{2x} = e^{x + 1}$. Quelle rédaction est correcte ?",
+        "La fonction exponentielle est strictement croissante, donc $e^{2x} = e^{x+1} \\iff 2x = x + 1 \\iff x = 1$. $S = \\{1\\}$.",
+        ["$e^{2x} = e^{x+1}$, donc $2 = 1$ : pas de solution.", "On divise par $e$ : $2x = x + 1$, donc $x = 1$.", "$x = 1$."],
+        "On justifie le passage aux exposants (propriété de la fonction exponentielle) et on donne l'ensemble des solutions."],
+      ["$2x^2 + x + 1$ a pour discriminant $\\Delta = -7$. Quelle conclusion est correctement rédigée ?",
+        "$\\Delta < 0$, donc le trinôme est du signe de $a = 2$ : $2x^2 + x + 1 > 0$ pour tout réel $x$.",
+        ["$\\Delta < 0$ donc pas de solution, donc c'est positif.", "$\\Delta < 0$ donc le trinôme est négatif.", "$\\Delta = -7$ donc $2x^2 + x + 1 = -7$."],
+        "Quand $\\Delta < 0$, le trinôme ne s'annule pas et garde le signe de $a$ : il faut le dire."],
+      ["On a trouvé $P(R) = 0{,}22$ pour l'événement R « Inaya arrive en retard ». Quelle réponse est la mieux rédigée ?",
+        "La probabilité qu'Inaya arrive en retard est $0{,}22$.",
+        ["$0{,}22$", "$P = 0{,}22$ donc c'est bon.", "Elle arrive en retard 22 fois."],
+        "Une réponse se termine par une **phrase** qui répond à la question posée, avec le vocabulaire de l'énoncé."]
+    ];
+    const [q, b, f, s] = pick(T), ch = melangeChoix(b, f);
+    return {
+      enonce: q, mode: "choix", choix: ch.choix, attendu: ch.attendu,
+      aides: ["Une bonne rédaction cite la propriété utilisée.", "Elle contient le calcul qui la justifie, valable dans tous les cas.", "Elle se termine par une phrase de conclusion qui répond à la question."],
+      solution: `Rédaction correcte : ${b}\n\n${s}`
+    };
+  };
+
+  GEN["ea-vrai-faux"] = function () {
+    const T = [
+      ["Si $f'(a) = 0$, alors $f$ admet un extremum en $a$.", false, "Contre-exemple : $f(x) = x^3$, $f'(0) = 0$, mais $f$ est croissante sur $\\mathbb{R}$, sans extremum en $0$."],
+      ["La suite définie par $u_n = n^2$ est arithmétique.", false, "$u_1 - u_0 = 1$ et $u_2 - u_1 = 3$ : la différence n'est pas constante."],
+      ["Pour tous vecteurs $\\vec{u}$ et $\\vec{v}$, $\\|\\vec{u} + \\vec{v}\\|^2 = \\|\\vec{u}\\|^2 + \\|\\vec{v}\\|^2$.", false, "$\\|\\vec{u} + \\vec{v}\\|^2 = \\|\\vec{u}\\|^2 + 2\\vec{u} \\cdot \\vec{v} + \\|\\vec{v}\\|^2$ : l'égalité n'est vraie que si $\\vec{u} \\cdot \\vec{v} = 0$."],
+      ["Si $A$ et $B$ sont incompatibles et de probabilités non nulles, ils ne sont pas indépendants.", true, "$P(A \\cap B) = 0$ alors que $P(A) \\times P(B) > 0$ : l'égalité de l'indépendance est fausse."],
+      ["Pour tout réel $x$, $e^{2x} = (e^x)^2$.", true, "$(e^x)^2 = e^x \\times e^x = e^{x + x} = e^{2x}$."],
+      ["Pour tout réel $x$, $\\cos(\\pi - x) = \\cos(x)$.", false, "Par symétrie sur le cercle, $\\cos(\\pi - x) = -\\cos(x)$. Par exemple $\\cos(\\pi) = -1 \\neq \\cos(0) = 1$."],
+      ["Un trinôme dont le discriminant est négatif est toujours positif.", false, "Il est du signe de $a$ : $-x^2 - 1$ a pour discriminant $-4$ et il est toujours négatif."],
+      ["$1 + 2 + 3 + \\dots + 100 = 5\\,050$.", true, "$\\dfrac{100 \\times 101}{2} = 5\\,050$."],
+      ["Si $(u_n)$ est géométrique avec $u_0 = 8$ et $q = 0{,}5$, alors $u_3 = 1$.", true, "$u_3 = 8 \\times 0{,}5^3 = 8 \\times 0{,}125 = 1$."],
+      ["La fonction $x \\mapsto e^{-x}$ est croissante sur $\\mathbb{R}$.", false, "Sa dérivée est $-e^{-x} < 0$ : elle est décroissante."],
+      ["Si $\\vec{u} \\cdot \\vec{v} < 0$, alors l'angle entre $\\vec{u}$ et $\\vec{v}$ est obtus.", true, "$\\vec{u} \\cdot \\vec{v} = \\|\\vec{u}\\| \\times \\|\\vec{v}\\| \\times \\cos\\theta < 0$ impose $\\cos\\theta < 0$ : l'angle est obtus."],
+      ["Si $E(X) = 2$, alors $E(3X + 1) = 7$.", true, "Linéarité : $E(3X + 1) = 3E(X) + 1 = 7$."]
+    ];
+    const [q, v, s] = pick(T), ch = melangeChoix(v ? "Vrai" : "Faux", [v ? "Faux" : "Vrai"]);
+    return {
+      enonce: `Vrai ou faux ? Justifie dans ta tête avant de répondre.\n\n${q}`, mode: "choix", choix: ch.choix, attendu: ch.attendu,
+      aides: ["Pour montrer qu'une affirmation générale est fausse, un seul contre-exemple suffit.", "Pour montrer qu'elle est vraie, il faut une preuve valable dans tous les cas.", "Pense aux propriétés du cours concernées."],
+      solution: `**${v ? "Vrai" : "Faux"}.** ${s}`
+    };
+  };
+
+
   /* Séries « flash » d'un thème : mélange de ses générateurs */
   const THEMES = {
     "am-flash-cn": ["am-comparer", "am-fractions", "am-puissances", "am-ecritures", "am-ordre-grandeur", "am-coherence", "auto-conversions"],
@@ -8011,7 +8309,7 @@
 
 
   /* Une « erreur connue » ne doit jamais coïncider avec la bonne réponse (à la tolérance près) */
-  Object.keys(GEN).filter((k) => /^(ld|am|cd|ar|cl|fa|ve|st|vx|tc|co|dr|fr|sg|pc|ec|sy|su|s2|pi|s5|d1|tr|d2|vr|ps|ex|va|sc|gr|sm)-/.test(k)).forEach((k) => {
+  Object.keys(GEN).filter((k) => /^(ld|am|cd|ar|cl|fa|ve|st|vx|tc|co|dr|fr|sg|pc|ec|sy|su|s2|pi|s5|d1|tr|d2|vr|ps|ex|va|sc|gr|sm|ea)-/.test(k)).forEach((k) => {
     const g = GEN[k];
     GEN[k] = (i) => { const q = g(i); if (q.erreurs) q.erreurs = q.erreurs.filter((e) => Math.abs(e.valeur - q.attendu) >= (q.tolerance || 1e-9)); return q; };
   });

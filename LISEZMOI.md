@@ -41,6 +41,7 @@ Site statique : aucune base de données, aucun compte élève. Ouvrir `index.htm
   - `produit-scalaire-2.js` : chapitre 14, produit scalaire (bilinéarité, identités, Al-Kashi, îlots du lagon, MA · MB = 0, contraposée). Générateurs `sc-`.
   - `geometrie-reperee.js` : chapitre 15, géométrie repérée (vecteur normal, projeté orthogonal, cercles, antenne relais). Générateurs `gr-`.
   - `echantillons.js` : chapitre 16, expérimentations sur les échantillons (simulation avec random() et un tableur, moyenne d'un échantillon, écart 2σ/√n, Monte-Carlo pour une aire et pour π, régimes de bananes). Générateurs `sm-` (et `ec-python`, `ec-lgn` de Seconde).
+  - `epreuve-anticipee.js` : chapitre 17, préparation à l'épreuve anticipée (format de l'épreuve, automatismes, rédaction, bilan des raisonnements, cinq sujets types à Mayotte, liens vers les sujets zéro d'Eduscol). Générateurs `ea-` : `ea-flash-1re`, `ea-partie1`, des séries par thème qui mélangent les générateurs des chapitres 1 à 15 (liste `EA_THEMES`), et `ea-redaction`, `ea-raisonnement`, `ea-cncs`, `ea-vrai-faux`.
 - `data/terminale-spe/denombrement.js` : chapitre 14 de Terminale spécialité (combinatoire et dénombrement). Les générateurs d'exercices correspondants commencent par `cd-` dans `assets/exercices.js`.
 - `data/terminale/lois-discretes.js` : chapitre 2 de Terminale maths complémentaires.
 
