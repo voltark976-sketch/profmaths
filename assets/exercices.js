@@ -6276,6 +6276,273 @@
   };
 
 
+  /* ---------- Première, chapitre 8 : trigonométrie (préfixe tr-) ---------- */
+  // Valeurs remarquables : angle = k π / d, écrit en texte (π/3) ou en TeX (\dfrac{\pi}{3})
+  const trTxt = (k, d) => { const g = pgcd(Math.abs(k), d); k /= g; d /= g; if (k === 0) return "0"; const s = k < 0 ? "−" : "", a = Math.abs(k); return `${s}${a === 1 ? "" : a}π${d === 1 ? "" : `/${d}`}`; };
+  const trTex = (k, d) => { const g = pgcd(Math.abs(k), d); k /= g; d /= g; if (k === 0) return "0"; const s = k < 0 ? "-" : "", a = Math.abs(k); return d === 1 ? `${s}${a === 1 ? "" : a}\\pi` : `${s}\\dfrac{${a === 1 ? "" : a}\\pi}{${d}}`; };
+  // Cercle trigonométrique : points [{a, label}], projections d'un angle, arc depuis I
+  function cercleTrig(o) {
+    const W = 320, H = o.h || 290, R = o.R || 104, cx = o.cx || 160, cy = o.cy || H / 2;
+    const P = (a, r) => [+(cx + (r || R) * Math.cos(a)).toFixed(1), +(cy - (r || R) * Math.sin(a)).toFixed(1)];
+    let s = `<svg class="graph" viewBox="0 0 ${W} ${H}" role="img" aria-label="${o.aria || "Cercle trigonométrique"}">`;
+    s += `<g class="g-axis"><line x1="${cx - R - 26}" y1="${cy}" x2="${cx + R + 30}" y2="${cy}"/><line x1="${cx}" y1="${cy + R + 22}" x2="${cx}" y2="${cy - R - 24}"/><path d="M${cx + R + 30} ${cy} l-6 -3.5 v7z"/><path d="M${cx} ${cy - R - 24} l-3.5 6 h7z"/></g>`;
+    s += `<circle cx="${cx}" cy="${cy}" r="${R}" class="g-curve" style="fill:none"/>`;
+    if (o.grille) [-1, -0.5, 0.5, 1].forEach((v) => { s += `<line class="g-grid-l" x1="${cx + v * R}" y1="${cy - R - 6}" x2="${cx + v * R}" y2="${cy + R + 6}" style="stroke:var(--doux);stroke-width:.6;opacity:.5"/><line x1="${cx - R - 6}" y1="${cy - v * R}" x2="${cx + R + 6}" y2="${cy - v * R}" style="stroke:var(--doux);stroke-width:.6;opacity:.5"/>`; });
+    s += `<text class="g-label" x="${cx - 6}" y="${cy + 14}" text-anchor="end">O</text><text class="g-label" x="${cx + R + 4}" y="${cy + 14}">I</text><text class="g-label" x="${cx - 6}" y="${cy - R - 6}" text-anchor="end">J</text>`;
+    if (o.arc !== undefined) {
+      const a = o.arc, n = Math.max(40, Math.ceil(Math.abs(a) * 14)); let d = "";
+      for (let k = 0; k <= n; k++) { const [x, y] = P((a * k) / n, R + 10); d += (k ? "L" : "M") + x + " " + y; }
+      const [ex, ey] = P(a, R + 10), t = a + (a > 0 ? Math.PI / 2 : -Math.PI / 2), u = [Math.cos(t), -Math.sin(t)];
+      s += `<path class="g-curve g-curve-1" d="${d}" style="fill:none;stroke-width:2"/><path class="g-end g-curve-1" d="M${ex + 7 * u[0]} ${ey + 7 * u[1]} L${ex - 5 * u[1] - 3 * u[0]} ${ey + 5 * u[0] - 3 * u[1]} L${ex + 5 * u[1] - 3 * u[0]} ${ey - 5 * u[0] - 3 * u[1]} Z"/>`;
+    }
+    if (o.proj !== undefined) {
+      const [mx, my] = P(o.proj);
+      s += `<line class="g-hline" x1="${mx}" y1="${my}" x2="${mx}" y2="${cy}"/><line class="g-hline" x1="${mx}" y1="${my}" x2="${cx}" y2="${my}"/><line x1="${cx}" y1="${cy}" x2="${mx}" y2="${my}" style="stroke:var(--doux);stroke-width:1.4"/>`;
+      s += `<circle class="g-point" cx="${mx}" cy="${cy}" r="3"/><circle class="g-point" cx="${cx}" cy="${my}" r="3"/>`;
+      if (o.projLabels !== false) s += `<text class="g-clabel g-curve-1" x="${mx}" y="${cy + (my < cy ? 16 : -8)}" text-anchor="middle">${o.cosLabel || "cos x"}</text><text class="g-clabel g-curve-1" x="${cx + (mx > cx ? -6 : 6)}" y="${my + 4}" text-anchor="${mx > cx ? "end" : "start"}">${o.sinLabel || "sin x"}</text>`;
+    }
+    (o.points || []).forEach((p) => {
+      const [x, y] = P(p.a), [lx, ly] = P(p.a, R + (p.r || 18));
+      s += `<circle class="g-point" cx="${x}" cy="${y}" r="${p.gros ? 4.5 : 3.5}"/>`;
+      // sur un axe, l'étiquette passe en diagonale pour ne pas couvrir l'axe ni les lettres I et J
+      const c = Math.round(Math.cos(p.a) * 1e6) / 1e6, sn = Math.round(Math.sin(p.a) * 1e6) / 1e6, axe = Math.abs(c) === 1 || Math.abs(sn) === 1;
+      const [tx, ty, an] = axe ? [x + (c === -1 ? -7 : 7), y + (c === 1 ? -7 : c === -1 ? 15 : sn === 1 ? -8 : 17), c === -1 ? "end" : "start"] : [lx, ly + 4, "middle"];
+      if (p.label) s += `<text class="g-plabel" x="${tx}" y="${ty}" text-anchor="${an}" style="font-size:${p.fs || 11}px">${p.label}</text>`;
+    });
+    return s + (o.extra || "") + `</svg>`;
+  }
+
+  FIGURES["cercle-trigo"] = () => cercleTrig({ arc: 1, points: [{ a: 1, label: "M", gros: true }], extra: `<line x1="160" y1="145" x2="216.2" y2="57.5" style="stroke:var(--doux);stroke-width:1.4"/><text class="g-clabel g-curve-1" x="314" y="26" text-anchor="end">arc de longueur 1</text><text class="g-label" x="190" y="134">1 rad</text>`, aria: "Cercle trigonométrique de centre O et de rayon 1, orienté dans le sens inverse des aiguilles d'une montre : l'arc de I à M a pour longueur 1, l'angle mesure 1 radian" });
+  FIGURES["enroulement"] = () => {
+    const cx = 120, cy = 180, R = 66, X = cx + R, Y = (t) => +(cy - R * t).toFixed(1);
+    let s = `<svg class="graph" viewBox="0 0 320 300" role="img" aria-label="La droite des réels, tangente au cercle en I, s'enroule autour du cercle : le réel 1 vient sur le point M(1), le réel π/2 sur J">`;
+    s += `<g class="g-axis"><line x1="${cx - R - 20}" y1="${cy}" x2="${cx + R + 20}" y2="${cy}"/><line x1="${cx}" y1="${cy + R + 20}" x2="${cx}" y2="${cy - R - 20}"/></g><circle cx="${cx}" cy="${cy}" r="${R}" class="g-curve" style="fill:none"/>`;
+    s += `<line x1="${X}" y1="${Y(-1.3)}" x2="${X}" y2="${Y(2.45)}" class="g-curve g-curve-1" style="stroke-width:2"/><path class="g-end g-curve-1" d="M${X} ${Y(2.55)} l-4 8 h8z"/>`;
+    [[-1, "−1"], [0, "0"], [1, "1"], [Math.PI / 2, "π/2"], [2, "2"]].forEach(([t, l]) => { s += `<line x1="${X - 5}" y1="${Y(t)}" x2="${X + 5}" y2="${Y(t)}" style="stroke:var(--encre);stroke-width:1.5"/><text class="g-label" x="${X + 10}" y="${Y(t) + 4}">${l}</text>`; });
+    const M = (a) => [+(cx + R * Math.cos(a)).toFixed(1), +(cy - R * Math.sin(a)).toFixed(1)];
+    const [m1x, m1y] = M(1), [jx, jy] = M(Math.PI / 2), [nx, ny] = M(-1);
+    s += `<path d="M${X - 6} ${Y(1)} Q${X + 4} ${(Y(1) + m1y) / 2 - 18} ${m1x + 6} ${m1y - 4}" style="fill:none;stroke:var(--ylang);stroke-width:1.6;stroke-dasharray:4 3"/><path d="M${X - 6} ${Y(Math.PI / 2)} Q${(X + jx) / 2} ${jy - 34} ${jx + 6} ${jy - 5}" style="fill:none;stroke:var(--ylang);stroke-width:1.6;stroke-dasharray:4 3"/><path d="M${X - 6} ${Y(-1)} Q${X + 6} ${(Y(-1) + ny) / 2 + 16} ${nx + 6} ${ny + 4}" style="fill:none;stroke:var(--ylang);stroke-width:1.6;stroke-dasharray:4 3"/>`;
+    [[m1x, m1y, "M(1)"], [jx, jy, "J = M(π/2)"], [nx, ny, "M(−1)"]].forEach(([x, y, l], i) => { s += `<circle class="g-point" cx="${x}" cy="${y}" r="3.5"/><text class="g-plabel" x="${i === 0 ? x + 6 : x - 6}" y="${y + (i === 2 ? 16 : i === 0 ? 14 : -8)}" text-anchor="${i === 0 ? "start" : "end"}">${l}</text>`; });
+    s += `<circle class="g-point" cx="${X}" cy="${cy}" r="3.5"/><text class="g-label" x="${X - 4}" y="${cy + 14}" text-anchor="end">I</text>`;
+    return s + `</svg>`;
+  };
+  FIGURES["cercle-reperes"] = () => {
+    const pts = [[0, 1], [1, 6], [1, 4], [1, 3], [1, 2], [2, 3], [3, 4], [5, 6], [1, 1], [-5, 6], [-3, 4], [-2, 3], [-1, 2], [-1, 3], [-1, 4], [-1, 6]];
+    return cercleTrig({ R: 96, h: 290, points: pts.map(([k, d]) => ({ a: (k * Math.PI) / d, label: trTxt(k, d), r: [6, 4, 3].includes(d) ? 24 : 18, fs: 10 })), aria: "Cercle trigonométrique avec les points associés aux réels 0, π/6, π/4, π/3, π/2, 2π/3, 3π/4, 5π/6, π et leurs opposés" });
+  };
+  FIGURES["cos-sin"] = () => cercleTrig({ grille: true, proj: 0.95, points: [{ a: 0.95, label: "M(x)", gros: true }], arc: 0.95, aria: "Le point M(x) du cercle : son abscisse est cos x, son ordonnée est sin x" });
+  FIGURES["valeurs-remarquables"] = () => {
+    const R = 210, cx = 60, cy = 250, P = (a) => [+(cx + R * Math.cos(a)).toFixed(1), +(cy - R * Math.sin(a)).toFixed(1)];
+    let s = `<svg class="graph" viewBox="0 0 320 290" role="img" aria-label="Quart de cercle : π/6 a pour coordonnées (√3/2 ; 1/2), π/4 a pour coordonnées (√2/2 ; √2/2), π/3 a pour coordonnées (1/2 ; √3/2)">`;
+    s += `<g class="g-axis"><line x1="${cx - 10}" y1="${cy}" x2="${cx + R + 30}" y2="${cy}"/><line x1="${cx}" y1="${cy + 10}" x2="${cx}" y2="${cy - R - 24}"/></g><path class="g-curve" d="M${cx + R} ${cy} A${R} ${R} 0 0 0 ${cx} ${cy - R}" style="fill:none"/>`;
+    const L = [[Math.PI / 6, "π/6", "√3/2", "1/2"], [Math.PI / 4, "π/4", "√2/2", "√2/2"], [Math.PI / 3, "π/3", "1/2", "√3/2"]];
+    L.forEach(([a, n, c, si], i) => {
+      const [x, y] = P(a);
+      s += `<line class="g-hline" x1="${x}" y1="${y}" x2="${x}" y2="${cy}" style="opacity:.7"/><line class="g-hline" x1="${x}" y1="${y}" x2="${cx}" y2="${y}" style="opacity:.7"/><line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" style="stroke:var(--doux);stroke-width:1"/><circle class="g-point" cx="${x}" cy="${y}" r="4"/>`;
+      s += `<text class="g-plabel" x="${x + 8}" y="${y - 6}">${n}</text><text class="g-clabel g-curve-1" x="${x}" y="${cy + 16 + (i === 1 ? 14 : 0)}" text-anchor="middle" style="font-size:11px">${c}</text><text class="g-clabel g-curve-1" x="${cx - 6}" y="${y + 4}" text-anchor="end" style="font-size:11px">${si}</text>`;
+    });
+    s += `<text class="g-label" x="${cx + R + 2}" y="${cy + 16}">1</text><text class="g-label" x="${cx - 6}" y="${cy - R + 4}" text-anchor="end">1</text>`;
+    return s + `</svg>`;
+  };
+  FIGURES["angles-associes"] = () => {
+    const a = Math.PI / 3;
+    return cercleTrig({ grille: true, points: [{ a, label: "π/3", gros: true }, { a: Math.PI - a, label: "2π/3" }, { a: -a, label: "−π/3" }, { a: Math.PI + a, label: "4π/3" }], extra: (() => { const R = 104, cx = 160, cy = 145, c = R * Math.cos(a), sn = R * Math.sin(a); return `<rect x="${cx - c}" y="${cy - sn}" width="${2 * c}" height="${2 * sn}" style="fill:none;stroke:var(--ylang);stroke-width:1.4;stroke-dasharray:5 4"/>`; })(), aria: "Les points associés à π/3, 2π/3, −π/3 et 4π/3 sont symétriques : ils forment un rectangle, leurs cosinus et sinus ne diffèrent que par le signe" });
+  };
+  FIGURES["pedalier"] = () => {
+    const cx = 120, cy = 138, R = 110, a = Math.PI / 3, mx = +(cx + R * Math.cos(a)).toFixed(1), my = +(cy - R * Math.sin(a)).toFixed(1);
+    let s = `<svg class="graph" viewBox="0 0 320 262" role="img" aria-label="Pédalier de rayon 17 cm : la manivelle fait un angle de π/3 avec l'horizontale, la pédale est à 17 sin(π/3) ≈ 14,7 cm au-dessus de l'axe">`;
+    s += `<circle cx="${cx}" cy="${cy}" r="${R}" style="fill:none;stroke:var(--doux);stroke-width:1.2;stroke-dasharray:3 4"/><circle cx="${cx}" cy="${cy}" r="30" style="fill:var(--lagon-pale);stroke:var(--lagon);stroke-width:2"/>`;
+    s += `<line x1="${cx - R - 10}" y1="${cy}" x2="${cx + R + 40}" y2="${cy}" class="g-hline" style="opacity:.6"/><line x1="${cx}" y1="${cy}" x2="${mx}" y2="${my}" class="g-curve" style="stroke-width:6"/><rect x="${mx - 16}" y="${my - 5}" width="32" height="10" rx="3" style="fill:var(--ylang)"/>`;
+    s += `<line x1="${mx}" y1="${my + 5}" x2="${mx}" y2="${cy}" class="g-curve g-curve-1" style="stroke-width:1.6;stroke-dasharray:4 3"/><text class="g-clabel g-curve-1" x="${mx + 8}" y="${(my + cy) / 2 + 4}">h ≈ 14,7 cm</text>`;
+    s += `<text class="g-label" x="${(cx + mx) / 2 - 14}" y="${(cy + my) / 2 - 4}" text-anchor="end">17 cm</text><path d="M${cx + 46} ${cy} A46 46 0 0 0 ${+(cx + 46 * Math.cos(a)).toFixed(1)} ${+(cy - 46 * Math.sin(a)).toFixed(1)}" style="fill:none;stroke:var(--encre);stroke-width:1.2"/><text class="g-label" x="${cx + 54}" y="${cy - 14}">π/3</text>`;
+    return s + `</svg>`;
+  };
+
+  // Angles remarquables utilisés dans les exercices : [k, d] pour k π / d
+  const TR_ANGLES = [[0, 1], [1, 6], [1, 4], [1, 3], [1, 2], [2, 3], [3, 4], [5, 6], [1, 1], [7, 6], [5, 4], [4, 3], [3, 2], [5, 3], [7, 4], [11, 6]];
+  const trCos = { 0: "1", 30: "\\dfrac{\\sqrt{3}}{2}", 45: "\\dfrac{\\sqrt{2}}{2}", 60: "\\dfrac{1}{2}", 90: "0" };
+  // cos ou sin exact d'un angle remarquable, en TeX
+  function trValeur(k, d, f) {
+    const deg = ((((180 * k) / d) % 360) + 360) % 360, a = (deg * Math.PI) / 180;
+    const v = f === "cos" ? Math.cos(a) : Math.sin(a);
+    const ref = Math.round((Math.acos(Math.abs(Math.cos(a))) * 180) / Math.PI); // angle aigu associé
+    const base = f === "cos" ? trCos[ref] : trCos[90 - ref];
+    return { tex: Math.abs(v) < 1e-9 ? "0" : `${v < 0 ? "-" : ""}${base}`, v };
+  }
+
+  GEN["tr-conversion"] = function () {
+    const [k, d] = pick(TR_ANGLES.filter(([k]) => k)), sgn = Math.random() < 0.2 ? -1 : 1, kk = sgn * k, deg = (180 * kk) / d;
+    if (Math.random() < 0.5) {
+      return {
+        enonce: `Convertis $${trTex(kk, d)}$ radians en degrés.`,
+        mode: "nombre", prefixe: "Mesure :", suffixe: "°", attendu: deg,
+        aides: ["$\\pi$ radians $= 180°$.", "Remplace $\\pi$ par $180$.", `Calcule $${par(kk)} \\times 180 \\div ${d}$.`],
+        solution: `$${trTex(kk, d)}$ rad $= \\dfrac{${kk} \\times 180}{${d}}° = ${deg}°$.`
+      };
+    }
+    const fausses = [trTex(kk, 2 * d), trTex(2 * kk, d), trTex(-kk, d), trTex(kk + d, d)];
+    const c = melangeChoix(`$${trTex(kk, d)}$`, fausses.filter((x) => x !== trTex(kk, d)).map((x) => `$${x}$`));
+    return {
+      enonce: `Convertis $${deg}°$ en radians.`,
+      mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: ["$180° = \\pi$ radians, donc $1° = \\dfrac{\\pi}{180}$ rad.", `$${deg}° = ${deg} \\times \\dfrac{\\pi}{180}$ rad.`, `Simplifie la fraction $\\dfrac{${deg}}{180}$.`],
+      solution: `$${deg} \\times \\dfrac{\\pi}{180} = ${trTex(kk, d)}$ rad.`
+    };
+  };
+
+  GEN["tr-arc"] = function () {
+    const t = rand(0, 2);
+    if (t === 0) {
+      const r = pick([17, 18, 20]), [k, d] = pick([[1, 3], [1, 2], [2, 3], [1, 6], [3, 4], [1, 1]]), L = (r * k * Math.PI) / d;
+      return {
+        enonce: `La manivelle d'un pédalier mesure $${r}$ cm. La pédale tourne d'un angle de $${trTex(k, d)}$ radian${(k * Math.PI) / d >= 2 ? "s" : ""}. Quelle longueur d'arc parcourt-elle ? Arrondis au dixième de cm.`,
+        mode: "nombre", prefixe: "Longueur :", suffixe: "cm", attendu: +L.toFixed(1), tolerance: 0.051,
+        aides: ["Sur un cercle de rayon $r$, un angle de $\\alpha$ radians intercepte un arc de longueur $r \\times \\alpha$.", `$L = ${r} \\times ${trTex(k, d)}$.`, `$\\pi \\approx 3{,}1416$.`],
+        solution: `$L = ${r} \\times ${trTex(k, d)} \\approx ${nb(+L.toFixed(1))}$ cm.`
+      };
+    }
+    if (t === 1) {
+      const r = pick([30, 33, 35]), tours = pick([1, 2, 10]), L = 2 * Math.PI * r * tours;
+      return {
+        enonce: `Une roue de vélo a un rayon de $${r}$ cm. Quelle distance parcourt le vélo quand la roue fait $${tours}$ tour${tours > 1 ? "s" : ""} (sans glisser) ? Arrondis au cm.`,
+        mode: "nombre", prefixe: "Distance :", suffixe: "cm", attendu: Math.round(L), tolerance: 0.51,
+        erreurs: [{ valeur: Math.round(Math.PI * r * tours), message: "Un tour complet correspond à un angle de $2\\pi$ : la longueur est $2\\pi r$, pas $\\pi r$." }],
+        aides: ["Un tour complet, c'est un angle de $2\\pi$ radians.", `Un tour : $2\\pi \\times ${r}$ cm.`, `Multiplie par $${tours}$.`],
+        solution: `$${tours} \\times 2\\pi \\times ${r} \\approx ${Math.round(L)}$ cm${tours >= 10 ? `, soit environ $${nb(+(L / 100).toFixed(1))}$ m` : ""}.`
+      };
+    }
+    const r = pick([2, 4, 5, 10]), al = pick([0.5, 1.5, 2, 3]), L = r * al;
+    return {
+      enonce: `Sur un cercle de rayon $${r}$ cm, un arc mesure $${nb(L)}$ cm. Quelle est la mesure en radians de l'angle au centre correspondant ?`,
+      mode: "nombre", prefixe: "Angle :", suffixe: "rad", attendu: al, tolerance: 1e-6,
+      erreurs: [{ valeur: L * r, message: "On **divise** la longueur de l'arc par le rayon : $L = r \\times \\alpha$." }],
+      aides: ["$L = r \\times \\alpha$, avec $\\alpha$ en radians.", `Donc $\\alpha = \\dfrac{L}{r}$.`, `$\\alpha = \\dfrac{${nb(L)}}{${r}}$.`],
+      solution: `$\\alpha = \\dfrac{${nb(L)}}{${r}} = ${nb(al)}$ rad.`
+    };
+  };
+
+  GEN["tr-placer"] = function () {
+    const lettres = "ABCDEFGHKLMNPQRS".split(""), pts = TR_ANGLES.map(([k, d], i) => ({ k, d, a: (k * Math.PI) / d, l: lettres[i] }));
+    const melange = shuffle(lettres.slice()), noms = {}; pts.forEach((p, i) => { noms[i] = melange[i]; });
+    const i = rand(1, pts.length - 1), p = pts[i], tour = pick([0, 0, 1, -1, 2]);
+    const kk = p.k + 2 * p.d * tour - (Math.random() < 0.3 && tour === 0 ? 2 * p.d : 0), x = trTex(kk, p.d);
+    const figure = cercleTrig({ R: 96, points: pts.map((q, j) => ({ a: q.a, label: noms[j], r: 16 })), aria: "Cercle trigonométrique avec seize points nommés par des lettres" });
+    const figureSolution = cercleTrig({ R: 96, arc: (kk * Math.PI) / p.d, points: pts.map((q, j) => ({ a: q.a, label: j === i ? `${noms[j]} = M(${trTxt(kk, p.d)})` : noms[j], r: j === i ? 30 : 16, gros: j === i })), aria: "Le point cherché, avec l'arc parcouru depuis I" });
+    const proches = [i, (i + 1) % pts.length, (i + pts.length - 1) % pts.length, (i + pts.length / 2) % pts.length];
+    const c = melangeChoix(`Le point ${noms[i]}`, proches.slice(1).map((j) => `Le point ${noms[j]}`));
+    return {
+      enonce: `Quel point du cercle trigonométrique est associé au réel $${x}$ ?`,
+      mode: "choix", choix: c.choix, attendu: c.attendu, figure, figureSolution,
+      aides: ["On part de $I$ (le réel $0$) et on tourne dans le sens inverse des aiguilles d'une montre pour un réel positif, dans l'autre sens pour un réel négatif.", "Un demi-tour correspond à $\\pi$, un tour complet à $2\\pi$ : ajouter ou retirer $2\\pi$ ne change pas le point.", kk === p.k ? `$${x}$ est entre $0$ et $2\\pi$ : compte les sixièmes ou les quarts de demi-tour depuis $I$.` : `$${x} = ${trTex(p.k, p.d)} ${kk > p.k ? "+" : "-"} ${Math.abs(kk - p.k) / (2 * p.d) === 1 ? "" : `${Math.abs(kk - p.k) / (2 * p.d)} \\times `}2\\pi$.`],
+      solution: `${kk !== p.k ? `$${x}$ et $${trTex(p.k, p.d)}$ diffèrent d'un nombre entier de tours ($2\\pi$ chacun) : ils ont le même point image. ` : ""}Le point associé à $${trTex(p.k, p.d)}$ est le point ${noms[i]}.`
+    };
+  };
+
+  GEN["tr-valeurs"] = function () {
+    const [k0, d] = pick(TR_ANGLES), neg = Math.random() < 0.25 && k0, k = neg ? -k0 : k0, f = pick(["cos", "sin"]);
+    const { tex, v } = trValeur(k, d, f), autre = trValeur(k, d, f === "cos" ? "sin" : "cos").tex;
+    const pool = ["0", "1", "-1", "\\dfrac{1}{2}", "-\\dfrac{1}{2}", "\\dfrac{\\sqrt{2}}{2}", "-\\dfrac{\\sqrt{2}}{2}", "\\dfrac{\\sqrt{3}}{2}", "-\\dfrac{\\sqrt{3}}{2}"];
+    const cands = [tex === "0" ? "1" : tex.startsWith("-") ? tex.slice(1) : `-${tex}`, autre, ...shuffle(pool)];
+    const c = melangeChoix(`$${tex}$`, cands.filter((x) => x !== tex).map((x) => `$${x}$`));
+    const a = (k * Math.PI) / d;
+    return {
+      enonce: `Que vaut $\\${f}\\left(${trTex(k, d)}\\right)$ ?`,
+      mode: "choix", choix: c.choix, attendu: c.attendu,
+      figureSolution: cercleTrig({ grille: true, proj: a, arc: a, cosLabel: "cos", sinLabel: "sin", points: [{ a, label: trTxt(k, d), gros: true, r: 22 }], aria: "Le point associé et ses projections sur les axes" }),
+      figure: cercleTrig({ grille: true, aria: "Cercle trigonométrique avec un quadrillage de pas 0,5" }),
+      aides: [`Place le point associé à $${trTex(k, d)}$ sur le cercle.`, `Le ${f === "cos" ? "cosinus est l'abscisse" : "sinus est l'ordonnée"} de ce point.`, "Utilise l'angle aigu associé ($0$, $\\dfrac{\\pi}{6}$, $\\dfrac{\\pi}{4}$, $\\dfrac{\\pi}{3}$ ou $\\dfrac{\\pi}{2}$) et le signe donné par le quart de cercle."],
+      solution: `Le point associé à $${trTex(k, d)}$ a pour ${f === "cos" ? "abscisse" : "ordonnée"} $${tex}$ : $\\${f}\\left(${trTex(k, d)}\\right) = ${tex}$${Math.abs(v) > 1e-9 && Math.abs(Math.abs(v) - 1) > 1e-9 ? ` (environ $${nb(+v.toFixed(3))}$)` : ""}.`
+    };
+  };
+
+  GEN["tr-pythagore"] = function () {
+    const [p, q, h] = pick([[3, 4, 5], [5, 12, 13], [7, 24, 25], [8, 15, 17]]), donne = pick(["cos", "sin"]), quart = pick([1, 2, 4]);
+    // quart 1 : [0 ; π/2], quart 2 : [π/2 ; π], quart 4 : [−π/2 ; 0]
+    const cosPos = quart !== 2, sinPos = quart !== 4;
+    const val = donne === "cos" ? (cosPos ? p : -p) / h : (sinPos ? p : -p) / h;
+    const rep = donne === "cos" ? (sinPos ? q : -q) / h : (cosPos ? q : -q) / h, cherche = donne === "cos" ? "sin" : "cos";
+    const inter = { 1: "\\left[0\\,;\\dfrac{\\pi}{2}\\right]", 2: "\\left[\\dfrac{\\pi}{2}\\,;\\pi\\right]", 4: "\\left[-\\dfrac{\\pi}{2}\\,;0\\right]" }[quart];
+    return {
+      enonce: `On sait que $\\${donne} x = ${frac(Math.round(val * h), h)}$ et que $x \\in ${inter}$. Calcule $\\${cherche} x$ (fraction).`,
+      mode: "nombre", prefixe: `$\\${cherche} x =$`, attendu: rep,
+      erreurs: [{ valeur: -rep, message: `Attention au signe : pour $x \\in ${inter}$, le point est dans un quart de cercle où $\\${cherche} x$ est ${rep > 0 ? "positif" : "négatif"}.` }, { valeur: 1 - Math.abs(val), message: "$\\cos^2 x + \\sin^2 x = 1$ porte sur les **carrés**, pas sur les nombres eux-mêmes." }],
+      aides: ["Pour tout réel $x$, $\\cos^2 x + \\sin^2 x = 1$.", `$\\${cherche}^2 x = 1 - \\left(${frac(Math.round(val * h), h)}\\right)^2 = \\dfrac{${q * q}}{${h * h}}$.`, `Donc $\\${cherche} x = \\dfrac{${q}}{${h}}$ ou $-\\dfrac{${q}}{${h}}$ : le signe dépend du quart de cercle.`],
+      solution: `$\\${cherche}^2 x = 1 - \\dfrac{${p * p}}{${h * h}} = \\dfrac{${q * q}}{${h * h}}$. Pour $x \\in ${inter}$, $\\${cherche} x$ est ${rep > 0 ? "positif" : "négatif"}, donc $\\${cherche} x = ${frac(Math.round(rep * h), h)}$.`
+    };
+  };
+
+  GEN["tr-triangle"] = function () {
+    const r = pick([17, 18, 20]), [k, d] = pick([[1, 6], [1, 4], [1, 3]]), f = pick(["sin", "cos"]), a = (k * Math.PI) / d, v = r * (f === "sin" ? Math.sin(a) : Math.cos(a));
+    return {
+      enonce: `La manivelle d'un pédalier mesure $${r}$ cm. Elle fait un angle de $${trTex(k, d)}$ avec l'horizontale, vers le haut. ${f === "sin" ? "À quelle hauteur au-dessus de l'axe du pédalier se trouve la pédale ?" : "À quelle distance horizontale de l'axe du pédalier se trouve la pédale ?"} Arrondis au dixième de cm.`,
+      mode: "nombre", prefixe: f === "sin" ? "Hauteur :" : "Distance :", suffixe: "cm", attendu: +v.toFixed(1), tolerance: 0.051,
+      erreurs: [{ valeur: +(r * (f === "sin" ? Math.cos(a) : Math.sin(a))).toFixed(1), message: `La ${f === "sin" ? "hauteur correspond au côté opposé à l'angle : c'est le **sinus**" : "distance horizontale correspond au côté adjacent : c'est le **cosinus**"}.` }].filter((e) => Math.abs(e.valeur - +v.toFixed(1)) > 0.06),
+      aides: ["Dans le triangle rectangle formé par la manivelle (hypoténuse), la verticale et l'horizontale :", f === "sin" ? "côté opposé $=$ hypoténuse $\\times \\sin(\\text{angle})$." : "côté adjacent $=$ hypoténuse $\\times \\cos(\\text{angle})$.", `$${r} \\times \\${f}\\left(${trTex(k, d)}\\right) = ${r} \\times ${trValeur(k, d, f).tex}$.`],
+      solution: `$${r} \\times \\${f}\\left(${trTex(k, d)}\\right) = ${r} \\times ${trValeur(k, d, f).tex} \\approx ${nb(+v.toFixed(1))}$ cm.`
+    };
+  };
+
+  // Logique : « pour tout réel x » et « il existe un réel x »
+  GEN["tr-logique"] = function () {
+    const T = [
+      ["Pour tout réel $x$, $\\cos^2 x + \\sin^2 x = 1$.", 0, "**Vrai** : dans le triangle rectangle formé par $O$, $M(x)$ et son projeté, le théorème de Pythagore donne $\\cos^2 x + \\sin^2 x = OM^2 = 1$, et cela pour **tout** réel $x$."],
+      ["Pour tout réel $x$, $\\sin x \\geqslant 0$.", 1, "**Faux**. Contre-exemple : $\\sin\\left(-\\dfrac{\\pi}{2}\\right) = -1 < 0$."],
+      ["Il existe un réel $x$ tel que $\\cos x = 2$.", 1, "**Faux** : pour tout réel $x$, $-1 \\leqslant \\cos x \\leqslant 1$, car le cercle a pour rayon $1$."],
+      ["Il existe un réel $x$ tel que $\\sin x = 1$.", 0, "**Vrai** : $x = \\dfrac{\\pi}{2}$ convient. Pour un « il existe », **un exemple** suffit."],
+      ["Pour tout réel $x$, $\\cos x + \\sin x = 1$.", 1, "**Faux**. Contre-exemple : $\\cos\\dfrac{\\pi}{4} + \\sin\\dfrac{\\pi}{4} = \\sqrt{2} \\neq 1$. Ne pas confondre avec $\\cos^2 x + \\sin^2 x = 1$."],
+      ["Pour tout réel $x$, $\\cos(x + 2\\pi) = \\cos x$.", 0, "**Vrai** : $x$ et $x + 2\\pi$ diffèrent d'un tour complet, ils ont le même point image sur le cercle."],
+      ["Pour tout réel $x$, $\\cos(-x) = \\cos x$.", 0, "**Vrai** : les points associés à $x$ et $-x$ sont symétriques par rapport à l'axe des abscisses, ils ont la même abscisse."],
+      ["Il existe un réel $x$ tel que $\\cos x = \\sin x$.", 0, "**Vrai** : $x = \\dfrac{\\pi}{4}$ convient, avec $\\cos\\dfrac{\\pi}{4} = \\sin\\dfrac{\\pi}{4} = \\dfrac{\\sqrt{2}}{2}$."]
+    ];
+    const [aff, rep, sol] = pick(T);
+    return {
+      enonce: `Vrai ou faux : « ${aff} »`,
+      mode: "choix", choix: ["Vrai", "Faux"], attendu: rep,
+      aides: ["« Pour tout » : il faut que ce soit vrai pour **chaque** réel ; un seul contre-exemple suffit pour dire faux.", "« Il existe » : un seul exemple suffit pour dire vrai.", "Pense au cercle : le cosinus est une abscisse, le sinus une ordonnée, toutes deux entre $-1$ et $1$."],
+      solution: sol
+    };
+  };
+
+  GEN["tr-python"] = function () {
+    const code = "```python\nfrom math import sqrt\n\ndef archimede(etapes):\n    n = 6    # hexagone inscrit dans le cercle de rayon 1\n    c = 1    # longueur d'un côté\n    for i in range(etapes):\n        c = sqrt(2 - sqrt(4 - c**2))\n        n = 2 * n\n    return n * c / 2\n```";
+    const t = rand(0, 3);
+    if (t === 0) {
+      const e = rand(1, 5), n = 6 * 2 ** e;
+      return {
+        enonce: `Archimède approchait $\\pi$ avec des polygones réguliers inscrits dans un cercle.\n\n${code}\n\nAprès archimede(${e}), combien de côtés a le polygone ?`,
+        mode: "nombre", prefixe: "Côtés :", attendu: n,
+        erreurs: [{ valeur: 6 * 2 * e, message: "À chaque étape, le nombre de côtés est **multiplié** par $2$, pas augmenté." }].filter((x) => x.valeur !== n),
+        aides: ["Au départ, $n = 6$ (un hexagone).", `La boucle tourne $${e}$ fois et double $n$ à chaque fois.`, `$6 \\times 2^{${e}}$.`],
+        solution: `$n = 6 \\times 2^{${e}} = ${n}$ côtés. Archimède est allé jusqu'à $96$ côtés.`
+      };
+    }
+    if (t === 1) {
+      return {
+        enonce: `${code}\n\nQue renvoie archimede(0) ?`,
+        mode: "nombre", prefixe: "Résultat :", attendu: 3,
+        aides: ["Avec $0$ étape, la boucle ne tourne pas : $n = 6$ et $c = 1$.", "La fonction renvoie $\\dfrac{n \\times c}{2}$.", "C'est le demi-périmètre de l'hexagone inscrit."],
+        solution: "$\\dfrac{6 \\times 1}{2} = 3$ : le demi-périmètre de l'hexagone, première approximation de $\\pi$ (le demi-périmètre du cercle de rayon $1$)."
+      };
+    }
+    if (t === 2) {
+      const c = melangeChoix("$\\pi$", ["$3$", "$2\\pi$", "$6$"]);
+      return {
+        enonce: `${code}\n\nVers quel nombre se rapprochent les résultats de archimede(1), archimede(2), archimede(3)… ?`,
+        mode: "choix", choix: c.choix, attendu: c.attendu,
+        aides: ["Le polygone a de plus en plus de côtés : il « colle » au cercle.", "La fonction renvoie le **demi**-périmètre du polygone.", "Le périmètre du cercle de rayon $1$ est $2\\pi$."],
+        solution: "Les résultats valent environ $3{,}106$ ; $3{,}133$ ; $3{,}139$ ; $3{,}141$… Ils se rapprochent du demi-périmètre du cercle de rayon $1$, c'est-à-dire $\\pi$."
+      };
+    }
+    const c = melangeChoix("Le polygone est à l'intérieur du cercle : son périmètre est plus court", ["Python fait des erreurs d'arrondi", "La racine carrée diminue les nombres", "Le cercle n'a pas un rayon égal à 1"]);
+    return {
+      enonce: `${code}\n\nPourquoi les résultats de archimede(k) sont-ils toujours inférieurs à $\\pi$ ?`,
+      mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: ["Le polygone est **inscrit** : ses sommets sont sur le cercle.", "Entre deux sommets, le côté (segment) est plus court que l'arc de cercle.", "On compare le demi-périmètre du polygone au demi-périmètre du cercle, $\\pi$."],
+      solution: "Chaque côté du polygone inscrit est un segment, plus court que l'arc de cercle qu'il sous-tend : le demi-périmètre du polygone est donc inférieur à $\\pi$. Il s'en approche quand le nombre de côtés augmente."
+    };
+  };
+
+
   /* Séries « flash » d'un thème : mélange de ses générateurs */
   const THEMES = {
     "am-flash-cn": ["am-comparer", "am-fractions", "am-puissances", "am-ecritures", "am-ordre-grandeur", "am-coherence", "auto-conversions"],
@@ -6292,7 +6559,7 @@
 
 
   /* Une « erreur connue » ne doit jamais coïncider avec la bonne réponse (à la tolérance près) */
-  Object.keys(GEN).filter((k) => /^(ld|am|cd|ar|cl|fa|ve|st|vx|tc|co|dr|fr|sg|pc|ec|sy|su|s2|pi|s5|d1)-/.test(k)).forEach((k) => {
+  Object.keys(GEN).filter((k) => /^(ld|am|cd|ar|cl|fa|ve|st|vx|tc|co|dr|fr|sg|pc|ec|sy|su|s2|pi|s5|d1|tr)-/.test(k)).forEach((k) => {
     const g = GEN[k];
     GEN[k] = (i) => { const q = g(i); if (q.erreurs) q.erreurs = q.erreurs.filter((e) => Math.abs(e.valeur - q.attendu) >= (q.tolerance || 1e-9)); return q; };
   });

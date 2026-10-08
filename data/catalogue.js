@@ -267,6 +267,13 @@ window.CATALOGUE = {
           titre: "Dérivation 1 : point de vue local",
           statut: "disponible",
           drive: ""
+        },
+        {
+          id: "premiere-trigonometrie",
+          numero: 8,
+          titre: "Trigonométrie",
+          statut: "disponible",
+          drive: ""
         }
       ]
     },
