@@ -447,6 +447,13 @@ window.CATALOGUE = {
           titre: "Lois à densité",
           statut: "disponible",
           drive: ""
+        },
+        {
+          id: "terminale-repartition-richesses",
+          numero: 14,
+          titre: "Répartition des richesses et inégalités",
+          statut: "disponible",
+          drive: ""
         }
       ]
     }
