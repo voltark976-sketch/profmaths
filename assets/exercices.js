@@ -6725,6 +6725,213 @@
   };
 
 
+  /* ---------- Première, chapitre 10 : variations et courbes représentatives (préfixe vr-) ---------- */
+  // Tableau de signes de f' et de variations de f : xs (textes), cases de f' (2n − 1), ys (valeurs aux xs, "" si aucune)
+  function tabSV(xs, cases, ys, nomF) {
+    const W = 320, g = 58, hR = 30, H = 2 * hR + 74, n = xs.length;
+    const X = (k) => g + 18 + (k * (W - g - 36)) / (n - 1);
+    const monte = (k) => cases[2 * k] === "+";
+    let s = `<svg class="graph tabvar" viewBox="0 0 ${W} ${H}" role="img" aria-label="Tableau de signes de la dérivée et de variations de ${nomF || "f"}">`;
+    s += `<g class="g-axis"><rect x="1" y="1" width="${W - 2}" height="${H - 2}" fill="none" stroke-width="1.2" style="stroke:var(--doux)"/><line x1="${g}" y1="1" x2="${g}" y2="${H - 1}"/><line x1="1" y1="${hR}" x2="${W - 1}" y2="${hR}"/><line x1="1" y1="${2 * hR}" x2="${W - 1}" y2="${2 * hR}"/></g>`;
+    s += `<text class="g-label" x="${g / 2}" y="20" text-anchor="middle">x</text><text class="g-label" x="${g / 2}" y="${hR + 20}" text-anchor="middle">${nomF || "f"}′(x)</text><text class="g-label" x="${g / 2}" y="${2 * hR + 42}" text-anchor="middle" style="fill:var(--lagon)">${nomF || "f"}</text>`;
+    xs.forEach((x, k) => { s += `<text class="g-label" x="${X(k)}" y="20" text-anchor="middle">${x}</text>`; });
+    cases.forEach((c, i) => {
+      if (i % 2 === 0) { const xm = (X(i / 2) + X(i / 2 + 1)) / 2; s += `<text class="g-clabel" x="${xm}" y="${hR + 21}" text-anchor="middle" style="fill:${c === "+" ? "var(--lagon)" : c === "?" ? "var(--ylang)" : "var(--faux)"}">${c === "-" ? "−" : c}</text>`; }
+      else { const xv = X((i + 1) / 2); s += `<line x1="${xv}" y1="${hR}" x2="${xv}" y2="${2 * hR}" style="stroke:var(--trait);stroke-width:1;stroke-dasharray:3 3"/>`; if (c) s += `<text class="g-label" x="${xv}" y="${hR + 20}" text-anchor="middle" style="paint-order:stroke;stroke:var(--surface);stroke-width:4px">${c}</text>`; }
+    });
+    const haut = xs.map((_, k) => (k > 0 && monte(k - 1)) || (k < n - 1 && !monte(k)));
+    const yH = 2 * hR + 18, yB = H - 10;
+    ys.forEach((y, k) => { if (y !== "" && y !== undefined) s += `<text class="g-label" x="${X(k)}" y="${haut[k] ? yH : yB}" text-anchor="middle">${y}</text>`; });
+    for (let k = 0; k < n - 1; k++) {
+      if (cases[2 * k] !== "+" && cases[2 * k] !== "-") continue; // case « ? » : tableau à compléter
+      const up = monte(k), y1 = up ? yB - 14 : yH + 8, y2 = up ? yH + 8 : yB - 14, x1 = X(k) + (ys[k] === "" ? 0 : 14), x2 = X(k + 1) - (ys[k + 1] === "" ? 0 : 14);
+      const a = Math.atan2(y2 - y1, x2 - x1), hx = x2 - 7 * Math.cos(a - 0.45), hy = y2 - 7 * Math.sin(a - 0.45), kx = x2 - 7 * Math.cos(a + 0.45), ky = y2 - 7 * Math.sin(a + 0.45);
+      s += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" style="stroke:var(--lagon);stroke-width:1.8"/><path d="M${x2} ${y2} L${hx.toFixed(1)} ${hy.toFixed(1)} L${kx.toFixed(1)} ${ky.toFixed(1)}z" style="fill:var(--lagon)"/>`;
+    }
+    return s + `</svg>`;
+  }
+  // Cubique f(x) = x³ − 3x : croissante, décroissante, croissante
+  FIGURES["cubique-variations"] = () => {
+    const f = (x) => x ** 3 - 3 * x;
+    let s = graph({ xmin: -2.5, xmax: 2.5, ymin: -3.5, ymax: 3.5, h: 280, curves: [{ f, a: -2.15, b: 2.15, closed: false }, { f: () => 2, a: -1.6, b: -0.4, closed: false }, { f: () => -2, a: 0.4, b: 1.6, closed: false }], marques: [{ x: -1.75, y: -2.6, texte: "f′ > 0" }, { x: 0.45, y: 1.6, texte: "f′ < 0" }, { x: 1.75, y: 2.6, texte: "f′ > 0" }], points: [{ x: -1, y: 2, label: "max 2", gauche: true }, { x: 1, y: -2, label: "min −2" }], aria: "Courbe de x³ − 3x : elle monte tant que f′ est positive, descend entre −1 et 1 où f′ est négative ; tangentes horizontales au maximum 2 et au minimum −2" });
+    [1, 2].forEach((i) => { s = tiret(s, i); });
+    return s;
+  };
+  FIGURES["tabsv-cubique"] = () => tabSV(["−∞", "−1", "1", "+∞"], ["+", "0", "-", "0", "+"], ["", "2", "−2", ""]);
+  // x³ : f′(0) = 0 mais pas d'extremum
+  FIGURES["x3-palier"] = () => tiret(graph({ xmin: -2, xmax: 2, ymin: -3.2, ymax: 3.2, h: 240, curves: [{ f: (x) => x ** 3, a: -1.45, b: 1.45, closed: false, label: "y = x³", lx: 1.4, dx: -6, dy: 6 }, { f: () => 0, a: -1.2, b: 1.2, closed: false }], points: [{ x: 0, y: 0, label: "f′(0) = 0" }], aria: "La courbe de x³ a une tangente horizontale en 0 mais continue de monter : pas d'extremum" }), 1);
+  // Parité : x² symétrique par rapport à l'axe des ordonnées, x³ par rapport à l'origine
+  FIGURES["parite"] = () => graph({ xmin: -2.4, xmax: 2.4, ymin: -3.4, ymax: 4.4, h: 300, curves: [{ f: (x) => x * x, a: -2.05, b: 2.05, closed: false, label: "y = x² (paire)", lx: -2, dx: 96, dy: 4 }, { f: (x) => x ** 3, a: -1.48, b: 1.6, closed: false, label: "y = x³ (impaire)", lx: -1.48, dx: 112, dy: 12 }], points: [{ x: -1.5, y: 2.25 }, { x: 1.5, y: 2.25 }, { x: -1.2, y: -1.728 }, { x: 1.2, y: 1.728 }], aria: "La parabole y = x² est symétrique par rapport à l'axe des ordonnées ; la courbe y = x³ est symétrique par rapport à l'origine" });
+  // Inégalité : la courbe de x³ est au-dessus de la droite y = 3x − 2 sur [0 ; +∞[, tangente en (1 ; 1)
+  FIGURES["inegalite-cubique"] = () => graph({ xmin: -0.5, xmax: 2.4, ymin: -2.5, ymax: 6.5, xstep: 0.5, xetiq: 1, h: 280, curves: [{ f: (x) => x ** 3, a: 0, b: 1.86, closed: false, label: "y = x³", lx: 1.8, dx: -8, dy: 2 }, { f: (x) => 3 * x - 2, a: 0, b: 2.3, closed: false, label: "y = 3x − 2", lx: 2.3, dx: -2, dy: 18 }], points: [{ x: 1, y: 1, label: "(1 ; 1)" }], aria: "Sur [0 ; +∞[, la courbe de x³ est au-dessus de la droite y = 3x − 2, qui la touche au point (1 ; 1)" });
+  // Méthode de Newton pour x² − 2 : tangente en 2, puis en 1,5
+  FIGURES["newton"] = () => {
+    const f = (x) => x * x - 2;
+    let s = graph({ xmin: -0.3, xmax: 2.4, ymin: -2.4, ymax: 3, xstep: 0.5, xetiq: 0.5, ystep: 1, h: 260, curves: [{ f, a: 0, b: 2.2, closed: false, label: "y = x² − 2", lx: 2.2, dx: -6, dy: -8 }, { f: (x) => 4 * (x - 2) + 2, a: 1.4, b: 2.15, closed: false }, { f: (x) => 3 * (x - 1.5) + 0.25, a: 1.3, b: 1.75, closed: false }], points: [{ x: 2, y: 2, label: "x₀ = 2" }, { x: 1.5, y: 0, label: "x₁ = 1,5", gauche: true }, { x: 1.5, y: 0.25 }, { x: 1.4167, y: 0 }], aria: "Méthode de Newton : la tangente en x₀ = 2 coupe l'axe en x₁ = 1,5, la tangente suivante en x₂ ≈ 1,417, de plus en plus près de √2" });
+    [1, 2].forEach((i) => { s = tiret(s, i); });
+    return s;
+  };
+
+  // Cubique f(x) = a(x³ − (3/2)(r1 + r2)x² + 3 r1 r2 x) + d, dont la dérivée est 3a(x − r1)(x − r2)
+  function vrCubique() {
+    let r1, r2; do { r1 = rand(-3, 2); r2 = r1 + pick([2, 4]); } while ((r1 + r2) % 2);
+    const a = pick([1, 1, -1]), d = rand(-4, 4);
+    const c2 = (-3 * a * (r1 + r2)) / 2, c1 = 3 * a * r1 * r2;
+    const f = (x) => a * x ** 3 + c2 * x * x + c1 * x + d;
+    return { a, r1, r2, d, f, tex: poly([a, c2, c1, d]), fp: poly([3 * a, 2 * c2, c1]), fpFact: `${a > 0 ? "3" : "-3"}${facteur(r1)}${facteur(r2)}` };
+  }
+
+  GEN["vr-tableau"] = function () {
+    const C = vrCubique(), t = rand(0, 2), f1 = C.f(C.r1), f2 = C.f(C.r2);
+    const cases = C.a > 0 ? ["+", "0", "-", "0", "+"] : ["-", "0", "+", "0", "-"];
+    const tab = tabSV(["−∞", nbSvg(C.r1), nbSvg(C.r2), "+∞"], cases, ["", nbSvg(f1), nbSvg(f2), ""]);
+    const aides = [`$f'(x) = ${C.fp}$.`, `$f'(x) = ${C.fpFact}$ : les racines sont $${C.r1}$ et $${C.r2}$.`, `Signe de $f'$ : ${C.a > 0 ? "positif à l'extérieur des racines, négatif entre" : "négatif à l'extérieur des racines, positif entre"}. Puis calcule $f(${C.r1})$ et $f(${C.r2})$.`];
+    const base = `$f'(x) = ${C.fpFact}$, ${C.a > 0 ? "positif à l'extérieur des racines et négatif entre elles" : "négatif à l'extérieur des racines et positif entre elles"}. Donc $f$ est ${C.a > 0 ? `croissante sur $]-\\infty\\,;${C.r1}]$, décroissante sur $[${C.r1}\\,;${C.r2}]$, croissante sur $[${C.r2}\\,;+\\infty[$` : `décroissante sur $]-\\infty\\,;${C.r1}]$, croissante sur $[${C.r1}\\,;${C.r2}]$, décroissante sur $[${C.r2}\\,;+\\infty[$`}, avec $f(${C.r1}) = ${f1}$ et $f(${C.r2}) = ${f2}$.`;
+    if (t === 0) {
+      const I = (x, y) => `$[${x}\\,;${y}]$`, bonne = C.a > 0 ? I(C.r1, C.r2) : `$]-\\infty\\,;${C.r1}]$ et $[${C.r2}\\,;+\\infty[$`;
+      const c = melangeChoix(bonne, [C.a > 0 ? `$]-\\infty\\,;${C.r1}]$ et $[${C.r2}\\,;+\\infty[$` : I(C.r1, C.r2), I(Math.min(f1, f2), Math.max(f1, f2)), `$[${C.r1 - 1}\\,;${C.r2 + 1}]$`]);
+      return { enonce: `$f(x) = ${C.tex}$. Sur quel(s) intervalle(s) $f$ est-elle décroissante ?`, mode: "choix", choix: c.choix, attendu: c.attendu, aides, solution: base, figureSolution: tab, figure: tabSV(["−∞", "?", "?", "+∞"], ["?", "", "?", "", "?"], ["", "", "", ""]) };
+    }
+    const maxX = C.a > 0 ? C.r1 : C.r2, minX = C.a > 0 ? C.r2 : C.r1, q = t === 1;
+    return {
+      enonce: `$f(x) = ${C.tex}$. ${q ? "Quelle est la valeur du maximum local de $f$ ?" : "En quelle valeur de $x$ la fonction $f$ admet-elle un minimum local ?"}`,
+      mode: "nombre", prefixe: q ? "Maximum local :" : "$x =$", attendu: q ? C.f(maxX) : minX,
+      erreurs: q ? [{ valeur: maxX, message: `Ça, c'est l'abscisse du maximum. On demande sa valeur $f(${maxX})$.` }].filter((e) => e.valeur !== C.f(maxX)) : [{ valeur: maxX, message: "En cette valeur, $f$ passe de croissante à décroissante : c'est un **maximum** local." }, { valeur: C.f(minX), message: "Ça, c'est la valeur du minimum. On demande l'abscisse où il est atteint." }].filter((e) => e.valeur !== minX),
+      aides, solution: base, figureSolution: tab, figure: tabSV(["−∞", "?", "?", "+∞"], ["?", "", "?", "", "?"], ["", "", "", ""])
+    };
+  };
+
+  GEN["vr-lecture-derivee"] = function () {
+    let r1, r2; do { r1 = rand(-3, 1); r2 = r1 + rand(2, 4); } while (r2 > 3);
+    const s = pick([1, -1]), k = 0.5, fp = (x) => s * k * (x - r1) * (x - r2);
+    const m = -s * k * ((r2 - r1) / 2) ** 2;
+    const fig = graph({ xmin: -4.5, xmax: 4.5, ymin: Math.min(m, 0) - 1.5, ymax: Math.max(m, 0) + 2.5, h: 240, curves: [{ f: fp, ...(() => { const [a, b] = d1Domaine(fp, (r1 + r2) / 2, 4.4, Math.min(m, 0) - 1.4, Math.max(m, 0) + 2.4); return { a, b }; })(), closed: false, label: "C<tspan class=\"sub\" dy=\"3\">f′</tspan>", lx: (r1 + r2) / 2, dx: 18, dy: s > 0 ? 20 : -10 }], points: [{ x: r1, y: 0 }, { x: r2, y: 0 }], aria: "Courbe de la fonction dérivée f′" });
+    const I = (x, y) => `$[${x}\\,;${y}]$`, ext = `$]-\\infty\\,;${r1}]$ et $[${r2}\\,;+\\infty[$`;
+    const croiss = s > 0 ? ext : I(r1, r2);
+    const c = melangeChoix(croiss, [s > 0 ? I(r1, r2) : ext, `$[${r1}\\,;+\\infty[$`, `$]-\\infty\\,;${r2}]$`]);
+    return {
+      enonce: "On a tracé la courbe de la **dérivée** $f'$ d'une fonction $f$. Sur quel(s) intervalle(s) $f$ est-elle croissante ?",
+      mode: "choix", choix: c.choix, attendu: c.attendu, figure: fig,
+      aides: ["Attention : c'est la courbe de $f'$, pas celle de $f$.", "$f$ est croissante là où $f'(x) \\geqslant 0$, c'est-à-dire là où la courbe de $f'$ est **au-dessus** de l'axe des abscisses.", `La courbe de $f'$ coupe l'axe en $${r1}$ et $${r2}$.`],
+      solution: `$f'(x) \\geqslant 0$ ${s > 0 ? `à l'extérieur de $[${r1}\\,;${r2}]$` : `sur $[${r1}\\,;${r2}]$`} : $f$ est croissante sur ${croiss}.`
+    };
+  };
+
+  GEN["vr-second-degre"] = function () {
+    const a = pick([1, -1, 2, -2, 3, -3]), al = randNZ(-4, 4), be = rand(-8, 8), b = -2 * a * al, c = a * al * al + be;
+    const q = Math.random() < 0.5;
+    return {
+      enonce: `$f(x) = ${poly([a, b, c])}$. En étudiant le signe de $f'(x)$, ${q ? `détermine l'abscisse du point où $f$ atteint son ${a > 0 ? "minimum" : "maximum"}` : `détermine le ${a > 0 ? "minimum" : "maximum"} de $f$`}.`,
+      mode: "nombre", prefixe: q ? "$x =$" : (a > 0 ? "Minimum :" : "Maximum :"), attendu: q ? al : be,
+      erreurs: q ? [{ valeur: -al, message: "Résous $2ax + b = 0$ : attention au signe, $x = -\\dfrac{b}{2a}$." }, { valeur: be, message: "Ça, c'est la valeur de l'extremum. On demande où il est atteint." }].filter((e) => e.valeur !== al) : [{ valeur: al, message: `Ça, c'est l'abscisse $x = ${al}$. On demande la valeur $f(${al})$.` }].filter((e) => e.valeur !== be),
+      aides: [`$f'(x) = ${poly([2 * a, b])}$.`, `$f'(x) = 0 \\iff x = ${al}$, et $f'$ est ${a > 0 ? "négative avant, positive après" : "positive avant, négative après"}.`, q ? "C'est l'abscisse du sommet de la parabole." : `Calcule $f(${al})$.`],
+      solution: `$f'(x) = ${poly([2 * a, b])}$ s'annule en $${al}$ en changeant de signe (${a > 0 ? "− puis +" : "+ puis −"}) : $f$ admet un ${a > 0 ? "minimum" : "maximum"} en $x = ${al}$, égal à $f(${al}) = ${be}$. On retrouve le sommet $\\left(-\\dfrac{b}{2a}\\,;\\beta\\right)$ du chapitre 5.`,
+      figure: tabSV(["−∞", "?", "+∞"], ["?", "", "?"], ["", "", ""]),
+      figureSolution: tabSV(["−∞", nbSvg(al), "+∞"], a > 0 ? ["-", "0", "+"] : ["+", "0", "-"], ["", nbSvg(be), ""])
+    };
+  };
+
+  GEN["vr-parite"] = function () {
+    const T = [
+      ["x^4 - 3x^2", 0, "$f(-x) = (-x)^4 - 3(-x)^2 = x^4 - 3x^2 = f(x)$ : **paire**, la courbe est symétrique par rapport à l'axe des ordonnées."],
+      ["x^3 + 5x", 1, "$f(-x) = (-x)^3 + 5(-x) = -x^3 - 5x = -f(x)$ : **impaire**, la courbe est symétrique par rapport à l'origine."],
+      ["x^2 + x", 2, "$f(-1) = 0$ et $f(1) = 2$ : on n'a ni $f(-1) = f(1)$, ni $f(-1) = -f(1)$. Ni paire ni impaire (un contre-exemple suffit)."],
+      ["|x| + 1", 0, "$f(-x) = |-x| + 1 = |x| + 1 = f(x)$ : **paire**."],
+      ["\\dfrac{1}{x}", 1, "Défini sur $\\mathbb{R} \\setminus \\{0\\}$, symétrique par rapport à $0$, et $f(-x) = -\\dfrac{1}{x} = -f(x)$ : **impaire**."],
+      ["x^3 + 1", 2, "$f(-1) = 0$ et $f(1) = 2$ : ni $f(-1) = f(1)$, ni $f(-1) = -f(1)$. Ni paire ni impaire."],
+      ["\\sqrt{x}", 2, "L'ensemble de définition $[0\\,;+\\infty[$ n'est pas symétrique par rapport à $0$ : ni paire ni impaire."],
+      ["\\dfrac{x^2 + 1}{x}", 1, "$f(-x) = \\dfrac{x^2 + 1}{-x} = -f(x)$ : **impaire**."],
+      ["2x^2 - 7", 0, "$f(-x) = 2(-x)^2 - 7 = 2x^2 - 7 = f(x)$ : **paire**."],
+      ["x^5 - 2x^3", 1, "$f(-x) = -x^5 + 2x^3 = -f(x)$ : **impaire**."]
+    ];
+    const [fx, rep, sol] = pick(T);
+    return {
+      enonce: `La fonction $f(x) = ${fx}$ est-elle paire, impaire ou ni l'un ni l'autre ?`,
+      mode: "choix", choix: ["Paire", "Impaire", "Ni paire ni impaire"], attendu: rep,
+      aides: ["Vérifie d'abord que l'ensemble de définition est symétrique par rapport à $0$.", "Calcule $f(-x)$ : si $f(-x) = f(x)$ pour tout $x$, $f$ est paire ; si $f(-x) = -f(x)$, $f$ est impaire.", "Pour prouver « ni l'un ni l'autre », un contre-exemple numérique suffit (par exemple $x = 1$)."],
+      solution: sol
+    };
+  };
+
+  // Logique : implication, réciproque, condition nécessaire non suffisante
+  GEN["vr-logique"] = function () {
+    const T = [
+      ["Si $f'(a) = 0$, alors $f$ admet un extremum en $a$.", 1, "**Faux**. Contre-exemple : $f(x) = x^3$, $f'(0) = 0$ mais $f$ est croissante, sans extremum en $0$. La condition $f'(a) = 0$ est **nécessaire**, pas suffisante."],
+      ["Si $f$ est dérivable sur un intervalle ouvert et admet un extremum en $a$, alors $f'(a) = 0$.", 0, "**Vrai** : en un extremum à l'intérieur de l'intervalle, la tangente est horizontale."],
+      ["Si $f'(x) \\geqslant 0$ pour tout $x$ de $I$, alors $f$ est croissante sur $I$.", 0, "**Vrai** : c'est le théorème du cours (admis)."],
+      ["Si $f$ est strictement croissante sur $I$, alors $f'(x) > 0$ pour tout $x$ de $I$.", 1, "**Faux**. Contre-exemple : $x^3$ est strictement croissante sur $\\mathbb{R}$, mais sa dérivée $3x^2$ s'annule en $0$. La réciproque d'un théorème vrai n'est pas forcément vraie."],
+      ["Si $f'$ s'annule en $a$ en changeant de signe, alors $f$ admet un extremum en $a$.", 0, "**Vrai** : $f$ change de sens de variation en $a$ ; de « + » à « − » c'est un maximum, de « − » à « + » un minimum."],
+      ["Si $f'(x) = 0$ pour tout $x$ d'un intervalle $I$, alors $f$ est constante sur $I$.", 0, "**Vrai** : une dérivée nulle sur un intervalle caractérise les fonctions constantes."],
+      ["Une fonction paire ne peut pas être croissante sur $\\mathbb{R}$, sauf si elle est constante.", 0, "**Vrai** : si $f$ est paire, $f(-1) = f(1)$. Si $f$ était croissante et non constante, on aurait une contradiction entre $f(-x)$ et $f(x)$ pour un $x > 0$ où elle augmente."]
+    ];
+    const [aff, rep, sol] = pick(T);
+    return {
+      enonce: `Vrai ou faux : « ${aff} »`,
+      mode: "choix", choix: ["Vrai", "Faux"], attendu: rep,
+      aides: ["Distingue une implication « si A alors B » de sa réciproque « si B alors A ».", "Pense à la fonction $x \\mapsto x^3$ : elle a une tangente horizontale en $0$ sans y avoir d'extremum.", "Pour dire « faux », un contre-exemple suffit."],
+      solution: sol
+    };
+  };
+
+  GEN["vr-optimisation"] = function () {
+    if (Math.random() < 0.5) {
+      const L = pick([12, 18, 24, 30, 36]), x = L / 6, V = (2 * L ** 3) / 27, q = Math.random() < 0.5;
+      return {
+        enonce: `Dans une plaque carrée de $${L}$ cm de côté, on découpe aux quatre coins des carrés de côté $x$ cm, puis on replie pour former une boîte sans couvercle. Son volume est $V(x) = x(${L} - 2x)^2$ pour $0 < x < ${L / 2}$. ${q ? "Pour quelle valeur de $x$ le volume est-il maximal ?" : "Quel est le volume maximal ?"}`,
+        mode: "nombre", prefixe: q ? "$x =$" : "$V_{\\max} =$", suffixe: q ? "cm" : "cm³", attendu: q ? x : V,
+        erreurs: q ? [{ valeur: L / 2, message: "Pour cette valeur, $V(x) = 0$ : la boîte est plate. C'est l'autre racine de $V'$." }] : [{ valeur: x, message: "Ça, c'est la valeur de $x$. On demande le volume $V(x)$." }],
+        aides: ["$V(x) = x(L - 2x)^2$ est un produit : $V'(x) = (L - 2x)^2 + x \\times 2(L - 2x) \\times (-2)$.", `$V'(x) = (${L} - 2x)(${L} - 6x)$.`, `Sur $]0\\,;${L / 2}[$, $V'$ s'annule en $x = ${x}$ en passant de « + » à « − ».`],
+        solution: `$V'(x) = (${L} - 2x)^2 - 4x(${L} - 2x) = (${L} - 2x)(${L} - 6x)$. Sur $]0\\,;${L / 2}[$, $${L} - 2x > 0$ : $V'$ a le signe de $${L} - 6x$, positif avant $${x}$ et négatif après. Le volume est maximal pour $x = ${x}$ cm : $V(${x}) = ${x} \\times ${L - 2 * x}^2 = ${nb(V)}$ cm³.`,
+        figure: patron(L)
+      };
+    }
+    const k = pick([10, 12, 15]), c = pick([200, 500]), Bmax = k ** 3 - c, q = Math.random() < 0.5;
+    return {
+      enonce: `Une distillerie d'ylang-ylang produit $x$ litres d'huile essentielle par mois ($0 \\leqslant x \\leqslant 20$). Son bénéfice, en euros, est $B(x) = -2x^3 + ${3 * k}x^2 - ${c}$. ${q ? "Quelle production rend le bénéfice maximal ?" : "Quel est le bénéfice maximal ?"}`,
+      mode: "nombre", prefixe: q ? "$x =$" : "$B_{\\max} =$", suffixe: q ? "L" : "€", attendu: q ? k : Bmax,
+      erreurs: q ? [{ valeur: 0, message: "En $0$, $B'$ s'annule mais le bénéfice y est négatif : c'est un minimum." }] : [{ valeur: k, message: "Ça, c'est la production optimale. On demande le bénéfice $B(x)$." }],
+      aides: [`$B'(x) = -6x^2 + ${6 * k}x$.`, `$B'(x) = -6x(x - ${k})$ : positif sur $]0\\,;${k}[$, négatif sur $]${k}\\,;20]$.`, `Le maximum est atteint en $x = ${k}$ ; calcule $B(${k})$.`],
+      solution: `$B'(x) = -6x(x - ${k})$ : $B$ croît sur $[0\\,;${k}]$ puis décroît sur $[${k}\\,;20]$. Le bénéfice est maximal pour $${k}$ L : $B(${k}) = -2 \\times ${k ** 3} + ${3 * k} \\times ${k * k} - ${c} = ${nb(Bmax)}$ €.`,
+      figure: tabSV(["0", "?", "20"], ["?", "", "?"], ["", "", ""], "B"),
+      figureSolution: tabSV(["0", `${k}`, "20"], ["+", "0", "-"], [nbSvg(-c), nbSvg(Bmax), nbSvg(-2 * 8000 + 3 * k * 400 - c)], "B")
+    };
+  };
+
+  GEN["vr-inegalite"] = function () {
+    const m = pick([2, 3, 5, 6]), q = Math.random() < 0.5;
+    return {
+      enonce: `Pour comparer $x^3$ et $3x - ${m}$ sur $[0\\,;+\\infty[$, on étudie $d(x) = x^3 - 3x + ${m}$. ${q ? "Quel est le minimum de $d$ sur $[0\\,;+\\infty[$ ?" : "En quelle valeur de $x$ ce minimum est-il atteint ?"}`,
+      mode: "nombre", prefixe: q ? "Minimum :" : "$x =$", attendu: q ? m - 2 : 1,
+      erreurs: q ? [{ valeur: m, message: "Ça, c'est $d(0)$. Le minimum est atteint là où $d'$ change de signe." }, { valeur: 1, message: "Ça, c'est l'abscisse du minimum. On demande sa valeur $d(1)$." }].filter((e) => e.valeur !== m - 2) : [{ valeur: -1, message: "$-1$ n'est pas dans $[0\\,;+\\infty[$." }],
+      aides: ["$d'(x) = 3x^2 - 3 = 3(x - 1)(x + 1)$.", "Sur $[0\\,;+\\infty[$, $d'$ est négative avant $1$ et positive après.", "Le minimum est $d(1)$."],
+      solution: `$d'(x) = 3(x - 1)(x + 1)$ : $d$ décroît sur $[0\\,;1]$ et croît sur $[1\\,;+\\infty[$. Son minimum est $d(1) = 1 - 3 + ${m} = ${m - 2}$. ${m - 2 === 0 ? "Donc $d(x) \\geqslant 0$ : $x^3 \\geqslant 3x - 2$ sur $[0\\,;+\\infty[$, avec égalité en $1$ (la droite est tangente à la courbe)." : `Donc $d(x) > 0$ : $x^3 > 3x - ${m}$ sur $[0\\,;+\\infty[$, la courbe est toujours au-dessus de la droite.`}`,
+      figure: tabSV(["0", "?", "+∞"], ["?", "", "?"], ["", "", ""], "d"),
+      figureSolution: tabSV(["0", "1", "+∞"], ["-", "0", "+"], [nbSvg(m), nbSvg(m - 2), ""], "d")
+    };
+  };
+
+  GEN["vr-newton"] = function () {
+    const [A, x0] = pick([[2, 1], [2, 2], [3, 2], [5, 2], [10, 3], [7, 3], [6, 2]]), x1 = (x0 + A / x0) / 2;
+    const code = "```python\ndef newton(f, fp, x, n):\n    for i in range(n):\n        x = x - f(x) / fp(x)\n    return x\n\ndef f(x):\n    return x**2 - " + A + "\n\ndef fp(x):\n    return 2 * x\n```";
+    if (Math.random() < 0.6) {
+      return {
+        enonce: `${code}\n\nQue renvoie newton(f, fp, ${x0}, 1) ? (Valeur exacte : fraction ou décimal.)`,
+        mode: "nombre", prefixe: "Résultat :", attendu: x1, tolerance: 1e-6,
+        erreurs: [{ valeur: x0 - (x0 * x0 - A), message: "On divise $f(x)$ par $f'(x)$ avant de soustraire." }].filter((e) => Math.abs(e.valeur - x1) > 1e-6),
+        aides: ["Une seule étape : $x_1 = x_0 - \\dfrac{f(x_0)}{f'(x_0)}$.", `$f(${x0}) = ${x0 * x0 - A}$ et $f'(${x0}) = ${2 * x0}$.`, `$x_1 = ${x0} - \\dfrac{${x0 * x0 - A}}{${2 * x0}}$.`],
+        solution: `$x_1 = ${x0} - \\dfrac{${x0 * x0 - A}}{${2 * x0}} = ${frac(x0 * 2 * x0 - (x0 * x0 - A), 2 * x0)}${Number.isInteger(x1 * 1000) ? ` = ${nb(x1)}` : ` \\approx ${nb(+x1.toFixed(4))}`}$. C'est l'abscisse où la tangente en $${x0}$ coupe l'axe des abscisses.`
+      };
+    }
+    const c = melangeChoix(`$\\sqrt{${A}}$`, [`$${A}$`, `$\\dfrac{${A}}{2}$`, "$0$"]);
+    return {
+      enonce: `${code}\n\nVers quel nombre se rapprochent les résultats de newton(f, fp, ${x0}, n) quand n augmente ?`,
+      mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: ["La méthode de Newton cherche une solution de $f(x) = 0$.", `Ici $f(x) = x^2 - ${A}$.`, `$x^2 - ${A} = 0$ pour $x = \\sqrt{${A}}$ ou $x = -\\sqrt{${A}}$ ; on part d'un nombre positif.`],
+      solution: `La méthode suit les tangentes jusqu'à la solution positive de $x^2 - ${A} = 0$ : $\\sqrt{${A}} \\approx ${nb(+Math.sqrt(A).toFixed(6))}$. Quelques étapes suffisent pour obtenir beaucoup de décimales exactes.`
+    };
+  };
+
+
   /* Séries « flash » d'un thème : mélange de ses générateurs */
   const THEMES = {
     "am-flash-cn": ["am-comparer", "am-fractions", "am-puissances", "am-ecritures", "am-ordre-grandeur", "am-coherence", "auto-conversions"],
@@ -6741,7 +6948,7 @@
 
 
   /* Une « erreur connue » ne doit jamais coïncider avec la bonne réponse (à la tolérance près) */
-  Object.keys(GEN).filter((k) => /^(ld|am|cd|ar|cl|fa|ve|st|vx|tc|co|dr|fr|sg|pc|ec|sy|su|s2|pi|s5|d1|tr|d2)-/.test(k)).forEach((k) => {
+  Object.keys(GEN).filter((k) => /^(ld|am|cd|ar|cl|fa|ve|st|vx|tc|co|dr|fr|sg|pc|ec|sy|su|s2|pi|s5|d1|tr|d2|vr)-/.test(k)).forEach((k) => {
     const g = GEN[k];
     GEN[k] = (i) => { const q = g(i); if (q.erreurs) q.erreurs = q.erreurs.filter((e) => Math.abs(e.valeur - q.attendu) >= (q.tolerance || 1e-9)); return q; };
   });

@@ -281,6 +281,13 @@ window.CATALOGUE = {
           titre: "Dérivation 2 : point de vue global",
           statut: "disponible",
           drive: ""
+        },
+        {
+          id: "premiere-variations",
+          numero: 10,
+          titre: "Variations et courbes représentatives",
+          statut: "disponible",
+          drive: ""
         }
       ]
     },
