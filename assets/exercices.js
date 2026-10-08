@@ -5146,6 +5146,354 @@
   FIGURES["boite-patron"] = () => patron(30);
 
 
+  /* ---------- Première, chapitre 1 : suites, généralités (préfixe su-) ---------- */
+  // Motifs : galets en triangle, en carré, allumettes en rangée de carrés. Renvoie le dessin des étapes 1 à 3.
+  const MOTIFS = {
+    triangle: { nom: "de galets rangés en triangle", u: (n) => (n * (n + 1)) / 2, rec: "u_{n+1} = u_n + (n + 1)", gen: "u_n = \\dfrac{n(n + 1)}{2}", expl: (n) => `$u_n = 1 + 2 + \\dots + ${n} = \\dfrac{${n} \\times ${n + 1}}{2}$` },
+    carre: { nom: "de galets rangés en carré", u: (n) => n * n, rec: "u_{n+1} = u_n + 2n + 1", gen: "u_n = n^2", expl: (n) => `$u_n = n^2 = ${n}^2$` },
+    allumettes: { nom: "d'allumettes formant une rangée de carrés", u: (n) => 3 * n + 1, rec: "u_{n+1} = u_n + 3", gen: "u_n = 3n + 1", expl: (n) => `$u_n = 3n + 1 = 3 \\times ${n} + 1$` }
+  };
+  function motifFig(cle) {
+    const W = 320, H = 120;
+    let s = `<svg class="graph" viewBox="0 0 ${W} ${H}" role="img" aria-label="Étapes 1, 2 et 3 du motif">`;
+    const ox = [14, 82, 180];
+    [1, 2, 3].forEach((n, i) => {
+      const x0 = ox[i];
+      if (cle === "allumettes") {
+        const c = 22, y0 = 40;
+        for (let k = 0; k <= n; k++) s += `<line x1="${x0 + k * c}" y1="${y0}" x2="${x0 + k * c}" y2="${y0 + c}" style="stroke:var(--courbe2);stroke-width:3;stroke-linecap:round"/>`;
+        for (let k = 0; k < n; k++) s += `<line x1="${x0 + k * c}" y1="${y0}" x2="${x0 + (k + 1) * c}" y2="${y0}" style="stroke:var(--courbe2);stroke-width:3;stroke-linecap:round"/><line x1="${x0 + k * c}" y1="${y0 + c}" x2="${x0 + (k + 1) * c}" y2="${y0 + c}" style="stroke:var(--courbe2);stroke-width:3;stroke-linecap:round"/>`;
+      } else {
+        const r = 6.5, d = 15;
+        for (let ligne = 0; ligne < n; ligne++) {
+          const nb = cle === "triangle" ? ligne + 1 : n;
+          for (let k = 0; k < nb; k++) s += `<circle cx="${x0 + 10 + k * d + (cle === "triangle" ? (n - ligne - 1) * d / 2 : 0)}" cy="${86 - (n - 1 - ligne) * d}" r="${r}" style="fill:var(--lagon-pale);stroke:var(--lagon);stroke-width:1.4"/>`;
+        }
+      }
+      s += `<text class="g-label" x="${x0 + 22}" y="${H - 6}" text-anchor="middle">étape ${n}</text>`;
+    });
+    return s + `</svg>`;
+  }
+  FIGURES["motif-galets"] = () => motifFig("triangle");
+  FIGURES["motif-allumettes"] = () => motifFig("allumettes");
+
+  GEN["su-motif"] = function () {
+    const cle = pick(Object.keys(MOTIFS)), M = MOTIFS[cle], n = rand(5, 12);
+    return {
+      enonce: `On construit des motifs ${M.nom} (étapes $1$, $2$, $3$ ci-dessous). On note $u_n$ le nombre ${cle === "allumettes" ? "d'allumettes" : "de galets"} à l'étape $n$. Calcule $u_{${n}}$.`,
+      figure: motifFig(cle),
+      mode: "nombre", prefixe: `$u_{${n}} =$`, attendu: M.u(n),
+      aides: [`Compte : $u_1 = ${M.u(1)}$, $u_2 = ${M.u(2)}$, $u_3 = ${M.u(3)}$.`, `Passage d'une étape à la suivante : $${M.rec}$.`, `Formule explicite : $${M.gen}$, ou continue de proche en proche.`],
+      solution: `${M.expl(n).slice(0, -1)} = ${M.u(n)}$.\n\nRelation de récurrence : $${M.rec}$.`
+    };
+  };
+
+  GEN["su-traduire"] = function () {
+    const a = rand(2, 9) * 10, p = pick([2, 3, 4, 5, 8, 10]), T = [
+      [`Chaque année, la commune gagne $${a}$ habitants.`, `u_{n+1} = u_n + ${a}`, [`u_{n+1} = ${a}u_n`, `u_n = u_{n+1} + ${a}`, `u_{n+1} = u_n \\times ${1 + a / 100}`]],
+      [`Chaque année, la population augmente de $${p}\\,\\%$.`, `u_{n+1} = ${nb(1 + p / 100)}u_n`, [`u_{n+1} = u_n + ${p}`, `u_{n+1} = ${nb(p / 100)}u_n`, `u_{n+1} = u_n + ${nb(1 + p / 100)}`]],
+      [`Chaque année, la population diminue de $${p}\\,\\%$, puis $${a}$ personnes s'installent.`, `u_{n+1} = ${nb(1 - p / 100)}u_n + ${a}`, [`u_{n+1} = ${nb(1 + p / 100)}u_n + ${a}`, `u_{n+1} = ${nb(1 - p / 100)}(u_n + ${a})`, `u_{n+1} = u_n - ${p} + ${a}`]]
+    ];
+    const [phr, bonne, faux] = pick(T);
+    const ch = melangeChoix(`$${bonne}$`, faux.map((f) => `$${f}$`));
+    return {
+      enonce: `On note $u_n$ la population d'une commune de Mayotte $n$ années après 2026. ${phr} Quelle relation traduit cette phrase ?`,
+      mode: "choix", choix: ch.choix, attendu: ch.attendu,
+      aides: ["$u_{n+1}$ est la population l'année suivante : exprime-la à partir de $u_n$.", "Ajouter une quantité fixe : $+$. Augmenter de $t\\,\\%$ : multiplier par $1 + \\dfrac{t}{100}$. Diminuer : multiplier par $1 - \\dfrac{t}{100}$.", "Respecte l'ordre des opérations décrit dans la phrase."],
+      solution: `$${bonne}$.`
+    };
+  };
+
+  GEN["su-variation"] = function () {
+    const t = rand(0, 3);
+    let enonce, rep, sol;
+    if (t === 0) {
+      const a = randNZ(-6, 6);
+      enonce = `On sait que, pour tout entier $n$, $u_{n+1} - u_n = ${a < 0 ? `-n^2 ${sg(a)}` : `n^2 + ${a}`}$. Quel est le sens de variation de $(u_n)$ ?`;
+      rep = a > 0 ? 0 : 1; if (a < 0) rep = 1;
+      sol = a > 0 ? `$n^2 + ${a} > 0$ pour tout $n$ : $u_{n+1} > u_n$, la suite est **croissante**.` : `$-n^2 ${sg(a)} < 0$ pour tout $n$ : $u_{n+1} < u_n$, la suite est **décroissante**.`;
+    } else if (t === 1) {
+      const k = rand(2, 9);
+      enonce = `$u_n = n^2 - ${2 * k}n$. On calcule $u_{n+1} - u_n = 2n + 1 - ${2 * k} = 2n - ${2 * k - 1}$. La suite est-elle croissante **à partir du rang $${k}$** ?`;
+      rep = 0;
+      sol = `Pour $n \\geqslant ${k}$, $2n - ${2 * k - 1} \\geqslant ${2 * k} - ${2 * k - 1} = 1 > 0$ : la suite est croissante à partir du rang $${k}$ (avant, elle décroît).`;
+    } else if (t === 2) {
+      const c = rand(2, 9);
+      enonce = `$u_n = (-1)^n \\times ${c}$. Quel est le sens de variation de $(u_n)$ ?`;
+      rep = 2;
+      sol = `Les termes valent $${c}$, $-${c}$, $${c}$, $-${c}$… : ils montent puis descendent sans arrêt. La suite n'est **ni croissante ni décroissante**. Il suffit d'un contre-exemple : $u_1 < u_0$ mais $u_2 > u_1$.`;
+    } else {
+      const f = pick([["\\sqrt{n}", 0, "La fonction racine carrée est croissante sur $[0\\,;+\\infty[$"], ["\\dfrac{1}{n + 1}", 1, "La fonction $x \\mapsto \\dfrac{1}{x + 1}$ est décroissante sur $[0\\,;+\\infty[$"], ["5 - 3n", 1, "La fonction affine $x \\mapsto 5 - 3x$ est décroissante (coefficient $-3 < 0$)"], ["n^2 + 4", 0, "La fonction $x \\mapsto x^2 + 4$ est croissante sur $[0\\,;+\\infty[$"]]);
+      enonce = `$u_n = ${f[0]}$ pour tout $n \\in \\mathbb{N}$. Quel est le sens de variation de $(u_n)$ ?`;
+      rep = f[1];
+      sol = `${f[2]}, donc la suite $(u_n)$, avec $u_n = f(n)$, a le même sens de variation : elle est **${rep ? "décroissante" : "croissante"}**.`;
+    }
+    return {
+      enonce, mode: "choix", choix: t === 1 ? ["Oui", "Non"] : ["Croissante", "Décroissante", "Ni croissante ni décroissante"], attendu: rep,
+      aides: ["$(u_n)$ est croissante si $u_{n+1} \\geqslant u_n$ pour tout $n$ : on étudie le signe de $u_{n+1} - u_n$.", "Si $u_n = f(n)$ et que $f$ est monotone sur $[0\\,;+\\infty[$, la suite a le même sens de variation que $f$.", "Pour montrer qu'une suite n'est pas monotone, un contre-exemple suffit."],
+      solution: sol
+    };
+  };
+
+  GEN["su-limite"] = function () {
+    const T = [
+      ["3 + \\dfrac{1}{n}", "elle se rapproche de $3$", "$\\dfrac{1}{n}$ devient aussi petit qu'on veut : $u_n$ se rapproche de $3$ (limite finie)."],
+      ["n^2 + 1", "elle devient aussi grande qu'on veut", "$n^2$ dépasse n'importe quel nombre : la limite est $+\\infty$."],
+      ["(-1)^n", "elle n'a pas de limite", "Les termes valent $1$, $-1$, $1$… : ils ne se rapprochent d'aucun nombre. Pas de limite."],
+      ["5 - 2n", "elle devient négative et aussi grande qu'on veut en valeur absolue", "$-2n$ devient de plus en plus négatif : la limite est $-\\infty$."],
+      ["2 - \\dfrac{3}{n + 1}", "elle se rapproche de $2$", "$\\dfrac{3}{n + 1}$ se rapproche de $0$ : $u_n$ se rapproche de $2$."],
+      ["1000 \\times 0{,}5^n", "elle se rapproche de $0$", "$0{,}5^n$ est divisé par $2$ à chaque rang : il se rapproche de $0$, et $u_n$ aussi."]
+    ];
+    const [f, b, s] = pick(T), autres = ["elle se rapproche de $0$", "elle devient aussi grande qu'on veut", "elle n'a pas de limite", "elle se rapproche de $1$"].filter((x) => x !== b);
+    const ch = melangeChoix(b, autres.slice(0, 3));
+    return {
+      enonce: `$u_n = ${f}$. Calcule quelques termes pour de grandes valeurs de $n$ ($10$, $100$, $1\\,000$) et conjecture le comportement de $(u_n)$ quand $n$ devient très grand.`,
+      mode: "choix", choix: ch.choix, attendu: ch.attendu,
+      aides: ["Calcule $u_{10}$, $u_{100}$ et $u_{1\\,000}$, à la calculatrice ou de tête.", "Regarde si les termes se stabilisent autour d'un nombre, grandissent sans fin, ou oscillent.", "En Première, on conjecture une limite : on ne la démontre pas encore."],
+      solution: s
+    };
+  };
+
+  GEN["su-liste"] = function () {
+    const t = rand(0, 3);
+    if (t === 0) {
+      const a = rand(2, 5), b = rand(-3, 4), n = rand(4, 7), i = rand(0, n - 1);
+      const L = Array.from({ length: n }, (_, k) => a * k + b);
+      return {
+        enonce: "En Python :\n\n```python\nL = [" + a + " * k " + (b < 0 ? "- " + -b : "+ " + b) + " for k in range(" + n + ")]\n```\n\n" + `Que vaut $\\texttt{L[${i}]}$ ? (Les indices commencent à $0$.)`,
+        mode: "nombre", prefixe: "Réponse :", attendu: L[i],
+        erreurs: i + 1 < n ? [{ valeur: L[i + 1], message: "Les indices commencent à $0$ : $\\texttt{L[0]}$ est le premier élément." }] : [],
+        aides: ["Liste en compréhension : on calcule l'expression pour chaque $k$ de $\\texttt{range(" + n + ")}$, c'est-à-dire $0$, $1$, …, $" + (n - 1) + "$.", `$\\texttt{L[${i}]}$ correspond à $k = ${i}$.`, `Calcule $${a} \\times ${i} ${sg(b)}$.`],
+        solution: `$\\texttt{L} = [${L.join(",\\ ")}]$. $\\texttt{L[${i}]} = ${a} \\times ${i} ${sg(b)} = ${L[i]}$.`
+      };
+    }
+    if (t === 1) {
+      const n = rand(6, 10), F = [1, 1]; while (F.length < n) F.push(F[F.length - 1] + F[F.length - 2]);
+      return {
+        enonce: "Suite de Fibonacci en Python :\n\n```python\nF = [1, 1]\nfor i in range(" + (n - 2) + "):\n    F.append(F[-1] + F[-2])\nprint(F[-1])\n```\n\nQu'affiche ce programme ?",
+        mode: "nombre", prefixe: "Affichage :", attendu: F[n - 1],
+        aides: ["$\\texttt{F.append(x)}$ ajoute $x$ à la fin de la liste ; $\\texttt{F[-1]}$ est le dernier élément, $\\texttt{F[-2]}$ l'avant-dernier.", "Chaque nouveau terme est la somme des deux précédents : $1, 1, 2, 3, 5…$", `La boucle ajoute $${n - 2}$ termes : la liste contient $${n}$ termes à la fin.`],
+        solution: `$\\texttt{F} = [${F.join(",\\ ")}]$ : le programme affiche le dernier, $${F[n - 1]}$.`
+      };
+    }
+    if (t === 2) {
+      let u = pick([3, 6, 7, 9, 11, 12]); const S = [u]; while (u !== 1 && S.length < 30) { u = u % 2 ? 3 * u + 1 : u / 2; S.push(u); }
+      return {
+        enonce: "Suite de Syracuse : si $u$ est pair, on le divise par $2$ ; sinon, on le remplace par $3u + 1$.\n\n```python\nu = " + S[0] + "\nL = [u]\nwhile u != 1:\n    if u % 2 == 0:\n        u = u // 2\n    else:\n        u = 3 * u + 1\n    L.append(u)\nprint(len(L))\n```\n\nQu'affiche ce programme ?",
+        mode: "nombre", prefixe: "Affichage :", attendu: S.length,
+        aides: ["$\\texttt{len(L)}$ est le nombre d'éléments de la liste.", `Calcule la suite à partir de $${S[0]}$ jusqu'à arriver à $1$.`, `Les premiers termes : $${S.slice(0, 4).join(",\\ ")}$…`],
+        solution: `$\\texttt{L} = [${S.join(",\\ ")}]$ : $${S.length}$ éléments. Le programme affiche $${S.length}$.`
+      };
+    }
+    const u0 = rand(1, 5), a = rand(2, 3), n = rand(3, 5); const L = [u0]; for (let k = 0; k < n; k++) L.push(a * L[L.length - 1]);
+    return {
+      enonce: "En Python :\n\n```python\nL = [" + u0 + "]\nfor k in range(" + n + "):\n    L.append(" + a + " * L[k])\nprint(sum(L))\n```\n\nQu'affiche ce programme ?",
+      mode: "nombre", prefixe: "Affichage :", attendu: L.reduce((s, x) => s + x, 0),
+      aides: ["La liste se construit terme par terme : $\\texttt{L[k+1]} = " + a + " \\times \\texttt{L[k]}$.", `La boucle ajoute $${n}$ termes : la liste en contient $${n + 1}$.`, "$\\texttt{sum(L)}$ additionne tous les éléments."],
+      solution: `$\\texttt{L} = [${L.join(",\\ ")}]$ et $\\texttt{sum(L)} = ${L.reduce((s, x) => s + x, 0)}$.`
+    };
+  };
+
+
+  /* ---------- Première, chapitre 2 : second degré, forme factorisée (préfixe s2-) ---------- */
+  const facteurX = (r) => (r === 0 ? "x" : `(x ${r > 0 ? "-" : "+"} ${Math.abs(r)})`);
+  const coefTex = (a) => (a === 1 ? "" : a === -1 ? "-" : `${a}`);
+
+  GEN["s2-statut"] = function () {
+    const k = rand(2, 9), T = [
+      [`(x + ${k})^2 = x^2 + ${2 * k}x + ${k * k}`, 0, "C'est une **identité** : l'égalité est vraie pour **tout** réel $x$ (identité remarquable). $x$ est une **variable**."],
+      [`x^2 + ${2 * k}x + ${k * k} = 0`, 1, `C'est une **équation** : on cherche les valeurs de l'**inconnue** $x$ qui la rendent vraie. Ici $(x + ${k})^2 = 0$, seule solution $x = -${k}$.`],
+      [`(x - ${k})(x + ${k}) = x^2 - ${k * k}`, 0, "C'est une **identité** : vraie pour tout réel $x$ (en développant, on retrouve le membre de droite)."],
+      [`x(x - ${k}) = ${k}x`, 1, `C'est une **équation** : elle n'est vraie que pour certaines valeurs ($x = 0$ ou $x = ${2 * k}$).`],
+      [`(x + ${k})^2 = x^2 + ${k * k}`, 2, `C'est **faux** en général : pour $x = 1$, on trouve $${(1 + k) ** 2}$ d'un côté et $${1 + k * k}$ de l'autre. Il manque le double produit $${2 * k}x$. Comme équation, elle n'a qu'une solution, $x = 0$.`]
+    ];
+    const [eg, rep, sol] = pick(T);
+    return {
+      enonce: `Quel est le statut de l'égalité $${eg}$ ?`,
+      mode: "choix", choix: ["Une identité (vraie pour tout $x$)", "Une équation à résoudre", "Une identité fausse : elle n'est pas vraie pour tout $x$"], attendu: rep,
+      aides: ["Une **identité** est vraie pour toutes les valeurs de la variable. Une **équation** n'est vraie que pour certaines valeurs de l'inconnue.", "Teste l'égalité avec $x = 0$ et $x = 1$.", "Développe le membre de gauche et compare avec celui de droite."],
+      solution: sol
+    };
+  };
+
+  GEN["s2-factoriser"] = function () {
+    const t = rand(0, 3);
+    let tex, bonne, faux, sol;
+    if (t === 0) {
+      // racine évidente 1 et produit des racines
+      const a = pick([1, 2, 3, -1]), r = rand(2, 7) * pick([1, -1]);
+      const b = -a * (1 + r), c = a * r;
+      tex = poly([a, b, c]);
+      bonne = `${coefTex(a)}${facteurX(1)}${facteurX(r)}`;
+      faux = [`${coefTex(a)}${facteurX(-1)}${facteurX(-r)}`, `${coefTex(a)}${facteurX(1)}${facteurX(-r)}`, `${facteurX(1)}${facteurX(r)}`].filter((f) => f !== bonne);
+      sol = `$1$ est racine évidente : $${a} ${sg(b)} ${sg(c)} = 0$. Le produit des racines vaut $\\dfrac{c}{a} = ${r}$, donc l'autre racine est $${r}$.\n\n$${tex} = ${bonne}$.`;
+    } else if (t === 1) {
+      const k = rand(2, 9), a = pick([1, 1, 2, 3]);
+      tex = poly([a, 0, -a * k * k]);
+      bonne = `${coefTex(a)}(x - ${k})(x + ${k})`;
+      faux = [`${coefTex(a)}(x - ${k})^2`, `${coefTex(a)}(x - ${k * k})(x + ${k * k})`, `${coefTex(a)}x(x - ${k})`];
+      sol = `Coefficient de $x$ nul : $${tex} = ${a === 1 ? "" : `${a}(`}x^2 - ${k * k}${a === 1 ? "" : ")"} = ${bonne}$ (identité $a^2 - b^2$).`;
+    } else if (t === 2) {
+      const a = randNZ(-4, 4), k = rand(2, 9);
+      tex = poly([a, -a * k, 0]);
+      bonne = `${coefTex(a)}x(x - ${k})`;
+      faux = [`${coefTex(a)}x(x + ${k})`, `${coefTex(a)}(x - ${k})^2`, `x(${a}x - ${k})`].filter((f) => f !== bonne);
+      sol = `Pas de terme constant : on met $x$ en facteur. $${tex} = ${bonne}$. Racines $0$ et $${k}$.`;
+    } else {
+      // somme et produit : x² − sx + p avec racines entières
+      let r1, r2; do { r1 = randNZ(-7, 7); r2 = randNZ(-7, 7); } while (r1 === r2 || r1 === -r2);
+      tex = poly([1, -(r1 + r2), r1 * r2]);
+      bonne = `${facteurX(r1)}${facteurX(r2)}`;
+      faux = [`${facteurX(-r1)}${facteurX(-r2)}`, `${facteurX(r1)}${facteurX(-r2)}`, `${facteurX(r1 + r2)}${facteurX(1)}`].filter((f) => f !== bonne);
+      sol = `On cherche deux nombres de somme $${r1 + r2}$ et de produit $${r1 * r2}$ : $${r1}$ et $${r2}$.\n\n$${tex} = ${bonne}$.`;
+    }
+    const ch = melangeChoix(`$${bonne}$`, faux.map((f) => `$${f}$`));
+    return {
+      enonce: `Factorise $${tex}$ sans calculer de discriminant.`,
+      mode: "choix", choix: ch.choix, attendu: ch.attendu,
+      aides: ["Cherche d'abord un facteur commun, une identité remarquable, ou une racine évidente ($1$, $-1$, $2$…).", "Si $x_1$ et $x_2$ sont les racines : $x_1 + x_2 = -\\dfrac{b}{a}$ et $x_1 x_2 = \\dfrac{c}{a}$.", "Vérifie en développant ta réponse."],
+      solution: sol
+    };
+  };
+
+  GEN["s2-python"] = function () {
+    let a, b, c, x, oui;
+    do { a = randNZ(-3, 3); const r = randNZ(-5, 5), s = rand(-5, 5); b = -a * (r + s); c = a * r * s; oui = Math.random() < 0.5; x = oui ? pick([r, s]) : rand(-5, 5); } while (!oui && a * x * x + b * x + c === 0);
+    const vrai = a * x * x + b * x + c === 0;
+    return {
+      enonce: "On considère la fonction Python :\n\n```python\ndef est_racine(a, b, c, x):\n    return a * x**2 + b * x + c == 0\n```\n\n" + `Que renvoie $\\texttt{est\\_racine(${a}, ${b}, ${c}, ${x})}$ ?`,
+      mode: "choix", choix: ["True", "False"], attendu: vrai ? 0 : 1,
+      aides: [`La fonction calcule $${poly([a, b, c])}$ pour $x = ${x}$.`, "Elle renvoie True si le résultat vaut $0$, c'est-à-dire si $x$ est une racine.", `Calcule $${a} \\times ${par(x)}^2 ${sg(b)} \\times ${par(x)} ${sg(c)}$.`],
+      solution: `$${a} \\times ${par(x)}^2 ${sg(b)} \\times ${par(x)} ${sg(c)} = ${a * x * x + b * x + c}$. ` + (vrai ? `Le résultat est nul : **True**, $${x}$ est une racine.` : "Le résultat n'est pas nul : **False**.")
+    };
+  };
+
+  GEN["s2-jardin"] = function () {
+    const L = rand(6, 14), l = rand(4, L - 1), x = pick([0.5, 1, 1.5, 2]);
+    const A = (L + 2 * x) * (l + 2 * x) - L * l;
+    return {
+      enonce: `Un jardin créole rectangulaire de $${L}$ m sur $${l}$ m est bordé tout autour d'une allée de largeur $x$ m. L'aire de l'allée est $A(x) = (${L} + 2x)(${l} + 2x) - ${L * l}$. Développe $A(x)$, puis calcule l'aire de l'allée pour $x = ${nb(x)}$ m.`,
+      mode: "nombre", prefixe: "Aire :", suffixe: "m²", attendu: A,
+      aides: [`$(${L} + 2x)(${l} + 2x) = ${L * l} + ${2 * L}x + ${2 * l}x + 4x^2$.`, `Donc $A(x) = 4x^2 + ${2 * (L + l)}x = 2x(2x + ${L + l})$ : une forme factorisée, de racines $0$ et $-${nb((L + l) / 2)}$.`, `Remplace $x$ par $${nb(x)}$.`],
+      solution: `$A(x) = 4x^2 + ${2 * (L + l)}x$, donc $A(${nb(x)}) = 4 \\times ${nb(x * x)} + ${2 * (L + l)} \\times ${nb(x)} = ${nb(A)}$ m².`
+    };
+  };
+
+
+  /* ---------- Schémas de Première (chapitres 2 et 5) ---------- */
+  // Jardin créole de 10 m sur 6 m bordé d'une allée de largeur x
+  FIGURES["jardin-allee"] = () => {
+    const o = 40, W = 240, H = 150, x = 22;
+    let s = `<svg class="graph" viewBox="0 0 320 ${H + 30}" role="img" aria-label="Jardin rectangulaire entouré d'une allée de largeur x">`;
+    s += `<rect x="${o}" y="8" width="${W}" height="${H}" style="fill:var(--ylang-pale);stroke:var(--doux);stroke-width:1.4"/>`;
+    s += `<rect x="${o + x}" y="${8 + x}" width="${W - 2 * x}" height="${H - 2 * x}" style="fill:var(--lagon-pale);stroke:var(--lagon);stroke-width:1.6"/>`;
+    s += `<text class="g-label" x="${o + W / 2}" y="${8 + H / 2 + 4}" text-anchor="middle">jardin 10 m × 6 m</text>`;
+    s += `<text class="g-label" x="${o + x / 2}" y="${8 + H / 2 + 4}" text-anchor="middle">x</text><text class="g-label" x="${o + W / 2}" y="${8 + x / 2 + 4}" text-anchor="middle">x</text>`;
+    s += `<text class="g-label" x="${o + W / 2}" y="${H + 26}" text-anchor="middle">10 + 2x</text><text class="g-label" x="${o + W + 6}" y="${8 + H / 2 + 4}">6 + 2x</text>`;
+    return s + `</svg>`;
+  };
+  // Parabole de f(x) = x² puis de f(x − 3) (translation horizontale)
+  FIGURES["parabole-translation"] = () => graph({ xmin: -3.5, xmax: 6.5, ymin: -1, ymax: 9.5, h: 280, curves: [{ f: (x) => x * x, a: -3, b: 3, closed: false, label: "y = x²", lx: -2.5, dx: 30, dy: 4 }, { f: (x) => (x - 3) ** 2, a: 0, b: 6, closed: false, label: "y = (x − 3)²", lx: 5.9, dx: -4, dy: 4 }], fleches: [{ x1: 0.3, y1: 0.4, x2: 2.7, y2: 0.4, c: 1, label: "+3" }], points: [{ x: 0, y: 0 }, { x: 3, y: 0 }], aria: "La parabole y = (x − 3)² est la parabole y = x² décalée de 3 vers la droite" });
+
+
+  /* ---------- Première, chapitre 3 : suites arithmétiques (préfixe su-) ---------- */
+  GEN["su-arith-reconnaitre"] = function () {
+    const a = randNZ(-6, 6), b = rand(-9, 9), t = rand(0, 3);
+    const T = [
+      [`u_n = ${poly([a, b], "n")}`, true, `$u_{n+1} - u_n = ${a}(n + 1) ${sg(b)} - (${poly([a, b], "n")}) = ${a}$ : constant. Arithmétique de raison $${a}$.`],
+      [`u_n = n^2 ${sg(b)}`.replace(" + 0", "").replace(" - 0", ""), false, "$u_{n+1} - u_n = (n + 1)^2 - n^2 = 2n + 1$ : dépend de $n$, donc **pas** arithmétique. Contre-exemple : $u_1 - u_0 = 1$ mais $u_2 - u_1 = 3$."],
+      [`u_0 = ${b} \\text{ et } u_{n+1} = u_n ${sg(a)}`, true, `On passe d'un terme au suivant en ajoutant toujours $${a}$ : arithmétique de raison $${a}$.`],
+      [`u_0 = ${b === 0 ? 1 : b} \\text{ et } u_{n+1} = ${Math.abs(a) === 1 ? 2 : Math.abs(a)}u_n`, false, `On **multiplie** par $${Math.abs(a) === 1 ? 2 : Math.abs(a)}$ à chaque étape : la différence $u_{n+1} - u_n$ n'est pas constante. Pas arithmétique (elle est géométrique, chapitre 6).`]
+    ];
+    const [def, oui, sol] = T[t];
+    return {
+      enonce: `La suite définie par $${def}$ est-elle arithmétique ?`,
+      mode: "choix", choix: ["Oui", "Non"], attendu: oui ? 0 : 1,
+      aides: ["Une suite est arithmétique **si et seulement si** $u_{n+1} - u_n$ est constant (ne dépend pas de $n$).", "Calcule $u_{n+1} - u_n$, ou les trois premiers termes.", "Pour dire « non », un contre-exemple sur les premiers termes suffit."],
+      solution: sol
+    };
+  };
+
+  GEN["su-somme-entiers"] = function () {
+    const t = rand(0, 2);
+    if (t === 0) {
+      const n = pick([10, 20, 30, 40, 50, 99, 100, 200, 365]);
+      return {
+        enonce: `Calcule $1 + 2 + 3 + \\dots + ${n}$.`,
+        mode: "nombre", prefixe: "Somme :", attendu: (n * (n + 1)) / 2,
+        erreurs: [{ valeur: (n * n) / 2, message: "La formule est $\\dfrac{n(n + 1)}{2}$, pas $\\dfrac{n^2}{2}$." }],
+        aides: ["$1 + 2 + \\dots + n = \\dfrac{n(n + 1)}{2}$.", `Ici $n = ${n}$.`, `Calcule $\\dfrac{${n} \\times ${n + 1}}{2}$.`],
+        solution: `$1 + 2 + \\dots + ${n} = \\dfrac{${n} \\times ${n + 1}}{2} = ${nb((n * (n + 1)) / 2)}$.`
+      };
+    }
+    const u0 = rand(-5, 20), r = randNZ(-4, 6), n = rand(8, 25), last = u0 + (n - 1) * r, S = (n * (u0 + last)) / 2;
+    if (t === 1) {
+      return {
+        enonce: `$(u_n)$ est arithmétique de premier terme $u_0 = ${u0}$ et de raison $${r}$. Calcule $u_0 + u_1 + \\dots + u_{${n - 1}}$.`,
+        mode: "nombre", prefixe: "Somme :", attendu: S,
+        erreurs: [{ valeur: ((n - 1) * (u0 + last)) / 2, message: `De $u_0$ à $u_{${n - 1}}$, il y a $${n}$ termes, pas $${n - 1}$.` }],
+        aides: ["Somme de termes consécutifs : $\\text{nombre de termes} \\times \\dfrac{\\text{premier} + \\text{dernier}}{2}$.", `Dernier terme : $u_{${n - 1}} = ${u0} + ${n - 1} \\times ${par(r)} = ${last}$.`, `Nombre de termes : de $0$ à $${n - 1}$, soit $${n}$.`],
+        solution: `$u_{${n - 1}} = ${last}$ et $S = ${n} \\times \\dfrac{${u0} + ${par(last)}}{2} = ${nb(S)}$.`
+      };
+    }
+    const a = rand(5, 30), b = a + rand(10, 60), m = b - a + 1;
+    return {
+      enonce: `Calcule la somme des entiers de $${a}$ à $${b}$ : $${a} + ${a + 1} + \\dots + ${b}$.`,
+      mode: "nombre", prefixe: "Somme :", attendu: (m * (a + b)) / 2,
+      erreurs: [{ valeur: ((b - a) * (a + b)) / 2, message: `De $${a}$ à $${b}$, il y a $${b} - ${a} + 1 = ${m}$ termes.` }],
+      aides: ["Ce sont les termes consécutifs d'une suite arithmétique de raison $1$.", `Nombre de termes : $${b} - ${a} + 1 = ${m}$.`, `$S = ${m} \\times \\dfrac{${a} + ${b}}{2}$.`],
+      solution: `$S = ${m} \\times \\dfrac{${a} + ${b}}{2} = ${nb((m * (a + b)) / 2)}$.`
+    };
+  };
+
+  GEN["su-arith-modele"] = function () {
+    const S0 = pick([0, 50, 100, 150, 200]), m = pick([30, 40, 50, 60, 75, 80]), cible = pick([1200, 1500, 1800]);
+    const t = rand(0, 1);
+    if (t === 0) {
+      const n = rand(6, 18);
+      return {
+        enonce: `Pour payer son permis de conduire, Faïza a $${S0}$ € et met de côté $${m}$ € chaque mois. On note $u_n$ son épargne après $n$ mois ($u_0 = ${S0}$). Combien aura-t-elle après $${n}$ mois ?`,
+        mode: "nombre", prefixe: `$u_{${n}} =$`, suffixe: "€", attendu: S0 + n * m,
+        aides: [`Chaque mois, on ajoute $${m}$ € : $(u_n)$ est arithmétique de raison $${m}$.`, "$u_n = u_0 + n \\times r$.", `$u_{${n}} = ${S0} + ${n} \\times ${m}$.`],
+        solution: `$u_{${n}} = ${S0} + ${n} \\times ${m} = ${S0 + n * m}$ €. C'est une croissance **linéaire** : les points $(n\\,;u_n)$ sont alignés.`
+      };
+    }
+    const n = Math.ceil((cible - S0) / m);
+    return {
+      enonce: `Faïza a $${S0}$ € et met de côté $${m}$ € par mois pour un permis qui coûte $${nb(cible)}$ €. Au bout de combien de mois aura-t-elle assez d'argent ?`,
+      mode: "nombre", prefixe: "Mois :", attendu: n,
+      erreurs: [{ valeur: n - 1, message: `Après $${n - 1}$ mois, elle n'a que $${S0 + (n - 1) * m}$ € : pas encore assez.` }],
+      aides: [`$u_n = ${S0} + ${m}n$.`, `Résous $${S0} + ${m}n \\geqslant ${cible}$.`, `$n \\geqslant \\dfrac{${cible - S0}}{${m}} \\approx ${nb(Math.round(((cible - S0) / m) * 100) / 100)}$ : prends le premier entier qui convient.`],
+      solution: `$${S0} + ${m}n \\geqslant ${cible} \\iff n \\geqslant \\dfrac{${cible - S0}}{${m}}$. Le plus petit entier qui convient est $n = ${n}$ : $u_{${n}} = ${S0 + n * m}$ €.`
+    };
+  };
+
+  GEN["su-arith-python"] = function () {
+    const t = rand(0, 1);
+    if (t === 0) {
+      const n = rand(3, 7); let f = 1; for (let i = 2; i <= n; i++) f *= i;
+      return {
+        enonce: "On considère la fonction Python :\n\n```python\ndef factorielle(n):\n    p = 1\n    for i in range(1, n + 1):\n        p = p * i\n    return p\n```\n\n" + `Que renvoie $\\texttt{factorielle(${n})}$ ?`,
+        mode: "nombre", prefixe: "Résultat :", attendu: f,
+        aides: [`$\\texttt{range(1, ${n + 1})}$ donne $1$, $2$, …, $${n}$.`, "À chaque tour, $p$ est multiplié par $i$.", `On calcule $1 \\times 2 \\times \\dots \\times ${n}$, noté $${n}!$.`],
+        solution: `$${n}! = ${Array.from({ length: n }, (_, i) => i + 1).join(" \\times ")} = ${f}$.`
+      };
+    }
+    const u0 = rand(1, 9), r = rand(2, 6), n = rand(4, 8); let s = 0; for (let k = 0; k <= n; k++) s += u0 + k * r;
+    return {
+      enonce: "On considère la fonction Python :\n\n```python\ndef somme(n):\n    u = " + u0 + "\n    s = u\n    for i in range(n):\n        u = u + " + r + "\n        s = s + u\n    return s\n```\n\n" + `Que renvoie $\\texttt{somme(${n})}$ ?`,
+      mode: "nombre", prefixe: "Résultat :", attendu: s,
+      aides: [`$u$ prend les valeurs $${u0}$, $${u0 + r}$, $${u0 + 2 * r}$… : une suite arithmétique de raison $${r}$.`, `$s$ additionne $u_0$, $u_1$, …, $u_{${n}}$ : $${n + 1}$ termes.`, `Formule : $${n + 1} \\times \\dfrac{${u0} + ${u0 + n * r}}{2}$.`],
+      solution: `$s = u_0 + \\dots + u_{${n}} = ${n + 1} \\times \\dfrac{${u0} + ${u0 + n * r}}{2} = ${s}$.`
+    };
+  };
+
+
+  // Première, chapitre 3 : nuage d'une suite arithmétique (points alignés) ; chapitre 6 : suite géométrique
+  FIGURES["suite-arith"] = () => graph({ xmin: -0.5, xmax: 7.5, ymin: -0.5, ymax: 14, ystep: 2, yetiq: 2, h: 260, curves: [{ f: (x) => 2 + 1.5 * x, a: 0, b: 7, closed: false }], points: Array.from({ length: 8 }, (_, n) => ({ x: n, y: 2 + 1.5 * n })), fleches: [{ x1: 4, y1: 8, x2: 5, y2: 8, c: 1 }, { x1: 5, y1: 8, x2: 5, y2: 9.5, c: 1 }], marques: [{ x: 5.9, y: 8.6, texte: "+r" }], aria: "Les points d'une suite arithmétique de raison 1,5 sont alignés" }).replace(/g-curve g-curve-0" d/, 'g-curve g-curve-0" style="stroke-dasharray:4 4;opacity:.6" d');
+  FIGURES["suite-geo"] = () => graph({ xmin: -0.5, xmax: 7.5, ymin: -2, ymax: 34, ystep: 4, yetiq: 8, h: 260, curves: [{ f: (x) => 2 ** (x * 0.5 + 0) * 1, a: 0, b: 0, closed: false }].slice(0, 0), points: Array.from({ length: 6 }, (_, n) => ({ x: n, y: 2 ** n })).concat(Array.from({ length: 8 }, (_, n) => ({ x: n, y: 24 * 0.6 ** n }))), marques: [{ x: 5.6, y: 31, texte: "×2" }, { x: 6.2, y: 3.2, texte: "×0,6" }], aria: "Suite géométrique de raison 2 (croissante) et de raison 0,6 (décroissante)" });
+
+
   /* Séries « flash » d'un thème : mélange de ses générateurs */
   const THEMES = {
     "am-flash-cn": ["am-comparer", "am-fractions", "am-puissances", "am-ecritures", "am-ordre-grandeur", "am-coherence", "auto-conversions"],
@@ -5162,7 +5510,7 @@
 
 
   /* Une « erreur connue » ne doit jamais coïncider avec la bonne réponse (à la tolérance près) */
-  Object.keys(GEN).filter((k) => /^(ld|am|cd|ar|cl|fa|ve|st|vx|tc|co|dr|fr|sg|pc|ec|sy)-/.test(k)).forEach((k) => {
+  Object.keys(GEN).filter((k) => /^(ld|am|cd|ar|cl|fa|ve|st|vx|tc|co|dr|fr|sg|pc|ec|sy|su|s2)-/.test(k)).forEach((k) => {
     const g = GEN[k];
     GEN[k] = (i) => { const q = g(i); if (q.erreurs) q.erreurs = q.erreurs.filter((e) => Math.abs(e.valeur - q.attendu) >= (q.tolerance || 1e-9)); return q; };
   });

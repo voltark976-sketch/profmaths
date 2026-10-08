@@ -222,16 +222,23 @@ window.CATALOGUE = {
         {
           id: "premiere-suites",
           numero: 1,
-          titre: "Suites numériques",
+          titre: "Suites numériques : généralités",
           statut: "disponible",
           drive: "https://drive.google.com/drive/folders/1Ymru1W2dLIhiEgpawEdchTrVvaK8Q3n6"
         },
         {
           id: "premiere-second-degre",
           numero: 2,
-          titre: "Second degré, formes factorisée et canonique",
+          titre: "Second degré 1 : forme factorisée",
           statut: "disponible",
           drive: "https://drive.google.com/drive/folders/1Jw7zQe-wQDLffgycdEJuUw56iU26NGsM"
+        },
+        {
+          id: "premiere-suites-arithmetiques",
+          numero: 3,
+          titre: "Suites arithmétiques",
+          statut: "disponible",
+          drive: ""
         }
       ]
     },

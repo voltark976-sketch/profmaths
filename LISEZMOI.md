@@ -24,7 +24,10 @@ Site statique : aucune base de données, aucun compte élève. Ouvrir `index.htm
 - `data/seconde/synthese.js` : chapitre 17 de Seconde (problèmes de synthèse, bilan des raisonnements). Générateurs `sy-`.
 - `data/seconde/automatismes.js` : automatismes de Seconde (10 fiches, séries flash, test).
 - `data/automatismes/*.js` : partie Automatismes, un fichier par thème officiel de l'épreuve anticipée (calcul numérique, calcul algébrique, proportions, évolutions, fonctions, statistiques, probabilités). Les générateurs d'exercices correspondants commencent par `am-` dans `assets/exercices.js`.
-- `data/premiere/suites.js` et `data/premiere/second-degre.js` : chapitres 1 et 2 de Première spécialité.
+- Première spécialité, dans l'ordre de la progression spiralée 2026-2027 (un fichier par chapitre dans `data/premiere/`) :
+  - `suites.js` : chapitre 1, suites (généralités). Générateurs `suite-` et `su-`.
+  - `second-degre.js` : chapitre 2, second degré (forme factorisée). Générateurs `sd-` et `s2-`.
+  - `suites-arithmetiques.js` : chapitre 3. Générateurs `su-arith-`, `su-somme-entiers`.
 - `data/terminale-spe/denombrement.js` : chapitre 14 de Terminale spécialité (combinatoire et dénombrement). Les générateurs d'exercices correspondants commencent par `cd-` dans `assets/exercices.js`.
 - `data/terminale/lois-discretes.js` : chapitre 2 de Terminale maths complémentaires.
 
