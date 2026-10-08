@@ -12472,6 +12472,348 @@
   };
 
 
+  /* ---------- Terminale maths complémentaires, chapitre 11 : primitives et équations différentielles (préfixe tpe-) ---------- */
+  FIGURES["tpe-famille"] = () => graph({ xmin: -0.4, xmax: 8.4, ymin: -0.6, ymax: 8.6, h: 280, xlabel: "t", ylabel: "y", curves: [-4, -2, 2, 4].map((C, i) => ({ f: (t) => 4 + C * Math.exp(-0.5 * t), a: 0, b: 8, closed: false, ...(i === 3 ? { label: "C = 4", lx: 0.6, dx: 34, dy: -2 } : {}) })), hlines: [{ y: 4, label: "y = 4 (solution constante)" }], aria: "Solutions de y' = −0,5y + 2 : toutes les courbes se rapprochent de la droite y = 4, la solution constante" }).replace(/g-curve-[123]\b/g, "g-curve-0");
+  FIGURES["tpe-euler"] = () => {
+    const pts = []; let y = 1; for (let k = 0; k <= 4; k++) { pts.push([k * 0.25, y]); y = y * 1.25; }
+    return graph({ xmin: -0.08, xmax: 1.12, ymin: -0.15, ymax: 3, xstep: 0.25, xetiq: 0.5, ystep: 0.5, yetiq: 1, h: 260, curves: [{ f: (x) => Math.exp(x), a: 0, b: 1.05, closed: false, label: "y = eˣ", lx: 1.02, dx: -6, dy: -8 }], chemins: [pts], points: pts.map(([x, yy]) => ({ x, y: yy })), aria: "Méthode d'Euler pour y' = y, y(0) = 1, pas 0,25 : la ligne brisée reste un peu sous la courbe de l'exponentielle (2,44 au lieu de 2,72 en 1)" });
+  };
+
+  GEN["tpe-verifier"] = function () {
+    const a = pick([2, -3, 3, -2, 0.5]), C = pick([3, -2, 5, 4]), b = pick([4, -6, 10]), t = rand(0, 3);
+    const T = [
+      [`y' = ${fr(a)}y`, `f(x) = ${C}e^{${fr(a)}x}`, true, `$f'(x) = ${fr(C * a)}e^{${fr(a)}x} = ${fr(a)} \\times ${C}e^{${fr(a)}x} = ${fr(a)}f(x)$ : c'est une solution.`],
+      [`y' = ${fr(a)}y`, `f(x) = e^{${fr(a)}x} + 1`, false, `$f'(x) = ${fr(a)}e^{${fr(a)}x}$ mais $${fr(a)}f(x) = ${fr(a)}e^{${fr(a)}x} + ${fr(a)}$ : les deux ne sont pas égaux, ce n'est pas une solution.`],
+      [`y' = ${fr(a)}y ${sg(b)}`, `f(x) = ${C}e^{${fr(a)}x} ${sgf(-b / a)}`.replace("+ -", "- "), true, `$f'(x) = ${fr(C * a)}e^{${fr(a)}x}$ et $${fr(a)}f(x) ${sg(b)} = ${fr(C * a)}e^{${fr(a)}x} ${sgf(-b)} ${sg(b)} = ${fr(C * a)}e^{${fr(a)}x}$ : c'est une solution.`],
+      [`y' = ${fr(a)}y ${sg(b)}`, `f(x) = ${C}e^{${fr(a)}x} ${sgf(b / a)}`.replace("+ -", "- "), false, `$${fr(a)}f(x) ${sg(b)} = ${fr(C * a)}e^{${fr(a)}x} ${sgf(b)} ${sg(b)}$, différent de $f'(x) = ${fr(C * a)}e^{${fr(a)}x}$ : ce n'est pas une solution (la constante devrait être $${fr(-b / a)}$).`]
+    ][t];
+    const c = melangeChoix(T[2] ? "Oui" : "Non", [T[2] ? "Non" : "Oui"]);
+    return { enonce: `La fonction $${T[1]}$ est-elle solution sur $\\mathbb{R}$ de l'équation différentielle $${T[0]}$ ?`, mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: ["Calcule $f'(x)$.", "Calcule séparément le membre de droite avec $f(x)$.", "Compare : $f$ est solution si l'égalité est vraie pour tout $x$."],
+      solution: T[3] };
+  };
+
+  GEN["tpe-primitive"] = function () {
+    const a = rand(2, 5), b = rand(1, 6), k = pick([2, 3, -1, 4, -2]), ek = k === -1 ? "-x" : k + "x", Fk = k === -1 ? "-" : k < 0 ? `-\\dfrac{1}{${-k}}` : `\\dfrac{1}{${k}}`;
+    const T = [
+      [`${3 * a}x^2 + ${2 * b}x`, `${a}x^3 + ${b}x^2`, [`${6 * a}x + ${2 * b}`, `${3 * a}x^3 + ${2 * b}x^2`, `${a}x^3 + ${2 * b}x^2`], "$x^n$ a pour primitive $\\dfrac{x^{n+1}}{n+1}$"],
+      [`e^{${ek}}`, `${Fk}e^{${ek}}`, [`${k}e^{${ek}}`, `e^{${ek}}`, `e^{x}`], `$e^{kx}$ a pour primitive $\\dfrac{1}{k}e^{kx}$ ; on vérifie en dérivant`],
+      [`\\dfrac{${a}}{x}`, `${a}\\ln x`, [`-\\dfrac{${a}}{x^2}`, `${a}x`, `\\ln(${a}x^2)`], "Sur $]0\\,;+\\infty[$, $\\dfrac{1}{x}$ a pour primitive $\\ln x$"],
+      [`\\dfrac{1}{x^2}`, `-\\dfrac{1}{x}`, [`\\dfrac{1}{x}`, `-\\dfrac{2}{x^3}`, `\\ln(x^2)`], "$\\left(-\\dfrac{1}{x}\\right)' = \\dfrac{1}{x^2}$"],
+      [`2x e^{x^2}`, `e^{x^2}`, [`x^2e^{x^2}`, `2e^{x^2}`, `e^{2x}`], "Forme $u'e^u$ avec $u = x^2$ : primitive $e^u$"],
+      [`2(${a}x + ${b}) \\times ${a}`, `(${a}x + ${b})^2`, [`${a}(${a}x + ${b})^2`, `(${a}x + ${b})^3`, `2(${a}x + ${b})`], "Forme $2uu'$ avec $u = " + a + "x + " + b + "$ : primitive $u^2$"],
+      [`\\dfrac{2x}{x^2 + ${b}}`, `\\ln(x^2 + ${b})`, [`\\dfrac{1}{x^2 + ${b}}`, `2x\\ln(x^2 + ${b})`, `\\ln(2x)`], "Forme $\\dfrac{u'}{u}$ avec $u = x^2 + " + b + " > 0$ : primitive $\\ln u$"]
+    ];
+    const [f, F, fx, s] = pick(T), c = melangeChoix(`$${F}$`, fx.map((x) => `$${x}$`));
+    return { enonce: `Quelle fonction est une primitive de $f(x) = ${f}$ (sur un intervalle où tout est défini) ?`, mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: ["$F$ est une primitive de $f$ si $F' = f$.", "Dérive chaque proposition et compare avec $f$.", "Formes à reconnaître : $2uu'$ (primitive $u^2$), $u'e^u$ ($e^u$), $\\dfrac{u'}{u}$ ($\\ln u$)."],
+      solution: `${s} : $F(x) = ${F}$ convient (sa dérivée est $f$). Toute autre primitive s'obtient en ajoutant une constante.` };
+  };
+
+  GEN["tpe-condition"] = function () {
+    const a = rand(1, 4), b = rand(-5, 5), x0 = rand(0, 2), y0 = rand(-3, 8);
+    // f(x) = 2ax + b ; F(x) = ax² + bx + C avec F(x0) = y0
+    const C = y0 - (a * x0 * x0 + b * x0);
+    return { enonce: `Détermine la primitive $F$ de $f(x) = ${poly([2 * a, b])}$ telle que $F(${x0}) = ${y0}$. Donne la constante $C$ dans $F(x) = ${poly([a, b, 0])} + C$.`, mode: "nombre", prefixe: "$C =$", attendu: C,
+      aides: ["Les primitives de $f$ sont les $F(x) = " + poly([a, b, 0]) + " + C$.", `$F(${x0}) = ${a * x0 * x0 + b * x0} + C$.`, `Résous $${a * x0 * x0 + b * x0} + C = ${y0}$.`],
+      solution: `$F(${x0}) = ${a * x0 * x0 + b * x0} + C = ${y0}$, donc $C = ${C}$ et $F(x) = ${poly([a, b, C])}$. Cette primitive est **unique** : une seule vérifie la condition.` };
+  };
+
+  GEN["tpe-yay"] = function () {
+    const a = pick([0.5, -0.5, 0.2, -0.2, 2, -0.3, 0.1]), y0 = pick([2, 5, 10, 100]), t = pick([1, 2, 3, 5]), v = y0 * Math.exp(a * t);
+    if (Math.random() < 0.5) return { enonce: `$y$ est solution de $y' = ${fr(a)}y$ avec $y(0) = ${y0}$. Calcule $y(${t})$ (arrondi au centième).`, mode: "nombre", prefixe: `$y(${t}) \\approx$`, attendu: +v.toFixed(2), tolerance: 0.006,
+      aides: ["Les solutions de $y' = ay$ sont $y(x) = Ce^{ax}$.", `$y(0) = C = ${y0}$.`, `$y(${t}) = ${y0}e^{${fr(a * t)}}$.`],
+      solution: `$y(x) = ${y0}e^{${fr(a)}x}$, donc $y(${t}) = ${y0}e^{${fr(+(a * t).toFixed(2))}} \\approx ${fr(+v.toFixed(2))}$.` };
+    const c = melangeChoix(`$y(x) = ${y0}e^{${fr(a)}x}$`, [`$y(x) = e^{${fr(a)}x} + ${y0}$`, `$y(x) = ${fr(a)}e^{${y0}x}$`, `$y(x) = ${y0}x^{${fr(a)}}$`]);
+    return { enonce: `Quelle est la solution de $y' = ${fr(a)}y$ vérifiant $y(0) = ${y0}$ ?`, mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: ["$y' = ay$ : $y(x) = Ce^{ax}$.", "$y(0) = C$.", "Vérifie en dérivant."],
+      solution: `$y(x) = Ce^{${fr(a)}x}$ et $y(0) = C = ${y0}$ : $y(x) = ${y0}e^{${fr(a)}x}$.` };
+  };
+
+  GEN["tpe-yayb"] = function () {
+    const a = pick([-0.5, -2, -0.1, -0.2, 0.5, 2]), l = pick([4, 10, 20, 25, -3]), b = +(-a * l).toFixed(4), y0 = l + pick([-10, 6, 15, 60]), t = rand(0, 2);
+    const eq = `y' = ${fr(a)}y ${b < 0 ? "-" : "+"} ${fr(Math.abs(b))}`;
+    if (t === 0) return { enonce: `Quelle est la solution constante de l'équation différentielle $${eq}$ ?`, mode: "nombre", prefixe: "$y =$", attendu: l,
+      erreurs: [{ valeur: +(b / a).toFixed(4), message: "Attention au signe : $0 = ay + b$ donne $y = -\\dfrac{b}{a}$." }],
+      aides: ["Une solution constante a une dérivée nulle.", `$0 = ${fr(a)}y ${b < 0 ? "-" : "+"} ${fr(Math.abs(b))}$.`, "Résous en $y$."],
+      solution: `$y' = 0$ donne $${fr(a)}y = ${fr(-b)}$, soit $y = ${fr(l)}$. On reconnaît l'équilibre, comme la suite constante du chapitre 3.` };
+    if (t === 1) return { enonce: `$y$ est solution de $${eq}$ avec $y(0) = ${y0}$. On écrit $y(x) = Ce^{${fr(a)}x} ${sg(l)}$. Calcule $C$.`.replace("+ -", "- "), mode: "nombre", prefixe: "$C =$", attendu: y0 - l,
+      erreurs: [{ valeur: y0, message: "$y(0) = C + " + fr(l) + "$ : il faut retirer la solution constante." }],
+      aides: ["$y(0) = C \\times e^0 + \\ell = C + \\ell$.", `$C ${sg(l)} = ${y0}$.`.replace("+ -", "- "), "Isole $C$."],
+      solution: `$y(0) = C ${sg(l)} = ${y0}$, donc $C = ${y0 - l}$ et $y(x) = ${y0 - l}e^{${fr(a)}x} ${sg(l)}$.`.replace(/\+ -/g, "- ") };
+    const lim = a < 0 ? `$${fr(l)}$` : (y0 > l ? "$+\\infty$" : "$-\\infty$"), c = melangeChoix(lim, ["$+\\infty$", "$-\\infty$", `$${fr(l)}$`, "$0$"]);
+    return { enonce: `$y$ est solution de $${eq}$ avec $y(0) = ${y0}$. Quelle est la limite de $y(x)$ quand $x \\to +\\infty$ ?`, mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: [`$y(x) = ${y0 - l}e^{${fr(a)}x} ${sg(l)}$`.replace("+ -", "- ") + ".", a < 0 ? `$${fr(a)} < 0$ : $e^{${fr(a)}x} \\to 0$.` : `$${fr(a)} > 0$ : $e^{${fr(a)}x} \\to +\\infty$.`, "Tiens compte du signe de $C$."],
+      solution: `$y(x) = ${y0 - l}e^{${fr(a)}x} ${sg(l)}$`.replace("+ -", "- ") + ` : ${a < 0 ? `$e^{${fr(a)}x} \\to 0$, donc $y(x) \\to ${fr(l)}$, la solution constante.` : `$e^{${fr(a)}x} \\to +\\infty$ et $C = ${y0 - l}$, donc $y(x) \\to ${y0 > l ? "+\\infty" : "-\\infty"}$.`}` };
+  };
+
+  GEN["tpe-medicament"] = function () {
+    const k = pick([0.1, 0.2, 0.25, 0.5, 0.35]), Q0 = pick([100, 200, 500, 1000]), t = rand(0, 1);
+    if (t === 0) { const T = Math.log(2) / k; return { enonce: `La quantité $Q(t)$ (en mg) d'un médicament dans le sang vérifie $Q' = -${fr(k)}Q$, avec $Q(0) = ${Q0}$ ($t$ en heures). Au bout de combien d'heures la quantité est-elle divisée par $2$ (demi-vie) ? (Arrondi au dixième.)`, mode: "nombre", prefixe: "$t \\approx$", suffixe: "h", attendu: +T.toFixed(1), tolerance: 0.06,
+      aides: [`$Q(t) = ${Q0}e^{-${fr(k)}t}$.`, `$${Q0}e^{-${fr(k)}t} = ${Q0 / 2} \\iff e^{-${fr(k)}t} = 0{,}5$.`, `$-${fr(k)}t = \\ln 0{,}5$, donc $t = \\dfrac{\\ln 2}{${fr(k)}}$.`],
+      solution: `$e^{-${fr(k)}t} = 0{,}5 \\iff t = \\dfrac{\\ln 2}{${fr(k)}} \\approx ${fr(+T.toFixed(1))}$ h : c'est la demi-vie, la même quelle que soit la dose de départ.` }; }
+    const h = pick([2, 4, 6, 8]), v = Q0 * Math.exp(-k * h);
+    return { enonce: `La quantité $Q(t)$ (en mg) d'un médicament vérifie $Q' = -${fr(k)}Q$, avec $Q(0) = ${Q0}$. Quelle quantité reste-t-il au bout de $${h}$ heures ? (Arrondi à l'unité.)`, mode: "nombre", prefixe: `$Q(${h}) \\approx$`, suffixe: "mg", attendu: Math.round(v), tolerance: 1.01,
+      aides: ["$Q' = -kQ$ : $Q(t) = Q(0)e^{-kt}$.", `$Q(t) = ${Q0}e^{-${fr(k)}t}$.`, `Calcule $${Q0}e^{-${fr(+(k * h).toFixed(2))}}$.`],
+      solution: `$Q(${h}) = ${Q0}e^{-${fr(+(k * h).toFixed(2))}} \\approx ${Math.round(v)}$ mg.` };
+  };
+
+  GEN["tpe-euler"] = function () {
+    const a = pick([2, -0.5, 0.5, 3]), h = pick([0.1, 0.25, 0.5]), n = rand(1, 3), y = (1 + a * h) ** n;
+    return {
+      enonce: "Méthode d'Euler pour $y' = " + fr(a) + "y$, $y(0) = 1$, avec un pas $h = " + fr(h) + "$ :\n\n```python\ndef euler(a, h, n):\n    x = 0\n    y = 1\n    for i in range(n):\n        y = y + h * a * y\n        x = x + h\n    return y\n```\n\n" + `Que renvoie euler(${a}, ${h}, ${n}) ? (Arrondi au millième.)`,
+      mode: "nombre", prefixe: "Résultat ≈", attendu: +y.toFixed(3), tolerance: 0.0015,
+      aides: ["À chaque pas : $y_{k+1} = y_k + h \\times y'(x_k) = y_k + h \\times a \\times y_k$.", `Donc $y$ est multiplié par $1 + ${fr(a)} \\times ${fr(h)} = ${fr(+(1 + a * h).toFixed(4))}$ à chaque pas.`, `Après $${n}$ pas : $${fr(+(1 + a * h).toFixed(4))}^{${n}}$.`],
+      solution: `$y = ${fr(+(1 + a * h).toFixed(4))}^{${n}} \\approx ${fr(+y.toFixed(3))}$, une approximation de la valeur exacte $e^{${fr(+(a * h * n).toFixed(4))}} \\approx ${fr(+Math.exp(a * h * n).toFixed(3))}$.`
+    };
+  };
+
+  GEN["tpe-logique"] = function () {
+    const T = [
+      ["« Deux primitives d'une même fonction sur un intervalle diffèrent d'une constante. »", true, "Si $F' = G' = f$, alors $(F - G)' = 0$ : $F - G$ est constante sur l'intervalle."],
+      ["« Une fonction a une seule primitive. »", false, "Elle en a une infinité : $F + C$ pour tout réel $C$."],
+      ["« L'équation $y' = ay$ avec $y(0) = y_0$ a une unique solution. »", true, "$y(x) = y_0e^{ax}$ : existence et unicité avec la condition initiale."],
+      ["« La fonction nulle est solution de $y' = ay$. »", true, "$0' = 0 = a \\times 0$."],
+      ["« La fonction nulle est solution de $y' = ay + b$ avec $b \\neq 0$. »", false, "$0' = 0$ mais $a \\times 0 + b = b \\neq 0$."],
+      ["« Si $a < 0$, toutes les solutions de $y' = ay + b$ tendent vers $-\\dfrac{b}{a}$. »", true, "$y = Ce^{ax} - \\dfrac{b}{a}$ et $e^{ax} \\to 0$."],
+      ["« $\\ln x$ est une primitive de $\\dfrac{1}{x}$ sur $\\mathbb{R}$. »", false, "Seulement sur $]0\\,;+\\infty[$ : $\\ln x$ n'est pas définie pour $x \\leqslant 0$."],
+      ["« La méthode d'Euler donne la solution exacte. »", false, "Elle donne une approximation, d'autant meilleure que le pas est petit."]
+    ];
+    const [q, v, s] = pick(T), c = melangeChoix(v ? "Vrai" : "Faux", [v ? "Faux" : "Vrai"]);
+    return { enonce: `Vrai ou faux ? ${q}`, mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: ["$F$ primitive de $f$ : $F' = f$.", "$y' = ay$ : solutions $Ce^{ax}$ ; $y' = ay + b$ : $Ce^{ax} - \\dfrac{b}{a}$.", "Une condition initiale fixe la constante."],
+      solution: `**${v ? "Vrai" : "Faux"}.** ${s}` };
+  };
+
+
+  /* ---------- Terminale maths complémentaires, chapitre 11 : primitives et équations différentielles (préfixe tpe-) ---------- */
+  FIGURES["tpe-famille"] = () => graph({ xmin: -0.4, xmax: 8.4, ymin: -0.6, ymax: 8.6, h: 280, xlabel: "t", ylabel: "y", curves: [-4, -2, 2, 4].map((C, i) => ({ f: (t) => 4 + C * Math.exp(-0.5 * t), a: 0, b: 8, closed: false, ...(i === 3 ? { label: "C = 4", lx: 0.6, dx: 34, dy: -2 } : {}) })), hlines: [{ y: 4, label: "y = 4 (solution constante)" }], aria: "Solutions de y' = −0,5y + 2 : toutes les courbes se rapprochent de la droite y = 4, la solution constante" }).replace(/g-curve-[123]\b/g, "g-curve-0");
+  FIGURES["tpe-euler"] = () => {
+    const pts = []; let y = 1; for (let k = 0; k <= 4; k++) { pts.push([k * 0.25, y]); y = y * 1.25; }
+    return graph({ xmin: -0.08, xmax: 1.12, ymin: -0.15, ymax: 3, xstep: 0.25, xetiq: 0.5, ystep: 0.5, yetiq: 1, h: 260, curves: [{ f: (x) => Math.exp(x), a: 0, b: 1.05, closed: false, label: "y = eˣ", lx: 1.02, dx: -6, dy: -8 }], chemins: [pts], points: pts.map(([x, yy]) => ({ x, y: yy })), aria: "Méthode d'Euler pour y' = y, y(0) = 1, pas 0,25 : la ligne brisée reste un peu sous la courbe de l'exponentielle (2,44 au lieu de 2,72 en 1)" });
+  };
+
+  GEN["tpe-verifier"] = function () {
+    const a = pick([2, -3, 3, -2, 0.5]), C = pick([3, -2, 5, 4]), b = pick([4, -6, 10]), t = rand(0, 3);
+    const T = [
+      [`y' = ${fr(a)}y`, `f(x) = ${C}e^{${fr(a)}x}`, true, `$f'(x) = ${fr(C * a)}e^{${fr(a)}x} = ${fr(a)} \\times ${C < 0 ? `(${C}e^{${fr(a)}x})` : `${C}e^{${fr(a)}x}`} = ${fr(a)}f(x)$ : c'est une solution.`],
+      [`y' = ${fr(a)}y`, `f(x) = e^{${fr(a)}x} + 1`, false, `$f'(x) = ${fr(a)}e^{${fr(a)}x}$ mais $${fr(a)}f(x) = ${fr(a)}e^{${fr(a)}x} + ${fr(a)}$ : les deux ne sont pas égaux, ce n'est pas une solution.`],
+      [`y' = ${fr(a)}y ${sg(b)}`, `f(x) = ${C}e^{${fr(a)}x} ${sgf(-b / a)}`.replace("+ -", "- "), true, `$f'(x) = ${fr(C * a)}e^{${fr(a)}x}$ et $${fr(a)}f(x) ${sg(b)} = ${fr(C * a)}e^{${fr(a)}x} ${sgf(-b)} ${sg(b)} = ${fr(C * a)}e^{${fr(a)}x}$ : c'est une solution.`],
+      [`y' = ${fr(a)}y ${sg(b)}`, `f(x) = ${C}e^{${fr(a)}x} ${sgf(b / a)}`.replace("+ -", "- "), false, `$${fr(a)}f(x) ${sg(b)} = ${fr(C * a)}e^{${fr(a)}x} ${sgf(b)} ${sg(b)}$, différent de $f'(x) = ${fr(C * a)}e^{${fr(a)}x}$ : ce n'est pas une solution (la constante devrait être $${fr(-b / a)}$).`]
+    ][t];
+    const c = melangeChoix(T[2] ? "Oui" : "Non", [T[2] ? "Non" : "Oui"]);
+    return { enonce: `La fonction $${T[1]}$ est-elle solution sur $\\mathbb{R}$ de l'équation différentielle $${T[0]}$ ?`, mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: ["Calcule $f'(x)$.", "Calcule séparément le membre de droite avec $f(x)$.", "Compare : $f$ est solution si l'égalité est vraie pour tout $x$."],
+      solution: T[3] };
+  };
+
+  GEN["tpe-primitive"] = function () {
+    const a = rand(2, 5), b = rand(1, 6), k = pick([2, 3, -1, 4, -2]), ek = k === -1 ? "-x" : k + "x", Fk = k === -1 ? "-" : k < 0 ? `-\\dfrac{1}{${-k}}` : `\\dfrac{1}{${k}}`;
+    const T = [
+      [`${3 * a}x^2 + ${2 * b}x`, `${a}x^3 + ${b}x^2`, [`${6 * a}x + ${2 * b}`, `${3 * a}x^3 + ${2 * b}x^2`, `${a}x^3 + ${2 * b}x^2`], "$x^n$ a pour primitive $\\dfrac{x^{n+1}}{n+1}$"],
+      [`e^{${ek}}`, `${Fk}e^{${ek}}`, [k === -1 ? "-e^{x}" : `${k}e^{${ek}}`, `e^{${ek}}`, `e^{x}`], `$e^{kx}$ a pour primitive $\\dfrac{1}{k}e^{kx}$ ; on vérifie en dérivant`],
+      [`\\dfrac{${a}}{x}`, `${a}\\ln x`, [`-\\dfrac{${a}}{x^2}`, `${a}x`, `\\ln(${a}x^2)`], "Sur $]0\\,;+\\infty[$, $\\dfrac{1}{x}$ a pour primitive $\\ln x$"],
+      [`\\dfrac{1}{x^2}`, `-\\dfrac{1}{x}`, [`\\dfrac{1}{x}`, `-\\dfrac{2}{x^3}`, `\\ln(x^2)`], "$\\left(-\\dfrac{1}{x}\\right)' = \\dfrac{1}{x^2}$"],
+      [`2x e^{x^2}`, `e^{x^2}`, [`x^2e^{x^2}`, `2e^{x^2}`, `e^{2x}`], "Forme $u'e^u$ avec $u = x^2$ : primitive $e^u$"],
+      [`2(${a}x + ${b}) \\times ${a}`, `(${a}x + ${b})^2`, [`${a}(${a}x + ${b})^2`, `(${a}x + ${b})^3`, `2(${a}x + ${b})`], "Forme $2uu'$ avec $u = " + a + "x + " + b + "$ : primitive $u^2$"],
+      [`\\dfrac{2x}{x^2 + ${b}}`, `\\ln(x^2 + ${b})`, [`\\dfrac{1}{x^2 + ${b}}`, `2x\\ln(x^2 + ${b})`, `\\ln(2x)`], "Forme $\\dfrac{u'}{u}$ avec $u = x^2 + " + b + " > 0$ : primitive $\\ln u$"]
+    ];
+    const [f, F, fx, s] = pick(T), c = melangeChoix(`$${F}$`, fx.map((x) => `$${x}$`));
+    return { enonce: `Quelle fonction est une primitive de $f(x) = ${f}$ (sur un intervalle où tout est défini) ?`, mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: ["$F$ est une primitive de $f$ si $F' = f$.", "Dérive chaque proposition et compare avec $f$.", "Formes à reconnaître : $2uu'$ (primitive $u^2$), $u'e^u$ ($e^u$), $\\dfrac{u'}{u}$ ($\\ln u$)."],
+      solution: `${s} : $F(x) = ${F}$ convient (sa dérivée est $f$). Toute autre primitive s'obtient en ajoutant une constante.` };
+  };
+
+  GEN["tpe-condition"] = function () {
+    const a = rand(1, 4), b = rand(-5, 5), x0 = rand(0, 2), y0 = rand(-3, 8);
+    // f(x) = 2ax + b ; F(x) = ax² + bx + C avec F(x0) = y0
+    const C = y0 - (a * x0 * x0 + b * x0);
+    return { enonce: `Détermine la primitive $F$ de $f(x) = ${poly([2 * a, b])}$ telle que $F(${x0}) = ${y0}$. Donne la constante $C$ dans $F(x) = ${poly([a, b, 0])} + C$.`, mode: "nombre", prefixe: "$C =$", attendu: C,
+      aides: ["Les primitives de $f$ sont les $F(x) = " + poly([a, b, 0]) + " + C$.", `$F(${x0}) = ${a * x0 * x0 + b * x0} + C$.`, `Résous $${a * x0 * x0 + b * x0} + C = ${y0}$.`],
+      solution: `$F(${x0}) = ${a * x0 * x0 + b * x0} + C = ${y0}$, donc $C = ${C}$ et $F(x) = ${poly([a, b, C])}$. Cette primitive est **unique** : une seule vérifie la condition.` };
+  };
+
+  GEN["tpe-yay"] = function () {
+    const a = pick([0.5, -0.5, 0.2, -0.2, 2, -0.3, 0.1]), y0 = pick([2, 5, 10, 100]), t = pick([1, 2, 3, 5]), v = y0 * Math.exp(a * t);
+    if (Math.random() < 0.5) return { enonce: `$y$ est solution de $y' = ${fr(a)}y$ avec $y(0) = ${y0}$. Calcule $y(${t})$ (arrondi au centième).`, mode: "nombre", prefixe: `$y(${t}) \\approx$`, attendu: +v.toFixed(2), tolerance: 0.006,
+      aides: ["Les solutions de $y' = ay$ sont $y(x) = Ce^{ax}$.", `$y(0) = C = ${y0}$.`, `$y(${t}) = ${y0}e^{${fr(a * t)}}$.`],
+      solution: `$y(x) = ${y0}e^{${fr(a)}x}$, donc $y(${t}) = ${y0}e^{${fr(+(a * t).toFixed(2))}} \\approx ${fr(+v.toFixed(2))}$.` };
+    const c = melangeChoix(`$y(x) = ${y0}e^{${fr(a)}x}$`, [`$y(x) = e^{${fr(a)}x} + ${y0}$`, `$y(x) = ${fr(a)}e^{${y0}x}$`, `$y(x) = ${y0}x^{${fr(a)}}$`]);
+    return { enonce: `Quelle est la solution de $y' = ${fr(a)}y$ vérifiant $y(0) = ${y0}$ ?`, mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: ["$y' = ay$ : $y(x) = Ce^{ax}$.", "$y(0) = C$.", "Vérifie en dérivant."],
+      solution: `$y(x) = Ce^{${fr(a)}x}$ et $y(0) = C = ${y0}$ : $y(x) = ${y0}e^{${fr(a)}x}$.` };
+  };
+
+  GEN["tpe-yayb"] = function () {
+    const a = pick([-0.5, -2, -0.1, -0.2, 0.5, 2]), l = pick([4, 10, 20, 25, -3]), b = +(-a * l).toFixed(4), y0 = l + pick([-10, 6, 15, 60]), t = rand(0, 2);
+    const eq = `y' = ${fr(a)}y ${b < 0 ? "-" : "+"} ${fr(Math.abs(b))}`;
+    if (t === 0) return { enonce: `Quelle est la solution constante de l'équation différentielle $${eq}$ ?`, mode: "nombre", prefixe: "$y =$", attendu: l,
+      erreurs: [{ valeur: +(b / a).toFixed(4), message: "Attention au signe : $0 = ay + b$ donne $y = -\\dfrac{b}{a}$." }],
+      aides: ["Une solution constante a une dérivée nulle.", `$0 = ${fr(a)}y ${b < 0 ? "-" : "+"} ${fr(Math.abs(b))}$.`, "Résous en $y$."],
+      solution: `$y' = 0$ donne $${fr(a)}y = ${fr(-b)}$, soit $y = ${fr(l)}$. On reconnaît l'équilibre, comme la suite constante du chapitre 3.` };
+    if (t === 1) return { enonce: `$y$ est solution de $${eq}$ avec $y(0) = ${y0}$. On écrit $y(x) = Ce^{${fr(a)}x} ${sg(l)}$. Calcule $C$.`.replace("+ -", "- "), mode: "nombre", prefixe: "$C =$", attendu: y0 - l,
+      erreurs: [{ valeur: y0, message: "$y(0) = C + " + fr(l) + "$ : il faut retirer la solution constante." }],
+      aides: ["$y(0) = C \\times e^0 + \\ell = C + \\ell$.", `$C ${sg(l)} = ${y0}$.`.replace("+ -", "- "), "Isole $C$."],
+      solution: `$y(0) = C ${sg(l)} = ${y0}$, donc $C = ${y0 - l}$ et $y(x) = ${y0 - l}e^{${fr(a)}x} ${sg(l)}$.`.replace(/\+ -/g, "- ") };
+    const lim = a < 0 ? `$${fr(l)}$` : (y0 > l ? "$+\\infty$" : "$-\\infty$"), c = melangeChoix(lim, ["$+\\infty$", "$-\\infty$", `$${fr(l)}$`, "$0$"]);
+    return { enonce: `$y$ est solution de $${eq}$ avec $y(0) = ${y0}$. Quelle est la limite de $y(x)$ quand $x \\to +\\infty$ ?`, mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: [`$y(x) = ${y0 - l}e^{${fr(a)}x} ${sg(l)}$`.replace("+ -", "- ") + ".", a < 0 ? `$${fr(a)} < 0$ : $e^{${fr(a)}x} \\to 0$.` : `$${fr(a)} > 0$ : $e^{${fr(a)}x} \\to +\\infty$.`, "Tiens compte du signe de $C$."],
+      solution: `$y(x) = ${y0 - l}e^{${fr(a)}x} ${sg(l)}$`.replace("+ -", "- ") + ` : ${a < 0 ? `$e^{${fr(a)}x} \\to 0$, donc $y(x) \\to ${fr(l)}$, la solution constante.` : `$e^{${fr(a)}x} \\to +\\infty$ et $C = ${y0 - l}$, donc $y(x) \\to ${y0 > l ? "+\\infty" : "-\\infty"}$.`}` };
+  };
+
+  GEN["tpe-medicament"] = function () {
+    const k = pick([0.1, 0.2, 0.25, 0.5, 0.35]), Q0 = pick([100, 200, 500, 1000]), t = rand(0, 1);
+    if (t === 0) { const T = Math.log(2) / k; return { enonce: `La quantité $Q(t)$ (en mg) d'un médicament dans le sang vérifie $Q' = -${fr(k)}Q$, avec $Q(0) = ${Q0}$ ($t$ en heures). Au bout de combien d'heures la quantité est-elle divisée par $2$ (demi-vie) ? (Arrondi au dixième.)`, mode: "nombre", prefixe: "$t \\approx$", suffixe: "h", attendu: +T.toFixed(1), tolerance: 0.06,
+      aides: [`$Q(t) = ${Q0}e^{-${fr(k)}t}$.`, `$${Q0}e^{-${fr(k)}t} = ${Q0 / 2} \\iff e^{-${fr(k)}t} = 0{,}5$.`, `$-${fr(k)}t = \\ln 0{,}5$, donc $t = \\dfrac{\\ln 2}{${fr(k)}}$.`],
+      solution: `$e^{-${fr(k)}t} = 0{,}5 \\iff t = \\dfrac{\\ln 2}{${fr(k)}} \\approx ${fr(+T.toFixed(1))}$ h : c'est la demi-vie, la même quelle que soit la dose de départ.` }; }
+    const h = pick([2, 4, 6, 8]), v = Q0 * Math.exp(-k * h);
+    return { enonce: `La quantité $Q(t)$ (en mg) d'un médicament vérifie $Q' = -${fr(k)}Q$, avec $Q(0) = ${Q0}$. Quelle quantité reste-t-il au bout de $${h}$ heures ? (Arrondi à l'unité.)`, mode: "nombre", prefixe: `$Q(${h}) \\approx$`, suffixe: "mg", attendu: Math.round(v), tolerance: 1.01,
+      aides: ["$Q' = -kQ$ : $Q(t) = Q(0)e^{-kt}$.", `$Q(t) = ${Q0}e^{-${fr(k)}t}$.`, `Calcule $${Q0}e^{-${fr(+(k * h).toFixed(2))}}$.`],
+      solution: `$Q(${h}) = ${Q0}e^{-${fr(+(k * h).toFixed(2))}} \\approx ${Math.round(v)}$ mg.` };
+  };
+
+  GEN["tpe-euler"] = function () {
+    const a = pick([2, -0.5, 0.5, 3]), h = pick([0.1, 0.25, 0.5]), n = rand(2, 4), y = (1 + a * h) ** n;
+    return {
+      enonce: "Méthode d'Euler pour $y' = " + fr(a) + "y$, $y(0) = 1$, avec un pas $h = " + fr(h) + "$ :\n\n```python\ndef euler(a, h, n):\n    x = 0\n    y = 1\n    for i in range(n):\n        y = y + h * a * y\n        x = x + h\n    return y\n```\n\n" + `Que renvoie euler(${a}, ${h}, ${n}) ? (Arrondi au millième.)`,
+      mode: "nombre", prefixe: "Résultat ≈", attendu: +y.toFixed(3), tolerance: 0.0015,
+      aides: ["À chaque pas : $y_{k+1} = y_k + h \\times y'(x_k) = y_k + h \\times a \\times y_k$.", `Donc $y$ est multiplié par $1 + ${fr(a)} \\times ${fr(h)} = ${fr(+(1 + a * h).toFixed(4))}$ à chaque pas.`, `Après $${n}$ pas : $${fr(+(1 + a * h).toFixed(4))}^{${n}}$.`],
+      solution: `$y = ${fr(+(1 + a * h).toFixed(4))}^{${n}} \\approx ${fr(+y.toFixed(3))}$, une approximation de la valeur exacte $e^{${fr(+(a * h * n).toFixed(4))}} \\approx ${fr(+Math.exp(a * h * n).toFixed(3))}$.`
+    };
+  };
+
+  GEN["tpe-logique"] = function () {
+    const T = [
+      ["« Deux primitives d'une même fonction sur un intervalle diffèrent d'une constante. »", true, "Si $F' = G' = f$, alors $(F - G)' = 0$ : $F - G$ est constante sur l'intervalle."],
+      ["« Une fonction a une seule primitive. »", false, "Elle en a une infinité : $F + C$ pour tout réel $C$."],
+      ["« L'équation $y' = ay$ avec $y(0) = y_0$ a une unique solution. »", true, "$y(x) = y_0e^{ax}$ : existence et unicité avec la condition initiale."],
+      ["« La fonction nulle est solution de $y' = ay$. »", true, "$0' = 0 = a \\times 0$."],
+      ["« La fonction nulle est solution de $y' = ay + b$ avec $b \\neq 0$. »", false, "$0' = 0$ mais $a \\times 0 + b = b \\neq 0$."],
+      ["« Si $a < 0$, toutes les solutions de $y' = ay + b$ tendent vers $-\\dfrac{b}{a}$. »", true, "$y = Ce^{ax} - \\dfrac{b}{a}$ et $e^{ax} \\to 0$."],
+      ["« $\\ln x$ est une primitive de $\\dfrac{1}{x}$ sur $\\mathbb{R}$. »", false, "Seulement sur $]0\\,;+\\infty[$ : $\\ln x$ n'est pas définie pour $x \\leqslant 0$."],
+      ["« La méthode d'Euler donne la solution exacte. »", false, "Elle donne une approximation, d'autant meilleure que le pas est petit."]
+    ];
+    const [q, v, s] = pick(T), c = melangeChoix(v ? "Vrai" : "Faux", [v ? "Faux" : "Vrai"]);
+    return { enonce: `Vrai ou faux ? ${q}`, mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: ["$F$ primitive de $f$ : $F' = f$.", "$y' = ay$ : solutions $Ce^{ax}$ ; $y' = ay + b$ : $Ce^{ax} - \\dfrac{b}{a}$.", "Une condition initiale fixe la constante."],
+      solution: `**${v ? "Vrai" : "Faux"}.** ${s}` };
+  };
+
+
+  /* ---------- Terminale maths complémentaires, chapitre 11 : primitives et équations différentielles (préfixe tpe-) ---------- */
+  FIGURES["tpe-famille"] = () => graph({ xmin: -0.4, xmax: 8.4, ymin: -0.6, ymax: 8.6, h: 280, xlabel: "t", ylabel: "y", curves: [-3, -1.5, 2, 4].map((C) => ({ f: (t) => 4 + C * Math.exp(-0.5 * t), a: 0, b: 6.4, closed: false })), hlines: [{ y: 4, label: "y = 4" }], aria: "Solutions de y' = −0,5y + 2 : toutes les courbes se rapprochent de la droite y = 4, la solution constante" }).replace(/g-curve-[123]\b/g, "g-curve-0");
+  FIGURES["tpe-euler"] = () => {
+    const pts = []; let y = 1; for (let k = 0; k <= 4; k++) { pts.push([k * 0.25, y]); y = y * 1.25; }
+    return graph({ xmin: -0.08, xmax: 1.12, ymin: -0.15, ymax: 3, xstep: 0.25, xetiq: 0.5, ystep: 0.5, yetiq: 1, h: 260, curves: [{ f: (x) => Math.exp(x), a: 0, b: 1.05, closed: false, label: "y = eˣ", lx: 1.02, dx: -6, dy: -8 }], chemins: [pts], points: pts.map(([x, yy]) => ({ x, y: yy })), aria: "Méthode d'Euler pour y' = y, y(0) = 1, pas 0,25 : la ligne brisée reste un peu sous la courbe de l'exponentielle (2,44 au lieu de 2,72 en 1)" });
+  };
+
+  GEN["tpe-verifier"] = function () {
+    const a = pick([2, -3, 3, -2, 0.5]), C = pick([3, -2, 5, 4]), b = pick([4, -6, 10]), t = rand(0, 3);
+    const T = [
+      [`y' = ${fr(a)}y`, `f(x) = ${C}e^{${fr(a)}x}`, true, `$f'(x) = ${fr(C * a)}e^{${fr(a)}x} = ${fr(a)} \\times ${C < 0 ? `(${C}e^{${fr(a)}x})` : `${C}e^{${fr(a)}x}`} = ${fr(a)}f(x)$ : c'est une solution.`],
+      [`y' = ${fr(a)}y`, `f(x) = e^{${fr(a)}x} + 1`, false, `$f'(x) = ${fr(a)}e^{${fr(a)}x}$ mais $${fr(a)}f(x) = ${fr(a)}e^{${fr(a)}x} + ${fr(a)}$ : les deux ne sont pas égaux, ce n'est pas une solution.`],
+      [`y' = ${fr(a)}y ${sg(b)}`, `f(x) = ${C}e^{${fr(a)}x} ${sgf(-b / a)}`.replace("+ -", "- "), true, `$f'(x) = ${fr(C * a)}e^{${fr(a)}x}$ et $${fr(a)}f(x) ${sg(b)} = ${fr(C * a)}e^{${fr(a)}x} ${sgf(-b)} ${sg(b)} = ${fr(C * a)}e^{${fr(a)}x}$ : c'est une solution.`],
+      [`y' = ${fr(a)}y ${sg(b)}`, `f(x) = ${C}e^{${fr(a)}x} ${sgf(b / a)}`.replace("+ -", "- "), false, `$${fr(a)}f(x) ${sg(b)} = ${fr(C * a)}e^{${fr(a)}x} ${sgf(b)} ${sg(b)}$, différent de $f'(x) = ${fr(C * a)}e^{${fr(a)}x}$ : ce n'est pas une solution (la constante devrait être $${fr(-b / a)}$).`]
+    ][t];
+    const c = melangeChoix(T[2] ? "Oui" : "Non", [T[2] ? "Non" : "Oui"]);
+    return { enonce: `La fonction $${T[1]}$ est-elle solution sur $\\mathbb{R}$ de l'équation différentielle $${T[0]}$ ?`, mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: ["Calcule $f'(x)$.", "Calcule séparément le membre de droite avec $f(x)$.", "Compare : $f$ est solution si l'égalité est vraie pour tout $x$."],
+      solution: T[3] };
+  };
+
+  GEN["tpe-primitive"] = function () {
+    const a = rand(2, 5), b = rand(1, 6), k = pick([2, 3, -1, 4, -2]), ek = k === -1 ? "-x" : k + "x", Fk = k === -1 ? "-" : k < 0 ? `-\\dfrac{1}{${-k}}` : `\\dfrac{1}{${k}}`;
+    const T = [
+      [`${3 * a}x^2 + ${2 * b}x`, `${a}x^3 + ${b}x^2`, [`${6 * a}x + ${2 * b}`, `${3 * a}x^3 + ${2 * b}x^2`, `${a}x^3 + ${2 * b}x^2`], "$x^n$ a pour primitive $\\dfrac{x^{n+1}}{n+1}$"],
+      [`e^{${ek}}`, `${Fk}e^{${ek}}`, [k === -1 ? "-e^{x}" : `${k}e^{${ek}}`, `e^{${ek}}`, `e^{x}`], `$e^{kx}$ a pour primitive $\\dfrac{1}{k}e^{kx}$ ; on vérifie en dérivant`],
+      [`\\dfrac{${a}}{x}`, `${a}\\ln x`, [`-\\dfrac{${a}}{x^2}`, `${a}x`, `\\ln(${a}x^2)`], "Sur $]0\\,;+\\infty[$, $\\dfrac{1}{x}$ a pour primitive $\\ln x$"],
+      [`\\dfrac{1}{x^2}`, `-\\dfrac{1}{x}`, [`\\dfrac{1}{x}`, `-\\dfrac{2}{x^3}`, `\\ln(x^2)`], "$\\left(-\\dfrac{1}{x}\\right)' = \\dfrac{1}{x^2}$"],
+      [`2x e^{x^2}`, `e^{x^2}`, [`x^2e^{x^2}`, `2e^{x^2}`, `e^{2x}`], "Forme $u'e^u$ avec $u = x^2$ : primitive $e^u$"],
+      [`2(${a}x + ${b}) \\times ${a}`, `(${a}x + ${b})^2`, [`${a}(${a}x + ${b})^2`, `(${a}x + ${b})^3`, `2(${a}x + ${b})`], "Forme $2uu'$ avec $u = " + a + "x + " + b + "$ : primitive $u^2$"],
+      [`\\dfrac{2x}{x^2 + ${b}}`, `\\ln(x^2 + ${b})`, [`\\dfrac{1}{x^2 + ${b}}`, `2x\\ln(x^2 + ${b})`, `\\ln(2x)`], "Forme $\\dfrac{u'}{u}$ avec $u = x^2 + " + b + " > 0$ : primitive $\\ln u$"]
+    ];
+    const [f, F, fx, s] = pick(T), c = melangeChoix(`$${F}$`, fx.map((x) => `$${x}$`));
+    return { enonce: `Quelle fonction est une primitive de $f(x) = ${f}$ (sur un intervalle où tout est défini) ?`, mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: ["$F$ est une primitive de $f$ si $F' = f$.", "Dérive chaque proposition et compare avec $f$.", "Formes à reconnaître : $2uu'$ (primitive $u^2$), $u'e^u$ ($e^u$), $\\dfrac{u'}{u}$ ($\\ln u$)."],
+      solution: `${s} : $F(x) = ${F}$ convient (sa dérivée est $f$). Toute autre primitive s'obtient en ajoutant une constante.` };
+  };
+
+  GEN["tpe-condition"] = function () {
+    const a = rand(1, 4), b = rand(-5, 5), x0 = rand(0, 2), y0 = rand(-3, 8);
+    // f(x) = 2ax + b ; F(x) = ax² + bx + C avec F(x0) = y0
+    const C = y0 - (a * x0 * x0 + b * x0);
+    return { enonce: `Détermine la primitive $F$ de $f(x) = ${poly([2 * a, b])}$ telle que $F(${x0}) = ${y0}$. Donne la constante $C$ dans $F(x) = ${poly([a, b, 0])} + C$.`, mode: "nombre", prefixe: "$C =$", attendu: C,
+      aides: ["Les primitives de $f$ sont les $F(x) = " + poly([a, b, 0]) + " + C$.", `$F(${x0}) = ${a * x0 * x0 + b * x0} + C$.`, `Résous $${a * x0 * x0 + b * x0} + C = ${y0}$.`],
+      solution: `$F(${x0}) = ${a * x0 * x0 + b * x0} + C = ${y0}$, donc $C = ${C}$ et $F(x) = ${poly([a, b, C])}$. Cette primitive est **unique** : une seule vérifie la condition.` };
+  };
+
+  GEN["tpe-yay"] = function () {
+    const a = pick([0.5, -0.5, 0.2, -0.2, 2, -0.3, 0.1]), y0 = pick([2, 5, 10, 100]), t = pick([1, 2, 3, 5]), v = y0 * Math.exp(a * t);
+    if (Math.random() < 0.5) return { enonce: `$y$ est solution de $y' = ${fr(a)}y$ avec $y(0) = ${y0}$. Calcule $y(${t})$ (arrondi au centième).`, mode: "nombre", prefixe: `$y(${t}) \\approx$`, attendu: +v.toFixed(2), tolerance: 0.006,
+      aides: ["Les solutions de $y' = ay$ sont $y(x) = Ce^{ax}$.", `$y(0) = C = ${y0}$.`, `$y(${t}) = ${y0}e^{${fr(a * t)}}$.`],
+      solution: `$y(x) = ${y0}e^{${fr(a)}x}$, donc $y(${t}) = ${y0}e^{${fr(+(a * t).toFixed(2))}} \\approx ${fr(+v.toFixed(2))}$.` };
+    const c = melangeChoix(`$y(x) = ${y0}e^{${fr(a)}x}$`, [`$y(x) = e^{${fr(a)}x} + ${y0}$`, `$y(x) = ${fr(a)}e^{${y0}x}$`, `$y(x) = ${y0}x^{${fr(a)}}$`]);
+    return { enonce: `Quelle est la solution de $y' = ${fr(a)}y$ vérifiant $y(0) = ${y0}$ ?`, mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: ["$y' = ay$ : $y(x) = Ce^{ax}$.", "$y(0) = C$.", "Vérifie en dérivant."],
+      solution: `$y(x) = Ce^{${fr(a)}x}$ et $y(0) = C = ${y0}$ : $y(x) = ${y0}e^{${fr(a)}x}$.` };
+  };
+
+  GEN["tpe-yayb"] = function () {
+    const a = pick([-0.5, -2, -0.1, -0.2, 0.5, 2]), l = pick([4, 10, 20, 25, -3]), b = +(-a * l).toFixed(4), y0 = l + pick([-10, 6, 15, 60]), t = rand(0, 2);
+    const eq = `y' = ${fr(a)}y ${b < 0 ? "-" : "+"} ${fr(Math.abs(b))}`;
+    if (t === 0) return { enonce: `Quelle est la solution constante de l'équation différentielle $${eq}$ ?`, mode: "nombre", prefixe: "$y =$", attendu: l,
+      erreurs: [{ valeur: +(b / a).toFixed(4), message: "Attention au signe : $0 = ay + b$ donne $y = -\\dfrac{b}{a}$." }],
+      aides: ["Une solution constante a une dérivée nulle.", `$0 = ${fr(a)}y ${b < 0 ? "-" : "+"} ${fr(Math.abs(b))}$.`, "Résous en $y$."],
+      solution: `$y' = 0$ donne $${fr(a)}y = ${fr(-b)}$, soit $y = ${fr(l)}$. On reconnaît l'équilibre, comme la suite constante du chapitre 3.` };
+    if (t === 1) return { enonce: `$y$ est solution de $${eq}$ avec $y(0) = ${y0}$. On écrit $y(x) = Ce^{${fr(a)}x} ${sg(l)}$. Calcule $C$.`.replace("+ -", "- "), mode: "nombre", prefixe: "$C =$", attendu: y0 - l,
+      erreurs: [{ valeur: y0, message: "$y(0) = C + " + fr(l) + "$ : il faut retirer la solution constante." }],
+      aides: ["$y(0) = C \\times e^0 + \\ell = C + \\ell$.", `$C ${sg(l)} = ${y0}$.`.replace("+ -", "- "), "Isole $C$."],
+      solution: `$y(0) = C ${sg(l)} = ${y0}$, donc $C = ${y0 - l}$ et $y(x) = ${y0 - l}e^{${fr(a)}x} ${sg(l)}$.`.replace(/\+ -/g, "- ") };
+    const lim = a < 0 ? `$${fr(l)}$` : (y0 > l ? "$+\\infty$" : "$-\\infty$"), c = melangeChoix(lim, ["$+\\infty$", "$-\\infty$", `$${fr(l)}$`, "$0$"]);
+    return { enonce: `$y$ est solution de $${eq}$ avec $y(0) = ${y0}$. Quelle est la limite de $y(x)$ quand $x \\to +\\infty$ ?`, mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: [`$y(x) = ${y0 - l}e^{${fr(a)}x} ${sg(l)}$`.replace("+ -", "- ") + ".", a < 0 ? `$${fr(a)} < 0$ : $e^{${fr(a)}x} \\to 0$.` : `$${fr(a)} > 0$ : $e^{${fr(a)}x} \\to +\\infty$.`, "Tiens compte du signe de $C$."],
+      solution: `$y(x) = ${y0 - l}e^{${fr(a)}x} ${sg(l)}$`.replace("+ -", "- ") + ` : ${a < 0 ? `$e^{${fr(a)}x} \\to 0$, donc $y(x) \\to ${fr(l)}$, la solution constante.` : `$e^{${fr(a)}x} \\to +\\infty$ et $C = ${y0 - l}$, donc $y(x) \\to ${y0 > l ? "+\\infty" : "-\\infty"}$.`}` };
+  };
+
+  GEN["tpe-medicament"] = function () {
+    const k = pick([0.1, 0.2, 0.25, 0.5, 0.35]), Q0 = pick([100, 200, 500, 1000]), t = rand(0, 1);
+    if (t === 0) { const T = Math.log(2) / k; return { enonce: `La quantité $Q(t)$ (en mg) d'un médicament dans le sang vérifie $Q' = -${fr(k)}Q$, avec $Q(0) = ${Q0}$ ($t$ en heures). Au bout de combien d'heures la quantité est-elle divisée par $2$ (demi-vie) ? (Arrondi au dixième.)`, mode: "nombre", prefixe: "$t \\approx$", suffixe: "h", attendu: +T.toFixed(1), tolerance: 0.06,
+      aides: [`$Q(t) = ${Q0}e^{-${fr(k)}t}$.`, `$${Q0}e^{-${fr(k)}t} = ${Q0 / 2} \\iff e^{-${fr(k)}t} = 0{,}5$.`, `$-${fr(k)}t = \\ln 0{,}5$, donc $t = \\dfrac{\\ln 2}{${fr(k)}}$.`],
+      solution: `$e^{-${fr(k)}t} = 0{,}5 \\iff t = \\dfrac{\\ln 2}{${fr(k)}} \\approx ${fr(+T.toFixed(1))}$ h : c'est la demi-vie, la même quelle que soit la dose de départ.` }; }
+    const h = pick([2, 4, 6, 8]), v = Q0 * Math.exp(-k * h);
+    return { enonce: `La quantité $Q(t)$ (en mg) d'un médicament vérifie $Q' = -${fr(k)}Q$, avec $Q(0) = ${Q0}$. Quelle quantité reste-t-il au bout de $${h}$ heures ? (Arrondi à l'unité.)`, mode: "nombre", prefixe: `$Q(${h}) \\approx$`, suffixe: "mg", attendu: Math.round(v), tolerance: 1.01,
+      aides: ["$Q' = -kQ$ : $Q(t) = Q(0)e^{-kt}$.", `$Q(t) = ${Q0}e^{-${fr(k)}t}$.`, `Calcule $${Q0}e^{-${fr(+(k * h).toFixed(2))}}$.`],
+      solution: `$Q(${h}) = ${Q0}e^{-${fr(+(k * h).toFixed(2))}} \\approx ${Math.round(v)}$ mg.` };
+  };
+
+  GEN["tpe-euler"] = function () {
+    const a = pick([2, -0.5, 0.5, 3]), h = pick([0.1, 0.25, 0.5]), n = rand(2, 4), y = (1 + a * h) ** n;
+    return {
+      enonce: "Méthode d'Euler pour $y' = " + fr(a) + "y$, $y(0) = 1$, avec un pas $h = " + fr(h) + "$ :\n\n```python\ndef euler(a, h, n):\n    x = 0\n    y = 1\n    for i in range(n):\n        y = y + h * a * y\n        x = x + h\n    return y\n```\n\n" + `Que renvoie euler(${a}, ${h}, ${n}) ? (Arrondi au millième.)`,
+      mode: "nombre", prefixe: "Résultat ≈", attendu: +y.toFixed(3), tolerance: 0.0015,
+      aides: ["À chaque pas : $y_{k+1} = y_k + h \\times y'(x_k) = y_k + h \\times a \\times y_k$.", `Donc $y$ est multiplié par $1 + ${fr(a)} \\times ${fr(h)} = ${fr(+(1 + a * h).toFixed(4))}$ à chaque pas.`, `Après $${n}$ pas : $${fr(+(1 + a * h).toFixed(4))}^{${n}}$.`],
+      solution: `$y = ${fr(+(1 + a * h).toFixed(4))}^{${n}} \\approx ${fr(+y.toFixed(3))}$, une approximation de la valeur exacte $e^{${fr(+(a * h * n).toFixed(4))}} \\approx ${fr(+Math.exp(a * h * n).toFixed(3))}$.`
+    };
+  };
+
+  GEN["tpe-logique"] = function () {
+    const T = [
+      ["« Deux primitives d'une même fonction sur un intervalle diffèrent d'une constante. »", true, "Si $F' = G' = f$, alors $(F - G)' = 0$ : $F - G$ est constante sur l'intervalle."],
+      ["« Une fonction a une seule primitive. »", false, "Elle en a une infinité : $F + C$ pour tout réel $C$."],
+      ["« L'équation $y' = ay$ avec $y(0) = y_0$ a une unique solution. »", true, "$y(x) = y_0e^{ax}$ : existence et unicité avec la condition initiale."],
+      ["« La fonction nulle est solution de $y' = ay$. »", true, "$0' = 0 = a \\times 0$."],
+      ["« La fonction nulle est solution de $y' = ay + b$ avec $b \\neq 0$. »", false, "$0' = 0$ mais $a \\times 0 + b = b \\neq 0$."],
+      ["« Si $a < 0$, toutes les solutions de $y' = ay + b$ tendent vers $-\\dfrac{b}{a}$. »", true, "$y = Ce^{ax} - \\dfrac{b}{a}$ et $e^{ax} \\to 0$."],
+      ["« $\\ln x$ est une primitive de $\\dfrac{1}{x}$ sur $\\mathbb{R}$. »", false, "Seulement sur $]0\\,;+\\infty[$ : $\\ln x$ n'est pas définie pour $x \\leqslant 0$."],
+      ["« La méthode d'Euler donne la solution exacte. »", false, "Elle donne une approximation, d'autant meilleure que le pas est petit."]
+    ];
+    const [q, v, s] = pick(T), c = melangeChoix(v ? "Vrai" : "Faux", [v ? "Faux" : "Vrai"]);
+    return { enonce: `Vrai ou faux ? ${q}`, mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: ["$F$ primitive de $f$ : $F' = f$.", "$y' = ay$ : solutions $Ce^{ax}$ ; $y' = ay + b$ : $Ce^{ax} - \\dfrac{b}{a}$.", "Une condition initiale fixe la constante."],
+      solution: `**${v ? "Vrai" : "Faux"}.** ${s}` };
+  };
+
+
   /* Séries « flash » d'un thème : mélange de ses générateurs */
   const THEMES = {
     "am-flash-cn": ["am-comparer", "am-fractions", "am-puissances", "am-ecritures", "am-ordre-grandeur", "am-coherence", "auto-conversions"],
@@ -12488,7 +12830,7 @@
 
 
   /* Une « erreur connue » ne doit jamais coïncider avec la bonne réponse (à la tolérance près) */
-  Object.keys(GEN).filter((k) => /^(auto|ld|am|cd|ar|cl|fa|ve|st|vx|tc|co|dr|fr|sg|pc|ec|sy|su|s2|pi|s5|d1|tr|d2|vr|ps|ex|va|sc|gr|sm|ea|tsu|tag|tlf|tcb|tsd|tdc|tln|tcv|tlg)-/.test(k)).forEach((k) => {
+  Object.keys(GEN).filter((k) => /^(auto|ld|am|cd|ar|cl|fa|ve|st|vx|tc|co|dr|fr|sg|pc|ec|sy|su|s2|pi|s5|d1|tr|d2|vr|ps|ex|va|sc|gr|sm|ea|tsu|tag|tlf|tcb|tsd|tdc|tln|tcv|tlg|tpe)-/.test(k)).forEach((k) => {
     const g = GEN[k];
     GEN[k] = (i) => { const q = g(i); if (q.erreurs) q.erreurs = q.erreurs.filter((e) => Math.abs(e.valeur - q.attendu) >= (q.tolerance || 1e-9)); return q; };
   });

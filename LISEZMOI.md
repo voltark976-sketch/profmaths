@@ -53,6 +53,7 @@ Site statique : aucune base de données, aucun compte élève. Ouvrir `index.htm
   - `logarithme.js` : chapitre 8 (réciproque de exp, propriétés, équations, seuils avec ln qⁿ, étude de ln, ln u, Neper et Briggs, Brouncker). Générateurs `tln-`.
   - `convexite.js` : chapitre 9 (dérivée seconde, convexité, sécantes et tangentes, inflexion, inégalités, épidémie). Générateurs `tcv-`.
   - `loi-geometrique.js` : chapitre 10, approfondit la loi géométrique du chapitre 2 (P(X > n), espérance, absence de mémoire, crues et période de retour, seuils avec ln, simulation). Générateurs `tlg-`.
+  - `primitives-equations-differentielles.js` : chapitre 11, primitives (usuelles, formes 2uu' et u'e^u, condition initiale), équations y' = ay et y' = ay + b, médicament et refroidissement, méthode d'Euler en Python. Générateurs `tpe-`.
   - `arithmetico-geometriques.js` : chapitre 3 (suite constante, suite auxiliaire, limite, seuil, plat qui refroidit, dette). Générateurs `tag-`.
 
 Les niveaux du catalogue sont Seconde, Automatismes, Première spécialité, Terminale spécialité (`terminale-spe`) et Terminale maths complémentaires (`terminale`). Chaque niveau a sa couleur dans `assets/style.css` (règles `[data-niv="..."]`), et chaque classe des comptes a son nom court dans le classement du Défi (`COURTES` dans `assets/app.js`).

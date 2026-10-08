@@ -426,6 +426,13 @@ window.CATALOGUE = {
           titre: "Loi géométrique et temps d'attente",
           statut: "disponible",
           drive: ""
+        },
+        {
+          id: "terminale-primitives-ed",
+          numero: 11,
+          titre: "Primitives et équations différentielles",
+          statut: "disponible",
+          drive: ""
         }
       ]
     }
