@@ -12973,6 +12973,104 @@
   };
 
 
+  /* ---------- Terminale maths complémentaires, chapitre 15 : échantillonnage et synthèse (préfixe tec-) ---------- */
+  // 40 moyennes d'échantillons « simulées » une fois pour toutes (figure stable) : temps d'attente de la barge, μ = 15, σ ≈ 8,66, n = 25
+  FIGURES["tec-moyennes"] = () => { const ecarts = [0.3, -1.1, 2.4, 0.8, -2.9, 1.5, -0.4, 3.9, -1.8, 0.1, 1.2, -2.2, 0.6, -0.9, 2.8, -3.3, 1.9, -0.2, 0.9, -1.4, 2.1, -0.7, 0.4, -2.6, 1.1, 3.1, -1.2, 0.2, -0.5, 1.7, -3.1, 0.7, 2.5, -1.6, 0.0, 1.4, -2.0, 4.1, -0.8, 1.0];
+    return graph({ xmin: -1.5, xmax: 57, ymin: 9, ymax: 21.5, xstep: 5, xetiq: 10, ystep: 1, yetiq: 2, h: 260, padL: 26, xlabel: "n° échantillon", points: ecarts.map((e, k) => ({ x: k + 1, y: 15 + e })), hlines: [{ y: 15 + 2 * 1.732, label: "μ + 2σ/√n" }, { y: 15 - 2 * 1.732, label: "μ − 2σ/√n" }], aria: "40 moyennes d'échantillons de taille 25 autour de μ = 15 : 38 sur 40 (95 %) sont entre μ − 2σ/√n et μ + 2σ/√n" }); };
+
+  GEN["tec-ecart-type"] = function () {
+    const s = pick([4, 6, 10, 12, 20]), n = pick([4, 16, 25, 100, 400]), t = rand(0, 1);
+    if (t === 0) return { enonce: `Une variable aléatoire $X$ a pour écart type $\\sigma = ${s}$. On prélève des échantillons de taille $n = ${n}$. Quel est l'écart type de la série des moyennes, environ $\\dfrac{\\sigma}{\\sqrt{n}}$ ?`, mode: "nombre", prefixe: "$\\dfrac{\\sigma}{\\sqrt{n}} =$", attendu: s / Math.sqrt(n), tolerance: 0.001,
+      erreurs: [{ valeur: s / n, message: "On divise par $\\sqrt{n}$, pas par $n$." }],
+      aides: ["L'écart type des moyennes d'échantillons de taille $n$ est environ $\\dfrac{\\sigma}{\\sqrt{n}}$.", `$\\sqrt{${n}} = ${Math.sqrt(n)}$.`, `$\\dfrac{${s}}{${Math.sqrt(n)}}$.`],
+      solution: `$\\dfrac{${s}}{\\sqrt{${n}}} = \\dfrac{${s}}{${Math.sqrt(n)}} = ${fr(s / Math.sqrt(n))}$ : les moyennes varient beaucoup moins que les valeurs individuelles.` };
+    const k = pick([2, 4, 10]);
+    const c = melangeChoix(`par $${k}$`, [`par $${k * k}$`, `par $\\sqrt{${k}}$`, "elle ne change pas"]);
+    return { enonce: `On multiplie la taille $n$ des échantillons par $${k * k}$. L'écart type $\\dfrac{\\sigma}{\\sqrt{n}}$ de la série des moyennes est divisé :`, mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: ["$\\sqrt{" + k * k + "n} = \\sqrt{" + k * k + "} \\times \\sqrt{n}$.", `$\\sqrt{${k * k}} = ${k}$.`, "Conclus."],
+      solution: `$\\dfrac{\\sigma}{\\sqrt{${k * k}n}} = \\dfrac{1}{${k}} \\times \\dfrac{\\sigma}{\\sqrt{n}}$ : divisé par $${k}$. Pour être deux fois plus précis, il faut un échantillon quatre fois plus grand.` };
+  };
+
+  GEN["tec-intervalle"] = function () {
+    const mu = pick([15, 50, 100, 3.5]), s = pick([2, 5, 8]), n = pick([16, 25, 64, 100]), k = pick([2, 3]), e = (k * s) / Math.sqrt(n), haut = rand(0, 1);
+    return { enonce: `$X$ a pour espérance $\\mu = ${fr(mu)}$ et écart type $\\sigma = ${s}$. Pour des échantillons de taille $${n}$, on s'attend à ce qu'environ $${k === 2 ? "95" : "99{,}7"}\\,\\%$ des moyennes soient dans $\\left[\\mu - ${k}\\dfrac{\\sigma}{\\sqrt{n}}\\,;\\mu + ${k}\\dfrac{\\sigma}{\\sqrt{n}}\\right]$. Donne la borne ${haut ? "supérieure" : "inférieure"} de cet intervalle.`, mode: "nombre", prefixe: "Borne =", attendu: +(haut ? mu + e : mu - e).toFixed(4), tolerance: 0.001,
+      aides: [`$\\dfrac{\\sigma}{\\sqrt{n}} = \\dfrac{${s}}{${Math.sqrt(n)}} = ${fr(s / Math.sqrt(n))}$.`, `$${k} \\times ${fr(s / Math.sqrt(n))} = ${fr(e)}$.`, `$${fr(mu)} ${haut ? "+" : "-"} ${fr(e)}$.`],
+      solution: `L'intervalle est $[${fr(mu - e)}\\,;${fr(mu + e)}]$, donc la borne ${haut ? "supérieure" : "inférieure"} vaut $${fr(haut ? mu + e : mu - e)}$.` };
+  };
+
+  GEN["tec-python"] = function () {
+    const k = pick([1, 2, 3]), pc = { 1: 68, 2: 95, 3: 99.7 }[k];
+    const c = melangeChoix(`environ $${fr(pc)}\\,\\%$`, ["environ $68\\,\\%$", "environ $95\\,\\%$", "environ $99{,}7\\,\\%$", "environ $50\\,\\%$"]);
+    return { enonce: "On simule $N$ échantillons de taille $n$ d'une variable d'espérance mu et d'écart type sigma, et on compte les moyennes proches de mu :\n\n```python\nfrom math import sqrt\n\ndef proportion(N, n, k):\n    c = 0\n    for i in range(N):\n        m = moyenneEch(n)\n        if abs(m - mu) <= k * sigma / sqrt(n):\n            c = c + 1\n    return c / N\n```\n\n" + `Pour $N$ et $n$ grands, que renvoie environ proportion(N, n, ${k}) ?`, mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: ["On compte les moyennes à moins de $k\\dfrac{\\sigma}{\\sqrt{n}}$ de l'espérance.", "Repères : $68\\,\\%$ pour $k = 1$, $95\\,\\%$ pour $k = 2$, $99{,}7\\,\\%$ pour $k = 3$.", `Ici $k = ${k}$.`],
+      solution: `Environ $${fr(pc)}\\,\\%$ des moyennes sont à moins de $${k}\\dfrac{\\sigma}{\\sqrt{n}}$ de $\\mu$ (repères de la loi normale, que tu verras en études supérieures).` };
+  };
+
+  GEN["tec-fourchette"] = function () {
+    const n = pick([100, 400, 625, 900, 1600]), f = pick([0.42, 0.55, 0.61, 0.7, 0.35]), r = 1 / Math.sqrt(n), haut = rand(0, 1), k = Math.round(f * n);
+    return { enonce: `Sondage sur la vaccination au lycée : sur $${n}$ élèves interrogés au hasard, $${k}$ sont à jour de leurs vaccins. Donne la borne ${haut ? "supérieure" : "inférieure"} de la fourchette au niveau de confiance $95\\,\\%$, $\\left[f - \\dfrac{1}{\\sqrt{n}}\\,;f + \\dfrac{1}{\\sqrt{n}}\\right]$ (en valeur décimale, arrondie au millième).`, mode: "nombre", prefixe: "Borne ≈", attendu: +(haut ? f + r : f - r).toFixed(3), tolerance: 0.0006,
+      aides: [`$f = \\dfrac{${k}}{${n}} = ${fr(f)}$.`, `$\\dfrac{1}{\\sqrt{${n}}} = \\dfrac{1}{${Math.sqrt(n)}} \\approx ${fr(+r.toFixed(4))}$.`, `$${fr(f)} ${haut ? "+" : "-"} ${fr(+r.toFixed(4))}$.`],
+      solution: `Fourchette : $[${fr(+(f - r).toFixed(3))}\\,;${fr(+(f + r).toFixed(3))}]$. On estime qu'entre $${fr(+((f - r) * 100).toFixed(1))}\\,\\%$ et $${fr(+((f + r) * 100).toFixed(1))}\\,\\%$ des élèves du lycée sont à jour, avec un niveau de confiance de $95\\,\\%$.` };
+  };
+
+  GEN["tec-taille"] = function () {
+    const t = rand(0, 1);
+    if (t === 0) { const a = pick([0.1, 0.05, 0.04, 0.02]), n = Math.ceil(4 / (a * a) - 1e-9);
+      return { enonce: `On veut une fourchette $\\left[f - \\dfrac{1}{\\sqrt{n}}\\,;f + \\dfrac{1}{\\sqrt{n}}\\right]$ d'amplitude au plus $${fr(a)}$. Quelle est la plus petite taille d'échantillon $n$ ?`, mode: "nombre", prefixe: "$n =$", attendu: n,
+        aides: ["L'amplitude est $\\dfrac{2}{\\sqrt{n}}$.", `$\\dfrac{2}{\\sqrt{n}} \\leqslant ${fr(a)} \\iff \\sqrt{n} \\geqslant ${fr(2 / a)}$.`, `$n \\geqslant ${fr(2 / a)}^2$.`],
+        solution: `$\\sqrt{n} \\geqslant ${fr(2 / a)}$, donc $n \\geqslant ${String(n).replace(/\B(?=(\d{3})+(?!\d))/g, "\\,")}$ : il faut interroger au moins $${String(n).replace(/\B(?=(\d{3})+(?!\d))/g, "\\,")}$ personnes.` }; }
+    const s = pick([5, 10, 12, 15]), e = pick([1, 2, 0.5]), n = Math.ceil((s / e) ** 2 - 1e-9);
+    return { enonce: `$X$ a pour écart type $\\sigma = ${s}$. Quelle est la plus petite taille $n$ d'échantillon pour que $\\dfrac{\\sigma}{\\sqrt{n}} \\leqslant ${fr(e)}$ ?`, mode: "nombre", prefixe: "$n =$", attendu: n,
+      aides: [`$\\dfrac{${s}}{\\sqrt{n}} \\leqslant ${fr(e)} \\iff \\sqrt{n} \\geqslant ${fr(s / e)}$.`, `$n \\geqslant ${fr(s / e)}^2$.`, "Prends le plus petit entier qui convient."],
+      solution: `$n \\geqslant \\left(\\dfrac{${s}}{${fr(e)}}\\right)^2 = ${fr((s / e) ** 2)}$, donc $n = ${n}$.` };
+  };
+
+  GEN["tec-biais"] = function () {
+    const T = [
+      ["Pour estimer la part d'élèves vaccinés, on interroge les élèves présents à l'infirmerie.", "biaisé", "Les élèves de l'infirmerie ne sont pas représentatifs (ils y sont souvent pour une raison de santé)."],
+      ["Pour connaître le temps de trajet des élèves, on interroge uniquement ceux qui arrivent en retard.", "biaisé", "Les retardataires ont sans doute des trajets plus longs que la moyenne."],
+      ["Pour connaître l'avis des élèves sur la cantine, on tire au sort $100$ élèves dans la liste complète du lycée.", "non biaisé", "Le tirage au sort dans toute la population donne un échantillon représentatif."],
+      ["Pour un sondage sur l'usage des réseaux sociaux, on publie un questionnaire en ligne sur Instagram.", "biaisé", "Seuls des utilisateurs d'Instagram répondent : la population est mal représentée (biais de sélection)."],
+      ["Pour estimer la taille moyenne des élèves, on mesure tous les élèves d'une équipe de basket.", "biaisé", "Les basketteurs sont en général plus grands que la moyenne."],
+      ["Pour estimer la part de familles ayant l'eau courante à Mayotte, on tire au sort des logements dans tout le département.", "non biaisé", "Tous les logements ont la même chance d'être choisis."]
+    ], [q, r, s] = pick(T), c = melangeChoix(r === "biaisé" ? "Oui, l'échantillon est biaisé" : "Non, l'échantillon est représentatif", [r === "biaisé" ? "Non, l'échantillon est représentatif" : "Oui, l'échantillon est biaisé"]);
+    return { enonce: `${q} Cette méthode présente-t-elle un biais ?`, mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: ["Un échantillon doit être tiré au hasard dans toute la population étudiée.", "Un biais apparaît si une partie de la population a plus de chances d'être choisie.", "Demande-toi : ces personnes sont-elles différentes des autres pour la question posée ?"],
+      solution: `**${r === "biaisé" ? "Oui" : "Non"}.** ${s}` };
+  };
+
+  GEN["tec-synthese"] = function () {
+    const t = rand(0, 2);
+    if (t === 0) { const T = pick([20, 30, 40]), n = pick([25, 36, 100]), s = T / Math.sqrt(12), r = s / Math.sqrt(n);
+      return { enonce: `Synthèse (ch. 13 et 15) : le temps d'attente de la barge suit la loi uniforme sur $[0\\,;${T}]$, d'écart type $\\sigma = \\dfrac{${T}}{\\sqrt{12}}$. On note la moyenne des attentes sur $${n}$ traversées. Quel est environ l'écart type de cette moyenne ? (Arrondi au centième.)`, mode: "nombre", prefixe: "≈", suffixe: "min", attendu: +r.toFixed(2), tolerance: 0.006,
+        aides: [`$\\sigma = \\dfrac{${T}}{\\sqrt{12}} \\approx ${fr(+s.toFixed(3))}$.`, "Écart type de la moyenne : $\\dfrac{\\sigma}{\\sqrt{n}}$.", `$\\dfrac{${fr(+s.toFixed(3))}}{\\sqrt{${n}}}$.`],
+        solution: `$\\dfrac{\\sigma}{\\sqrt{${n}}} \\approx \\dfrac{${fr(+s.toFixed(3))}}{${Math.sqrt(n)}} \\approx ${fr(+r.toFixed(2))}$ min : sur $${n}$ traversées, l'attente moyenne reste proche de $${T / 2}$ min.` }; }
+    if (t === 1) { const p = pick([0.2, 0.3, 0.5]), n = pick([100, 400]), s = Math.sqrt(p * (1 - p)), r = s / Math.sqrt(n);
+      return { enonce: `Synthèse (ch. 2 et 15) : $X$ suit la loi de Bernoulli de paramètre $${fr(p)}$, d'écart type $\\sqrt{p(1 - p)}$. Pour des échantillons de taille $${n}$, quel est l'écart type de la fréquence observée, $\\dfrac{\\sigma}{\\sqrt{n}}$ ? (Arrondi au millième.)`, mode: "nombre", prefixe: "≈", attendu: +r.toFixed(3), tolerance: 0.0006,
+        aides: [`$\\sigma = \\sqrt{${fr(p)} \\times ${fr(1 - p)}} \\approx ${fr(+s.toFixed(4))}$.`, `Divise par $\\sqrt{${n}} = ${Math.sqrt(n)}$.`, "Arrondis au millième."],
+        solution: `$\\dfrac{\\sqrt{${fr(p)} \\times ${fr(1 - p)}}}{${Math.sqrt(n)}} \\approx ${fr(+r.toFixed(3))}$. Comme $\\sqrt{p(1 - p)} \\leqslant 0{,}5$, on a $2\\dfrac{\\sigma}{\\sqrt{n}} \\leqslant \\dfrac{1}{\\sqrt{n}}$ : c'est l'origine de la fourchette.` }; }
+    const l = pick([0.1, 0.2, 0.5]), n = pick([25, 100]), r = 1 / l / Math.sqrt(n);
+    return { enonce: `Synthèse (ch. 13 et 15) : la durée de vie d'une ampoule suit la loi exponentielle de paramètre $${fr(l)}$ (en années) ; on admet que son écart type vaut $\\dfrac{1}{\\lambda}$. Quel est l'écart type de la durée de vie moyenne d'un lot de $${n}$ ampoules ?`, mode: "nombre", prefixe: "≈", suffixe: "ans", attendu: +r.toFixed(3), tolerance: 0.001,
+      aides: [`$\\sigma = \\dfrac{1}{${fr(l)}} = ${fr(1 / l)}$.`, "Écart type de la moyenne : $\\dfrac{\\sigma}{\\sqrt{n}}$.", `$\\dfrac{${fr(1 / l)}}{${Math.sqrt(n)}}$.`],
+      solution: `$\\dfrac{${fr(1 / l)}}{\\sqrt{${n}}} = ${fr(+r.toFixed(3))}$ an(s) : la durée moyenne d'un lot est bien plus prévisible que celle d'une ampoule.` };
+  };
+
+  GEN["tec-logique"] = function () {
+    const T = [
+      ["« Plus l'échantillon est grand, moins les moyennes d'échantillons sont dispersées. »", true, "Leur écart type $\\dfrac{\\sigma}{\\sqrt{n}}$ diminue quand $n$ augmente."],
+      ["« Pour diviser par $2$ l'amplitude d'une fourchette, il suffit de doubler la taille de l'échantillon. »", false, "L'amplitude $\\dfrac{2}{\\sqrt{n}}$ est divisée par $2$ quand $n$ est multiplié par $4$."],
+      ["« Un très grand échantillon corrige toujours un biais. »", false, "Un échantillon biaisé reste biaisé, même très grand : la taille réduit la fluctuation, pas le biais."],
+      ["« La fourchette contient toujours la vraie proportion. »", false, "Seulement avec un niveau de confiance de $95\\,\\%$ : environ $5$ sondages sur $100$ se trompent."],
+      ["« Deux échantillons de même taille tirés dans la même population donnent en général des moyennes différentes. »", true, "C'est la fluctuation d'échantillonnage."],
+      ["« Environ $95\\,\\%$ des moyennes d'échantillons sont à moins de $2\\dfrac{\\sigma}{\\sqrt{n}}$ de l'espérance. »", true, "On le constate par simulation (et la loi normale le justifie)."]
+    ];
+    const [q, v, s] = pick(T), c = melangeChoix(v ? "Vrai" : "Faux", [v ? "Faux" : "Vrai"]);
+    return { enonce: `Vrai ou faux ? ${q}`, mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: ["Écart type des moyennes : $\\dfrac{\\sigma}{\\sqrt{n}}$.", "Fourchette au niveau $95\\,\\%$ : $f \\pm \\dfrac{1}{\\sqrt{n}}$.", "Distingue la fluctuation (hasard) et le biais (mauvaise méthode)."],
+      solution: `**${v ? "Vrai" : "Faux"}.** ${s}` };
+  };
+
+
   /* Séries « flash » d'un thème : mélange de ses générateurs */
   const THEMES = {
     "am-flash-cn": ["am-comparer", "am-fractions", "am-puissances", "am-ecritures", "am-ordre-grandeur", "am-coherence", "auto-conversions"],
@@ -12989,7 +13087,7 @@
 
 
   /* Une « erreur connue » ne doit jamais coïncider avec la bonne réponse (à la tolérance près) */
-  Object.keys(GEN).filter((k) => /^(auto|ld|am|cd|ar|cl|fa|ve|st|vx|tc|co|dr|fr|sg|pc|ec|sy|su|s2|pi|s5|d1|tr|d2|vr|ps|ex|va|sc|gr|sm|ea|tsu|tag|tlf|tcb|tsd|tdc|tln|tcv|tlg|tpe|tin|tld|trr)-/.test(k)).forEach((k) => {
+  Object.keys(GEN).filter((k) => /^(auto|ld|am|cd|ar|cl|fa|ve|st|vx|tc|co|dr|fr|sg|pc|ec|sy|su|s2|pi|s5|d1|tr|d2|vr|ps|ex|va|sc|gr|sm|ea|tsu|tag|tlf|tcb|tsd|tdc|tln|tcv|tlg|tpe|tin|tld|trr|tec)-/.test(k)).forEach((k) => {
     const g = GEN[k];
     GEN[k] = (i) => { const q = g(i); if (q.erreurs) q.erreurs = q.erreurs.filter((e) => Math.abs(e.valeur - q.attendu) >= (q.tolerance || 1e-9)); return q; };
   });

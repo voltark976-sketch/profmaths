@@ -454,6 +454,13 @@ window.CATALOGUE = {
           titre: "Répartition des richesses et inégalités",
           statut: "disponible",
           drive: ""
+        },
+        {
+          id: "terminale-echantillonnage",
+          numero: 15,
+          titre: "Échantillonnage et synthèse",
+          statut: "disponible",
+          drive: ""
         }
       ]
     }
