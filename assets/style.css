@@ -100,6 +100,7 @@ a.chap:hover, .serie:hover { border-color: var(--lagon); }
 .n { flex: none; font: 800 0.95rem/1 var(--f-titre); color: var(--lagon); min-width: 1.4em; }
 .notion p, .notion li { max-width: 38rem; }
 .notion-cote { display: grid; gap: 0; }
+.notion-cote > *, .notion h2 > .t { min-width: 0; } /* un tableau de valeurs défile dans son cadre au lieu d'élargir la page */
 .notion ul, .erreurs ul { padding-left: 1.2em; }
 .notion li, .erreurs li { margin: 0.35em 0; }
 .exemple { margin-top: 14px; background: var(--lagon-pale); border-radius: var(--r); padding: 14px 16px; }

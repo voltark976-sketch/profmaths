@@ -39,6 +39,7 @@ window.CHAPITRES["seconde-colinearite"] = {
     },
     {
       titre: "Vecteurs colinéaires",
+      figure: "colineaires",
       video: { titre: "Vidéo d'Yvan Monka : démontrer que deux vecteurs sont colinéaires", youtube: "https://youtu.be/FjUbd9Pbhmg" },
       texte:
         "Deux vecteurs $\\vec{u}$ et $\\vec{v}$ sont **colinéaires** s'il existe un réel $k$ tel que $\\vec{v} = k\\vec{u}$ (ou $\\vec{u} = k\\vec{v}$). Ils ont alors la **même direction**.\n\n" +
@@ -78,6 +79,7 @@ window.CHAPITRES["seconde-colinearite"] = {
     },
     {
       titre: "Alignement et parallélisme",
+      figure: "alignes",
       video: { titre: "Vidéo d'Yvan Monka : démontrer un alignement avec la colinéarité", youtube: "https://youtu.be/dZ81uKVDGpE" },
       texte:
         "- Les points $A$, $B$, $C$ sont **alignés** si et seulement si $\\overrightarrow{AB}$ et $\\overrightarrow{AC}$ sont colinéaires.\n" +

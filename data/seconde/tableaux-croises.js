@@ -67,6 +67,7 @@ window.CHAPITRES["seconde-tableaux-croises"] = {
     },
     {
       titre: "ET, OU, NON : intersection et réunion",
+      figure: "venn",
       video: { titre: "Vidéo d'Yvan Monka : calculer la probabilité d'une réunion", youtube: "https://youtu.be/y4P_BP-ldxk" },
       texte:
         "- $A \\cap B$ (« $A$ **et** $B$ ») : les issues qui sont à la fois dans $A$ et dans $B$. Dans un tableau croisé, c'est **une case**.\n" +

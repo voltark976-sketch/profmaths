@@ -3920,10 +3920,24 @@
     };
   };
 
+  // Repère ajusté à des points nommés (schéma d'aide des exercices) ; fl : flèches [i, j] entre points
+  function repere(pts, fl, segments) {
+    const xs = pts.map((p) => p[0]), ys = pts.map((p) => p[1]);
+    const xmin = Math.min(0, ...xs) - 1.5, xmax = Math.max(0, ...xs) + 1.5, ymin = Math.min(0, ...ys) - 1.5, ymax = Math.max(0, ...ys) + 1.5;
+    const large = Math.max(xmax - xmin, ymax - ymin) > 12;
+    return graph({
+      xmin, xmax, ymin, ymax, xetiq: large ? 2 : 1, yetiq: large ? 2 : 1,
+      fleches: (fl || []).map(([i, j]) => ({ x1: pts[i][0], y1: pts[i][1], x2: pts[j][0], y2: pts[j][1] })),
+      curves: (segments || []).filter(([i, j]) => pts[i][0] !== pts[j][0]).map(([i, j]) => { const [P, Q] = pts[i][0] < pts[j][0] ? [pts[i], pts[j]] : [pts[j], pts[i]]; return { f: (x) => P[1] + ((x - P[0]) * (Q[1] - P[1])) / (Q[0] - P[0]), a: P[0], b: Q[0], closed: false }; }),
+      points: pts.map((p) => ({ x: p[0], y: p[1], label: p[2] })), aria: "Points placés dans un repère"
+    });
+  }
+
   GEN["ve-coord"] = function () {
     const [A, B] = deuxPoints(9), q = Math.random() < 0.5 ? 0 : 1, l = q ? "y" : "x";
     const v = B[q] - A[q];
     return {
+      figure: repere([[...A, "A"], [...B, "B"]], [[0, 1]]),
       enonce: `Dans un repère, $A${pt(...A)}$ et $B${pt(...B)}$. Calcule ${q ? "l'ordonnée" : "l'abscisse"} du vecteur $${vec("AB")}$.`,
       mode: "nombre", prefixe: `${l} =`, attendu: v,
       erreurs: [{ valeur: -v, message: "C'est « arrivée moins départ » : $x_B - x_A$, pas l'inverse." }, { valeur: A[q] + B[q], message: "On soustrait les coordonnées, on ne les additionne pas." }],
@@ -3957,6 +3971,7 @@
     const [A, B] = deuxPoints(9), q = Math.random() < 0.5 ? 0 : 1, l = q ? "y" : "x";
     const v = (A[q] + B[q]) / 2;
     return {
+      figure: repere([[...A, "A"], [...B, "B"]], [], [[0, 1]]),
       enonce: `Dans un repère, $A${pt(...A)}$ et $B${pt(...B)}$. Calcule ${q ? "l'ordonnée" : "l'abscisse"} du milieu $I$ de $[AB]$.`,
       mode: "nombre", prefixe: `${l}_I =`, attendu: v,
       erreurs: [{ valeur: (B[q] - A[q]) / 2, message: "Pour le milieu, on **additionne** les coordonnées, puis on divise par $2$." }, { valeur: A[q] + B[q], message: "N'oublie pas de diviser par $2$." }],
@@ -4000,6 +4015,7 @@
     while ((B[0] - A[0]) * (C[1] - B[1]) - (B[1] - A[1]) * (C[0] - B[0]) === 0);
     const D = [A[0] + C[0] - B[0], A[1] + C[1] - B[1]], q = Math.random() < 0.5 ? 0 : 1, l = q ? "y" : "x";
     return {
+      figure: repere([[...A, "A"], [...B, "B"], [...C, "C"]], [[0, 1]], [[1, 2]]),
       enonce: `$A${pt(...A)}$, $B${pt(...B)}$ et $C${pt(...C)}$. On cherche $D$ tel que $ABCD$ soit un parallélogramme. Calcule ${q ? "l'ordonnée" : "l'abscisse"} de $D$.`,
       mode: "nombre", prefixe: `${l}_D =`, attendu: D[q],
       erreurs: [{ valeur: B[q] + C[q] - A[q], message: "Ça, c'est le point tel que $ABDC$ est un parallélogramme. Respecte l'ordre des lettres : $\\overrightarrow{AB} = \\overrightarrow{DC}$." }],
@@ -4614,7 +4630,11 @@
     const ordre = Math.random() < 0.5; // facteur en r1 au numérateur ou non
     const expr = quot ? `\\dfrac{${fx1(ordre ? r1 : r2)}}{${fx1(ordre ? r2 : r1)}}` : `(${fx1(r1)})(${fx1(r2)})`;
     const zt = [`x < ${r1}`, `${r1} < x < ${r2}`, `x > ${r2}`][zone];
+    const t = (r) => fx1(r).replace(" - ", " − "), m = (k) => String(k).replace("-", "−");
+    const fin = ["", quot ? (ordre ? "0" : "||") : "0", "", quot ? (ordre ? "||" : "0") : "0", ""]; fin[2 * zone] = "?";
+    const fig = tabsigne(["−∞", m(r1), m(r2), "+∞"], [{ nom: t(r1), cases: ["-", "0", "+", "", "+"] }, { nom: t(r2), cases: ["-", "", "-", "0", "+"] }, { nom: quot ? "quotient" : "produit", cases: fin }]);
     return {
+      figure: fig,
       enonce: `Dans le tableau de signes de $${expr}$, quel est le signe ${zone === 1 ? "entre" : zone === 0 ? "avant" : "après"} les valeurs remarquables, c'est-à-dire pour $${zt}$ ?`,
       mode: "choix", choix: ["$+$", "$-$"], attendu: s > 0 ? 0 : 1,
       aides: [`Les facteurs s'annulent en $${r1}$ et en $${r2}$.`, "$x - a$ est négatif avant $a$ et positif après.", quot ? "Pour un quotient, la règle des signes est la même que pour un produit." : "Règle des signes : deux facteurs de même signe donnent $+$, de signes contraires donnent $-$."],
@@ -4942,6 +4962,7 @@
     if (t === 0) {
       const x = rand(1, c / 2 - 1);
       return {
+        figure: patron(c),
         enonce: `Dans une plaque de carton carrée de $${c}$ cm de côté, on découpe un carré de côté $x$ cm à chaque coin, puis on replie les bords pour faire une boîte sans couvercle. Calcule le volume (en cm³) pour $x = ${x}$.`,
         mode: "nombre", prefixe: "V =", suffixe: "cm³", attendu: V(x),
         aides: [`Le fond de la boîte est un carré de côté $${c} - 2x$ (on enlève $x$ de chaque côté).`, `La hauteur de la boîte est $x$. Donc $V(x) = x(${c} - 2x)^2$.`, `Pour $x = ${x}$ : fond de côté $${c - 2 * x}$ cm.`],
@@ -4950,6 +4971,7 @@
     }
     const vals = Array.from({ length: c / 2 - 1 }, (_, i) => i + 1);
     return {
+      figure: patron(c),
       enonce: `Dans une plaque de carton carrée de $${c}$ cm de côté, on découpe un carré de côté $x$ cm à chaque coin pour faire une boîte sans couvercle, de volume $V(x) = x(${c} - 2x)^2$. Pour quelle valeur **entière** de $x$ le volume est-il maximal ?`,
       mode: "nombre", prefixe: "x =", suffixe: "cm", attendu: xs,
       erreurs: [{ valeur: c / 4, message: `$V(${c / 4}) = ${nb(V(c / 4))}$ : ce n'est pas le maximum, compare avec les valeurs voisines.` }],
@@ -5022,6 +5044,106 @@
       solution: (n === 1 ? "Un seul segment de $(0\\,;0)$ à $(1\\,;1)$ : $\\sqrt{1^2 + 1^2} = \\sqrt{2}$" : `Somme des longueurs des $${n}$ segments`) + ` $\\approx ${nb(r)}$.\n\nPlus $n$ est grand, plus la ligne brisée « colle » à la courbe et plus l'approximation est bonne.`
     };
   };
+
+
+  /* ---------- Schémas des cours de Seconde (chapitres 4 à 17) ---------- */
+  // Tableau de signes. xs : valeurs de la 1re ligne (textes, ±∞ compris) ;
+  // lignes : [{ nom, cases }] avec cases = [signe, marque, signe, marque, …, signe] (marque : "0", "||" ou "")
+  function tabsigne(xs, lignes) {
+    const W = 320, g = 78, hR = 30, H = hR * (lignes.length + 1) + 2, n = xs.length;
+    const X = (k) => g + 16 + (k * (W - g - 32)) / (n - 1);
+    let s = `<svg class="graph tabvar" viewBox="0 0 ${W} ${H}" role="img" aria-label="Tableau de signes">`;
+    s += `<g class="g-axis"><rect x="1" y="1" width="${W - 2}" height="${H - 2}" fill="none" stroke-width="1.2" style="stroke:var(--doux)"/><line x1="${g}" y1="1" x2="${g}" y2="${H - 1}"/>`;
+    for (let r = 1; r <= lignes.length; r++) s += `<line x1="1" y1="${r * hR}" x2="${W - 1}" y2="${r * hR}"/>`;
+    s += `</g><text class="g-label" x="${g / 2}" y="20" text-anchor="middle">x</text>`;
+    xs.forEach((x, k) => { s += `<text class="g-label" x="${X(k)}" y="20" text-anchor="middle">${x}</text>`; });
+    lignes.forEach((l, r) => {
+      const y0 = (r + 1) * hR, yc = y0 + 20, der = r === lignes.length - 1;
+      s += `<text class="g-label" x="${g / 2}" y="${yc}" text-anchor="middle" ${der ? 'style="fill:var(--lagon)"' : ""}>${l.nom}</text>`;
+      l.cases.forEach((c, i) => {
+        if (i % 2 === 0) { const xm = (X(i / 2) + X(i / 2 + 1)) / 2; s += `<text class="g-clabel" x="${xm}" y="${yc + 1}" text-anchor="middle" style="fill:${c === "+" ? "var(--lagon)" : c === "?" ? "var(--ylang)" : "var(--faux)"}">${c === "-" ? "−" : c}</text>`; }
+        else {
+          const xv = X((i + 1) / 2);
+          if (c === "||") s += `<line x1="${xv - 2}" y1="${y0}" x2="${xv - 2}" y2="${y0 + hR}" style="stroke:var(--encre);stroke-width:1.2"/><line x1="${xv + 2}" y1="${y0}" x2="${xv + 2}" y2="${y0 + hR}" style="stroke:var(--encre);stroke-width:1.2"/>`;
+          else { s += `<line x1="${xv}" y1="${y0}" x2="${xv}" y2="${y0 + hR}" style="stroke:var(--trait);stroke-width:1;stroke-dasharray:3 3"/>`; if (c) s += `<text class="g-label" x="${xv}" y="${yc}" text-anchor="middle" style="paint-order:stroke;stroke:var(--surface);stroke-width:4px">${c}</text>`; }
+        }
+      });
+    });
+    return s + `</svg>`;
+  }
+  FIGURES["tabsigne-produit"] = () => tabsigne(["−∞", "−2", "3", "+∞"], [{ nom: "x + 2", cases: ["-", "0", "+", "", "+"] }, { nom: "3 − x", cases: ["+", "", "+", "0", "-"] }, { nom: "produit", cases: ["-", "0", "+", "0", "-"] }]);
+  FIGURES["tabsigne-quotient"] = () => tabsigne(["−∞", "−4", "3", "+∞"], [{ nom: "x + 4", cases: ["-", "0", "+", "", "+"] }, { nom: "x − 3", cases: ["-", "", "-", "0", "+"] }, { nom: "quotient", cases: ["+", "0", "-", "||", "+"] }]);
+
+  // Chapitre 4 : multiples de 15 et de 20 sur une droite graduée (deux barges)
+  FIGURES["multiples-barges"] = () => {
+    const W = 320, X = (v) => 16 + (v * (W - 32)) / 65;
+    let s = `<svg class="graph" viewBox="0 0 ${W} 120" role="img" aria-label="Multiples de 15 et de 20 jusqu'à 60 : le premier multiple commun est 60">`;
+    s += `<g class="g-axis"><line x1="${X(0)}" y1="60" x2="${X(65)}" y2="60"/></g><g class="g-tick">`;
+    for (let v = 0; v <= 60; v += 5) s += `<line x1="${X(v)}" y1="56" x2="${X(v)}" y2="64" style="stroke:var(--doux)"/>`;
+    for (let v = 0; v <= 60; v += 10) s += `<text x="${X(v)}" y="78" text-anchor="middle">${v}</text>`;
+    s += `</g>`;
+    [15, 30, 45, 60].forEach((v, i) => { s += `<path class="g-curve g-curve-0" d="M${X(v - 15)} 54 Q${(X(v - 15) + X(v)) / 2} 22 ${X(v)} 54"/>`; });
+    [20, 40, 60].forEach((v) => { s += `<path class="g-curve g-curve-1" d="M${X(v - 20)} 66 Q${(X(v - 20) + X(v)) / 2} 104 ${X(v)} 66"/>`; });
+    s += `<text class="g-clabel g-curve-0" x="${X(7.5)}" y="22" text-anchor="middle">+15</text><text class="g-clabel g-curve-1" x="${X(10)}" y="112" text-anchor="middle">+20</text>`;
+    s += `<circle class="g-point" cx="${X(60)}" cy="60" r="5"/><text class="g-plabel" x="${X(60) + 8}" y="50">60</text>`;
+    return s + `</svg>`;
+  };
+
+  // Chapitre 5 : (a + b)² découpé en a², ab, ab, b²
+  FIGURES["identite-carre"] = () => {
+    const o = 40, A = 150, B = 80, T = A + B;
+    let s = `<svg class="graph" viewBox="0 0 320 ${T + 50}" role="img" aria-label="Carré de côté a + b découpé en un carré a², un carré b² et deux rectangles ab">`;
+    const r = (x, y, w, h, cl, t) => { s += `<rect x="${o + x}" y="${10 + y}" width="${w}" height="${h}" style="fill:var(${cl});stroke:var(--doux);stroke-width:1.4"/><text class="g-clabel" x="${o + x + w / 2}" y="${10 + y + h / 2 + 5}" text-anchor="middle">${t}</text>`; };
+    r(0, 0, A, A, "--lagon-pale", "a²"); r(A, 0, B, A, "--ylang-pale", "ab"); r(0, A, A, B, "--ylang-pale", "ab"); r(A, A, B, B, "--lagon-pale", "b²");
+    s += `<text class="g-label" x="${o + A / 2}" y="${T + 30}" text-anchor="middle">a</text><text class="g-label" x="${o + A + B / 2}" y="${T + 30}" text-anchor="middle">b</text>`;
+    s += `<text class="g-label" x="${o - 10}" y="${10 + A / 2}" text-anchor="end">a</text><text class="g-label" x="${o - 10}" y="${10 + A + B / 2}" text-anchor="end">b</text>`;
+    return s + `</svg>`;
+  };
+  // Chapitre 5 : x² = 4 (deux solutions), x² = 0, x² = −2 (aucune)
+  FIGURES["carre-niveaux"] = () => graph({ xmin: -3.4, xmax: 3.4, ymin: -3, ymax: 9.6, h: 300, curves: [{ f: (x) => x * x, a: -3, b: 3, closed: false }], hlines: [{ y: 4, label: "y = 4" }, { y: -2, label: "y = −2" }], points: [{ x: -2, y: 4, label: "−2", gauche: true }, { x: 2, y: 4, label: "2" }, { x: 0, y: 0 }], aria: "Parabole y = x² : la droite y = 4 la coupe en −2 et 2, la droite y = −2 ne la coupe pas" });
+
+  // Chapitre 6 : taux d'accroissement et ordonnée à l'origine de y = 2x − 1
+  FIGURES["droite-affine"] = () => graph({ xmin: -2.5, xmax: 4.5, ymin: -3.5, ymax: 6.5, curves: [{ f: (x) => 2 * x - 1, a: -1.2, b: 3.6, closed: false, label: "y = 2x − 1", lx: 3.4, dx: -8, dy: 2 }], fleches: [{ x1: 1, y1: 1, x2: 2, y2: 1, c: 1, label: "+1" }, { x1: 2, y1: 1, x2: 2, y2: 3, c: 1, label: "+2" }], points: [{ x: 0, y: -1, label: "p = −1" }], aria: "Droite y = 2x − 1 : quand x augmente de 1, y augmente de 2 ; elle coupe l'axe des ordonnées en −1" });
+  FIGURES["signe-affine"] = () => graph({ xmin: -1.5, xmax: 6.5, ymin: -6.5, ymax: 8.5, h: 280, curves: [{ f: (x) => -2 * x + 6, a: -1, b: 6, closed: false, label: "y = −2x + 6", lx: 5.5, dx: -6, dy: -8 }], points: [{ x: 3, y: 0, label: "3" }], marques: [{ x: 1, y: -2.5, texte: "f(x) > 0" }, { x: 5, y: 2.5, texte: "f(x) < 0" }], aria: "La droite y = −2x + 6 est au-dessus de l'axe avant 3 et en dessous après 3" });
+  FIGURES["taxis"] = () => graph({ xmin: -1, xmax: 21, ymin: -4, ymax: 62, xstep: 2, ystep: 10, xetiq: 4, yetiq: 20, h: 260, padL: 24, curves: [{ f: (x) => 2 * x + 10, a: 0, b: 20, closed: false, label: "A", lx: 20, dx: -2, dy: 14 }, { f: (x) => 2.5 * x + 4, a: 0, b: 20, closed: false, label: "B", lx: 20, dx: -2, dy: -6 }], points: [{ x: 12, y: 34, label: "(12 ; 34)", gauche: true }], xlabel: "km", ylabel: "€", aria: "Deux droites de tarifs qui se croisent pour 12 km : après 12 km, A est sous B" });
+
+  // Chapitre 7 : vecteurs
+  FIGURES["parallelogramme"] = () => graph({ xmin: -4.5, xmax: 3.5, ymin: -3.5, ymax: 3.5, fleches: [{ x1: -3, y1: -2, x2: 1, y2: -1, label: "AB" }, { x1: -2, y1: 1, x2: 2, y2: 2, label: "DC" }], points: [{ x: -3, y: -2, label: "A", gauche: true }, { x: 1, y: -1, label: "B" }, { x: 2, y: 2, label: "C" }, { x: -2, y: 1, label: "D", gauche: true }], aria: "Parallélogramme ABCD : les flèches AB et DC sont égales" });
+  FIGURES["chasles"] = () => graph({ xmin: -4.5, xmax: 4.5, ymin: -3.5, ymax: 3.5, fleches: [{ x1: -3, y1: -2, x2: 1, y2: 2 }, { x1: 1, y1: 2, x2: 3, y2: -2 }, { x1: -3, y1: -2, x2: 3, y2: -2, c: 1 }], points: [{ x: -3, y: -2, label: "A", gauche: true }, { x: 1, y: 2, label: "B" }, { x: 3, y: -2, label: "C" }], aria: "Relation de Chasles : aller de A à B puis de B à C revient à aller de A à C" });
+  FIGURES["coord-vecteur"] = () => graph({ xmin: -3.5, xmax: 4.5, ymin: -2.5, ymax: 3.5, fleches: [{ x1: -2, y1: -1, x2: 3, y2: -1, c: 1, label: "+5" }, { x1: 3, y1: -1, x2: 3, y2: 2, c: 1, label: "+3" }, { x1: -2, y1: -1, x2: 3, y2: 2, label: "u" }], points: [{ x: -2, y: -1, label: "A", gauche: true }, { x: 3, y: 2, label: "B" }], aria: "Le vecteur u de A vers B a pour coordonnées 5 et 3" });
+  FIGURES["milieu-distance"] = () => graph({ xmin: -0.5, xmax: 8.5, ymin: -3.5, ymax: 7.5, curves: [{ f: (x) => (4 / 3) * x - 10 / 3, a: 1, b: 7, closed: false }], fleches: [{ x1: 1, y1: -2, x2: 7, y2: -2, c: 1, label: "6" }, { x1: 7, y1: -2, x2: 7, y2: 6, c: 1, label: "8" }], points: [{ x: 1, y: -2, label: "A", gauche: true }, { x: 7, y: 6, label: "B" }, { x: 4, y: 2, label: "I", gauche: true }], aria: "Segment AB avec son milieu I ; les écarts 6 et 8 forment un triangle rectangle d'hypoténuse AB = 10" });
+
+  // Chapitre 10 : intersection et réunion
+  FIGURES["venn"] = () => {
+    let s = `<svg class="graph" viewBox="0 0 320 170" role="img" aria-label="Deux ensembles A et B qui se chevauchent : la partie commune est A ∩ B">`;
+    s += `<defs><clipPath id="venn-a"><circle cx="125" cy="88" r="62"/></clipPath></defs>`;
+    s += `<rect x="6" y="6" width="308" height="158" rx="10" style="fill:none;stroke:var(--doux);stroke-width:1.2"/><text class="g-label" x="20" y="26">Ω</text>`;
+    s += `<circle cx="195" cy="88" r="62" clip-path="url(#venn-a)" style="fill:var(--ylang-pale)"/>`;
+    s += `<circle cx="125" cy="88" r="62" style="fill:none;stroke:var(--lagon);stroke-width:2"/><circle cx="195" cy="88" r="62" style="fill:none;stroke:var(--courbe2);stroke-width:2"/>`;
+    s += `<text class="g-clabel g-curve-0" x="88" y="92">A</text><text class="g-clabel g-curve-1" x="226" y="92">B</text><text class="g-label" x="160" y="92" text-anchor="middle">A ∩ B</text>`;
+    return s + `</svg>`;
+  };
+
+  // Chapitre 11 : colinéarité
+  FIGURES["colineaires"] = () => graph({ xmin: -4.5, xmax: 4.5, ymin: -3.5, ymax: 3.5, fleches: [{ x1: -3, y1: 2, x2: -1, y2: 3, label: "u" }, { x1: 3, y1: 1, x2: -1, y2: -1, label: "v = −2u" }, { x1: 0, y1: -3, x2: 2, y2: 0, c: 1, label: "w" }], aria: "u et v = −2u ont la même direction, w n'est pas colinéaire à u" });
+  FIGURES["alignes"] = () => graph({ xmin: -0.5, xmax: 8.5, ymin: -0.5, ymax: 12.5, ystep: 2, yetiq: 2, h: 280, curves: [{ f: (x) => 1.5 * x + 0.5, a: 0, b: 7.6, closed: false }], points: [{ x: 1, y: 2, label: "A", gauche: true }, { x: 3, y: 5, label: "B", gauche: true }, { x: 7, y: 11, label: "C", gauche: true }], aria: "Les trois bouées A, B, C sont sur une même droite" });
+
+  // Chapitre 12 : droites
+  FIGURES["droite-directeur"] = () => graph({ xmin: -1.5, xmax: 5.5, ymin: -3.5, ymax: 3.5, curves: [{ f: (x) => (-1 - x) / 2, a: -1.4, b: 5.4, closed: false, label: "x + 2y + 1 = 0", lx: 5.2, dx: -2, dy: 16 }], fleches: [{ x1: 3, y1: -2, x2: 1, y2: -1, c: 1, label: "u" }], points: [{ x: 3, y: -2, label: "A" }], aria: "Droite passant par A(3 ; −2) dirigée par u(−2 ; 1)" });
+  FIGURES["deux-droites"] = () => graph({ xmin: -0.5, xmax: 6.5, ymin: -3.5, ymax: 7.5, curves: [{ f: (x) => 2 * x - 3, a: 0, b: 5.2, closed: false, label: "d₁", lx: 5, dx: 2, dy: 2 }, { f: (x) => -x + 6, a: 0, b: 6.4, closed: false, label: "d₂", lx: 6.2, dx: 2, dy: -4 }], points: [{ x: 3, y: 3, label: "(3 ; 3)" }], aria: "Les droites y = 2x − 3 et y = −x + 6 se coupent au point (3 ; 3)" });
+
+  // Chapitre 17 : patron de la boîte (carton de 30 cm, coins de côté x)
+  const patron = (c) => {
+    const o = 50, L = 220, x = 44;
+    let s = `<svg class="graph" viewBox="0 0 320 ${L + 40}" role="img" aria-label="Plaque carrée dont on découpe un carré de côté x à chaque coin">`;
+    s += `<rect x="${o}" y="10" width="${L}" height="${L}" style="fill:var(--lagon-pale);stroke:var(--lagon);stroke-width:1.6"/>`;
+    [[0, 0], [L - x, 0], [0, L - x], [L - x, L - x]].forEach(([a, b]) => { s += `<rect x="${o + a}" y="${10 + b}" width="${x}" height="${x}" style="fill:var(--surface);stroke:var(--faux);stroke-width:1.4;stroke-dasharray:4 3"/>`; });
+    s += `<rect x="${o + x}" y="${10 + x}" width="${L - 2 * x}" height="${L - 2 * x}" style="fill:none;stroke:var(--doux);stroke-width:1;stroke-dasharray:3 3"/>`;
+    s += `<text class="g-label" x="${o + x / 2}" y="${10 + x / 2 + 4}" text-anchor="middle">x</text><text class="g-label" x="${o + L / 2}" y="${10 + L / 2 + 4}" text-anchor="middle">fond : ${c} − 2x</text>`;
+    s += `<text class="g-label" x="${o + L / 2}" y="${L + 30}" text-anchor="middle">${c} cm</text>`;
+    return s + `</svg>`;
+  };
+  FIGURES["boite-patron"] = () => patron(30);
 
 
   /* Séries « flash » d'un thème : mélange de ses générateurs */

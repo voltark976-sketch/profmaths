@@ -72,6 +72,7 @@ window.CHAPITRES["seconde-calcul-litteral"] = {
     },
     {
       titre: "Développer : distributivité et identités remarquables",
+      figure: "identite-carre",
       video: { titre: "Vidéo de ton prof : identités remarquables, développer et factoriser", youtube: "https://youtu.be/zrIo7AksY5o" },
       texte:
         "**Développer**, c'est transformer un produit en somme.\n" +
@@ -130,6 +131,7 @@ window.CHAPITRES["seconde-calcul-litteral"] = {
     },
     {
       titre: "L'équation $x^2 = a$",
+      figure: "carre-niveaux",
       video: { titre: "Vidéo d'Yvan Monka : résoudre une équation du type x² = a", youtube: "https://youtu.be/ef15aeQRs6w" },
       texte:
         "Le nombre de solutions de $x^2 = a$ dépend du signe de $a$ :\n" +

@@ -23,13 +23,15 @@ window.CHAPITRES["seconde-arithmetique"] = {
   cours: [
     {
       titre: "Multiples et diviseurs",
+      figure: "multiples-barges",
       video: { titre: "Vidéo d'Yvan Monka : démontrer qu'un nombre est un multiple (ou un diviseur)", youtube: "https://youtu.be/umlnJooSDas" },
       texte:
         "Dans ce chapitre, on travaille avec les **entiers** : $\\mathbb{N}$ (entiers naturels $0$, $1$, $2$…) et $\\mathbb{Z}$ (entiers relatifs, positifs ou négatifs).\n\n" +
         "Soit $a$ et $b$ deux entiers. On dit que $a$ est un **multiple** de $b$ s'il existe un entier $k$ tel que $a = k \\times b$.\n\n" +
         "On dit alors aussi que $b$ est un **diviseur** de $a$, ou que $a$ est **divisible** par $b$ : ces trois phrases disent la même chose.\n\n" +
         "- Pour le vérifier, on calcule $a \\div b$ : le résultat doit être un **entier**.\n" +
-        "- $0$ est un multiple de tous les entiers ($0 = 0 \\times b$), et $1$ divise tous les entiers.",
+        "- $0$ est un multiple de tous les entiers ($0 = 0 \\times b$), et $1$ divise tous les entiers.\n\n" +
+        "Sur la figure : les multiples de $15$ (au-dessus) et de $20$ (en dessous). Le premier multiple commun est $60$ : deux barges qui partent toutes les $15$ et toutes les $20$ minutes se retrouvent au bout d'une heure.",
       exemple: {
         enonce: "Vrai ou faux ? $84$ est un multiple de $7$ ; $6$ est un diviseur de $45$.",
         solution: "- $84 = 12 \\times 7$ avec $12$ entier : **vrai**.\n- $7 \\times 6 = 42$ et $8 \\times 6 = 48$ : il n'existe pas d'entier $k$ tel que $45 = k \\times 6$. **Faux**."

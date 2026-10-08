@@ -516,7 +516,7 @@
     if (c.playlist) h += `<a class="pdf" href="${c.playlist}" target="_blank" rel="noopener"><span class="pdf-ico yt" aria-hidden="true">▶</span><span>Playlist du chapitre sur YouTube</span></a>`;
     h += `</div>`;
     c.cours.forEach((s, i) => {
-      h += `<article class="notion"><h2><span class="n">${i + 1}</span>${inline(s.titre)}</h2><div class="notion-texte">${md(s.texte)}${s.video ? `<div class="video-aide">${video(s.video)}<p class="muted">${esc(s.video.titre)}</p></div>` : ""}</div><aside class="notion-cote">${s.figure ? figure(s.figure) : ""}`;
+      h += `<article class="notion"><h2><span class="n">${i + 1}</span><span class="t">${inline(s.titre)}</span></h2><div class="notion-texte">${md(s.texte)}${s.video ? `<div class="video-aide">${video(s.video)}<p class="muted">${esc(s.video.titre)}</p></div>` : ""}</div><aside class="notion-cote">${s.figure ? figure(s.figure) : ""}`;
       if (s.exemple) {
         h += `<div class="exemple"><p class="tag">Exemple</p>${md(s.exemple.enonce)}
           <details><summary>Voir la réponse</summary>${md(s.exemple.solution)}${s.exemple.tableau ? tableau(s.exemple.tableau) : ""}</details></div>`;

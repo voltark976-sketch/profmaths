@@ -67,6 +67,7 @@ window.CHAPITRES["seconde-statistiques"] = {
     },
     {
       titre: "Influence d'une valeur, comparer deux séries",
+      figure: "boites-exemple",
       video: { titre: "Vidéo d'Yvan Monka : construire un diagramme en boîte", youtube: "https://youtu.be/la7c0Yf8VyM" },
       texte:
         "Ajouter ou supprimer une valeur **extrême** change beaucoup la moyenne, mais peu la médiane : la médiane est plus « robuste ».\n\n" +

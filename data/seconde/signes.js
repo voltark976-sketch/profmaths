@@ -39,6 +39,7 @@ window.CHAPITRES["seconde-signes"] = {
     },
     {
       titre: "Tableau de signes d'un produit",
+      figure: "tabsigne-produit",
       video: { titre: "Vidéo d'Yvan Monka : dresser un tableau de signes", youtube: "https://youtu.be/50CByVTP4ig" },
       texte:
         "Pour étudier le signe de $(ax + b)(cx + d)$ :\n" +
@@ -53,6 +54,7 @@ window.CHAPITRES["seconde-signes"] = {
     },
     {
       titre: "Quotient : valeur interdite",
+      figure: "tabsigne-quotient",
       video: { titre: "Vidéo d'Yvan Monka : résoudre une inéquation-quotient", youtube: "https://youtu.be/Vitm29q8AEs" },
       texte:
         "Une expression $\\dfrac{A(x)}{B(x)}$ n'est définie que si $B(x) \\neq 0$ : les valeurs qui annulent le dénominateur sont **interdites**. On précise toujours l'**ensemble de définition**.\n\n" +

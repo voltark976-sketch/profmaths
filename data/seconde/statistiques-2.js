@@ -44,7 +44,7 @@ window.CHAPITRES["seconde-statistiques-2"] = {
         "$\\bar{x} \\approx \\dfrac{n_1 c_1 + n_2 c_2 + \\ldots}{N}$.",
       exemple: {
         enonce: "Estimer la masse moyenne des $40$ tortues (effectifs $4$, $10$, $14$, $8$, $4$ pour $[60\\,;70[$, …, $[100\\,;110[$).",
-        solution: "Centres : $65$, $75$, $85$, $95$, $105$.\n\n$\\bar{x} \\approx \\dfrac{4 \\times 65 + 10 \\times 75 + 14 \\times 85 + 8 \\times 95 + 4 \\times 105}{40} = \\dfrac{3\\,380}{40} = 84{,}5$ kg."
+        solution: "Centres : $65$, $75$, $85$, $95$, $105$.\n\nSomme des produits : $4 \\times 65 + 10 \\times 75 + 14 \\times 85 + 8 \\times 95 + 4 \\times 105 = 3\\,380$.\n\n$\\bar{x} \\approx \\dfrac{3\\,380}{40} = 84{,}5$ kg."
       }
     },
     {

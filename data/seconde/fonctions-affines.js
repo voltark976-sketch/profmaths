@@ -27,13 +27,15 @@ window.CHAPITRES["seconde-fonctions-affines"] = {
   cours: [
     {
       titre: "Fonction affine et taux d'accroissement",
+      figure: "droite-affine",
       video: { titre: "Vidéo de ton prof : reconnaître une fonction affine", youtube: "https://youtu.be/hfiPikWtwoA" },
       texte:
         "Une fonction **affine** est définie sur $\\mathbb{R}$ par $f(x) = mx + p$, où $m$ et $p$ sont deux réels. Sa courbe est une **droite**.\n\n" +
         "- $p = f(0)$ est l'**ordonnée à l'origine** : la droite coupe l'axe des ordonnées au point $(0\\,;p)$.\n" +
         "- $m$ est le **taux d'accroissement** (ou coefficient directeur) : quand $x$ augmente de $1$, $f(x)$ augmente de $m$.\n" +
         "- Pour deux réels $a \\neq b$ : $m = \\dfrac{f(b) - f(a)}{b - a}$. Les **accroissements** de $f(x)$ sont **proportionnels** à ceux de $x$.\n\n" +
-        "Cas particuliers : si $p = 0$, $f(x) = mx$ est **linéaire** (droite qui passe par l'origine) ; si $m = 0$, $f$ est **constante**.",
+        "Cas particuliers : si $p = 0$, $f(x) = mx$ est **linéaire** (droite qui passe par l'origine) ; si $m = 0$, $f$ est **constante**.\n\n" +
+        "Sur la figure, $y = 2x - 1$ : la droite coupe l'axe des ordonnées en $p = -1$, et quand $x$ augmente de $1$, $y$ augmente de $m = 2$.",
       exemple: {
         enonce: "$f$ est affine, avec $f(1) = 5$ et $f(4) = -1$. Déterminer $f(x)$.",
         solution: "$m = \\dfrac{-1 - 5}{4 - 1} = \\dfrac{-6}{3} = -2$, donc $f(x) = -2x + p$.\n\n$f(1) = 5$ : $-2 + p = 5$, donc $p = 7$. Ainsi $f(x) = -2x + 7$."
@@ -56,6 +58,7 @@ window.CHAPITRES["seconde-fonctions-affines"] = {
     },
     {
       titre: "Signe d'une fonction affine",
+      figure: "signe-affine",
       video: { titre: "Vidéo d'Yvan Monka : dresser le tableau de signes d'une fonction affine", youtube: "https://youtu.be/zZ9SbX8mC2o" },
       texte:
         "Si $m \\neq 0$, $f(x) = mx + p$ s'annule en une seule valeur : $mx + p = 0 \\iff x = -\\dfrac{p}{m}$.\n\n" +
@@ -99,6 +102,7 @@ window.CHAPITRES["seconde-fonctions-affines"] = {
     },
     {
       titre: "Modéliser par une fonction affine ou une inéquation",
+      figure: "taxis",
       video: { titre: "Vidéo de ton prof : résoudre f(x) = g(x) graphiquement (location de kayaks)", youtube: "https://youtu.be/p03kXQ2bVXU" },
       texte:
         "Un **tarif** avec une partie fixe et une partie proportionnelle est une fonction affine : prix $=$ (prix par unité) $\\times x$ $+$ (partie fixe).\n\n" +

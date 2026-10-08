@@ -38,6 +38,7 @@ window.CHAPITRES["seconde-droites"] = {
     },
     {
       titre: "Équation cartésienne",
+      figure: "droite-directeur",
       video: { titre: "Vidéo d'Yvan Monka : déterminer une équation cartésienne avec le déterminant", youtube: "https://youtu.be/rLxQIbQkPsQ" },
       texte:
         "**Propriété** : toute droite a une équation de la forme $ax + by + c = 0$, avec $(a\\,;b) \\neq (0\\,;0)$ : c'est une **équation cartésienne**.\n\n" +
@@ -89,6 +90,7 @@ window.CHAPITRES["seconde-droites"] = {
     },
     {
       titre: "Droites parallèles, droites sécantes",
+      figure: "deux-droites",
       video: { titre: "Vidéo d'Yvan Monka : étudier la position relative de deux droites", youtube: "https://youtu.be/gTUPGw7Bulc" },
       texte:
         "- Deux droites sont **parallèles** si et seulement si leurs vecteurs directeurs sont colinéaires.\n" +

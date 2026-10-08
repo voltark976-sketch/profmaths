@@ -43,6 +43,7 @@ window.CHAPITRES["seconde-vecteurs"] = {
     },
     {
       titre: "Vecteurs égaux et parallélogramme",
+      figure: "parallelogramme",
       video: { titre: "Vidéo d'Yvan Monka : utiliser des propriétés sur les vecteurs", youtube: "https://youtu.be/XokpP_8mTOE" },
       texte:
         "Deux vecteurs sont **égaux** s'ils ont même direction, même sens et même norme. Ce sont des **représentants** du même vecteur, placés à des endroits différents.\n\n" +
@@ -57,6 +58,7 @@ window.CHAPITRES["seconde-vecteurs"] = {
     },
     {
       titre: "Somme de vecteurs, relation de Chasles",
+      figure: "chasles",
       video: { titre: "Vidéo d'Yvan Monka : appliquer la relation de Chasles", youtube: "https://youtu.be/fbVrdYiY0qc" },
       texte:
         "Enchaîner deux translations revient à faire une seule translation : c'est la **somme** des vecteurs.\n\n" +
@@ -71,13 +73,15 @@ window.CHAPITRES["seconde-vecteurs"] = {
     },
     {
       titre: "Coordonnées d'un vecteur",
+      figure: "coord-vecteur",
       video: { titre: "Vidéo d'Yvan Monka : lire les coordonnées d'un vecteur", youtube: "https://youtu.be/8PyiMHtp1fE" },
       texte:
         "Dans une **base orthonormée** $(\\vec{i}, \\vec{j})$ (deux vecteurs de longueur $1$, perpendiculaires), tout vecteur s'écrit $\\vec{u} = x\\vec{i} + y\\vec{j}$. On note $\\vec{u}\\begin{pmatrix} x \\\\ y \\end{pmatrix}$.\n\n" +
         "- $x$ : déplacement horizontal (vers la droite si $x > 0$) ; $y$ : déplacement vertical (vers le haut si $y > 0$).\n" +
         "- Pour $A(x_A\\,;y_A)$ et $B(x_B\\,;y_B)$ : $\\overrightarrow{AB}\\begin{pmatrix} x_B - x_A \\\\ y_B - y_A \\end{pmatrix}$ (arrivée moins départ).\n" +
         "- Deux vecteurs sont égaux si et seulement s'ils ont les **mêmes coordonnées**.\n" +
-        "- Coordonnées d'une somme : on additionne. $\\vec{u} + \\vec{v}\\begin{pmatrix} x + x' \\\\ y + y' \\end{pmatrix}$.",
+        "- Coordonnées d'une somme : on additionne. $\\vec{u} + \\vec{v}\\begin{pmatrix} x + x' \\\\ y + y' \\end{pmatrix}$.\n\n" +
+        "Sur la figure, pour aller de $A$ à $B$ on avance de $5$ vers la droite et de $3$ vers le haut : $\\overrightarrow{AB}\\begin{pmatrix} 5 \\\\ 3 \\end{pmatrix}$.",
       exemple: {
         enonce: "$A(2\\,;-1)$ et $B(-3\\,;4)$. Calculer les coordonnées de $\\overrightarrow{AB}$.",
         solution: "$x_B - x_A = -3 - 2 = -5$ et $y_B - y_A = 4 - (-1) = 5$.\n\n$\\overrightarrow{AB}\\begin{pmatrix} -5 \\\\ 5 \\end{pmatrix}$ : $5$ carreaux vers la gauche, $5$ vers le haut."
@@ -108,6 +112,7 @@ window.CHAPITRES["seconde-vecteurs"] = {
     },
     {
       titre: "Norme d'un vecteur, distance entre deux points",
+      figure: "milieu-distance",
       video: { titre: "Vidéo d'Yvan Monka : calculer la longueur d'un segment", youtube: "https://youtu.be/pP8ebg8W9o8" },
       texte:
         "Dans un repère **orthonormé** :\n" +
