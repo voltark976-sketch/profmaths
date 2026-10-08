@@ -50,6 +50,7 @@ Site statique : aucune base de données, aucun compte élève. Ouvrir `index.htm
   - `inference-bayesienne.js` : chapitre 5 (arbres, Bayes, a priori et a posteriori, sensibilité, spécificité, valeurs prédictives, VPP en fonction de la prévalence, dengue et leptospirose). Générateurs `tcb-` (et `pi-totales`, `pi-inverser`).
   - `deux-variables.js` : chapitre 6 (nuage, point moyen, moindres carrés, corrélation, interpolation et extrapolation, changement de variable, corrélation et causalité). Générateurs `tsd-`.
   - `derivation-composees.js` : chapitre 7 (g(ax + b), exp(u), u², étude de fonctions composées, racine carrée réciproque du carré, boîte et enclos). Générateurs `tdc-`.
+  - `logarithme.js` : chapitre 8 (réciproque de exp, propriétés, équations, seuils avec ln qⁿ, étude de ln, ln u, Neper et Briggs, Brouncker). Générateurs `tln-`.
   - `arithmetico-geometriques.js` : chapitre 3 (suite constante, suite auxiliaire, limite, seuil, plat qui refroidit, dette). Générateurs `tag-`.
 
 Les niveaux du catalogue sont Seconde, Automatismes, Première spécialité, Terminale spécialité (`terminale-spe`) et Terminale maths complémentaires (`terminale`). Chaque niveau a sa couleur dans `assets/style.css` (règles `[data-niv="..."]`), et chaque classe des comptes a son nom court dans le classement du Défi (`COURTES` dans `assets/app.js`).

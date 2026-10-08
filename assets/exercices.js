@@ -12098,6 +12098,149 @@
   };
 
 
+  /* ---------- Terminale maths complémentaires, chapitre 8 : fonction logarithme népérien (préfixe tln-) ---------- */
+  FIGURES["tln-courbe"] = () => graph({ xmin: -3.4, xmax: 6.4, ymin: -3.4, ymax: 6.4, h: 320, curves: [{ f: (x) => Math.exp(x), a: -3.3, b: 1.82, closed: false, label: "y = eˣ", lx: 1.75, dx: -8, dy: 4 }, { f: (x) => Math.log(x), a: 0.04, b: 6.3, closed: false, label: "y = ln x", lx: 6.2, dx: -2, dy: 18 }], chemins: [[[-3.4, -3.4], [6.4, 6.4]]], points: [{ x: 1, y: 0, label: "(1 ; 0)" }, { x: 0, y: 1, label: "(0 ; 1)", gauche: true }, { x: Math.E, y: 1, label: "(e ; 1)" }], aria: "Les courbes de l'exponentielle et du logarithme népérien sont symétriques par rapport à la droite y = x ; ln 1 = 0 et ln e = 1" });
+  FIGURES["tln-neper"] = () => {
+    const W = 320, H = 120, n = [0, 1, 2, 3, 4, 5, 6], c = 40, x0 = 40;
+    let s = `<svg class="graph" viewBox="0 0 ${W} ${H}" role="img" aria-label="Tableau de Neper : la suite arithmétique 0, 1, 2… des exposants face à la suite géométrique 1, 2, 4… des puissances de 2 ; multiplier en bas revient à additionner en haut">`;
+    s += `<rect x="4" y="10" width="${W - 8}" height="72" rx="6" style="fill:var(--lagon);fill-opacity:.1;stroke:var(--doux)"/><line x1="4" y1="46" x2="${W - 4}" y2="46" style="stroke:var(--doux)"/>`;
+    s += `<text class="g-label" x="10" y="33">n</text><text class="g-label" x="10" y="69">2ⁿ</text>`;
+    n.forEach((k, i) => { s += `<text class="g-label" x="${x0 + 10 + i * c}" y="33" text-anchor="middle">${k}</text><text class="g-label" x="${x0 + 10 + i * c}" y="69" text-anchor="middle">${2 ** k}</text>`; });
+    return s + `<text class="g-label" x="${W / 2}" y="${H - 14}" text-anchor="middle" style="font-weight:400">4 × 8 = 32 en bas ↔ 2 + 3 = 5 en haut</text></svg>`;
+  };
+
+  GEN["tln-proprietes"] = function () {
+    const a = rand(2, 9), b = rand(2, 9), k = rand(2, 5), t = rand(0, 5);
+    if (t === 0) return { enonce: `Écris $\\ln ${a} + \\ln ${b}$ sous la forme $\\ln c$.`, mode: "nombre", prefixe: "$c =$", attendu: a * b,
+      erreurs: [{ valeur: a + b, message: "$\\ln a + \\ln b = \\ln(ab)$ : le logarithme transforme les **produits** en sommes." }],
+      aides: ["$\\ln(ab) = \\ln a + \\ln b$.", "Lis la formule de droite à gauche.", `$${a} \\times ${b}$.`], solution: `$\\ln ${a} + \\ln ${b} = \\ln(${a} \\times ${b}) = \\ln ${a * b}$.` };
+    if (t === 1) return { enonce: `Écris $\\ln ${a * b} - \\ln ${a}$ sous la forme $\\ln c$.`, mode: "nombre", prefixe: "$c =$", attendu: b,
+      erreurs: [{ valeur: a * b - a, message: "$\\ln a - \\ln b = \\ln\\left(\\dfrac{a}{b}\\right)$ : on divise." }],
+      aides: ["$\\ln\\left(\\dfrac{a}{b}\\right) = \\ln a - \\ln b$.", "Une différence de logarithmes est le logarithme d'un quotient.", `$\\dfrac{${a * b}}{${a}}$.`], solution: `$\\ln ${a * b} - \\ln ${a} = \\ln\\left(\\dfrac{${a * b}}{${a}}\\right) = \\ln ${b}$.` };
+    if (t === 2) { const base = pick([2, 3, 5]), m = rand(2, 6); return { enonce: `Écris $\\ln ${base ** m}$ sous la forme $k \\ln ${base}$.`, mode: "nombre", prefixe: "$k =$", attendu: m,
+      aides: ["$\\ln(a^n) = n\\ln a$.", `Écris $${base ** m}$ comme une puissance de $${base}$.`, `$${base ** m} = ${base}^{${m}}$.`], solution: `$${base ** m} = ${base}^{${m}}$, donc $\\ln ${base ** m} = ${m}\\ln ${base}$.` }; }
+    if (t === 3) return { enonce: `Simplifie $\\ln\\left(e^{${k}}\\right) + e^{\\ln ${a}}$.`, mode: "nombre", prefixe: "Résultat :", attendu: k + a,
+      aides: ["$\\ln(e^x) = x$ pour tout réel $x$.", "$e^{\\ln x} = x$ pour tout $x > 0$.", "Ce sont des fonctions réciproques."], solution: `$\\ln\\left(e^{${k}}\\right) = ${k}$ et $e^{\\ln ${a}} = ${a}$ : le résultat vaut $${k + a}$.` };
+    if (t === 4) return { enonce: `Écris $\\ln\\left(\\dfrac{1}{${a}}\\right) + \\ln ${a * b}$ sous la forme $\\ln c$.`, mode: "nombre", prefixe: "$c =$", attendu: b,
+      aides: ["$\\ln\\left(\\dfrac{1}{a}\\right) = -\\ln a$.", `$-\\ln ${a} + \\ln ${a * b}$.`, "Différence de logarithmes : logarithme d'un quotient."], solution: `$\\ln\\left(\\dfrac{1}{${a}}\\right) + \\ln ${a * b} = \\ln ${a * b} - \\ln ${a} = \\ln ${b}$.` };
+    const c = melangeChoix(`$${k}\\ln ${a}$`, [`$\\ln(${k} + ${a})$`, `$${a}\\ln ${k}$`, `$\\ln ${k * a}$`]);
+    return { enonce: `$\\ln\\left(${a}^{${k}}\\right) =$`, mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: ["$\\ln(a^n) = n\\ln a$.", "L'exposant « descend » devant le logarithme.", `Ici $n = ${k}$.`], solution: `$\\ln\\left(${a}^{${k}}\\right) = ${k}\\ln ${a}$.` };
+  };
+
+  GEN["tln-equation"] = function () {
+    const t = rand(0, 3);
+    if (t === 0) { const k = pick([2, 3, 5, 7, 10, 0.5]), x = Math.log(k); return { enonce: `Résous $e^x = ${fr(k)}$ (valeur arrondie au centième).`, mode: "nombre", prefixe: "$x \\approx$", attendu: +x.toFixed(2), tolerance: 0.006,
+      aides: ["Applique $\\ln$ des deux côtés : $\\ln(e^x) = x$.", `$x = \\ln ${fr(k)}$.`, "Calcule à la calculatrice."], solution: `$e^x = ${fr(k)} \\iff x = \\ln ${fr(k)} \\approx ${fr(+x.toFixed(2))}$.` }; }
+    if (t === 1) { const c = rand(1, 3), a = pick([1, 2, 3]), b = rand(-3, 3), x = (Math.exp(c) - b) / a; return { enonce: `Résous $\\ln(${a === 1 ? "" : a}x ${b < 0 ? "-" : "+"} ${Math.abs(b)}) = ${c}$ (valeur arrondie au centième).`, mode: "nombre", prefixe: "$x \\approx$", attendu: +x.toFixed(2), tolerance: 0.006,
+      aides: ["$\\ln X = c \\iff X = e^c$ (avec $X > 0$).", `$${a === 1 ? "" : a}x ${b < 0 ? "-" : "+"} ${Math.abs(b)} = e^{${c}}$.`, "Isole $x$ et vérifie que $ax + b > 0$."], solution: `$${a === 1 ? "" : a}x ${b < 0 ? "-" : "+"} ${Math.abs(b)} = e^{${c}} \\iff x = \\dfrac{e^{${c}} ${b < 0 ? "+" : "-"} ${Math.abs(b)}}{${a}} \\approx ${fr(+x.toFixed(2))}$ (et $ax + b = e^{${c}} > 0$).` }; }
+    if (t === 2) { const k = rand(2, 9), m = rand(2, 4); return { enonce: `Résous $\\ln x = ${m}\\ln ${k}$ sur $]0\\,;+\\infty[$.`, mode: "nombre", prefixe: "$x =$", attendu: k ** m,
+      erreurs: [{ valeur: m * k, message: `$${m}\\ln ${k} = \\ln\\left(${k}^{${m}}\\right)$, pas $\\ln(${m} \\times ${k})$.` }],
+      aides: ["$n\\ln a = \\ln(a^n)$.", `$\\ln x = \\ln\\left(${k}^{${m}}\\right)$.`, "$\\ln a = \\ln b \\iff a = b$ (pour $a, b > 0$)."], solution: `$${m}\\ln ${k} = \\ln\\left(${k}^{${m}}\\right) = \\ln ${k ** m}$, donc $x = ${k ** m}$.` }; }
+    const k = pick([3, 5, 10, 20]), a = pick([2, 0.5, 3, 0.1]), x = Math.log(k) / a;
+    return { enonce: `Résous $e^{${fr(a)}x} = ${k}$ (valeur arrondie au centième).`, mode: "nombre", prefixe: "$x \\approx$", attendu: +x.toFixed(2), tolerance: 0.006,
+      aides: [`Applique $\\ln$ : $${fr(a)}x = \\ln ${k}$.`,`$x = \\dfrac{\\ln ${k}}{${fr(a)}}$.`, "Calcule à la calculatrice."], solution: `$${fr(a)}x = \\ln ${k}$, donc $x = \\dfrac{\\ln ${k}}{${fr(a)}} \\approx ${fr(+x.toFixed(2))}$.` };
+  };
+
+  GEN["tln-inequation"] = function () {
+    const c = rand(1, 3), k = pick([2, 3, 5, 10]), t = rand(0, 2);
+    const S = [
+      [`\\ln x < ${c}`, `$]0\\,;e^{${c}}[$`, [`$]-\\infty\\,;e^{${c}}[$`, `$]e^{${c}}\\,;+\\infty[$`, `$]0\\,;${c}[$`], `$\\ln x < ${c} \\iff 0 < x < e^{${c}}$ ($\\ln$ est définie sur $]0\\,;+\\infty[$ et strictement croissante).`],
+      [`e^x > ${k}`, `$]\\ln ${k}\\,;+\\infty[$`, [`$]-\\infty\\,;\\ln ${k}[$`, `$]${k}\\,;+\\infty[$`, `$]e^{${k}}\\,;+\\infty[$`], `$e^x > ${k} \\iff x > \\ln ${k}$, car $\\ln$ est strictement croissante.`],
+      [`\\ln x \\geqslant -${c}`, `$[e^{-${c}}\\,;+\\infty[$`, [`$]0\\,;e^{-${c}}]$`, `$[-${c}\\,;+\\infty[$`, `$]-\\infty\\,;e^{-${c}}]$`], `$\\ln x \\geqslant -${c} \\iff x \\geqslant e^{-${c}}$.`]
+    ][t];
+    const cc = melangeChoix(S[1], S[2]);
+    return { enonce: `Ensemble des solutions de $${S[0]}$ :`, mode: "choix", choix: cc.choix, attendu: cc.attendu,
+      aides: ["$\\ln$ et $\\exp$ sont strictement croissantes : elles conservent l'ordre.", "$\\ln x$ n'existe que pour $x > 0$.", "$a < b \\iff \\ln a < \\ln b$ (pour $a, b > 0$) et $a < b \\iff e^a < e^b$."],
+      solution: S[3] };
+  };
+
+  GEN["tln-seuil"] = function () {
+    const croit = Math.random() < 0.5;
+    if (croit) {
+      const q = pick([1.02, 1.03, 1.05, 1.1, 1.2]), r = pick([1.5, 2, 3, 10]), n = Math.floor(Math.log(r) / Math.log(q)) + 1;
+      return { enonce: `À partir de quel rang $n$ a-t-on $${fr(q)}^n > ${fr(r)}$ ?`, mode: "nombre", prefixe: "$n =$", attendu: n,
+        aides: ["Applique $\\ln$ (strictement croissante) : $n\\ln(" + fr(q) + ") > \\ln(" + fr(r) + ")$.", `$\\ln ${fr(q)} > 0$ : on divise sans changer le sens.`, `$n > \\dfrac{\\ln ${fr(r)}}{\\ln ${fr(q)}} \\approx ${fr(+(Math.log(r) / Math.log(q)).toFixed(3))}$.`],
+        solution: `$${fr(q)}^n > ${fr(r)} \\iff n\\ln ${fr(q)} > \\ln ${fr(r)} \\iff n > \\dfrac{\\ln ${fr(r)}}{\\ln ${fr(q)}} \\approx ${fr(+(Math.log(r) / Math.log(q)).toFixed(3))}$ : à partir de $n = ${n}$.` };
+    }
+    const q = pick([0.5, 0.8, 0.9, 0.95, 0.7]), s = pick([0.1, 0.01, 0.05, 0.001]), n = Math.floor(Math.log(s) / Math.log(q)) + 1;
+    return { enonce: `À partir de quel rang $n$ a-t-on $${fr(q)}^n < ${fr(s)}$ ?`, mode: "nombre", prefixe: "$n =$", attendu: n,
+      erreurs: [{ valeur: n - 1, message: "Attention : on cherche le premier entier **strictement** supérieur au quotient." }],
+      aides: [`Applique $\\ln$ : $n\\ln ${fr(q)} < \\ln ${fr(s)}$.`, `$\\ln ${fr(q)} < 0$ : en divisant, **le sens change**.`, `$n > \\dfrac{\\ln ${fr(s)}}{\\ln ${fr(q)}} \\approx ${fr(+(Math.log(s) / Math.log(q)).toFixed(3))}$.`],
+      solution: `$n\\ln ${fr(q)} < \\ln ${fr(s)} \\iff n > \\dfrac{\\ln ${fr(s)}}{\\ln ${fr(q)}} \\approx ${fr(+(Math.log(s) / Math.log(q)).toFixed(3))}$ (on divise par $\\ln ${fr(q)} < 0$) : à partir de $n = ${n}$.` };
+  };
+
+  GEN["tln-derivee"] = function () {
+    const a = pick([2, 3, 5]), b = rand(1, 6), t = rand(0, 3);
+    const F = [
+      [`\\ln(${a}x + ${b})`, `\\dfrac{${a}}{${a}x + ${b}}`, [`\\dfrac{1}{${a}x + ${b}}`, `${a}\\ln(${a}x + ${b})`, `\\dfrac{${a}x + ${b}}{${a}}`], "$(\\ln u)' = \\dfrac{u'}{u}$ avec $u' = " + a + "$"],
+      [`\\ln(x^2 + ${b})`, `\\dfrac{2x}{x^2 + ${b}}`, [`\\dfrac{1}{x^2 + ${b}}`, `\\dfrac{2x}{x}`, `2x\\ln(x^2 + ${b})`], "$(\\ln u)' = \\dfrac{u'}{u}$ avec $u' = 2x$"],
+      [`x\\ln x`, `\\ln x + 1`, [`\\ln x`, `\\dfrac{1}{x}`, `x + \\ln x`], "Produit : $(uv)' = u'v + uv'$, avec $(\\ln x)' = \\dfrac{1}{x}$, donc $1 \\times \\ln x + x \\times \\dfrac{1}{x}$"],
+      [`${a}\\ln x - x`, `\\dfrac{${a}}{x} - 1`, [`\\dfrac{${a}}{x}`, `${a}\\ln x - 1`, `\\dfrac{1}{${a}x} - 1`], "$(\\ln x)' = \\dfrac{1}{x}$"]
+    ][t];
+    const c = melangeChoix(`$${F[1]}$`, F[2].map((x) => `$${x}$`));
+    return { enonce: `Quelle est la dérivée de $f(x) = ${F[0]}$ (sur un intervalle où elle est définie) ?`, mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: ["$(\\ln x)' = \\dfrac{1}{x}$ sur $]0\\,;+\\infty[$.", "$(\\ln u)' = \\dfrac{u'}{u}$ quand $u > 0$.", "Pour un produit : $(uv)' = u'v + uv'$."],
+      solution: `${F[3]} : $f'(x) = ${F[1]}$.` };
+  };
+
+  GEN["tln-variations"] = function () {
+    const a = pick([2, 3, 4, 5, 0.5]), t = rand(0, 2);
+    if (t === 0) return { enonce: `$f(x) = ${fr(a)}x - \\ln x$ sur $]0\\,;+\\infty[$. En quelle valeur de $x$ $f$ atteint-elle son minimum ?`, mode: "nombre", prefixe: "$x =$", attendu: +(1 / a).toFixed(4), tolerance: 1e-6,
+      aides: ["$f'(x) = " + fr(a) + " - \\dfrac{1}{x} = \\dfrac{" + fr(a) + "x - 1}{x}$.", "Sur $]0\\,;+\\infty[$, le signe de $f'$ est celui de $" + fr(a) + "x - 1$.", "$f'$ s'annule en changeant de signe."],
+      solution: `$f'(x) = \\dfrac{${fr(a)}x - 1}{x}$ : négatif pour $x < ${fr(+(1 / a).toFixed(4))}$, positif après. Minimum en $x = ${fr(+(1 / a).toFixed(4))}$.` };
+    if (t === 1) { const c = melangeChoix("$x = \\dfrac{1}{e}$", ["$x = 1$", "$x = e$", "$x = 0$"]); return { enonce: "$f(x) = x\\ln x$ sur $]0\\,;+\\infty[$. Où $f$ atteint-elle son minimum ?", mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: ["$f'(x) = \\ln x + 1$.", "$\\ln x + 1 = 0 \\iff \\ln x = -1$.", "$\\ln x = -1 \\iff x = e^{-1}$."],
+      solution: "$f'(x) = \\ln x + 1$ s'annule pour $x = e^{-1} = \\dfrac{1}{e}$, négatif avant, positif après : minimum en $\\dfrac{1}{e}$, qui vaut $-\\dfrac{1}{e}$." }; }
+    const c = melangeChoix("croissante", ["décroissante", "croissante puis décroissante", "décroissante puis croissante"]);
+    return { enonce: `La fonction $f(x) = \\ln(x^2 + ${rand(1, 5)})$ est, sur $[0\\,;+\\infty[$ :`, mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: ["$f'(x) = \\dfrac{2x}{x^2 + b}$.", "Le dénominateur est positif.", "Pour $x \\geqslant 0$, $2x \\geqslant 0$."],
+      solution: "$f'(x) = \\dfrac{2x}{x^2 + b} \\geqslant 0$ sur $[0\\,;+\\infty[$ : $f$ est **croissante** (comme $u = x^2 + b$, car $\\ln$ est croissante)." };
+  };
+
+  GEN["tln-limites"] = function () {
+    const T = [["\\ln x", "x \\to +\\infty", "+\\infty"], ["\\ln x", "x \\to 0,\\ x > 0", "-\\infty"], ["\\ln x - 5", "x \\to +\\infty", "+\\infty"], ["\\dfrac{1}{\\ln x}", "x \\to +\\infty", "0"], ["2 + \\ln x", "x \\to 0,\\ x > 0", "-\\infty"], ["-3\\ln x", "x \\to 0,\\ x > 0", "+\\infty"], ["\\ln(x^2 + 1)", "x \\to +\\infty", "+\\infty"], ["\\ln(1 + e^{-x})", "x \\to +\\infty", "0"]];
+    const [f, ou, l] = pick(T), c = melangeChoix(`$${l}$`, ["$+\\infty$", "$-\\infty$", "$0$", "$1$"]);
+    return { enonce: `$\\lim\\limits_{${ou}} ${f} =$`, mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: ["$\\ln x \\to +\\infty$ quand $x \\to +\\infty$ (lentement).", "$\\ln x \\to -\\infty$ quand $x \\to 0$ avec $x > 0$ : asymptote verticale $x = 0$.", "$\\ln 1 = 0$."],
+      solution: `$\\lim\\limits_{${ou}} ${f} = ${l}$.` };
+  };
+
+  GEN["tln-python"] = function () {
+    if (Math.random() < 0.5) {
+      const n = rand(1, 4); let s = 0; for (let k = 1; k <= n; k++) s += 1 / ((2 * k - 1) * (2 * k));
+      return { enonce: "Série de Brouncker, qui approche $\\ln 2 \\approx 0{,}693$ :\n\n```python\ndef brouncker(n):\n    s = 0\n    for k in range(1, n + 1):\n        s = s + 1 / ((2*k - 1) * (2*k))\n    return s\n```\n\n" + `Que renvoie brouncker(${n}) ? (Arrondi au millième.)`,
+        mode: "nombre", prefixe: "Résultat ≈", attendu: +s.toFixed(3), tolerance: 0.0015,
+        aides: ["La boucle ajoute $\\dfrac{1}{1 \\times 2}$, puis $\\dfrac{1}{3 \\times 4}$, puis $\\dfrac{1}{5 \\times 6}$…", `Il y a $${n}$ terme${n > 1 ? "s" : ""}.`, "Additionne et arrondis."],
+        solution: `$${Array.from({ length: n }, (_, k) => `\\dfrac{1}{${2 * k + 1} \\times ${2 * k + 2}}`).join(" + ")} \\approx ${fr(+s.toFixed(3))}$. Plus $n$ est grand, plus on se rapproche de $\\ln 2$.` };
+    }
+    const k = pick([1, 2, 3]), a = pick([2, 3, 10]); let r = a; for (let i = 0; i < k; i++) r = Math.sqrt(r); const v = 2 ** k * (r - 1);
+    return { enonce: "Méthode de Briggs : après $k$ racines carrées successives, $a$ devient proche de $1$ et $\\ln a \\approx 2^k(\\text{résultat} - 1)$.\n\n```python\nfrom math import sqrt\n\ndef briggs(a, k):\n    for i in range(k):\n        a = sqrt(a)\n    return 2**k * (a - 1)\n```\n\n" + `Que renvoie briggs(${a}, ${k}) ? (Arrondi au millième.)`,
+      mode: "nombre", prefixe: "Résultat ≈", attendu: +v.toFixed(3), tolerance: 0.0015,
+      aides: [`Prends $${k}$ fois la racine carrée de $${a}$.`, "Retire $1$, puis multiplie par $2^k$.", `Compare avec $\\ln ${a} \\approx ${fr(+Math.log(a).toFixed(3))}$.`],
+      solution: `Après $${k}$ racine${k > 1 ? "s" : ""} : $${fr(+r.toFixed(5))}$. $2^{${k}} \\times (${fr(+r.toFixed(5))} - 1) \\approx ${fr(+v.toFixed(3))}$, proche de $\\ln ${a} \\approx ${fr(+Math.log(a).toFixed(3))}$ (et de plus en plus proche quand $k$ augmente).` };
+  };
+
+  GEN["tln-logique"] = function () {
+    const T = [
+      ["« Pour tous $a, b > 0$ : $a < b \\iff \\ln a < \\ln b$. »", true, "$\\ln$ est strictement croissante sur $]0\\,;+\\infty[$ : elle conserve l'ordre dans les deux sens."],
+      ["« $\\ln(a + b) = \\ln a + \\ln b$. »", false, "Contre-exemple : $\\ln(1 + 1) = \\ln 2 \\neq 0 = \\ln 1 + \\ln 1$. C'est $\\ln(ab) = \\ln a + \\ln b$."],
+      ["« $\\ln$ est la fonction réciproque de $\\exp$. »", true, "$y = e^x \\iff x = \\ln y$ (pour $y > 0$)."],
+      ["« $\\ln x$ est négatif pour tout $x$ de $]0\\,;1[$. »", true, "$\\ln$ est croissante et $\\ln 1 = 0$."],
+      ["« $\\ln(-2)$ existe. »", false, "$\\ln$ n'est définie que sur $]0\\,;+\\infty[$."],
+      ["« $\\ln(2^{10}) = 10\\ln 2$. »", true, "$\\ln(a^n) = n\\ln a$."],
+      ["« Si $0 < q < 1$, alors $\\ln q > 0$. »", false, "$\\ln q < 0$ pour $0 < q < 1$ : en divisant une inégalité par $\\ln q$, le sens change."],
+      ["« $\\dfrac{\\ln 8}{\\ln 2} = 3$. »", true, "$\\ln 8 = 3\\ln 2$."],
+      ["« $\\ln\\left(\\dfrac{a}{b}\\right) = \\dfrac{\\ln a}{\\ln b}$. »", false, "C'est $\\ln a - \\ln b$. Contre-exemple : $\\ln\\left(\\dfrac{e^2}{e}\\right) = 1$ alors que $\\dfrac{2}{1} = 2$."],
+      ["« La courbe de $\\ln$ a pour asymptote verticale l'axe des ordonnées. »", true, "$\\ln x \\to -\\infty$ quand $x \\to 0$ avec $x > 0$."]
+    ];
+    const [q, v, s] = pick(T), c = melangeChoix(v ? "Vrai" : "Faux", [v ? "Faux" : "Vrai"]);
+    return { enonce: `Vrai ou faux ? ${q}`, mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: ["Rappels : $\\ln(ab) = \\ln a + \\ln b$, $\\ln\\left(\\dfrac{a}{b}\\right) = \\ln a - \\ln b$, $\\ln(a^n) = n\\ln a$.", "$\\ln$ est définie et strictement croissante sur $]0\\,;+\\infty[$, $\\ln 1 = 0$.", "Un contre-exemple suffit pour montrer qu'une égalité générale est fausse."],
+      solution: `**${v ? "Vrai" : "Faux"}.** ${s}` };
+  };
+
+
   /* Séries « flash » d'un thème : mélange de ses générateurs */
   const THEMES = {
     "am-flash-cn": ["am-comparer", "am-fractions", "am-puissances", "am-ecritures", "am-ordre-grandeur", "am-coherence", "auto-conversions"],
@@ -12114,7 +12257,7 @@
 
 
   /* Une « erreur connue » ne doit jamais coïncider avec la bonne réponse (à la tolérance près) */
-  Object.keys(GEN).filter((k) => /^(auto|ld|am|cd|ar|cl|fa|ve|st|vx|tc|co|dr|fr|sg|pc|ec|sy|su|s2|pi|s5|d1|tr|d2|vr|ps|ex|va|sc|gr|sm|ea|tsu|tag|tlf|tcb|tsd|tdc)-/.test(k)).forEach((k) => {
+  Object.keys(GEN).filter((k) => /^(auto|ld|am|cd|ar|cl|fa|ve|st|vx|tc|co|dr|fr|sg|pc|ec|sy|su|s2|pi|s5|d1|tr|d2|vr|ps|ex|va|sc|gr|sm|ea|tsu|tag|tlf|tcb|tsd|tdc|tln)-/.test(k)).forEach((k) => {
     const g = GEN[k];
     GEN[k] = (i) => { const q = g(i); if (q.erreurs) q.erreurs = q.erreurs.filter((e) => Math.abs(e.valeur - q.attendu) >= (q.tolerance || 1e-9)); return q; };
   });

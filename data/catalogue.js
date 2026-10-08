@@ -405,6 +405,13 @@ window.CATALOGUE = {
           titre: "Dérivation : fonctions composées et réciproques",
           statut: "disponible",
           drive: ""
+        },
+        {
+          id: "terminale-logarithme",
+          numero: 8,
+          titre: "Fonction logarithme népérien",
+          statut: "disponible",
+          drive: ""
         }
       ]
     }
