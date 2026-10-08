@@ -5612,6 +5612,191 @@
   FIGURES["arbre-independance"] = () => arbre(["A", "~A", "B", "~B"], ["0,4", "0,6", "0,3", "0,7", "0,3", "0,7"]);
 
 
+  /* ---------- Première, chapitre 5 : forme canonique et discriminant (préfixe s5-) ---------- */
+  // Compléter le carré : x² + 2ax = (x + a)² − a², vu comme un carré auquel il manque un coin
+  FIGURES["completer-carre"] = () => {
+    const o = 50, X = 150, A = 60, T = X + A;
+    let s = `<svg class="graph" viewBox="0 0 320 ${T + 44}" role="img" aria-label="Un carré x² et deux rectangles ax forment presque un carré de côté x + a : il manque le petit carré a²">`;
+    const r = (x, y, w, h, st, t) => { s += `<rect x="${o + x}" y="${10 + y}" width="${w}" height="${h}" style="${st}"/><text class="g-clabel" x="${o + x + w / 2}" y="${10 + y + h / 2 + 5}" text-anchor="middle">${t}</text>`; };
+    const plein = (c) => `fill:var(${c});stroke:var(--doux);stroke-width:1.4`;
+    r(0, 0, X, X, plein("--lagon-pale"), "x²"); r(X, 0, A, X, plein("--ylang-pale"), "ax"); r(0, X, X, A, plein("--ylang-pale"), "ax");
+    r(X, X, A, A, "fill:none;stroke:var(--doux);stroke-width:1.4;stroke-dasharray:5 4", "a²");
+    s += `<text class="g-label" x="${o + X / 2}" y="${T + 28}" text-anchor="middle">x</text><text class="g-label" x="${o + X + A / 2}" y="${T + 28}" text-anchor="middle">a</text>`;
+    s += `<text class="g-label" x="${o - 10}" y="${10 + X / 2}" text-anchor="end">x</text><text class="g-label" x="${o - 10}" y="${10 + X + A / 2}" text-anchor="end">a</text>`;
+    s += `<text class="g-label" x="${o + T + 8}" y="${10 + X + A / 2 + 4}">manque</text>`;
+    return s + `</svg>`;
+  };
+  // Signe de ax² + bx + c pour a > 0 selon le signe de Δ
+  FIGURES["signe-trinome"] = () => {
+    const cas = [{ f: (x) => x * x - 1, t: "Δ > 0", sg: [[-1.7, "+"], [-1, "0"], [0, "−"], [1, "0"], [1.7, "+"]], R: [-1, 1] }, { f: (x) => x * x, t: "Δ = 0", sg: [[-1.4, "+"], [0, "0"], [1.4, "+"]], R: [0] }, { f: (x) => x * x + 0.8, t: "Δ < 0", sg: [[-1.4, "+"], [0, "+"], [1.4, "+"]], R: [] }];
+    let s = `<svg class="graph" viewBox="0 0 320 184" role="img" aria-label="Trois paraboles tournées vers le haut : avec deux racines le trinôme est négatif entre elles, avec une racine double il est positif et nul en un point, sans racine il est toujours positif">`;
+    cas.forEach((c, i) => {
+      const ox = 8 + i * 104, X = (x) => +(ox + 48 + x * 22).toFixed(1), Y = (y) => +(104 - y * 22).toFixed(1);
+      let d = ""; for (let k = 0; k <= 60; k++) { const x = -2.05 + (4.1 * k) / 60; const y = c.f(x); if (y <= 3.9) d += (d ? "L" : "M") + X(x) + " " + Y(y); }
+      s += `<g class="g-axis"><line x1="${ox + 2}" y1="${Y(0)}" x2="${ox + 96}" y2="${Y(0)}"/></g>`;
+      s += `<path class="g-curve g-curve-${i === 1 ? 1 : 0}" d="${d}"/>`;
+      c.R.forEach((r) => { s += `<circle class="g-point" cx="${X(r)}" cy="${Y(0)}" r="3"/>`; });
+      c.sg.forEach(([x, t]) => { s += `<text class="g-clabel" x="${X(x)}" y="${Y(0) + 44}" text-anchor="middle" style="font-size:13px">${t}</text>`; });
+      s += `<text class="g-label" x="${ox + 48}" y="${Y(0) + 70}" text-anchor="middle">${c.t}</text>`;
+    });
+    return s + `</svg>`;
+  };
+  // Trajectoire du ballon : h(t) = −5t² + 15t
+  FIGURES["ballon"] = () => graph({ xmin: -0.3, xmax: 3.5, ymin: -1.4, ymax: 13.6, xstep: 0.5, ystep: 2, xetiq: 1, yetiq: 2, h: 260, padL: 22, xlabel: "t (s)", ylabel: "h (m)", curves: [{ f: (t) => -5 * t * t + 15 * t, a: 0, b: 3, closed: false }], hlines: [{ y: 11.25, label: "11,25 m" }], points: [{ x: 1.5, y: 11.25, label: "S", gauche: true }, { x: 0, y: 0 }, { x: 3, y: 0, label: "chute", gauche: true }], aria: "Parabole de h(t) = −5t² + 15t : le ballon part du sol, monte jusqu'à 11,25 m à t = 1,5 s et retombe à t = 3 s" });
+
+  // Repère adapté à une parabole de sommet (al ; be) et à sa translatée
+  function repereParaboles(a, al, be, m) {
+    const w = Math.sqrt(6.5 / Math.abs(a)), nouv = al + m;
+    const xmin = Math.min(Math.floor(Math.min(al, nouv) - 3), -1) - 0.5, xmax = Math.max(Math.ceil(Math.max(al, nouv) + 3), 1) + 0.5;
+    const ymin = a > 0 ? Math.min(be - 1.5, -1.5) : Math.min(be - 7, -1.5), ymax = a > 0 ? Math.max(be + 7, 1.5) : Math.max(be + 1.5, 1.5);
+    const f = (x) => a * (x - al) ** 2 + be;
+    const nom = (n) => `C<tspan class="sub" dy="3">${n}</tspan>`;
+    const lab = (x, y, n) => `${n}(${x} ; ${y})`.replace(/-/g, "−");
+    const base = { xmin, xmax, ymin, ymax, h: 260, xetiq: xmax - xmin > 11 ? 2 : 1, yetiq: 2, aria: `Parabole de f, de sommet S(${al} ; ${be})`.replace(/-/g, "−") };
+    const cf = { f, a: al - w, b: al + w, closed: false, label: nom("f"), lx: al - 0.85 * w, dx: -6, dy: 4 };
+    const cg = { f: (x) => f(x - m), a: nouv - w, b: nouv + w, closed: false, label: nom("g"), lx: nouv + 0.85 * w, dx: 22, dy: 4 };
+    return {
+      figure: graph({ ...base, curves: [cf], points: [{ x: al, y: be, label: lab(al, be, "S") }] }),
+      figureSolution: graph({ ...base, curves: [cf, cg], fleches: [{ x1: al, y1: be, x2: nouv, y2: be, c: 1 }], points: [{ x: al, y: be, label: lab(al, be, "S"), gauche: m > 0 }, { x: nouv, y: be, label: lab(nouv, be, "S′"), gauche: m < 0 }], aria: `La parabole de g est celle de f décalée de ${Math.abs(m)} vers la ${m > 0 ? "droite" : "gauche"}` })
+    };
+  }
+
+  GEN["s5-translation"] = function () {
+    const al = randNZ(-4, 4), be = rand(-5, 5), m = randNZ(-5, 5), a = pick([1, -1, 2, -2]);
+    const fTex = canon(a, al, be), nouv = al + m, q = Math.random() < 0.5;
+    const gTex = `f(x ${m > 0 ? "-" : "+"} ${Math.abs(m)})`, sens = m > 0 ? "droite" : "gauche", faux = m > 0 ? "gauche" : "droite";
+    const rep = q
+      ? { mode: "nombre", prefixe: "Abscisse :", attendu: nouv, erreurs: [{ valeur: al - m, message: `Remplacer $x$ par $x ${m > 0 ? "-" : "+"} ${Math.abs(m)}$ décale la courbe vers la ${sens}, pas vers la ${faux}.` }] }
+      : (() => { const c = melangeChoix(`Un décalage de $${Math.abs(m)}$ vers la ${sens}`, [`Un décalage de $${Math.abs(m)}$ vers la ${faux}`, `Un décalage de $${Math.abs(m)}$ vers le haut`, `Un décalage de $${Math.abs(m)}$ vers le bas`]); return { mode: "choix", choix: c.choix, attendu: c.attendu }; })();
+    return {
+      enonce: `La parabole de $f(x) = ${fTex}$ a pour sommet $S(${al}\\,;${be})$. On pose $g(x) = ${gTex}$. ${q ? "Quelle est l'abscisse du sommet de la parabole de $g$ ?" : "Comment obtient-on la courbe de $g$ à partir de celle de $f$ ?"}`,
+      ...rep,
+      ...repereParaboles(a, al, be, m),
+      aides: ["La courbe de $x \\mapsto f(x - m)$ est celle de $f$ décalée **horizontalement** de $m$ : vers la droite si $m > 0$, vers la gauche si $m < 0$.", `$g(x) = ${m > 0 ? gTex : `${gTex} = f(x - (${m}))`}$ : ici $m = ${m}$.`, `Le sommet garde son ordonnée $${be}$ et son abscisse devient $${al} ${sg(m)}$.`],
+      solution: `$g(x) = f(x - ${par(m)})$ avec $m = ${m}$ : la parabole de $f$ est décalée de $${Math.abs(m)}$ vers la ${sens}. Le sommet de la parabole de $g$ est $S'(${nouv}\\,;${be})$ : même ordonnée, abscisse $${al} ${sg(m)} = ${nouv}$.`
+    };
+  };
+
+  GEN["s5-ballon"] = function () {
+    const t0 = pick([1, 1.2, 1.4, 1.5, 1.6, 2]), h0 = pick([0, 0, 0.5, 1]);
+    const b = +(10 * t0).toFixed(2), hmax = +(5 * t0 * t0 + h0).toFixed(2);
+    const q = pick(h0 === 0 ? ["hmax", "tmax", "chute", "chute"] : ["hmax", "hmax", "tmax"]);
+    const hTex = `-5t^2 + ${nb(b)}t${h0 ? ` + ${nb(h0)}` : ""}`;
+    const fin = +((b + Math.sqrt(b * b + 20 * h0)) / 10).toFixed(3);
+    const ys = hmax <= 8 ? 1 : hmax <= 16 ? 2 : 5;
+    const figure = graph({ xmin: -0.3, xmax: fin + 0.4, ymin: -hmax * 0.1, ymax: hmax * 1.15, xstep: 0.5, xetiq: 1, ystep: ys, h: 240, padL: 22, xlabel: "t (s)", ylabel: "h (m)", curves: [{ f: (t) => -5 * t * t + b * t + h0, a: 0, b: fin, closed: false }], aria: "Trajectoire du ballon : une parabole tournée vers le bas" });
+    const calc = `$\\alpha = -\\dfrac{${nb(b)}}{2 \\times (-5)} = ${nb(t0)}$ et $h(${nb(t0)}) = -5 \\times ${nb(+(t0 * t0).toFixed(2))} + ${nb(b)} \\times ${nb(t0)}${h0 ? ` + ${nb(h0)}` : ""} = ${nb(hmax)}$.`;
+    const enonces = { hmax: "Quelle est la hauteur maximale atteinte par le ballon ?", tmax: "À quel instant le ballon est-il le plus haut ?", chute: "À quel instant le ballon retombe-t-il au sol ?" };
+    const base = {
+      enonce: `Au stade de Cavani, Faïza dégage le ballon. Sa hauteur (en m) au bout de $t$ secondes est $h(t) = ${hTex}$. ${enonces[q]}`,
+      mode: "nombre", figure
+    };
+    if (q === "chute") return {
+      ...base, prefixe: "$t =$", suffixe: "s", attendu: 2 * t0,
+      erreurs: [{ valeur: t0, message: "Ça, c'est l'instant où le ballon est le plus haut. Au sol, $h(t) = 0$." }, { valeur: 0, message: "À $t = 0$ le ballon part du sol ; on cherche l'autre instant où $h(t) = 0$." }],
+      aides: ["Le ballon est au sol quand $h(t) = 0$.", `Factorise : $h(t) = t(-5t + ${nb(b)})$.`, `Produit nul : $t = 0$ (le départ) ou $-5t + ${nb(b)} = 0$.`],
+      solution: `$h(t) = t(-5t + ${nb(b)}) = 0 \\iff t = 0$ ou $t = \\dfrac{${nb(b)}}{5} = ${nb(2 * t0)}$. Le ballon retombe au sol au bout de $${nb(2 * t0)}$ s. (Le sommet est atteint à mi-chemin, à $t = ${nb(t0)}$ s : la parabole est symétrique.)`
+    };
+    return {
+      ...base, prefixe: q === "hmax" ? "Hauteur :" : "$t =$", suffixe: q === "hmax" ? "m" : "s", attendu: q === "hmax" ? hmax : t0,
+      erreurs: q === "hmax" ? [{ valeur: t0, message: "Ça, c'est l'instant du maximum $\\alpha$ ; on demande la hauteur $h(\\alpha)$." }] : [{ valeur: hmax, message: "Ça, c'est la hauteur maximale $\\beta$ ; on demande l'instant $\\alpha$." }],
+      aides: ["$a = -5 < 0$ : la parabole est tournée vers le bas, son sommet est un **maximum**.", `L'instant du maximum est $\\alpha = -\\dfrac{b}{2a} = -\\dfrac{${nb(b)}}{2 \\times (-5)}$.`, q === "hmax" ? "La hauteur maximale est $h(\\alpha)$." : "C'est $\\alpha$ qu'on demande, pas $h(\\alpha)$."],
+      solution: `${calc} Le ballon est au plus haut à $t = ${nb(t0)}$ s, à $${nb(hmax)}$ m.`
+    };
+  };
+
+  GEN["s5-python"] = function () {
+    const code = (cond) => "```python\nfrom math import sqrt\n\ndef solutions(a, b, c):\n    d = b**2 - 4*a*c\n    if " + cond + ":\n        return [(-b - sqrt(d)) / (2*a), (-b + sqrt(d)) / (2*a)]\n    elif d == 0:\n        return [-b / (2*a)]\n    else:\n        return []\n```";
+    if (Math.random() < 0.3) {
+      const c = melangeChoix("d > 0", ["d >= 0", "d < 0", "a > 0"]);
+      return {
+        enonce: "Cette fonction doit renvoyer la liste des solutions de $ax^2 + bx + c = 0$. Quelle condition faut-il écrire à la place de « … » ?\n\n" + code("…"),
+        mode: "choix", choix: c.choix, attendu: c.attendu,
+        aides: ["La ligne qui suit renvoie **deux** solutions.", "Le nombre de solutions dépend du signe du discriminant, stocké dans la variable d.", "Le cas « d == 0 » est déjà traité par la ligne « elif »."],
+        solution: "Deux solutions quand $\\Delta > 0$ : il faut écrire « d > 0 ». Avec « d >= 0 », le cas $\\Delta = 0$ renverrait deux fois la même solution et la ligne « elif » ne servirait jamais. C'est une **disjonction des cas** : $\\Delta > 0$, $\\Delta = 0$, $\\Delta < 0$."
+      };
+    }
+    let a, b, c, sol;
+    const t = rand(0, 2);
+    if (t === 0) { const r = randNZ(-5, 5), s = randNZ(-5, 5); a = pick([1, 2, -1]); b = -a * (r + s); c = a * r * s; sol = r === s ? [r] : [Math.min(r, s), Math.max(r, s)]; }
+    else if (t === 1) { a = pick([1, 2]); b = rand(-4, 4); c = Math.ceil(rand(2, 6) + (b * b) / (4 * a)); sol = []; }
+    else { const r = randNZ(-5, 5); a = pick([1, -1]); b = -2 * a * r; c = a * r * r; sol = [r]; }
+    const d = b * b - 4 * a * c, n = sol.length;
+    return {
+      enonce: "On considère la fonction Python :\n\n" + code("d > 0") + `\n\nCombien d'éléments contient la liste renvoyée par $\\texttt{solutions(${a}, ${b}, ${c})}$ ?`,
+      mode: "nombre", prefixe: "Nombre d'éléments :", attendu: n,
+      aides: ["La fonction calcule le discriminant $\\texttt{d} = b^2 - 4ac$.", `Ici $\\Delta = ${par(b)}^2 - 4 \\times ${par(a)} \\times ${par(c)}$.`, "Deux éléments si $\\Delta > 0$, un si $\\Delta = 0$, aucun (liste vide) si $\\Delta < 0$."],
+      solution: `$\\Delta = ${b * b} ${sg(-4 * a * c)} = ${d}$, ${d > 0 ? "strictement positif" : d === 0 ? "nul" : "strictement négatif"} : la liste contient $${n}$ élément${n > 1 ? "s" : ""}${n ? ` (la solution${n > 1 ? "s" : ""} $${sol.join("$ et $")}$)` : " : c'est la liste vide"}.`
+    };
+  };
+
+  GEN["s5-factoriser"] = function () {
+    const type = pick([2, 2, 2, 1, 0]);
+    let t; do { t = trinome(type); } while ((type === 2 && t.R[0] + t.R[1] === 0) || (type === 1 && t.R[0] === 0) || (type === 0 && t.al === 0));
+    const aTex = (a) => (a === 1 ? "" : a === -1 ? "-" : `${a}`);
+    const D = t.b * t.b - 4 * t.a * t.c;
+    const pasFact = "On ne peut pas factoriser en facteurs du premier degré";
+    let bonne, fausses;
+    if (type === 2) { const [r1, r2] = t.R; bonne = `$${formeFact(t.a, r1, r2)}$`; fausses = [`$${formeFact(t.a, -r1, -r2)}$`, `$${formeFact(t.a === 1 ? 2 : 1, r1, r2)}$`, `$${formeFact(t.a, r1, -r2)}$`, `$${formeFact(t.a, -r1, r2)}$`, pasFact]; }
+    else if (type === 1) { const r = t.R[0]; bonne = `$${aTex(t.a)}${carre(r)}$`; fausses = [`$${aTex(t.a)}${carre(-r)}$`, `$${aTex(t.a)}${facteur(r)}${facteur(-r)}$`, `$${t.a === 1 ? "2" : ""}${carre(r)}$`, pasFact]; }
+    else { bonne = pasFact; fausses = [`$${aTex(t.a)}${carre(t.al)}$`, `$${aTex(t.a)}${facteur(t.al)}${facteur(-t.al)}$`, `$${aTex(t.a)}${carre(-t.al)}$`]; }
+    const c = melangeChoix(bonne, fausses.filter((f) => !/\(x\s*[+-]\s*0\)/.test(f)));
+    return {
+      enonce: `Quelle est une forme factorisée de $f(x) = ${poly([t.a, t.b, t.c])}$ ?`,
+      mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: ["Calcule $\\Delta = b^2 - 4ac$ pour savoir combien il y a de racines.", `$\\Delta = ${par(t.b)}^2 - 4 \\times ${par(t.a)} \\times ${par(t.c)} = ${D}$.`, type === 2 ? "Deux racines : $f(x) = a(x - x_1)(x - x_2)$, sans oublier $a$." : type === 1 ? "Racine double : $f(x) = a(x - x_0)^2$." : "$\\Delta < 0$ : aucune racine réelle."],
+      solution: type === 2 ? `$\\Delta = ${D} > 0$ : deux racines $x_1 = ${t.R[0]}$ et $x_2 = ${t.R[1]}$, donc $f(x) = ${formeFact(t.a, t.R[0], t.R[1])}$. Vérifie en développant.`
+        : type === 1 ? `$\\Delta = 0$ : racine double $x_0 = -\\dfrac{b}{2a} = ${t.R[0]}$, donc $f(x) = ${aTex(t.a)}${carre(t.R[0])}$.`
+        : `$\\Delta = ${D} < 0$ : $f$ n'a aucune racine réelle, donc on ne peut pas l'écrire $a(x - x_1)(x - x_2)$.`
+    };
+  };
+
+  // Logique : « pour tout réel x… » se démontre par disjonction des cas sur Δ, se réfute par un contre-exemple
+  GEN["s5-vrai-faux"] = function () {
+    const type = pick([2, 1, 0, 0]), t = trinome(type), large = Math.random() < 0.5;
+    const P = (x) => t.a * x * x + t.b * x + t.c, D = t.b * t.b - 4 * t.a * t.c;
+    const vrai = t.a > 0 && (D < 0 || (large && D === 0));
+    let x0 = null;
+    if (!vrai) {
+      if (t.a < 0) x0 = type === 2 ? t.R[1] + 1 : type === 1 ? t.R[0] + 1 : t.al;
+      else if (type === 2) x0 = large ? (t.R[1] - t.R[0] > 1 ? t.R[0] + 1 : (t.R[0] + t.R[1]) / 2) : t.R[0];
+      else x0 = t.R[0];
+    }
+    const op = large ? "\\geqslant" : ">";
+    return {
+      enonce: `Vrai ou faux : « pour tout réel $x$, $${poly([t.a, t.b, t.c])} ${op} 0$ » ?`,
+      mode: "choix", choix: ["Vrai", "Faux"], attendu: vrai ? 0 : 1,
+      aides: ["Calcule $\\Delta$ et regarde le signe de $a$ : on raisonne **cas par cas** selon le signe de $\\Delta$.", `$\\Delta = ${D}$ et $a = ${t.a}$.`, "Pour montrer qu'un « pour tout » est faux, **un seul contre-exemple** suffit."],
+      solution: vrai
+        ? `$\\Delta = ${D}${D < 0 ? " < 0$ : le trinôme n'a pas de racine, il est strictement" : "$ : le trinôme a une racine double, il est"} du signe de $a = ${t.a} > 0$${D === 0 ? ", et nul seulement en $" + t.R[0] + "$" : ""}. L'affirmation est **vraie**.`
+        : `**Faux**. Contre-exemple : pour $x = ${nb(x0)}$, on obtient $${nb(P(x0))}$, qui n'est pas ${large ? "positif ou nul" : "strictement positif"}. ($\\Delta = ${D}$ et $a = ${t.a}$.)`
+    };
+  };
+
+  GEN["s5-forme-adaptee"] = function () {
+    const a = pick([1, 2, -1, -2, 3]);
+    let r1, r2; do { [r1, r2] = racines2(); } while ((r1 + r2) % 2 || !r1 || !r2 || r1 + r2 === 0);
+    const al = (r1 + r2) / 2, be = a * (al - r1) * (al - r2), b = -a * (r1 + r2), c = a * r1 * r2;
+    const formes = [`Développée : $${poly([a, b, c])}$`, `Canonique : $${canon(a, al, be)}$`, `Factorisée : $${formeFact(a, r1, r2)}$`];
+    const Q = [
+      ["calculer $f(0)$", 0, `$f(0) = ${c}$ se lit directement : c'est le terme constant.`],
+      ["résoudre $f(x) = 0$", 2, `Produit nul : $x = ${r1}$ ou $x = ${r2}$.`],
+      [`trouver ${a > 0 ? "le minimum" : "le maximum"} de $f$`, 1, `Le sommet est $S(${al}\\,;${be})$ : ${a > 0 ? "minimum" : "maximum"} $${be}$ atteint en $${al}$.`],
+      ["dresser le tableau de variations de $f$", 1, `La forme canonique donne le sommet $S(${al}\\,;${be})$ et $a = ${a}$ donne le sens des flèches.`],
+      ["étudier le signe de $f(x)$", 2, `Les racines $${r1}$ et $${r2}$ et le signe de $a$ suffisent pour le tableau de signes.`],
+      [`résoudre $f(x) = ${c}$`, 0, `$${poly([a, b, c])} = ${c} \\iff ${poly([a, b, 0])} = 0 \\iff x(${poly([a, b])}) = 0$ : on factorise par $x$.`],
+      [`résoudre $f(x) = ${be}$`, 1, `$${canon(a, al, be)} = ${be} \\iff ${carre(al)} = 0 \\iff x = ${al}$.`]
+    ];
+    const [txt, k, expl] = pick(Q);
+    return {
+      enonce: `$f$ s'écrit de trois façons :\n\n- ${formes.join("\n- ")}\n\nQuelle forme est la plus adaptée pour ${txt} ?`,
+      mode: "choix", choix: ["Forme développée", "Forme canonique", "Forme factorisée"], attendu: k,
+      aides: ["Développée : on lit $f(0)$. Canonique : on lit le sommet. Factorisée : on lit les racines.", "Une équation $f(x) = k$ se résout facilement si, après simplification, on obtient un produit nul ou un carré nul.", `Objectif : ${txt}.`],
+      solution: `**Forme ${["développée", "canonique", "factorisée"][k]}.** ${expl}`
+    };
+  };
+
+
   /* Séries « flash » d'un thème : mélange de ses générateurs */
   const THEMES = {
     "am-flash-cn": ["am-comparer", "am-fractions", "am-puissances", "am-ecritures", "am-ordre-grandeur", "am-coherence", "auto-conversions"],
@@ -5628,7 +5813,7 @@
 
 
   /* Une « erreur connue » ne doit jamais coïncider avec la bonne réponse (à la tolérance près) */
-  Object.keys(GEN).filter((k) => /^(ld|am|cd|ar|cl|fa|ve|st|vx|tc|co|dr|fr|sg|pc|ec|sy|su|s2|pi)-/.test(k)).forEach((k) => {
+  Object.keys(GEN).filter((k) => /^(ld|am|cd|ar|cl|fa|ve|st|vx|tc|co|dr|fr|sg|pc|ec|sy|su|s2|pi|s5)-/.test(k)).forEach((k) => {
     const g = GEN[k];
     GEN[k] = (i) => { const q = g(i); if (q.erreurs) q.erreurs = q.erreurs.filter((e) => Math.abs(e.valeur - q.attendu) >= (q.tolerance || 1e-9)); return q; };
   });

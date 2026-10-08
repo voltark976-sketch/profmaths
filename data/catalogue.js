@@ -246,6 +246,13 @@ window.CATALOGUE = {
           titre: "Probabilités conditionnelles et indépendance",
           statut: "disponible",
           drive: ""
+        },
+        {
+          id: "premiere-second-degre-2",
+          numero: 5,
+          titre: "Second degré 2 : forme canonique et discriminant",
+          statut: "disponible",
+          drive: ""
         }
       ]
     },
