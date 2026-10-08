@@ -129,7 +129,11 @@ window.CHAPITRES["terminale-repartition-richesses"] = {
     { question: "Pour estimer $\\displaystyle\\int_0^1 L$ à partir de quelques points, on utilise :", choix: ["la méthode des trapèzes", "la dérivée", "le logarithme", "la formule de Bayes"], bonne: 0, explication: "Chapitre 12." },
     { question: "Les $10\\,\\%$ les plus aisés perçoivent :", choix: ["$1 - L(0{,}9)$", "$L(0{,}1)$", "$L(0{,}9)$", "$0{,}1$"], bonne: 0, explication: "Les $90\\,\\%$ les plus modestes perçoivent $L(0{,}9)$." },
     { question: "La fonction $\\sqrt{x}$ peut-elle être une courbe de Lorenz ?", choix: ["non, elle est au-dessus de la diagonale", "oui", "non, car $L(1) \\neq 1$", "non, car $L(0) \\neq 0$"], bonne: 0, explication: "Elle est concave et $\\sqrt{x} \\geqslant x$." },
-    { question: "En France métropolitaine, l'indice de Gini des niveaux de vie est environ :", choix: ["$0{,}29$", "$0{,}9$", "$0$", "$2{,}9$"], bonne: 0, explication: "INSEE, ordre de grandeur." }
+    { question: "En France métropolitaine, l'indice de Gini des niveaux de vie est environ :", choix: ["$0{,}29$", "$0{,}9$", "$0$", "$2{,}9$"], bonne: 0, explication: "INSEE, ordre de grandeur." },
+    { question: "À Mayotte en 2018, la part des habitants sous le seuil de pauvreté national est d'environ :", choix: ["$77\\,\\%$", "$14\\,\\%$", "$50\\,\\%$", "$7\\,\\%$"], bonne: 0, explication: "INSEE : plus de $200\\,000$ personnes." },
+    { question: "Si on double tous les revenus d'un pays, l'indice de Gini :", choix: ["ne change pas", "double", "est divisé par $2$", "devient nul"], bonne: 0, explication: "Les parts de chacun restent les mêmes." },
+    { question: "Indice de Gini pour $L(x) = x^4$ :", choix: ["$0{,}6$", "$0{,}2$", "$0{,}8$", "$0{,}4$"], bonne: 0, explication: "$1 - \\dfrac{2}{5}$." },
+    { question: "Pour $L(x) = x^2$, les $50\\,\\%$ les plus modestes perçoivent :", choix: ["$25\\,\\%$ des revenus", "$50\\,\\%$ des revenus", "$75\\,\\%$ des revenus", "$5\\,\\%$ des revenus"], bonne: 0, explication: "$L(0{,}5) = 0{,}25$." }
   ],
 
   /* ---------- 4. FICHE MÉTHODE ---------- */

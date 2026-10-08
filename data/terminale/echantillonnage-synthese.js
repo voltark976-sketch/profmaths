@@ -138,7 +138,13 @@ window.CHAPITRES["terminale-echantillonnage"] = {
     { question: "Pour une variable de Bernoulli de paramètre $p$, $\\sigma =$", choix: ["$\\sqrt{p(1 - p)}$", "$p(1 - p)$", "$\\sqrt{p}$", "$1 - p$"], bonne: 0, explication: "$V = p(1 - p)$." },
     { question: "Le temps d'attente de la barge (uniforme sur $[0\\,;30]$) a pour espérance :", choix: ["$15$ min", "$30$ min", "$10$ min", "$7{,}5$ min"], bonne: 0, explication: "Milieu de l'intervalle." },
     { question: "La moyenne d'un échantillon de taille $n$ est une bonne estimation de $\\mu$ quand :", choix: ["$n$ est grand et le tirage au hasard", "$n$ est petit", "on choisit les valeurs", "$\\sigma$ est grand"], bonne: 0, explication: "Loi des grands nombres, sans biais." },
-    { question: "Dans proportion(N, n, k), la condition abs(m - mu) <= k * sigma / sqrt(n) teste :", choix: ["si la moyenne est proche de l'espérance", "si l'échantillon est biaisé", "si $n$ est assez grand", "si la variance est nulle"], bonne: 0, explication: "Écart à $\\mu$ comparé à $k\\dfrac{\\sigma}{\\sqrt{n}}$." }
+    { question: "Dans proportion(N, n, k), la condition abs(m - mu) <= k * sigma / sqrt(n) teste :", choix: ["si la moyenne est proche de l'espérance", "si l'échantillon est biaisé", "si $n$ est assez grand", "si la variance est nulle"], bonne: 0, explication: "Écart à $\\mu$ comparé à $k\\dfrac{\\sigma}{\\sqrt{n}}$." },
+    { question: "$\\mu = 50$, $\\sigma = 10$, $n = 100$. Environ $95\\,\\%$ des moyennes sont dans :", choix: ["$[48\\,;52]$", "$[30\\,;70]$", "$[40\\,;60]$", "$[49\\,;51]$"], bonne: 0, explication: "$2 \\times \\dfrac{10}{10} = 2$." },
+    { question: "$f = 0{,}61$ sur $400$ élèves. La fourchette est :", choix: ["$[0{,}56\\,;0{,}66]$", "$[0{,}6\\,;0{,}62]$", "$[0{,}51\\,;0{,}71]$", "$[0{,}59\\,;0{,}63]$"], bonne: 0, explication: "$\\dfrac{1}{\\sqrt{400}} = 0{,}05$." },
+    { question: "Une question « Tu es bien à jour de tes vaccins, j'espère ? » crée :", choix: ["un biais de réponse", "un biais de sélection", "une fluctuation", "aucun problème"], bonne: 0, explication: "La formulation oriente la réponse." },
+    { question: "Quand $n$ est multiplié par $100$, l'amplitude de la fourchette est :", choix: ["divisée par $10$", "divisée par $100$", "multipliée par $10$", "inchangée"], bonne: 0, explication: "$\\sqrt{100} = 10$." },
+    { question: "La fluctuation d'échantillonnage diminue quand :", choix: ["la taille de l'échantillon augmente", "on choisit les personnes", "la population augmente", "on arrondit"], bonne: 0, explication: "Écart type $\\dfrac{\\sigma}{\\sqrt{n}}$." },
+    { question: "Pour le Grand oral, une bonne question de mathématiques :", choix: ["s'appuie sur un exemple chiffré et une conclusion claire", "récite tout le cours", "évite les schémas", "n'a pas de conclusion"], bonne: 0, explication: "Une question, un exemple, un schéma, une réponse." }
   ],
 
   /* ---------- 4. FICHE MÉTHODE ---------- */
