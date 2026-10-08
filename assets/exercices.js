@@ -11508,6 +11508,190 @@
   };
 
 
+  /* ---------- Terminale maths complémentaires, chapitre 4 : limites de fonctions et continuité (préfixe tlf-) ---------- */
+  // f(x) = a + b / (x − c), avec ses deux asymptotes en pointillés
+  function tlfHyperbole(a, b, c, aria) {
+    const f = (x) => a + b / (x - c), lo = c - 5, hi = c + 6, e = 0.18 * Math.abs(b) ** 0.5;
+    return graph({ xmin: lo - 0.4, xmax: hi + 0.4, ymin: a - 6, ymax: a + 6, h: 300, curves: [{ f, a: lo, b: c - e, closed: false }, { f, a: c + e, b: hi, closed: false, label: "C<tspan class=\"sub\" dy=\"3\">f</tspan>", lx: hi, dx: -4, dy: b > 0 ? -10 : 18 }], chemins: [[[lo - 0.4, a], [hi + 0.4, a]], [[c, a - 6], [c, a + 6]]], aria })
+      .replace(/class="g-curve g-curve-1" (d="[^"]*")\/>/g, 'class="g-curve g-curve-0" $1/>').replace(/g-clabel g-curve-1/g, "g-clabel g-curve-0"); // les deux branches de la même couleur
+  }
+  FIGURES["tlf-asymptotes"] = () => tlfHyperbole(2, 1, 1, "Courbe de f(x) = 2 + 1/(x − 1) : elle se rapproche de la droite y = 2 en ±∞ et de la droite x = 1 en 1");
+  FIGURES["tlf-reference"] = () => graph({ xmin: -3.4, xmax: 3.4, ymin: -3.4, ymax: 6.4, h: 300, curves: [{ f: (x) => x * x, a: -2.5, b: 2.5, closed: false, label: "x²", lx: 2.45, dx: -6, dy: 4 }, { f: (x) => x ** 3, a: -1.5, b: 1.82, closed: false, label: "x³", lx: 1.78, dx: 14, dy: 10 }, { f: (x) => Math.exp(x), a: -3.3, b: 1.85, closed: false, label: "eˣ", lx: 1.6, dx: -8, dy: -4 }], aria: "Courbes de x², x³ et exp : x² et eˣ montent vers +∞ à droite ; x³ descend vers −∞ à gauche ; eˣ se colle à l'axe à gauche (limite 0)" });
+  FIGURES["tlf-tvi"] = () => {
+    const f = (x) => 0.25 * x ** 3 - 1.5 * x + 1;
+    return graph({ xmin: -3.4, xmax: 3.4, ymin: -3.2, ymax: 4.2, h: 280, curves: [{ f, a: -3, b: 3, closed: true, label: "C<tspan class=\"sub\" dy=\"3\">f</tspan>", lx: 3, dx: -6, dy: -6 }], hlines: [{ y: 2, label: "y = k = 2" }], points: [{ x: -2, y: 2 }, { x: -0.732, y: 2 }, { x: 2.732, y: 2 }], aria: "Courbe d'une fonction continue sur [−3 ; 3] qui coupe trois fois la droite horizontale y = 2 : l'équation f(x) = 2 a trois solutions" });
+  };
+  FIGURES["tlf-continuite"] = () => graph({ xmin: -0.6, xmax: 6.6, ymin: -0.6, ymax: 5.4, h: 240, curves: [{ f: (x) => 1 + 0.5 * x, a: 0, b: 3, closed: false }, { f: (x) => x - 0.5, a: 3, b: 6, closed: false }], points: [{ x: 3, y: 2.5, label: "pas de saut" }], aria: "Une fonction continue : la courbe se trace sans lever le crayon, les deux morceaux se raccordent en x = 3" });
+  FIGURES["tlf-temperature"] = () => graph({ xmin: -1, xmax: 31, ymin: -8, ymax: 100, xstep: 5, ystep: 10, yetiq: 20, padL: 30, h: 250, xlabel: "t (min)", ylabel: "°C", curves: [{ f: (t) => 25 + 65 * Math.exp(-0.2 * t), a: 0, b: 30, closed: false }], chemins: [[[-1, 25], [31, 25]]], marques: [{ x: 26, y: 31, texte: "y = 25" }], aria: "T(t) = 25 + 65 e^(−0,2t) : la température descend de 90 °C et se rapproche de 25 °C, asymptote horizontale y = 25" });
+
+  const tlfLim = (t) => `$${t}$`;
+  GEN["tlf-reference"] = function () {
+    const T = [
+      ["x^2", "+\\infty", "+\\infty"], ["x^2", "-\\infty", "+\\infty"], ["x^3", "+\\infty", "+\\infty"], ["x^3", "-\\infty", "-\\infty"],
+      ["\\sqrt{x}", "+\\infty", "+\\infty"], ["\\dfrac{1}{x}", "+\\infty", "0"], ["\\dfrac{1}{x}", "-\\infty", "0"], ["\\dfrac{1}{x}", "0^+", "+\\infty"], ["\\dfrac{1}{x}", "0^-", "-\\infty"],
+      ["e^x", "+\\infty", "+\\infty"], ["e^x", "-\\infty", "0"], ["\\dfrac{1}{x^2}", "0", "+\\infty"], ["\\dfrac{1}{\\sqrt{x}}", "+\\infty", "0"], ["e^{-x}", "+\\infty", "0"], ["\\dfrac{1}{x^2}", "+\\infty", "0"]
+    ];
+    const [f, en, l] = pick(T), c = melangeChoix(tlfLim(l), ["$+\\infty$", "$-\\infty$", "$0$", "$1$"]);
+    const ou = en === "0^+" ? "$0$ par valeurs positives" : en === "0^-" ? "$0$ par valeurs négatives" : en === "0" ? "$0$" : `$${en}$`;
+    return {
+      enonce: `Quelle est la limite de $${f}$ quand $x$ tend vers ${ou} ?`, mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: ["Pense à la courbe de la fonction de référence.", "Remplace $x$ par des valeurs de plus en plus grandes (ou de plus en plus proches de $0$).", "Pour $\\dfrac{1}{x}$ près de $0$, le signe de $x$ compte."],
+      solution: `$\\lim\\limits_{x \\to ${en}} ${f} = ${l}$.${f === "e^x" && en === "-\\infty" ? " La courbe de l'exponentielle se colle à l'axe des abscisses à gauche : asymptote horizontale $y = 0$." : ""}`
+    };
+  };
+
+  GEN["tlf-operations"] = function () {
+    const a = randNZ(-5, 6), b = randNZ(-6, 6), c = rand(2, 6);
+    const T = [
+      [`${a} + \\dfrac{${b}}{x}`, "+\\infty", `${a}`, `$\\dfrac{${b}}{x} \\to 0$, donc $f(x) \\to ${a}$.`],
+      [`${a === 1 ? "" : a === -1 ? "-" : a}x^2 ${sg(a > 0 ? Math.abs(b) : -Math.abs(b))}x`, "+\\infty", a > 0 ? "+\\infty" : "-\\infty", `$x^2 \\to +\\infty$ et $x \\to +\\infty$ ; les deux termes ont le signe de $${a}$ : la somme tend vers $${a > 0 ? "+\\infty" : "-\\infty"}$.`],
+      [`${c}x^3 + x`, "-\\infty", "-\\infty", `$${c}x^3 \\to -\\infty$ et $x \\to -\\infty$ : la somme tend vers $-\\infty$.`],
+      [`${a} + ${c}e^{x}`, "-\\infty", `${a}`, `$e^x \\to 0$ en $-\\infty$, donc $f(x) \\to ${a}$.`],
+      [`${a} - ${c}e^{-x}`, "+\\infty", `${a}`, `$e^{-x} \\to 0$ en $+\\infty$, donc $f(x) \\to ${a}$.`],
+      [`${c}e^{x} ${sg(b)}`, "+\\infty", "+\\infty", `$e^x \\to +\\infty$, donc $${c}e^x ${sg(b)} \\to +\\infty$.`],
+      [`\\dfrac{${c}}{x^2 + 1}`, "+\\infty", "0", "Le dénominateur tend vers $+\\infty$, le numérateur est constant : le quotient tend vers $0$."],
+      [`\\left(${a} + \\dfrac{1}{x}\\right)\\left(${c} - e^{-x}\\right)`, "+\\infty", `${a * c}`, `$${a} + \\dfrac{1}{x} \\to ${a}$ et $${c} - e^{-x} \\to ${c}$ : le produit tend vers $${a * c}$.`],
+      [`\\sqrt{x} ${sg(b)}`, "+\\infty", "+\\infty", `$\\sqrt{x} \\to +\\infty$.`],
+      [`${a} + \\dfrac{${c}}{x}`, "0^+", "+\\infty", `$\\dfrac{${c}}{x} \\to +\\infty$ quand $x \\to 0$ avec $x > 0$, donc $f(x) \\to +\\infty$.`],
+      [`${a} + \\dfrac{${c}}{x}`, "0^-", "-\\infty", `$\\dfrac{${c}}{x} \\to -\\infty$ quand $x \\to 0$ avec $x < 0$, donc $f(x) \\to -\\infty$.`],
+      [`${c}x^2 + e^{x}`, "+\\infty", "+\\infty", "Somme de deux termes qui tendent vers $+\\infty$."]
+    ];
+    const [f, en, l, s] = pick(T), c2 = melangeChoix(tlfLim(l), shuffle(["$+\\infty$", "$-\\infty$", "$0$", `$${a}$`, `$${c}$`]));
+    const ou = en === "0^+" ? "$0$ (avec $x > 0$)" : en === "0^-" ? "$0$ (avec $x < 0$)" : `$${en}$`;
+    return {
+      enonce: `Quelle est la limite de $f(x) = ${f}$ quand $x$ tend vers ${ou} ?`, mode: "choix", choix: c2.choix, attendu: c2.attendu,
+      aides: ["Cherche la limite de chaque morceau.", "En $-\\infty$, $e^x \\to 0$ ; en $+\\infty$, $e^{-x} \\to 0$ et $e^x \\to +\\infty$.", "Combine : somme, produit, quotient."],
+      solution: `${s} $\\lim\\limits_{x \\to ${en}} f(x) = ${l}$.`
+    };
+  };
+
+  GEN["tlf-asymptote"] = function () {
+    const a = randNZ(-3, 4), b = pick([1, 2, 3, -1, -2]), c = randNZ(-3, 3), t = rand(0, 2);
+    const f = `${a} ${b > 0 ? "+" : "-"} \\dfrac{${Math.abs(b)}}{x ${c > 0 ? "-" : "+"} ${Math.abs(c)}}`;
+    const fig = tlfHyperbole(a, b, c, `Courbe de f(x) = ${a} + ${b}/(x − ${c}) avec ses asymptotes`);
+    if (t === 0) return {
+      enonce: `$f(x) = ${f}$. Quelle est l'équation de l'asymptote horizontale à sa courbe en $+\\infty$ ?`, figure: fig, mode: "nombre", prefixe: "$y =$", attendu: a,
+      erreurs: [{ valeur: c, message: `$x = ${c}$ est l'asymptote **verticale**.` }],
+      aides: ["Cherche la limite de $f(x)$ en $+\\infty$.", `$\\dfrac{${Math.abs(b)}}{x ${c > 0 ? "-" : "+"} ${Math.abs(c)}} \\to 0$.`, "Si $\\lim f = \\ell$ en $+\\infty$, la droite $y = \\ell$ est asymptote horizontale."],
+      solution: `$\\lim\\limits_{x \\to +\\infty} f(x) = ${a}$ : la droite d'équation $y = ${a}$ est asymptote horizontale (en pointillés sur la figure).`
+    };
+    if (t === 1) return {
+      enonce: `$f(x) = ${f}$, définie pour $x \\neq ${c}$. Quelle est l'équation de l'asymptote verticale à sa courbe ?`, figure: fig, mode: "nombre", prefixe: "$x =$", attendu: c,
+      erreurs: [{ valeur: -c, message: `Le dénominateur s'annule pour $x = ${c}$, pas pour $x = ${-c}$.` }, { valeur: a, message: `$y = ${a}$ est l'asymptote **horizontale**.` }],
+      aides: ["Une asymptote verticale apparaît là où le dénominateur s'annule.", `$x ${c > 0 ? "-" : "+"} ${Math.abs(c)} = 0$.`, "Près de cette valeur, $f(x)$ tend vers $+\\infty$ ou $-\\infty$."],
+      solution: `Le dénominateur s'annule en $x = ${c}$ et $f(x)$ y tend vers $\\pm\\infty$ : la droite $x = ${c}$ est asymptote verticale.`
+    };
+    const plus = b > 0, c2 = melangeChoix(plus ? "$+\\infty$" : "$-\\infty$", [plus ? "$-\\infty$" : "$+\\infty$", `$${a}$`, "$0$"]);
+    return {
+      enonce: `$f(x) = ${f}$. Quelle est la limite de $f(x)$ quand $x$ tend vers $${c}$ avec $x > ${c}$ ?`, figure: fig, mode: "choix", choix: c2.choix, attendu: c2.attendu,
+      aides: [`Pour $x > ${c}$ proche de $${c}$, $x ${c > 0 ? "-" : "+"} ${Math.abs(c)}$ est un petit nombre positif.`, `$\\dfrac{${Math.abs(b)}}{\\text{petit positif}}$ devient très grand.`, `Attention au signe devant la fraction : $${b > 0 ? "+" : "-"}$.`],
+      solution: `$x ${c > 0 ? "-" : "+"} ${Math.abs(c)} \\to 0$ par valeurs positives, donc $\\dfrac{${Math.abs(b)}}{x ${c > 0 ? "-" : "+"} ${Math.abs(c)}} \\to +\\infty$ et $f(x) \\to ${plus ? "+\\infty" : "-\\infty"}$.`
+    };
+  };
+
+  // tableau de variations aléatoire sur un intervalle fermé, valeurs entières
+  GEN["tlf-tvi"] = function () {
+    const n = pick([2, 3]), xs = [-4, 0, 3, 6].slice(0, n + 1), ys = [];
+    let monte = Math.random() < 0.5; ys.push(rand(-3, 3));
+    for (let k = 1; k <= n; k++) { ys.push(ys[k - 1] + (monte ? 1 : -1) * rand(3, 7)); monte = !monte; }
+    const cases = []; for (let k = 0; k < n; k++) { cases.push(ys[k + 1] > ys[k] ? "+" : "-"); if (k < n - 1) cases.push("0"); }
+    const ecart = Math.random() < 0.15 ? 2 : 0;
+    let kk; do { kk = rand(Math.min(...ys) - ecart, Math.max(...ys) + ecart); } while (ys.includes(kk));
+    let sol = 0; for (let k = 0; k < n; k++) if ((kk - ys[k]) * (kk - ys[k + 1]) < 0) sol++;
+    const fig = tabSV(xs.map((x) => String(x).replace("-", "−")), cases, ys.map((y) => String(y).replace("-", "−")), "f");
+    return {
+      enonce: `$f$ est continue sur $[${xs[0]}\\,;${xs[n]}]$ et son tableau de variations est donné. Combien de solutions l'équation $f(x) = ${kk}$ a-t-elle sur cet intervalle ?`,
+      figure: fig, mode: "nombre", prefixe: "Nombre de solutions :", attendu: sol,
+      aides: ["Sur chaque intervalle où $f$ est strictement monotone, $f(x) = k$ a au plus une solution.", `Il y en a une exactement si $${kk}$ est compris entre les valeurs aux bornes de ce morceau.`, "Compte morceau par morceau."],
+      solution: xs.slice(0, n).map((x, k) => `Sur $[${x}\\,;${xs[k + 1]}]$, $f$ est continue et strictement ${ys[k + 1] > ys[k] ? "croissante" : "décroissante"} de $${ys[k]}$ à $${ys[k + 1]}$ : ${(kk - ys[k]) * (kk - ys[k + 1]) < 0 ? `$${kk}$ est entre les deux, donc une solution (corollaire du TVI).` : `$${kk}$ n'est pas entre les deux, donc aucune solution.`}`).join("\n\n") + `\n\nAu total : $${sol}$ solution${sol > 1 ? "s" : ""}.`
+    };
+  };
+
+  GEN["tlf-encadrer"] = function () {
+    const P = pick([
+      { f: (x) => x ** 3 + x - 1, tex: "x^3 + x - 1", a: 0, b: 1 },
+      { f: (x) => x ** 3 - 2, tex: "x^3 - 2", a: 1, b: 2 },
+      { f: (x) => x * x - 3, tex: "x^2 - 3", a: 1, b: 2 },
+      { f: (x) => Math.exp(x) - 3, tex: "e^x - 3", a: 1, b: 2 },
+      { f: (x) => Math.exp(x) + x - 2, tex: "e^x + x - 2", a: 0, b: 1 },
+      { f: (x) => x ** 3 + 2 * x - 5, tex: "x^3 + 2x - 5", a: 1, b: 2 },
+      { f: (x) => x * x - 7, tex: "x^2 - 7", a: 2, b: 3 },
+      { f: (x) => Math.exp(x) - 5, tex: "e^x - 5", a: 1, b: 2 }
+    ]);
+    let lo = P.a, hi = P.b; for (let k = 0; k < 60; k++) { const m = (lo + hi) / 2; if (P.f(lo) * P.f(m) <= 0) hi = m; else lo = m; }
+    const r = lo, d = Math.floor(r * 10) / 10, bon = `$[${fr(d)}\\,;${fr(+(d + 0.1).toFixed(1))}]$`;
+    const c = melangeChoix(bon, [`$[${fr(+(d - 0.1).toFixed(1))}\\,;${fr(d)}]$`, `$[${fr(+(d + 0.1).toFixed(1))}\\,;${fr(+(d + 0.2).toFixed(1))}]$`, `$[${fr(+(d + 0.2).toFixed(1))}\\,;${fr(+(d + 0.3).toFixed(1))}]$`]);
+    return {
+      enonce: `$f(x) = ${P.tex}$ est continue et strictement croissante sur $[${P.a}\\,;${P.b}]$, avec $f(${P.a}) < 0 < f(${P.b})$ : l'équation $f(x) = 0$ a une unique solution $\\alpha$. Dans quel intervalle d'amplitude $0{,}1$ se trouve $\\alpha$ ?`,
+      mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: ["Balayage : calcule $f(x)$ de $0{,}1$ en $0{,}1$ (tableau de valeurs de la calculatrice).", "Repère où $f(x)$ change de signe.", `$\\alpha$ est entre les deux valeurs de $x$ où le signe change.`],
+      solution: `$f(${fr(d)}) \\approx ${fr(+P.f(d).toFixed(3))} < 0$ et $f(${fr(+(d + 0.1).toFixed(1))}) \\approx ${fr(+P.f(d + 0.1).toFixed(3))} > 0$ : d'après le TVI, $${fr(d)} < \\alpha < ${fr(+(d + 0.1).toFixed(1))}$ ($\\alpha \\approx ${fr(+r.toFixed(3))}$).`
+    };
+  };
+
+  GEN["tlf-dichotomie"] = function () {
+    const P = pick([{ tex: "x^2 - 2", f: (x) => x * x - 2, a: 1, b: 2 }, { tex: "x^2 - 3", f: (x) => x * x - 3, a: 1, b: 2 }, { tex: "x^3 - 5", f: (x) => x ** 3 - 5, a: 1, b: 2 }, { tex: "x^2 - 5", f: (x) => x * x - 5, a: 2, b: 3 }, { tex: "x^2 - 7", f: (x) => x * x - 7, a: 2, b: 3 }]);
+    const k = rand(1, 3), quoi = Math.random() < 0.5 ? "a" : "b";
+    let a = P.a, b = P.b; for (let i = 0; i < k; i++) { const m = (a + b) / 2; if (P.f(a) * P.f(m) <= 0) b = m; else a = m; }
+    const py = P.tex.replace(/\^2/g, "**2").replace(/\^3/g, "**3");
+    return {
+      enonce: "Méthode de dichotomie :\n\n```python\ndef f(x):\n    return " + py + "\n\ndef dicho(a, b, k):\n    for i in range(k):\n        m = (a + b) / 2\n        if f(a) * f(m) <= 0:\n            b = m\n        else:\n            a = m\n    return a, b\n```\n\n" + `Quelle est la valeur de ${quoi === "a" ? "$a$" : "$b$"} renvoyée par dicho(${P.a}, ${P.b}, ${k}) ?`,
+      mode: "nombre", prefixe: `$${quoi} =$`, attendu: quoi === "a" ? a : b, tolerance: 1e-9,
+      aides: ["À chaque tour, on coupe l'intervalle en deux au milieu $m$.", "Si $f(a)$ et $f(m)$ sont de signes contraires, la solution est dans $[a\\,;m]$ : $b$ devient $m$. Sinon, $a$ devient $m$.", `Fais les $${k}$ tours à la main.`],
+      solution: `Après $${k}$ tour${k > 1 ? "s" : ""}, l'intervalle est $[${fr(a)}\\,;${fr(b)}]$ : la fonction renvoie $a = ${fr(a)}$ et $b = ${fr(b)}$. La solution de $${P.tex} = 0$ est dedans.`
+    };
+  };
+
+  GEN["tlf-logique"] = function () {
+    const T = [
+      ["Si $f$ est continue sur $[a\\,;b]$ avec $f(a) < 0 < f(b)$, alors il existe au moins un réel $c$ de $[a\\,;b]$ tel que $f(c) = 0$.", true, "C'est le théorème des valeurs intermédiaires."],
+      ["Si $f$ est continue sur $[a\\,;b]$ avec $f(a) < 0 < f(b)$, alors l'équation $f(x) = 0$ a une **unique** solution.", false, "Il faut en plus que $f$ soit strictement monotone : une courbe peut couper l'axe trois fois."],
+      ["Si l'équation $f(x) = 0$ a une solution sur $[a\\,;b]$, alors $f(a)$ et $f(b)$ sont de signes contraires.", false, "Réciproque fausse : $f(x) = x^2$ sur $[-1\\,;1]$ s'annule en $0$ alors que $f(-1) = f(1) = 1$."],
+      ["Si $f(a) < 0 < f(b)$ mais que $f$ n'est pas continue, elle peut ne jamais s'annuler.", true, "Une courbe avec un saut peut passer de négative à positive sans couper l'axe."],
+      ["Si $\\lim\\limits_{x \\to +\\infty} f(x) = 3$, alors la droite $y = 3$ est asymptote horizontale à la courbe.", true, "C'est la définition d'une asymptote horizontale."],
+      ["Une courbe ne peut jamais couper son asymptote horizontale.", false, "Contre-exemple : une courbe peut osciller autour de son asymptote et la couper plusieurs fois."],
+      ["Si $\\lim\\limits_{x \\to 2} f(x) = +\\infty$, alors la droite $x = 2$ est asymptote verticale.", true, "C'est la définition d'une asymptote verticale."],
+      ["$\\lim\\limits_{x \\to -\\infty} e^x = -\\infty$.", false, "$e^x > 0$ et $e^x \\to 0$ en $-\\infty$."],
+      ["Toute fonction dérivable sur un intervalle y est continue.", true, "Propriété admise : dérivable entraîne continue (la réciproque est fausse, par exemple $|x|$ en $0$)."],
+      ["Toute fonction continue sur un intervalle y est dérivable.", false, "Contre-exemple : $x \\mapsto |x|$ est continue en $0$ mais pas dérivable en $0$."],
+      ["Si $f$ est continue et strictement croissante sur $[1\\,;4]$ avec $f(1) = 2$ et $f(4) = 9$, l'équation $f(x) = 5$ a une unique solution sur $[1\\,;4]$.", true, "Corollaire du TVI : $5$ est entre $2$ et $9$ et $f$ est strictement monotone."],
+      ["Si $f$ est continue et strictement croissante sur $[1\\,;4]$ avec $f(1) = 2$ et $f(4) = 9$, l'équation $f(x) = 10$ a une solution sur $[1\\,;4]$.", false, "$10 > 9 = f(4)$ et $f$ est croissante : $f(x) \\leqslant 9$ sur $[1\\,;4]$."]
+    ];
+    const [q, v, s] = pick(T), c = melangeChoix(v ? "Vrai" : "Faux", [v ? "Faux" : "Vrai"]);
+    return {
+      enonce: `Vrai ou faux ? ${q}`, mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: ["TVI : continuité + changement de signe donnent **au moins** une solution.", "Pour l'unicité, il faut la stricte monotonie.", "Une réciproque peut être fausse : cherche un contre-exemple."],
+      solution: `**${v ? "Vrai" : "Faux"}.** ${s}`
+    };
+  };
+
+  GEN["tlf-modele"] = function () {
+    if (Math.random() < 0.5) {
+      const a = pick([4, 5, 6, 8, 12]), b = pick([60, 80, 100, 150, 200]), t = rand(0, 1);
+      if (t === 0) return {
+        enonce: `Un artisan de Chiconi fabrique $x$ paniers par semaine. Le coût moyen d'un panier est $C_M(x) = \\dfrac{${a}x + ${b}}{x} = ${a} + \\dfrac{${b}}{x}$ euros. Vers quelle valeur tend le coût moyen quand la production devient très grande ?`,
+        mode: "nombre", prefixe: "Limite :", suffixe: "€", attendu: a,
+        erreurs: [{ valeur: b, message: "Les frais fixes se répartissent sur de plus en plus de paniers : $\\dfrac{" + b + "}{x} \\to 0$." }],
+        aides: ["Cherche $\\lim\\limits_{x \\to +\\infty} C_M(x)$.", `$\\dfrac{${b}}{x} \\to 0$.`, "Il reste le coût de fabrication d'un panier."],
+        solution: `$\\dfrac{${b}}{x} \\to 0$, donc $C_M(x) \\to ${a}$ € : la droite $y = ${a}$ est asymptote horizontale. Les frais fixes de $${b}$ € deviennent négligeables.`
+      };
+      const k = a + pick([1, 2, 5]), x = Math.floor(b / (k - a)) + 1;
+      return {
+        enonce: `Le coût moyen d'un panier est $C_M(x) = ${a} + \\dfrac{${b}}{x}$ euros pour $x$ paniers. À partir de combien de paniers le coût moyen est-il inférieur à $${k}$ € ?`,
+        mode: "nombre", prefixe: "Nombre de paniers :", attendu: x,
+        aides: [`$C_M(x) < ${k} \\iff \\dfrac{${b}}{x} < ${k - a}$.`, `Comme $x > 0$ : $x > \\dfrac{${b}}{${k - a}}$.`, "Prends le premier entier qui convient (attention si la division tombe juste : il faut une inégalité stricte)."],
+        solution: `$${a} + \\dfrac{${b}}{x} < ${k} \\iff x > \\dfrac{${b}}{${k - a}} ${b % (k - a) === 0 ? "=" : "\\approx"} ${fr(+(b / (k - a)).toFixed(2))}$ : à partir de $${x}$ paniers.`
+      };
+    }
+    const Ta = pick([20, 25, 28]), T0 = pick([80, 90, 100]), c = melangeChoix(`$${Ta}$ °C`, [`$${T0}$ °C`, "$0$ °C", `$${T0 - Ta}$ °C`]);
+    return {
+      enonce: `La température d'un plat est $T(t) = ${Ta} + ${T0 - Ta}e^{-0{,}2t}$ ($t$ en minutes). Vers quelle température tend-elle ?`, mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: ["Cherche la limite quand $t \\to +\\infty$.", "$e^{-0{,}2t} \\to 0$ quand $t \\to +\\infty$.", "La droite correspondante est une asymptote horizontale."],
+      solution: `$e^{-0{,}2t} \\to 0$, donc $T(t) \\to ${Ta}$ °C : c'est la température d'équilibre (celle de la pièce), asymptote horizontale $y = ${Ta}$.`
+    };
+  };
+
+
   /* Séries « flash » d'un thème : mélange de ses générateurs */
   const THEMES = {
     "am-flash-cn": ["am-comparer", "am-fractions", "am-puissances", "am-ecritures", "am-ordre-grandeur", "am-coherence", "auto-conversions"],
@@ -11524,7 +11708,7 @@
 
 
   /* Une « erreur connue » ne doit jamais coïncider avec la bonne réponse (à la tolérance près) */
-  Object.keys(GEN).filter((k) => /^(auto|ld|am|cd|ar|cl|fa|ve|st|vx|tc|co|dr|fr|sg|pc|ec|sy|su|s2|pi|s5|d1|tr|d2|vr|ps|ex|va|sc|gr|sm|ea|tsu|tag)-/.test(k)).forEach((k) => {
+  Object.keys(GEN).filter((k) => /^(auto|ld|am|cd|ar|cl|fa|ve|st|vx|tc|co|dr|fr|sg|pc|ec|sy|su|s2|pi|s5|d1|tr|d2|vr|ps|ex|va|sc|gr|sm|ea|tsu|tag|tlf)-/.test(k)).forEach((k) => {
     const g = GEN[k];
     GEN[k] = (i) => { const q = g(i); if (q.erreurs) q.erreurs = q.erreurs.filter((e) => Math.abs(e.valeur - q.attendu) >= (q.tolerance || 1e-9)); return q; };
   });

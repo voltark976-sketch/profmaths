@@ -377,6 +377,13 @@ window.CATALOGUE = {
           titre: "Suites arithmético-géométriques",
           statut: "disponible",
           drive: ""
+        },
+        {
+          id: "terminale-limites-continuite",
+          numero: 4,
+          titre: "Limites de fonctions et continuité",
+          statut: "disponible",
+          drive: ""
         }
       ]
     }
