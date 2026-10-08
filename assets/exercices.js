@@ -108,7 +108,7 @@
       s += `<path class="g-curve g-curve-${c}" d="M${ax} ${ay}L${pt(6, 0)}"/><path class="g-end g-curve-${c}" d="M${bx} ${by}L${pt(11, 0.4)}L${pt(11, -0.4)}Z"/>`;
       if (f.label) s += `<text class="g-clabel g-curve-${c}" x="${+((ax + bx) / 2 + 9 * Math.sin(t)).toFixed(1)}" y="${+((ay + by) / 2 - 9 * Math.cos(t) + 4).toFixed(1)}" text-anchor="middle">${f.label}</text>`;
       // petite flèche au-dessus du nom du vecteur
-      if (f.label) s += `<text class="g-clabel g-curve-${c}" style="font-size:10px" x="${+((ax + bx) / 2 + 9 * Math.sin(t)).toFixed(1)}" y="${+((ay + by) / 2 - 9 * Math.cos(t) - 7).toFixed(1)}" text-anchor="middle">→</text>`;
+      if (f.label && /^[A-Za-z]{1,2}$/.test(f.label)) s += `<text class="g-clabel g-curve-${c}" style="font-size:10px" x="${+((ax + bx) / 2 + 9 * Math.sin(t)).toFixed(1)}" y="${+((ay + by) / 2 - 9 * Math.cos(t) - 7).toFixed(1)}" text-anchor="middle">→</text>`;
     });
     (o.points || []).forEach((p) => {
       s += `<circle class="g-point" cx="${X(p.x)}" cy="${Y(p.y)}" r="3.5"/>`;
@@ -1437,7 +1437,7 @@
     const n = rand(3, 8), k = rand(0, n);
     return {
       enonce: `Calcule le coefficient binomial $\\dbinom{${n}}{${k}}$ (sans calculatrice, avec le triangle de Pascal).`,
-      mode: "nombre", prefixe: `(${n} ; ${k}) =`, attendu: C(n, k),
+      mode: "nombre", prefixe: `$\\dbinom{${n}}{${k}} =$`, attendu: C(n, k),
       aides: ["$\\dbinom{n}{k}$ compte les chemins à $k$ succès parmi $n$ essais. $\\dbinom{n}{0} = \\dbinom{n}{n} = 1$ et $\\dbinom{n}{1} = n$.", "Dans le triangle de Pascal, chaque nombre intérieur est la somme des deux nombres situés au-dessus.", `Symétrie : $\\dbinom{${n}}{${k}} = \\dbinom{${n}}{${n - k}}$. Ligne $${n}$ : $${Array.from({ length: n + 1 }, (_, i) => (i === k ? "?" : C(n, i))).join(" ; ")}$.`],
       solution: `Ligne $${n}$ du triangle de Pascal : $${Array.from({ length: n + 1 }, (_, i) => C(n, i)).join(" ; ")}$. Donc $\\dbinom{${n}}{${k}} = ${C(n, k)}$.`
     };
@@ -3973,7 +3973,7 @@
     return {
       figure: repere([[...A, "A"], [...B, "B"]], [], [[0, 1]]),
       enonce: `Dans un repère, $A${pt(...A)}$ et $B${pt(...B)}$. Calcule ${q ? "l'ordonnée" : "l'abscisse"} du milieu $I$ de $[AB]$.`,
-      mode: "nombre", prefixe: `${l}_I =`, attendu: v,
+      mode: "nombre", prefixe: `$${l}_I =$`, attendu: v,
       erreurs: [{ valeur: (B[q] - A[q]) / 2, message: "Pour le milieu, on **additionne** les coordonnées, puis on divise par $2$." }, { valeur: A[q] + B[q], message: "N'oublie pas de diviser par $2$." }],
       aides: [`$${l}_I = \\dfrac{${l}_A + ${l}_B}{2}$ : la moyenne des deux coordonnées.`, `$${l}_A + ${l}_B = ${A[q]} + ${par(B[q])} = ${A[q] + B[q]}$.`, "Divise par $2$. Le résultat peut être un nombre décimal, comme $2{,}5$."],
       solution: `$${l}_I = \\dfrac{${A[q]} + ${par(B[q])}}{2} = \\dfrac{${A[q] + B[q]}}{2} = ${nb(v)}$.\n\n$I${pt((A[0] + B[0]) / 2, (A[1] + B[1]) / 2)}$.`
@@ -4017,7 +4017,7 @@
     return {
       figure: repere([[...A, "A"], [...B, "B"], [...C, "C"]], [[0, 1]], [[1, 2]]),
       enonce: `$A${pt(...A)}$, $B${pt(...B)}$ et $C${pt(...C)}$. On cherche $D$ tel que $ABCD$ soit un parallélogramme. Calcule ${q ? "l'ordonnée" : "l'abscisse"} de $D$.`,
-      mode: "nombre", prefixe: `${l}_D =`, attendu: D[q],
+      mode: "nombre", prefixe: `$${l}_D =$`, attendu: D[q],
       erreurs: [{ valeur: B[q] + C[q] - A[q], message: "Ça, c'est le point tel que $ABDC$ est un parallélogramme. Respecte l'ordre des lettres : $\\overrightarrow{AB} = \\overrightarrow{DC}$." }],
       aides: [`$ABCD$ est un parallélogramme si et seulement si $${vec("AB")} = ${vec("DC")}$.`, `$${vec("AB")}\\begin{pmatrix} ${B[0] - A[0]} \\\\ ${B[1] - A[1]} \\end{pmatrix}$ et $${vec("DC")}\\begin{pmatrix} ${C[0]} - x_D \\\\ ${C[1]} - y_D \\end{pmatrix}$.`, `Résous $${C[q]} - ${l}_D = ${B[q] - A[q]}$.`],
       solution: `$${vec("AB")} = ${vec("DC")}$ donne $${C[q]} - ${l}_D = ${B[q]} - ${par(A[q])} = ${B[q] - A[q]}$, donc $${l}_D = ${C[q]} - ${par(B[q] - A[q])} = ${D[q]}$.\n\n$D${pt(...D)}$.`
@@ -4740,7 +4740,7 @@
     const t = Math.random() < 0.5;
     if (t) return {
       enonce: `On donne $P(A) = ${dec2(pA)}$ et $P(A \\cap B) = ${dec2(inter)}$. Calcule $P_A(B)$.`,
-      mode: "nombre", prefixe: "P_A(B) =", attendu: pBA,
+      mode: "nombre", prefixe: "$P_A(B) =$", attendu: pBA,
       erreurs: [{ valeur: inter * pA, message: "On **divise** par $P(A)$ : $P_A(B) = \\dfrac{P(A \\cap B)}{P(A)}$." }],
       aides: ["$P_A(B)$ est la probabilité de $B$ **sachant** $A$.", "$P_A(B) = \\dfrac{P(A \\cap B)}{P(A)}$.", `Calcule $\\dfrac{${dec2(inter)}}{${dec2(pA)}}$.`],
       solution: `$P_A(B) = \\dfrac{P(A \\cap B)}{P(A)} = \\dfrac{${dec2(inter)}}{${dec2(pA)}} = ${dec2(pBA)}$.`
@@ -4816,7 +4816,7 @@
     const rep = +(VP / Tpos).toFixed(2);
     if (q === 1) return {
       enonce: `${ctx} Une personne a un test **positif**. Quelle est la probabilité qu'elle soit malade, $P_T(M)$ ? (Arrondis au centième.)`,
-      mode: "nombre", prefixe: "P_T(M) ≈", attendu: rep, tolerance: 0.006,
+      mode: "nombre", prefixe: "$P_T(M) \\approx$", attendu: rep, tolerance: 0.006,
       erreurs: [{ valeur: se, message: "Ça, c'est $P_M(T)$ (la sensibilité). On demande $P_T(M)$ : on inverse le conditionnement." }],
       aides: [`Dresse le tableau : malades positifs $${nb(M)} \\times ${dec2(se)} = ${nb(VP)}$ ; sains positifs $${nb(S)} \\times ${dec2(1 - sp)} = ${nb(FP)}$.`, `Nombre total de tests positifs : $${nb(VP)} + ${nb(FP)} = ${nb(Tpos)}$.`, `$P_T(M) = \\dfrac{${nb(VP)}}{${nb(Tpos)}}$.`],
       solution: `Parmi les $${nb(Tpos)}$ tests positifs, $${nb(VP)}$ concernent des malades : $P_T(M) = \\dfrac{${nb(VP)}}{${nb(Tpos)}} \\approx ${dec2(rep)}$.\n\n${rep < 0.5 ? "Moins d'une chance sur deux, alors que le test est « fiable » : c'est parce que la maladie est rare, et les faux positifs nombreux." : "On inverse le conditionnement : $P_T(M)$ est bien différent de $P_M(T)$."}`
@@ -5125,7 +5125,7 @@
   };
 
   // Chapitre 11 : colinéarité
-  FIGURES["colineaires"] = () => graph({ xmin: -4.5, xmax: 4.5, ymin: -3.5, ymax: 3.5, fleches: [{ x1: -3, y1: 2, x2: -1, y2: 3, label: "u" }, { x1: 3, y1: 1, x2: -1, y2: -1, label: "v = −2u" }, { x1: 0, y1: -3, x2: 2, y2: 0, c: 1, label: "w" }], aria: "u et v = −2u ont la même direction, w n'est pas colinéaire à u" });
+  FIGURES["colineaires"] = () => graph({ xmin: -4.5, xmax: 4.5, ymin: -3.5, ymax: 3.5, fleches: [{ x1: -3, y1: 2, x2: -1, y2: 3, label: "u" }, { x1: 3, y1: 1, x2: -1, y2: -1, label: "v" }, { x1: 0, y1: -3, x2: 2, y2: 0, c: 1, label: "w" }], aria: "u et v = −2u ont la même direction, w n'est pas colinéaire à u" });
   FIGURES["alignes"] = () => graph({ xmin: -0.5, xmax: 8.5, ymin: -0.5, ymax: 12.5, ystep: 2, yetiq: 2, h: 280, curves: [{ f: (x) => 1.5 * x + 0.5, a: 0, b: 7.6, closed: false }], points: [{ x: 1, y: 2, label: "A", gauche: true }, { x: 3, y: 5, label: "B", gauche: true }, { x: 7, y: 11, label: "C", gauche: true }], aria: "Les trois bouées A, B, C sont sur une même droite" });
 
   // Chapitre 12 : droites

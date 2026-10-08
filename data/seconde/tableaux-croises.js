@@ -121,7 +121,7 @@ window.CHAPITRES["seconde-tableaux-croises"] = {
     { type: "auto-probabilites", titre: "Calculer une probabilité", etape: "Probabilités", nb: 5 },
     { type: "tc-evenement", titre: "Et, ou, non dans un tableau", etape: "Probabilités", nb: 6 },
     { type: "am-proba-tableau", titre: "Probabilité conditionnelle avec un tableau", etape: "Probabilités", nb: 5 },
-    { type: "am-proba-notation", titre: "Notations : P(A ∩ B), P_A(B)…", etape: "Probabilités", nb: 4 },
+    { type: "am-proba-notation", titre: "Notations : $P(A \\cap B)$, $P_A(B)$…", etape: "Probabilités", nb: 4 },
     { type: "tc-python", titre: "Python : filtrer avec and, or, not", etape: "Python", nb: 3 }
   ],
 

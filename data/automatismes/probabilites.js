@@ -79,7 +79,7 @@ window.CHAPITRES["auto-probabilites"] = {
     { type: "am-proba-loi", titre: "PR03 · Somme des probabilités", etape: "Programme de Seconde", nb: 5 },
     { type: "am-proba-tableau", titre: "PR05 · Tableau croisé", etape: "Ajouts de Première", nb: 5 },
     { type: "am-proba-arbre", titre: "PR05 · Arbre pondéré", etape: "Ajouts de Première", nb: 5 },
-    { type: "am-proba-notation", titre: "PR06 · P(A ∩ B), P_A(B) ou P_B(A) ?", etape: "Ajouts de Première", nb: 5 },
+    { type: "am-proba-notation", titre: "PR06 · $P(A \\cap B)$, $P_A(B)$ ou $P_B(A)$ ?", etape: "Ajouts de Première", nb: 5 },
     { type: "am-flash-pr", titre: "Flash : probabilités mélangées", etape: "Défi", nb: 8 }
   ],
 

@@ -116,7 +116,7 @@ window.CHAPITRES["seconde-probabilites-conditionnelles"] = {
 
   /* ---------- 2. EXERCICES ---------- */
   exercices: [
-    { type: "pc-formule", titre: "La formule de P_A(B)", etape: "Probabilité conditionnelle", nb: 5 },
+    { type: "pc-formule", titre: "La formule de $P_A(B)$", etape: "Probabilité conditionnelle", nb: 5 },
     { type: "pc-traduire", titre: "Traduire en notations", etape: "Probabilité conditionnelle", nb: 5 },
     { type: "pc-arbre", titre: "Compléter et lire un arbre", etape: "Arbres pondérés", nb: 6 },
     { type: "am-proba-arbre", titre: "Probabilité d'un chemin", etape: "Arbres pondérés", nb: 4 },

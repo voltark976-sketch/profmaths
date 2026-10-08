@@ -44,7 +44,8 @@ window.CHAPITRES["seconde-colinearite"] = {
       texte:
         "Deux vecteurs $\\vec{u}$ et $\\vec{v}$ sont **colinéaires** s'il existe un réel $k$ tel que $\\vec{v} = k\\vec{u}$ (ou $\\vec{u} = k\\vec{v}$). Ils ont alors la **même direction**.\n\n" +
         "- Le vecteur nul est colinéaire à tous les vecteurs.\n" +
-        "- En coordonnées : les coordonnées de $\\vec{u}$ et de $\\vec{v}$ sont **proportionnelles**.\n\n" +
+        "- En coordonnées : les coordonnées de $\\vec{u}$ et de $\\vec{v}$ sont **proportionnelles**.\n" +
+        "- Sur la figure, $\\vec{v} = -2\\vec{u}$ : même direction, sens contraire. $\\vec{w}$ n'est pas colinéaire à $\\vec{u}$.\n\n" +
         "**Caractérisation vectorielle du milieu** : $I$ est le milieu de $[AB]$ si et seulement si $\\overrightarrow{AI} = \\dfrac{1}{2}\\overrightarrow{AB}$, ou encore $\\overrightarrow{IA} + \\overrightarrow{IB} = \\vec{0}$.",
       exemple: {
         enonce: "$\\vec{u}\\begin{pmatrix} 4 \\\\ -6 \\end{pmatrix}$ et $\\vec{v}\\begin{pmatrix} -2 \\\\ 3 \\end{pmatrix}$ sont-ils colinéaires ?",

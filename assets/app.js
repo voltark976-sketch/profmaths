@@ -140,6 +140,20 @@
     const t = String(s).replace(/\$([^$]+)\$/g, (_, m) => "\u0000" + (maths.push(m) - 1) + "\u0000");
     return esc(t).replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>").replace(/\u0000(\d+)\u0000/g, (_, i) => tex(maths[+i]));
   }
+  // Étiquette devant la case réponse : « x_I = », « P(Ā ∩ B) ≈ », « Q₃ − Q₁ = » sont écrits en maths (KaTeX),
+  // « Moyenne : » ou « Médiane ≈ » restent du texte. Aucune notation ne doit s'afficher brute.
+  const VERS_TEX = { "Ā": "\\overline{A}", "B̄": "\\overline{B}", "∩": "\\cap ", "∪": "\\cup ", "−": "-", "σ": "\\sigma ", "α": "\\alpha ", "β": "\\beta ", "Δ": "\\Delta ", "′": "'", "≤": "\\leqslant ", "≥": "\\geqslant ", "∞": "\\infty " };
+  function etiquette(p) {
+    p = String(p == null ? "" : p);
+    if (p.includes("$")) return inline(p);
+    const m = p.match(/^(.*?)\s*(=|≈|≠)$/);
+    if (!m || !m[1] || /[a-zà-ÿ]{3,}/i.test(m[1].replace(/det/g, ""))) return esc(p);
+    let t = m[1].replace(/‖(\w)‖/g, "\\|\\vec{$1}\\|").replace(/det/g, "\\det ");
+    t = t.replace(/B̄/g, VERS_TEX["B̄"]).replace(/[Ā∩∪−σαβΔ′≤≥∞]/g, (c) => VERS_TEX[c]);
+    t = t.replace(/[₀-₉]+/g, (d) => `_{${[...d].map((c) => c.charCodeAt(0) - 0x2080).join("")}}`);
+    t = t.replace(/(\d),(\d)/g, "$1{,}$2").replace(/\s;\s/g, "\\,;\\,");
+    return tex(`${t} ${{ "=": "=", "≈": "\\approx", "≠": "\\neq" }[m[2]]}`);
+  }
   function md(s) {
     return String(s).split(/\n\n+/).map((bloc) => {
       // Bloc de code (programme Python) : entre deux lignes ```, sans ligne vide à l'intérieur
@@ -483,8 +497,8 @@
         <button class="btn-sec" id="s-maj" type="button">Actualiser</button>
       </div>
       <p class="lead"><strong>${faits}/${liste.length}</strong> élèves ont fait au moins une série ou le QCM${depuis ? ` depuis le ${new Date(depuis).toLocaleDateString("fr-FR", { day: "numeric", month: "long" })}` : ""}.</p>
-      <p class="muted">${c.exercices.map((ex, i) => `S${i + 1} : ${esc(ex.titre)}`).join(" · ")}. Étoiles = meilleur résultat (0 à 3), « · » = pas fait. Un élève n'apparaît qu'après sa première connexion.</p>
-      <div class="scroll-x"><table class="suivi"><thead><tr><th>Élève</th>${c.exercices.map((ex, i) => `<th title="${esc(ex.titre)}">S${i + 1}</th>`).join("")}<th>QCM</th><th>Dernier essai</th><th>XP</th></tr></thead><tbody>${lignes || `<tr><td colspan="${c.exercices.length + 4}">Aucun élève connecté pour l'instant.</td></tr>`}</tbody></table></div></section>`;
+      <p class="muted">${c.exercices.map((ex, i) => `S${i + 1} : ${inline(ex.titre)}`).join(" · ")}. Étoiles = meilleur résultat (0 à 3), « · » = pas fait. Un élève n'apparaît qu'après sa première connexion.</p>
+      <div class="scroll-x"><table class="suivi"><thead><tr><th>Élève</th>${c.exercices.map((ex, i) => `<th title="${esc(ex.titre.replace(/\$/g, ""))}">S${i + 1}</th>`).join("")}<th>QCM</th><th>Dernier essai</th><th>XP</th></tr></thead><tbody>${lignes || `<tr><td colspan="${c.exercices.length + 4}">Aucun élève connecté pour l'instant.</td></tr>`}</tbody></table></div></section>`;
     const maj = (cle, el) => el.addEventListener("change", () => { suiviChoix[cle] = el.value; afficherSuivi(); });
     maj("groupe", document.getElementById("s-groupe"));
     maj("chap", document.getElementById("s-chap"));
@@ -538,8 +552,8 @@
     let etape = "";
     c.exercices.forEach((e, i) => {
       const st = prog.exo[id + ":" + e.type] || 0;
-      if (e.etape !== etape) { etape = e.etape; h += `<li class="etape">${esc(etape)}</li>`; }
-      h += `<li><button class="serie" data-i="${i}"><span class="chap-t"><strong>${esc(e.titre)}</strong><span class="meta">${e.nb} questions</span></span>${etoiles(st, 3)}</button></li>`;
+      if (e.etape !== etape) { etape = e.etape; h += `<li class="etape">${inline(etape)}</li>`; }
+      h += `<li><button class="serie" data-i="${i}"><span class="chap-t"><strong>${inline(e.titre)}</strong><span class="meta">${e.nb} questions</span></span>${etoiles(st, 3)}</button></li>`;
     });
     h += `</ol>`;
     p.innerHTML = h;
@@ -567,7 +581,7 @@
   function champReponse(q) {
     return q.mode === "choix"
       ? `<div class="choix">${q.choix.map((ch, k) => `<button class="opt" data-k="${k}"><span>${inline(ch)}</span></button>`).join("")}</div>`
-      : `<form class="saisie" autocomplete="off"><label for="rep">${esc(q.prefixe)}</label><span class="champ"><input id="rep" inputmode="text" enterkeyhint="done" placeholder="${q.mode === "ensemble" ? "ex. −1 ; 3  ou  aucun" : "ta réponse"}">${q.suffixe ? `<span class="suffixe">${esc(q.suffixe)}</span>` : ""}</span>
+      : `<form class="saisie" autocomplete="off"><label for="rep">${etiquette(q.prefixe)}</label><span class="champ"><input id="rep" inputmode="text" enterkeyhint="done" placeholder="${q.mode === "ensemble" ? "ex. −1 ; 3  ou  aucun" : "ta réponse"}">${q.suffixe ? `<span class="suffixe">${inline(q.suffixe)}</span>` : ""}</span>
          <div class="touches" aria-label="Symboles">${["−", ";", "/", ","].map((t) => `<button type="button" class="touche" data-t="${t}">${t}</button>`).join("")}</div>
          <button class="btn" type="submit">Vérifier</button></form>`;
   }
@@ -592,7 +606,7 @@
       p.innerHTML = `<div class="exo">
         <div class="exo-top"><button class="lien" id="quitter">← Séries</button><span class="progression">Question ${i + 1}/${ex.nb}</span><span class="pts">${score} pts</span></div>
         <div class="pastilles">${Array.from({ length: ex.nb }, (_, k) => `<span class="${k < i ? "ok" : k === i ? "cur" : ""}"></span>`).join("")}</div>
-        <h2>${esc(ex.titre)}</h2>
+        <h2>${inline(ex.titre)}</h2>
         <div class="enonce">${md(q.enonce)}</div>
         ${q.tableau ? tableau(q.tableau) : ""}
         ${q.figure ? `<figure class="fig" id="fig">${q.figure}</figure>` : ""}
@@ -682,7 +696,7 @@
       save();
       const noteCoef = coef < 1 ? `Série ${texteCoef(coef, true)}.` : "";
       const msg = st === 3 ? "Série maîtrisée. Tu peux passer à la suivante." : st === 2 ? "Très bien ! Encore un essai pour la troisième étoile ?" : st === 1 ? "C'est un bon début. Relis la fiche méthode puis recommence." : "Pas de panique : regarde la vidéo et le cours, puis réessaie.";
-      p.innerHTML = `<div class="bilan"><p class="eyebrow">Bilan · ${esc(ex.titre)}</p><p class="gros">${score}<span>/${max} pts</span></p>${etoiles(st, 3)}${record ? `<p class="record">Nouveau record !</p>` : ""}<p>${msg}</p><p class="gain-xp">+${xpSerie} XP${noteCoef ? ` · <span>${noteCoef}</span>` : ""}</p>
+      p.innerHTML = `<div class="bilan"><p class="eyebrow">Bilan · ${inline(ex.titre)}</p><p class="gros">${score}<span>/${max} pts</span></p>${etoiles(st, 3)}${record ? `<p class="record">Nouveau record !</p>` : ""}<p>${msg}</p><p class="gain-xp">+${xpSerie} XP${noteCoef ? ` · <span>${noteCoef}</span>` : ""}</p>
         <div class="exo-actions"><button class="btn" id="encore">Recommencer</button><button class="btn-sec" id="retour">Autres séries</button></div></div>`;
       p.querySelector("#encore").addEventListener("click", () => lancerSerie(p, c, id, ex));
       p.querySelector("#retour").addEventListener("click", () => vueExercices(p, c, id));
@@ -756,7 +770,7 @@
   function bonneReponse(q) {
     if (q.mode === "choix") return inline(q.choix[q.attendu]);
     const v = q.mode === "ensemble" ? (q.attendu.length ? q.attendu.map(nombreFr).join(" ; ") : "aucun") : nombreFr(q.attendu);
-    return `<strong>${v}</strong>${q.suffixe ? " " + esc(q.suffixe) : ""}`;
+    return `<strong>${v}</strong>${q.suffixe ? " " + inline(q.suffixe) : ""}`;
   }
   // Renvoie true (juste), false (faux) ou null (réponse illisible : pas de pénalité)
   function juger(q, val) {
