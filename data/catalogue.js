@@ -302,6 +302,13 @@ window.CATALOGUE = {
           titre: "Fonction exponentielle",
           statut: "disponible",
           drive: ""
+        },
+        {
+          id: "premiere-variables-aleatoires",
+          numero: 13,
+          titre: "Variables aléatoires",
+          statut: "disponible",
+          drive: ""
         }
       ]
     },

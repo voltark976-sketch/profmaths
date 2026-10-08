@@ -7341,6 +7341,174 @@
   };
 
 
+  /* ---------- Première, chapitre 13 : variables aléatoires (préfixe va-) ---------- */
+  // Arbre de n = 2 ou 3 épreuves de Bernoulli identiques : S (succès, probabilité p) et E (échec)
+  function vaArbre(n, p) {
+    const W = 320, feuilles = 2 ** n, H = Math.max(150, feuilles * 26 + 20), xs = n === 2 ? [16, 130, 250] : [12, 92, 172, 252];
+    const pT = vir(p), qT = vir(+(1 - p).toFixed(4));
+    let s = `<svg class="graph" viewBox="0 0 ${W} ${H}" role="img" aria-label="Arbre de ${n} épreuves de Bernoulli identiques et indépendantes : S succès de probabilité ${pT}, E échec de probabilité ${qT}">`;
+    const noeuds = [[{ y: H / 2, nom: "" }]];
+    for (let k = 1; k <= n; k++) {
+      const cnt = 2 ** k, pas = (H - 20) / cnt;
+      noeuds.push(Array.from({ length: cnt }, (_, i) => ({ y: 10 + pas * (i + 0.5), nom: i % 2 === 0 ? "S" : "E", parent: Math.floor(i / 2) })));
+    }
+    for (let k = 1; k <= n; k++) noeuds[k].forEach((nd, i) => {
+      const par0 = noeuds[k - 1][nd.parent], x1 = xs[k - 1] + (k === 1 ? 0 : 9), x2 = xs[k] - 8;
+      s += `<line x1="${x1}" y1="${par0.y}" x2="${x2}" y2="${nd.y}" style="stroke:var(--doux);stroke-width:1.3"/>`;
+      if (k === 1 || (n === 2 && k === 2)) s += `<text class="g-clabel" x="${(x1 + x2) / 2}" y="${(par0.y + nd.y) / 2 + (i % 2 === 0 ? -4 : 12)}" text-anchor="middle" style="font-size:11px;fill:${i % 2 === 0 ? "var(--lagon)" : "var(--faux)"}">${i % 2 === 0 ? pT : qT}</text>`;
+      s += `<text class="g-label" x="${xs[k]}" y="${nd.y + 4}" text-anchor="middle" style="fill:${nd.nom === "S" ? "var(--lagon)" : "var(--faux)"}">${nd.nom}</text>`;
+    });
+    if (n === 3) s += `<text class="g-label" x="${W - 6}" y="${H - 4}" text-anchor="end">branches : S → ${pT}, E → ${qT}</text>`;
+    return s + `</svg>`;
+  }
+  FIGURES["arbre-bernoulli"] = () => vaArbre(3, 0.25);
+  // Loi du nombre de bonnes réponses au hasard sur 3 questions (p = 0,25) et son espérance 0,75
+  FIGURES["va-batons"] = () => graph({ xmin: -0.7, xmax: 3.7, ymin: -0.04, ymax: 0.5, ystep: 0.1, yetiq: 0.1, h: 240, padL: 28, xlabel: "k", ylabel: "P(X = k)", bars: [0, 1, 2, 3].map((k) => ({ x: k, y: C(3, k) * 0.25 ** k * 0.75 ** (3 - k) })), hlines: [], marques: [{ x: 2.3, y: 0.3, texte: "E(X) = 0,75 (pointillés)" }], aria: "Diagramme en bâtons de la loi du nombre de bonnes réponses : 0,42 pour 0 et 1, 0,14 pour 2, 0,02 pour 3 ; l'espérance 0,75 est le point d'équilibre" }).replace("</svg>", (() => { const X = (x) => +(28 + (x + 0.7) * ((320 - 28 - 14) / 4.4)).toFixed(1); return `<line x1="${X(0.75)}" y1="40" x2="${X(0.75)}" y2="214" style="stroke:var(--ylang);stroke-width:1.6;stroke-dasharray:5 4"/></svg>`; })());
+
+  // Loi aléatoire à 4 valeurs, probabilités en centièmes
+  function vaLoi() {
+    const xs = shuffle([-3, -2, -1, 0, 1, 2, 3, 4, 5]).slice(0, 4).sort((a, b) => a - b);
+    let ps; do { ps = [rand(1, 5), rand(1, 5), rand(1, 4)].map((v) => v * 5); ps.push(100 - ps[0] - ps[1] - ps[2]); } while (ps[3] <= 0 || ps[3] > 60);
+    return { xs, ps: ps.map((v) => v / 100) };
+  }
+  const vaTab = (xs, ps) => ({ var: "x_i", nom: "P(X = x_i)", x: xs, y: ps.map((p) => fr(p)) });
+
+  GEN["va-notations"] = function () {
+    const { xs, ps } = vaLoi(), a = xs[pick([1, 2])];
+    const somme = (f) => +xs.reduce((s, x, i) => s + (f(x) ? ps[i] : 0), 0).toFixed(6);
+    const T = [
+      [`P(X \\leqslant ${a})`, (x) => x <= a, `on additionne les probabilités des valeurs inférieures ou égales à $${a}$`],
+      [`P(X < ${a})`, (x) => x < a, `on additionne les probabilités des valeurs strictement inférieures à $${a}$ ($${a}$ exclu)`],
+      [`P(X > ${a})`, (x) => x > a, `c'est le contraire de $\\{X \\leqslant ${a}\\}$ : $1 - P(X \\leqslant ${a})$`],
+      [`P(X \\geqslant ${a})`, (x) => x >= a, `on additionne les probabilités des valeurs supérieures ou égales à $${a}$`]
+    ];
+    const [ev, f, expl] = pick(T), v = somme(f);
+    return {
+      enonce: `Voici la loi de probabilité d'une variable aléatoire $X$. Calcule $${ev}$.`,
+      tableau: vaTab(xs, ps), mode: "nombre", prefixe: `$${ev} =$`, attendu: v, tolerance: 1e-6,
+      erreurs: [{ valeur: ps[xs.indexOf(a)], message: `Ça, c'est seulement $P(X = ${a})$.` }, { valeur: +(1 - v).toFixed(6), message: "Tu as calculé la probabilité de l'événement contraire." }].filter((e) => Math.abs(e.valeur - v) > 1e-9),
+      aides: [`Repère dans le tableau les valeurs $x_i$ qui vérifient la condition $${ev.slice(2, -1)}$.`, "Additionne leurs probabilités.", "Attention : « < » exclut la valeur, « ⩽ » l'inclut."],
+      solution: `Pour $${ev}$, ${expl}. On trouve $${fr(v)}$.`
+    };
+  };
+
+  GEN["va-variance"] = function () {
+    const xs = shuffle([-2, -1, 0, 1, 2, 3, 4]).slice(0, 3).sort((a, b) => a - b);
+    let ps; do { const a = rand(1, 6), b = rand(1, 9 - a); ps = [a / 10, b / 10, (10 - a - b) / 10]; } while (ps[2] <= 0);
+    const E = +xs.reduce((s, x, i) => s + x * ps[i], 0).toFixed(6), E2 = +xs.reduce((s, x, i) => s + x * x * ps[i], 0).toFixed(6), V = +(E2 - E * E).toFixed(6);
+    const q = pick(["V", "V", "s"]);
+    return {
+      enonce: `Voici la loi d'une variable aléatoire $X$. On a $E(X) = ${fr(E)}$. Calcule ${q === "V" ? "la variance $V(X)$" : "l'écart type $\\sigma(X)$, arrondi au centième"}.`,
+      tableau: vaTab(xs, ps), mode: "nombre", prefixe: q === "V" ? "$V(X) =$" : "$\\sigma(X) \\approx$", attendu: q === "V" ? V : +Math.sqrt(V).toFixed(2), tolerance: q === "V" ? 1e-6 : 0.006,
+      erreurs: q === "V" ? [{ valeur: E2, message: "Avec la formule de König-Huygens, il faut retirer $E(X)^2$." }, { valeur: +Math.sqrt(V).toFixed(6), message: "Ça, c'est l'écart type. La variance est son carré." }].filter((e) => Math.abs(e.valeur - V) > 1e-9) : [{ valeur: V, message: "Ça, c'est la variance. L'écart type est sa racine carrée." }].filter((e) => Math.abs(e.valeur - Math.sqrt(V)) > 0.006),
+      aides: ["Formule de König-Huygens : $V(X) = E(X^2) - E(X)^2$, avec $E(X^2) = \\sum p_i x_i^2$.", `$E(X^2) = ${xs.map((x, i) => `${fr(ps[i])} \\times ${par(x)}^2`).join(" + ")} = ${fr(E2)}$.`, q === "V" ? `$V(X) = ${fr(E2)} - ${E < 0 ? `(${fr(E)})` : fr(E)}^2$.` : `$V(X) = ${fr(V)}$, puis $\\sigma(X) = \\sqrt{V(X)}$.`],
+      solution: `$E(X^2) = ${fr(E2)}$, donc $V(X) = ${fr(E2)} - ${E < 0 ? `(${fr(E)})` : fr(E)}^2 = ${fr(V)}$${q === "s" ? ` et $\\sigma(X) = \\sqrt{${fr(V)}} \\approx ${fr(+Math.sqrt(V).toFixed(2))}$` : ""}.`
+    };
+  };
+
+  GEN["va-lineaire"] = function () {
+    const E = pick([2, 3, 1.5, -1, 4, 0.5]), V = pick([1, 2, 4, 0.5, 9]), a = pick([2, 3, -1, 10, 5]), b = pick([-3, 1, 5, -10, 2]), q = Math.random() < 0.65;
+    const ctx = pick([`$X$ est le nombre de mangues vendues par heure au marché de Mamoudzou et $Y = ${a}X ${sg(b)}$.`, `On note $X$ une variable aléatoire et $Y = ${a}X ${sg(b)}$.`]);
+    return {
+      enonce: `$E(X) = ${fr(E)}$ et $V(X) = ${fr(V)}$. ${a < 0 ? `On pose $Y = ${a === -1 ? "-" : a}X ${sg(b)}$.` : ctx} Calcule ${q ? "$E(Y)$" : "$V(Y)$"}.`,
+      mode: "nombre", prefixe: q ? "$E(Y) =$" : "$V(Y) =$", attendu: q ? +(a * E + b).toFixed(6) : +(a * a * V).toFixed(6), tolerance: 1e-6,
+      erreurs: q ? [{ valeur: +(a * E).toFixed(6), message: `N'oublie pas d'ajouter $${b}$ : $E(aX + b) = aE(X) + b$.` }] : [{ valeur: +(a * V).toFixed(6), message: "Pour la variance, le coefficient est élevé au carré : $V(aX + b) = a^2V(X)$." }, { valeur: +(a * a * V + b).toFixed(6), message: "Ajouter une constante ne change pas la dispersion : $b$ disparaît de la variance." }],
+      aides: [q ? "Linéarité de l'espérance : $E(aX + b) = aE(X) + b$." : "$V(aX + b) = a^2\\,V(X)$ : la constante $b$ décale sans disperser.", q ? `$E(Y) = ${a} \\times ${par(fr(E))} ${sg(b)}$.` : `$V(Y) = ${par(a)}^2 \\times ${fr(V)}$.`, "Calcule."],
+      solution: q ? `$E(Y) = ${a} \\times ${par(fr(E))} ${sg(b)} = ${fr(a * E + b)}$.` : `$V(Y) = ${par(a)}^2 \\times ${fr(V)} = ${fr(a * a * V)}$ (la constante $${b}$ ne change pas la variance).`
+    };
+  };
+
+  GEN["va-equitable"] = function () {
+    const N = pick([100, 200, 500]), lots = [[pick([50, 100]), 1], [pick([10, 20]), pick([2, 5])], [5, pick([10, 20])]], total = lots.reduce((s, [v, k]) => s + v * k, 0);
+    const desc = lots.map(([v, k]) => `$${k}$ lot${k > 1 ? "s" : ""} de $${v}$ €`).join(", ");
+    const intro = `La maison des lycéens organise une tombola : $${N}$ billets, et ${desc}.`;
+    if (Math.random() < 0.5) {
+      const m = +(total / N).toFixed(2);
+      return {
+        enonce: `${intro} Quel prix du billet rendrait le jeu équitable pour les joueurs (gain moyen nul) ?`,
+        mode: "nombre", prefixe: "Prix :", suffixe: "€", attendu: m, tolerance: 0.006,
+        aides: ["Gain d'un joueur : $X = \\text{lot gagné} - \\text{prix du billet}$.", `L'espérance du lot gagné est $\\dfrac{\\text{valeur totale des lots}}{${N}} = \\dfrac{${total}}{${N}}$.`, "Jeu équitable : $E(X) = 0$, donc prix $=$ espérance du lot."],
+        solution: `Valeur totale des lots : $${total}$ €. L'espérance du lot gagné est $\\dfrac{${total}}{${N}} = ${fr(m)}$ €. Le jeu est équitable si le billet coûte $${fr(m)}$ € : alors $E(X) = 0$. En pratique la maison des lycéens vend plus cher pour faire un bénéfice.`
+      };
+    }
+    const prix = pick([1, 2, 3]), E = +(total / N - prix).toFixed(4);
+    return {
+      enonce: `${intro} Le billet coûte $${prix}$ €. On note $X$ le gain algébrique d'un joueur (lot moins prix du billet). Calcule $E(X)$.`,
+      mode: "nombre", prefixe: "$E(X) =$", suffixe: "€", attendu: E, tolerance: 1e-6,
+      erreurs: [{ valeur: +(total / N).toFixed(4), message: "Ça, c'est l'espérance du lot. Il faut retirer le prix du billet." }],
+      aides: [`Les gains possibles sont ${lots.map(([v]) => `$${v - prix}$`).join(", ")} et $${-prix}$ (billet perdant).`, `$E(X) = E(\\text{lot}) - ${prix}$, avec $E(\\text{lot}) = \\dfrac{${total}}{${N}}$.`, "Un gain négatif signifie qu'on perd en moyenne."],
+      solution: `$E(\\text{lot}) = \\dfrac{${total}}{${N}} = ${fr(total / N)}$ €, donc $E(X) = ${fr(total / N)} - ${prix} = ${fr(E)}$ €. ${E < 0 ? `Sur un grand nombre de billets, un joueur perd en moyenne $${fr(-E)}$ € par billet : c'est le bénéfice moyen de la maison des lycéens.` : "Le jeu est favorable au joueur."}`
+    };
+  };
+
+  GEN["va-bernoulli"] = function () {
+    const n = pick([2, 3, 3, 4]), p = pick([0.1, 0.2, 0.25, 0.3, 0.4, 0.5]), q = +(1 - p).toFixed(2), t = rand(0, 2);
+    const ctx = pick([`Un élève répond au hasard à $${n}$ questions indépendantes ; chaque réponse est juste avec la probabilité $${fr(p)}$.`, `Au stade de Cavani, un joueur tire $${n}$ penalties ; chaque tir est réussi avec la probabilité $${fr(p)}$, indépendamment des autres.`]);
+    const X = "On note $X$ le nombre de succès.";
+    if (t === 2) {
+      const v = +(1 - q ** n).toFixed(4);
+      return {
+        enonce: `${ctx} ${X} Calcule $P(X \\geqslant 1)$, arrondi au dix-millième.`,
+        mode: "nombre", prefixe: "$P(X \\geqslant 1) \\approx$", attendu: v, tolerance: 0.00006,
+        erreurs: [{ valeur: +(q ** n).toFixed(4), message: "Ça, c'est $P(X = 0)$, l'événement contraire." }, { valeur: +(n * p).toFixed(4), message: "On ne peut pas additionner les probabilités de succès : passe par l'événement contraire." }].filter((e) => Math.abs(e.valeur - v) > 0.00006),
+        aides: ["Le contraire de « au moins un succès » est « aucun succès ».", `$P(X = 0) = ${fr(q)}^{${n}}$ : un seul chemin, que des échecs.`, `$P(X \\geqslant 1) = 1 - ${fr(q)}^{${n}}$.`],
+        solution: `$P(X \\geqslant 1) = 1 - P(X = 0) = 1 - ${fr(q)}^{${n}} \\approx ${fr(v)}$.`,
+        ...(n <= 3 ? { figure: vaArbre(n, p) } : {})
+      };
+    }
+    const k = t === 0 ? rand(1, n - 1) : n, nbC = C(n, k), v = +(nbC * p ** k * q ** (n - k)).toFixed(4);
+    return {
+      enonce: `${ctx} ${X} Calcule $P(X = ${k})$, arrondi au dix-millième.`,
+      mode: "nombre", prefixe: `$P(X = ${k}) \\approx$`, attendu: v, tolerance: 0.00006,
+      erreurs: [{ valeur: +(p ** k * q ** (n - k)).toFixed(4), message: `Ça, c'est la probabilité d'**un** chemin. Il y a $${nbC}$ chemins avec $${k}$ succès.` }].filter((e) => Math.abs(e.valeur - v) > 0.00006),
+      aides: ["Les épreuves sont indépendantes : la probabilité d'un chemin est le produit des probabilités de ses branches.", `Un chemin avec $${k}$ succès et $${n - k}$ échec${n - k > 1 ? "s" : ""} a pour probabilité $${fr(p)}^{${k}} \\times ${fr(q)}^{${n - k}}$.`, `Compte les chemins de l'arbre qui ont exactement $${k}$ succès : il y en a $${nbC}$.`],
+      solution: `$P(X = ${k}) = ${nbC} \\times ${fr(p)}^{${k}} \\times ${fr(q)}^{${n - k}} \\approx ${fr(v)}$.`,
+      ...(n <= 3 ? { figure: vaArbre(n, p) } : {})
+    };
+  };
+
+  GEN["va-python"] = function () {
+    if (Math.random() < 0.6) {
+      const { xs, ps } = vaLoi(), E = +xs.reduce((s, x, i) => s + x * ps[i], 0).toFixed(6);
+      const pyp = ps.map((p) => String(p)).join(", ");
+      return {
+        enonce: "```python\ndef esperance(x, p):\n    return sum(x[i] * p[i] for i in range(len(x)))\n```\n\n" + `Que renvoie esperance([${xs.join(", ")}], [${pyp}]) ? (Au besoin, arrondis au centième.)`,
+        mode: "nombre", prefixe: "Résultat :", attendu: E, tolerance: 0.006,
+        aides: ["La fonction calcule $\\sum x_i p_i$, c'est-à-dire l'espérance.", `$${xs.map((x, i) => `${par(x)} \\times ${fr(ps[i])}`).join(" + ")}$.`, "Python peut afficher de petites erreurs d'arrondi dans les derniers chiffres."],
+        solution: `$${xs.map((x, i) => `${par(x)} \\times ${fr(ps[i])}`).join(" + ")} = ${fr(E)}$.`
+      };
+    }
+    const mots = pick([["a", "mamoudzou", 1, 9], ["o", "mamoudzou", 2, 9], ["a", "bandraboua", 3, 10], ["n", "bandrabouan", 2, 11], ["e", "chirongui", 0, 9], ["i", "chirongui", 2, 9]]);
+    const [l, mot, c, n] = mots, v = +(c / n).toFixed(4);
+    return {
+      enonce: "```python\ndef frequence(lettre, texte):\n    return texte.count(lettre) / len(texte)\n```\n\n" + `Que renvoie frequence("${l}", "${mot}") ? (Fraction ou décimal arrondi au millième.)`,
+      mode: "nombre", prefixe: "Résultat :", attendu: c / n, tolerance: 0.0006,
+      aides: ["texte.count(lettre) compte les apparitions de la lettre ; len(texte) compte toutes les lettres.", `« ${mot} » contient $${n}$ lettres.`, `La lettre « ${l} » y apparaît $${c}$ fois.`],
+      solution: `$\\dfrac{${c}}{${n}}${c ? ` \\approx ${fr(v)}` : " = 0"}$. Sur un long texte, ces fréquences donnent une loi de probabilité empirique de la lettre tirée au hasard.`
+    };
+  };
+
+  // Logique : ensembles {X = a}, intersections, négations
+  GEN["va-logique"] = function () {
+    const a = rand(1, 4);
+    const T = [
+      [`Le contraire de l'événement $\\{X \\leqslant ${a}\\}$ est :`, `$\\{X > ${a}\\}$`, [`$\\{X \\geqslant ${a}\\}$`, `$\\{X < ${a}\\}$`, `$\\{X = ${a}\\}$`], `La négation de « $X \\leqslant ${a}$ » est « $X > ${a}$ » : la valeur $${a}$ appartient à $\\{X \\leqslant ${a}\\}$, donc pas à son contraire.`],
+      [`$\\{X \\leqslant ${a}\\} \\cap \\{X \\geqslant ${a}\\}$ est l'événement :`, `$\\{X = ${a}\\}$`, ["$\\varnothing$", `$\\{X \\neq ${a}\\}$`, "l'univers tout entier"], `Les deux conditions à la fois : $X \\leqslant ${a}$ et $X \\geqslant ${a}$, donc $X = ${a}$.`],
+      [`$\\{X < ${a}\\} \\cup \\{X = ${a}\\}$ est l'événement :`, `$\\{X \\leqslant ${a}\\}$`, [`$\\{X < ${a}\\}$`, `$\\{X \\geqslant ${a}\\}$`, "$\\varnothing$"], `L'une ou l'autre des conditions : $X$ est strictement inférieur ou égal à $${a}$.`],
+      ["Vrai ou faux : « l'espérance $E(X)$ est toujours une valeur prise par $X$ ».", "Faux", ["Vrai"], "Faux. Contre-exemple : pour un dé équilibré, $E(X) = 3{,}5$, qui n'est pas un résultat possible. L'espérance est une **moyenne** théorique."],
+      ["Vrai ou faux : « $V(2X) = 2V(X)$ ».", "Faux", ["Vrai"], "Faux : $V(aX) = a^2V(X)$, donc $V(2X) = 4V(X)$. La variance est la moyenne des **carrés** des écarts."],
+      ["Vrai ou faux : « une variance est toujours positive ou nulle ».", "Vrai", ["Faux"], "Vrai : c'est une moyenne pondérée de carrés $(x_i - E(X))^2$, tous positifs ou nuls."],
+      ["Un jeu est équitable lorsque :", "l'espérance du gain est nulle", ["le gain maximal est égal à la mise", "on gagne une fois sur deux", "la variance du gain est nulle"], "En moyenne, sur un grand nombre de parties, on ne gagne ni ne perd : $E(X) = 0$."]
+    ];
+    const [q, b, f, s] = pick(T), c = melangeChoix(b, f);
+    return {
+      enonce: q, mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: ["$\\{X \\leqslant a\\}$ est l'ensemble des issues pour lesquelles $X$ prend une valeur inférieure ou égale à $a$.", "« Et » correspond à l'intersection $\\cap$, « ou » à la réunion $\\cup$.", "Pour nier « $\\leqslant$ », on écrit « $>$ »."],
+      solution: s
+    };
+  };
+
+
   /* Séries « flash » d'un thème : mélange de ses générateurs */
   const THEMES = {
     "am-flash-cn": ["am-comparer", "am-fractions", "am-puissances", "am-ecritures", "am-ordre-grandeur", "am-coherence", "auto-conversions"],
@@ -7357,7 +7525,7 @@
 
 
   /* Une « erreur connue » ne doit jamais coïncider avec la bonne réponse (à la tolérance près) */
-  Object.keys(GEN).filter((k) => /^(ld|am|cd|ar|cl|fa|ve|st|vx|tc|co|dr|fr|sg|pc|ec|sy|su|s2|pi|s5|d1|tr|d2|vr|ps|ex)-/.test(k)).forEach((k) => {
+  Object.keys(GEN).filter((k) => /^(ld|am|cd|ar|cl|fa|ve|st|vx|tc|co|dr|fr|sg|pc|ec|sy|su|s2|pi|s5|d1|tr|d2|vr|ps|ex|va)-/.test(k)).forEach((k) => {
     const g = GEN[k];
     GEN[k] = (i) => { const q = g(i); if (q.erreurs) q.erreurs = q.erreurs.filter((e) => Math.abs(e.valeur - q.attendu) >= (q.tolerance || 1e-9)); return q; };
   });
