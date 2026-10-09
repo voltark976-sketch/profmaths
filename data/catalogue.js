@@ -370,7 +370,7 @@ window.CATALOGUE = {
           id: "terminale-spe-limites-suites",
           numero: 4,
           titre: "Limites de suites",
-          statut: "bientot",
+          statut: "disponible",
           drive: ""
         },
         {

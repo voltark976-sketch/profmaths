@@ -14055,6 +14055,282 @@
     };
   };
 
+  /* ---------- Terminale spécialité, chapitre 4 : limites de suites (préfixe lsu-) ---------- */
+  const LSU_INF = "+\\infty", LSU_MINF = "-\\infty";
+  // Limite affichée : nombre (fraction exacte), ±∞ ou « pas de limite »
+  const lsuL = (v) => (v === Infinity ? `$${LSU_INF}$` : v === -Infinity ? `$${LSU_MINF}$` : v === null ? "Pas de limite" : `$${typeof v === "string" ? v : nb(v)}$`);
+  // Choix de limites : la bonne, puis des pièges, sans doublon, au moins 4 si possible
+  const lsuChoix = (bonne, pieges) => melangeChoix(lsuL(bonne), [...new Set(pieges.map(lsuL))].filter((x) => x !== lsuL(bonne)).concat([`$${LSU_INF}$`, "$0$", `$${LSU_MINF}$`, "$1$"].filter((x) => x !== lsuL(bonne))));
+  // a n^p (+ c) écrit proprement
+  const lsuMono = (a, p) => `${a === 1 ? "" : a === -1 ? "-" : a}n${p === 1 ? "" : `^{${p}}`}`;
+
+  FIGURES["lsu-limite"] = () => {
+    const pts = Array.from({ length: 18 }, (_, n) => ({ x: n + 1, y: 2 + (n % 2 ? -1 : 1) * 2.4 / (n + 1) }));
+    return graph({ xmin: -0.8, xmax: 19.5, ymin: -0.6, ymax: 4.9, h: 250, xetiq: 5, xlabel: "n", ylabel: "uₙ", hlines: [{ y: 2.5, label: "ℓ + ε" }, { y: 2, label: "ℓ" }, { y: 1.5, label: "ℓ − ε" }], points: pts, aria: "Les termes u(n) oscillent autour de ℓ = 2 en se rapprochant : à partir du rang 5, ils restent tous dans la bande entre ℓ − ε et ℓ + ε" });
+  };
+
+  GEN["lsu-reference"] = function () {
+    const t = pick(["simple", "simple", "somme", "produit"]);
+    const R = [["n", Infinity], ["n^2", Infinity], ["n^3", Infinity], ["\\sqrt{n}", Infinity], ["\\dfrac{1}{n}", 0], ["\\dfrac{1}{n^2}", 0], ["\\dfrac{1}{\\sqrt{n}}", 0], ["\\dfrac{1}{n^3}", 0]];
+    if (t === "simple") {
+      const [e, l] = pick(R), k = pick([1, 2, 3, -1, -2, 5, -4]), c = rand(-6, 6);
+      const ex = (e.startsWith("\\dfrac{1}") ? `${k < 0 ? "-" : ""}${e.replace("\\dfrac{1}", `\\dfrac{${Math.abs(k)}}`)}` : `${k === 1 ? "" : k === -1 ? "-" : k}${e}`) + (c === 0 ? "" : " " + sg(c));
+      const L = l === 0 ? c : k > 0 ? Infinity : -Infinity;
+      const ms = lsuChoix(L, [l === 0 ? k : c, -L, l === 0 ? Infinity : 0]);
+      return {
+        enonce: `Quelle est la limite de la suite définie pour $n \\geqslant 1$ par $u_n = ${ex}$ ?`,
+        mode: "choix", choix: ms.choix, attendu: ms.attendu,
+        aides: [`Limite de référence : $${e}$ tend vers $${l === 0 ? "0" : LSU_INF}$.`, k < 0 && l !== 0 ? "Multiplier par un nombre négatif change $+\\infty$ en $-\\infty$." : "Un nombre fixe multiplié par une quantité qui tend vers $0$ tend vers $0$.", c !== 0 ? `Ajouter $${c}$ ne change pas une limite infinie, et décale une limite finie de $${c}$.` : "Il n'y a rien à ajouter."],
+        solution: `$${e} \\to ${l === 0 ? "0" : LSU_INF}$, donc $u_n \\to ${L === Infinity ? LSU_INF : L === -Infinity ? LSU_MINF : nb(L)}$.`
+      };
+    }
+    const [e1, l1] = pick(R), [e2, l2] = pick(R.filter(([e]) => e !== e1));
+    if (t === "somme") {
+      const s = pick([1, -1]);
+      if (s < 0 && l1 === Infinity && l2 === Infinity) return GEN["lsu-reference"]();
+      const L = l1 === Infinity ? (s > 0 || l2 === 0 ? Infinity : null) : l2 === Infinity ? s * Infinity : 0;
+      const ex = `${e1} ${s > 0 ? "+" : "-"} ${e2}`;
+      const ms = lsuChoix(L, [-L, 0, Infinity]);
+      return {
+        enonce: `Quelle est la limite de la suite $u_n = ${ex}$ ($n \\geqslant 1$) ?`,
+        mode: "choix", choix: ms.choix, attendu: ms.attendu,
+        aides: [`$${e1} \\to ${l1 === 0 ? "0" : LSU_INF}$ et $${e2} \\to ${l2 === 0 ? "0" : LSU_INF}$.`, "Limite d'une somme : $\\ell + \\ell'$ ; $+\\infty + \\ell = +\\infty$ ; $+\\infty + \\infty = +\\infty$.", s < 0 ? "Soustraire une quantité qui tend vers $+\\infty$, c'est ajouter une quantité qui tend vers $-\\infty$." : "Pas de forme indéterminée ici."],
+        solution: `$${e1} \\to ${l1 === 0 ? "0" : LSU_INF}$ et $${s < 0 ? "-" : ""}${e2} \\to ${l2 === 0 ? "0" : s > 0 ? LSU_INF : LSU_MINF}$ : par somme, $u_n \\to ${L === Infinity ? LSU_INF : L === -Infinity ? LSU_MINF : "0"}$.`
+      };
+    }
+    if ((l1 === 0) !== (l2 === 0)) return GEN["lsu-reference"]();
+    const L = l1 === 0 ? 0 : Infinity;
+    const ms = lsuChoix(L, [0, Infinity, 1]);
+    return {
+      enonce: `Quelle est la limite de la suite $u_n = ${e1} \\times ${e2}$ ($n \\geqslant 1$) ?`,
+      mode: "choix", choix: ms.choix, attendu: ms.attendu,
+      aides: [`$${e1} \\to ${l1 === 0 ? "0" : LSU_INF}$ et $${e2} \\to ${l2 === 0 ? "0" : LSU_INF}$.`, "Limite d'un produit : $0 \\times 0 = 0$ et $+\\infty \\times (+\\infty) = +\\infty$.", "Ici, pas de forme « $0 \\times \\infty$ »."],
+      solution: `Par produit, $u_n \\to ${L === 0 ? "0" : LSU_INF}$.`
+    };
+  };
+
+  GEN["lsu-formes"] = function () {
+    const lims = [["+\\infty", Infinity], ["-\\infty", -Infinity], ["0", 0], ["3", 3], ["-2", -2], ["0{,}5", 0.5]];
+    const op = pick(["+", "+", "×", "÷"]);
+    const [lu, u] = pick(lims), [lv, v] = pick(lims);
+    let r;
+    if (op === "+") r = (u === Infinity && v === -Infinity) || (u === -Infinity && v === Infinity) ? "FI" : u + v;
+    else if (op === "×") r = ((u === 0 && Math.abs(v) === Infinity) || (v === 0 && Math.abs(u) === Infinity)) ? "FI" : u * v;
+    else r = (Math.abs(u) === Infinity && Math.abs(v) === Infinity) || (u === 0 && v === 0) ? "FI" : v === 0 ? "SIGNE" : u / v;
+    if (r === "SIGNE" || (op === "÷" && Math.abs(u) === Infinity && v === 0)) return GEN["lsu-formes"]();
+    const expr = op === "+" ? "u_n + v_n" : op === "×" ? "u_n \\times v_n" : "\\dfrac{u_n}{v_n}";
+    const bonne = r === "FI" ? "On ne peut pas conclure : forme indéterminée" : lsuL(r === 0 ? 0 : r);
+    const pieges = ["On ne peut pas conclure : forme indéterminée", `$${LSU_INF}$`, `$${LSU_MINF}$`, "$0$", "$1$", lsuL(typeof r === "number" && isFinite(r) ? r + 1 : 3)];
+    const ms = melangeChoix(bonne, shuffle(pieges.filter((p) => p !== bonne)));
+    return {
+      enonce: `On sait que $\\lim u_n = ${lu}$ et $\\lim v_n = ${lv}$. Quelle est la limite de $${expr}$ ?`,
+      mode: "choix", choix: ms.choix, attendu: ms.attendu,
+      aides: ["Les quatre formes indéterminées : « $+\\infty - \\infty$ », « $0 \\times \\infty$ », « $\\dfrac{\\infty}{\\infty}$ » et « $\\dfrac{0}{0}$ ».", "Hors de ces cas, on calcule comme avec des nombres, avec la règle des signes pour les infinis.", "Un nombre (non nul) divisé par une quantité qui tend vers $\\pm\\infty$ tend vers $0$."],
+      solution: r === "FI" ? `C'est une forme indéterminée : on ne peut pas conclure directement, il faut transformer l'écriture (factoriser, simplifier…).` : `Par ${op === "+" ? "somme" : op === "×" ? "produit" : "quotient"}, $${expr} \\to ${r === Infinity ? LSU_INF : r === -Infinity ? LSU_MINF : nb(r)}$.`
+    };
+  };
+
+  GEN["lsu-operations"] = function () {
+    const t = pick(["frac", "frac", "frac", "poly", "racine"]);
+    if (t === "frac") {
+      const p = rand(1, 3), q = rand(1, 3), a = randNZ(-5, 6), b = randNZ(-4, 5), c = rand(-7, 7), d = rand(1, 9);
+      const num = `${lsuMono(a, p)}${c === 0 ? "" : " " + sg(c)}`, den = `${lsuMono(b, q)} + ${d}`;
+      const L = p === q ? frac(a, b) : p < q ? 0 : a / b > 0 ? Infinity : -Infinity;
+      const ms = lsuChoix(L, [p === q ? (a > 0 ? Infinity : -Infinity) : frac(a, b), p === q ? 1 : 0, c === 0 ? 1 : frac(c, d), typeof L === "number" ? (L === 0 ? 1 : -L) : frac(-a, b)]);
+      return {
+        enonce: `Quelle est la limite de la suite $u_n = \\dfrac{${num}}{${den}}$ ?`,
+        mode: "choix", choix: ms.choix, attendu: ms.attendu,
+        aides: ["Le numérateur et le dénominateur tendent vers l'infini : c'est une forme indéterminée « $\\dfrac{\\infty}{\\infty}$ ».", `Factorise le numérateur par $n^{${p}}$ et le dénominateur par $n^{${q}}$ (les termes dominants).`, `Il reste $\\dfrac{${lsuMono(a, p)}}{${lsuMono(b, q)}}$ multiplié par une quantité qui tend vers $1$.`],
+        solution: `On factorise le numérateur et le dénominateur par leurs termes dominants : $u_n = \\dfrac{${lsuMono(a, p)}}{${lsuMono(b, q)}} \\times \\dfrac{1 + \\dots}{1 + \\dots}$, où les « $\\dots$ » tendent vers $0$ : la seconde fraction tend vers $1$. ` +(p === q ? `Les puissances se simplifient : $u_n \\to ${frac(a, b)}$.` : p < q ? `$\\dfrac{${lsuMono(a, p)}}{${lsuMono(b, q)}} = \\dfrac{${a}}{${b === 1 ? "" : b}n${q - p === 1 ? "" : `^{${q - p}}`}} \\to 0$, donc $u_n \\to 0$.` : `$\\dfrac{${lsuMono(a, p)}}{${lsuMono(b, q)}} = ${frac(a, b) === "1" ? "" : frac(a, b) === "-1" ? "-" : frac(a, b)}n${p - q === 1 ? "" : `^{${p - q}}`}$, donc $u_n \\to ${L > 0 ? LSU_INF : LSU_MINF}$.`)
+      };
+    }
+    if (t === "poly") {
+      const a = randNZ(-4, 4), b = randNZ(-9, 9), c = rand(-9, 9), p = rand(2, 3), q = p - 1;
+      const ex = `${lsuMono(a, p)} ${b < 0 ? "-" : "+"} ${lsuMono(Math.abs(b), q)}${c === 0 ? "" : " " + sg(c)}`;
+      const L = a > 0 ? Infinity : -Infinity, fi = (a > 0) !== (b > 0);
+      const ms = lsuChoix(L, [-L, 0, "\\text{forme indéterminée}"]);
+      return {
+        enonce: `Quelle est la limite de la suite $u_n = ${ex}$ ?`,
+        mode: "choix", choix: ms.choix.map((x) => x.replace("$\\text{forme indéterminée}$", "On ne peut pas conclure")), attendu: ms.attendu,
+        aides: [fi ? "Les deux premiers termes tendent vers des infinis de signes contraires : forme indéterminée « $+\\infty - \\infty$ »." : "Les deux premiers termes tendent vers le même infini : pas de forme indéterminée.", `Factorise par le terme de plus haut degré, $n^{${p}}$.`, `La parenthèse tend vers $${a}$.`],
+        solution: `$u_n = n^{${p}}\\left(${a} ${b < 0 ? "-" : "+"} \\dfrac{${Math.abs(b)}}{n}${c === 0 ? "" : ` ${c < 0 ? "-" : "+"} \\dfrac{${Math.abs(c)}}{n^{${p}}}`}\\right)$. La parenthèse tend vers $${a}$ et $n^{${p}} \\to +\\infty$ : par produit, $u_n \\to ${L > 0 ? LSU_INF : LSU_MINF}$. Une suite polynôme a la limite de son terme de plus haut degré.`
+      };
+    }
+    const k = rand(1, 9), T = pick([
+      [`\\sqrt{n + ${k}} - \\sqrt{n}`, 0, `Multiplie et divise par la quantité conjuguée : $u_n = \\dfrac{${k}}{\\sqrt{n + ${k}} + \\sqrt{n}}$.`],
+      [`n - \\sqrt{n}`, Infinity, "Factorise par $n$ : $u_n = n\\left(1 - \\dfrac{1}{\\sqrt{n}}\\right)$."],
+      [`\\sqrt{n} - ${k + 1}n`, -Infinity, `Factorise par $n$ : $u_n = n\\left(\\dfrac{1}{\\sqrt{n}} - ${k + 1}\\right)$.`],
+      [`\\dfrac{${k}\\sqrt{n} + 1}{\\sqrt{n} + ${k + 1}}`, k, "Divise le numérateur et le dénominateur par $\\sqrt{n}$."]
+    ]);
+    const ms = lsuChoix(T[1], [0, Infinity, -T[1] === 0 ? 1 : -T[1]]);
+    return {
+      enonce: `Quelle est la limite de la suite $u_n = ${T[0]}$ ?`,
+      mode: "choix", choix: ms.choix, attendu: ms.attendu,
+      aides: ["Commence par repérer s'il y a une forme indéterminée.", T[2], "Conclus avec les règles d'opérations sur les limites."],
+      solution: `${T[2]} On en déduit que $u_n \\to ${T[1] === Infinity ? LSU_INF : T[1] === -Infinity ? LSU_MINF : nb(T[1])}$.`
+    };
+  };
+
+  GEN["lsu-geometrique"] = function () {
+    const t = pick(["qn", "qn", "affine", "somme"]);
+    if (t === "qn") {
+      const [q, qt] = pick([[2, "2"], [1.05, "1{,}05"], [0.5, "0{,}5"], [0.99, "0{,}99"], [-0.8, "(-0{,}8)"], [-3, "(-3)"], [1, "1"], [3, "3"], [0.2, "0{,}2"], [-0.5, "(-0{,}5)"], [1.5, "1{,}5"], [-1, "(-1)"]]);
+      const L = q > 1 ? Infinity : q === 1 ? 1 : Math.abs(q) < 1 ? 0 : null;
+      const ms = lsuChoix(L, [null, 0, Infinity, 1]);
+      return {
+        enonce: `Quelle est la limite de la suite $u_n = ${qt}^n$ ?`,
+        mode: "choix", choix: ms.choix, attendu: ms.attendu,
+        aides: ["Si $q > 1$, $q^n \\to +\\infty$ ; si $-1 < q < 1$, $q^n \\to 0$ ; si $q = 1$, $q^n = 1$.", "Si $q \\leqslant -1$, les termes changent de signe sans se rapprocher d'un nombre : pas de limite.", `Ici $q = ${qt.replace(/[()]/g, "")}$.`],
+        solution: q > 1 ? `$q = ${qt} > 1$, donc $q^n \\to +\\infty$ (même si $q$ est proche de $1$).` : q === 1 ? "$1^n = 1$ pour tout $n$ : la suite est constante, de limite $1$." : Math.abs(q) < 1 ? `$-1 < ${qt.replace(/[()]/g, "")} < 1$, donc $q^n \\to 0$${q < 0 ? " (en alternant de signe)" : ""}.` : `$q = ${qt.replace(/[()]/g, "")} \\leqslant -1$ : les termes alternent de signe ${q === -1 ? "entre $1$ et $-1$" : "et grandissent en valeur absolue"}, la suite n'a pas de limite.`
+      };
+    }
+    if (t === "affine") {
+      const a = pick([2, 3, -1, -4, 5, 10, -2]), b = rand(-5, 8), [q, qt] = pick([[0.5, "0{,}5"], [0.9, "0{,}9"], [1.2, "1{,}2"], [2, "2"], [0.25, "0{,}25"], [3, "3"]]);
+      const L = q < 1 ? b : a > 0 ? Infinity : -Infinity;
+      const ms = lsuChoix(L, [a, -L === 0 ? 1 : -L, q < 1 ? Infinity : b]);
+      return {
+        enonce: `Quelle est la limite de la suite $u_n = ${a === 1 ? "" : a === -1 ? "-" : a + " \\times "}${qt}^n${b === 0 ? "" : " " + sg(b)}$ ?`,
+        mode: "choix", choix: ms.choix, attendu: ms.attendu,
+        aides: [`Commence par la limite de $${qt}^n$.`, q < 1 ? "Si $0 < q < 1$, $q^n \\to 0$." : "Si $q > 1$, $q^n \\to +\\infty$.", "Multiplie par le coefficient (attention à son signe), puis ajoute la constante."],
+        solution: q < 1 ? `$${qt}^n \\to 0$, donc $${a} \\times ${qt}^n \\to 0$ et $u_n \\to ${b}$.` : `$${qt}^n \\to +\\infty$ et $${a} ${a > 0 ? "> 0" : "< 0"}$, donc $u_n \\to ${a > 0 ? LSU_INF : LSU_MINF}$.`
+      };
+    }
+    const [q, qt, qn, qd] = pick([[0.5, "0{,}5", 1, 2], [1 / 3, "\\dfrac{1}{3}", 1, 3], [0.25, "0{,}25", 1, 4], [0.2, "0{,}2", 1, 5], [0.8, "0{,}8", 4, 5], [0.9, "0{,}9", 9, 10], [2 / 3, "\\dfrac{2}{3}", 2, 3], [0.75, "0{,}75", 3, 4]]);
+    const a = pick([1, 2, 3, 5, 10, 6]), L = (a * qd) / (qd - qn);
+    return {
+      enonce: `On pose $S_n = ${a} + ${a === 1 ? "" : a + " \\times "}${qt} + ${a === 1 ? "" : a + " \\times "}${qt.includes("dfrac") ? `\\left(${qt}\\right)` : qt}^2 + \\dots + ${a === 1 ? "" : a + " \\times "}${qt.includes("dfrac") ? `\\left(${qt}\\right)` : qt}^n$. Quelle est la limite de $S_n$ ? (valeur exacte, sous forme de fraction si besoin)`,
+      mode: "nombre", prefixe: "$\\lim S_n =$", attendu: L,
+      erreurs: [{ valeur: a / (1 + q), message: "Le dénominateur est $1 - q$, pas $1 + q$." }, ...tsApprox(L)],
+      aides: ["$1 + q + \\dots + q^n = \\dfrac{1 - q^{n+1}}{1 - q}$.", "Comme $0 < q < 1$, $q^{n+1} \\to 0$.", `La limite est $${a} \\times \\dfrac{1}{1 - q}$.`],
+      solution: `$S_n = ${a} \\times \\dfrac{1 - q^{n+1}}{1 - q}$ avec $q = ${qt}$. Comme $q^{n+1} \\to 0$, $S_n \\to \\dfrac{${a}}{1 - ${qt}} = ${frac(a * qd, qd - qn)}$.`
+    };
+  };
+
+  GEN["lsu-comparaison"] = function () {
+    const k = rand(1, 6), c = rand(-4, 5);
+    const T = pick([
+      [`${c === 0 ? "" : c + " + "}\\dfrac{(-1)^n}{n}`, c, `$-\\dfrac{1}{n} \\leqslant \\dfrac{(-1)^n}{n} \\leqslant \\dfrac{1}{n}$, et les deux bornes tendent vers $0$ : par le théorème des gendarmes, $u_n \\to ${c}$.`, "gendarmes"],
+      [`\\dfrac{\\cos(n)}{n${k === 1 ? "" : "^" + k}}`, 0, `$-1 \\leqslant \\cos(n) \\leqslant 1$, donc $-\\dfrac{1}{n${k === 1 ? "" : "^" + k}} \\leqslant u_n \\leqslant \\dfrac{1}{n${k === 1 ? "" : "^" + k}}$ : les deux bornes tendent vers $0$, donc $u_n \\to 0$ (gendarmes).`, "gendarmes"],
+      [`\\dfrac{${k + 2} + \\sin(n)}{n}`, 0, `$${k + 1} \\leqslant ${k + 2} + \\sin(n) \\leqslant ${k + 3}$, donc $\\dfrac{${k + 1}}{n} \\leqslant u_n \\leqslant \\dfrac{${k + 3}}{n}$ : gendarmes, $u_n \\to 0$.`, "gendarmes"],
+      [`n^2 + ${k}\\sin(n)`, Infinity, `$\\sin(n) \\geqslant -1$, donc $u_n \\geqslant n^2 - ${k}$, qui tend vers $+\\infty$ : par comparaison, $u_n \\to +\\infty$.`, "comparaison"],
+      [`-${k === 1 ? "" : k}n + \\cos(n)`, -Infinity, `$\\cos(n) \\leqslant 1$, donc $u_n \\leqslant -${k === 1 ? "" : k}n + 1$, qui tend vers $-\\infty$ : par comparaison, $u_n \\to -\\infty$.`, "comparaison"],
+      [`n + (-1)^n${c === 0 ? "" : " " + sg(c)}`, Infinity, `$(-1)^n \\geqslant -1$, donc $u_n \\geqslant n ${sg(c - 1)}$, qui tend vers $+\\infty$ : par comparaison, $u_n \\to +\\infty$.`, "comparaison"],
+      [`${k}(-1)^n`, null, `$u_n$ vaut alternativement $${k}$ et $-${k}$ : la suite n'a pas de limite (elle est pourtant bornée).`, "aucun"],
+      [`\\dfrac{n + \\sin(n)}{n}`, 1, `$u_n = 1 + \\dfrac{\\sin(n)}{n}$ et $-\\dfrac{1}{n} \\leqslant \\dfrac{\\sin(n)}{n} \\leqslant \\dfrac{1}{n}$ : gendarmes, $u_n \\to 1$.`, "gendarmes"],
+      [`(-1)^n n`, null, "Les termes pairs valent $n$ et tendent vers $+\\infty$, les termes impairs valent $-n$ et tendent vers $-\\infty$ : pas de limite.", "aucun"]
+    ]);
+    const ms = lsuChoix(T[1], [null, 0, Infinity, -Infinity, 1]);
+    return {
+      enonce: `Quelle est la limite de la suite définie pour $n \\geqslant 1$ par $u_n = ${T[0]}$ ?`,
+      mode: "choix", choix: ms.choix, attendu: ms.attendu,
+      aides: ["Les termes $(-1)^n$, $\\cos(n)$ et $\\sin(n)$ n'ont pas de limite, mais ils sont **bornés** entre $-1$ et $1$.", "Encadre $u_n$ entre deux suites simples (gendarmes), ou minore-la par une suite qui tend vers $+\\infty$ (comparaison).", "Théorème des gendarmes : si $v_n \\leqslant u_n \\leqslant w_n$ et $v_n$, $w_n$ tendent vers $\\ell$, alors $u_n \\to \\ell$."],
+      solution: T[2]
+    };
+  };
+
+  GEN["lsu-monotone"] = function () {
+    const M = rand(2, 20), m = M - rand(1, 6), t = pick(["cm", "cm", "dm", "cnm", "maj", "dec"]);
+    const S = {
+      cm: [`$(u_n)$ est croissante et, pour tout $n$, $u_n \\leqslant ${M}$.`, `Elle converge vers une limite $\\ell \\leqslant ${M}$`, [`Elle converge vers $${M}$`, "Elle tend vers $+\\infty$", "On ne peut pas savoir si elle converge"], `Croissante et majorée : d'après le théorème de convergence monotone, elle converge. Par passage à la limite dans $u_n \\leqslant ${M}$, sa limite vérifie $\\ell \\leqslant ${M}$. Rien ne dit que $\\ell = ${M}$ : un majorant n'est pas forcément la limite.`],
+      dm: [`$(u_n)$ est décroissante et, pour tout $n$, $u_n \\geqslant ${m}$.`, `Elle converge vers une limite $\\ell \\geqslant ${m}$`, [`Elle converge vers $${m}$`, "Elle tend vers $-\\infty$", "On ne peut pas savoir si elle converge"], `Décroissante et minorée : elle converge (théorème de convergence monotone), vers une limite $\\ell \\geqslant ${m}$.`],
+      cnm: [`$(u_n)$ est croissante et n'est pas majorée.`, "Elle tend vers $+\\infty$", ["Elle converge", "Elle tend vers $-\\infty$", "On ne peut rien dire"], "Une suite croissante non majorée tend vers $+\\infty$ (démonstration au programme) : elle finit par dépasser tout réel $A$, et reste au-dessus car elle croît."],
+      maj: [`Pour tout $n$, $${m} \\leqslant u_n \\leqslant ${M}$.`, "On ne peut pas savoir si elle converge", [`Elle converge vers un réel de $[${m}\\,;${M}]$`, `Elle converge vers $${M}$`, "Elle tend vers $+\\infty$"], `Être bornée ne suffit pas : $(-1)^n$ est bornée et n'a pas de limite. Il faut aussi la monotonie pour appliquer le théorème.`],
+      dec: [`$(u_n)$ est décroissante et, pour tout $n$, $u_n \\leqslant ${M}$.`, "On ne peut pas savoir si elle converge", [`Elle converge vers une limite $\\ell \\leqslant ${M}$`, "Elle tend vers $-\\infty$", `Elle converge vers $${M}$`], `Une suite décroissante est déjà majorée par son premier terme : l'information ne sert à rien. Elle peut converger ($u_n = \\dfrac{1}{n}$) ou tendre vers $-\\infty$ ($u_n = -n$).`]
+    }[t];
+    const ms = melangeChoix(S[1], S[2]);
+    return {
+      enonce: `${S[0]} Que peut-on en déduire ?`,
+      mode: "choix", choix: ms.choix, attendu: ms.attendu,
+      aides: ["Théorème de convergence monotone : une suite croissante et majorée converge ; une suite décroissante et minorée converge.", "Une suite croissante non majorée tend vers $+\\infty$.", "Attention : le majorant donné n'est pas forcément la limite."],
+      solution: S[3]
+    };
+  };
+
+  GEN["lsu-point-fixe"] = function () {
+    const t = pick(["affine", "affine", "racine", "heron", "frac"]);
+    let rel, L, eq;
+    if (t === "affine") { const [a, at] = pick([[0.5, "0{,}5"], [0.2, "0{,}2"], [0.8, "0{,}8"], [0.25, "0{,}25"], [-0.5, "-0{,}5"], [0.9, "0{,}9"], [0.6, "0{,}6"]]); L = rand(-5, 20); const b = +(L * (1 - a)).toFixed(4); rel = `${at}u_n ${sg(b).replace(/(\d)\.(\d)/, "$1{,}$2")}`; eq = `\\ell = ${at}\\ell ${sg(b).replace(/(\d)\.(\d)/, "$1{,}$2")}`; }
+    else if (t === "racine") { L = rand(2, 7); const c = L * L - L; rel = `\\sqrt{u_n + ${c}}`; eq = `\\ell = \\sqrt{\\ell + ${c}}`; }
+    else if (t === "heron") { L = rand(2, 9); rel = `\\dfrac{1}{2}\\left(u_n + \\dfrac{${L * L}}{u_n}\\right)`; eq = `\\ell = \\dfrac{1}{2}\\left(\\ell + \\dfrac{${L * L}}{\\ell}\\right)`; }
+    else { L = rand(2, 6); const k = L * L + L; rel = `\\dfrac{${k}}{u_n + 1}`; eq = `\\ell = \\dfrac{${k}}{\\ell + 1}`; }
+    return {
+      enonce: `La suite $(u_n)$ est définie par $u_0 = ${t === "affine" ? rand(0, 3) : rand(1, 3)}$ et $u_{n+1} = ${rel}$. On admet qu'elle converge vers un réel $\\ell${t === "affine" ? "" : " > 0"}$. Que vaut $\\ell$ ?`,
+      mode: "nombre", prefixe: "$\\ell =$", attendu: L,
+      aides: ["Si $u_n \\to \\ell$, alors $u_{n+1} \\to \\ell$ aussi ; la fonction étant continue, on peut passer à la limite dans la relation.", `On obtient l'équation $${eq}$.`, t === "affine" ? "C'est une équation du premier degré." : t === "racine" ? "Élève au carré : $\\ell^2 = \\ell + c$, puis garde la solution positive." : t === "heron" ? "Multiplie par $2\\ell$ : $\\ell^2 = $ le nombre sous la fraction, et garde la solution positive." : "Développe : $\\ell^2 + \\ell - k = 0$, et garde la solution positive."],
+      solution: `En passant à la limite, $${eq}$. ${t === "affine" ? `D'où $\\ell = ${L}$.` : t === "racine" ? `Alors $\\ell^2 - \\ell - ${L * L - L} = 0$, dont les solutions sont $${L}$ et $${1 - L}$ ; comme $\\ell > 0$, $\\ell = ${L}$.` : t === "heron" ? `Alors $\\ell^2 = ${L * L}$ et, comme $\\ell > 0$, $\\ell = ${L}$ (c'est l'algorithme de Héron pour calculer $\\sqrt{${L * L}}$).` : `Alors $\\ell^2 + \\ell - ${L * L + L} = 0$, de solutions $${L}$ et $${-L - 1}$ ; comme $\\ell > 0$, $\\ell = ${L}$.`}`
+    };
+  };
+
+  GEN["lsu-seuil"] = function () {
+    const t = pick(["inverse", "carre", "geo", "geo0"]);
+    if (t === "inverse") {
+      const [e, et] = pick([[0.01, "0{,}01"], [0.001, "0{,}001"], [0.05, "0{,}05"], [0.002, "0{,}002"], [0.0001, "10^{-4}"]]), k = pick([1, 2, 3, 5]);
+      const r = k / e, n = (Math.abs(r - Math.round(r)) < 1e-6 ? Math.round(r) : Math.floor(r)) + 1;
+      return {
+        enonce: `On pose $u_n = \\dfrac{${k}}{n}$ pour $n \\geqslant 1$. À partir de quel rang $n$ a-t-on $u_n < ${et}$ ?`,
+        mode: "nombre", prefixe: "$n \\geqslant$", attendu: n,
+        erreurs: [{ valeur: n - 1, message: `Pour $n = ${n - 1}$, $u_n = ${et}$ exactement : l'inégalité est stricte.` }],
+        aides: [`$\\dfrac{${k}}{n} < ${et} \\iff n > \\dfrac{${k}}{${et}}$ (on peut inverser car tout est positif).`, `$\\dfrac{${k}}{${et}} = ${nb(k / e)}$.`, "Prends le premier entier strictement supérieur."],
+        solution: `$u_n < ${et} \\iff n > ${nb(k / e)}$ : c'est vrai à partir du rang $${n}$. C'est l'idée de la limite : $u_n$ finit par être aussi proche de $0$ qu'on veut.`
+      };
+    }
+    if (t === "carre") {
+      const A = pick([1000, 5000, 10000, 20000, 100000, 500]), n = Math.floor(Math.sqrt(A) + 1e-9) + 1;
+      return {
+        enonce: `On pose $u_n = n^2$. À partir de quel rang $n$ a-t-on $u_n > ${nb(A)}$ ?`,
+        mode: "nombre", prefixe: "$n \\geqslant$", attendu: n,
+        aides: [`$n^2 > ${nb(A)} \\iff n > \\sqrt{${nb(A)}}$ (car $n \\geqslant 0$).`, `$\\sqrt{${nb(A)}} \\approx ${nb(+Math.sqrt(A).toFixed(2))}$.`, "Prends le premier entier strictement supérieur."],
+        solution: `$n^2 > ${nb(A)} \\iff n > \\sqrt{${nb(A)}} \\approx ${nb(+Math.sqrt(A).toFixed(2))}$ : à partir de $n = ${n}$. La suite dépasse tout réel : elle tend vers $+\\infty$.`
+      };
+    }
+    if (t === "geo") {
+      const [q, qt] = pick([[2, "2"], [1.5, "1{,}5"], [3, "3"], [1.2, "1{,}2"], [1.1, "1{,}1"]]), A = pick([100, 1000, 500, 10000]);
+      let n = 0, v = 1; while (v <= A) { v *= q; n++; }
+      return {
+        enonce: `À partir de quel rang $n$ a-t-on $${qt}^n > ${nb(A)}$ ? (utilise la calculatrice ou un programme)`,
+        mode: "nombre", prefixe: "$n \\geqslant$", attendu: n,
+        erreurs: [{ valeur: n - 1, message: `$${qt}^{${n - 1}} \\approx ${nb(+(q ** (n - 1)).toFixed(2))}$ ne dépasse pas encore $${nb(A)}$.` }],
+        aides: ["Calcule les puissances successives (table de la calculatrice, ou boucle $\\texttt{while}$).", `$${qt}^{${n - 2}} \\approx ${nb(+(q ** (n - 2)).toFixed(2))}$.`, "Continue jusqu'à dépasser le seuil."],
+        solution: `$${qt}^{${n - 1}} \\approx ${nb(+(q ** (n - 1)).toFixed(2))}$ et $${qt}^{${n}} \\approx ${nb(+(q ** n).toFixed(2))}$ : le seuil est $n = ${n}$.`
+      };
+    }
+    const [q, qt] = pick([[0.5, "0{,}5"], [0.8, "0{,}8"], [0.9, "0{,}9"], [0.75, "0{,}75"]]), [e, et] = pick([[0.01, "0{,}01"], [0.001, "0{,}001"], [0.05, "0{,}05"]]);
+    let n = 0, v = 1; while (v >= e) { v *= q; n++; }
+    return {
+      enonce: `À partir de quel rang $n$ a-t-on $${qt}^n < ${et}$ ? (utilise la calculatrice ou un programme)`,
+      mode: "nombre", prefixe: "$n \\geqslant$", attendu: n,
+      erreurs: [{ valeur: n - 1, message: `$${qt}^{${n - 1}} \\approx ${nb(+(q ** (n - 1)).toPrecision(3))}$ n'est pas encore inférieur à $${et}$.` }],
+      aides: ["Calcule les puissances successives (table de la calculatrice, ou boucle $\\texttt{while}$).", `$${qt}^{10} \\approx ${nb(+(q ** 10).toPrecision(3))}$.`, "Continue jusqu'à passer sous le seuil."],
+      solution: `$${qt}^{${n - 1}} \\approx ${nb(+(q ** (n - 1)).toPrecision(3))}$ et $${qt}^{${n}} \\approx ${nb(+(q ** n).toPrecision(3))}$ : le seuil est $n = ${n}$.`
+    };
+  };
+
+  GEN["lsu-python"] = function () {
+    const t = pick(["conv", "conv", "infini"]);
+    if (t === "conv") {
+      const [a, as] = pick([[0.5, "0.5"], [0.8, "0.8"], [0.9, "0.9"], [0.6, "0.6"]]), L = rand(2, 10), b = +(L * (1 - a)).toFixed(4), u0 = rand(0, 1) ? 0 : L + rand(2, 6);
+      const [e, es] = pick([[0.01, "0.01"], [0.1, "0.1"], [0.001, "0.001"]]);
+      let u = u0, n = 0; while (Math.abs(u - L) > e) { u = a * u + b; n++; }
+      return {
+        enonce: `La suite $u_{n+1} = ${String(a).replace(".", "{,}")}u_n + ${String(b).replace(".", "{,}")}$, avec $u_0 = ${u0}$, converge vers $${L}$. Qu'affiche ce programme ?\n\n\`\`\`python\nu = ${u0}\nn = 0\nwhile abs(u - ${L}) > ${es}:\n    u = ${as} * u + ${b}\n    n = n + 1\nprint(n)\n\`\`\``,
+        mode: "nombre", prefixe: "Affichage :", attendu: n,
+        erreurs: [{ valeur: n - 1, message: "La boucle tourne encore tant que l'écart est **supérieur** au seuil : compte le dernier passage." }],
+        aides: [`$\\texttt{abs(u - ${L})}$ est la distance entre $u_n$ et la limite $${L}$.`, `Le programme renvoie le premier rang $n$ où $u_n$ est à moins de $${String(e).replace(".", "{,}")}$ de $${L}$.`, "Calcule les termes (mode suite de la calculatrice) et leur écart à la limite."],
+        solution: `L'écart $|u_n - ${L}|$ est multiplié par $${String(a).replace(".", "{,}")}$ à chaque étape. Il passe sous $${String(e).replace(".", "{,}")}$ pour la première fois au rang $${n}$ : le programme affiche $${n}$.`
+      };
+    }
+    const [ex, f, tex] = pick([["n**2", (n) => n * n, "n^2"], ["3*n + 1", (n) => 3 * n + 1, "3n + 1"], ["2**n", (n) => 2 ** n, "2^n"], ["n**3", (n) => n ** 3, "n^3"], ["n*(n + 1)", (n) => n * (n + 1), "n(n + 1)"]]);
+    const A = pick([100, 500, 1000, 10000, 2000]);
+    let n = 0; while (f(n) <= A) n++;
+    return {
+      enonce: `La suite $u_n = ${tex}$ tend vers $+\\infty$. Que renvoie $\\texttt{seuil(${A})}$ ?\n\n\`\`\`python\ndef seuil(A):\n    n = 0\n    while ${ex} <= A:\n        n = n + 1\n    return n\n\`\`\``,
+      mode: "nombre", prefixe: "Résultat :", attendu: n,
+      erreurs: [{ valeur: n - 1, message: `Pour $n = ${n - 1}$, $u_n = ${f(n - 1)}$ ne dépasse pas encore $${A}$.` }],
+      aides: [`La fonction renvoie le premier rang $n$ tel que $${tex} > ${A}$.`, `Essaie des valeurs de $n$ autour de la solution.`, `$u_{${n - 1}} = ${f(n - 1)}$.`],
+      solution: `$u_{${n - 1}} = ${nb(f(n - 1))} \\leqslant ${nb(A)}$ et $u_{${n}} = ${nb(f(n))} > ${nb(A)}$ : la fonction renvoie $${n}$. Quel que soit $A$, la boucle s'arrête : c'est ce que veut dire « tendre vers $+\\infty$ ».`
+    };
+  };
+
   /* Séries « flash » d'un thème : mélange de ses générateurs */
   const THEMES = {
     "am-flash-cn": ["am-comparer", "am-fractions", "am-puissances", "am-ecritures", "am-ordre-grandeur", "am-coherence", "auto-conversions"],
@@ -14071,7 +14347,7 @@
 
 
   /* Une « erreur connue » ne doit jamais coïncider avec la bonne réponse (à la tolérance près) */
-  Object.keys(GEN).filter((k) => /^(auto|ld|am|cd|ar|cl|fa|ve|st|vx|tc|co|dr|fr|sg|pc|ec|sy|su|s2|pi|s5|d1|tr|d2|vr|ps|ex|va|sc|gr|sm|ea|tsu|tag|tlf|tcb|tsd|tdc|tln|tcv|tlg|tpe|tin|tld|trr|tec|rec|dvx|esp)-/.test(k)).forEach((k) => {
+  Object.keys(GEN).filter((k) => /^(auto|ld|am|cd|ar|cl|fa|ve|st|vx|tc|co|dr|fr|sg|pc|ec|sy|su|s2|pi|s5|d1|tr|d2|vr|ps|ex|va|sc|gr|sm|ea|tsu|tag|tlf|tcb|tsd|tdc|tln|tcv|tlg|tpe|tin|tld|trr|tec|rec|dvx|esp|lsu)-/.test(k)).forEach((k) => {
     const g = GEN[k];
     GEN[k] = (i) => { const q = g(i); if (q.erreurs) q.erreurs = q.erreurs.filter((e) => Math.abs(e.valeur - q.attendu) >= (q.tolerance || 1e-9)); return q; };
   });
