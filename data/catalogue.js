@@ -343,12 +343,111 @@ window.CATALOGUE = {
     {
       id: "terminale-spe",
       nom: "Terminale spécialité",
+      intro: "Les 15 chapitres dans l'ordre de la progression de l'année. Dans chaque chapitre : automatismes et algorithmique en Python.",
       chapitres: [
+        {
+          id: "terminale-spe-suites-recurrence",
+          numero: 1,
+          titre: "Suites numériques et récurrence",
+          statut: "disponible",
+          drive: ""
+        },
+        {
+          id: "terminale-spe-derivation-convexite",
+          numero: 2,
+          titre: "Dérivation et convexité",
+          statut: "bientot",
+          drive: ""
+        },
+        {
+          id: "terminale-spe-espace-1",
+          numero: 3,
+          titre: "Géométrie dans l'espace 1 : vecteurs, droites et plans",
+          statut: "bientot",
+          drive: ""
+        },
+        {
+          id: "terminale-spe-limites-suites",
+          numero: 4,
+          titre: "Limites de suites",
+          statut: "bientot",
+          drive: ""
+        },
+        {
+          id: "terminale-spe-loi-binomiale",
+          numero: 5,
+          titre: "Loi binomiale",
+          statut: "bientot",
+          drive: ""
+        },
+        {
+          id: "terminale-spe-limites-fonctions",
+          numero: 6,
+          titre: "Limites de fonctions",
+          statut: "bientot",
+          drive: ""
+        },
+        {
+          id: "terminale-spe-continuite",
+          numero: 7,
+          titre: "Continuité",
+          statut: "bientot",
+          drive: ""
+        },
+        {
+          id: "terminale-spe-espace-2",
+          numero: 8,
+          titre: "Géométrie dans l'espace 2 : orthogonalité et distances",
+          statut: "bientot",
+          drive: ""
+        },
+        {
+          id: "terminale-spe-logarithme",
+          numero: 9,
+          titre: "Fonction logarithme népérien",
+          statut: "bientot",
+          drive: ""
+        },
+        {
+          id: "terminale-spe-primitives",
+          numero: 10,
+          titre: "Primitives",
+          statut: "bientot",
+          drive: ""
+        },
+        {
+          id: "terminale-spe-equations-differentielles",
+          numero: 11,
+          titre: "Équations différentielles",
+          statut: "bientot",
+          drive: ""
+        },
+        {
+          id: "terminale-spe-trigonometrie",
+          numero: 12,
+          titre: "Fonctions trigonométriques",
+          statut: "bientot",
+          drive: ""
+        },
+        {
+          id: "terminale-spe-integration",
+          numero: 13,
+          titre: "Calcul intégral",
+          statut: "bientot",
+          drive: ""
+        },
         {
           id: "terminale-spe-denombrement",
           numero: 14,
           titre: "Combinatoire et dénombrement",
           statut: "disponible",
+          drive: ""
+        },
+        {
+          id: "terminale-spe-grands-nombres",
+          numero: 15,
+          titre: "Loi des grands nombres",
+          statut: "bientot",
           drive: ""
         }
       ]

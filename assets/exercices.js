@@ -13121,6 +13121,393 @@
   };
 
 
+  /* ---------- Terminale spécialité, chapitre 1 : suites numériques et récurrence (préfixe rec-) ---------- */
+  // Outils communs aux chapitres de Terminale spécialité
+  // Réponse exacte attendue en fraction : un décimal proche reçoit un message, pas un simple « Pas encore »
+  const tsApprox = (v) => { if (Math.abs(v * 1000 - Math.round(v * 1000)) < 1e-9) return []; const m = "C'est une valeur approchée : donne la **valeur exacte**, sous forme de fraction (par exemple $7/6$)."; return [...new Set([2, 3, 4].flatMap((d) => [Math.round(v * 10 ** d) / 10 ** d, Math.trunc(v * 10 ** d) / 10 ** d]))].map((x) => ({ valeur: x, message: m })); };
+  // c × q^e + L écrit proprement (c = 1, c = -1, L = 0)
+  const tsPuis = (c, q, e, L) => { const p = `${q}^{${e}}`; const t = c === 1 ? p : c === -1 ? `-${p}` : `${c} \\times ${p}`; return L === 0 ? t : `${t} ${sg(L)}`; };
+  // a u_n + b : « 2u_n - 3 », « -u_n + 4 », « u_n + 1 »
+  const tsAff = (a, b, v) => `${a === 1 ? "" : a === -1 ? "-" : fr(a)}${v}${b === 0 ? "" : " " + sg(b).replace(/(\d)\.(\d)/g, "$1{,}$2")}`;
+
+  FIGURES["rec-dominos"] = () => {
+    let s = `<svg class="graph" viewBox="0 0 320 170" role="img" aria-label="Des dominos : le premier tombe (initialisation) et chaque domino qui tombe fait tomber le suivant (hérédité), donc tous tombent"><g class="g-axis"><line x1="6" y1="120" x2="314" y2="120"/></g>`;
+    for (let k = 0; k < 7; k++) {
+      const x = 22 + k * 42, a = k < 3 ? [-62, -40, -18][k] : 0;
+      s += `<rect class="g-rect" x="${x}" y="58" width="12" height="62" rx="2" transform="rotate(${-a} ${x + 12} 120)"/>`;
+      s += `<text class="g-label" x="${x + 6}" y="138" text-anchor="middle">${["P(0)", "P(1)", "P(2)", "P(3)", "P(4)", "…", "P(n)"][k]}</text>`;
+    }
+    return s + `<path class="g-guide" d="M 70 46 q 18 -20 36 0" fill="none"/><text class="g-label" x="10" y="20">1. le premier tombe : initialisation</text><text class="g-label" x="10" y="160">2. si P(n) tombe, P(n + 1) tombe : hérédité</text></svg>`;
+  };
+  FIGURES["rec-bornee"] = () => {
+    const pts = Array.from({ length: 13 }, (_, n) => ({ x: n, y: 2 + 3 / (n + 1) }));
+    return graph({ xmin: -0.8, xmax: 13.5, ymin: -0.6, ymax: 5.8, h: 240, xlabel: "n", ylabel: "uₙ", hlines: [{ y: 5, label: "majorant 5" }, { y: 2, label: "minorant 2" }], points: pts, aria: "Les termes u(n) = 2 + 3/(n + 1) décroissent de 5 vers 2 : la suite est majorée par 5 et minorée par 2" });
+  };
+
+  GEN["rec-termes"] = function () {
+    const t = pick(["affine", "affine", "rang", "fraction"]);
+    if (t === "affine") {
+      const a = pick([2, 3, -2, 4, -1, 5, -3]), b = randNZ(-6, 6), u0 = rand(-3, 5), k = rand(2, 4);
+      const u = [u0]; for (let i = 0; i < k; i++) u.push(a * u[i] + b);
+      return {
+        enonce: `La suite $(u_n)$ est définie par $u_0 = ${u0}$ et, pour tout entier naturel $n$, $u_{n+1} = ${tsAff(a, b, "u_n")}$. Calcule $u_{${k}}$.`,
+        mode: "nombre", prefixe: `$u_{${k}} =$`, attendu: u[k],
+        erreurs: [{ valeur: u[k - 1], message: `Ça, c'est $u_{${k - 1}}$ : applique la relation encore une fois.` }],
+        aides: ["Avec une relation de récurrence, on calcule les termes **un par un** : $u_1$ à partir de $u_0$, puis $u_2$ à partir de $u_1$…", `$u_1 = ${a} \\times ${par(u0)} ${sg(b)} = ${u[1]}$.`, `$u_2 = ${a} \\times ${par(u[1])} ${sg(b)} = ${u[2]}$${k > 2 ? ", et on continue." : "."}`],
+        solution: u.slice(1).map((v, i) => `$u_{${i + 1}} = ${a} \\times ${par(u[i])} ${sg(b)} = ${v}$`).join(" ; ") + "."
+      };
+    }
+    if (t === "rang") {
+      const p = rand(1, 3), c = rand(-2, 4), u0 = rand(-2, 5), k = rand(3, 5);
+      const u = [u0]; for (let i = 0; i < k; i++) u.push(u[i] + p * i + c);
+      const g = `${p === 1 ? "" : p}n${c === 0 ? "" : " " + sg(c)}`;
+      return {
+        enonce: `La suite $(u_n)$ est définie par $u_0 = ${u0}$ et, pour tout entier naturel $n$, $u_{n+1} = u_n + ${g}$. Calcule $u_{${k}}$.`,
+        mode: "nombre", prefixe: `$u_{${k}} =$`, attendu: u[k],
+        erreurs: [{ valeur: u[k - 1], message: `Ça, c'est $u_{${k - 1}}$.` }],
+        aides: ["Le terme ajouté dépend du rang $n$ : pour passer de $u_0$ à $u_1$, on remplace $n$ par $0$.", `$u_1 = u_0 + ${p} \\times 0 ${sg(c)} = ${u[1]}$ ; pour $u_2$, on remplace $n$ par $1$.`, `$u_2 = ${u[1]} + ${p} \\times 1 ${sg(c)} = ${u[2]}$, et on continue.`],
+        solution: u.slice(1).map((v, i) => `$u_{${i + 1}} = ${u[i]} + ${p} \\times ${i} ${sg(c)} = ${v}$`).join(" ; ") + "."
+      };
+    }
+    const m = rand(1, 6), k = rand(2, 5);
+    return {
+      enonce: `La suite $(u_n)$ est définie par $u_0 = ${m === 1 ? "1" : `\\dfrac{1}{${m}}`}$ et $u_{n+1} = \\dfrac{u_n}{1 + u_n}$. Calcule $u_{${k}}$ (donne le résultat **sous forme de fraction**).`,
+      mode: "nombre", prefixe: `$u_{${k}} =$`, attendu: 1 / (m + k),
+      erreurs: tsApprox(1 / (m + k)),
+      aides: [`$u_1 = \\dfrac{u_0}{1 + u_0}$ : avec $u_0 = ${frac(1, m)}$, multiplie le numérateur et le dénominateur par $${m}$.`, `$u_1 = \\dfrac{1}{${m + 1}}$. Calcule de même $u_2$.`, `On observe $u_n = \\dfrac{1}{${m} + n}$ (cela se démontre par récurrence).`],
+      solution: `$u_1 = \\dfrac{1}{${m + 1}}$, $u_2 = \\dfrac{1}{${m + 2}}$… À chaque étape, le dénominateur augmente de $1$ : $u_{${k}} = \\dfrac{1}{${m + k}}$.`
+    };
+  };
+
+  GEN["rec-explicite"] = function () {
+    const t = pick(["arith", "arith", "geo", "geo", "raison"]);
+    if (t === "arith") {
+      const u0 = rand(-20, 30), r = randNZ(-7, 9), n = rand(10, 60), un = rand(0, 1) === 1;
+      if (un) return {
+        enonce: `$(u_n)$ est la suite arithmétique de premier terme $u_1 = ${u0}$ et de raison $${r}$. Calcule $u_{${n}}$.`,
+        mode: "nombre", prefixe: `$u_{${n}} =$`, attendu: u0 + (n - 1) * r,
+        erreurs: [{ valeur: u0 + n * r, message: `Le premier terme est $u_1$ : de $u_1$ à $u_{${n}}$, on ajoute $${n - 1}$ fois la raison, pas $${n}$.` }],
+        aides: ["Suite arithmétique : on ajoute la raison à chaque rang.", `De $u_1$ à $u_{${n}}$, il y a $${n - 1}$ pas.`, `$u_n = u_1 + (n - 1)r$.`],
+        solution: `$u_{${n}} = u_1 + ${n - 1} \\times ${par(r)} = ${u0} ${sg((n - 1) * r)} = ${u0 + (n - 1) * r}$.`
+      };
+      return {
+        enonce: `$(u_n)$ est la suite arithmétique de premier terme $u_0 = ${u0}$ et de raison $${r}$. Calcule $u_{${n}}$.`,
+        mode: "nombre", prefixe: `$u_{${n}} =$`, attendu: u0 + n * r,
+        erreurs: [{ valeur: u0 + (n - 1) * r, message: `Le premier terme est $u_0$ : de $u_0$ à $u_{${n}}$, on ajoute $${n}$ fois la raison.` }],
+        aides: ["Suite arithmétique : $u_n = u_0 + nr$.", `Ici $u_0 = ${u0}$ et $r = ${r}$.`, `$u_{${n}} = ${u0} + ${n} \\times ${par(r)}$.`],
+        solution: `$u_{${n}} = ${u0} + ${n} \\times ${par(r)} = ${u0 + n * r}$.`
+      };
+    }
+    if (t === "geo") {
+      const u0 = pick([1, 2, 3, 5, -1, -2, 4, 10]), q = pick([2, 3, -2, -3, 5]), n = rand(3, 7);
+      return {
+        enonce: `$(u_n)$ est la suite géométrique de premier terme $u_0 = ${u0}$ et de raison $${q}$. Calcule $u_{${n}}$.`,
+        mode: "nombre", prefixe: `$u_{${n}} =$`, attendu: u0 * q ** n,
+        erreurs: [{ valeur: u0 + n * q, message: "Une suite géométrique : on **multiplie** par la raison à chaque rang." }, { valeur: u0 * q ** (n - 1), message: `De $u_0$ à $u_{${n}}$, on multiplie $${n}$ fois par la raison.` }],
+        aides: ["Suite géométrique : $u_n = u_0 \\times q^n$.", `Ici $u_0 = ${u0}$ et $q = ${q}$.`, `$u_{${n}} = ${u0} \\times ${par(q)}^{${n}}$ ; attention au signe si $q < 0$.`],
+        solution: `$u_{${n}} = ${u0} \\times ${par(q)}^{${n}} = ${u0} \\times ${par(q ** n)} = ${u0 * q ** n}$.`
+      };
+    }
+    const u0 = rand(-10, 20), r = randNZ(-6, 8), p = rand(2, 6), d = rand(3, 8);
+    return {
+      enonce: `$(u_n)$ est une suite arithmétique avec $u_{${p}} = ${u0 + p * r}$ et $u_{${p + d}} = ${u0 + (p + d) * r}$. Quelle est sa raison ?`,
+      mode: "nombre", prefixe: "$r =$", attendu: r,
+      erreurs: [{ valeur: d * r, message: `Ça, c'est l'écart total : il est fait de $${d}$ pas égaux à la raison.` }],
+      aides: [`De $u_{${p}}$ à $u_{${p + d}}$, on ajoute $${d}$ fois la raison.`, `$u_{${p + d}} - u_{${p}} = ${d}r$.`, `$${d}r = ${(p + d) * r + u0} - ${par(u0 + p * r)} = ${d * r}$.`],
+      solution: `$u_{${p + d}} = u_{${p}} + ${d}r$, donc $${d}r = ${d * r}$ et $r = ${r}$.`
+    };
+  };
+
+  GEN["rec-sigma"] = function () {
+    const t = pick(["affine", "affine", "puissance", "carre"]);
+    if (t === "affine") {
+      const a = randNZ(-3, 5), b = rand(-4, 6), d = rand(0, 2), n = d + rand(3, 5);
+      const termes = []; for (let k = d; k <= n; k++) termes.push(a * k + b);
+      const S = termes.reduce((s, x) => s + x, 0);
+      const ex = `${a === 1 ? "" : a === -1 ? "-" : a}k${b === 0 ? "" : " " + sg(b)}`;
+      return {
+        enonce: `Calcule $S = \\displaystyle\\sum_{k=${d}}^{${n}} (${ex})$.`,
+        mode: "nombre", prefixe: "$S =$", attendu: S,
+        erreurs: [{ valeur: S - termes[termes.length - 1], message: `Le dernier terme, pour $k = ${n}$, compte aussi.` }, { valeur: S - termes[0], message: `Le premier terme, pour $k = ${d}$, compte aussi.` }],
+        aides: [`Le symbole $\\Sigma$ demande d'additionner les termes $${ex}$ pour $k$ allant de $${d}$ à $${n}$ (inclus).`, `Il y a $${n - d + 1}$ termes : pour $k = ${d}$, on trouve $${termes[0]}$.`, `$S = ${termes.map(par).join(" + ")}$.`],
+        solution: `$S = ${termes.map(par).join(" + ")} = ${S}$.`
+      };
+    }
+    if (t === "puissance") {
+      const q = pick([2, 3, 2, 5]), n = rand(3, q === 5 ? 4 : 6), d = rand(0, 1);
+      const termes = []; for (let k = d; k <= n; k++) termes.push(q ** k);
+      const S = termes.reduce((s, x) => s + x, 0);
+      return {
+        enonce: `Calcule $S = \\displaystyle\\sum_{k=${d}}^{${n}} ${q}^k$.`,
+        mode: "nombre", prefixe: "$S =$", attendu: S,
+        erreurs: [{ valeur: q ** n, message: "Ça, c'est seulement le dernier terme : il faut tous les additionner." }, { valeur: S - termes[termes.length - 1], message: `Le terme pour $k = ${n}$ compte aussi.` }],
+        aides: [`On additionne $${q}^k$ pour $k$ allant de $${d}$ à $${n}$.`, d === 0 ? "Attention : $q^0 = 1$." : `Le premier terme est $${q}^1 = ${q}$.`, `$S = ${termes.join(" + ")}$.`],
+        solution: `$S = ${termes.join(" + ")} = ${S}$.`
+      };
+    }
+    const n = rand(3, 7), c = rand(0, 2);
+    const termes = []; for (let k = 1; k <= n; k++) termes.push(k * k + c);
+    const S = termes.reduce((s, x) => s + x, 0);
+    return {
+      enonce: `Calcule $S = \\displaystyle\\sum_{k=1}^{${n}} ${c === 0 ? "k^2" : `(k^2 + ${c})`}$.`,
+      mode: "nombre", prefixe: "$S =$", attendu: S,
+      erreurs: c ? [{ valeur: S - c * (n - 1), message: `Le $+ ${c}$ est ajouté à **chaque** terme, soit $${n}$ fois.` }] : [{ valeur: (n * (n + 1) / 2) ** 2, message: "La somme des carrés n'est pas le carré de la somme." }],
+      aides: [`On additionne les termes pour $k = 1$, $2$, …, $${n}$.`, `Pour $k = 1$ : $${termes[0]}$ ; pour $k = 2$ : $${termes[1]}$.`, `$S = ${termes.join(" + ")}$.`],
+      solution: `$S = ${termes.join(" + ")} = ${S}$.`
+    };
+  };
+
+  GEN["rec-sommes"] = function () {
+    const t = pick(["entiers", "impairs", "geo", "arith"]);
+    if (t === "entiers") {
+      const N = pick([20, 30, 40, 50, 60, 80, 99, 100, 150, 200, 365, 1000]);
+      return {
+        enonce: `Calcule $1 + 2 + 3 + \\dots + ${N}$.`,
+        mode: "nombre", prefixe: "Somme :", attendu: (N * (N + 1)) / 2,
+        erreurs: [{ valeur: (N * (N - 1)) / 2, message: "La formule est $\\dfrac{n(n + 1)}{2}$, pas $\\dfrac{n(n - 1)}{2}$." }, { valeur: N * (N + 1), message: "N'oublie pas de diviser par $2$." }],
+        aides: ["Pour tout entier $n \\geqslant 1$ : $1 + 2 + \\dots + n = \\dfrac{n(n + 1)}{2}$ (cela se démontre par récurrence).", `Ici $n = ${N}$.`, `$\\dfrac{${N} \\times ${N + 1}}{2}$.`],
+        solution: `$1 + 2 + \\dots + ${N} = \\dfrac{${N} \\times ${N + 1}}{2} = ${nb((N * (N + 1)) / 2)}$.`
+      };
+    }
+    if (t === "impairs") {
+      const N = rand(8, 60);
+      return {
+        enonce: `Calcule la somme des $${N}$ premiers nombres impairs : $1 + 3 + 5 + \\dots + ${2 * N - 1}$.`,
+        mode: "nombre", prefixe: "Somme :", attendu: N * N,
+        erreurs: [{ valeur: (2 * N - 1) * (2 * N - 1), message: `Le dernier terme est $${2 * N - 1}$, mais il y a $${N}$ termes : la somme vaut $${N}^2$.` }],
+        aides: ["Calcule les premières sommes : $1$, $1 + 3 = 4$, $1 + 3 + 5 = 9$… Que remarques-tu ?", "On démontre par récurrence que $1 + 3 + \\dots + (2n - 1) = n^2$.", `Ici il y a $n = ${N}$ termes.`],
+        solution: `$1 + 3 + \\dots + (2n - 1) = n^2$ avec $n = ${N}$ : la somme vaut $${N}^2 = ${N * N}$.`
+      };
+    }
+    if (t === "geo") {
+      const q = pick([2, 3, 4, 5, 10]), n = rand(4, q >= 5 ? 6 : 9);
+      const S = (q ** (n + 1) - 1) / (q - 1);
+      return {
+        enonce: `Calcule $1 + ${q} + ${q}^2 + \\dots + ${q}^{${n}}$.`,
+        mode: "nombre", prefixe: "Somme :", attendu: S,
+        erreurs: [{ valeur: (q ** n - 1) / (q - 1), message: `Il y a $${n + 1}$ termes (de $${q}^0$ à $${q}^{${n}}$) : l'exposant de la formule est $${n + 1}$.` }],
+        aides: ["Pour $q \\neq 1$ : $1 + q + \\dots + q^n = \\dfrac{q^{n+1} - 1}{q - 1}$.", `Ici $q = ${q}$ et $n = ${n}$.`, `$\\dfrac{${q}^{${n + 1}} - 1}{${q} - 1}$.`],
+        solution: `$1 + ${q} + \\dots + ${q}^{${n}} = \\dfrac{${q}^{${n + 1}} - 1}{${q - 1}} = \\dfrac{${nb(q ** (n + 1) - 1)}}{${q - 1}} = ${nb(S)}$.`
+      };
+    }
+    const a = rand(1, 12), r = rand(2, 7), m = rand(9, 40), last = a + m * r;
+    return {
+      enonce: `Calcule $${a} + ${a + r} + ${a + 2 * r} + \\dots + ${last}$ (on ajoute $${r}$ à chaque fois).`,
+      mode: "nombre", prefixe: "Somme :", attendu: ((m + 1) * (a + last)) / 2,
+      erreurs: [{ valeur: (m * (a + last)) / 2, message: `Compte bien les termes : de $${a}$ à $${last}$ par pas de $${r}$, il y en a $${m + 1}$.` }],
+      aides: ["Somme de termes consécutifs d'une suite arithmétique : $\\text{nombre de termes} \\times \\dfrac{\\text{premier} + \\text{dernier}}{2}$.", `Nombre de termes : $\\dfrac{${last} - ${a}}{${r}} + 1 = ${m + 1}$.`, `$${m + 1} \\times \\dfrac{${a} + ${last}}{2}$.`],
+      solution: `Il y a $${m + 1}$ termes, donc la somme vaut $${m + 1} \\times \\dfrac{${a} + ${last}}{2} = ${nb(((m + 1) * (a + last)) / 2)}$.`
+    };
+  };
+
+  // Familles u(n+1) = q u(n) + b avec u(n) = c q^n + L (b = L(1 - q)), ou u(n+1) = u(n) + 2n + 1 avec u(n) = n^2 + d
+  function recFamille() {
+    if (Math.random() < 0.2) { const d = rand(-3, 4); return { u0: d, rel: "u_n + 2n + 1", f: `n^2${d === 0 ? "" : " " + sg(d)}`, f1: `(n + 1)^2${d === 0 ? "" : " " + sg(d)}`, val: (n) => n * n + d, heredite: `u_n + 2n + 1 = n^2 ${d === 0 ? "" : sg(d) + " "}+ 2n + 1 = (n + 1)^2${d === 0 ? "" : " " + sg(d)}`, faux: [`n^2 + 2n${d === 0 ? "" : " " + sg(d)}`, `(n + 1)^2${" " + sg(d + 1)}`, `2n + 1${d === 0 ? "" : " " + sg(d)}`] }; }
+    const q = pick([2, 3, 4, 5]), L = randNZ(-3, 3), c = pick([1, 1, 2, 3, -2]), b = L * (1 - q);
+    return { u0: c + L, rel: `${q}u_n ${sg(b)}`, f: tsPuis(c, q, "n", L), f1: tsPuis(c, q, "n+1", L), val: (n) => c * q ** n + L, heredite: `${q}u_n ${sg(b)} = ${q}\\left(${tsPuis(c, q, "n", L)}\\right) ${sg(b)} = ${tsPuis(c, q, "n+1", L)}`, faux: [tsPuis(c, q, "n+1", q * L), tsPuis(c, q, "n", L), tsPuis(c * q, q, "n+1", L), `${tsPuis(c, q, "n+1", L)} ${sg(b)}`] };
+  }
+
+  GEN["rec-etapes"] = function () {
+    const F = recFamille(), t = pick(["init", "hyp", "but", "calcul"]);
+    const intro = `La suite $(u_n)$ est définie par $u_0 = ${F.u0}$ et $u_{n+1} = ${F.rel}$. On veut démontrer par récurrence que, pour tout entier naturel $n$, $u_n = ${F.f}$.`;
+    let bonne, fausses, q, sol;
+    if (t === "init") {
+      q = "Que faut-il vérifier à l'**initialisation** ?";
+      bonne = `$u_0 = ${F.f.replace(/n/g, "0")}$, c'est-à-dire $${F.u0} = ${F.val(0)}$`;
+      fausses = [`$u_1 = ${F.f.replace(/n/g, "1")}$`, `$u_{n+1} = ${F.f1}$ pour tout $n$`, `$u_n = ${F.f}$ pour un entier $n$ quelconque`];
+      sol = `L'initialisation vérifie la propriété au **premier rang**, $n = 0$ : $u_0 = ${F.u0}$ et $${F.f.replace(/n/g, "0")} = ${F.val(0)}$. La propriété est vraie au rang $0$.`;
+    } else if (t === "hyp") {
+      q = "Dans l'**hérédité**, que suppose-t-on ?";
+      bonne = `$u_n = ${F.f}$ pour **un** entier $n$ fixé`;
+      fausses = [`$u_n = ${F.f}$ pour **tout** entier $n$`, `$u_{n+1} = ${F.f1}$`, `$u_0 = ${F.u0}$ seulement`];
+      sol = `On suppose la propriété vraie pour **un** entier $n$ fixé (hypothèse de récurrence), et on montre qu'elle est alors vraie au rang $n + 1$. Supposer qu'elle est vraie pour tout $n$, c'est supposer ce qu'on veut démontrer.`;
+    } else if (t === "but") {
+      q = "Dans l'**hérédité**, que doit-on démontrer ?";
+      bonne = `$u_{n+1} = ${F.f1}$`;
+      fausses = [`$u_n = ${F.f}$`, `$u_{n+1} = ${F.f} + 1$`, `$u_0 = ${F.u0}$`];
+      sol = `On montre que la propriété passe au rang suivant : on remplace $n$ par $n + 1$ dans $u_n = ${F.f}$, ce qui donne $u_{n+1} = ${F.f1}$.`;
+    } else {
+      q = `Hérédité : on suppose $u_n = ${F.f}$. À quoi est égal $u_{n+1}$ ?`;
+      bonne = `$${F.f1}$`;
+      fausses = F.faux.map((x) => `$${x}$`);
+      sol = `$u_{n+1} = ${F.heredite}$ : c'est la propriété au rang $n + 1$. L'hérédité est démontrée.`;
+    }
+    const ms = melangeChoix(bonne, fausses.filter((f) => f !== bonne));
+    return {
+      enonce: `${intro}\n\n${q}`, mode: "choix", choix: ms.choix, attendu: ms.attendu,
+      aides: ["Une démonstration par récurrence a trois étapes : **initialisation** (premier rang), **hérédité** (si c'est vrai au rang $n$, c'est vrai au rang $n + 1$), **conclusion**.", "Dans l'hérédité, on part de l'hypothèse de récurrence au rang $n$ et on vise le rang $n + 1$.", t === "calcul" ? `Remplace $u_n$ par $${F.f}$ dans $u_{n+1} = ${F.rel}$, puis simplifie.` : "L'initialisation se fait au premier rang, ici $n = 0$."],
+      solution: sol
+    };
+  };
+
+  GEN["rec-conjecture"] = function () {
+    const F = recFamille(), u = [0, 1, 2, 3, 4].map(F.val);
+    const lin = `${u[1] - u[0] === 1 ? "" : u[1] - u[0] === -1 ? "-" : u[1] - u[0]}n${u[0] === 0 ? "" : " " + sg(u[0])}`;
+    const fausses = [...F.faux.map((x) => `$u_n = ${x}$`), `$u_n = ${lin}$`].filter((f) => f !== `$u_n = ${F.f}$`);
+    const ms = melangeChoix(`$u_n = ${F.f}$`, shuffle(fausses));
+    return {
+      enonce: `La suite $(u_n)$ est définie par $u_0 = ${F.u0}$ et $u_{n+1} = ${F.rel}$. Voici ses premiers termes. Quelle formule peut-on conjecturer, puis démontrer par récurrence ?`,
+      tableau: { var: "n", nom: "u_n", x: [0, 1, 2, 3, 4], y: u.map(nb) },
+      mode: "choix", choix: ms.choix, attendu: ms.attendu,
+      aides: ["Teste chaque formule avec $n = 0$, puis $n = 1$ et $n = 2$ : elle doit redonner les valeurs du tableau.", "Une formule qui marche pour les deux premiers termes peut échouer ensuite : vérifie aussi $u_3$.", "Une conjecture vérifiée sur quelques termes n'est pas une preuve : c'est la récurrence qui la démontre pour tout $n$."],
+      solution: `$u_n = ${F.f}$ redonne $${u.slice(0, 4).map(nb).join("$, $")}$… pour $n = 0, 1, 2, 3$. Hérédité : si $u_n = ${F.f}$, alors $u_{n+1} = ${F.heredite}$.`
+    };
+  };
+
+  GEN["rec-inegalite"] = function () {
+    const t = pick(["bernoulli", "encadre", "encadre", "argument"]);
+    if (t === "bernoulli") {
+      const [a, at] = pick([[0.02, "0{,}02"], [0.04, "0{,}04"], [0.05, "0{,}05"], [0.1, "0{,}1"], [0.2, "0{,}2"], [0.25, "0{,}25"], [0.01, "0{,}01"]]), A = pick([2, 3, 4, 5, 6, 11, 21]);
+      const n = Math.ceil((A - 1) / a - 1e-9);
+      return {
+        enonce: `L'inégalité de Bernoulli donne, pour tout entier naturel $n$ : $(1 + ${at})^n \\geqslant 1 + ${at}n$. À partir de quel entier $n$ cette inégalité **garantit**-elle que $(1 + ${at})^n \\geqslant ${A}$ ?`,
+        mode: "nombre", prefixe: "$n =$", attendu: n,
+        aides: [`Il suffit que $1 + ${at}n \\geqslant ${A}$.`, `$${at}n \\geqslant ${A - 1}$, donc $n \\geqslant \\dfrac{${A - 1}}{${at}}$.`, `$\\dfrac{${A - 1}}{${at}} = ${nb((A - 1) / a)}$ : prends le premier entier supérieur ou égal.`],
+        solution: `Si $1 + ${at}n \\geqslant ${A}$, alors $(1 + ${at})^n \\geqslant ${A}$. Or $1 + ${at}n \\geqslant ${A} \\iff n \\geqslant ${nb((A - 1) / a)}$ : l'inégalité le garantit pour $n \\geqslant ${n}$. (Le vrai seuil est plus petit, car $(1 + ${at})^n$ grandit plus vite que $1 + ${at}n$.)`
+      };
+    }
+    if (t === "encadre") {
+      const p = pick([2, 3, -2, -1, 0.5, -0.5, 4]), q = rand(-4, 4), a = rand(-2, 2), b = a + rand(2, 5);
+      const v1 = p * a + q, v2 = p * b + q, lo = Math.min(v1, v2), hi = Math.max(v1, v2), demande = pick(["max", "min"]);
+      return {
+        enonce: `On suppose que $${a} \\leqslant u_n \\leqslant ${b}$ et que $u_{n+1} = ${tsAff(p, q, "u_n")}$. Quel encadrement de $u_{n+1}$ en déduit-on ? Donne ${demande === "max" ? "la borne **supérieure**" : "la borne **inférieure**"}.`,
+        mode: "nombre", prefixe: demande === "max" ? "$u_{n+1} \\leqslant$" : "$u_{n+1} \\geqslant$", attendu: demande === "max" ? hi : lo,
+        erreurs: p < 0 ? [{ valeur: demande === "max" ? lo : hi, message: "Attention : en multipliant par un nombre **négatif**, on change le sens des inégalités." }] : [],
+        aides: [`Multiplie les trois membres de $${a} \\leqslant u_n \\leqslant ${b}$ par $${fr(p)}$.`, p < 0 ? "Le coefficient est négatif : les inégalités changent de sens." : "Le coefficient est positif : les inégalités gardent leur sens.", q === 0 ? "Il n'y a rien à ajouter : conclus." : `Ajoute ensuite $${q}$ aux trois membres.`],
+        solution: `${p < 0 ? `Comme $${fr(p)} < 0$, le sens change : $${fr(p)} \\times ${par(b)} \\leqslant ${fr(p)}u_n \\leqslant ${fr(p)} \\times ${par(a)}$` : `Comme $${fr(p)} > 0$ : $${fr(p)} \\times ${par(a)} \\leqslant ${fr(p)}u_n \\leqslant ${fr(p)} \\times ${par(b)}$`}${q === 0 ? "" : `, puis en ajoutant $${q}$`} : $${fr(lo)} \\leqslant u_{n+1} \\leqslant ${fr(hi)}$.`
+      };
+    }
+    const [ft, L, fL] = pick([[`\\sqrt{u_n + 2}`, 2, 2], [`\\sqrt{2u_n + 3}`, 3, 3], [`\\sqrt{3u_n + 4}`, 4, 4], [`0{,}5u_n + 2`, 4, 4], [`0{,}5u_n + 1`, 2, 2], [`\\dfrac{2u_n + 3}{u_n + 2}`, 2, 1.75], [`\\dfrac{4u_n}{u_n + 1}`, 3, 3], [`\\sqrt{u_n + 6}`, 3, 3]]);
+    const u0 = pick([0, 1]);
+    const ms = melangeChoix(`La fonction $f$ telle que $u_{n+1} = f(u_n)$ est croissante sur $[0\\,;${L}]$, avec $f(0) \\geqslant 0$ et $f(${L}) \\leqslant ${L}$`, [`La fonction $f$ est décroissante sur $[0\\,;${L}]$`, `Le premier terme vérifie $0 \\leqslant u_0 \\leqslant ${L}$, cela suffit`, `La suite $(u_n)$ est croissante`]);
+    return {
+      enonce: `On a $u_0 = ${u0}$ et $u_{n+1} = ${ft}$. On veut démontrer par récurrence que, pour tout $n$, $0 \\leqslant u_n \\leqslant ${L}$. Quel argument permet de réussir l'**hérédité** ?`,
+      mode: "choix", choix: ms.choix, attendu: ms.attendu,
+      aides: ["Dans l'hérédité, on part de $0 \\leqslant u_n \\leqslant " + L + "$ et on veut un encadrement de $u_{n+1} = f(u_n)$.", "Appliquer une fonction **croissante** conserve l'ordre des inégalités.", `On obtient $f(0) \\leqslant u_{n+1} \\leqslant f(${L})$ : il reste à comparer avec $0$ et $${L}$.`],
+      solution: `Si $0 \\leqslant u_n \\leqslant ${L}$ et $f$ croissante sur $[0\\,;${L}]$, alors $f(0) \\leqslant f(u_n) \\leqslant f(${L})$, soit $f(0) \\leqslant u_{n+1} \\leqslant ${fr(fL)}$, et comme $f(0) \\geqslant 0$ et $${fr(fL)} \\leqslant ${L}$ : $0 \\leqslant u_{n+1} \\leqslant ${L}$. L'initialisation ($u_0 = ${u0}$) ne suffit pas seule : il faut aussi l'hérédité.`
+    };
+  };
+
+  GEN["rec-variation"] = function () {
+    const R = ["croissante", "décroissante", "constante", "ni croissante ni décroissante"];
+    const t = pick(["poly", "poly", "geo", "quot", "rec"]);
+    let ex, rep, sol;
+    if (t === "poly") {
+      const a = pick([1, -1, 2, -2]), b = rand(-8, 8), c = rand(-5, 5);
+      ex = `u_n = ${poly([a, b, c], "n")}`;
+      // u(n+1) - u(n) = a(2n + 1) + b, pour n ≥ 0
+      const d0 = a + b, signeFinal = a;
+      rep = a > 0 && d0 >= 0 ? 0 : a < 0 && d0 <= 0 ? 1 : 3;
+      sol = `$u_{n+1} - u_n = ${a === 1 ? "" : a === -1 ? "-" : a}(2n + 1) ${sg(b)} = ${poly([2 * a, a + b], "n")}$. ` + (rep === 0 ? `Pour $n \\geqslant 0$, c'est positif (il vaut $${d0}$ en $n = 0$ et augmente) : la suite est **croissante**.` : rep === 1 ? `Pour $n \\geqslant 0$, c'est négatif (il vaut $${d0}$ en $n = 0$ et diminue) : la suite est **décroissante**.` : `Cette différence vaut $${d0}$ pour $n = 0$ mais elle devient ${signeFinal > 0 ? "positive" : "négative"} pour $n$ grand : la suite n'est **ni croissante ni décroissante**.`);
+    } else if (t === "geo") {
+      const c = pick([1, 2, 5, -2, -3]), [q, qt] = pick([[2, "2"], [3, "3"], [0.5, "0{,}5"], [0.8, "0{,}8"], [1.2, "1{,}2"], [1, "1"]]);
+      ex = `u_n = ${c === 1 ? "" : c + " \\times "}${qt}^n`;
+      rep = q === 1 ? 2 : (c > 0) === (q > 1) ? 0 : 1;
+      sol = q === 1 ? `$${qt}^n = 1$ pour tout $n$ : la suite est **constante**, égale à $${c}$.` : `$u_{n+1} - u_n = ${c} \\times ${qt}^n(${qt} - 1)$. Le signe est celui de $${c} \\times (${qt} - 1)$, ${rep === 0 ? "positif" : "négatif"} : la suite est **${R[rep]}**.`;
+    } else if (t === "quot") {
+      const a = rand(1, 6), b = rand(1, 6);
+      ex = `u_n = \\dfrac{${a === 1 ? "" : a}n + ${b}}{n + 1}`;
+      rep = a > b ? 0 : a < b ? 1 : 2;
+      sol = `$u_{n+1} - u_n = \\dfrac{${a}(n + 1) + ${b}}{n + 2} - \\dfrac{${a}n + ${b}}{n + 1} = \\dfrac{${a - b}}{(n + 1)(n + 2)}$` + (a === b ? ` $= 0$ : la suite est **constante** (égale à $${a}$).` : `, du signe de $${a - b}$ : la suite est **${R[rep]}**.`);
+    } else {
+      const [g, s, nom] = pick([["n^2 + 1", 0, "positif"], ["-\\dfrac{1}{n + 1}", 1, "négatif"], ["2^n", 0, "positif"], ["-n^2 - 3", 1, "négatif"], ["(-1)^n", 3, "alternativement positif et négatif"], ["0", 2, "nul"], ["3 - n", 3, "positif pour n < 3 puis négatif pour n > 3"], ["\\sqrt{n + 1}", 0, "positif"]]);
+      const u0 = rand(-3, 5);
+      ex = `u_0 = ${u0} \\text{ et } u_{n+1} = u_n + ${g}`.replace("+ -", "- ").replace("u_n + 0", "u_n");
+      rep = s;
+      sol = `$u_{n+1} - u_n = ${g}$, qui est ${nom.replace("n < 3", "$n < 3$").replace("n > 3", "$n > 3$")} : la suite ${rep === 3 ? "n'est **ni croissante ni décroissante**" : `est **${R[rep]}**`}.`;
+    }
+    const ms = { choix: ["La suite est croissante", "La suite est décroissante", "La suite est constante", "La suite n'est ni croissante ni décroissante"], attendu: rep };
+    return {
+      enonce: `Étudie le sens de variation de la suite définie, pour tout entier naturel $n$, par $${ex}$.`,
+      mode: "choix", choix: ms.choix, attendu: ms.attendu,
+      aides: ["Calcule $u_{n+1} - u_n$ et étudie son signe pour $n \\geqslant 0$.", "Si $u_{n+1} - u_n \\geqslant 0$ pour tout $n$, la suite est croissante ; si c'est $\\leqslant 0$, elle est décroissante.", "Si la différence change de signe, la suite n'est ni croissante ni décroissante : vérifie sur les premiers termes."],
+      solution: sol
+    };
+  };
+
+  GEN["rec-bornes"] = function () {
+    const t = pick(["hyper", "hyper", "geo", "carre", "alterne", "affine"]);
+    let ex, bonne, fausses, sol;
+    if (t === "hyper") {
+      const a = rand(-3, 4), b = rand(2, 6);
+      ex = `u_n = ${a === 0 ? "" : a + " + "}\\dfrac{${b}}{n + 1}`;
+      bonne = `$(u_n)$ est minorée par $${a}$ et majorée par $${a + b}$`;
+      fausses = [`$(u_n)$ est majorée par $${a}$`, `$(u_n)$ n'est pas majorée`, `$(u_n)$ est minorée par $${a + b}$`];
+      sol = `$0 < \\dfrac{${b}}{n + 1} \\leqslant ${b}$ (la plus grande valeur est atteinte pour $n = 0$), donc $${a} < u_n \\leqslant ${a + b}$ : la suite est bornée.`;
+    } else if (t === "geo") {
+      const a = rand(2, 9), b = rand(1, a - 1), [q, qt] = pick([[0.5, "0{,}5"], [0.9, "0{,}9"], [0.8, "0{,}8"], [0.25, "0{,}25"]]);
+      ex = `u_n = ${a} - ${b === 1 ? "" : b + " \\times "}${qt}^n`;
+      bonne = `$(u_n)$ est minorée par $${a - b}$ et majorée par $${a}$`;
+      fausses = [`$(u_n)$ est majorée par $${a - b}$`, `$(u_n)$ est minorée par $${a}$`, `$(u_n)$ n'est pas minorée`];
+      sol = `$0 < ${qt}^n \\leqslant 1$, donc $0 < ${b} \\times ${qt}^n \\leqslant ${b}$ et $${a - b} \\leqslant u_n < ${a}$.`;
+    } else if (t === "carre") {
+      const c = rand(-5, 5);
+      ex = `u_n = n^2${c === 0 ? "" : " " + sg(c)}`;
+      bonne = `$(u_n)$ est minorée par $${c}$ mais n'est pas majorée`;
+      fausses = [`$(u_n)$ est bornée`, `$(u_n)$ est majorée par $${c}$`, `$(u_n)$ n'est pas minorée`];
+      sol = `$n^2 \\geqslant 0$, donc $u_n \\geqslant ${c}$ : la suite est minorée. Mais $n^2$ dépasse n'importe quel nombre $M$ (dès que $n > \\sqrt{M}$) : elle n'est pas majorée.`;
+    } else if (t === "alterne") {
+      const k = rand(2, 9), a = rand(-3, 3);
+      ex = `u_n = ${a === 0 ? "" : a + " + "}${k}(-1)^n`;
+      bonne = `$(u_n)$ est bornée, entre $${a - k}$ et $${a + k}$`;
+      fausses = [`$(u_n)$ n'est pas bornée`, `$(u_n)$ est croissante`, `$(u_n)$ est majorée par $${a - k}$`];
+      sol = `$(-1)^n$ vaut $1$ ou $-1$, donc $u_n$ vaut $${a + k}$ ou $${a - k}$ : $${a - k} \\leqslant u_n \\leqslant ${a + k}$. La suite est bornée, mais ni croissante ni décroissante.`;
+    } else {
+      const a = randNZ(-4, 4), b = rand(-5, 8);
+      ex = `u_n = ${a === 1 ? "" : a === -1 ? "-" : a}n ${sg(b)}`.replace(" + 0", "").replace(" - 0", "");
+      bonne = a > 0 ? `$(u_n)$ est minorée par $${b}$ mais n'est pas majorée` : `$(u_n)$ est majorée par $${b}$ mais n'est pas minorée`;
+      fausses = a > 0 ? [`$(u_n)$ est majorée par $${b}$`, `$(u_n)$ est bornée`, `$(u_n)$ n'est pas minorée`] : [`$(u_n)$ est minorée par $${b}$`, `$(u_n)$ est bornée`, `$(u_n)$ n'est pas majorée`];
+      sol = `La suite est arithmétique de raison $${a}$, ${a > 0 ? "croissante" : "décroissante"} : son plus ${a > 0 ? "petit" : "grand"} terme est $u_0 = ${b}$, et elle ${a > 0 ? "dépasse n'importe quel nombre" : "descend sous n'importe quel nombre"}.`;
+    }
+    const ms = melangeChoix(bonne, fausses);
+    return {
+      enonce: `On considère la suite définie pour tout entier naturel $n$ par $${ex}$. Quelle affirmation est vraie ?`,
+      mode: "choix", choix: ms.choix, attendu: ms.attendu,
+      aides: ["$(u_n)$ est **majorée** par $M$ si $u_n \\leqslant M$ pour tout $n$, **minorée** par $m$ si $u_n \\geqslant m$ pour tout $n$.", "Encadre le morceau qui dépend de $n$, puis reconstruis $u_n$.", "Calcule les premiers termes pour vérifier."],
+      solution: sol
+    };
+  };
+
+  GEN["rec-python"] = function () {
+    const t = pick(["terme", "seuil", "seuil", "somme"]);
+    if (t === "terme") {
+      const a = pick([2, 3, -1, 0.5]), b = randNZ(-4, 5), u0 = rand(-2, 6), n = rand(3, 5);
+      let u = u0; for (let i = 0; i < n; i++) u = a * u + b;
+      return {
+        enonce: `Quelle valeur affiche ce programme Python ?\n\n\`\`\`python\nu = ${u0}\nfor i in range(${n}):\n    u = ${a} * u ${b < 0 ? "- " + -b : "+ " + b}\nprint(u)\n\`\`\``,
+        mode: "nombre", prefixe: "Affichage :", attendu: u,
+        aides: [`$\\texttt{range(${n})}$ fait $${n}$ tours de boucle : $i$ prend les valeurs $0$ à $${n - 1}$.`, `À chaque tour, $u$ est remplacé par $${fr(a)}u ${sg(b)}$ : le programme calcule $u_{${n}}$ pour $u_0 = ${u0}$.`, "Calcule les termes un par un."],
+        solution: `Le programme calcule les termes de $u_{n+1} = ${tsAff(a, b, "u_n")}$ : ${(() => { const v = [u0]; for (let i = 0; i < n; i++) v.push(a * v[i] + b); return v.map((x) => `$${fr(x)}$`).join(" ; "); })()}. Il affiche $${fr(u)}$.`
+      };
+    }
+    if (t === "seuil") {
+      const mode = pick(["mult", "mult", "baisse", "affine"]);
+      let u0, S, pas, cond, maj, maj2;
+      if (mode === "mult") { u0 = pick([50, 100, 200, 500, 1000]); const [q, qs] = pick([[1.1, "1.1"], [1.2, "1.2"], [1.5, "1.5"], [2, "2"], [1.05, "1.05"], [1.3, "1.3"]]); S = u0 * pick([2, 3, 4, 5, 10]); pas = (u) => q * u; maj = `u = ${qs} * u`; cond = `u < ${S}`; maj2 = `$u_{n+1} = ${qs.replace(".", "{,}")}u_n$`; }
+      else if (mode === "baisse") { u0 = pick([100, 200, 1000, 500]); const [q, qs] = pick([[0.9, "0.9"], [0.8, "0.8"], [0.5, "0.5"], [0.75, "0.75"], [0.95, "0.95"]]); S = u0 / pick([2, 4, 5, 10]); pas = (u) => q * u; maj = `u = ${qs} * u`; cond = `u > ${S}`; maj2 = `$u_{n+1} = ${qs.replace(".", "{,}")}u_n$`; }
+      else { u0 = rand(1, 5); const a = pick([2, 3]), b = rand(1, 5); S = pick([100, 200, 500, 1000]); pas = (u) => a * u + b; maj = `u = ${a} * u + ${b}`; cond = `u < ${S}`; maj2 = `$u_{n+1} = ${a}u_n + ${b}$`; }
+      let u = u0, n = 0; const test = mode === "baisse" ? (v) => v > S : (v) => v < S;
+      while (test(u)) { u = pas(u); n++; }
+      return {
+        enonce: `Quelle valeur affiche ce programme Python ?\n\n\`\`\`python\nn = 0\nu = ${u0}\nwhile ${cond}:\n    ${maj}\n    n = n + 1\nprint(n)\n\`\`\``,
+        mode: "nombre", prefixe: "Affichage :", attendu: n,
+        erreurs: [{ valeur: n - 1, message: "La boucle s'arrête dès que la condition devient fausse : compte aussi le dernier passage." }],
+        aides: [`Le programme calcule les termes de ${maj2} avec $u_0 = ${u0}$, et compte les étapes.`, `Il s'arrête au premier rang $n$ pour lequel la condition $\\texttt{${cond}}$ est fausse.`, "Calcule les termes un par un (ou utilise le mode suite de la calculatrice)."],
+        solution: `On calcule $u_1$, $u_2$… : $u_{${n - 1}} \\approx ${nb(+(u0 * 0 + (() => { let v = u0; for (let i = 0; i < n - 1; i++) v = pas(v); return v; })()).toFixed(2))}$ vérifie encore $\\texttt{${cond}}$, mais $u_{${n}} \\approx ${nb(+u.toFixed(2))}$ non. Le programme affiche $${n}$ : c'est le **seuil** cherché.`
+      };
+    }
+    const [ex, fn, nom] = pick([["2*k + 1", (k) => 2 * k + 1, "2k + 1"], ["k**2", (k) => k * k, "k^2"], ["k", (k) => k, "k"], ["2**k", (k) => 2 ** k, "2^k"], ["3*k - 1", (k) => 3 * k - 1, "3k - 1"], ["k*(k + 1)", (k) => k * (k + 1), "k(k + 1)"]]);
+    const d = rand(0, 1), n = rand(4, 7);
+    let s = 0; for (let k = d; k <= n; k++) s += fn(k);
+    return {
+      enonce: `Quelle valeur affiche ce programme Python ?\n\n\`\`\`python\ns = 0\nfor k in range(${d}, ${n + 1}):\n    s = s + ${ex}\nprint(s)\n\`\`\``,
+      mode: "nombre", prefixe: "Affichage :", attendu: s,
+      erreurs: [{ valeur: s - fn(n), message: `$\\texttt{range(${d}, ${n + 1})}$ va jusqu'à $${n}$ inclus (et s'arrête avant $${n + 1}$).` }],
+      aides: [`$\\texttt{range(${d}, ${n + 1})}$ donne $k = ${d}$, …, $${n}$ (la borne $${n + 1}$ est exclue).`, `Le programme calcule $\\displaystyle\\sum_{k=${d}}^{${n}} ${nom}$.`, "Additionne les termes un par un."],
+      solution: `$s = ${Array.from({ length: n - d + 1 }, (_, i) => fn(i + d)).join(" + ")} = ${s}$.`
+    };
+  };
+
   /* Séries « flash » d'un thème : mélange de ses générateurs */
   const THEMES = {
     "am-flash-cn": ["am-comparer", "am-fractions", "am-puissances", "am-ecritures", "am-ordre-grandeur", "am-coherence", "auto-conversions"],
@@ -13137,7 +13524,7 @@
 
 
   /* Une « erreur connue » ne doit jamais coïncider avec la bonne réponse (à la tolérance près) */
-  Object.keys(GEN).filter((k) => /^(auto|ld|am|cd|ar|cl|fa|ve|st|vx|tc|co|dr|fr|sg|pc|ec|sy|su|s2|pi|s5|d1|tr|d2|vr|ps|ex|va|sc|gr|sm|ea|tsu|tag|tlf|tcb|tsd|tdc|tln|tcv|tlg|tpe|tin|tld|trr|tec)-/.test(k)).forEach((k) => {
+  Object.keys(GEN).filter((k) => /^(auto|ld|am|cd|ar|cl|fa|ve|st|vx|tc|co|dr|fr|sg|pc|ec|sy|su|s2|pi|s5|d1|tr|d2|vr|ps|ex|va|sc|gr|sm|ea|tsu|tag|tlf|tcb|tsd|tdc|tln|tcv|tlg|tpe|tin|tld|trr|tec|rec)-/.test(k)).forEach((k) => {
     const g = GEN[k];
     GEN[k] = (i) => { const q = g(i); if (q.erreurs) q.erreurs = q.erreurs.filter((e) => Math.abs(e.valeur - q.attendu) >= (q.tolerance || 1e-9)); return q; };
   });
