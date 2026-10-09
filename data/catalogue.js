@@ -398,7 +398,7 @@ window.CATALOGUE = {
           id: "terminale-spe-espace-2",
           numero: 8,
           titre: "Géométrie dans l'espace 2 : orthogonalité et distances",
-          statut: "bientot",
+          statut: "disponible",
           drive: ""
         },
         {

@@ -14899,6 +14899,244 @@
     };
   };
 
+  /* ---------- Terminale spécialité, chapitre 8 : géométrie dans l'espace 2 (préfixe pse-) ---------- */
+  // Vecteurs « jolis » dont la norme est entière : (1 ; 2 ; 2) → 3, (2 ; 3 ; 6) → 7…
+  const PSE_JOLIS = [[1, 2, 2, 3], [2, 3, 6, 7], [1, 4, 8, 9], [4, 4, 7, 9], [2, 6, 9, 11], [6, 6, 7, 11], [2, 1, 2, 3], [2, 2, 1, 3], [3, 4, 12, 13], [0, 3, 4, 5], [3, 0, 4, 5], [4, 3, 0, 5]];
+  const pseJoli = () => { const v = pick(PSE_JOLIS), s = [pick([1, -1]), pick([1, -1]), pick([1, -1])], o = shuffle([0, 1, 2]); const u = o.map((i, k) => v[i] * s[k]); return { u, n: v[3] }; };
+  // Équation cartésienne ax + by + cz + d = 0 écrite proprement
+  const pseEq = (n, d) => { let s = ""; ["x", "y", "z"].forEach((v, i) => { const c = n[i]; if (!c) return; const a = Math.abs(c), t = (a === 1 ? "" : a) + v; s += s ? ` ${c < 0 ? "-" : "+"} ${t}` : `${c < 0 ? "-" : ""}${t}`; }); return `${s}${d ? ` ${d < 0 ? "-" : "+"} ${Math.abs(d)}` : ""} = 0`; };
+
+  FIGURES["pse-plan"] = () => {
+    const P = [[30, 196], [210, 196], [290, 138], [110, 138]];
+    let s = `<svg class="graph" viewBox="0 0 320 230" role="img" aria-label="Un plan P, un point M hors du plan, son projeté orthogonal H sur P, et un vecteur normal n perpendiculaire au plan"><polygon class="g-rect" style="fill-opacity:0.5" points="${P.map((p) => p.join(",")).join(" ")}"/>`;
+    s += `<text class="g-clabel" x="40" y="186">P</text>`;
+    s += `<line class="g-guide" x1="160" y1="40" x2="160" y2="167"/><circle class="g-point" cx="160" cy="40" r="4"/><circle class="g-point" cx="160" cy="167" r="4"/>`;
+    s += `<path class="g-curve g-curve-1" d="M246 167L246 96" style="fill:none"/><path class="g-end g-curve-1" d="M246 90L240.5 101L251.5 101Z"/>`;
+    s += `<path d="M160 157L170 157L170 167" style="fill:none;stroke:var(--doux);stroke-width:1.2"/>`;
+    s += `<text class="g-clabel" x="168" y="44">M</text><text class="g-clabel" x="146" y="182">H</text><text class="g-clabel g-curve-1" x="254" y="112">n</text><text class="g-clabel g-curve-1" x="253" y="99" style="font-size:10px">→</text>`;
+    return s + `<text class="g-label" x="152" y="108" text-anchor="end">distance MH</text></svg>`;
+  };
+
+  GEN["pse-scalaire"] = function () {
+    const t = pick(["scal", "scal", "norme", "angle"]);
+    if (t === "scal") {
+      const u = espRand(5), v = espRand(5), p = espScal(u, v);
+      return {
+        enonce: `Dans un repère orthonormé, on donne $\\vec{u}${espT(u)}$ et $\\vec{v}${espT(v)}$. Calcule $\\vec{u} \\cdot \\vec{v}$.`,
+        mode: "nombre", prefixe: "$\\vec{u} \\cdot \\vec{v} =$", attendu: p,
+        erreurs: [{ valeur: u[0] * v[0] + u[1] * v[1], message: "N'oublie pas la troisième coordonnée : $zz'$." }],
+        aides: ["Dans un repère orthonormé : $\\vec{u} \\cdot \\vec{v} = xx' + yy' + zz'$.", `$${u[0]} \\times ${par(v[0])} = ${u[0] * v[0]}$.`, "Fais de même pour $y$ et pour $z$, puis additionne."],
+        solution: `$\\vec{u} \\cdot \\vec{v} = ${u[0]} \\times ${par(v[0])} + ${par(u[1])} \\times ${par(v[1])} + ${par(u[2])} \\times ${par(v[2])} = ${p}$.`
+      };
+    }
+    if (t === "norme") {
+      const A = espRand(4), J = pseJoli(), B = A.map((x, i) => x + J.u[i]);
+      return {
+        enonce: `Dans un repère orthonormé, on donne $A${espT(A)}$ et $B${espT(B)}$. Calcule la distance $AB$.`,
+        mode: "nombre", prefixe: "$AB =$", attendu: J.n,
+        erreurs: [{ valeur: J.n * J.n, message: "Ça, c'est $AB^2$ : prends la racine carrée." }],
+        aides: ["Dans un repère orthonormé, $AB = \\sqrt{x^2 + y^2 + z^2}$ où $(x\\,;y\\,;z)$ sont les coordonnées de $\\overrightarrow{AB}$.", `$\\overrightarrow{AB}${espT(J.u)}$.`, `$AB^2 = ${J.u.map((x) => par(x) + "^2").join(" + ")} = ${J.n * J.n}$.`],
+        solution: `$\\overrightarrow{AB}${espT(J.u)}$, donc $AB = \\sqrt{${J.u.map((x) => x * x).join(" + ")}} = \\sqrt{${J.n * J.n}} = ${J.n}$.`
+      };
+    }
+    const J1 = pseJoli(), k = pick([1, 2, 3]), u = J1.u.map((x) => k * x), nu = J1.n * k, J2 = pseJoli(), p = espScal(u, J2.u);
+    const cos = p / (nu * J2.n);
+    return {
+      enonce: `Dans un repère orthonormé, $\\vec{u}${espT(u)}$ et $\\vec{v}${espT(J2.u)}$. On sait que $\\|\\vec{u}\\| = ${nu}$ et $\\|\\vec{v}\\| = ${J2.n}$. Calcule $\\cos(\\vec{u}, \\vec{v})$ (valeur exacte, sous forme de fraction si besoin).`,
+      mode: "nombre", prefixe: "$\\cos =$", attendu: cos,
+      erreurs: tsApprox(cos),
+      aides: ["$\\vec{u} \\cdot \\vec{v} = \\|\\vec{u}\\| \\times \\|\\vec{v}\\| \\times \\cos(\\vec{u}, \\vec{v})$.", `$\\vec{u} \\cdot \\vec{v} = ${p}$ (avec les coordonnées).`, `$\\cos = \\dfrac{${p}}{${nu} \\times ${J2.n}}$.`],
+      solution: `$\\vec{u} \\cdot \\vec{v} = ${p}$, donc $\\cos(\\vec{u}, \\vec{v}) = \\dfrac{${p}}{${nu * J2.n}} = ${frac(p, nu * J2.n)}$.`
+    };
+  };
+
+  GEN["pse-orthogonaux"] = function () {
+    let u, v, i;
+    do { u = espRand(4); v = espRand(4); i = rand(0, 2); } while (u[i] === 0 || (espScal(u, v) - u[i] * v[i]) % u[i] !== 0);
+    const m = -(espScal(u, v) - u[i] * v[i]) / u[i];
+    const vt = `(${v.map((x, k) => (k === i ? "m" : nb(x))).join("\\,;")})`;
+    return {
+      enonce: `Dans un repère orthonormé, pour quelle valeur de $m$ les vecteurs $\\vec{u}${espT(u)}$ et $\\vec{v}${vt}$ sont-ils orthogonaux ?`,
+      mode: "nombre", prefixe: "$m =$", attendu: m,
+      erreurs: [{ valeur: -m, message: "Attention au signe en isolant $m$." }],
+      aides: ["$\\vec{u}$ et $\\vec{v}$ sont orthogonaux si et seulement si $\\vec{u} \\cdot \\vec{v} = 0$.", `$\\vec{u} \\cdot \\vec{v} = ${v.map((x, k) => `${par(u[k])} \\times ${k === i ? "m" : par(x)}`).join(" + ")}$.`, "Résous l'équation du premier degré obtenue."],
+      solution: `$\\vec{u} \\cdot \\vec{v} = ${u[i]}m ${sg(espScal(u, v) - u[i] * v[i])} = 0$, donc $m = ${m}$.`.replace("= 1m", "= m").replace("= -1m", "= -m")
+    };
+  };
+
+  GEN["pse-normal"] = function () {
+    const t = pick(["lire", "lire", "trois"]);
+    if (t === "lire") {
+      let n; do { n = espRandNZ(5); } while (n.filter((x) => x !== 0).length < 2);
+      const d = rand(-9, 9), k = pick([2, -1, 3, -2]);
+      const ms = melangeChoix(`$${espT(n.map((x) => k * x))}$`, [`$${espT([n[0], n[1], d])}$`, `$${espT([n[1], n[0], n[2]])}$`, `$${espT([n[0], -n[1], n[2]])}$`, `$${espT([d, n[1], n[2]])}$`].filter((x) => x !== `$${espT(n.map((y) => k * y))}$`));
+      return {
+        enonce: `Le plan $\\mathcal{P}$ a pour équation $${pseEq(n, d)}$. Lequel de ces vecteurs est normal à $\\mathcal{P}$ ?`,
+        mode: "choix", choix: ms.choix, attendu: ms.attendu,
+        aides: ["Le plan d'équation $ax + by + cz + d = 0$ a pour vecteur normal $\\vec{n}(a\\,;b\\,;c)$.", "Tout vecteur colinéaire (non nul) à un vecteur normal est aussi normal.", `Ici $\\vec{n}${espT(n)}$ : cherche un multiple.`],
+        solution: `Un vecteur normal est $\\vec{n}${espT(n)}$ (les coefficients de $x$, $y$, $z$). Le vecteur $${espT(n.map((x) => k * x))}$ $= ${k === -1 ? "-" : k}\\vec{n}$ lui est colinéaire : il est aussi normal à $\\mathcal{P}$.`
+      };
+    }
+    let u, v; do { u = espRand(3); v = espRand(3); } while (espCol(u, v) || espNul(u) || espNul(v));
+    let n = espCroix(u, v); const g = n.reduce((a, b) => pgcd(a, Math.abs(b)), 0) || 1; n = n.map((x) => x / g);
+    const ok = (w) => espScal(w, u) === 0 && espScal(w, v) === 0 && !espNul(w);
+    const pieges = shuffle([[n[0], n[1], -n[2]], [n[1], n[0], n[2]], [-n[0], n[1], n[2]], [n[0] + 1, n[1], n[2]], u, v, [n[0], n[2], n[1]]]).filter((w) => !ok(w) && !espNul(w));
+    const ms = melangeChoix(`$${espT(n)}$`, pieges.map((w) => `$${espT(w)}$`));
+    return {
+      enonce: `Le plan $\\mathcal{P}$ est dirigé par $\\vec{u}${espT(u)}$ et $\\vec{v}${espT(v)}$. Lequel de ces vecteurs est normal à $\\mathcal{P}$ ?`,
+      mode: "choix", choix: ms.choix, attendu: ms.attendu,
+      aides: ["Un vecteur normal au plan est orthogonal aux deux vecteurs qui le dirigent.", "Teste chaque proposition : il faut $\\vec{n} \\cdot \\vec{u} = 0$ **et** $\\vec{n} \\cdot \\vec{v} = 0$.", "Un seul test ne suffit pas."],
+      solution: `$\\vec{n}${espT(n)}$ convient : $\\vec{n} \\cdot \\vec{u} = ${espScal(n, u)}$ et $\\vec{n} \\cdot \\vec{v} = ${espScal(n, v)}$. Il est orthogonal à deux vecteurs non colinéaires du plan, donc normal au plan.`
+    };
+  };
+
+  GEN["pse-equation"] = function () {
+    let n; do { n = espRandNZ(4); } while (n.filter((x) => x !== 0).length < 2);
+    const A = espRand(4), d = -espScal(n, A), t = pick(["d", "d", "m"]);
+    if (t === "d") return {
+      enonce: `Le plan $\\mathcal{P}$ passe par $A${espT(A)}$ et a pour vecteur normal $\\vec{n}${espT(n)}$. Son équation s'écrit $${pseEq(n, 0).replace(" = 0", "")} + d = 0$. Que vaut $d$ ?`,
+      mode: "nombre", prefixe: "$d =$", attendu: d,
+      erreurs: [{ valeur: -d, message: "Attention au signe : $A$ vérifie l'équation, donc $" + "ax_A + by_A + cz_A + d = 0$." }],
+      aides: ["Un vecteur normal $\\vec{n}(a\\,;b\\,;c)$ donne une équation $ax + by + cz + d = 0$.", "$A$ appartient au plan : ses coordonnées vérifient l'équation.", `$${n[0]} \\times ${par(A[0])} + ${par(n[1])} \\times ${par(A[1])} + ${par(n[2])} \\times ${par(A[2])} + d = 0$.`],
+      solution: `$${espScal(n, A)} + d = 0$, donc $d = ${d}$ : $\\mathcal{P} : ${pseEq(n, d)}$.`
+    };
+    const i = [0, 1, 2].find((k) => n[k] !== 0), j = [0, 1, 2].filter((k) => k !== i)[rand(0, 1)];
+    const M = A.map((x) => x), dd = d;
+    // M a une coordonnée inconnue (pas celle d'indice i) ; on fixe les autres et on calcule
+    const autre = [0, 1, 2].find((k) => k !== i && k !== j); M[j] = rand(-4, 4); M[autre] = rand(-4, 4);
+    const reste = -(dd + n[j] * M[j] + n[autre] * M[autre]);
+    if (reste % n[i] !== 0) return GEN["pse-equation"]();
+    M[i] = reste / n[i];
+    const Mt = `(${M.map((x, k) => (k === i ? "m" : nb(x))).join("\\,;")})`;
+    return {
+      enonce: `Le plan $\\mathcal{P}$ a pour équation $${pseEq(n, dd)}$. Pour quelle valeur de $m$ le point $M${Mt}$ appartient-il à $\\mathcal{P}$ ?`,
+      mode: "nombre", prefixe: "$m =$", attendu: M[i],
+      aides: ["Un point appartient au plan si ses coordonnées vérifient l'équation.", "Remplace $x$, $y$, $z$ par les coordonnées de $M$ (avec $m$).", "Résous l'équation du premier degré obtenue."],
+      solution: `En remplaçant : $${n[i]}m ${sg(n[j] * M[j] + n[autre] * M[autre] + dd)} = 0$, donc $m = ${M[i]}$.`.replace("$1m", "$m").replace("$-1m", "$-m")
+    };
+  };
+
+  GEN["pse-intersection"] = function () {
+    let n; do { n = espRandNZ(3); } while (n.filter((x) => x !== 0).length < 2);
+    let u; do { u = espRandNZ(3); } while (espScal(u, n) === 0);
+    const I = espRand(4), d = -espScal(n, I), t0 = randNZ(-3, 3), P = I.map((x, i) => x - t0 * u[i]);
+    const q = pick(["t", "point"]);
+    const sys = espParam(P, u, "t");
+    if (q === "t") return {
+      enonce: `La droite $\\Delta$ a pour représentation paramétrique $${sys}$ ($t \\in \\mathbb{R}$) et le plan $\\mathcal{P}$ a pour équation $${pseEq(n, d)}$. Pour quelle valeur de $t$ obtient-on leur point d'intersection ?`,
+      mode: "nombre", prefixe: "$t =$", attendu: t0,
+      aides: ["Le point d'intersection est sur la droite : ses coordonnées s'écrivent avec $t$.", "Il est aussi sur le plan : on remplace $x$, $y$, $z$ dans l'équation du plan.", "On obtient une équation du premier degré en $t$."],
+      solution: `En remplaçant dans l'équation du plan, on obtient $${espScal(n, u)}t ${sg(espScal(n, P) + d)} = 0$, d'où $t = ${t0}$. Le point d'intersection est $${espT(I)}$.`.replace("$1t", "$t").replace("$-1t", "$-t")
+    };
+    const ms = melangeChoix(`$${espT(I)}$`, [`$${espT(P)}$`, `$${espT(P.map((x, i) => x - t0 * u[i]))}$`, `$${espT(I.map((x, i) => x + u[i]))}$`]);
+    return {
+      enonce: `La droite $\\Delta$ a pour représentation paramétrique $${sys}$ ($t \\in \\mathbb{R}$) et le plan $\\mathcal{P}$ a pour équation $${pseEq(n, d)}$. Quel est leur point d'intersection ?`,
+      mode: "choix", choix: ms.choix, attendu: ms.attendu,
+      aides: ["Remplace $x$, $y$, $z$ de la représentation paramétrique dans l'équation du plan.", "Résous l'équation en $t$.", "Remplace la valeur de $t$ trouvée dans la représentation paramétrique."],
+      solution: `L'équation du plan devient $${espScal(n, u)}t ${sg(espScal(n, P) + d)} = 0$, donc $t = ${t0}$, et le point d'intersection est $${espT(I)}$.`.replace("$1t", "$t").replace("$-1t", "$-t")
+    };
+  };
+
+  GEN["pse-projete"] = function () {
+    const J = pseJoli(), n = J.u, H = espRand(3), d = -espScal(n, H), k = J.n >= 9 ? pick([1, -1]) : randNZ(-2, 2), M = H.map((x, i) => x + k * n[i]);
+    const q = pick(["dist", "dist", "H"]);
+    if (q === "dist") return {
+      enonce: `Dans un repère orthonormé, le plan $\\mathcal{P}$ a pour équation $${pseEq(n, d)}$, et $M${espT(M)}$. On admet que le projeté orthogonal de $M$ sur $\\mathcal{P}$ est $H${espT(H)}$. Calcule la distance du point $M$ au plan $\\mathcal{P}$.`,
+      mode: "nombre", prefixe: "Distance :", attendu: Math.abs(k) * J.n,
+      erreurs: [{ valeur: k * k * J.n * J.n, message: "Ça, c'est $MH^2$ : prends la racine carrée." }],
+      aides: ["La distance de $M$ au plan est la distance $MH$, où $H$ est le projeté orthogonal (le point du plan le plus proche de $M$).", `$\\overrightarrow{HM}${espT(M.map((x, i) => x - H[i]))}$.`, "$MH = \\sqrt{x^2 + y^2 + z^2}$ avec les coordonnées de $\\overrightarrow{HM}$."],
+      solution: `$\\overrightarrow{HM}${espT(M.map((x, i) => x - H[i]))} = ${k}\\vec{n}$, donc $MH = \\sqrt{${M.map((x, i) => (x - H[i]) ** 2).join(" + ")}} = ${Math.abs(k) * J.n}$.`
+    };
+    const ms = melangeChoix(`$H${espT(H)}$`, [`$H${espT(M.map((x, i) => x + k * n[i]))}$`, `$H${espT(H.map((x, i) => x + n[i]))}$`, `$H${espT(n)}$`]);
+    return {
+      enonce: `Dans un repère orthonormé, le plan $\\mathcal{P}$ a pour équation $${pseEq(n, d)}$ et $M${espT(M)}$. Quel est le projeté orthogonal $H$ de $M$ sur $\\mathcal{P}$ ?`,
+      mode: "choix", choix: ms.choix, attendu: ms.attendu,
+      aides: [`$H$ est sur la droite passant par $M$ de vecteur directeur $\\vec{n}${espT(n)}$ (normal au plan) : $H = M + t\\vec{n}$.`, "On cherche $t$ pour que $H$ soit dans le plan : on remplace dans l'équation.", `On trouve $t = ${-k}$.`],
+      solution: `La droite $(MH)$ a pour représentation $${espParam(M, n, "t")}$. En remplaçant dans l'équation du plan : $${J.n * J.n}t ${sg(espScal(n, M) + d)} = 0$, donc $t = ${-k}$ et $H${espT(H)}$.`
+    };
+  };
+
+  GEN["pse-positions"] = function () {
+    const t = pick(["pp", "pp", "dp", "dp"]);
+    let n1; do { n1 = espRandNZ(3); } while (n1.filter((x) => x !== 0).length < 2);
+    if (t === "pp") {
+      const r = pick(["par", "perp", "sec"]);
+      let n2; const kp = pick([2, -1, -2, 3]);
+      if (r === "par") n2 = n1.map((x) => kp * x);
+      else if (r === "perp") { do { n2 = espRandNZ(3); } while (espScal(n1, n2) !== 0 || espCol(n1, n2)); }
+      else { do { n2 = espRandNZ(3); } while (espScal(n1, n2) === 0 || espCol(n1, n2)); }
+      const d1 = rand(-6, 6), d2 = r === "par" ? kp * d1 + pick([1, -2, 3]) : rand(-6, 6);
+      const C = ["Ils sont parallèles (et distincts)", "Ils sont perpendiculaires", "Ils sont sécants, mais pas perpendiculaires"];
+      const rep = r === "par" ? 0 : r === "perp" ? 1 : 2;
+      return {
+        enonce: `Quelle est la position relative des plans $\\mathcal{P}_1 : ${pseEq(n1, d1)}$ et $\\mathcal{P}_2 : ${pseEq(n2, d2)}$ ?`,
+        mode: "choix", choix: C, attendu: rep,
+        aides: ["Lis un vecteur normal de chaque plan : les coefficients de $x$, $y$, $z$.", "Vecteurs normaux colinéaires : plans parallèles. Vecteurs normaux orthogonaux : plans perpendiculaires.", "Calcule le produit scalaire des deux vecteurs normaux."],
+        solution: `$\\vec{n_1}${espT(n1)}$ et $\\vec{n_2}${espT(n2)}$. ${rep === 0 ? "Ils sont colinéaires : les plans sont parallèles, et leurs équations ne sont pas proportionnelles, donc ils sont distincts." : rep === 1 ? `$\\vec{n_1} \\cdot \\vec{n_2} = 0$ : les plans sont perpendiculaires.` : `Ils ne sont pas colinéaires (plans sécants) et $\\vec{n_1} \\cdot \\vec{n_2} = ${espScal(n1, n2)} \\neq 0$ (pas perpendiculaires).`}`
+      };
+    }
+    const r = pick(["orth", "par", "sec"]);
+    let u;
+    if (r === "orth") { const ko = pick([1, 2, -1]); u = n1.map((x) => ko * x); }
+    else if (r === "par") { do { u = espRandNZ(3); } while (espScal(u, n1) !== 0); }
+    else { do { u = espRandNZ(3); } while (espScal(u, n1) === 0 || espCol(u, n1)); }
+    if (r === "orth" && !espCol(u, n1)) return GEN["pse-positions"]();
+    const d = rand(-6, 6), P = espRand(3);
+    const dans = espScal(n1, P) + d === 0;
+    const C = ["La droite est orthogonale au plan", "La droite est parallèle au plan (ou contenue dedans)", "La droite coupe le plan sans lui être orthogonale"];
+    const rep = r === "orth" ? 0 : r === "par" ? 1 : 2;
+    return {
+      enonce: `Quelle est la position de la droite $\\Delta : ${espParam(P, u, "t")}$ par rapport au plan $\\mathcal{P} : ${pseEq(n1, d)}$ ?`,
+      mode: "choix", choix: C, attendu: rep,
+      aides: ["Compare le vecteur directeur $\\vec{u}$ de la droite et un vecteur normal $\\vec{n}$ du plan.", "$\\vec{u}$ colinéaire à $\\vec{n}$ : droite orthogonale au plan. $\\vec{u} \\cdot \\vec{n} = 0$ : droite parallèle au plan.", "Sinon, la droite coupe le plan en un point."],
+      solution: `$\\vec{u}${espT(u)}$ et $\\vec{n}${espT(n1)}$. ${rep === 0 ? "Ils sont colinéaires : la droite est orthogonale au plan." : rep === 1 ? `$\\vec{u} \\cdot \\vec{n} = 0$ : la droite est parallèle au plan${dans ? " (et même contenue dedans, car son point de paramètre $0$ vérifie l'équation)" : ""}.` : `$\\vec{u} \\cdot \\vec{n} = ${espScal(u, n1)} \\neq 0$ et ils ne sont pas colinéaires : la droite coupe le plan, sans lui être orthogonale.`}`
+    };
+  };
+
+  GEN["pse-cube"] = function () {
+    const N = Object.keys(ESP_CUBE), a = pick([1, 2, 3, 4, 6]);
+    let p; do { p = shuffle(N).slice(0, 4); } while (p[0] === p[1] || p[2] === p[3]);
+    const [A, B, Cc, D] = p, u = espV(ESP_CUBE[A], ESP_CUBE[B]).map((x) => x * a), v = espV(ESP_CUBE[Cc], ESP_CUBE[D]).map((x) => x * a), s = espScal(u, v);
+    return {
+      enonce: `$ABCDEFGH$ est un cube d'arête $${a}$. En te plaçant dans le repère orthonormé $\\left(A\\,;\\tfrac{1}{${a}}\\overrightarrow{AB},\\tfrac{1}{${a}}\\overrightarrow{AD},\\tfrac{1}{${a}}\\overrightarrow{AE}\\right)$, calcule $\\overrightarrow{${A}${B}} \\cdot \\overrightarrow{${Cc}${D}}$.`.replace(/\\tfrac\{1\}\{1\}/g, ""),
+      figure: espCubeSVG([[ESP_CUBE[A], ESP_CUBE[B], 0], [ESP_CUBE[Cc], ESP_CUBE[D], 1]]),
+      mode: "nombre", prefixe: "Produit scalaire :", attendu: s,
+      aides: [`Dans ce repère, les sommets ont des coordonnées égales à $0$ ou $${a}$ : par exemple $G${espT([a, a, a])}$.`, `$\\overrightarrow{${A}${B}}${espT(u)}$ et $\\overrightarrow{${Cc}${D}}${espT(v)}$.`, "Produit scalaire : $xx' + yy' + zz'$."],
+      solution: `$\\overrightarrow{${A}${B}}${espT(u)}$ et $\\overrightarrow{${Cc}${D}}${espT(v)}$, donc le produit scalaire vaut $${u.map((x, i) => `${par(x)} \\times ${par(v[i])}`).join(" + ")} = ${s}$.${s === 0 ? " Les deux vecteurs sont orthogonaux." : ""}`
+    };
+  };
+
+  GEN["pse-python"] = function () {
+    const t = pick(["scal", "norme", "plan"]);
+    if (t === "scal") {
+      const u = espRand(5), v = espRand(5);
+      return {
+        enonce: `Qu'affiche ce programme ?\n\n\`\`\`python\ndef scal(u, v):\n    return u[0]*v[0] + u[1]*v[1] + u[2]*v[2]\n\nprint(scal([${u.join(", ")}], [${v.join(", ")}]))\n\`\`\``,
+        mode: "nombre", prefixe: "Affichage :", attendu: espScal(u, v),
+        aides: ["La fonction calcule le produit scalaire $xx' + yy' + zz'$.", `$${u[0]} \\times ${par(v[0])} = ${u[0] * v[0]}$.`, "Additionne les trois produits."],
+        solution: `$${u.map((x, i) => `${par(x)} \\times ${par(v[i])}`).join(" + ")} = ${espScal(u, v)}$.`
+      };
+    }
+    if (t === "norme") {
+      const J = pseJoli();
+      return {
+        enonce: `Qu'affiche ce programme ?\n\n\`\`\`python\nfrom math import sqrt\n\ndef norme(u):\n    return sqrt(u[0]**2 + u[1]**2 + u[2]**2)\n\nprint(norme([${J.u.join(", ")}]))\n\`\`\``,
+        mode: "nombre", prefixe: "Affichage :", attendu: J.n,
+        erreurs: [{ valeur: J.n * J.n, message: "N'oublie pas la racine carrée." }],
+        aides: ["La fonction calcule $\\sqrt{x^2 + y^2 + z^2}$ : la norme du vecteur (repère orthonormé).", `$${J.u.map((x) => par(x) + "^2").join(" + ")} = ${J.n * J.n}$.`, "Prends la racine carrée (Python affiche un nombre décimal, avec $\\texttt{.0}$)."],
+        solution: `$\\sqrt{${J.n * J.n}} = ${J.n}$ : le programme affiche $\\texttt{${J.n}.0}$.`
+      };
+    }
+    let n; do { n = espRandNZ(3); } while (n.filter((x) => x !== 0).length < 2);
+    const d = rand(-6, 6), M = espRand(4), val = espScal(n, M) + d;
+    return {
+      enonce: `Le plan $\\mathcal{P}$ a pour équation $${pseEq(n, d)}$. Qu'affiche ce programme ? (Si le résultat est $0$, le point est dans le plan.)\n\n\`\`\`python\ndef f(x, y, z):\n    return ${n[0]}*x + ${n[1]}*y + ${n[2]}*z + ${d}\n\nprint(f(${M.join(", ")}))\n\`\`\``.replace(/\+ -/g, "- "),
+      mode: "nombre", prefixe: "Affichage :", attendu: val,
+      aides: ["Le programme remplace $x$, $y$, $z$ par les coordonnées du point dans le membre de gauche de l'équation.", `$${n[0]} \\times ${par(M[0])} + ${par(n[1])} \\times ${par(M[1])} + ${par(n[2])} \\times ${par(M[2])} + ${par(d)}$.`, "Calcule pas à pas."],
+      solution: `Le programme affiche $${val}$. ${val === 0 ? `Le point $${espT(M)}$ appartient au plan.` : `Ce n'est pas $0$ : le point $${espT(M)}$ n'est pas dans le plan.`}`
+    };
+  };
+
   /* Séries « flash » d'un thème : mélange de ses générateurs */
   const THEMES = {
     "am-flash-cn": ["am-comparer", "am-fractions", "am-puissances", "am-ecritures", "am-ordre-grandeur", "am-coherence", "auto-conversions"],
@@ -14915,7 +15153,7 @@
 
 
   /* Une « erreur connue » ne doit jamais coïncider avec la bonne réponse (à la tolérance près) */
-  Object.keys(GEN).filter((k) => /^(auto|ld|am|cd|ar|cl|fa|ve|st|vx|tc|co|dr|fr|sg|pc|ec|sy|su|s2|pi|s5|d1|tr|d2|vr|ps|ex|va|sc|gr|sm|ea|tsu|tag|tlf|tcb|tsd|tdc|tln|tcv|tlg|tpe|tin|tld|trr|tec|rec|dvx|esp|lsu|bin|lfo|cnt)-/.test(k)).forEach((k) => {
+  Object.keys(GEN).filter((k) => /^(auto|ld|am|cd|ar|cl|fa|ve|st|vx|tc|co|dr|fr|sg|pc|ec|sy|su|s2|pi|s5|d1|tr|d2|vr|ps|ex|va|sc|gr|sm|ea|tsu|tag|tlf|tcb|tsd|tdc|tln|tcv|tlg|tpe|tin|tld|trr|tec|rec|dvx|esp|lsu|bin|lfo|cnt|pse)-/.test(k)).forEach((k) => {
     const g = GEN[k];
     GEN[k] = (i) => { const q = g(i); if (q.erreurs) q.erreurs = q.erreurs.filter((e) => Math.abs(e.valeur - q.attendu) >= (q.tolerance || 1e-9)); return q; };
   });
