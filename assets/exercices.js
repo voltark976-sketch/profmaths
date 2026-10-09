@@ -149,7 +149,8 @@
     (o.bars || []).forEach((b) => { s += `<line class="g-bar" x1="${X(b.x)}" y1="${Y(y0)}" x2="${X(b.x)}" y2="${Y(b.y)}"/>`; });
     (o.marques || []).forEach((m) => { s += `<text class="g-label" x="${X(m.x)}" y="${Y(m.y)}" text-anchor="middle">${m.texte}</text>`; });
     // courbes
-    (o.curves || []).forEach((c, i) => {
+    (o.curves || []).forEach((c, j) => {
+      const i = c.couleur !== undefined ? c.couleur : j; // couleur imposée (deux branches d'une même courbe)
       const n = 160; let d = "";
       for (let k = 0; k <= n; k++) {
         const x = c.a + ((c.b - c.a) * k) / n;
@@ -159,7 +160,7 @@
       if (c.closed !== false) {
         s += `<circle class="g-end g-curve-${i}" cx="${X(c.a)}" cy="${Y(c.f(c.a))}" r="3"/><circle class="g-end g-curve-${i}" cx="${X(c.b)}" cy="${Y(c.f(c.b))}" r="3"/>`;
       }
-      const e = placesC[i];
+      const e = placesC[j];
       if (e) s += `<text class="g-clabel g-curve-${i}" x="${+e[0].toFixed(1)}" y="${+e[1].toFixed(1)}" text-anchor="end">${c.label}</text>`;
     });
     // vecteurs : flèches de (x1 ; y1) à (x2 ; y2), couleur c (0 ou 1), nom affiché au milieu
@@ -14562,6 +14563,216 @@
     };
   };
 
+  /* ---------- Terminale spécialité, chapitre 6 : limites de fonctions (préfixe lfo-) ---------- */
+  const LFO_I = "+\\infty", LFO_MI = "-\\infty";
+  const lfoL = (v) => (v === Infinity ? `$${LFO_I}$` : v === -Infinity ? `$${LFO_MI}$` : v === null ? "Pas de limite" : `$${typeof v === "string" ? v : nb(v)}$`);
+  const lfoChoix = (bonne, pieges) => melangeChoix(lfoL(bonne), [...new Set(pieges.map(lfoL))].filter((x) => x !== lfoL(bonne)).concat([`$${LFO_I}$`, "$0$", `$${LFO_MI}$`, "$1$"].filter((x) => x !== lfoL(bonne))));
+  const lfoTx = (v) => (v === Infinity ? LFO_I : v === -Infinity ? LFO_MI : nb(v));
+  // Hyperbole y = A + B/(x - c) tracée sans sortir de la fenêtre [ymin ; ymax]
+  function lfoHyper(A, B, c, xmin, xmax, ymin, ymax, label) {
+    const f = (x) => A + B / (x - c);
+    const marge = (y) => Math.abs(B / (y - A));
+    const dG = B > 0 ? marge(ymin) : marge(ymax), dD = B > 0 ? marge(ymax) : marge(ymin);
+    return [{ f, a: xmin, b: c - dG, closed: false }, { f, a: c + dD, b: xmax, closed: false, couleur: 0, label, lx: xmax - 0.3, dx: -4, dy: B > 0 ? -8 : 16 }];
+  }
+
+  FIGURES["lfo-asymptotes"] = () => graph({ xmin: -3.5, xmax: 5.5, ymin: -2.5, ymax: 6.5, h: 280, curves: lfoHyper(2, 1.5, 1, -3.3, 5.3, -2.3, 6.3, "C<tspan class=\"sub\" dy=\"3\">f</tspan>"), hlines: [{ y: 2, label: "y = 2" }], chemins: [[[1, -2.4], [1, 6.4]]], marques: [{ x: 1.75, y: 5.9, texte: "x = 1" }], aria: "Courbe de f(x) = 2 + 1,5/(x − 1) : asymptote horizontale y = 2 en plus et moins l'infini, asymptote verticale x = 1" });
+  FIGURES["lfo-croissance"] = () => graph({ xmin: -0.5, xmax: 8.5, ymin: -20, ymax: 420, ystep: 50, yetiq: 100, padL: 34, h: 260, curves: [{ f: (x) => Math.exp(x), a: 0, b: Math.log(410), closed: false, label: "y = eˣ", lx: 5.6, dx: -6, dy: -4 }, { f: (x) => x ** 3, a: 0, b: 7.4, closed: false, label: "y = x³", lx: 7.4, dx: -4, dy: 14 }], aria: "Les courbes de l'exponentielle et de x³ : x³ est au-dessus jusqu'à environ 4,5, puis l'exponentielle la dépasse et s'envole" });
+
+  GEN["lfo-reference"] = function () {
+    const T = pick([
+      ["x^2", "-\\infty", Infinity], ["x^3", "-\\infty", -Infinity], ["x^3", "+\\infty", Infinity], ["\\sqrt{x}", "+\\infty", Infinity],
+      ["\\dfrac{1}{x}", "+\\infty", 0], ["\\dfrac{1}{x}", "-\\infty", 0], ["\\dfrac{1}{x}", "0^+", Infinity], ["\\dfrac{1}{x}", "0^-", -Infinity],
+      ["\\dfrac{1}{x^2}", "0", Infinity], ["\\dfrac{1}{x^3}", "0^-", -Infinity], ["\\dfrac{1}{\\sqrt{x}}", "0^+", Infinity], ["\\dfrac{1}{\\sqrt{x}}", "+\\infty", 0],
+      ["e^x", "-\\infty", 0], ["e^x", "+\\infty", Infinity], ["e^{-x}", "+\\infty", 0], ["e^{-x}", "-\\infty", Infinity], ["x^4", "-\\infty", Infinity], ["\\dfrac{1}{x^2}", "-\\infty", 0]
+    ]);
+    const k = pick([1, 1, 2, -1, -3, 5]), c = pick([0, 0, 2, -1, 4]);
+    const L = T[2] === 0 ? c : T[2] * Math.sign(k);
+    const ex = (T[0].startsWith("\\dfrac{1}") && k !== 1 ? `${k < 0 ? "-" : ""}${T[0].replace("\\dfrac{1}", `\\dfrac{${Math.abs(k)}}`)}` : `${k === 1 ? "" : k === -1 ? "-" : k}${T[0]}`) + (c === 0 ? "" : " " + sg(c));
+    const ms = lfoChoix(L, [-L === 0 ? 1 : -L, T[2] === 0 ? Infinity : 0, k]);
+    return {
+      enonce: `Quelle est la limite de $f(x) = ${ex}$ quand $x$ tend vers $${T[1]}$ ?`,
+      mode: "choix", choix: ms.choix, attendu: ms.attendu,
+      aides: [`Limite de référence : $${T[0]}$ quand $x \\to ${T[1]}$.`, T[1].includes("0^") ? "En $0^+$, $x$ est petit et positif ; en $0^-$, petit et négatif : le signe compte." : T[1] === "-\\infty" ? "En $-\\infty$, attention au signe des puissances impaires." : "Pense à l'allure de la courbe de référence.", k < 0 ? "Le coefficient négatif change le signe d'une limite infinie." : c !== 0 ? `La constante $${c}$ s'ajoute à une limite finie.` : "Il n'y a pas d'autre calcul."],
+      solution: `Quand $x \\to ${T[1]}$, $${T[0]} \\to ${lfoTx(T[2])}$, donc $f(x) \\to ${lfoTx(L)}$.`
+    };
+  };
+
+  GEN["lfo-polyrat"] = function () {
+    const vers = pick(["+\\infty", "-\\infty"]), s = vers === "+\\infty" ? 1 : -1, t = pick(["poly", "frac", "frac"]);
+    if (t === "poly") {
+      const p = rand(2, 4), a = randNZ(-3, 3), b = randNZ(-9, 9), c = rand(-9, 9);
+      const L = a * s ** p > 0 ? Infinity : -Infinity;
+      const ms = lfoChoix(L, [-L, 0, a]);
+      return {
+        enonce: `Quelle est la limite de $f(x) = ${poly([a, ...Array(p - 2).fill(0), b, c].filter((_, i, t) => true))}$ quand $x \\to ${vers}$ ?`,
+        mode: "choix", choix: ms.choix, attendu: ms.attendu,
+        aides: ["Une fonction polynôme a la même limite en $\\pm\\infty$ que son terme de plus haut degré.", `Ici le terme dominant est $${poly([a, ...Array(p).fill(0)])}$.`, vers === "-\\infty" ? `En $-\\infty$, $x^{${p}}$ tend vers $${p % 2 ? LFO_MI : LFO_I}$ (puissance ${p % 2 ? "impaire" : "paire"}).` : `$x^{${p}} \\to +\\infty$.`],
+        solution: `En factorisant par $x^{${p}}$, $f(x)$ a la limite de $${poly([a, ...Array(p).fill(0)])}$ : $x^{${p}} \\to ${s > 0 || p % 2 === 0 ? LFO_I : LFO_MI}$ et on multiplie par $${a}$, donc $f(x) \\to ${lfoTx(L)}$.`
+      };
+    }
+    const p = rand(1, 3), q = rand(1, 3), a = randNZ(-5, 5), b = randNZ(-4, 4), c = rand(-6, 6), d = rand(1, 7);
+    const num = poly([a, ...Array(p - 1).fill(0), c]), den = poly([b, ...Array(q - 1).fill(0), d]);
+    const L = p === q ? frac(a, b) : p < q ? 0 : (a / b) * s ** (p - q) > 0 ? Infinity : -Infinity;
+    const ms = lfoChoix(L, [p === q ? Infinity : frac(a, b), p === q ? 1 : 0, frac(c, d), typeof L === "number" ? (L === 0 ? 1 : -L) : frac(-a, b)]);
+    return {
+      enonce: `Quelle est la limite de $f(x) = \\dfrac{${num}}{${den}}$ quand $x \\to ${vers}$ ?`,
+      mode: "choix", choix: ms.choix, attendu: ms.attendu,
+      aides: ["Forme indéterminée « $\\dfrac{\\infty}{\\infty}$ » : on garde le quotient des termes de plus haut degré.", `$f(x)$ a la même limite que $\\dfrac{${poly([a, ...Array(p).fill(0)])}}{${poly([b, ...Array(q).fill(0)])}}$.`, "Simplifie ce quotient, puis cherche sa limite (attention au signe en $-\\infty$)."],
+      solution: `En factorisant, $f(x)$ a la même limite que $\\dfrac{${poly([a, ...Array(p).fill(0)])}}{${poly([b, ...Array(q).fill(0)])}}$` + (p === q ? ` $= ${frac(a, b)}$, donc $f(x) \\to ${frac(a, b)}$ : la droite $y = ${frac(a, b)}$ est asymptote horizontale.` : p < q ? ` $= \\dfrac{${a}}{${b === 1 ? "" : b === -1 ? "-" : b}x${q - p > 1 ? `^{${q - p}}` : ""}}$, qui tend vers $0$ : la droite $y = 0$ est asymptote horizontale.` : ` $= ${frac(a, b) === "1" ? "" : frac(a, b) === "-1" ? "-" : frac(a, b)}x${p - q > 1 ? `^{${p - q}}` : ""}$, qui tend vers $${lfoTx(L)}$.`)
+    };
+  };
+
+  GEN["lfo-en-a"] = function () {
+    const a = randNZ(-4, 5), k = randNZ(-6, 6), cote = pick(["+", "-"]), t = pick(["simple", "simple", "carre", "affine"]);
+    let ex, L, expl;
+    if (t === "simple") { ex = `\\dfrac{${k}}{x ${sg(-a)}}`; L = (k > 0) === (cote === "+") ? Infinity : -Infinity; expl = `Quand $x \\to ${a}^${cote}$, $x ${sg(-a)} \\to 0^${cote}$ (${cote === "+" ? "positif" : "négatif"}), et le numérateur vaut $${k}$.`; }
+    else if (t === "carre") { ex = `\\dfrac{${k}}{(x ${sg(-a)})^2}`; L = k > 0 ? Infinity : -Infinity; expl = `Un carré est positif : $(x ${sg(-a)})^2 \\to 0^+$ des deux côtés, et le numérateur vaut $${k}$.`; }
+    else { const m = rand(1, 4), b = randNZ(-5, 5); const num = m * a + b; if (num === 0) return GEN["lfo-en-a"](); ex = `\\dfrac{${dvxLin(m, b)}}{x ${sg(-a)}}`; L = (num > 0) === (cote === "+") ? Infinity : -Infinity; expl = `Le numérateur tend vers $${m === 1 ? "" : m + " \\times "}${par(a)} ${sg(b)} = ${num}$ et le dénominateur vers $0^${cote}$.`; }
+    const ms = lfoChoix(L, [-L, 0, k]);
+    return {
+      enonce: `Quelle est la limite de $f(x) = ${ex}$ quand $x$ tend vers $${a}$ par ${cote === "+" ? "valeurs supérieures" : "valeurs inférieures"} ($x \\to ${a}^${cote}$) ?`,
+      mode: "choix", choix: ms.choix, attendu: ms.attendu,
+      aides: ["Le dénominateur tend vers $0$ : la limite est infinie si le numérateur ne tend pas vers $0$.", `Étudie le signe du dénominateur pour $x$ proche de $${a}$, ${cote === "+" ? "avec $x > " + a + "$" : "avec $x < " + a + "$"}.`, "Règle des signes : un nombre non nul divisé par $0^+$ ou $0^-$."],
+      solution: `${expl} Par quotient, $f(x) \\to ${lfoTx(L)}$ : la droite $x = ${a}$ est asymptote verticale.`
+    };
+  };
+
+  GEN["lfo-asymptotes"] = function () {
+    const t = pick(["h", "h", "v", "v", "graph"]), b = rand(-6, 6), a = randNZ(-5, 5);
+    if (t === "h") {
+      const vers = pick(["+\\infty", "-\\infty"]);
+      const ms = melangeChoix(`La droite d'équation $y = ${b}$ est asymptote horizontale`, [`La droite d'équation $x = ${b}$ est asymptote verticale`, `La droite d'équation $y = ${b}x$ est asymptote`, `La courbe coupe la droite $y = ${b}$ une seule fois`]);
+      return {
+        enonce: `On sait que $\\lim\\limits_{x \\to ${vers}} f(x) = ${b}$. Que peut-on en déduire pour la courbe de $f$ ?`,
+        mode: "choix", choix: ms.choix, attendu: ms.attendu,
+        aides: ["Une limite **finie** en $\\pm\\infty$ donne une asymptote **horizontale**.", "Une limite **infinie** en un réel $a$ donne une asymptote **verticale**.", "Une asymptote horizontale a une équation de la forme $y = \\dots$."],
+        solution: `Limite finie $${b}$ en $${vers}$ : la droite $y = ${b}$ est asymptote horizontale à la courbe en $${vers}$ (la courbe s'en rapproche autant qu'on veut ; elle peut même la couper).`
+      };
+    }
+    if (t === "v") {
+      const s = pick([LFO_I, LFO_MI]);
+      const ms = melangeChoix(`La droite d'équation $x = ${a}$ est asymptote verticale`, [`La droite d'équation $y = ${a}$ est asymptote horizontale`, `La droite d'équation $x = ${a}$ est asymptote horizontale`, `La fonction $f$ est définie en $${a}$`]);
+      return {
+        enonce: `On sait que $\\lim\\limits_{x \\to ${a}^+} f(x) = ${s}$. Que peut-on en déduire pour la courbe de $f$ ?`,
+        mode: "choix", choix: ms.choix, attendu: ms.attendu,
+        aides: ["Une limite **infinie** en un réel $a$ donne une asymptote **verticale**.", "Une droite verticale a une équation de la forme $x = \\dots$.", `Ici, la courbe « monte » ou « descend » le long de la droite verticale passant par $${a}$.`],
+        solution: `Limite infinie quand $x$ tend vers $${a}$ : la droite d'équation $x = ${a}$ est asymptote verticale.`
+      };
+    }
+    const A = rand(-2, 3), B = pick([1, 1.5, 2, -1, -1.5, -2]), c = rand(-2, 2);
+    const fig = graph({ xmin: c - 4.5, xmax: c + 4.5, ymin: A - 4.5, ymax: A + 4.5, h: 280, curves: lfoHyper(A, B, c, c - 4.3, c + 4.3, A - 4.3, A + 4.3), aria: `Courbe d'une fonction avec deux asymptotes, l'une horizontale et l'autre verticale` });
+    const q = pick(["hor", "ver", "lim"]);
+    if (q === "lim") {
+      const cote = pick(["+", "-"]), L = (B > 0) === (cote === "+") ? Infinity : -Infinity;
+      const ms = lfoChoix(L, [-L, A, c]);
+      return {
+        enonce: `Voici la courbe d'une fonction $f$. Lis $\\lim\\limits_{x \\to ${c}^${cote}} f(x)$.`,
+        figure: fig, mode: "choix", choix: ms.choix, attendu: ms.attendu,
+        aides: [`Regarde la courbe juste ${cote === "+" ? "à droite" : "à gauche"} de $x = ${c}$.`, "Si la courbe longe la droite verticale vers le haut, la limite est $+\\infty$ ; vers le bas, $-\\infty$.", "Ne confonds pas avec l'autre côté."],
+        solution: `Juste ${cote === "+" ? "à droite" : "à gauche"} de $${c}$, la courbe ${L > 0 ? "monte" : "descend"} le long de l'asymptote verticale : $\\lim\\limits_{x \\to ${c}^${cote}} f(x) = ${lfoTx(L)}$.`
+      };
+    }
+    const bonne = q === "hor" ? `$y = ${A}$` : `$x = ${c}$`;
+    const ms = melangeChoix(bonne, [q === "hor" ? `$x = ${A}$` : `$y = ${c}$`, q === "hor" ? `$y = ${c}$` : `$x = ${A}$`, q === "hor" ? `$y = ${A + 1}$` : `$x = ${c + 1}$`]);
+    return {
+      enonce: `Voici la courbe d'une fonction $f$. Quelle est l'équation de son asymptote ${q === "hor" ? "horizontale" : "verticale"} ?`,
+      figure: fig, mode: "choix", choix: ms.choix, attendu: ms.attendu,
+      aides: [q === "hor" ? "Regarde de quelle hauteur la courbe se rapproche quand $x$ devient très grand (ou très négatif)." : "Repère la valeur de $x$ près de laquelle la courbe part vers l'infini.", q === "hor" ? "Une droite horizontale a une équation $y = \\dots$." : "Une droite verticale a une équation $x = \\dots$.", "Lis la valeur sur l'axe."],
+      solution: q === "hor" ? `Quand $x \\to \\pm\\infty$, la courbe se rapproche de la hauteur $${A}$ : asymptote horizontale $y = ${A}$.` : `Quand $x$ s'approche de $${c}$, $f(x)$ tend vers l'infini : asymptote verticale $x = ${c}$.`
+    };
+  };
+
+  GEN["lfo-composee"] = function () {
+    const a = pick([1, 2, 3, -1]), b = rand(-3, 3), c = randNZ(-3, 3), d = rand(1, 4);
+    const T = pick([
+      () => { const L = a; return [`e^{\\frac{${a === 1 ? "" : a === -1 ? "-" : a}x ${sg(b)}}{x ${sg(c)}}}`.replace(" + 0", "").replace(" - 0", ""), "+\\infty", `e^{${a}}`, `La fraction tend vers $${a}$ (quotient des termes dominants), et $\\exp$ est continue : $f(x) \\to e^{${a}}$.`, [Infinity, 1, `${a}`]]; },
+      () => [`e^{-x^2 ${sg(d)}}`, pick(["+\\infty", "-\\infty"]), 0, "$-x^2 \\to -\\infty$, et $\\lim\\limits_{X \\to -\\infty} e^X = 0$.", [Infinity, 1, `e^{${d}}`]],
+      () => [`e^{\\frac{1}{x}}`, "0^+", Infinity, "$\\dfrac{1}{x} \\to +\\infty$ quand $x \\to 0^+$, et $\\lim\\limits_{X \\to +\\infty} e^X = +\\infty$.", [0, 1, "e"]],
+      () => [`e^{\\frac{1}{x}}`, "0^-", 0, "$\\dfrac{1}{x} \\to -\\infty$ quand $x \\to 0^-$, et $\\lim\\limits_{X \\to -\\infty} e^X = 0$.", [Infinity, 1, -Infinity]],
+      () => [`e^{\\frac{${d}}{x}}`, "+\\infty", 1, `$\\dfrac{${d}}{x} \\to 0$ et $e^0 = 1$.`, [0, Infinity, `e^{${d}}`]],
+      () => [`\\sqrt{${d}x^2 + 1}`, pick(["+\\infty", "-\\infty"]), Infinity, `$${d === 1 ? "" : d}x^2 + 1 \\to +\\infty$ et $\\lim\\limits_{X \\to +\\infty} \\sqrt{X} = +\\infty$.`, [0, -Infinity, `\\sqrt{${d}}`]],
+      () => [`\\sqrt{\\dfrac{${d * d}x + 1}{x + ${d}}}`, "+\\infty", d, `La fraction tend vers $${d * d}$, et $\\sqrt{${d * d}} = ${d}$.`, [d * d, Infinity, 1]],
+      () => [`\\dfrac{1}{1 + e^{-x}}`, "+\\infty", 1, "$e^{-x} \\to 0$, donc le dénominateur tend vers $1$.", [0, Infinity, `\\dfrac{1}{2}`]],
+      () => [`\\dfrac{1}{1 + e^{-x}}`, "-\\infty", 0, "$e^{-x} \\to +\\infty$, donc le dénominateur tend vers $+\\infty$.", [1, Infinity, `\\dfrac{1}{2}`]]
+    ])();
+    const ms = lfoChoix(T[2], T[4]);
+    return {
+      enonce: `Quelle est la limite de $f(x) = ${T[0]}$ quand $x \\to ${T[1]}$ ?`,
+      mode: "choix", choix: ms.choix, attendu: ms.attendu,
+      aides: ["C'est une fonction composée : cherche d'abord la limite de la fonction « intérieure ».", "Pose $X$ = l'expression intérieure ; cherche vers quoi tend $X$.", "Puis utilise la limite de la fonction extérieure ($e^X$, $\\sqrt{X}$, $\\dfrac{1}{X}$…) quand $X$ tend vers cette valeur."],
+      solution: `${T[3]} Donc $f(x) \\to ${typeof T[2] === "string" ? T[2] : lfoTx(T[2])}$.`
+    };
+  };
+
+  GEN["lfo-croissances"] = function () {
+    const n = rand(1, 5), k = pick([1, 2, 3]);
+    const T = pick([
+      [`\\dfrac{e^x}{x^{${n}}}`, "+\\infty", Infinity, `Croissance comparée : $\\lim\\limits_{x \\to +\\infty} \\dfrac{e^x}{x^n} = +\\infty$ ; l'exponentielle l'emporte.`],
+      [`x^{${n}}e^{-x}`, "+\\infty", 0, "$x^ne^{-x} = \\dfrac{x^n}{e^x}$, et l'exponentielle l'emporte : la limite est $0$."],
+      [`x^{${n}}e^{x}`, "-\\infty", 0, "Croissance comparée : $\\lim\\limits_{x \\to -\\infty} x^ne^x = 0$."],
+      [`e^x - x^{${n}}`, "+\\infty", Infinity, `Forme « $\\infty - \\infty$ » : $e^x - x^{${n}} = e^x\\left(1 - \\dfrac{x^{${n}}}{e^x}\\right)$, la parenthèse tend vers $1$.`],
+      [`\\dfrac{x^{${n}} + 1}{e^{x}}`, "+\\infty", 0, "On écrit $\\dfrac{x^n}{e^x} + \\dfrac{1}{e^x}$ : les deux termes tendent vers $0$."],
+      [`\\dfrac{e^{x}}{${k}x}`, "+\\infty", Infinity, "Croissance comparée : $\\dfrac{e^x}{x} \\to +\\infty$."],
+      [`\\dfrac{e^{x}}{x}`, "-\\infty", 0, "Pas de forme indéterminée en $-\\infty$ : $e^x \\to 0$ et $\\dfrac{1}{x} \\to 0$, donc le produit tend vers $0$."],
+      [`(x - ${k})e^{x}`, "-\\infty", 0, `$(x - ${k})e^x = xe^x - ${k}e^x$ : $xe^x \\to 0$ (croissance comparée) et $e^x \\to 0$.`],
+      [`x - e^{x}`, "+\\infty", -Infinity, "$x - e^x = e^x\\left(\\dfrac{x}{e^x} - 1\\right)$ : la parenthèse tend vers $-1$."],
+      [`\\dfrac{e^{2x}}{x^{${n}}}`, "+\\infty", Infinity, `$\\dfrac{e^{2x}}{x^{${n}}} \\geqslant \\dfrac{e^x}{x^{${n}}}$ pour $x \\geqslant 0$, qui tend vers $+\\infty$.`]
+    ]);
+    const ms = lfoChoix(T[2], [-T[2] === 0 ? 1 : -T[2], T[2] === 0 ? Infinity : 0, "\\text{forme indéterminée}"].map((x) => x));
+    return {
+      enonce: `Quelle est la limite de $f(x) = ${T[0]}$ quand $x \\to ${T[1]}$ ?`,
+      mode: "choix", choix: ms.choix.map((c) => c.replace("$\\text{forme indéterminée}$", "On ne peut pas conclure")), attendu: ms.attendu,
+      aides: ["Croissances comparées : en $+\\infty$, $\\dfrac{e^x}{x^n} \\to +\\infty$ ; en $-\\infty$, $x^ne^x \\to 0$.", "« L'exponentielle l'emporte sur les puissances de $x$. »", "Si c'est une forme indéterminée, factorise par $e^x$."],
+      solution: T[3] + ` Donc $f(x) \\to ${lfoTx(T[2])}$.`
+    };
+  };
+
+  GEN["lfo-comparaison"] = function () {
+    const k = rand(1, 5), c = rand(-3, 4);
+    const T = pick([
+      [`x + ${k === 1 ? "" : k}\\sin(x)`, "+\\infty", Infinity, `$\\sin(x) \\geqslant -1$, donc $f(x) \\geqslant x - ${k}$, qui tend vers $+\\infty$ : par comparaison, $f(x) \\to +\\infty$.`],
+      [`x^2 - ${k === 1 ? "" : k}\\cos(x)`, pick(["+\\infty", "-\\infty"]), Infinity, `$-\\cos(x) \\geqslant -1$, donc $f(x) \\geqslant x^2 - ${k}$, qui tend vers $+\\infty$.`],
+      [`\\dfrac{\\cos(x)}{x}`, pick(["+\\infty", "-\\infty"]), 0, "$\\left|\\dfrac{\\cos(x)}{x}\\right| \\leqslant \\dfrac{1}{|x|}$, qui tend vers $0$ : gendarmes."],
+      [`${c === 0 ? "" : c + " + "}\\dfrac{\\sin(x)}{x^2}`, "+\\infty", c, `$-\\dfrac{1}{x^2} \\leqslant \\dfrac{\\sin(x)}{x^2} \\leqslant \\dfrac{1}{x^2}$ : gendarmes, $f(x) \\to ${c}$.`],
+      [`-x^3 + ${k === 1 ? "" : k}\\sin(x)`, "+\\infty", -Infinity, `$${k === 1 ? "" : k}\\sin(x) \\leqslant ${k}$, donc $f(x) \\leqslant -x^3 + ${k}$, qui tend vers $-\\infty$.`],
+      [`\\dfrac{${k + 1}x + \\sin(x)}{x}`, "+\\infty", k + 1, `$f(x) = ${k + 1} + \\dfrac{\\sin(x)}{x}$ et $\\dfrac{\\sin(x)}{x} \\to 0$ (gendarmes).`],
+      [`(2 + \\cos(x))x`, "+\\infty", Infinity, "$2 + \\cos(x) \\geqslant 1$, donc pour $x > 0$, $f(x) \\geqslant x$, qui tend vers $+\\infty$."],
+      [`\\cos(x)`, "+\\infty", null, "$\\cos(x)$ oscille entre $-1$ et $1$ sans se rapprocher d'une valeur : pas de limite."]
+    ]);
+    const ms = lfoChoix(T[2], [null, 0, Infinity, -Infinity]);
+    return {
+      enonce: `Quelle est la limite de $f(x) = ${T[0]}$ quand $x \\to ${T[1]}$ ?`,
+      mode: "choix", choix: ms.choix, attendu: ms.attendu,
+      aides: ["$\\sin(x)$ et $\\cos(x)$ n'ont pas de limite en $\\pm\\infty$, mais restent entre $-1$ et $1$.", "Encadre $f(x)$ (gendarmes) ou minore-la par une fonction qui tend vers $+\\infty$ (comparaison).", "Les théorèmes sont les mêmes que pour les suites."],
+      solution: T[3]
+    };
+  };
+
+
+  GEN["lfo-python"] = function () {
+    if (Math.random() < 0.6) {
+      const [ft, f, L, tex] = pick([["(2*x + 1) / (x - 3)", (x) => (2 * x + 1) / (x - 3), 2, "\\dfrac{2x + 1}{x - 3}"], ["(3*x**2 - x) / (x**2 + 5)", (x) => (3 * x * x - x) / (x * x + 5), 3, "\\dfrac{3x^2 - x}{x^2 + 5}"], ["(x + 4) / (2*x)", (x) => (x + 4) / (2 * x), 0.5, "\\dfrac{x + 4}{2x}"], ["(5*x - 2) / (x + 1)", (x) => (5 * x - 2) / (x + 1), 5, "\\dfrac{5x - 2}{x + 1}"], ["(1 - 4*x) / (x + 2)", (x) => (1 - 4 * x) / (x + 2), -4, "\\dfrac{1 - 4x}{x + 2}"], ["(x**2 + 1) / (4*x**2)", (x) => (x * x + 1) / (4 * x * x), 0.25, "\\dfrac{x^2 + 1}{4x^2}"], ["(7*x + 3) / (2*x - 1)", (x) => (7 * x + 3) / (2 * x - 1), 3.5, "\\dfrac{7x + 3}{2x - 1}"], ["(6 - x**2) / (3*x**2 + x)", (x) => (6 - x * x) / (3 * x * x + x), -1 / 3, "\\dfrac{6 - x^2}{3x^2 + x}"]]);
+      const X = pick([1000, 10000, 100000]), v = f(X), r = Math.round(v * 100) / 100;
+      return {
+        enonce: `Que donne ce programme, arrondi au centième ?\n\n\`\`\`python\ndef f(x):\n    return ${ft}\n\nprint(f(${X}))\n\`\`\``,
+        mode: "nombre", prefixe: "Affichage ≈", attendu: r, tolerance: 0.005 + 1e-9,
+        aides: [`Le programme calcule $f(${nb(X)})$ avec $f(x) = ${tex}$.`, "Pour $x$ très grand, $f(x)$ est très proche de sa limite en $+\\infty$.", "Cherche cette limite avec le quotient des termes de plus haut degré, puis vérifie à la calculatrice."],
+        solution: `$f(${nb(X)}) \\approx ${nb(+v.toFixed(6))}$, soit $${nb(r)}$ au centième. On retrouve la limite en $+\\infty$, $${L === -1 / 3 ? "-\\dfrac{1}{3}" : nb(L)}$ : le quotient des termes dominants.`
+      };
+    }
+    let n, k; do { n = rand(2, 5); k = pick([1, 10, 100, 1000]); } while (n === 2 && k === 1);
+    let x = 2; while (Math.exp(x) <= k * x ** n) x++;
+    const kt = k === 1 ? "" : `${k} * `, ktex = k === 1 ? "" : `${nb(k)}`;
+    return {
+      enonce: `Pour $x \\geqslant 2$, $${ktex}x^{${n}}$ est d'abord plus grand que $e^x$, puis l'exponentielle le dépasse définitivement. Que renvoie ce programme ?\n\n\`\`\`python\nfrom math import exp\n\nx = 2\nwhile exp(x) <= ${kt}x**${n}:\n    x = x + 1\nprint(x)\n\`\`\``,
+      mode: "nombre", prefixe: "Affichage :", attendu: x,
+      erreurs: [{ valeur: x - 1, message: `Pour $x = ${x - 1}$, on a encore $e^x \\leqslant ${ktex}x^{${n}}$ : la boucle continue.` }],
+      aides: [`La boucle avance tant que $e^x \\leqslant ${ktex}x^{${n}}$.`, `Compare $e^x$ et $${ktex}x^{${n}}$ pour plusieurs valeurs entières de $x$ (tableau de valeurs de la calculatrice).`, "Le programme affiche le premier entier où $e^x$ passe devant."],
+      solution: `$e^{${x - 1}} \\approx ${nb(+Math.exp(x - 1).toPrecision(4))} \\leqslant ${nb(+(k * (x - 1) ** n).toPrecision(6))}$ mais $e^{${x}} \\approx ${nb(+Math.exp(x).toPrecision(4))} > ${nb(+(k * x ** n).toPrecision(6))}$ : le programme affiche $${x}$. C'est la croissance comparée : l'exponentielle finit par dépasser n'importe quelle puissance, même multipliée par un grand nombre.`
+    };
+  };
+
   /* Séries « flash » d'un thème : mélange de ses générateurs */
   const THEMES = {
     "am-flash-cn": ["am-comparer", "am-fractions", "am-puissances", "am-ecritures", "am-ordre-grandeur", "am-coherence", "auto-conversions"],
@@ -14578,7 +14789,7 @@
 
 
   /* Une « erreur connue » ne doit jamais coïncider avec la bonne réponse (à la tolérance près) */
-  Object.keys(GEN).filter((k) => /^(auto|ld|am|cd|ar|cl|fa|ve|st|vx|tc|co|dr|fr|sg|pc|ec|sy|su|s2|pi|s5|d1|tr|d2|vr|ps|ex|va|sc|gr|sm|ea|tsu|tag|tlf|tcb|tsd|tdc|tln|tcv|tlg|tpe|tin|tld|trr|tec|rec|dvx|esp|lsu|bin)-/.test(k)).forEach((k) => {
+  Object.keys(GEN).filter((k) => /^(auto|ld|am|cd|ar|cl|fa|ve|st|vx|tc|co|dr|fr|sg|pc|ec|sy|su|s2|pi|s5|d1|tr|d2|vr|ps|ex|va|sc|gr|sm|ea|tsu|tag|tlf|tcb|tsd|tdc|tln|tcv|tlg|tpe|tin|tld|trr|tec|rec|dvx|esp|lsu|bin|lfo)-/.test(k)).forEach((k) => {
     const g = GEN[k];
     GEN[k] = (i) => { const q = g(i); if (q.erreurs) q.erreurs = q.erreurs.filter((e) => Math.abs(e.valeur - q.attendu) >= (q.tolerance || 1e-9)); return q; };
   });

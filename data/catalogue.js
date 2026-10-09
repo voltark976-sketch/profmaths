@@ -384,7 +384,7 @@ window.CATALOGUE = {
           id: "terminale-spe-limites-fonctions",
           numero: 6,
           titre: "Limites de fonctions",
-          statut: "bientot",
+          statut: "disponible",
           drive: ""
         },
         {
