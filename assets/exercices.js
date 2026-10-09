@@ -15974,6 +15974,239 @@
     };
   };
 
+  /* ---------- Terminale spécialité, chapitre 13 : calcul intégral (préfixe itg-) ---------- */
+  // Intégrale exacte d'un polynôme [a_n, …, a_0] entre a et b, sous forme N/12
+  const itgDouze = (co, a, b) => { const deg = co.length - 1; return co.reduce((s, c, i) => { const p = deg - i; return s + (c * 12 / (p + 1)) * (b ** (p + 1) - a ** (p + 1)); }, 0); };
+  const itgInt = (bas, haut, f) => `\\displaystyle\\int_{${bas}}^{${haut}} ${f}\\,\\mathrm{d}x`;
+
+  GEN["itg-aire"] = function () {
+    const a = rand(0, 3), b = a + rand(1, 4), m = pick([0.5, 1, -0.5, -1, 0, 2]), p = rand(1, 4);
+    const f = (x) => m * (x - a) + p;
+    if (f(b) <= 0) return GEN["itg-aire"]();
+    const v = ((f(a) + f(b)) * (b - a)) / 2, ftex = poly([m, p - m * a]).replace(/(\d)\.(\d)/g, "$1{,}$2");
+    const ymax = Math.ceil(Math.max(f(a), f(b))) + 1;
+    return {
+      enonce: `Calcule $${itgInt(a, b, `(${ftex})`)}$ en utilisant l'aire du domaine coloré (en unités d'aire).`,
+      figure: graph({ xmin: -0.6, xmax: b + 1.2, ymin: -0.6, ymax: ymax + 0.4, h: 240, curves: [{ f, a: Math.max(-0.4, a - 1), b: b + 0.8, closed: false }], aires: [{ f, a, b }], aria: `Droite d'équation y = ${ftex}, domaine colorié entre x = ${a} et x = ${b}` }),
+      mode: "nombre", prefixe: "Intégrale :", attendu: v,
+      erreurs: [{ valeur: (f(a) + f(b)) * (b - a), message: "N'oublie pas de diviser par $2$ : l'aire d'un trapèze est $\\dfrac{(B + b) \\times h}{2}$." }],
+      aides: ["Pour une fonction continue et positive, l'intégrale est l'aire sous la courbe, entre les droites $x = a$ et $x = b$.", `Ici le domaine est un ${m === 0 ? "rectangle" : "trapèze"} : bases $f(${a}) = ${nb(f(a))}$ et $f(${b}) = ${nb(f(b))}$, hauteur $${b - a}$.`, "Aire d'un trapèze : $\\dfrac{(\\text{base}_1 + \\text{base}_2) \\times \\text{hauteur}}{2}$."],
+      solution: `Le domaine est un ${m === 0 ? "rectangle" : "trapèze"} : $\\dfrac{(${nb(f(a))} + ${nb(f(b))}) \\times ${b - a}}{2} = ${nb(v)}$ unités d'aire.`
+    };
+  };
+
+  GEN["itg-poly"] = function () {
+    const deg = rand(1, 3), co = Array.from({ length: deg + 1 }, (_, i) => (i === 0 ? randNZ(-3, 4) : rand(-4, 5))), a = rand(-2, 1), b = a + rand(1, 3);
+    const N = itgDouze(co, a, b), v = N / 12;
+    const F = priPoly(co);
+    return {
+      enonce: `Calcule $${itgInt(a, b, `(${poly(co)})`)}$ (valeur exacte, sous forme de fraction si besoin).`,
+      mode: "nombre", prefixe: "Intégrale :", attendu: v,
+      erreurs: tsApprox(v),
+      aides: ["$\\displaystyle\\int_a^b f(x)\\,\\mathrm{d}x = F(b) - F(a)$, où $F$ est une primitive de $f$.", `Une primitive est $F(x) = ${F}$.`, `Calcule $F(${b}) - F(${par(a)})$.`],
+      solution: `$F(x) = ${F}$, donc l'intégrale vaut $F(${b}) - F(${a}) = ${frac(itgDouze(co, 0, b), 12)} - ${(() => { const s = frac(itgDouze(co, 0, a), 12); return s.startsWith("-") ? `\\left(${s}\\right)` : s; })()} = ${frac(N, 12)}$.`
+    };
+  };
+
+  GEN["itg-exact"] = function () {
+    const k = pick([2, 3, -1, 4]), n = rand(2, 4), c = rand(1, 5);
+    const T = pick([
+      [itgInt(0, 1, `e^{${k === -1 ? "-" : k}x}`), k === -1 ? "1 - e^{-1}" : `\\dfrac{e^{${k}} - 1}{${k}}`, [k === -1 ? "e^{-1} - 1" : `${k}(e^{${k}} - 1)`, k === -1 ? "e^{-1}" : `e^{${k}} - 1`, k === -1 ? "1 + e^{-1}" : `\\dfrac{e^{${k}}}{${k}}`], `Une primitive est $${k === -1 ? "-e^{-x}" : `\\dfrac{1}{${k}}e^{${k}x}`}$.`],
+      [itgInt(1, "e", "\\dfrac{1}{x}"), "1", ["e - 1", "0", "-1"], "Une primitive est $\\ln x$ : $\\ln e - \\ln 1 = 1$."],
+      [itgInt(1, `e^{${n}}`, "\\dfrac{1}{x}"), `${n}`, [`e^{${n}} - 1`, `${n - 1}`, "1"], `Une primitive est $\\ln x$ : $\\ln(e^{${n}}) - \\ln 1 = ${n}$.`],
+      [itgInt(0, "\\pi", "\\sin x"), "2", ["0", "1", "-2"], "Une primitive est $-\\cos x$ : $-\\cos\\pi + \\cos 0 = 1 + 1 = 2$."],
+      [itgInt(0, "\\frac{\\pi}{2}", "\\cos x"), "1", ["0", "-1", "\\dfrac{\\pi}{2}"], "Une primitive est $\\sin x$ : $\\sin\\dfrac{\\pi}{2} - \\sin 0 = 1$."],
+      [itgInt(0, "\\pi", "\\cos x"), "0", ["2", "1", "\\pi"], "Une primitive est $\\sin x$ : $\\sin\\pi - \\sin 0 = 0$ (les aires au-dessus et en dessous de l'axe se compensent)."],
+      [itgInt(0, 1, `\\dfrac{2x}{x^2 + ${c}}`), `\\ln\\left(\\dfrac{${c + 1}}{${c}}\\right)`, [`\\ln ${c + 1}`, `\\dfrac{1}{${c + 1}}`, `\\ln ${c + 1} + \\ln ${c}`], `Une primitive est $\\ln(x^2 + ${c})$ : $\\ln ${c + 1} - \\ln ${c}$.`],
+      [itgInt(0, 1, "xe^{x^2}"), "\\dfrac{e - 1}{2}", ["e - 1", "\\dfrac{e}{2}", "2(e - 1)"], "Une primitive est $\\dfrac{1}{2}e^{x^2}$ : $\\dfrac{1}{2}(e - 1)$."],
+      [itgInt(0, 1, `(x + 1)^{${n}}`), `\\dfrac{2^{${n + 1}} - 1}{${n + 1}}`, [`2^{${n}} - 1`, `\\dfrac{2^{${n + 1}}}{${n + 1}}`, `${n}(2^{${n - 1}})`], `Une primitive est $\\dfrac{(x + 1)^{${n + 1}}}{${n + 1}}$.`],
+      [itgInt(0, c, "e^x"), `e^{${c}} - 1`, [`e^{${c}}`, `${c}e^{${c}}`, `e^{${c}} + 1`], `Une primitive est $e^x$ : $e^{${c}} - e^0$.`],
+      [itgInt(1, c + 1, "\\dfrac{1}{x}"), `\\ln ${c + 1}`, [`\\dfrac{1}{${c + 1}} - 1`, `\\ln ${c}`, `${c}`], `Une primitive est $\\ln x$ : $\\ln ${c + 1} - \\ln 1$.`],
+      [itgInt(1, c + 1, "\\dfrac{1}{x^2}"), frac(c, c + 1), [`\\ln ${c + 1}`, frac(1, c + 1), `${c}`], `Une primitive est $-\\dfrac{1}{x}$ : $-\\dfrac{1}{${c + 1}} + 1$.`],
+      [itgInt(0, c, "2xe^{x^2}"), `e^{${c * c}} - 1`, [`e^{${c * c}}`, `${c}e^{${c * c}} - 1`, `e^{${2 * c}} - 1`], `Forme $u'e^u$ avec $u = x^2$ : une primitive est $e^{x^2}$.`],
+      [itgInt(0, n * n, "\\dfrac{1}{2\\sqrt{x + 1}}"), `\\sqrt{${n * n + 1}} - 1`, [`\\sqrt{${n * n + 1}}`, `${n} - 1`, `2\\sqrt{${n * n + 1}} - 2`], "Une primitive est $\\sqrt{x + 1}$ (forme $\\dfrac{u'}{2\\sqrt{u}}$)."]
+    ]);
+    const ms = melangeChoix(`$${T[1]}$`, T[2].map((x) => `$${x}$`));
+    return {
+      enonce: `Quelle est la valeur exacte de $${T[0]}$ ?`,
+      mode: "choix", choix: ms.choix, attendu: ms.attendu,
+      aides: ["Cherche une primitive $F$ de la fonction (formes usuelles et composées).", "Puis calcule $F(b) - F(a)$, en notant $\\left[F(x)\\right]_a^b$.", "Valeurs utiles : $e^0 = 1$, $\\ln 1 = 0$, $\\ln e = 1$, $\\cos 0 = 1$, $\\sin 0 = 0$."],
+      solution: `${T[3]} Donc l'intégrale vaut $${T[1]}$.`
+    };
+  };
+
+  GEN["itg-proprietes"] = function () {
+    const A = randNZ(-6, 9), B = randNZ(-6, 9), t = pick(["chasles", "lin", "inverse", "chasles2"]), a = rand(-2, 1), b = a + rand(1, 3), c = b + rand(1, 3), k = pick([2, 3, -1, 5]), m = pick([1, -2, 4]);
+    if (t === "chasles") return {
+      enonce: `On sait que $${itgInt(a, b, "f(x)")} = ${A}$ et $${itgInt(b, c, "f(x)")} = ${B}$. Que vaut $${itgInt(a, c, "f(x)")}$ ?`,
+      mode: "nombre", prefixe: "Intégrale :", attendu: A + B,
+      aides: ["Relation de Chasles : $\\displaystyle\\int_a^b f + \\int_b^c f = \\int_a^c f$.", `Ici, les intervalles $[${a}\\,;${b}]$ et $[${b}\\,;${c}]$ se suivent.`, `$${A} + ${par(B)}$.`],
+      solution: `Par la relation de Chasles : $${A} + ${par(B)} = ${A + B}$.`
+    };
+    if (t === "chasles2") return {
+      enonce: `On sait que $${itgInt(a, c, "f(x)")} = ${A}$ et $${itgInt(a, b, "f(x)")} = ${B}$. Que vaut $${itgInt(b, c, "f(x)")}$ ?`,
+      mode: "nombre", prefixe: "Intégrale :", attendu: A - B,
+      erreurs: [{ valeur: A + B, message: "Relation de Chasles : $\\displaystyle\\int_a^c f = \\int_a^b f + \\int_b^c f$, donc il faut soustraire." }],
+      aides: ["$\\displaystyle\\int_a^c f = \\int_a^b f + \\int_b^c f$ (Chasles).", `Donc $\\displaystyle\\int_{${b}}^{${c}} f = \\int_{${a}}^{${c}} f - \\int_{${a}}^{${b}} f$.`, `$${A} - ${par(B)}$.`],
+      solution: `$${A} - ${par(B)} = ${A - B}$.`
+    };
+    if (t === "inverse") return {
+      enonce: `On sait que $${itgInt(a, b, "f(x)")} = ${A}$. Que vaut $${itgInt(b, a, `${k === 1 ? "" : k === -1 ? "-" : k}f(x)`)}$ ?`,
+      mode: "nombre", prefixe: "Intégrale :", attendu: -k * A,
+      erreurs: [{ valeur: k * A, message: "Échanger les bornes change le signe : $\\displaystyle\\int_b^a f = -\\int_a^b f$." }],
+      aides: ["$\\displaystyle\\int_b^a f(x)\\,\\mathrm{d}x = -\\int_a^b f(x)\\,\\mathrm{d}x$.", "Linéarité : $\\displaystyle\\int k f = k\\int f$.", `$-${par(k)} \\times ${par(A)}$.`],
+      solution: `$${itgInt(b, a, `${k === 1 ? "" : k === -1 ? "-" : k}f(x)`)} = -${par(k)} \\times ${par(A)} = ${-k * A}$.`
+    };
+    return {
+      enonce: `On sait que $${itgInt(a, b, "f(x)")} = ${A}$ et $${itgInt(a, b, "g(x)")} = ${B}$. Que vaut $${itgInt(a, b, `\\left(${k}f(x) ${m < 0 ? "-" : "+"} ${Math.abs(m) === 1 ? "" : Math.abs(m)}g(x)\\right)`)}$ ?`,
+      mode: "nombre", prefixe: "Intégrale :", attendu: k * A + m * B,
+      aides: ["Linéarité de l'intégrale : $\\displaystyle\\int (kf + mg) = k\\int f + m\\int g$.", `$${k} \\times ${par(A)} ${m < 0 ? "-" : "+"} ${Math.abs(m)} \\times ${par(B)}$.`, "Calcule pas à pas."],
+      solution: `$${k} \\times ${par(A)} + ${par(m)} \\times ${par(B)} = ${k * A + m * B}$.`
+    };
+  };
+
+  GEN["itg-signe"] = function () {
+    const a = rand(-2, 1), b = a + rand(1, 4), t = pick(["pos", "neg", "comp", "aire"]);
+    if (t === "aire") {
+      const r = rand(a + 1, b - 1 > a + 1 ? b - 1 : a + 1);
+      if (r <= a || r >= b) return GEN["itg-signe"]();
+      const A1 = (r - a) ** 2 / 2, A2 = (b - r) ** 2 / 2;
+      return {
+        enonce: `$f(x) = ${poly([1, -r])}$ (pour $x \\in [${a}\\,;${b}]$). Calcule l'**aire** (en unités d'aire) du domaine compris entre la courbe de $f$, l'axe des abscisses et les droites $x = ${a}$ et $x = ${b}$.`,
+        figure: graph({ xmin: a - 0.8, xmax: b + 0.8, ymin: Math.min(-1, a - r) - 0.6, ymax: Math.max(1, b - r) + 0.6, h: 240, curves: [{ f: (x) => x - r, a: a - 0.5, b: b + 0.5, closed: false }], aires: [{ f: (x) => x - r, a, b: r, neg: true }, { f: (x) => x - r, a: r, b }], aria: `Droite y = x − ${r} : un triangle sous l'axe entre ${a} et ${r}, un triangle au-dessus entre ${r} et ${b}` }),
+        mode: "nombre", prefixe: "Aire :", attendu: A1 + A2,
+        erreurs: [{ valeur: A2 - A1, message: `Ça, c'est l'intégrale $${itgInt(a, b, `(${poly([1, -r])})`)}$ : les parties sous l'axe comptent négativement. Une aire, elle, est toujours positive.` }],
+        aides: [`$f$ est négative sur $[${a}\\,;${r}]$ et positive sur $[${r}\\,;${b}]$.`, "L'aire est la somme des aires des deux triangles (toutes deux positives).", `Triangles de côtés $${r - a}$ et $${b - r}$ : aires $\\dfrac{${r - a}^2}{2}$ et $\\dfrac{${b - r}^2}{2}$.`],
+        solution: `Aire $= \\dfrac{${(r - a) ** 2}}{2} + \\dfrac{${(b - r) ** 2}}{2} = ${nb(A1 + A2)}$ u.a., alors que l'intégrale vaut $${nb(A2 - A1)}$ (la partie sous l'axe compte négativement).`
+      };
+    }
+    const S = {
+      pos: [`$f$ est continue et positive sur $[${a}\\,;${b}]$.`, `$${itgInt(a, b, "f(x)")} \\geqslant 0$`, [`$${itgInt(a, b, "f(x)")} \\leqslant 0$`, `$${itgInt(a, b, "f(x)")} = 0$`, `$${itgInt(b, a, "f(x)")} \\geqslant 0$`], "Positivité : l'intégrale d'une fonction positive (avec $a < b$) est positive ; c'est une aire. Avec les bornes échangées, elle serait négative."],
+      neg: [`$f$ est continue et négative sur $[${a}\\,;${b}]$.`, `$${itgInt(a, b, "f(x)")} \\leqslant 0$`, [`$${itgInt(a, b, "f(x)")} \\geqslant 0$`, `$${itgInt(a, b, "f(x)")}$ est l'aire sous la courbe`, `$${itgInt(b, a, "f(x)")} \\leqslant 0$`], "L'intégrale d'une fonction négative est négative : c'est l'opposé de l'aire du domaine situé sous l'axe."],
+      comp: [`$f$ et $g$ sont continues et $f(x) \\leqslant g(x)$ pour tout $x$ de $[${a}\\,;${b}]$.`, `$${itgInt(a, b, "f(x)")} \\leqslant ${itgInt(a, b, "g(x)")}$`, [`$${itgInt(a, b, "f(x)")} \\geqslant ${itgInt(a, b, "g(x)")}$`, `$${itgInt(a, b, "f(x)")} = ${itgInt(a, b, "g(x)")}$`, `$${itgInt(a, b, "f(x)")} \\leqslant 0$`], "Croissance de l'intégrale : si $f \\leqslant g$ sur $[a\\,;b]$ (avec $a \\leqslant b$), alors $\\displaystyle\\int_a^b f \\leqslant \\int_a^b g$."]
+    }[t];
+    const ms = melangeChoix(S[1], S[2]);
+    return {
+      enonce: `${S[0]} Que peut-on affirmer ?`,
+      mode: "choix", choix: ms.choix, attendu: ms.attendu,
+      aides: ["Positivité : si $f \\geqslant 0$ sur $[a\\,;b]$ avec $a \\leqslant b$, alors $\\displaystyle\\int_a^b f \\geqslant 0$.", "Croissance : si $f \\leqslant g$, alors $\\displaystyle\\int_a^b f \\leqslant \\int_a^b g$.", "Attention à l'ordre des bornes : $\\displaystyle\\int_b^a f = -\\int_a^b f$."],
+      solution: S[3]
+    };
+  };
+
+  GEN["itg-moyenne"] = function () {
+    const deg = rand(1, 2), co = Array.from({ length: deg + 1 }, (_, i) => (i === 0 ? randNZ(-3, 3) : rand(-4, 5))), a = rand(-1, 1), b = a + rand(1, 4);
+    const N = itgDouze(co, a, b), v = N / (12 * (b - a));
+    return {
+      enonce: `Calcule la valeur moyenne de $f(x) = ${poly(co)}$ sur $[${a}\\,;${b}]$ (valeur exacte, sous forme de fraction si besoin).`,
+      mode: "nombre", prefixe: "$\\mu =$", attendu: v,
+      erreurs: [{ valeur: N / 12, message: `Ça, c'est l'intégrale : il faut encore la diviser par la longueur $${b - a}$ de l'intervalle.` }, ...tsApprox(v)],
+      aides: ["Valeur moyenne : $\\mu = \\dfrac{1}{b - a}\\displaystyle\\int_a^b f(x)\\,\\mathrm{d}x$.", `$${itgInt(a, b, `(${poly(co)})`)} = ${frac(N, 12)}$.`, `Divise par $${b} - ${par(a)} = ${b - a}$.`],
+      solution: `$\\mu = \\dfrac{1}{${b - a}} \\times ${frac(N, 12)} = ${frac(N, 12 * (b - a))}$.`
+    };
+  };
+
+  GEN["itg-entre"] = function () {
+    // f(x) = -x² + px + q au-dessus de g(x) = mx + n entre leurs points d'intersection r1 < r2 entiers
+    const r1 = rand(-2, 1), r2 = r1 + rand(1, 4), m = rand(-2, 2), n = rand(-2, 3);
+    // f - g = -(x - r1)(x - r2)
+    const dco = [-1, r1 + r2, -r1 * r2], fco = [-1, r1 + r2 + m, -r1 * r2 + n];
+    const N = itgDouze(dco, r1, r2), v = N / 12;
+    return {
+      enonce: `Les courbes de $f(x) = ${poly(fco)}$ et de $g(x) = ${poly([m, n])}$ se coupent en $x = ${r1}$ et $x = ${r2}$, et $f \\geqslant g$ entre ces deux valeurs. Calcule l'aire du domaine compris entre les deux courbes (valeur exacte, sous forme de fraction si besoin).`,
+      figure: (() => { const F = (x) => -x * x + (r1 + r2 + m) * x - r1 * r2 + n, G = (x) => m * x + n, ys = []; for (let x = r1 - 0.9; x <= r2 + 0.9; x += 0.1) ys.push(F(x), G(x)); const lo = Math.max(Math.min(...ys), Math.min(F(r1 - 0.6), F(r2 + 0.6), G(r1 - 0.9), G(r2 + 0.9))), hi = Math.max(...ys); return graph({ xmin: r1 - 1, xmax: r2 + 1, ymin: Math.floor(Math.min(lo, 0)) - 0.5, ymax: Math.ceil(Math.max(hi, 0)) + 0.5, h: 260, curves: [{ f: F, a: r1 - 0.6, b: r2 + 0.6, closed: false, label: "C<tspan class=\"sub\" dy=\"3\">f</tspan>", lx: (r1 + r2) / 2, dx: 10, dy: -8 }, { f: G, a: r1 - 0.9, b: r2 + 0.9, closed: false, label: "C<tspan class=\"sub\" dy=\"3\">g</tspan>", lx: r2 + 0.9, dx: -4, dy: 16 }], aires: [{ f: F, g: G, a: r1, b: r2 }], aria: "Domaine compris entre une parabole et une droite" }); })(),
+      mode: "nombre", prefixe: "Aire :", attendu: v,
+      erreurs: tsApprox(v),
+      aides: ["Si $f \\geqslant g$ sur $[a\\,;b]$, l'aire entre les courbes est $\\displaystyle\\int_a^b (f(x) - g(x))\\,\\mathrm{d}x$.", `$f(x) - g(x) = ${poly(dco)}$.`, `Une primitive de $f - g$ est $${priPoly(dco)}$.`],
+      solution: `Aire $= ${itgInt(r1, r2, `(${poly(dco)})`)} = ${frac(N, 12)}$ u.a.`
+    };
+  };
+
+  GEN["itg-ipp"] = function () {
+    if (Math.random() < 0.3) {
+      const k = pick([2, 3, -1, -2, 4]), kt = k === -1 ? "-" : k;
+      const C = pick([
+        [`xe^{${kt}x}`, `$u(x) = x$ et $v'(x) = e^{${kt}x}$`, [`$u(x) = e^{${kt}x}$ et $v'(x) = x$`, `$u(x) = xe^{${kt}x}$ et $v'(x) = 1$`, `$u(x) = ${kt}x$ et $v'(x) = e^x$`], "On dérive $x$ (il devient $1$) et on intègre facilement l'exponentielle."],
+        ["x^2\\ln x", "$u(x) = \\ln x$ et $v'(x) = x^2$", ["$u(x) = x^2$ et $v'(x) = \\ln x$", "$u(x) = x^2\\ln x$ et $v'(x) = 1$", "$u(x) = x$ et $v'(x) = x\\ln x$"], "On dérive $\\ln x$ (il devient $\\dfrac{1}{x}$) : on ne sait pas encore intégrer $\\ln x$ directement."],
+        [`x\\cos(${kt === "-" ? "-" : k}x)`, `$u(x) = x$ et $v'(x) = \\cos(${kt === "-" ? "-" : k}x)$`, [`$u(x) = \\cos(${kt === "-" ? "-" : k}x)$ et $v'(x) = x$`, "$u(x) = x\\cos x$ et $v'(x) = 1$", "$u(x) = 1$ et $v'(x) = x\\cos x$"], "On dérive $x$ et on intègre le cosinus."],
+        ["\\ln x", "$u(x) = \\ln x$ et $v'(x) = 1$", ["$u(x) = 1$ et $v'(x) = \\ln x$", "$u(x) = x$ et $v'(x) = \\ln x$", "$u(x) = \\dfrac{1}{x}$ et $v'(x) = x$"], "Astuce classique : $\\ln x = 1 \\times \\ln x$, on dérive $\\ln x$ et on intègre $1$."]
+      ]);
+      const ms = melangeChoix(C[1], C[2]);
+      return {
+        enonce: `Pour calculer $\\displaystyle\\int ${C[0]}\\,\\mathrm{d}x$ par parties ($\\displaystyle\\int uv' = [uv] - \\int u'v$), quel choix est judicieux ?`,
+        mode: "choix", choix: ms.choix, attendu: ms.attendu,
+        aides: ["On choisit $u$ qui se simplifie en le dérivant (un polynôme, $\\ln x$).", "On choisit $v'$ dont on connaît une primitive ($e^{kx}$, $\\cos$, $\\sin$, une puissance de $x$).", "La nouvelle intégrale $\\displaystyle\\int u'v$ doit être plus simple que celle de départ."],
+        solution: `${C[1]}. ${C[3]}`
+      };
+    }
+    const k = rand(1, 4), n = rand(2, 4), c = rand(1, 5);
+    const T = pick([
+      [itgInt(0, k, "xe^x"), k === 1 ? "1" : `${k === 2 ? "" : k - 1}e^{${k}} + 1`, "$u = x$, $v' = e^x$ : $\\left[xe^x\\right]_0^{" + k + "} - \\displaystyle\\int_0^{" + k + "} e^x\\,\\mathrm{d}x = " + (k === 1 ? "" : k) + "e^{" + k + "} - (e^{" + k + "} - 1)$.", [`${k === 1 ? "" : k}e^{${k}}`, `${k === 1 ? "" : k}e^{${k}} + 1`, `${k + 1}e^{${k}} - 1`]],
+      [itgInt(0, k, "xe^{-x}"), `1 - ${k + 1}e^{-${k}}`, "$u = x$, $v' = e^{-x}$ : $\\left[-xe^{-x}\\right]_0^{" + k + "} + \\displaystyle\\int_0^{" + k + "} e^{-x}\\,\\mathrm{d}x = -" + (k === 1 ? "" : k) + "e^{-" + k + "} + 1 - e^{-" + k + "}$.", [`1 - e^{-${k}}`, `${k + 1}e^{-${k}}`, `1 - ${k}e^{-${k}}`]],
+      [itgInt(0, 1, `(x + ${c})e^x`), `${c === 1 ? "" : c}(e - 1) + 1`, `$u = x + ${c}$, $v' = e^x$ : $\\left[(x + ${c})e^x\\right]_0^1 - \\displaystyle\\int_0^1 e^x\\,\\mathrm{d}x = ${c + 1}e - ${c} - (e - 1)$.`, [`${c + 1}e - ${c}`, `${c + 1}(e - 1)`, `${c}e + 1`]],
+      [itgInt(1, "e", "\\ln x"), "1", "$u = \\ln x$, $v' = 1$ : $\\left[x\\ln x\\right]_1^e - \\displaystyle\\int_1^e 1\\,\\mathrm{d}x = e - (e - 1)$.", ["e", "e - 1", "0"]],
+      [itgInt(1, `e^{${n}}`, "\\ln x"), `${n === 2 ? "" : n - 1}e^{${n}} + 1`, `$\\left[x\\ln x - x\\right]_1^{e^{${n}}} = (${n}e^{${n}} - e^{${n}}) - (0 - 1)$.`, [`${n}e^{${n}}`, `${n}e^{${n}} - 1`, `e^{${n}} - 1`]],
+      [itgInt(0, "\\pi", "x\\sin x"), "\\pi", "$u = x$, $v' = \\sin x$ : $\\left[-x\\cos x\\right]_0^{\\pi} + \\displaystyle\\int_0^{\\pi} \\cos x\\,\\mathrm{d}x = \\pi + 0$.", ["0", "2", "-\\pi"]],
+      [itgInt(0, "\\pi", "x\\cos x"), "-2", "$u = x$, $v' = \\cos x$ : $\\left[x\\sin x\\right]_0^{\\pi} - \\displaystyle\\int_0^{\\pi} \\sin x\\,\\mathrm{d}x = 0 - 2$.", ["0", "2", "\\pi"]],
+      [itgInt(0, "\\frac{\\pi}{2}", "x\\sin x"), "1", "$u = x$, $v' = \\sin x$ : $\\left[-x\\cos x\\right]_0^{\\frac{\\pi}{2}} + \\displaystyle\\int_0^{\\frac{\\pi}{2}} \\cos x\\,\\mathrm{d}x = 0 + 1$.", ["\\dfrac{\\pi}{2}", "0", "\\dfrac{\\pi}{2} - 1"]],
+      [itgInt(1, "e", "x\\ln x"), "\\dfrac{e^2 + 1}{4}", "$u = \\ln x$, $v' = x$ : $\\left[\\dfrac{x^2}{2}\\ln x\\right]_1^e - \\displaystyle\\int_1^e \\dfrac{x}{2}\\,\\mathrm{d}x = \\dfrac{e^2}{2} - \\dfrac{e^2 - 1}{4}$.", ["\\dfrac{e^2}{2}", "\\dfrac{e^2 - 1}{4}", "e^2 + 1"]],
+      [itgInt(1, "e", "x^2\\ln x"), "\\dfrac{2e^3 + 1}{9}", "$u = \\ln x$, $v' = x^2$ : $\\left[\\dfrac{x^3}{3}\\ln x\\right]_1^e - \\displaystyle\\int_1^e \\dfrac{x^2}{3}\\,\\mathrm{d}x = \\dfrac{e^3}{3} - \\dfrac{e^3 - 1}{9}$.", ["\\dfrac{e^3}{3}", "\\dfrac{e^3 - 1}{9}", "\\dfrac{2e^3 - 1}{9}"]],
+      [itgInt(0, "\\frac{\\pi}{2}", "x\\cos x"), "\\dfrac{\\pi}{2} - 1", "$u = x$, $v' = \\cos x$ : $\\left[x\\sin x\\right]_0^{\\frac{\\pi}{2}} - \\displaystyle\\int_0^{\\frac{\\pi}{2}} \\sin x\\,\\mathrm{d}x = \\dfrac{\\pi}{2} - 1$.", ["\\dfrac{\\pi}{2}", "1", "\\dfrac{\\pi}{2} + 1"]]
+    ]);
+    const ms = melangeChoix(`$${T[1]}$`, T[3].filter((x) => x !== T[1]).map((x) => `$${x}$`));
+    return {
+      enonce: `À l'aide d'une intégration par parties, calcule $${T[0]}$.`,
+      mode: "choix", choix: ms.choix, attendu: ms.attendu,
+      aides: ["Intégration par parties : $\\displaystyle\\int_a^b u(x)v'(x)\\,\\mathrm{d}x = \\left[u(x)v(x)\\right]_a^b - \\int_a^b u'(x)v(x)\\,\\mathrm{d}x$.", "Choisis $u$ facile à dériver (un polynôme, ou $\\ln x$) et $v'$ facile à intégrer.", "Calcule le crochet, puis la nouvelle intégrale, plus simple."],
+      solution: `${T[2]} Donc l'intégrale vaut $${T[1]}$.`
+    };
+  };
+
+  GEN["itg-fonction"] = function () {
+    const a = rand(-2, 2), t = pick(["derivee", "valeur", "variations"]);
+    if (t === "derivee") {
+      const T = pick([["e^{-t^2}", "e^{-x^2}"], ["\\dfrac{1}{1 + t^2}", "\\dfrac{1}{1 + x^2}"], ["\\sqrt{t^2 + 1}", "\\sqrt{x^2 + 1}"], ["\\cos(t^2)", "\\cos(x^2)"], ["\\dfrac{e^t}{t^2 + 1}", "\\dfrac{e^x}{x^2 + 1}"]]);
+      const ms = melangeChoix(`$F'(x) = ${T[1]}$`, [`$F'(x) = ${T[0]}$`, "$F'(x) = 0$", "$F'(x)$ ne peut pas être calculée sans primitive explicite"]);
+      return {
+        enonce: `On pose $F(x) = \\displaystyle\\int_{${a}}^{x} ${T[0]}\\,\\mathrm{d}t$. Que vaut $F'(x)$ ?`,
+        mode: "choix", choix: ms.choix, attendu: ms.attendu,
+        aides: ["Si $f$ est continue, $F : x \\mapsto \\displaystyle\\int_a^x f(t)\\,\\mathrm{d}t$ est la primitive de $f$ qui s'annule en $a$.", "Donc $F' = f$.", "On remplace simplement $t$ par $x$ dans l'expression de $f$."],
+        solution: `$F$ est la primitive de $t \\mapsto ${T[0]}$ qui s'annule en $${a}$ : $F'(x) = ${T[1]}$, même si l'on ne sait pas écrire $F$ avec les fonctions usuelles.`
+      };
+    }
+    if (t === "valeur") {
+      const ms = melangeChoix("$F(" + a + ") = 0$", ["$F(" + a + ") = 1$", "$F(0) = 0$ toujours", "$F(" + a + ") = f(" + a + ")$"]);
+      return {
+        enonce: `$f$ est continue sur $\\mathbb{R}$ et $F(x) = \\displaystyle\\int_{${a}}^{x} f(t)\\,\\mathrm{d}t$. Que peut-on affirmer ?`,
+        mode: "choix", choix: ms.choix, attendu: ms.attendu,
+        aides: ["Calcule $F(" + a + ")$ : une intégrale entre deux bornes égales.", "$\\displaystyle\\int_a^a f(t)\\,\\mathrm{d}t = 0$.", "$F$ est la primitive de $f$ qui s'annule en $" + a + "$."],
+        solution: `$F(${a}) = \\displaystyle\\int_{${a}}^{${a}} f(t)\\,\\mathrm{d}t = 0$ : $F$ est la primitive de $f$ qui s'annule en $${a}$.`
+      };
+    }
+    const T = pick([["e^{-t^2}", "e^{-x^2}", "croissante", "positif"], ["-\\sqrt{t^2 + 1}", "-\\sqrt{x^2 + 1}", "décroissante", "négatif"], ["\\dfrac{1}{1 + t^2}", "\\dfrac{1}{1 + x^2}", "croissante", "positif"], ["t^2 + 1", "x^2 + 1", "croissante", "positif"], ["-e^{t}", "-e^{x}", "décroissante", "négatif"]]);
+    const ms = melangeChoix(`$F$ est ${T[2]} sur $\\mathbb{R}$`, [`$F$ est ${T[2] === "croissante" ? "décroissante" : "croissante"} sur $\\mathbb{R}$`, "$F$ est constante", "$F$ est positive sur $\\mathbb{R}$"]);
+    return {
+      enonce: `On pose $F(x) = \\displaystyle\\int_{${a}}^{x} ${T[0]}\\,\\mathrm{d}t$. Que peut-on dire de $F$ ?`,
+      mode: "choix", choix: ms.choix, attendu: ms.attendu,
+      aides: ["$F$ est une primitive de la fonction intégrée : $F'(x) = f(x)$.", "Le signe de $F'$ donne les variations de $F$.", `$F$ s'annule en $${a}$ : elle n'est donc pas de signe constant.`],
+      solution: `$F'(x) = ${T[1]}$, qui est toujours ${T[3]} : $F$ est ${T[2]} sur $\\mathbb{R}$. Elle vaut $0$ en $${a}$, donc elle change de signe.`
+    };
+  };
+
+  GEN["itg-python"] = function () {
+    const [ft, f, ftex, I] = pick([["x**2", (x) => x * x, "x^2", (a, b) => (b ** 3 - a ** 3) / 3], ["2*x + 1", (x) => 2 * x + 1, "2x + 1", (a, b) => b * b + b - a * a - a], ["x**3", (x) => x ** 3, "x^3", (a, b) => (b ** 4 - a ** 4) / 4], ["4 - x**2", (x) => 4 - x * x, "4 - x^2", (a, b) => 4 * (b - a) - (b ** 3 - a ** 3) / 3]]);
+    const a = 0, b = pick([1, 2]), n = pick([2, 4, 5, 10]), gauche = pick([true, false]);
+    const h = (b - a) / n; let s = 0;
+    for (let i = 0; i < n; i++) s += h * f(a + (gauche ? i : i + 1) * h);
+    const r = Math.round(s * 10000) / 10000;
+    return {
+      enonce: `La méthode des rectangles approche $${itgInt(a, b, ftex)}$. Qu'affiche ce programme (arrondi à $4$ décimales) ?\n\n\`\`\`python\ndef f(x):\n    return ${ft}\n\ndef rectangles(a, b, n):\n    h = (b - a) / n\n    s = 0\n    for i in range(${gauche ? "n" : "1, n + 1"}):\n        s = s + h * f(a + i * h)\n    return s\n\nprint(round(rectangles(${a}, ${b}, ${n}), 4))\n\`\`\``,
+      mode: "nombre", prefixe: "Affichage :", attendu: r, tolerance: 0.00005 + 1e-9,
+      aides: [`$h = \\dfrac{${b} - ${a}}{${n}} = ${nb(h)}$ : c'est la largeur de chaque rectangle.`, `Les hauteurs sont $f$ aux points ${gauche ? "de gauche" : "de droite"} : $f(${nb(gauche ? a : a + h)})$, $f(${nb(gauche ? a + h : a + 2 * h)})$…`, "Additionne les aires des rectangles."],
+      solution: `Somme des aires des $${n}$ rectangles : $${nb(r)}$. La valeur exacte est $${nb(+I(a, b).toFixed(4))}$ ; l'écart diminue quand $n$ augmente.`
+    };
+  };
+
   /* Séries « flash » d'un thème : mélange de ses générateurs */
   const THEMES = {
     "am-flash-cn": ["am-comparer", "am-fractions", "am-puissances", "am-ecritures", "am-ordre-grandeur", "am-coherence", "auto-conversions"],
@@ -15990,7 +16223,7 @@
 
 
   /* Une « erreur connue » ne doit jamais coïncider avec la bonne réponse (à la tolérance près) */
-  Object.keys(GEN).filter((k) => /^(auto|ld|am|cd|ar|cl|fa|ve|st|vx|tc|co|dr|fr|sg|pc|ec|sy|su|s2|pi|s5|d1|tr|d2|vr|ps|ex|va|sc|gr|sm|ea|tsu|tag|tlf|tcb|tsd|tdc|tln|tcv|tlg|tpe|tin|tld|trr|tec|rec|dvx|esp|lsu|bin|lfo|cnt|pse|lnx|pri|edo|trg)-/.test(k)).forEach((k) => {
+  Object.keys(GEN).filter((k) => /^(auto|ld|am|cd|ar|cl|fa|ve|st|vx|tc|co|dr|fr|sg|pc|ec|sy|su|s2|pi|s5|d1|tr|d2|vr|ps|ex|va|sc|gr|sm|ea|tsu|tag|tlf|tcb|tsd|tdc|tln|tcv|tlg|tpe|tin|tld|trr|tec|rec|dvx|esp|lsu|bin|lfo|cnt|pse|lnx|pri|edo|trg|itg)-/.test(k)).forEach((k) => {
     const g = GEN[k];
     GEN[k] = (i) => { const q = g(i); if (q.erreurs) q.erreurs = q.erreurs.filter((e) => Math.abs(e.valeur - q.attendu) >= (q.tolerance || 1e-9)); return q; };
   });

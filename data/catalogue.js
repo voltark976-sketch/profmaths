@@ -433,7 +433,7 @@ window.CATALOGUE = {
           id: "terminale-spe-integration",
           numero: 13,
           titre: "Calcul intégral",
-          statut: "bientot",
+          statut: "disponible",
           drive: ""
         },
         {
