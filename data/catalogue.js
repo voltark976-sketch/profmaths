@@ -405,7 +405,7 @@ window.CATALOGUE = {
           id: "terminale-spe-logarithme",
           numero: 9,
           titre: "Fonction logarithme népérien",
-          statut: "bientot",
+          statut: "disponible",
           drive: ""
         },
         {
