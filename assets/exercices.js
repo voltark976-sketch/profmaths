@@ -14773,6 +14773,132 @@
     };
   };
 
+  /* ---------- Terminale spécialité, chapitre 7 : continuité (préfixe cnt-) ---------- */
+  const cntRacine = (f, a, b) => { for (let i = 0; i < 80; i++) { const m = (a + b) / 2; if (f(a) * f(m) <= 0) b = m; else a = m; } return (a + b) / 2; };
+  const cntDec = (x) => nb(+x.toFixed(4));
+
+  FIGURES["cnt-tvi"] = () => {
+    const f = (x) => 0.12 * x * x * x - 0.65 * x * x + 0.7 * x + 1.4, k = 2.2, c = cntRacine((x) => f(x) - k, 3.6, 4.6);
+    return graph({ xmin: -0.8, xmax: 5.4, ymin: -0.6, ymax: 4.4, h: 250, curves: [{ f, a: 0, b: 5, label: "C<tspan class=\"sub\" dy=\"3\">f</tspan>", lx: 4.6, dx: -10, dy: -4 }], hlines: [{ y: k, label: "y = k" }], points: [{ x: c, y: k, label: "c" }], marques: [{ x: 0, y: -0.35, texte: "a" }, { x: 5, y: -0.35, texte: "b" }], aria: "Théorème des valeurs intermédiaires : la courbe continue va de f(a) à f(b) sans lever le crayon et coupe forcément la droite y = k, ici en c" });
+  };
+  FIGURES["cnt-saut"] = () => graph({ xmin: -3.6, xmax: 3.6, ymin: -1.6, ymax: 3.6, h: 240, curves: [{ f: (x) => 0.5 * x + 1, a: -3.4, b: 1, closed: false }, { f: (x) => 0.5 * x * x + 2, a: 1, b: 1.75, closed: false, couleur: 0 }], points: [{ x: 1, y: 2.5 }], aria: "Fonction non continue en 1 : la courbe fait un saut, de 1,5 à gauche à 2,5 à droite ; il faut lever le crayon" });
+
+  GEN["cnt-graphique"] = function () {
+    const c = rand(-2, 2), a = pick([0.5, 1, -0.5, -1]), b = rand(-1, 2), saut = pick([0, 0, 1.5, -1.5, 2, -1]), k = pick([0.5, -0.5, 1]);
+    const g1 = (x) => a * (x - c) + b, g2 = (x) => k * (x - c) * (x - c) * (k > 0 ? 1 : 1) + b + saut;
+    const ys = [g1(-4), g1(c), g2(c), g2(4)].concat(Array.from({ length: 9 }, (_, i) => g2(c + i * (4 - c) / 8)));
+    const ymin = Math.floor(Math.min(...ys, 0)) - 1, ymax = Math.ceil(Math.max(...ys, 0)) + 1;
+    if (ymax - ymin > 12) return GEN["cnt-graphique"]();
+    const fig = graph({ xmin: -4.6, xmax: 4.6, ymin, ymax, h: 250, curves: [{ f: g1, a: -4, b: c, closed: false }, { f: g2, a: c, b: 4, closed: false, couleur: 0 }], points: [{ x: c, y: g2(c) }], aria: `Courbe d'une fonction définie sur [−4 ; 4] par deux morceaux qui se raccordent en x = ${c}${saut ? " avec un saut" : " sans saut"}` });
+    if (saut && Math.random() < 0.5) return {
+      enonce: "Voici la courbe d'une fonction $f$ définie sur $[-4\\,;4]$. En quelle valeur de $x$ la fonction $f$ n'est-elle **pas** continue ?",
+      figure: fig, mode: "nombre", prefixe: "$x =$", attendu: c,
+      aides: ["Une fonction est continue sur un intervalle si on peut tracer sa courbe **sans lever le crayon**.", "Cherche l'endroit où la courbe fait un saut.", "Lis l'abscisse de ce saut."],
+      solution: `En $x = ${c}$, la courbe fait un saut : la limite à gauche vaut $${cntDec(b)}$, alors que $f(${c}) = ${cntDec(b + saut)}$. $f$ n'est pas continue en $${c}$.`
+    };
+    const ms = melangeChoix(saut ? `Non, elle n'est pas continue en $x = ${c}$` : "Oui", [saut ? "Oui" : `Non, elle n'est pas continue en $x = ${c}$`, saut ? `Non, elle n'est pas continue en $x = ${c + 1}$` : "Non, car elle n'est pas dérivable partout", "On ne peut pas savoir sur un graphique"]);
+    return {
+      enonce: `Voici la courbe d'une fonction $f$ définie sur $[-4\\,;4]$, formée de deux morceaux qui se raccordent en $x = ${c}$. La fonction $f$ est-elle continue sur $[-4\\,;4]$ ?`,
+      figure: fig, mode: "choix", choix: ms.choix, attendu: ms.attendu,
+      aides: ["Continue sur un intervalle : on trace la courbe **sans lever le crayon**.", `Regarde le point de raccord, en $x = ${c}$ : les deux morceaux se rejoignent-ils ?`, "Une courbe peut avoir un « coin » (pas de tangente) et rester continue."],
+      solution: saut ? `En $x = ${c}$, les deux morceaux ne se rejoignent pas : il faut lever le crayon. $f$ n'est pas continue en $${c}$, donc pas continue sur $[-4\\,;4]$.` : `Les deux morceaux se rejoignent en $x = ${c}$ (au point de hauteur $${cntDec(b)}$) : on trace la courbe sans lever le crayon, $f$ est continue sur $[-4\\,;4]$. Le « coin » empêche seulement la dérivabilité en $${c}$.`
+    };
+  };
+
+  GEN["cnt-raccord"] = function () {
+    const c = rand(-3, 3), a = randNZ(-4, 4), b = rand(-6, 6), t = pick(["carre", "affine", "exp"]);
+    const gauche = a * c + b;
+    if (t === "carre") {
+      const k = gauche - c * c;
+      return {
+        enonce: `On définit $f$ sur $\\mathbb{R}$ par $f(x) = ${dvxLin(a, b)}$ si $x < ${c}$, et $f(x) = x^2 + k$ si $x \\geqslant ${c}$. Pour quelle valeur de $k$ la fonction $f$ est-elle continue sur $\\mathbb{R}$ ?`,
+        mode: "nombre", prefixe: "$k =$", attendu: k,
+        aides: ["Chaque morceau est continu (fonctions polynômes) : il suffit que les deux morceaux se rejoignent en $" + c + "$.", `La limite à gauche en $${c}$ vaut $${a} \\times ${par(c)} ${sg(b)} = ${gauche}$.`, `Il faut $f(${c}) = ${par(c)}^2 + k = ${gauche}$.`],
+        solution: `À gauche, $f(x) \\to ${gauche}$ ; et $f(${c}) = ${c * c} + k$. Continuité en $${c}$ : $${c * c} + k = ${gauche}$, donc $k = ${k}$.`
+      };
+    }
+    if (t === "affine") {
+      const m = randNZ(-3, 3), k = gauche - m * c;
+      return {
+        enonce: `On définit $f$ sur $\\mathbb{R}$ par $f(x) = ${dvxLin(a, b)}$ si $x \\leqslant ${c}$, et $f(x) = ${m === 1 ? "" : m === -1 ? "-" : m}x + k$ si $x > ${c}$. Pour quelle valeur de $k$ la fonction $f$ est-elle continue sur $\\mathbb{R}$ ?`,
+        mode: "nombre", prefixe: "$k =$", attendu: k,
+        aides: ["Les deux morceaux sont des fonctions affines, continues : il faut qu'ils se rejoignent en $" + c + "$.", `$f(${c}) = ${gauche}$.`, `La limite à droite vaut $${m} \\times ${par(c)} + k$ : elle doit valoir $${gauche}$.`],
+        solution: `$f(${c}) = ${gauche}$ et la limite à droite vaut $${m * c} + k$. Continuité : $${m * c} + k = ${gauche}$, donc $k = ${k}$.`
+      };
+    }
+    const k = gauche - 1;
+    return {
+      enonce: `On définit $f$ sur $\\mathbb{R}$ par $f(x) = ${dvxLin(a, b)}$ si $x < ${c}$, et $f(x) = e^{x ${sg(-c)}} + k$ si $x \\geqslant ${c}$. Pour quelle valeur de $k$ la fonction $f$ est-elle continue sur $\\mathbb{R}$ ?`.replace("x + 0", "x").replace("x - 0", "x"),
+      mode: "nombre", prefixe: "$k =$", attendu: k,
+      erreurs: [{ valeur: gauche, message: `Attention : en $x = ${c}$, $e^{0} = 1$, pas $0$.` }],
+      aides: ["Les deux morceaux sont continus : il faut qu'ils se rejoignent en $" + c + "$.", `À gauche : $${a} \\times ${par(c)} ${sg(b)} = ${gauche}$.`, `À droite : $f(${c}) = e^0 + k = 1 + k$.`],
+      solution: `À gauche, $f(x) \\to ${gauche}$ ; et $f(${c}) = e^0 + k = 1 + k$. Continuité en $${c}$ : $1 + k = ${gauche}$, donc $k = ${k}$.`
+    };
+  };
+
+  GEN["cnt-hypotheses"] = function () {
+    const a = rand(-5, 2), b = a + rand(2, 6), fa = rand(-9, -1), fb = rand(1, 9), k = rand(fa + 1, fb - 1), t = pick(["tvi", "corollaire", "noncontinue", "nonmonotone", "hors"]);
+    const S = {
+      tvi: [`$f$ est continue sur $[${a}\\,;${b}]$, avec $f(${a}) = ${fa}$ et $f(${b}) = ${fb}$.`, `L'équation $f(x) = ${k}$ a au moins une solution dans $[${a}\\,;${b}]$`, [`L'équation $f(x) = ${k}$ a exactement une solution dans $[${a}\\,;${b}]$`, `L'équation $f(x) = ${k}$ n'a pas de solution dans $[${a}\\,;${b}]$`, "On ne peut rien dire"], `$${k}$ est compris entre $f(${a}) = ${fa}$ et $f(${b}) = ${fb}$, et $f$ est continue : d'après le théorème des valeurs intermédiaires, il y a **au moins** une solution. Sans monotonie, on ne sait pas s'il y en a une seule.`],
+      corollaire: [`$f$ est continue et strictement croissante sur $[${a}\\,;${b}]$, avec $f(${a}) = ${fa}$ et $f(${b}) = ${fb}$.`, `L'équation $f(x) = ${k}$ a exactement une solution dans $[${a}\\,;${b}]$`, [`L'équation $f(x) = ${k}$ a au moins deux solutions dans $[${a}\\,;${b}]$`, `L'équation $f(x) = ${k}$ n'a pas de solution dans $[${a}\\,;${b}]$`, "On ne peut rien dire"], `Corollaire du TVI (théorème de la bijection) : $f$ est continue, strictement monotone, et $${k}$ est entre $${fa}$ et $${fb}$ : il y a **exactement une** solution.`],
+      noncontinue: [`$f$ est définie sur $[${a}\\,;${b}]$, avec $f(${a}) = ${fa}$ et $f(${b}) = ${fb}$, mais on ne sait pas si elle est continue.`, "On ne peut rien dire", [`L'équation $f(x) = ${k}$ a au moins une solution dans $[${a}\\,;${b}]$`, `L'équation $f(x) = ${k}$ a exactement une solution dans $[${a}\\,;${b}]$`, `L'équation $f(x) = ${k}$ n'a pas de solution dans $[${a}\\,;${b}]$`], `Sans continuité, la courbe peut « sauter » par-dessus la valeur $${k}$ : le théorème des valeurs intermédiaires ne s'applique pas.`],
+      nonmonotone: [`$f$ est continue sur $[${a}\\,;${b}]$, avec $f(${a}) = ${fa}$, $f(${b}) = ${fb}$, et $f$ n'est pas monotone.`, `L'équation $f(x) = ${k}$ a au moins une solution, peut-être plusieurs`, [`L'équation $f(x) = ${k}$ a exactement une solution`, `L'équation $f(x) = ${k}$ n'a aucune solution`, "Le théorème des valeurs intermédiaires ne s'applique pas"], `Le TVI s'applique (continuité, et $${k}$ entre $${fa}$ et $${fb}$) : au moins une solution. La courbe peut monter et descendre, donc il peut y en avoir plusieurs.`],
+      hors: [`$f$ est continue et strictement croissante sur $[${a}\\,;${b}]$, avec $f(${a}) = ${fa}$ et $f(${b}) = ${fb}$.`, `L'équation $f(x) = ${fb + rand(1, 5)}$ n'a pas de solution dans $[${a}\\,;${b}]$`, [`L'équation $f(x) = ${fb + 3}$ a une solution dans $[${a}\\,;${b}]$`, "On ne peut rien dire", `L'équation a au moins deux solutions`], `$f$ est croissante : pour tout $x$ de $[${a}\\,;${b}]$, $f(x) \\leqslant f(${b}) = ${fb}$. Une valeur plus grande que $${fb}$ n'est jamais atteinte.`]
+    }[t];
+    const ms = melangeChoix(S[1], S[2]);
+    return {
+      enonce: `${S[0]} Que peut-on affirmer ?`,
+      mode: "choix", choix: ms.choix, attendu: ms.attendu,
+      aides: ["Théorème des valeurs intermédiaires : si $f$ est **continue** sur $[a\\,;b]$ et si $k$ est entre $f(a)$ et $f(b)$, l'équation $f(x) = k$ a **au moins** une solution.", "Si de plus $f$ est **strictement monotone**, la solution est **unique**.", "Vérifie chaque hypothèse : continuité, monotonie, position de $k$."],
+      solution: S[3]
+    };
+  };
+
+  GEN["cnt-encadrement"] = function () {
+    const T = pick([
+      () => { const p = rand(1, 4), q = rand(2, 20); return [`x^3 + ${p === 1 ? "" : p}x - ${q}`, (x) => x ** 3 + p * x - q, 0, 4, "strictement croissante (somme de fonctions croissantes)"]; },
+      () => { const q = rand(2, 30); return [`x^3 - ${q}`, (x) => x ** 3 - q, 0, 4, "strictement croissante"]; },
+      () => { const q = rand(3, 12); return [`e^x + x - ${q}`, (x) => Math.exp(x) + x - q, 0, 3, "strictement croissante (somme de fonctions croissantes)"]; },
+      () => { const q = rand(2, 9); return [`x^2 - ${q}`, (x) => x * x - q, 0, 4, "strictement croissante sur $[0\\,;+\\infty[$"]; },
+      () => { const q = rand(2, 6); return [`e^x - ${q}x`, (x) => Math.exp(x) - q * x, Math.log(q), 5, `strictement croissante sur $[${nb(+Math.log(q).toFixed(2))}\\,;+\\infty[$ (sa dérivée $e^x - ${q}$ y est positive)`]; }
+    ])();
+    const [tex, f, A, B, mono] = T, al = cntRacine(f, A, B);
+    if (!(al > A + 0.3 && al < B - 0.1) || Math.abs(al * 10 - Math.round(al * 10)) < 0.08) return GEN["cnt-encadrement"]();
+    const lo = Math.floor(al * 10) / 10, hi = +(lo + 0.1).toFixed(1), a0 = Math.floor(al), b0 = a0 + 1;
+    if (Math.random() < 0.5) {
+      const ms = melangeChoix(`$[${nb(lo)}\\,;${nb(hi)}]$`, [`$[${nb(+(lo - 0.1).toFixed(1))}\\,;${nb(lo)}]$`, `$[${nb(hi)}\\,;${nb(+(hi + 0.1).toFixed(1))}]$`, `$[${nb(+(lo + 0.2).toFixed(1))}\\,;${nb(+(hi + 0.2).toFixed(1))}]$`]);
+      return {
+        enonce: `$f(x) = ${tex}$ est continue et ${mono}. L'équation $f(x) = 0$ a une unique solution $\\alpha$ dans $[${a0}\\,;${b0}]$. Dans quel intervalle d'amplitude $0{,}1$ se trouve $\\alpha$ ?`,
+        mode: "choix", choix: ms.choix, attendu: ms.attendu,
+        aides: ["Calcule $f$ aux bornes des intervalles proposés (tableau de valeurs de la calculatrice, pas de $0{,}1$).", "Le bon intervalle est celui où $f$ **change de signe**.", "Le TVI garantit alors que $\\alpha$ est entre les deux bornes."],
+        solution: `$f(${nb(lo)}) \\approx ${nb(+f(lo).toFixed(3))} < 0$ et $f(${nb(hi)}) \\approx ${nb(+f(hi).toFixed(3))} > 0$ : d'après le TVI, $${nb(lo)} < \\alpha < ${nb(hi)}$ ($\\alpha \\approx ${nb(+al.toFixed(3))}$).`
+      };
+    }
+    const r = Math.round(al * 10) / 10;
+    return {
+      enonce: `$f(x) = ${tex}$ est continue et ${mono}. L'équation $f(x) = 0$ a une unique solution $\\alpha$ dans $[${a0}\\,;${b0}]$. Donne une valeur approchée de $\\alpha$ arrondie au dixième.`,
+      mode: "nombre", prefixe: "$\\alpha \\approx$", attendu: r, tolerance: 0.05 + 1e-9,
+      aides: ["Balayage : calcule $f(x)$ pour $x$ de $" + a0 + "$ à $" + b0 + "$ avec un pas de $0{,}1$.", `$f$ change de signe entre $${nb(lo)}$ et $${nb(hi)}$.`, "Pour arrondir au dixième, regarde aussi le signe de $f$ au milieu, en $" + nb(+(lo + 0.05).toFixed(2)) + "$."],
+      solution: `$f(${nb(lo)}) < 0 < f(${nb(hi)})$, donc $${nb(lo)} < \\alpha < ${nb(hi)}$ ; et $f(${nb(+(lo + 0.05).toFixed(2))}) ${f(lo + 0.05) < 0 ? "< 0" : "> 0"}$, donc $\\alpha ${f(lo + 0.05) < 0 ? ">" : "<"} ${nb(+(lo + 0.05).toFixed(2))}$. Arrondi au dixième : $\\alpha \\approx ${nb(r)}$ ($\\alpha \\approx ${nb(+al.toFixed(4))}$).`
+    };
+  };
+
+  GEN["cnt-dichotomie"] = function () {
+    const [ft, f, tex] = pick([["x**2 - 2", (x) => x * x - 2, "x^2 - 2"], ["x**2 - 3", (x) => x * x - 3, "x^2 - 3"], ["x**2 - 5", (x) => x * x - 5, "x^2 - 5"], ["x**3 - 2", (x) => x ** 3 - 2, "x^3 - 2"], ["x**3 - 10", (x) => x ** 3 - 10, "x^3 - 10"], ["x**3 + x - 3", (x) => x ** 3 + x - 3, "x^3 + x - 3"], ["x**2 - 7", (x) => x * x - 7, "x^2 - 7"], ["x**3 - 20", (x) => x ** 3 - 20, "x^3 - 20"], ["x**2 + x - 4", (x) => x * x + x - 4, "x^2 + x - 4"]]);
+    let a = 0; while (f(a + 1) < 0) a++;
+    const b0 = a + 1, k = rand(1, 4), quoi = pick(["a", "b"]);
+    let A = a, B = b0;
+    const etapes = [];
+    for (let i = 0; i < k; i++) { const m = (A + B) / 2; if (f(A) * f(m) <= 0) B = m; else A = m; etapes.push(`[${nb(A)}\\,;${nb(B)}]`); }
+    return {
+      enonce: `Méthode de dichotomie pour résoudre $${tex} = 0$ :\n\n\`\`\`python\ndef f(x):\n    return ${ft}\n\ndef dicho(a, b, n):\n    for i in range(n):\n        m = (a + b) / 2\n        if f(a) * f(m) <= 0:\n            b = m\n        else:\n            a = m\n    return a, b\n\`\`\`\n\nQuelle est la valeur de $\\texttt{${quoi}}$ renvoyée par $\\texttt{dicho(${a}, ${b0}, ${k})}$ ?`,
+      mode: "nombre", prefixe: `$\\texttt{${quoi}} =$`, attendu: quoi === "a" ? A : B,
+      erreurs: [{ valeur: quoi === "a" ? B : A, message: `Ça, c'est la valeur de $\\texttt{${quoi === "a" ? "b" : "a"}}$.` }],
+      aides: ["À chaque tour, on coupe l'intervalle en deux au milieu $m$, et on garde la moitié où $f$ change de signe.", `$\\texttt{f(a) * f(m) <= 0}$ : $f(a)$ et $f(m)$ n'ont pas le même signe, la solution est dans $[a\\,;m]$.`, `Il y a $${k}$ tour${k > 1 ? "s" : ""} de boucle : fais-les un par un.`],
+      solution: `Intervalles successifs : $[${a}\\,;${b0}]$, puis $${etapes.join("$, $")}$. La fonction renvoie $\\texttt{a} = ${nb(A)}$ et $\\texttt{b} = ${nb(B)}$ ; la solution est entre les deux.`
+    };
+  };
+
   /* Séries « flash » d'un thème : mélange de ses générateurs */
   const THEMES = {
     "am-flash-cn": ["am-comparer", "am-fractions", "am-puissances", "am-ecritures", "am-ordre-grandeur", "am-coherence", "auto-conversions"],
@@ -14789,7 +14915,7 @@
 
 
   /* Une « erreur connue » ne doit jamais coïncider avec la bonne réponse (à la tolérance près) */
-  Object.keys(GEN).filter((k) => /^(auto|ld|am|cd|ar|cl|fa|ve|st|vx|tc|co|dr|fr|sg|pc|ec|sy|su|s2|pi|s5|d1|tr|d2|vr|ps|ex|va|sc|gr|sm|ea|tsu|tag|tlf|tcb|tsd|tdc|tln|tcv|tlg|tpe|tin|tld|trr|tec|rec|dvx|esp|lsu|bin|lfo)-/.test(k)).forEach((k) => {
+  Object.keys(GEN).filter((k) => /^(auto|ld|am|cd|ar|cl|fa|ve|st|vx|tc|co|dr|fr|sg|pc|ec|sy|su|s2|pi|s5|d1|tr|d2|vr|ps|ex|va|sc|gr|sm|ea|tsu|tag|tlf|tcb|tsd|tdc|tln|tcv|tlg|tpe|tin|tld|trr|tec|rec|dvx|esp|lsu|bin|lfo|cnt)-/.test(k)).forEach((k) => {
     const g = GEN[k];
     GEN[k] = (i) => { const q = g(i); if (q.erreurs) q.erreurs = q.erreurs.filter((e) => Math.abs(e.valeur - q.attendu) >= (q.tolerance || 1e-9)); return q; };
   });

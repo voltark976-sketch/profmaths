@@ -391,7 +391,7 @@ window.CATALOGUE = {
           id: "terminale-spe-continuite",
           numero: 7,
           titre: "Continuité",
-          statut: "bientot",
+          statut: "disponible",
           drive: ""
         },
         {
