@@ -72,6 +72,7 @@ Les niveaux du catalogue sont Seconde, Automatismes, Première spécialité, Ter
   - Une liste écrite dans une seule formule avec « ; » (`$3 ; 11 ; 19$`) est coupée en petites formules pour passer à la ligne sur téléphone : séparer les listes par « ; » plutôt que par `\,;\,`.
 - `assets/compte.js` : comptes élèves et sauvegarde de la progression.
 - `assets/style.css` : mise en page, thème clair et sombre.
+- `assets/ruines.css` et `assets/ruines-*.svg` : thème « Ruines » (temple au soleil, inspiré des jeux de puzzle dans des ruines antiques ; dessins originaux). Ces fichiers ne sont téléchargés que par les élèves qui choisissent ce thème (bouton Clair · Sombre · Ruines sur ordinateur, bouton rond qui fait tourner les trois sur téléphone). Les couleurs se retouchent directement dans `ruines.css` ; les trois dessins sont calculés par les scripts de `outils/ruines/` (`node outils/ruines/scene.js assets`, idem pour `mur.js` et `sigils.js`).
 - `assets/katex/` : affichage des formules, hébergé avec le site (pas de dépendance externe).
 - `outils/apercu.py` : assemble le site en un seul fichier HTML pour l'aperçu.
 - `outils/comptes/creer-comptes.js` : création des comptes élèves et du compte professeur (voir « Comptes élèves »).

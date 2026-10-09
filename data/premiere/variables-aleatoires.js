@@ -60,7 +60,7 @@ window.CHAPITRES["premiere-variables-aleatoires"] = {
         "Attention : $E(X)$ n'est pas forcément une valeur prise par $X$.",
       exemple: {
         enonce: "Calcule l'espérance du gain $X$ à la tombola.",
-        solution: "$E(X) = \\dfrac{1 \\times 98 + 5 \\times 18 + 20 \\times 3 + 174 \\times (-2)}{200} = \\dfrac{98 + 90 + 60 - 348}{200} = -0{,}5$.\n\nEn moyenne, un acheteur perd $0{,}50$ € par billet."
+        solution: "$E(X) = \\dfrac{1 \\times 98 + 5 \\times 18 + 20 \\times 3 + 174 \\times (-2)}{200}$ $= \\dfrac{98 + 90 + 60 - 348}{200} = -0{,}5$.\n\nEn moyenne, un acheteur perd $0{,}50$ € par billet."
       }
     },
     {

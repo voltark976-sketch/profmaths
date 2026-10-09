@@ -137,7 +137,7 @@ window.CHAPITRES["premiere-derivation-1"] = {
         "Le programme affiche environ $\\texttt{[7.0, 6.1, 6.01, 6.001]}$, avec de petites erreurs d'arrondi dans les derniers chiffres. Les pentes se rapprochent de $6$ : on conjecture que $f'(3) = 6$.",
       exemple: {
         enonce: "Que faut-il écrire pour étudier $f'(-2)$ ? Que trouve-t-on ?",
-        solution: "On appelle $\\texttt{pentes(-2, [1, 0.1, 0.01, 0.001])}$ : on obtient environ $-3$, $-3{,}9$, $-3{,}99$, $-3{,}999$, qui se rapprochent de $-4 = f'(-2)$."
+        solution: "On appelle $\\texttt{pentes(-2,}$ $\\texttt{[1, 0.1, 0.01, 0.001])}$ : on obtient environ $-3$, $-3{,}9$, $-3{,}99$, $-3{,}999$, qui se rapprochent de $-4 = f'(-2)$."
       }
     },
     {

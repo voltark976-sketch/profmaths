@@ -97,7 +97,7 @@ window.CHAPITRES["premiere-suites"] = {
         "```python\nF = [1, 1]\nfor i in range(8):\n    F.append(F[-1] + F[-2])\n```",
       exemple: {
         enonce: "Que contient la liste $\\texttt{F}$ à la fin du programme de Fibonacci ?",
-        solution: "La boucle ajoute $8$ termes aux deux premiers : $\\texttt{[1, 1, 2, 3, 5, 8, 13, 21, 34, 55]}$."
+        solution: "La boucle ajoute $8$ termes aux deux premiers : $\\texttt{[1, 1, 2, 3, 5,}$ $\\texttt{8, 13, 21, 34, 55]}$."
       }
     }
   ],

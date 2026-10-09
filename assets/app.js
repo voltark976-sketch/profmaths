@@ -110,19 +110,53 @@
   });
   majBoutonCompte();
 
-  /* ---------- Apparence : clair, sombre ou imagé (sur ordinateur) ---------- */
+  /* ---------- Apparence : clair, sombre ou ruines ---------- */
   // Sans choix enregistré, le site suit le réglage clair/sombre de l'appareil.
+  // Ordinateur : trois boutons. Téléphone : un seul bouton qui passe au thème suivant.
   const CLE_THEME = "profmaths:theme";
+  const THEMES = { light: "Clair", dark: "Sombre", ruines: "Ruines" };
   const boutonsTheme = document.querySelectorAll("[data-theme-choix]");
+  const cycleTheme = document.getElementById("theme-cycle");
+  // Couleur de la barre du navigateur sur téléphone, accordée à la barre du haut du site
+  const COULEUR_BARRE = { light: "#f2f6f6", dark: "#0c1a1c", ruines: "#fbf1d9" };
+  const sombreSysteme = matchMedia("(prefers-color-scheme: dark)");
+  const themeActuel = () => document.documentElement.dataset.theme || (sombreSysteme.matches ? "dark" : "light");
   function majTheme() {
-    const t = document.documentElement.dataset.theme || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    const t = themeActuel();
     boutonsTheme.forEach((b) => b.setAttribute("aria-pressed", b.dataset.themeChoix === t));
+    if (cycleTheme) {
+      cycleTheme.dataset.actuel = t;
+      cycleTheme.setAttribute("aria-label", `Apparence : ${THEMES[t]}. Toucher pour changer.`);
+      cycleTheme.title = `Apparence : ${THEMES[t]}`;
+    }
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.content = COULEUR_BARRE[t];
   }
-  boutonsTheme.forEach((b) => b.addEventListener("click", () => {
-    document.documentElement.dataset.theme = b.dataset.themeChoix;
-    try { localStorage.setItem(CLE_THEME, b.dataset.themeChoix); } catch (e) {}
-    majTheme();
-  }));
+  if (sombreSysteme.addEventListener) sombreSysteme.addEventListener("change", majTheme);
+  // La feuille du thème « Ruines » n'est téléchargée que si on le choisit : on attend qu'elle soit
+  // arrivée avant de changer d'apparence, pour ne pas montrer une page à moitié habillée.
+  function chargerRuines(suite) {
+    if (document.getElementById("css-ruines")) return suite();
+    const base = document.querySelector('link[href*="style.css"]');
+    const l = document.createElement("link");
+    l.rel = "stylesheet"; l.id = "css-ruines";
+    l.href = base ? base.getAttribute("href").replace("style.css", "ruines.css") : "assets/ruines.css";
+    l.onload = l.onerror = suite;
+    document.head.appendChild(l);
+  }
+  function choisirTheme(t) {
+    const appliquer = () => {
+      document.documentElement.dataset.theme = t;
+      try { localStorage.setItem(CLE_THEME, t); } catch (e) {}
+      majTheme();
+    };
+    if (t === "ruines") chargerRuines(appliquer); else appliquer();
+  }
+  boutonsTheme.forEach((b) => b.addEventListener("click", () => choisirTheme(b.dataset.themeChoix)));
+  if (cycleTheme) cycleTheme.addEventListener("click", () => {
+    const ordre = Object.keys(THEMES);
+    choisirTheme(ordre[(ordre.indexOf(themeActuel()) + 1) % ordre.length]);
+  });
   majTheme();
 
   /* ---------- Mise en forme du texte : $maths$, **gras**, puces ---------- */
@@ -248,6 +282,14 @@
   window.addEventListener("hashchange", () => { route(); window.scrollTo(0, 0); });
 
   const etoiles = (n, max) => `<span class="etoiles" aria-label="${n} étoile${n > 1 ? "s" : ""} sur ${max}">${"★".repeat(n)}<span class="off">${"★".repeat(max - n)}</span></span>`;
+  // Numéro de chapitre en chiffres romains, gravé en filigrane dans le thème « Ruines »
+  function romain(n) {
+    n = parseInt(n, 10);
+    if (!(n > 0 && n < 4000)) return "";
+    let r = "";
+    [[1000, "M"], [900, "CM"], [500, "D"], [400, "CD"], [100, "C"], [90, "XC"], [50, "L"], [40, "XL"], [10, "X"], [9, "IX"], [5, "V"], [4, "IV"], [1, "I"]].forEach(([v, s]) => { while (n >= v) { r += s; n -= v; } });
+    return r;
+  }
 
   function bilanChapitre(id) {
     const c = CHAPITRES[id];
@@ -536,7 +578,7 @@
     const b = bilanChapitre(id);
     const nivChap = CATALOGUE.niveaux.find((n) => n.chapitres.some((ch) => ch.id === id));
     let h = `<a class="retour" href="#${nivChap ? "niveau-" + esc(nivChap.id) : ""}">← ${nivChap ? esc(nivChap.nom) : "Accueil"} : tous les chapitres</a>
-      <header class="chap-head">${c.numero ? `<span class="chap-filigrane" aria-hidden="true">${c.numero}</span>` : ""}<p class="eyebrow">${esc(c.niveau)} · ${c.numero ? `Chapitre ${c.numero}` : esc(c.periode || "Toute l'année")}</p><h1>${esc(c.titre)}</h1><p class="lead">${inline(c.accroche)}</p>
+      <header class="chap-head">${c.numero ? `<span class="chap-filigrane" aria-hidden="true" data-romain="${romain(c.numero)}">${c.numero}</span>` : ""}<p class="eyebrow">${esc(c.niveau)} · ${c.numero ? `Chapitre&nbsp;${c.numero}` : esc(c.periode || "Toute l'année")}</p><h1>${esc(c.titre)}</h1><p class="lead">${inline(c.accroche)}</p>
       <p class="score-chap">${etoiles(Math.round((b.got / b.total) * 5), 5)} <span>${b.got}/${b.total} étoiles d'exercices</span></p></header>
       <nav class="onglets" aria-label="Parties du chapitre">${ONGLETS.map((o) => `<a href="#${id}.${o.id}" ${o.id === onglet ? 'aria-current="page"' : ""}>${o.nom}</a>`).join("")}</nav>
       <div class="panneau" id="panneau"></div>`;
