@@ -15424,6 +15424,156 @@
     };
   };
 
+  /* ---------- Terminale spécialité, chapitre 10 : primitives (préfixe pri-) ---------- */
+  // Terme c·x^p avec c = num/den (fraction irréductible), écrit proprement ; premier : sans signe « + » devant
+  function priTerme(num, den, p, premier) {
+    if (num === 0) return "";
+    const g = pgcd(num, den); let n = num / g, d = den / g; if (d < 0) { n = -n; d = -d; }
+    const v = p === 0 ? "" : p === 1 ? "x" : `x^{${p}}`;
+    const abs = Math.abs(n), coef = d === 1 ? (abs === 1 && v ? "" : `${abs}`) : `\\dfrac{${abs}}{${d}}`;
+    const signe = n < 0 ? (premier ? "-" : " - ") : premier ? "" : " + ";
+    return `${signe}${coef}${v}`;
+  }
+  // Primitive (constante nulle) d'un polynôme de coefficients [a_n, …, a_0]
+  const priPoly = (co) => { const deg = co.length - 1; let s = ""; co.forEach((a, i) => { const p = deg - i; const t = priTerme(a, p + 1, p + 1, s === ""); s += t; }); return s || "0"; };
+  const priEvalPoly = (co, x) => { const deg = co.length - 1; return co.reduce((s, a, i) => s + (a * x ** (deg - i + 1)) / (deg - i + 1), 0); };
+
+  GEN["pri-verifier"] = function () {
+    const T = pick([
+      () => { const a = randNZ(-3, 3), b = randNZ(-4, 4); return [`(${dvxLin(a, b)})e^x`, `(${dvxLin(a, a + b)})e^x`, [`${a}e^x`, `(${dvxLin(a, b - a)})e^x`, `\\dfrac{${a}}{2}x^2e^x`]]; },
+      () => { const c = rand(1, 6); return [`\\dfrac{2x}{x^2 + ${c}}`, `\\ln(x^2 + ${c})`, [`\\dfrac{1}{x^2 + ${c}}`, `\\dfrac{x^2}{\\frac{x^3}{3} + ${c}x}`, `2\\ln(x^2 + ${c})`]]; },
+      () => { const k = pick([2, 3, -1, -2, 5]); return [`e^{${k === -1 ? "-" : k}x}`, `${k === -1 ? "-" : frac(1, k) + " "}e^{${k === -1 ? "-" : k}x}`.replace("1 e", "e"), [`${k === -1 ? "-" : k}e^{${k === -1 ? "-" : k}x}`, `e^{${k === -1 ? "-" : k}x}`, `\\dfrac{e^{${k === -1 ? "-" : k}x + 1}}{${k === -1 ? "-" : k}x + 1}`.replace("{-x + 1}{-x + 1}", "{-x + 1}{1 - x}")]]; },
+      () => { const n = rand(2, 5), c = rand(1, 4); return [`2x(x^2 + ${c})^{${n}}`, `\\dfrac{(x^2 + ${c})^{${n + 1}}}{${n + 1}}`, [`(x^2 + ${c})^{${n + 1}}`, `\\dfrac{(x^2 + ${c})^{${n - 1}}}{${n - 1}}`, `x^2(x^2 + ${c})^{${n}}`]]; },
+      () => { const a = rand(1, 5); return [`\\dfrac{1}{x^2}`, `-\\dfrac{1}{x} + ${a}`, [`\\dfrac{1}{x}`, `-\\dfrac{1}{x^3}`, `\\ln(x^2)`]]; },
+      () => { const c = rand(1, 9); return [`\\dfrac{1}{\\sqrt{x + ${c}}}`, `2\\sqrt{x + ${c}}`, [`\\sqrt{x + ${c}}`, `\\dfrac{1}{2\\sqrt{x + ${c}}}`, `\\ln(\\sqrt{x + ${c}})`]]; },
+      () => { const a = rand(1, 4); return [`\\ln x + 1`, `x\\ln x + ${a}`, ["\\dfrac{1}{x} + x", "\\ln x", "x\\ln x - x"]]; },
+      () => { const c = rand(1, 5); return [`xe^{x^2}`, `\\dfrac{1}{2}e^{x^2} + ${c}`, ["e^{x^2}", "x^2e^{x^2}", "2xe^{x^2}"]]; }
+    ])();
+    const ms = melangeChoix(`$F(x) = ${T[1]}$`, T[2].map((s) => `$F(x) = ${s}$`));
+    return {
+      enonce: `Laquelle de ces fonctions est une primitive de $f(x) = ${T[0]}$ (sur un intervalle où tout est défini) ?`,
+      mode: "choix", choix: ms.choix, attendu: ms.attendu,
+      aides: ["$F$ est une primitive de $f$ si $F' = f$ : il suffit de **dériver** chaque proposition.", "Utilise les formules de dérivation : produit, composée ($e^u$, $\\ln u$, $u^n$, $\\sqrt{u}$).", "Une constante ajoutée ne change pas la dérivée."],
+      solution: `En dérivant $F(x) = ${T[1]}$, on retrouve bien $${T[0]}$ : c'est une primitive de $f$. Les autres propositions ont une dérivée différente de $f$.`
+    };
+  };
+
+  GEN["pri-polynome"] = function () {
+    const deg = rand(1, 3), co = Array.from({ length: deg + 1 }, (_, i) => (i === 0 ? randNZ(-6, 6) : rand(-7, 7)));
+    const F = priPoly(co), fx = poly(co);
+    const faux1 = poly(co.slice(0, -1).map((a, i) => a * (deg - i))) || "0"; // dérivée au lieu de primitive
+    const faux2 = (() => { let s = ""; co.forEach((a, i) => { s += priTerme(a, 1, deg - i + 1, s === ""); }); return s; })(); // oubli de diviser
+    const faux3 = (() => { let s = ""; co.forEach((a, i) => { const p = deg - i; s += priTerme(a, p + 1, p, s === ""); }); return s || "0"; })();
+    const ms = melangeChoix(`$F(x) = ${F}$`, [faux2, faux1, faux3].filter((x) => x !== F).map((x) => `$F(x) = ${x}$`));
+    return {
+      enonce: `Quelle est la primitive de $f(x) = ${fx}$ qui s'annule en $0$ ?`,
+      mode: "choix", choix: ms.choix, attendu: ms.attendu,
+      aides: ["Une primitive de $x^n$ est $\\dfrac{x^{n+1}}{n + 1}$ : on augmente l'exposant de $1$ et on divise par le nouvel exposant.", "Une primitive d'une constante $k$ est $kx$.", "On fait terme à terme (linéarité). Vérifie en dérivant."],
+      solution: `$F(x) = ${F}$ : en dérivant, on retrouve $${fx}$, et $F(0) = 0$.`
+    };
+  };
+
+  GEN["pri-composees"] = function () {
+    const c = rand(1, 9), n = rand(2, 5), k = pick([2, 3, 4, -2, 5]), a = pick([1, 2, 3, 4]);
+    const T = pick([
+      [`${2 * a}x(x^2 + ${c})^{${n}}`, `${frac(a, n + 1) === "1" ? "" : frac(a, n + 1)}(x^2 + ${c})^{${n + 1}}`, "u'u^n", `$u(x) = x^2 + ${c}$, $u' = 2x$ : la fonction s'écrit $${a}u'u^{${n}}$, de primitive $${a}\\dfrac{u^{${n + 1}}}{${n + 1}}$.`, [`${a}(x^2 + ${c})^{${n + 1}}`, `\\dfrac{${2 * a}x(x^2 + ${c})^{${n + 1}}}{${n + 1}}`, `${frac(a, n - 1)}(x^2 + ${c})^{${n - 1}}`]],
+      [`x(x^2 + ${c})^{${n}}`, `${frac(1, 2 * (n + 1))}(x^2 + ${c})^{${n + 1}}`, "u'u^n", `$u(x) = x^2 + ${c}$, $u' = 2x$ : la fonction vaut $\\dfrac{1}{2}u'u^{${n}}$, de primitive $\\dfrac{1}{2} \\times \\dfrac{u^{${n + 1}}}{${n + 1}}$.`, [`${frac(1, n + 1)}(x^2 + ${c})^{${n + 1}}`, `\\dfrac{x^2}{2}(x^2 + ${c})^{${n + 1}}`, `2(x^2 + ${c})^{${n + 1}}`]],
+      [`\\dfrac{${2 * a}x}{x^2 + ${c}}`, `${a === 1 ? "" : a}\\ln(x^2 + ${c})`, "u'/u", `$u(x) = x^2 + ${c} > 0$ et $u' = 2x$ : la fonction vaut $${a === 1 ? "" : a}\\dfrac{u'}{u}$, de primitive $${a === 1 ? "" : a}\\ln u$.`, [`${a === 1 ? "" : a}\\ln(${2 * a}x)`, `\\dfrac{${a === 1 ? "" : a}}{x^2 + ${c}}`.replace("\\dfrac{}", "\\dfrac{1}"), `${2 * a}x\\ln(x^2 + ${c})`]],
+      [`\\dfrac{1}{x + ${c}}`, `\\ln(x + ${c})`, "u'/u", `$u(x) = x + ${c} > 0$ (sur $]-${c}\\,;+\\infty[$) et $u' = 1$ : primitive $\\ln u$.`, [`-\\dfrac{1}{(x + ${c})^2}`, `\\ln x + ${c}`, `\\dfrac{\\ln x}{${c}}`]],
+      [`e^{${k}x}`, `${frac(1, k)}e^{${k}x}`, "u'e^u", `$u(x) = ${k}x$, $u' = ${k}$ : $e^{${k}x} = \\dfrac{1}{${k}} \\times ${k}e^{${k}x}$, de primitive $\\dfrac{1}{${k}}e^{${k}x}$.`, [`${k}e^{${k}x}`, `e^{${k}x}`, `\\dfrac{e^{${k}x + 1}}{${k}x + 1}`]],
+      [`${2 * a}xe^{x^2}`, `${a === 1 ? "" : a}e^{x^2}`, "u'e^u", `$u(x) = x^2$, $u' = 2x$ : la fonction vaut $${a === 1 ? "" : a}u'e^u$, de primitive $${a === 1 ? "" : a}e^u$.`, [`${a === 1 ? "" : a}x^2e^{x^2}`, `${2 * a}e^{x^2}`, `${a}xe^{x^2}`]],
+      [`\\dfrac{1}{\\sqrt{x + ${c}}}`, `2\\sqrt{x + ${c}}`, "u'/√u", `$u(x) = x + ${c}$, $u' = 1$ : une primitive de $\\dfrac{u'}{\\sqrt{u}}$ est $2\\sqrt{u}$.`, [`\\sqrt{x + ${c}}`, `\\dfrac{1}{2}\\sqrt{x + ${c}}`, `-\\dfrac{1}{2(x + ${c})\\sqrt{x + ${c}}}`]],
+      [`\\dfrac{${2 * a}x}{(x^2 + ${c})^2}`, `-\\dfrac{${a}}{x^2 + ${c}}`, "u'/u²", `$u(x) = x^2 + ${c}$, $u' = 2x$ : la fonction vaut $${a === 1 ? "" : a}\\dfrac{u'}{u^2}$, de primitive $-\\dfrac{${a}}{u}$.`, [`\\dfrac{${a}}{x^2 + ${c}}`, `${a === 1 ? "" : a}\\ln((x^2 + ${c})^2)`, `-\\dfrac{${a}}{(x^2 + ${c})^3}`]],
+      [`\\dfrac{${k > 0 ? k : -k}}{${k > 0 ? k : -k}x + ${c}}`, `\\ln(${k > 0 ? k : -k}x + ${c})`, "u'/u", `$u(x) = ${k > 0 ? k : -k}x + ${c} > 0$ et $u' = ${k > 0 ? k : -k}$ : la fonction est $\\dfrac{u'}{u}$.`, [`${k > 0 ? k : -k}\\ln(${k > 0 ? k : -k}x + ${c})`, `\\dfrac{1}{${k > 0 ? k : -k}}\\ln(x + ${c})`, `\\ln x + ${c}`]]
+    ]);
+    const ms = melangeChoix(`$F(x) = ${T[1]}$`, T[4].filter((x) => x !== T[1]).map((x) => `$F(x) = ${x}$`));
+    return {
+      enonce: `Quelle est une primitive de $f(x) = ${T[0]}$ (sur un intervalle où elle est définie) ?`,
+      mode: "choix", choix: ms.choix, attendu: ms.attendu,
+      aides: ["Reconnais une forme : $u'u^n$, $\\dfrac{u'}{u}$, $u'e^u$, $\\dfrac{u'}{\\sqrt{u}}$ ou $\\dfrac{u'}{u^2}$.", `Ici, c'est une forme $${T[2].replace("√u", "\\sqrt{u}").replace("u²", "u^2").replace("u'/u", "\\dfrac{u'}{u}").replace("\\dfrac{u'}{u}^2", "\\dfrac{u'}{u^2}")}$ : ajuste la constante si $u'$ n'apparaît pas exactement.`, "Vérifie ta réponse en la dérivant."],
+      solution: `${T[3]} Donc $F(x) = ${T[1]}$ (à une constante près).`
+    };
+  };
+
+  GEN["pri-condition"] = function () {
+    const t = pick(["poly", "exp", "inv", "ln"]);
+    if (t === "poly") {
+      const co = [randNZ(-3, 3) * 3, rand(-4, 4) * 2, rand(-5, 5)], x0 = rand(-2, 2), y0 = rand(-6, 8), x1 = rand(-2, 3);
+      const C = y0 - priEvalPoly(co, x0), v = priEvalPoly(co, x1) + C;
+      return {
+        enonce: `$F$ est la primitive de $f(x) = ${poly(co)}$ telle que $F(${x0}) = ${y0}$. Calcule $F(${x1})$.`,
+        mode: "nombre", prefixe: `$F(${x1}) =$`, attendu: v,
+        aides: [`Les primitives de $f$ sont $F(x) = ${priPoly(co)} + C$.`, `$F(${x0}) = ${nb(priEvalPoly(co, x0))} + C = ${y0}$, donc $C = ${nb(C)}$.`, `Calcule $F(${x1})$ avec cette valeur de $C$.`],
+        solution: `$F(x) = ${priPoly(co)} ${C === 0 ? "" : sg(C)}$ (car $C = ${nb(C)}$), donc $F(${x1}) = ${nb(v)}$.`.replace("  ", " ")
+      };
+    }
+    if (t === "exp") {
+      const k = pick([1, 2, -1, 3]), A = pick([1, 2, 3, 4, 6]) * k, y0 = rand(-5, 6);
+      // f(x) = A e^{kx}, F(x) = (A/k) e^{kx} + C ; F(0) = y0
+      const ak = A / k, C = y0 - ak;
+      return {
+        enonce: `$F$ est la primitive de $f(x) = ${A === 1 ? "" : A === -1 ? "-" : A}e^{${k === 1 ? "" : k === -1 ? "-" : k}x}$ sur $\\mathbb{R}$ telle que $F(0) = ${y0}$. Donne la constante $C$ dans $F(x) = ${ak === 1 ? "" : ak === -1 ? "-" : ak}e^{${k === 1 ? "" : k === -1 ? "-" : k}x} + C$.`,
+        mode: "nombre", prefixe: "$C =$", attendu: C,
+        erreurs: [{ valeur: y0, message: "Attention : $e^0 = 1$, pas $0$." }],
+        aides: ["Remplace $x$ par $0$ dans $F(x)$.", "$e^0 = 1$.", `$F(0) = ${ak} + C = ${y0}$.`],
+        solution: `$F(0) = ${ak} \\times e^0 + C = ${ak} + C = ${y0}$, donc $C = ${C}$.`
+      };
+    }
+    if (t === "inv") {
+      const y0 = rand(-4, 6), x1 = rand(2, 5);
+      // f(x) = 1/x² sur ]0;+∞[, F(x) = -1/x + C, F(1) = y0
+      const C = y0 + 1, v = -1 / x1 + C;
+      return {
+        enonce: `$F$ est la primitive de $f(x) = \\dfrac{1}{x^2}$ sur $]0\\,;+\\infty[$ telle que $F(1) = ${y0}$. Calcule $F(${x1})$ (valeur exacte, sous forme de fraction).`,
+        mode: "nombre", prefixe: `$F(${x1}) =$`, attendu: v,
+        erreurs: tsApprox(v),
+        aides: ["Une primitive de $\\dfrac{1}{x^2}$ est $-\\dfrac{1}{x}$.", `$F(x) = -\\dfrac{1}{x} + C$ et $F(1) = -1 + C = ${y0}$.`, `Donc $C = ${C}$ ; calcule $F(${x1})$.`],
+        solution: `$C = ${C}$, donc $F(${x1}) = -\\dfrac{1}{${x1}} + ${C} = ${frac(C * x1 - 1, x1)}$.`
+      };
+    }
+    const y0 = rand(-3, 5), n = rand(2, 4);
+    // f(x) = 1/x sur ]0;+∞[, F(x) = ln x + C, F(1) = y0 ; on demande F(e^n)
+    return {
+      enonce: `$F$ est la primitive de $f(x) = \\dfrac{1}{x}$ sur $]0\\,;+\\infty[$ telle que $F(1) = ${y0}$. Calcule $F(e^{${n}})$.`,
+      mode: "nombre", prefixe: `$F(e^{${n}}) =$`, attendu: n + y0,
+      aides: ["Une primitive de $\\dfrac{1}{x}$ sur $]0\\,;+\\infty[$ est $\\ln x$.", `$F(x) = \\ln x + C$ et $F(1) = 0 + C = ${y0}$.`, `$\\ln(e^{${n}}) = ${n}$.`],
+      solution: `$F(x) = \\ln x ${sg(y0)}$, donc $F(e^{${n}}) = ${n} ${sg(y0)} = ${n + y0}$.`.replace("+ 0", "").replace("- 0", "")
+    };
+  };
+
+  GEN["pri-equation"] = function () {
+    const t = pick(["poly", "exp", "mix"]);
+    let f, F, faux;
+    if (t === "poly") { const co = [randNZ(-4, 4) * 3, rand(-5, 5) * 2, rand(-6, 6)]; f = poly(co); F = priPoly(co); faux = [poly(co.slice(0, -1).map((a, i) => a * (2 - i))), (() => { let s = ""; co.forEach((a, i) => { s += priTerme(a, 1, 3 - i, s === ""); }); return s; })()]; }
+    else if (t === "exp") { const k = pick([2, 3, -1, 4]), A = pick([1, 2, 6, 12]); f = `${A === 1 ? "" : A}e^{${k === -1 ? "-" : k}x}`; F = `${frac(A, k) === "1" ? "" : frac(A, k) === "-1" ? "-" : frac(A, k)}e^{${k === -1 ? "-" : k}x}`; faux = [`${A * k}e^{${k === -1 ? "-" : k}x}`, `${A === 1 ? "" : A}e^{${k === -1 ? "-" : k}x}`]; }
+    else { const a = rand(1, 4) * 2, b = rand(1, 6); f = `${a}x + e^{x}`; F = `${a / 2 === 1 ? "" : a / 2}x^2 + e^{x}`; faux = [`${a} + e^{x}`, `${a}x^2 + e^{x}`]; }
+    const ms = melangeChoix(`$y = ${F} + C$, $C \\in \\mathbb{R}$`, [...faux.map((x) => `$y = ${x} + C$, $C \\in \\mathbb{R}$`), `$y = ${F}$ seulement`]);
+    return {
+      enonce: `Quelles sont les solutions sur $\\mathbb{R}$ de l'équation différentielle $y' = ${f}$ ?`,
+      mode: "choix", choix: ms.choix, attendu: ms.attendu,
+      aides: ["Les solutions de $y' = f$ sont les primitives de $f$.", "Si $F$ est une primitive de $f$, toutes les primitives sont $F + C$, $C$ réel.", "Il y a une infinité de solutions : ne pas oublier la constante."],
+      solution: `Une primitive de $${f}$ est $${F}$ ; les solutions sont toutes les fonctions $y = ${F} + C$, avec $C$ réel.`
+    };
+  };
+
+  GEN["pri-python"] = function () {
+    const [ft, Ft, f, F, ftex, Ftex] = pick([
+      ["3*x**2 + 1", "x**3 + x", (x) => 3 * x * x + 1, (x) => x ** 3 + x, "3x^2 + 1", "x^3 + x"],
+      ["2*x - 4", "x**2 - 4*x", (x) => 2 * x - 4, (x) => x * x - 4 * x, "2x - 4", "x^2 - 4x"],
+      ["exp(x)", "exp(x)", Math.exp, Math.exp, "e^x", "e^x"],
+      ["1 / x", "log(x)", (x) => 1 / x, Math.log, "\\dfrac{1}{x}", "\\ln x"],
+      ["6*x**2 - 2*x", "2*x**3 - x**2", (x) => 6 * x * x - 2 * x, (x) => 2 * x ** 3 - x * x, "6x^2 - 2x", "2x^3 - x^2"],
+      ["4*x**3", "x**4", (x) => 4 * x ** 3, (x) => x ** 4, "4x^3", "x^4"]
+    ]);
+    const a = rand(1, 4), b = a + rand(1, 3), v = F(b) - F(a), r = Math.round(v * 100) / 100;
+    return {
+      enonce: `$F(x) = ${Ftex}$ est une primitive de $f(x) = ${ftex}$. Qu'affiche ce programme ? Arrondis au centième.\n\n\`\`\`python\nfrom math import exp, log\n\ndef F(x):\n    return ${Ft}\n\nprint(F(${b}) - F(${a}))\n\`\`\``,
+      mode: "nombre", prefixe: "Affichage ≈", attendu: r, tolerance: 0.005 + 1e-9,
+      aides: [`Le programme calcule $F(${b}) - F(${a})$.`, `$F(${b}) = ${nb(+F(b).toFixed(4))}$.`, `$F(${a}) = ${nb(+F(a).toFixed(4))}$.`],
+      solution: `$F(${b}) - F(${a}) \\approx ${nb(+v.toFixed(4))}$, soit $${nb(r)}$ au centième. Ce nombre ne dépend pas de la primitive choisie (la constante s'élimine) : au chapitre 13, ce sera l'intégrale de $f$ entre $${a}$ et $${b}$.`
+    };
+  };
+
   /* Séries « flash » d'un thème : mélange de ses générateurs */
   const THEMES = {
     "am-flash-cn": ["am-comparer", "am-fractions", "am-puissances", "am-ecritures", "am-ordre-grandeur", "am-coherence", "auto-conversions"],
@@ -15440,7 +15590,7 @@
 
 
   /* Une « erreur connue » ne doit jamais coïncider avec la bonne réponse (à la tolérance près) */
-  Object.keys(GEN).filter((k) => /^(auto|ld|am|cd|ar|cl|fa|ve|st|vx|tc|co|dr|fr|sg|pc|ec|sy|su|s2|pi|s5|d1|tr|d2|vr|ps|ex|va|sc|gr|sm|ea|tsu|tag|tlf|tcb|tsd|tdc|tln|tcv|tlg|tpe|tin|tld|trr|tec|rec|dvx|esp|lsu|bin|lfo|cnt|pse|lnx)-/.test(k)).forEach((k) => {
+  Object.keys(GEN).filter((k) => /^(auto|ld|am|cd|ar|cl|fa|ve|st|vx|tc|co|dr|fr|sg|pc|ec|sy|su|s2|pi|s5|d1|tr|d2|vr|ps|ex|va|sc|gr|sm|ea|tsu|tag|tlf|tcb|tsd|tdc|tln|tcv|tlg|tpe|tin|tld|trr|tec|rec|dvx|esp|lsu|bin|lfo|cnt|pse|lnx|pri)-/.test(k)).forEach((k) => {
     const g = GEN[k];
     GEN[k] = (i) => { const q = g(i); if (q.erreurs) q.erreurs = q.erreurs.filter((e) => Math.abs(e.valeur - q.attendu) >= (q.tolerance || 1e-9)); return q; };
   });

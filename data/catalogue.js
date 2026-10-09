@@ -412,7 +412,7 @@ window.CATALOGUE = {
           id: "terminale-spe-primitives",
           numero: 10,
           titre: "Primitives",
-          statut: "bientot",
+          statut: "disponible",
           drive: ""
         },
         {
