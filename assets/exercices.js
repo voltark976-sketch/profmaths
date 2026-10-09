@@ -14331,6 +14331,237 @@
     };
   };
 
+  /* ---------- Terminale spécialité, chapitre 5 : loi binomiale (préfixe bin-) ---------- */
+  const bnP = (n, p, k) => C(n, k) * p ** k * (1 - p) ** (n - k);
+  const bnCum = (n, p, k) => { let s = 0; for (let i = 0; i <= k; i++) s += bnP(n, p, i); return s; };
+  const bnR = (x, d) => Math.round(x * 10 ** d + 1e-9) / 10 ** d; // arrondi
+  const BN_P = [[0.1, "0{,}1"], [0.2, "0{,}2"], [0.25, "0{,}25"], [0.3, "0{,}3"], [0.4, "0{,}4"], [0.5, "0{,}5"], [0.6, "0{,}6"], [0.7, "0{,}7"], [0.8, "0{,}8"], [0.15, "0{,}15"], [0.05, "0{,}05"], [0.35, "0{,}35"]];
+  const bnT = (p) => fr(p); // 0.3 -> 0{,}3
+
+  // Arbre d'un schéma de Bernoulli à 3 épreuves
+  FIGURES["bin-arbre"] = () => {
+    let s = `<svg class="graph" viewBox="0 0 320 250" role="img" aria-label="Arbre de trois épreuves de Bernoulli : à chaque nœud, succès S avec la probabilité p ou échec E avec la probabilité 1 − p ; 8 chemins"><g class="g-axis">`;
+    let t = "";
+    const X = [14, 100, 186, 262], Y = (niv, i) => 125 + (i - (2 ** niv - 1) / 2) * (232 / 2 ** niv);
+    for (let niv = 0; niv < 3; niv++) for (let i = 0; i < 2 ** niv; i++) for (let b = 0; b < 2; b++) {
+      const x1 = X[niv] + (niv ? 8 : 0), y1 = Y(niv, i), x2 = X[niv + 1] - 8, y2 = Y(niv + 1, 2 * i + b);
+      s += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}"/>`;
+      t += `<text class="g-clabel" x="${X[niv + 1]}" y="${y2 + 4}" text-anchor="middle">${b ? "E" : "S"}</text>`;
+      if (niv === 0 || (niv === 1 && i === 0)) t += `<text class="g-label" x="${(x1 + x2) / 2}" y="${(y1 + y2) / 2 + (b ? 14 : -5)}" text-anchor="middle" style="font-size:10px">${b ? "1 − p" : "p"}</text>`;
+    }
+    const leaves = ["SSS", "SSE", "SES", "SEE", "ESS", "ESE", "EES", "EEE"];
+    leaves.forEach((l, i) => { const k = l.split("").filter((c) => c === "S").length; t += `<text class="g-label" x="280" y="${Y(3, i) + 4}" style="font-size:10px">${k} S</text>`; });
+    return s + `</g><circle class="g-rect" cx="14" cy="125" r="4"/>${t}</svg>`;
+  };
+  FIGURES["bin-diagramme"] = () => graph({ xmin: -0.8, xmax: 10.8, ymin: -0.02, ymax: 0.3, ystep: 0.05, padL: 34, h: 230, xlabel: "k", ylabel: "P(X = k)", bars: Array.from({ length: 11 }, (_, k) => ({ x: k, y: bnP(10, 0.3, k) })), aria: "Diagramme en bâtons de la loi binomiale B(10 ; 0,3) : la valeur la plus probable est k = 3, avec une probabilité d'environ 0,27" });
+
+  GEN["bin-epreuves"] = function () {
+    const t = pick(["suite", "suite", "deux"]);
+    if (t === "suite") {
+      const [p, pt] = pick(BN_P.slice(0, 9)), n = rand(2, 4), mot = Array.from({ length: n }, () => pick(["S", "E"])).join("");
+      const v = [...mot].reduce((s, c) => s * (c === "S" ? p : 1 - p), 1);
+      const ctx = pick([["un tireur atteint la cible", "touche"], ["un joueur réussit son tir au but", "réussit"], ["un pêcheur attrape un poisson à chaque sortie", "attrape un poisson"], ["une graine germe", "germe"]]);
+      const desc = [...mot].map((c, i) => `${["la 1re", "la 2e", "la 3e", "la 4e"][i]} ${c === "S" ? "réussit" : "échoue"}`).join(", ");
+      return {
+        enonce: `On répète $${n}$ fois, de façon indépendante, une épreuve où ${ctx[0]} avec la probabilité $${pt}$ (succès $S$). Quelle est la probabilité de la suite $${[...mot].join("\\,")}$ (${desc}) ? Donne la valeur exacte.`,
+        mode: "nombre", prefixe: "Probabilité :", attendu: v,
+        erreurs: [{ valeur: bnR(v, 2), message: "Donne la valeur **exacte** (le produit tombe juste)." }].filter((e) => Math.abs(e.valeur - v) > 1e-9),
+        aides: ["Les épreuves sont indépendantes : la probabilité d'une suite de résultats est le **produit** des probabilités.", `$P(S) = ${pt}$ et $P(E) = 1 - ${pt} = ${bnT(1 - p)}$.`, `Multiplie $${[...mot].map((c) => (c === "S" ? pt : bnT(1 - p))).join(" \\times ")}$.`],
+        solution: `$P(${[...mot].join("\\,")}) = ${[...mot].map((c) => (c === "S" ? pt : bnT(1 - p))).join(" \\times ")} = ${nb(bnR(v, 6))}$.`
+      };
+    }
+    const A = pick([["on lance un dé équilibré à $6$ faces", "obtenir un $6$", 1, 6], ["on lance un dé équilibré à $6$ faces", "obtenir un nombre pair", 1, 2], ["on tire une carte d'un jeu de $32$", "obtenir un cœur", 1, 4], ["on lance un dé équilibré à $4$ faces", "obtenir $1$", 1, 4]]);
+    const B = pick([["on lance une pièce équilibrée", "obtenir PILE", 1, 2], ["on tire une boule dans une urne de $5$ boules dont $2$ rouges", "obtenir une boule rouge", 2, 5], ["on fait tourner une roue de $10$ secteurs égaux dont $3$ gagnants", "tomber sur un secteur gagnant", 3, 10]]);
+    return {
+      enonce: `Une expérience a deux épreuves indépendantes : d'abord ${A[0]}, puis ${B[0]}. Quelle est la probabilité d'${A[1]} **puis** d'${B[1]} ? Donne la réponse **sous forme de fraction**.`,
+      mode: "nombre", prefixe: "Probabilité :", attendu: (A[2] * B[2]) / (A[3] * B[3]),
+      erreurs: [{ valeur: A[2] / A[3] + B[2] / B[3], message: "Pour deux épreuves indépendantes successives, on **multiplie** les probabilités." }, ...tsApprox((A[2] * B[2]) / (A[3] * B[3]))],
+      aides: ["Les deux épreuves sont indépendantes : on multiplie les probabilités.", `La probabilité d'${A[1]} vaut $\\dfrac{${A[2]}}{${A[3]}}$, celle d'${B[1]} vaut $\\dfrac{${B[2]}}{${B[3]}}$.`, "Simplifie la fraction obtenue."],
+      solution: `$\\dfrac{${A[2]}}{${A[3]}} \\times \\dfrac{${B[2]}}{${B[3]}} = ${frac(A[2] * B[2], A[3] * B[3])}$.`
+    };
+  };
+
+  GEN["bin-schema"] = function () {
+    const n = rand(5, 30), [p, pt] = pick(BN_P), N = rand(20, 60), R = rand(4, N - 6);
+    const S = pick([
+      () => [`On lance $${n}$ fois un dé équilibré à $6$ faces. $X$ compte le nombre de $6$ obtenus.`, `$\\mathcal{B}\\left(${n}\\,;\\dfrac{1}{6}\\right)$`, [`$\\mathcal{B}\\left(6\\,;\\dfrac{1}{${n}}\\right)$`, `$\\mathcal{B}\\left(${n}\\,;\\dfrac{5}{6}\\right)$`], "succès « obtenir $6$ », de probabilité $\\dfrac{1}{6}$"],
+      () => [`Un QCM a $${n}$ questions à $4$ réponses dont une seule juste. Un élève répond au hasard. $X$ compte ses bonnes réponses.`, `$\\mathcal{B}\\left(${n}\\,;\\dfrac{1}{4}\\right)$`, [`$\\mathcal{B}\\left(4\\,;\\dfrac{1}{${n}}\\right)$`, `$\\mathcal{B}\\left(${n}\\,;\\dfrac{3}{4}\\right)$`], "succès « bonne réponse », de probabilité $\\dfrac{1}{4}$"],
+      () => [`Dans une ville, $${Math.round(p * 100)}\\,\\%$ des habitants sont vaccinés. On interroge au hasard $${n}$ habitants (population assez grande pour assimiler à des tirages avec remise). $X$ compte les personnes vaccinées.`, `$\\mathcal{B}(${n}\\,;${pt})$`, [`$\\mathcal{B}(${n}\\,;${bnT(1 - p)})$`, `$\\mathcal{B}(${Math.round(p * 100)}\\,;${bnT(n / 100)})$`.replace(/\{,\}/g, "{,}")], `succès « être vacciné », de probabilité $${pt}$`],
+      () => [`Une urne contient $${N}$ boules dont $${R}$ rouges. On tire successivement **avec remise** $${n}$ boules. $X$ compte les boules rouges tirées.`, `$\\mathcal{B}\\left(${n}\\,;\\dfrac{${R}}{${N}}\\right)$`, [`$\\mathcal{B}\\left(${R}\\,;\\dfrac{${n}}{${N}}\\right)$`, `$\\mathcal{B}\\left(${n}\\,;\\dfrac{${N - R}}{${N}}\\right)$`], `grâce à la remise, succès « rouge » de probabilité $\\dfrac{${R}}{${N}}$ à chaque tirage`],
+      () => [`Une urne contient $${N}$ boules dont $${R}$ rouges. On tire successivement **sans remise** $${Math.min(n, 5)}$ boules. $X$ compte les boules rouges tirées.`, "$X$ ne suit pas une loi binomiale", [`$\\mathcal{B}\\left(${Math.min(n, 5)}\\,;\\dfrac{${R}}{${N}}\\right)$`, `$\\mathcal{B}\\left(${N}\\,;\\dfrac{${R}}{${N}}\\right)$`], "sans remise, la composition de l'urne change : les épreuves ne sont **pas indépendantes** et ne sont pas identiques"],
+      () => [`Un joueur lance une pièce équilibrée jusqu'à obtenir PILE. $X$ compte le nombre de lancers.`, "$X$ ne suit pas une loi binomiale", ["$\\mathcal{B}\\left(2\\,;\\dfrac{1}{2}\\right)$", `$\\mathcal{B}\\left(${n}\\,;\\dfrac{1}{2}\\right)$`], "le nombre d'épreuves n'est pas fixé à l'avance (c'est un temps d'attente)"]
+    ])();
+    const ms = melangeChoix(S[1], [...S[2], S[1].startsWith("$X$") ? `$\\mathcal{B}\\left(${n}\\,;\\dfrac{1}{2}\\right)$` : "$X$ ne suit pas une loi binomiale"]);
+    return {
+      enonce: `${S[0]} Quelle est la loi de $X$ ?`,
+      mode: "choix", choix: ms.choix, attendu: ms.attendu,
+      aides: ["Une loi binomiale $\\mathcal{B}(n\\,;p)$ compte les succès dans la répétition de $n$ épreuves de Bernoulli **identiques et indépendantes**.", "Repère le nombre $n$ d'épreuves (fixé à l'avance) et la probabilité $p$ du succès à chaque épreuve.", "Vérifie l'indépendance : un tirage sans remise ne convient pas."],
+      solution: S[1].startsWith("$X$") ? `Ici, ${S[3]} : $X$ ne suit pas une loi binomiale.` : `On répète une épreuve de Bernoulli, de façon identique et indépendante (${S[3]}) : $X$ suit la loi ${S[1]}.`
+    };
+  };
+
+  GEN["bin-coef"] = function () {
+    const n = rand(3, 10), k = rand(0, n), t = pick(["chemins", "chemins", "calcul"]);
+    if (t === "chemins") return {
+      enonce: `Dans l'arbre d'un schéma de Bernoulli à $${n}$ épreuves, combien de chemins comportent exactement $${k}$ succès ?`,
+      mode: "nombre", prefixe: "Nombre de chemins :", attendu: C(n, k),
+      erreurs: [{ valeur: 2 ** n, message: "Ça, c'est le nombre total de chemins." }],
+      aides: ["Un chemin est un mot de $n$ lettres S ou E.", `On choisit les positions des $${k}$ succès parmi les $${n}$ épreuves.`, `C'est $\\dbinom{${n}}{${k}}$ (triangle de Pascal ou calculatrice).`],
+      solution: `$\\dbinom{${n}}{${k}} = ${C(n, k)}$ chemins.${k === 0 || k === n ? ` Un seul chemin : ${k === 0 ? "que des échecs" : "que des succès"}.` : ""}`
+    };
+    const kk = Math.min(k, n - k) === 0 ? 1 : k;
+    return {
+      enonce: `Calcule $\\dbinom{${n}}{${kk}}$.`,
+      mode: "nombre", prefixe: "Résultat :", attendu: C(n, kk),
+      aides: ["$\\dbinom{n}{k}$ est le nombre de chemins à $k$ succès parmi $n$ épreuves.", "$\\dbinom{n}{k} = \\dfrac{n!}{k!\\,(n - k)!}$, ou triangle de Pascal.", `Symétrie : $\\dbinom{${n}}{${kk}} = \\dbinom{${n}}{${n - kk}}$.`],
+      solution: `$\\dbinom{${n}}{${kk}} = ${C(n, kk)}$.`
+    };
+  };
+
+  GEN["bin-egal"] = function () {
+    const n = rand(3, 20), [p, pt] = pick(BN_P), k = rand(0, Math.min(n, 8)), v = bnP(n, p, k), r = bnR(v, 3);
+    if (r === 0) return GEN["bin-egal"]();
+    return {
+      enonce: `$X$ suit la loi binomiale $\\mathcal{B}(${n}\\,;${pt})$. Calcule $P(X = ${k})$, arrondie au millième.`,
+      mode: "nombre", prefixe: `$P(X = ${k}) \\approx$`, attendu: r, tolerance: 0.0005 + 1e-9,
+      erreurs: [{ valeur: bnR(p ** k * (1 - p) ** (n - k), 3), message: `Il manque le coefficient $\\dbinom{${n}}{${k}}$ : il y a plusieurs chemins à $${k}$ succès.` }],
+      aides: ["$P(X = k) = \\dbinom{n}{k} p^k (1 - p)^{n-k}$.", `Ici : $\\dbinom{${n}}{${k}} \\times ${pt}^{${k}} \\times ${bnT(1 - p)}^{${n - k}}$, avec $\\dbinom{${n}}{${k}} = ${C(n, k)}$.`, "À la calculatrice : loi binomiale « BinomFdp » ou « Binomial PD »."],
+      solution: `$P(X = ${k}) = \\dbinom{${n}}{${k}} \\times ${pt}^{${k}} \\times ${bnT(1 - p)}^{${n - k}} = ${C(n, k)} \\times ${pt}^{${k}} \\times ${bnT(1 - p)}^{${n - k}} \\approx ${nb(bnR(v, 5))}$, soit $${nb(r)}$ au millième.`
+    };
+  };
+
+  GEN["bin-cumul"] = function () {
+    const t = pick(["aumoins1", "aumoins1", "inf", "sup"]), [p, pt] = pick(BN_P.slice(0, 9));
+    if (t === "aumoins1") {
+      const n = rand(2, 12), v = 1 - (1 - p) ** n, r = bnR(v, 3);
+      return {
+        enonce: `$X$ suit la loi $\\mathcal{B}(${n}\\,;${pt})$. Calcule $P(X \\geqslant 1)$, arrondie au millième.`,
+        mode: "nombre", prefixe: "$P(X \\geqslant 1) \\approx$", attendu: r, tolerance: 0.0005 + 1e-9,
+        erreurs: [{ valeur: bnR((1 - p) ** n, 3), message: "Ça, c'est $P(X = 0)$ : il faut prendre le contraire." }],
+        aides: ["« Au moins un succès » : le contraire est « aucun succès », $X = 0$.", `$P(X = 0) = ${bnT(1 - p)}^{${n}}$.`, `$P(X \\geqslant 1) = 1 - ${bnT(1 - p)}^{${n}}$.`],
+        solution: `$P(X \\geqslant 1) = 1 - P(X = 0) = 1 - ${bnT(1 - p)}^{${n}} \\approx ${nb(bnR(v, 5))}$, soit $${nb(r)}$.`
+      };
+    }
+    const n = rand(3, 6), k = rand(1, n - 1);
+    const v = t === "inf" ? bnCum(n, p, k) : 1 - bnCum(n, p, k - 1), r = bnR(v, 3);
+    const termes = t === "inf" ? Array.from({ length: k + 1 }, (_, i) => i) : Array.from({ length: n - k + 1 }, (_, i) => k + i);
+    return {
+      enonce: `$X$ suit la loi $\\mathcal{B}(${n}\\,;${pt})$. Calcule $P(X ${t === "inf" ? "\\leqslant" : "\\geqslant"} ${k})$, arrondie au millième.`,
+      mode: "nombre", prefixe: `$P(X ${t === "inf" ? "\\leqslant" : "\\geqslant"} ${k}) \\approx$`, attendu: r, tolerance: 0.0005 + 1e-9,
+      erreurs: [{ valeur: bnR(bnP(n, p, k), 3), message: `Ça, c'est seulement $P(X = ${k})$.` }, { valeur: bnR(t === "inf" ? bnCum(n, p, k - 1) : 1 - bnCum(n, p, k), 3), message: `L'inégalité est large : $${k}$ est compris.` }],
+      aides: [`$P(X ${t === "inf" ? "\\leqslant" : "\\geqslant"} ${k})$ est la somme des $P(X = i)$ pour $i$ = $${termes.join("$, $")}$.`, t === "inf" ? "À la calculatrice : fonction de cumul « BinomFRép » ou « Binomial CD »." : `Avec le cumul : $P(X \\geqslant ${k}) = 1 - P(X \\leqslant ${k - 1})$.`, "Arrondis seulement à la fin."],
+      solution: `$P(X ${t === "inf" ? "\\leqslant" : "\\geqslant"} ${k}) = ${termes.map((i) => `P(X = ${i})`).join(" + ")} \\approx ${nb(bnR(v, 5))}$, soit $${nb(r)}$.`
+    };
+  };
+
+  GEN["bin-au-moins-un"] = function () {
+    const [p, pt] = pick([[0.1, "0{,}1"], [0.05, "0{,}05"], [0.2, "0{,}2"], [0.02, "0{,}02"], [0.3, "0{,}3"], [0.15, "0{,}15"], [0.01, "0{,}01"], [0.25, "0{,}25"]]);
+    const [s, st] = pick([[0.9, "0{,}9"], [0.95, "0{,}95"], [0.99, "0{,}99"], [0.5, "0{,}5"], [0.8, "0{,}8"]]);
+    let n = 1; while (1 - (1 - p) ** n < s) n++;
+    const ctx = pick([`un billet de tombola est gagnant avec la probabilité $${pt}$`, `un tir au but réussit avec la probabilité $${pt}$`, `une pièce produite est défectueuse avec la probabilité $${pt}$`, `un appel à un standard aboutit avec la probabilité $${pt}$`]);
+    return {
+      enonce: `Chaque fois, ${ctx}, de façon indépendante. Combien faut-il de répétitions, au minimum, pour que la probabilité d'avoir **au moins un** succès soit supérieure ou égale à $${st}$ ?`,
+      mode: "nombre", prefixe: "$n =$", attendu: n,
+      erreurs: [{ valeur: n - 1, message: `Pour $n = ${n - 1}$, $1 - ${bnT(1 - p)}^{${n - 1}} \\approx ${nb(bnR(1 - (1 - p) ** (n - 1), 4))} < ${st}$.` }],
+      aides: [`Avec $n$ répétitions, $P(\\text{au moins un succès}) = 1 - ${bnT(1 - p)}^n$.`, `On cherche le plus petit $n$ tel que $1 - ${bnT(1 - p)}^n \\geqslant ${st}$, c'est-à-dire $${bnT(1 - p)}^n \\leqslant ${bnT(bnR(1 - s, 2))}$.`, "Tableau de valeurs de la calculatrice, ou boucle $\\texttt{while}$."],
+      solution: `$1 - ${bnT(1 - p)}^{${n - 1}} \\approx ${nb(bnR(1 - (1 - p) ** (n - 1), 4))}$ et $1 - ${bnT(1 - p)}^{${n}} \\approx ${nb(bnR(1 - (1 - p) ** n, 4))}$ : il faut au moins $${n}$ répétitions.`
+    };
+  };
+
+  GEN["bin-esperance"] = function () {
+    const t = pick(["E", "E", "V", "sigma", "gain"]), n = pick([10, 20, 25, 40, 50, 60, 80, 100, 120, 200, 300, 500]), [p, pt] = pick(BN_P);
+    if (t === "E") return {
+      enonce: `$X$ suit la loi $\\mathcal{B}(${n}\\,;${pt})$. Calcule $E(X)$.`,
+      mode: "nombre", prefixe: "$E(X) =$", attendu: bnR(n * p, 6),
+      erreurs: [{ valeur: bnR(n * p * (1 - p), 6), message: "Ça, c'est la variance $np(1 - p)$." }],
+      aides: ["Pour une loi binomiale, $E(X) = np$.", `$n = ${n}$ et $p = ${pt}$.`, `$E(X) = ${n} \\times ${pt}$.`],
+      solution: `$E(X) = np = ${n} \\times ${pt} = ${nb(bnR(n * p, 6))}$ : en moyenne, sur un grand nombre de répétitions de l'expérience, on obtient environ $${nb(bnR(n * p, 6))}$ succès.`
+    };
+    if (t === "V") return {
+      enonce: `$X$ suit la loi $\\mathcal{B}(${n}\\,;${pt})$. Calcule $V(X)$.`,
+      mode: "nombre", prefixe: "$V(X) =$", attendu: bnR(n * p * (1 - p), 6),
+      erreurs: [{ valeur: bnR(n * p, 6), message: "Ça, c'est l'espérance." }],
+      aides: ["Pour une loi binomiale, $V(X) = np(1 - p)$ (démontré au chapitre 15).", `$1 - p = ${bnT(1 - p)}$.`, `$V(X) = ${n} \\times ${pt} \\times ${bnT(1 - p)}$.`],
+      solution: `$V(X) = np(1 - p) = ${n} \\times ${pt} \\times ${bnT(1 - p)} = ${nb(bnR(n * p * (1 - p), 6))}$.`
+    };
+    if (t === "sigma") {
+      const s = Math.sqrt(n * p * (1 - p)), r = bnR(s, 2);
+      return {
+        enonce: `$X$ suit la loi $\\mathcal{B}(${n}\\,;${pt})$. Calcule l'écart type $\\sigma(X)$, arrondi au centième.`,
+        mode: "nombre", prefixe: "$\\sigma(X) \\approx$", attendu: r, tolerance: 0.005 + 1e-9,
+        erreurs: [{ valeur: bnR(n * p * (1 - p), 2), message: "Ça, c'est la variance : prends sa racine carrée." }],
+        aides: ["$\\sigma(X) = \\sqrt{V(X)} = \\sqrt{np(1 - p)}$.", `$V(X) = ${n} \\times ${pt} \\times ${bnT(1 - p)} = ${nb(bnR(n * p * (1 - p), 6))}$.`, "Prends la racine carrée et arrondis au centième."],
+        solution: `$\\sigma(X) = \\sqrt{${nb(bnR(n * p * (1 - p), 6))}} \\approx ${nb(r)}$.`
+      };
+    }
+    const m = pick([5, 10, 20, 25, 30]), g = pick([2, 3, 5, 10]), c = pick([1, 2, 5]), N = rand(5, 12), [q, qt] = pick([[0.2, "0{,}2"], [0.25, "0{,}25"], [0.4, "0{,}4"], [0.5, "0{,}5"], [0.3, "0{,}3"]]);
+    const E = g * N * q - c * N;
+    return {
+      enonce: `Un jeu consiste à tirer $${N}$ fois un ticket ; chaque ticket coûte $${c}$ € et il est gagnant, indépendamment des autres, avec la probabilité $${qt}$. Un ticket gagnant rapporte $${g}$ €. On note $X$ le nombre de tickets gagnants et $G = ${g}X - ${c * N}$ le gain du joueur. Calcule $E(G)$.`,
+      mode: "nombre", prefixe: "$E(G) =$", attendu: bnR(E, 6), suffixe: "€",
+      erreurs: [{ valeur: bnR(g * N * q, 6), message: `N'oublie pas de retirer le prix des tickets, $${c * N}$ €.` }],
+      aides: [`$X$ suit la loi $\\mathcal{B}(${N}\\,;${qt})$, donc $E(X) = ${N} \\times ${qt} = ${nb(bnR(N * q, 6))}$.`, "Linéarité : $E(aX + b) = aE(X) + b$.", `$E(G) = ${g} \\times ${nb(bnR(N * q, 6))} - ${c * N}$.`],
+      solution: `$E(G) = ${g}E(X) - ${c * N} = ${g} \\times ${nb(bnR(N * q, 6))} - ${c * N} = ${nb(bnR(E, 6))}$ €. ${E < 0 ? "Le jeu est défavorable au joueur." : E > 0 ? "Le jeu est favorable au joueur." : "Le jeu est équitable."}`
+    };
+  };
+
+  GEN["bin-lecture"] = function () {
+    const n = rand(5, 12), [p, pt] = pick([[0.2, "0{,}2"], [0.3, "0{,}3"], [0.5, "0{,}5"], [0.6, "0{,}6"], [0.4, "0{,}4"], [0.7, "0{,}7"], [0.25, "0{,}25"]]);
+    const P = Array.from({ length: n + 1 }, (_, k) => bnP(n, p, k)), mx = Math.max(...P), mode = P.indexOf(mx);
+    const ymax = Math.ceil(mx * 20) / 20 + 0.05;
+    const fig = graph({ xmin: -0.8, xmax: n + 0.8, ymin: -0.02, ymax, ystep: 0.05, padL: 34, h: 230, xlabel: "k", bars: P.map((y, k) => ({ x: k, y })), aria: `Diagramme en bâtons d'une loi binomiale à ${n} épreuves` });
+    const t = pick(["mode", "n", "esp"]);
+    if (t === "mode") return {
+      enonce: `Voici le diagramme en bâtons de la loi $\\mathcal{B}(${n}\\,;${pt})$. Quelle est la valeur de $k$ la plus probable ?`,
+      figure: fig, mode: "nombre", prefixe: "$k =$", attendu: mode,
+      aides: ["La valeur la plus probable correspond au bâton le plus haut.", `L'espérance $np = ${nb(bnR(n * p, 2))}$ en donne une idée.`, "Compare les hauteurs des bâtons voisins."],
+      solution: `Le bâton le plus haut est en $k = ${mode}$ : $P(X = ${mode}) \\approx ${nb(bnR(mx, 3))}$. C'est proche de l'espérance $np = ${nb(bnR(n * p, 2))}$.`
+    };
+    if (t === "n") return {
+      enonce: `Voici le diagramme en bâtons d'une loi binomiale $\\mathcal{B}(n\\,;p)$. Que vaut $n$ ?`,
+      figure: fig, mode: "nombre", prefixe: "$n =$", attendu: n,
+      erreurs: [{ valeur: n + 1, message: `Il y a $${n + 1}$ valeurs possibles, de $0$ à $${n}$ : $n$ est la plus grande.` }],
+      aides: ["Une loi binomiale à $n$ épreuves prend les valeurs $0$, $1$, …, $n$.", "Repère la plus grande valeur possible sur l'axe horizontal (même si son bâton est très petit).", "Attention : il y a $n + 1$ valeurs."],
+      solution: `Les valeurs vont de $0$ à $${n}$ : $n = ${n}$ (on peut aussi lire $p = ${pt}$ grâce à l'espérance).`
+    };
+    return {
+      enonce: `Voici le diagramme en bâtons de la loi $\\mathcal{B}(${n}\\,;${pt})$. Calcule son espérance.`,
+      figure: fig, mode: "nombre", prefixe: "$E(X) =$", attendu: bnR(n * p, 6),
+      aides: ["$E(X) = np$.", `$${n} \\times ${pt}$.`, "Vérifie sur le diagramme : l'espérance est proche des bâtons les plus hauts."],
+      solution: `$E(X) = ${n} \\times ${pt} = ${nb(bnR(n * p, 6))}$ : les bâtons les plus hauts sont autour de cette valeur.`
+    };
+  };
+
+  GEN["bin-python"] = function () {
+    const t = pick(["proba", "cumul", "simul"]), n = rand(4, 15), [p, ps] = pick([[0.2, "0.2"], [0.3, "0.3"], [0.5, "0.5"], [0.25, "0.25"], [0.4, "0.4"], [0.1, "0.1"]]);
+    if (t === "proba") {
+      const k = rand(0, Math.min(n, 6)), r = bnR(bnP(n, p, k), 4);
+      return {
+        enonce: `Qu'affiche ce programme ? (il arrondit à $4$ décimales)\n\n\`\`\`python\nfrom math import comb\n\nn, p, k = ${n}, ${ps}, ${k}\nprint(round(comb(n, k) * p**k * (1 - p)**(n - k), 4))\n\`\`\``,
+        mode: "nombre", prefixe: "Affichage :", attendu: r, tolerance: 0.00005 + 1e-9,
+        aides: ["$\\texttt{comb(n, k)}$ calcule le coefficient binomial $\\dbinom{n}{k}$.", `Le programme calcule $P(X = ${k})$ pour $X$ de loi $\\mathcal{B}(${n}\\,;${String(p).replace(".", "{,}")})$.`, "Calcule à la calculatrice et arrondis à $4$ décimales."],
+        solution: `Il affiche $P(X = ${k}) = \\dbinom{${n}}{${k}} \\times ${String(p).replace(".", "{,}")}^{${k}} \\times ${String(1 - p).replace(".", "{,}")}^{${n - k}} \\approx ${nb(r)}$.`
+      };
+    }
+    if (t === "cumul") {
+      const k = rand(1, Math.min(n - 1, 5)), r = bnR(bnCum(n, p, k), 4);
+      return {
+        enonce: `Qu'affiche ce programme ? (il arrondit à $4$ décimales)\n\n\`\`\`python\nfrom math import comb\n\ndef f(n, p, k):\n    s = 0\n    for i in range(k + 1):\n        s = s + comb(n, i) * p**i * (1 - p)**(n - i)\n    return s\n\nprint(round(f(${n}, ${ps}, ${k}), 4))\n\`\`\``,
+        mode: "nombre", prefixe: "Affichage :", attendu: r, tolerance: 0.00005 + 1e-9,
+        erreurs: [{ valeur: bnR(bnCum(n, p, k - 1), 4), message: `$\\texttt{range(${k + 1})}$ va jusqu'à $${k}$ inclus.` }],
+        aides: [`La boucle additionne $P(X = i)$ pour $i$ de $0$ à $${k}$.`, `$\\texttt{f(${n}, ${ps}, ${k})}$ calcule donc $P(X \\leqslant ${k})$.`, "Utilise la fonction de cumul de la calculatrice."],
+        solution: `La fonction calcule $P(X \\leqslant ${k})$ pour $X$ de loi $\\mathcal{B}(${n}\\,;${String(p).replace(".", "{,}")})$ : le programme affiche $${nb(r)}$.`
+      };
+    }
+    const ms = melangeChoix(`Le nombre de succès dans un schéma de Bernoulli de paramètres $${n}$ et $${String(p).replace(".", "{,}")}$`, [`La probabilité d'obtenir $${n}$ succès`, `Le nombre d'échecs avant le premier succès`, `La fréquence des succès sur $${n}$ essais`]);
+    return {
+      enonce: `Que renvoie la fonction $\\texttt{simul()}$ ?\n\n\`\`\`python\nfrom random import random\n\ndef simul():\n    x = 0\n    for i in range(${n}):\n        if random() < ${ps}:\n            x = x + 1\n    return x\n\`\`\``,
+      mode: "choix", choix: ms.choix, attendu: ms.attendu,
+      aides: ["$\\texttt{random()}$ donne un nombre au hasard dans $[0\\,;1[$ : la condition $\\texttt{random() < " + ps + "}$ est vraie avec la probabilité $" + String(p).replace(".", "{,}") + "$.", `La boucle répète $${n}$ fois cette épreuve, de façon indépendante.`, "$\\texttt{x}$ compte les succès."],
+      solution: `Chaque tour de boucle est une épreuve de Bernoulli de paramètre $${String(p).replace(".", "{,}")}$, et $\\texttt{x}$ compte les succès : $\\texttt{simul()}$ simule une variable aléatoire de loi $\\mathcal{B}(${n}\\,;${String(p).replace(".", "{,}")})$.`
+    };
+  };
+
   /* Séries « flash » d'un thème : mélange de ses générateurs */
   const THEMES = {
     "am-flash-cn": ["am-comparer", "am-fractions", "am-puissances", "am-ecritures", "am-ordre-grandeur", "am-coherence", "auto-conversions"],
@@ -14347,7 +14578,7 @@
 
 
   /* Une « erreur connue » ne doit jamais coïncider avec la bonne réponse (à la tolérance près) */
-  Object.keys(GEN).filter((k) => /^(auto|ld|am|cd|ar|cl|fa|ve|st|vx|tc|co|dr|fr|sg|pc|ec|sy|su|s2|pi|s5|d1|tr|d2|vr|ps|ex|va|sc|gr|sm|ea|tsu|tag|tlf|tcb|tsd|tdc|tln|tcv|tlg|tpe|tin|tld|trr|tec|rec|dvx|esp|lsu)-/.test(k)).forEach((k) => {
+  Object.keys(GEN).filter((k) => /^(auto|ld|am|cd|ar|cl|fa|ve|st|vx|tc|co|dr|fr|sg|pc|ec|sy|su|s2|pi|s5|d1|tr|d2|vr|ps|ex|va|sc|gr|sm|ea|tsu|tag|tlf|tcb|tsd|tdc|tln|tcv|tlg|tpe|tin|tld|trr|tec|rec|dvx|esp|lsu|bin)-/.test(k)).forEach((k) => {
     const g = GEN[k];
     GEN[k] = (i) => { const q = g(i); if (q.erreurs) q.erreurs = q.erreurs.filter((e) => Math.abs(e.valeur - q.attendu) >= (q.tolerance || 1e-9)); return q; };
   });

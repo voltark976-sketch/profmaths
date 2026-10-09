@@ -377,7 +377,7 @@ window.CATALOGUE = {
           id: "terminale-spe-loi-binomiale",
           numero: 5,
           titre: "Loi binomiale",
-          statut: "bientot",
+          statut: "disponible",
           drive: ""
         },
         {
