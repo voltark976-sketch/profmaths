@@ -13760,6 +13760,301 @@
     };
   };
 
+  /* ---------- Terminale spécialité, chapitre 3 : géométrie dans l'espace 1 (préfixe esp-) ---------- */
+  const espV = (P, Q) => [Q[0] - P[0], Q[1] - P[1], Q[2] - P[2]];
+  const espCroix = (u, v) => [u[1] * v[2] - u[2] * v[1], u[2] * v[0] - u[0] * v[2], u[0] * v[1] - u[1] * v[0]];
+  const espScal = (u, v) => u[0] * v[0] + u[1] * v[1] + u[2] * v[2];
+  const espNul = (u) => u.every((x) => Math.abs(x) < 1e-9);
+  const espCol = (u, v) => espNul(espCroix(u, v));
+  const espT = (u) => `(${u.map(nb).join("\\,;")})`; // (1\,;-2\,;3) : coordonnées d'un point
+  const espVec = (u) => `\\begin{pmatrix} ${u.map(nb).join(" \\\\ ")} \\end{pmatrix}`; // vecteur en colonne
+  // Représentation paramétrique : x = x0 + a t, …
+  const espLigne = (x0, a, p) => (a === 0 ? `${nb(x0)}` : x0 === 0 ? `${a === 1 ? "" : a === -1 ? "-" : nb(a)}${p}` : `${nb(x0)} ${a < 0 ? "-" : "+"} ${Math.abs(a) === 1 ? "" : nb(Math.abs(a))}${p}`);
+  const espParam = (P, d, p) => `\\begin{cases} x = ${espLigne(P[0], d[0], p)} \\\\ y = ${espLigne(P[1], d[1], p)} \\\\ z = ${espLigne(P[2], d[2], p)} \\end{cases}`;
+  const espRand = (m) => [rand(-m, m), rand(-m, m), rand(-m, m)];
+  const espAB = (p, q) => { const m = (c, l) => (c === 1 ? l : c === -1 ? "-" + l : c + l); const t1 = p === 0 ? "" : m(p, "a"); if (q === 0) return t1 || "0"; return t1 ? `${t1} ${q < 0 ? "-" : "+"} ${m(Math.abs(q), "b")}` : m(q, "b"); };
+  const espRandNZ = (m) => { let u; do { u = espRand(m); } while (espNul(u)); return u; };
+
+  // Cube ABCDEFGH (ABCD en bas, E au-dessus de A…) dans le repère (A ; AB, AD, AE)
+  const ESP_CUBE = { A: [0, 0, 0], B: [1, 0, 0], C: [1, 1, 0], D: [0, 1, 0], E: [0, 0, 1], F: [1, 0, 1], G: [1, 1, 1], H: [0, 1, 1] };
+  function espCubeSVG(extra, aria) {
+    const P = (p) => [+(70 + 150 * p[0] + 66 * p[1]).toFixed(1), +(238 - 150 * p[2] - 52 * p[1]).toFixed(1)];
+    const ar = [["A", "B"], ["B", "C"], ["C", "D"], ["D", "A"], ["E", "F"], ["F", "G"], ["G", "H"], ["H", "E"], ["A", "E"], ["B", "F"], ["C", "G"], ["D", "H"]];
+    const cache = (a, b) => a === "D" || b === "D";
+    let s = `<svg class="graph" viewBox="0 0 320 262" role="img" aria-label="${aria || "Cube ABCDEFGH : ABCD est la face du bas, EFGH celle du haut, E au-dessus de A"}"><g class="g-axis">`;
+    ar.forEach(([a, b]) => { const [x1, y1] = P(ESP_CUBE[a]), [x2, y2] = P(ESP_CUBE[b]); s += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}"${cache(a, b) ? ' stroke-dasharray="5 4"' : ""}/>`; });
+    s += `</g>`;
+    (extra || []).forEach((seg) => { const [x1, y1] = P(seg[0]), [x2, y2] = P(seg[1]); s += `<line class="g-curve${seg[2] ? " g-curve-1" : ""}" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" style="fill:none"/>`; });
+    const dec = { A: [-14, 14], B: [6, 14], C: [8, 4], D: [-14, -4], E: [-14, 0], F: [6, 10], G: [8, -2], H: [-14, -6] };
+    Object.keys(ESP_CUBE).forEach((k) => { const [x, y] = P(ESP_CUBE[k]); s += `<text class="g-clabel" x="${x + dec[k][0]}" y="${y + dec[k][1]}">${k}</text>`; });
+    return s + `</svg>`;
+  }
+  // Position relative de deux droites (point, vecteur directeur)
+  function espDroites(P1, d1, P2, d2) {
+    if (espCol(d1, d2)) return espCol(d1, espV(P1, P2)) ? 3 : 1;
+    return Math.abs(espScal(espV(P1, P2), espCroix(d1, d2))) < 1e-9 ? 0 : 2;
+  }
+  const ESP_POS = ["sécantes", "strictement parallèles", "non coplanaires", "confondues"];
+
+  FIGURES["esp-cube"] = () => espCubeSVG([[ESP_CUBE.A, ESP_CUBE.G, 0], [ESP_CUBE.B, ESP_CUBE.H, 1]], "Cube ABCDEFGH avec ses deux diagonales (AG) et (BH), qui se coupent au centre du cube");
+
+  GEN["esp-coord"] = function () {
+    const A = espRand(5), B = espRand(5), t = pick(["vecteur", "milieu", "combi", "combi"]);
+    if (t === "vecteur") {
+      const AB = espV(A, B);
+      if (espNul(AB)) return GEN["esp-coord"]();
+      const ms = melangeChoix(`$\\overrightarrow{AB}${espT(AB)}$`, [`$\\overrightarrow{AB}${espT(espV(B, A))}$`, `$\\overrightarrow{AB}${espT(A.map((x, i) => x + B[i]))}$`, `$\\overrightarrow{AB}${espT([AB[0], -AB[1], AB[2]])}$`, `$\\overrightarrow{AB}${espT(B)}$`]);
+      return {
+        enonce: `Dans un repère de l'espace, on donne $A${espT(A)}$ et $B${espT(B)}$. Quelles sont les coordonnées du vecteur $\\overrightarrow{AB}$ ?`,
+        mode: "choix", choix: ms.choix, attendu: ms.attendu,
+        aides: ["$\\overrightarrow{AB}(x_B - x_A\\,;y_B - y_A\\,;z_B - z_A)$ : « arrivée moins départ ».", `$x_B - x_A = ${B[0]} - ${par(A[0])} = ${AB[0]}$.`, "Fais de même pour $y$ et pour $z$ ; attention aux signes."],
+        solution: `$\\overrightarrow{AB}(${B[0]} - ${par(A[0])}\\,;${B[1]} - ${par(A[1])}\\,;${B[2]} - ${par(A[2])})$, soit $\\overrightarrow{AB}${espT(AB)}$.`
+      };
+    }
+    if (t === "milieu") {
+      const I = A.map((x, i) => (x + B[i]) / 2);
+      const ms = melangeChoix(`$I${espT(I)}$`, [`$I${espT(espV(A, B).map((x) => x / 2))}$`, `$I${espT(A.map((x, i) => x + B[i]))}$`, `$I${espT(espV(B, A).map((x) => x / 2))}$`, `$I${espT([I[0], I[2], I[1]])}$`]);
+      return {
+        enonce: `On donne $A${espT(A)}$ et $B${espT(B)}$. Quelles sont les coordonnées du milieu $I$ de $[AB]$ ?`,
+        mode: "choix", choix: ms.choix, attendu: ms.attendu,
+        aides: ["Le milieu a pour coordonnées les **moyennes** des coordonnées de $A$ et de $B$.", `$x_I = \\dfrac{x_A + x_B}{2} = \\dfrac{${A[0]} + ${par(B[0])}}{2}$.`, "On additionne, on ne soustrait pas."],
+        solution: `${["x", "y", "z"].map((c, i) => `$${c}_I = \\dfrac{${A[i]} + ${par(B[i])}}{2} = ${nb(I[i])}$`).join(" ; ")}, soit $I${espT(I)}$.`
+      };
+    }
+    const u = espRand(4), v = espRand(4), a = pick([2, 3, -2, -1, 4]), b = pick([1, -1, 2, -3, 3]), k = rand(0, 2), w = u.map((x, i) => a * x + b * v[i]);
+    const nom = ["x", "y", "z"][k];
+    return {
+      enonce: `On donne $\\vec{u}${espT(u)}$ et $\\vec{v}${espT(v)}$. Calcule la coordonnée $${nom}$ du vecteur $\\vec{w} = ${a === -1 ? "-" : a}\\vec{u} ${b < 0 ? "-" : "+"} ${Math.abs(b) === 1 ? "" : Math.abs(b)}\\vec{v}$.`,
+      mode: "nombre", prefixe: `$${nom}_{\\vec{w}} =$`, attendu: w[k],
+      erreurs: [{ valeur: a * u[k] - b * v[k], message: "Attention au signe devant $\\vec{v}$." }],
+      aides: ["On calcule coordonnée par coordonnée : chaque coordonnée de $\\vec{w}$ se calcule avec les mêmes coordonnées de $\\vec{u}$ et $\\vec{v}$.", `$${nom}_{\\vec{w}} = ${a} \\times ${par(u[k])} ${b < 0 ? "-" : "+"} ${Math.abs(b)} \\times ${par(v[k])}$.`, "Attention aux signes."],
+      solution: `$${nom}_{\\vec{w}} = ${a} \\times ${par(u[k])} + ${par(b)} \\times ${par(v[k])} = ${w[k]}$. En tout, $\\vec{w}${espT(w)}$.`
+    };
+  };
+
+  GEN["esp-colineaires"] = function () {
+    let u; do { u = espRandNZ(5); } while (u.filter((x) => x !== 0).length < 2);
+    const k = pick([2, 3, -2, -3, 4, -1]), v = u.map((x) => k * x), i = rand(0, 2);
+    if (u[i] === 0) return GEN["esp-colineaires"]();
+    const sens = pick([0, 1]); // 0 : inconnue dans v ; 1 : inconnue dans u
+    const avec = (w, j) => `(${w.map((x, n) => (n === j ? "m" : nb(x))).join("\\,;")})`;
+    const [U, V, rep] = sens === 0 ? [espT(u), avec(v, i), v[i]] : [avec(u, i), espT(v), u[i]];
+    const autre = rand(0, 2) === i ? (i + 1) % 3 : [0, 1, 2].find((j) => j !== i && u[j] !== 0);
+    return {
+      enonce: `Pour quelle valeur de $m$ les vecteurs $\\vec{u}${U}$ et $\\vec{v}${V}$ sont-ils colinéaires ?`,
+      mode: "nombre", prefixe: "$m =$", attendu: rep,
+      erreurs: [{ valeur: -rep, message: "Attention au signe du coefficient de colinéarité." }],
+      aides: ["$\\vec{u}$ et $\\vec{v}$ sont colinéaires s'il existe un réel $k$ tel que $\\vec{v} = k\\vec{u}$ : toutes les coordonnées sont multipliées par le **même** nombre.", `Trouve $k$ avec une coordonnée connue des deux côtés : $${nb(v[autre])} = k \\times ${par(u[autre])}$.`, `Ici $k = ${k}$ ; applique-le à la coordonnée qui contient $m$.`],
+      solution: `Avec les coordonnées connues, $\\vec{v} = ${k}\\vec{u}$. Donc ${sens === 0 ? `$m = ${k} \\times ${par(u[i])} = ${rep}$` : `$${nb(v[i])} = ${k} \\times m$, soit $m = ${rep}$`}.`
+    };
+  };
+
+  GEN["esp-alignes"] = function () {
+    const A = espRand(4); let d; do { d = espRandNZ(3); } while (d.filter((x) => x !== 0).length < 2);
+    const B = A.map((x, i) => x + d[i]), s = pick([2, 3, -1, -2, 4]), C = A.map((x, i) => x + s * d[i]);
+    const j = [0, 1, 2].filter((n) => d[n] !== 0), i = pick(j), ref = j.find((n) => n !== i);
+    const Ct = `(${C.map((x, n) => (n === i ? "m" : nb(x))).join("\\,;")})`;
+    return {
+      enonce: `On donne $A${espT(A)}$, $B${espT(B)}$ et $C${Ct}$. Pour quelle valeur de $m$ les points $A$, $B$ et $C$ sont-ils alignés ?`,
+      mode: "nombre", prefixe: "$m =$", attendu: C[i],
+      aides: ["$A$, $B$, $C$ sont alignés si $\\overrightarrow{AC} = k\\overrightarrow{AB}$ pour un réel $k$.", `$\\overrightarrow{AB}${espT(d)}$. Avec la coordonnée $${["x", "y", "z"][ref]}$ : $${C[ref] - A[ref]} = k \\times ${par(d[ref])}$, donc $k = ${s}$.`, `Alors $m - ${par(A[i])} = ${s} \\times ${par(d[i])}$.`],
+      solution: `$\\overrightarrow{AB}${espT(d)}$ et $\\overrightarrow{AC}$ doit valoir $${s}\\overrightarrow{AB}${espT(d.map((x) => s * x))}$. La coordonnée $${["x", "y", "z"][i]}$ donne $m = ${A[i]} + ${par(s * d[i])} = ${C[i]}$.`
+    };
+  };
+
+  GEN["esp-decomposition"] = function () {
+    let u, v; do { u = espRand(3); v = espRand(3); } while (espCol(u, v) || espNul(u) || espNul(v) || Math.abs(u[0] * v[1] - u[1] * v[0]) === 0);
+    const a = randNZ(-3, 3), b = randNZ(-3, 3), w = u.map((x, i) => a * x + b * v[i]);
+    const t = pick(["a", "b", "m"]);
+    if (t === "m") return {
+      enonce: `On donne $\\vec{u}${espT(u)}$, $\\vec{v}${espT(v)}$ et $\\vec{w}(${nb(w[0])}\\,;${nb(w[1])}\\,;m)$. Pour quelle valeur de $m$ les vecteurs $\\vec{u}$, $\\vec{v}$, $\\vec{w}$ sont-ils **coplanaires** ?`,
+      mode: "nombre", prefixe: "$m =$", attendu: w[2],
+      aides: ["$\\vec{u}$, $\\vec{v}$, $\\vec{w}$ sont coplanaires s'il existe des réels $a$ et $b$ tels que $\\vec{w} = a\\vec{u} + b\\vec{v}$.", `Les deux premières coordonnées donnent un système : $${espAB(u[0], v[0])} = ${w[0]}$ et $${espAB(u[1], v[1])} = ${w[1]}$.`, `On trouve $a = ${a}$ et $b = ${b}$ ; la troisième coordonnée donne $m$.`],
+      solution: `Le système donne $a = ${a}$ et $b = ${b}$. Alors $m = ${a} \\times ${par(u[2])} + ${par(b)} \\times ${par(v[2])} = ${w[2]}$.`
+    };
+    return {
+      enonce: `On donne $\\vec{u}${espT(u)}$, $\\vec{v}${espT(v)}$ et $\\vec{w}${espT(w)}$. On sait que $\\vec{w} = a\\vec{u} + b\\vec{v}$. Calcule $${t}$.`,
+      mode: "nombre", prefixe: `$${t} =$`, attendu: t === "a" ? a : b,
+      erreurs: [{ valeur: t === "a" ? b : a, message: `Ça, c'est la valeur de $${t === "a" ? "b" : "a"}$.` }],
+      aides: ["Écris l'égalité coordonnée par coordonnée : on obtient trois équations d'inconnues $a$ et $b$.", `Par exemple : $${espAB(u[0], v[0])} = ${w[0]}$ et $${espAB(u[1], v[1])} = ${w[1]}$.`, "Résous ce système (substitution ou combinaison), puis vérifie avec la troisième équation."],
+      solution: `Le système $\\begin{cases} ${espAB(u[0], v[0])} = ${w[0]} \\\\ ${espAB(u[1], v[1])} = ${w[1]} \\end{cases}$ donne $a = ${a}$ et $b = ${b}$, et la troisième coordonnée confirme : $${a} \\times ${par(u[2])} + ${par(b)} \\times ${par(v[2])} = ${w[2]}$.`
+    };
+  };
+
+  GEN["esp-cube"] = function () {
+    const N = Object.keys(ESP_CUBE), t = pick(["dd", "dd", "dp", "pp"]);
+    const paire = () => { const s = shuffle(N); return [s[0], s[1]]; };
+    if (t === "dd") {
+      let L1, L2;
+      do { L1 = paire(); L2 = paire(); } while (L1.sort().join() === L2.sort().join());
+      const [a, b] = L1, [c, e] = L2, r = espDroites(ESP_CUBE[a], espV(ESP_CUBE[a], ESP_CUBE[b]), ESP_CUBE[c], espV(ESP_CUBE[c], ESP_CUBE[e]));
+      const ms = { choix: ESP_POS.map((p) => `Elles sont ${p}`), attendu: r };
+      const expl = r === 0 ? "Elles sont dans un même plan et ne sont pas parallèles : elles se coupent." : r === 1 ? "Elles ont la même direction mais aucun point commun." : r === 2 ? "Aucun plan ne les contient toutes les deux : elles ne sont ni parallèles ni sécantes." : "C'est la même droite.";
+      return {
+        enonce: `$ABCDEFGH$ est un cube. Quelle est la position relative des droites $(${a}${b})$ et $(${c}${e})$ ?`,
+        figure: espCubeSVG([[ESP_CUBE[a], ESP_CUBE[b], 0], [ESP_CUBE[c], ESP_CUBE[e], 1]]),
+        mode: "choix", choix: ms.choix, attendu: ms.attendu,
+        aides: ["Deux droites de l'espace sont soit **coplanaires** (sécantes ou parallèles), soit **non coplanaires**.", "Cherche une face ou un plan de coupe du cube qui contient les deux droites.", "Tu peux aussi utiliser le repère $(A\\,;\\overrightarrow{AB},\\overrightarrow{AD},\\overrightarrow{AE})$ et comparer les vecteurs directeurs."],
+        solution: `Les droites $(${a}${b})$ et $(${c}${e})$ sont **${ESP_POS[r]}**. ${expl}`
+      };
+    }
+    let p; do { p = shuffle(N).slice(0, 3); } while (espNul(espCroix(espV(ESP_CUBE[p[0]], ESP_CUBE[p[1]]), espV(ESP_CUBE[p[0]], ESP_CUBE[p[2]]))));
+    const n = espCroix(espV(ESP_CUBE[p[0]], ESP_CUBE[p[1]]), espV(ESP_CUBE[p[0]], ESP_CUBE[p[2]])), Pl = `(${p.slice().sort().join("")})`;
+    if (t === "dp") {
+      const [a, b] = paire().sort(), d = espV(ESP_CUBE[a], ESP_CUBE[b]);
+      const dans = Math.abs(espScal(n, espV(ESP_CUBE[p[0]], ESP_CUBE[a]))) < 1e-9;
+      const r = Math.abs(espScal(n, d)) > 1e-9 ? 0 : dans ? 2 : 1;
+      const C = ["La droite et le plan sont sécants", "La droite est strictement parallèle au plan", "La droite est contenue dans le plan"];
+      return {
+        enonce: `$ABCDEFGH$ est un cube. Quelle est la position relative de la droite $(${a}${b})$ et du plan $${Pl}$ ?`,
+        figure: espCubeSVG([[ESP_CUBE[a], ESP_CUBE[b], 0], [ESP_CUBE[p[0]], ESP_CUBE[p[1]], 1], [ESP_CUBE[p[1]], ESP_CUBE[p[2]], 1], [ESP_CUBE[p[2]], ESP_CUBE[p[0]], 1]]),
+        mode: "choix", choix: C, attendu: r,
+        aides: ["Une droite et un plan sont soit sécants (un seul point commun), soit parallèles (la droite peut alors être contenue dans le plan).", `Regarde si $${a}$ et $${b}$ sont dans le plan $${Pl}$.`, "La droite est parallèle au plan si elle est parallèle à une droite de ce plan."],
+        solution: `${C[r]}. ${r === 2 ? `Les points $${a}$ et $${b}$ appartiennent tous les deux au plan $${Pl}$.` : r === 1 ? `La droite $(${a}${b})$ est parallèle à une droite du plan $${Pl}$, mais ne le rencontre pas.` : `La droite $(${a}${b})$ traverse le plan $${Pl}$ en un seul point.`}`
+      };
+    }
+    let q; do { q = shuffle(N).slice(0, 3); } while (espNul(espCroix(espV(ESP_CUBE[q[0]], ESP_CUBE[q[1]]), espV(ESP_CUBE[q[0]], ESP_CUBE[q[2]]))) || q.slice().sort().join() === p.slice().sort().join());
+    const m = espCroix(espV(ESP_CUBE[q[0]], ESP_CUBE[q[1]]), espV(ESP_CUBE[q[0]], ESP_CUBE[q[2]]));
+    const r = !espCol(n, m) ? 0 : Math.abs(espScal(n, espV(ESP_CUBE[p[0]], ESP_CUBE[q[0]]))) < 1e-9 ? 2 : 1;
+    const C = ["Ils sont sécants", "Ils sont strictement parallèles", "Ils sont confondus"];
+    return {
+      enonce: `$ABCDEFGH$ est un cube. Quelle est la position relative des plans $${Pl}$ et $(${q.slice().sort().join("")})$ ?`,
+      figure: espCubeSVG([[ESP_CUBE[p[0]], ESP_CUBE[p[1]], 0], [ESP_CUBE[p[1]], ESP_CUBE[p[2]], 0], [ESP_CUBE[p[2]], ESP_CUBE[p[0]], 0], [ESP_CUBE[q[0]], ESP_CUBE[q[1]], 1], [ESP_CUBE[q[1]], ESP_CUBE[q[2]], 1], [ESP_CUBE[q[2]], ESP_CUBE[q[0]], 1]]),
+      mode: "choix", choix: C, attendu: r,
+      aides: ["Deux plans sont soit sécants (leur intersection est une droite), soit parallèles (éventuellement confondus).", "Deux plans sont parallèles si deux droites sécantes de l'un sont parallèles à l'autre.", "Cherche s'ils ont des points communs : un sommet commun aux deux, par exemple."],
+      solution: `${C[r]}. ${r === 0 ? "Leur intersection est une droite." : r === 1 ? "Ils ont la même « direction » mais aucun point commun." : "Les trois points de l'un sont dans l'autre : c'est le même plan."}`
+    };
+  };
+
+  GEN["esp-repere"] = function () {
+    const S = Object.keys(ESP_CUBE), t = pick(["sommet", "milieu", "milieu", "centre"]);
+    let nom, P, desc;
+    if (t === "sommet") { nom = pick(S.slice(1)); P = ESP_CUBE[nom]; desc = `du sommet $${nom}$`; }
+    else if (t === "milieu") {
+      const ar = [["B", "C"], ["C", "D"], ["E", "F"], ["F", "G"], ["G", "H"], ["H", "E"], ["B", "F"], ["C", "G"], ["D", "H"], ["A", "G"], ["B", "H"], ["E", "C"], ["F", "D"], ["E", "G"], ["F", "H"], ["B", "G"], ["C", "H"]];
+      const [a, b] = pick(ar); P = ESP_CUBE[a].map((x, i) => (x + ESP_CUBE[b][i]) / 2); nom = "I"; desc = `du milieu $I$ de $[${a}${b}]$`;
+    } else {
+      const F = pick([["EFGH", "E", "G"], ["BCGF", "B", "G"], ["CDHG", "C", "H"], ["ABFE", "A", "F"], ["ADHE", "A", "H"], ["ABCD", "A", "C"]]);
+      P = ESP_CUBE[F[1]].map((x, i) => (x + ESP_CUBE[F[2]][i]) / 2); nom = "K"; desc = `du centre $K$ de la face $${F[0]}$`;
+    }
+    const perm = [...new Set([[P[1], P[0], P[2]], [P[0], P[2], P[1]], [P[2], P[1], P[0]], [1 - P[0], P[1], P[2]], [P[0], 1 - P[1], P[2]], [P[0], P[1], 1 - P[2]], P.map((x) => (x === 0.5 ? 1 : x === 1 ? 0.5 : x)), P.map((x) => 2 * x), [1, 1, 0], [0.5, 0, 1], [1, 0.5, 0.5], [0, 0.5, 0.5]].map((q) => q.join("|")))].filter((q) => q !== P.join("|")).map((q) => q.split("|").map(Number));
+    const ms = melangeChoix(`$${nom}${espT(P)}$`, shuffle(perm.map((q) => `$${nom}${espT(q)}$`)));
+    return {
+      enonce: `$ABCDEFGH$ est un cube. Dans le repère $(A\\,;\\overrightarrow{AB},\\overrightarrow{AD},\\overrightarrow{AE})$, quelles sont les coordonnées ${desc} ?`,
+      figure: espCubeSVG([]),
+      mode: "choix", choix: ms.choix, attendu: ms.attendu,
+      aides: ["Dans ce repère : $B(1\\,;0\\,;0)$, $D(0\\,;1\\,;0)$ et $E(0\\,;0\\,;1)$. On avance selon $\\overrightarrow{AB}$, puis $\\overrightarrow{AD}$, puis $\\overrightarrow{AE}$.", "Par exemple $\\overrightarrow{AG} = \\overrightarrow{AB} + \\overrightarrow{AD} + \\overrightarrow{AE}$, donc $G(1\\,;1\\,;1)$.", "Un milieu a pour coordonnées les moyennes des coordonnées des extrémités."],
+      solution: `Coordonnées ${desc} : $${nom}${espT(P)}$.${t === "sommet" ? "" : " On fait la moyenne des coordonnées des deux points concernés."}`
+    };
+  };
+
+  GEN["esp-param-point"] = function () {
+    const P = espRand(4), d = espRandNZ(3), t = pick(["point", "t", "m"]);
+    if (d.filter((x) => x !== 0).length < 2) return GEN["esp-param-point"]();
+    const sys = espParam(P, d, "t");
+    if (t === "point") {
+      const k = randNZ(-3, 3), M = P.map((x, i) => x + k * d[i]);
+      const ms = melangeChoix(`$${espT(M)}$`, [`$${espT(P.map((x, i) => x - k * d[i]))}$`, `$${espT(P.map((x, i) => k * x + d[i]))}$`, `$${espT(d.map((x, i) => x + k * P[i]))}$`, `$${espT(P.map((x, i) => x + (k + 1) * d[i]))}$`]);
+      return {
+        enonce: `La droite $d$ a pour représentation paramétrique $${sys}$, $t \\in \\mathbb{R}$. Quelles sont les coordonnées du point de $d$ de paramètre $t = ${k}$ ?`,
+        mode: "choix", choix: ms.choix, attendu: ms.attendu,
+        aides: [`On remplace $t$ par $${k}$ dans les trois lignes.`, `$x = ${nb(P[0])} + ${par(d[0])} \\times ${par(k)} = ${M[0]}$.`, "Fais de même pour $y$ et $z$."],
+        solution: `Pour $t = ${k}$ : $x = ${M[0]}$, $y = ${M[1]}$, $z = ${M[2]}$. Le point est $${espT(M)}$.`
+      };
+    }
+    const k = randNZ(-3, 4), M = P.map((x, i) => x + k * d[i]), i = d.findIndex((x) => x !== 0);
+    if (t === "t") return {
+      enonce: `La droite $d$ a pour représentation paramétrique $${sys}$, $t \\in \\mathbb{R}$. Le point $M${espT(M)}$ appartient à $d$. Pour quelle valeur de $t$ ?`,
+      mode: "nombre", prefixe: "$t =$", attendu: k,
+      aides: ["Il faut trouver **un même** $t$ qui donne les trois coordonnées de $M$.", `Avec la coordonnée $${["x", "y", "z"][i]}$ : $${nb(M[i])} = ${espLigne(P[i], d[i], "t")}$.`, "Résous, puis vérifie avec les deux autres lignes."],
+      solution: `$${nb(M[i])} = ${espLigne(P[i], d[i], "t")}$ donne $t = ${k}$, et les deux autres lignes donnent bien $${M.filter((_, n) => n !== i).map(nb).join("$ et $")}$ pour $t = ${k}$.`
+    };
+    const j = [0, 1, 2].find((n) => n !== i);
+    const Mt = `(${M.map((x, n) => (n === j ? "m" : nb(x))).join("\\,;")})`;
+    return {
+      enonce: `La droite $d$ a pour représentation paramétrique $${sys}$, $t \\in \\mathbb{R}$. Pour quelle valeur de $m$ le point $M${Mt}$ appartient-il à $d$ ?`,
+      mode: "nombre", prefixe: "$m =$", attendu: M[j],
+      aides: [`Utilise une coordonnée connue pour trouver $t$ : $${nb(M[i])} = ${espLigne(P[i], d[i], "t")}$.`, `On trouve $t = ${k}$.`, `Remplace $t$ par $${k}$ dans la ligne de $${["x", "y", "z"][j]}$.`],
+      solution: `$${nb(M[i])} = ${espLigne(P[i], d[i], "t")}$ donne $t = ${k}$. Alors $m = ${nb(P[j])} + ${par(d[j])} \\times ${par(k)} = ${M[j]}$${[0, 1, 2].filter((n) => n !== i && n !== j).map((n) => ` (et la dernière coordonnée $${M[n]}$ est cohérente)`).join("")}.`
+    };
+  };
+
+  GEN["esp-param-ecrire"] = function () {
+    const A = espRand(4), d = espRandNZ(3);
+    if (d.filter((x) => x !== 0).length < 2) return GEN["esp-param-ecrire"]();
+    const B = A.map((x, i) => x + d[i]);
+    const ok = (P, u) => espCol(u, d) && !espNul(u) && espCol(espV(A, P), d);
+    const bonnes = [[A, d], [B, d], [A, d.map((x) => -x)], [A, d.map((x) => 2 * x)]];
+    const [Pb, ub] = pick(bonnes);
+    const pieges = shuffle([[A, B], [A, [d[0], -d[1], d[2]]], [A, [d[1], d[0], d[2]]], [d, A], [A.map((x, i) => x + d[i] + 1), d], [[A[0], A[1], A[2] + 1], d], [A, [d[0], d[1], -d[2]]]]).filter(([P, u]) => !espNul(u) && !ok(P, u));
+    const ms = melangeChoix(`$${espParam(Pb, ub, "t")}$`, pieges.map(([P, u]) => `$${espParam(P, u, "t")}$`));
+    return {
+      enonce: `On donne $A${espT(A)}$ et $B${espT(B)}$. Quelle est une représentation paramétrique de la droite $(AB)$ ($t \\in \\mathbb{R}$) ?`,
+      mode: "choix", choix: ms.choix, attendu: ms.attendu,
+      aides: [`Un vecteur directeur de $(AB)$ est $\\overrightarrow{AB}${espT(d)}$ (ou tout vecteur colinéaire).`, "Une représentation paramétrique : $x = x_P + at$, $y = y_P + bt$, $z = z_P + ct$, où $P$ est un point de la droite et $(a\\,;b\\,;c)$ un vecteur directeur.", "Vérifie aussi le point de départ : pour $t = 0$, on doit obtenir un point de la droite."],
+      solution: `$\\overrightarrow{AB}${espT(d)}$. La bonne réponse part du point $${espT(Pb)}$ ${Pb === B ? "($B$)" : "($A$)"} avec le vecteur directeur $${espT(ub)}$, colinéaire à $\\overrightarrow{AB}$. Une droite a une infinité de représentations paramétriques.`
+    };
+  };
+
+  GEN["esp-positions"] = function () {
+    const r = pick([0, 0, 1, 2, 2, 3]);
+    let P1 = espRand(3), d1, d2, P2;
+    do { d1 = espRandNZ(2); } while (d1.filter((x) => x !== 0).length < 2);
+    if (r === 1 || r === 3) {
+      const k = pick([2, -1, -2, 1]); d2 = d1.map((x) => k * x);
+      if (r === 3) { const s = pick([1, -1, 2]); P2 = P1.map((x, i) => x + s * d1[i]); }
+      else { do { P2 = espRand(3); } while (espCol(espV(P1, P2), d1)); }
+    } else {
+      do { d2 = espRandNZ(2); } while (espCol(d1, d2) || d2.filter((x) => x !== 0).length < 2);
+      if (r === 0) { const t1 = rand(-2, 2), t2 = randNZ(-2, 2), I = P1.map((x, i) => x + t1 * d1[i]); P2 = I.map((x, i) => x - t2 * d2[i]); }
+      else { do { P2 = espRand(3); } while (Math.abs(espScal(espV(P1, P2), espCroix(d1, d2))) < 1e-9); }
+    }
+    const reel = espDroites(P1, d1, P2, d2);
+    const ms = { choix: ESP_POS.map((p) => `Elles sont ${p}`), attendu: reel };
+    const sol = reel === 1 || reel === 3
+      ? `Les vecteurs directeurs $${espT(d1)}$ et $${espT(d2)}$ sont colinéaires : les droites sont parallèles. Le point $${espT(P2)}$ de $d_2$ ${reel === 3 ? "est" : "n'est pas"} sur $d_1$ : elles sont **${ESP_POS[reel]}**.`
+      : `Les vecteurs directeurs $${espT(d1)}$ et $${espT(d2)}$ ne sont pas colinéaires. On résout le système formé par deux des trois équations $${espLigne(P1[0], d1[0], "t")} = ${espLigne(P2[0], d2[0], "s")}$, etc. ${reel === 0 ? "La troisième équation est vérifiée : les droites sont **sécantes**." : "La troisième équation n'est pas vérifiée : pas de point commun, les droites sont **non coplanaires**."}`;
+    return {
+      enonce: `Les droites $d_1$ et $d_2$ ont pour représentations paramétriques $${espParam(P1, d1, "t")}$ ($t \\in \\mathbb{R}$) et $${espParam(P2, d2, "s")}$ ($s \\in \\mathbb{R}$). Quelle est leur position relative ?`,
+      mode: "choix", choix: ms.choix, attendu: ms.attendu,
+      aides: ["Compare d'abord les vecteurs directeurs : s'ils sont colinéaires, les droites sont parallèles (strictement ou confondues).", "Sinon, cherche un point commun : résous le système $x_1 = x_2$, $y_1 = y_2$ d'inconnues $t$ et $s$.", "Teste ensuite la troisième équation : si elle est vérifiée, les droites sont sécantes ; sinon, elles sont non coplanaires."],
+      solution: sol
+    };
+  };
+
+  GEN["esp-python"] = function () {
+    const A = espRand(5), B = espRand(5), t = pick(["milieu", "vecteur", "point"]);
+    const L = (u, flottant) => `\\texttt{[${u.map((x) => (flottant && Number.isInteger(x) ? x + ".0" : String(x))).join(", ")}]}`;
+    if (t === "milieu") {
+      const I = A.map((x, i) => (x + B[i]) / 2);
+      const ms = melangeChoix(`$${L(I, true)}$`, [`$${L(espV(A, B).map((x) => x / 2), true)}$`, `$${L(A.map((x, i) => x + B[i]), false)}$`, `$${L(I.map((x) => Math.trunc(x)), false)}$`]);
+      return {
+        enonce: `Qu'affiche ce programme ?\n\n\`\`\`python\ndef milieu(A, B):\n    return [(A[i] + B[i]) / 2 for i in range(3)]\n\nprint(milieu([${A.join(", ")}], [${B.join(", ")}]))\n\`\`\``,
+        mode: "choix", choix: ms.choix, attendu: ms.attendu,
+        aides: ["La liste est construite pour $\\texttt{i}$ allant de $0$ à $2$ : une coordonnée à la fois.", "Chaque coordonnée est la moyenne $\\dfrac{A_i + B_i}{2}$.", "En Python, $\\texttt{/}$ donne toujours un nombre décimal : $\\texttt{4 / 2}$ affiche $\\texttt{2.0}$."],
+        solution: `Les moyennes des coordonnées sont $${I.map(nb).join("$, $")}$. Python affiche $${L(I, true)}$ (le $\\texttt{/}$ donne des nombres décimaux).`
+      };
+    }
+    if (t === "vecteur") {
+      const AB = espV(A, B);
+      const ms = melangeChoix(`$${L(AB)}$`, [`$${L(espV(B, A))}$`, `$${L(A.map((x, i) => x + B[i]))}$`, `$${L([AB[0], AB[1]])}$`]);
+      return {
+        enonce: `Qu'affiche ce programme ?\n\n\`\`\`python\ndef vecteur(A, B):\n    return [B[i] - A[i] for i in range(3)]\n\nprint(vecteur([${A.join(", ")}], [${B.join(", ")}]))\n\`\`\``,
+        mode: "choix", choix: ms.choix, attendu: ms.attendu,
+        aides: ["$\\texttt{range(3)}$ donne $\\texttt{i} = 0$, $1$, $2$ : trois coordonnées.", "Chaque coordonnée est $\\texttt{B[i] - A[i]}$ : arrivée moins départ.", "C'est le vecteur $\\overrightarrow{AB}$."],
+        solution: `Le programme calcule $\\overrightarrow{AB}${espT(AB)}$ et affiche $${L(AB)}$.`
+      };
+    }
+    const d = espRandNZ(3), k = randNZ(-3, 3), M = A.map((x, i) => x + k * d[i]);
+    const ms = melangeChoix(`$${L(M)}$`, [`$${L(A.map((x, i) => x - k * d[i]))}$`, `$${L(d.map((x, i) => x + k * A[i]))}$`, `$${L(A.map((x, i) => x + (k + 1) * d[i]))}$`]);
+    return {
+      enonce: `La fonction ci-dessous donne le point de paramètre $t$ d'une droite. Qu'affiche le programme ?\n\n\`\`\`python\ndef point(t):\n    A = [${A.join(", ")}]\n    u = [${d.join(", ")}]\n    return [A[i] + t * u[i] for i in range(3)]\n\nprint(point(${k}))\n\`\`\``,
+      mode: "choix", choix: ms.choix, attendu: ms.attendu,
+      aides: ["C'est la représentation paramétrique $x = x_A + t \\, u_x$, $y = y_A + t \\, u_y$, $z = z_A + t \\, u_z$.", `On remplace $t$ par $${k}$.`, `Première coordonnée : $${A[0]} + ${par(k)} \\times ${par(d[0])} = ${M[0]}$.`],
+      solution: `$\\texttt{point(${k})}$ calcule $A + ${par(k)}\\vec{u}$ : le programme affiche $${L(M)}$.`
+    };
+  };
+
   /* Séries « flash » d'un thème : mélange de ses générateurs */
   const THEMES = {
     "am-flash-cn": ["am-comparer", "am-fractions", "am-puissances", "am-ecritures", "am-ordre-grandeur", "am-coherence", "auto-conversions"],
@@ -13776,7 +14071,7 @@
 
 
   /* Une « erreur connue » ne doit jamais coïncider avec la bonne réponse (à la tolérance près) */
-  Object.keys(GEN).filter((k) => /^(auto|ld|am|cd|ar|cl|fa|ve|st|vx|tc|co|dr|fr|sg|pc|ec|sy|su|s2|pi|s5|d1|tr|d2|vr|ps|ex|va|sc|gr|sm|ea|tsu|tag|tlf|tcb|tsd|tdc|tln|tcv|tlg|tpe|tin|tld|trr|tec|rec|dvx)-/.test(k)).forEach((k) => {
+  Object.keys(GEN).filter((k) => /^(auto|ld|am|cd|ar|cl|fa|ve|st|vx|tc|co|dr|fr|sg|pc|ec|sy|su|s2|pi|s5|d1|tr|d2|vr|ps|ex|va|sc|gr|sm|ea|tsu|tag|tlf|tcb|tsd|tdc|tln|tcv|tlg|tpe|tin|tld|trr|tec|rec|dvx|esp)-/.test(k)).forEach((k) => {
     const g = GEN[k];
     GEN[k] = (i) => { const q = g(i); if (q.erreurs) q.erreurs = q.erreurs.filter((e) => Math.abs(e.valeur - q.attendu) >= (q.tolerance || 1e-9)); return q; };
   });

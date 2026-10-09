@@ -363,7 +363,7 @@ window.CATALOGUE = {
           id: "terminale-spe-espace-1",
           numero: 3,
           titre: "Géométrie dans l'espace 1 : vecteurs, droites et plans",
-          statut: "bientot",
+          statut: "disponible",
           drive: ""
         },
         {
