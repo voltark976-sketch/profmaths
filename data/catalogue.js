@@ -447,7 +447,7 @@ window.CATALOGUE = {
           id: "terminale-spe-grands-nombres",
           numero: 15,
           titre: "Loi des grands nombres",
-          statut: "bientot",
+          statut: "disponible",
           drive: ""
         }
       ]

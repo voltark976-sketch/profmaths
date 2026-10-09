@@ -16207,6 +16207,189 @@
     };
   };
 
+  /* ---------- Terminale spécialité, chapitre 15 : loi des grands nombres (préfixe lgn-) ---------- */
+  const lgnR = (x) => +(+x).toFixed(6);
+
+  FIGURES["lgn-frequences"] = () => {
+    // fréquences cumulées de 6 sur 300 lancers simulés (graine fixe pour une figure stable)
+    let g = 7; const alea = () => { g = (g * 16807) % 2147483647; return g / 2147483647; };
+    let six = 0; const pts = [];
+    for (let n = 1; n <= 300; n++) { if (alea() < 1 / 6) six++; if (n % 5 === 0) pts.push([n, six / n]); }
+    return graph({ xmin: -10, xmax: 315, ymin: -0.02, ymax: 0.42, xstep: 50, ystep: 0.05, xetiq: 100, yetiq: 0.1, padL: 34, h: 240, xlabel: "n", hlines: [{ y: 1 / 6, label: "p = 1/6" }], chemins: [pts], aria: "Fréquence d'apparition du 6 au fil de 300 lancers simulés : elle fluctue beaucoup au début puis se stabilise autour de 1/6" });
+  };
+
+  GEN["lgn-lineaire"] = function () {
+    const E = rand(-5, 12), V = pick([1, 2, 4, 9, 0.5, 2.5, 16, 3]), a = pick([2, 3, -1, -2, 0.5, 10, -3]), b = rand(-9, 20), t = pick(["E", "V", "V", "sigma"]);
+    const at = fr(a), Y = `${a === 1 ? "" : a === -1 ? "-" : at}X${b === 0 ? "" : ` ${sg(b)}`}`;
+    if (t === "E") return {
+      enonce: `$X$ est une variable aléatoire avec $E(X) = ${fr(E)}$ et $V(X) = ${fr(V)}$. Calcule $E(${Y})$.`,
+      mode: "nombre", prefixe: `$E(${Y}) =$`, attendu: lgnR(a * E + b),
+      erreurs: [{ valeur: lgnR(a * E), message: `N'oublie pas d'ajouter $${b}$ : $E(aX + b) = aE(X) + b$.` }],
+      aides: ["Linéarité de l'espérance : $E(aX + b) = aE(X) + b$.", `$a = ${at}$ et $b = ${b}$.`, `$${at} \\times ${par(E)} ${sg(b)}$.`],
+      solution: `$E(${Y}) = ${at} \\times ${par(E)} ${sg(b)} = ${fr(lgnR(a * E + b))}$.`
+    };
+    if (t === "V") return {
+      enonce: `$X$ est une variable aléatoire avec $E(X) = ${fr(E)}$ et $V(X) = ${fr(V)}$. Calcule $V(${Y})$.`,
+      mode: "nombre", prefixe: `$V(${Y}) =$`, attendu: lgnR(a * a * V),
+      erreurs: [{ valeur: lgnR(a * V), message: `Le coefficient est élevé au carré : $V(aX + b) = a^2V(X)$.` }, { valeur: lgnR(a * a * V + b), message: "Ajouter une constante ne change pas la dispersion : le $b$ disparaît." }],
+      aides: ["$V(aX + b) = a^2V(X)$ : la constante $b$ décale les valeurs sans changer leur dispersion.", `$a^2 = ${fr(a * a)}$.`, `$${fr(a * a)} \\times ${fr(V)}$.`],
+      solution: `$V(${Y}) = ${par(at)}^2 \\times ${fr(V)} = ${fr(lgnR(a * a * V))}$.`
+    };
+    const s = Math.sqrt(V), sv = lgnR(Math.abs(a) * s);
+    if (!Number.isInteger(s * 2)) return GEN["lgn-lineaire"]();
+    return {
+      enonce: `$X$ est une variable aléatoire avec $\\sigma(X) = ${fr(s)}$. Calcule $\\sigma(${Y})$.`,
+      mode: "nombre", prefixe: `$\\sigma(${Y}) =$`, attendu: sv,
+      erreurs: [{ valeur: lgnR(a * s), message: "Un écart type est toujours positif : $\\sigma(aX + b) = |a|\\sigma(X)$." }],
+      aides: ["$\\sigma(aX + b) = |a|\\,\\sigma(X)$.", "La constante $b$ ne change pas l'écart type.", `$|${at}| \\times ${fr(s)}$.`],
+      solution: `$\\sigma(${Y}) = |${at}| \\times ${fr(s)} = ${fr(sv)}$.`
+    };
+  };
+
+  GEN["lgn-somme"] = function () {
+    const E1 = rand(-4, 9), E2 = rand(-4, 9), V1 = rand(1, 9), V2 = rand(1, 9), t = pick(["E", "V", "Vmoins", "Emoins", "comb"]);
+    const intro = `$X$ et $Y$ sont deux variables aléatoires **indépendantes**, avec $E(X) = ${E1}$, $V(X) = ${V1}$, $E(Y) = ${E2}$ et $V(Y) = ${V2}$.`;
+    if (t === "E") return { enonce: `${intro} Calcule $E(X + Y)$.`, mode: "nombre", prefixe: "$E(X + Y) =$", attendu: E1 + E2, aides: ["$E(X + Y) = E(X) + E(Y)$, toujours.", `$${E1} + ${par(E2)}$.`, "L'indépendance n'est même pas nécessaire ici."], solution: `$E(X + Y) = ${E1} + ${par(E2)} = ${E1 + E2}$.` };
+    if (t === "Emoins") return { enonce: `${intro} Calcule $E(X - Y)$.`, mode: "nombre", prefixe: "$E(X - Y) =$", attendu: E1 - E2, aides: ["$E(X - Y) = E(X) - E(Y)$ (linéarité).", `$${E1} - ${par(E2)}$.`, "Attention au signe."], solution: `$E(X - Y) = ${E1} - ${par(E2)} = ${E1 - E2}$.` };
+    if (t === "V") return { enonce: `${intro} Calcule $V(X + Y)$.`, mode: "nombre", prefixe: "$V(X + Y) =$", attendu: V1 + V2, aides: ["Pour des variables **indépendantes** : $V(X + Y) = V(X) + V(Y)$.", `$${V1} + ${V2}$.`, "Sans indépendance, cette formule n'est pas valable."], solution: `$X$ et $Y$ sont indépendantes : $V(X + Y) = ${V1} + ${V2} = ${V1 + V2}$.` };
+    if (t === "Vmoins") return {
+      enonce: `${intro} Calcule $V(X - Y)$.`, mode: "nombre", prefixe: "$V(X - Y) =$", attendu: V1 + V2,
+      erreurs: [{ valeur: V1 - V2, message: "Les variances s'**ajoutent** : $V(-Y) = (-1)^2V(Y) = V(Y)$." }],
+      aides: ["$X - Y = X + (-1)Y$, et $V(-Y) = (-1)^2V(Y) = V(Y)$.", "Pour des variables indépendantes, les variances s'additionnent.", `$${V1} + ${V2}$.`],
+      solution: `$V(X - Y) = V(X) + V(-Y) = ${V1} + ${V2} = ${V1 + V2}$ : soustraire ne diminue pas la dispersion.`
+    };
+    const a = pick([2, 3, -2]), b = pick([1, -1, 2]);
+    return {
+      enonce: `${intro} Calcule $V(${a}X ${b < 0 ? "-" : "+"} ${Math.abs(b) === 1 ? "" : Math.abs(b)}Y)$.`, mode: "nombre", prefixe: "Variance :", attendu: a * a * V1 + b * b * V2,
+      erreurs: [{ valeur: a * V1 + b * V2, message: "Les coefficients sont élevés au carré." }],
+      aides: ["Indépendance : $V(aX + bY) = a^2V(X) + b^2V(Y)$.", `$${a}^2 \\times ${V1} + ${par(b)}^2 \\times ${V2}$.`, "Calcule pas à pas."],
+      solution: `$V = ${par(a)}^2 \\times ${V1} + ${par(b)}^2 \\times ${V2} = ${a * a * V1 + b * b * V2}$.`
+    };
+  };
+
+  GEN["lgn-loi-somme"] = function () {
+    // X prend x1, x2 (probas p, 1-p) ; Y prend y1, y2, y3 (probas q1, q2, q3) ; indépendantes
+    const x = [0, rand(1, 3)], y = [0, 1, rand(2, 4)], [p, pt] = pick([[0.5, "0{,}5"], [0.4, "0{,}4"], [0.3, "0{,}3"], [0.2, "0{,}2"], [0.6, "0{,}6"]]);
+    const q = pick([[0.5, 0.3, 0.2], [0.2, 0.5, 0.3], [0.4, 0.4, 0.2], [0.1, 0.6, 0.3], [0.25, 0.25, 0.5]]);
+    const loi = {}; [[x[0], 1 - p], [x[1], p]].forEach(([xv, px]) => y.forEach((yv, j) => { loi[xv + yv] = (loi[xv + yv] || 0) + px * q[j]; }));
+    const ks = Object.keys(loi).map(Number).filter((k) => [...[x[0], x[1]].flatMap((a) => y.map((b) => a + b))].filter((s) => s === k).length >= 1);
+    const k = pick(ks), v = lgnR(loi[k]);
+    const couples = [x[0], x[1]].flatMap((a) => y.map((b) => [a, b])).filter(([a, b]) => a + b === k);
+    return {
+      enonce: `$X$ et $Y$ sont indépendantes. $X$ vaut $${x[0]}$ avec la probabilité $${fr(1 - p)}$ et $${x[1]}$ avec la probabilité $${pt}$. $Y$ vaut $${y[0]}$, $${y[1]}$ ou $${y[2]}$ avec les probabilités $${q.map(fr).join("$, $")}$. Calcule $P(X + Y = ${k})$.`,
+      mode: "nombre", prefixe: `$P(X + Y = ${k}) =$`, attendu: v,
+      aides: [`Cherche tous les couples $(x\\,;y)$ tels que $x + y = ${k}$.`, `Ici : ${couples.map(([a, b]) => `$(${a}\\,;${b})$`).join(", ")}.`, "Pour chaque couple, $P(X = x) \\times P(Y = y)$ (indépendance), puis additionne."],
+      solution: `$P(X + Y = ${k}) = ${couples.map(([a, b]) => `${fr(a === x[0] ? 1 - p : p)} \\times ${fr(q[y.indexOf(b)])}`).join(" + ")} = ${fr(v)}$.`
+    };
+  };
+
+  GEN["lgn-echantillon"] = function () {
+    const n = pick([10, 20, 25, 50, 100, 400, 16, 36]), mu = rand(-3, 15), V = pick([4, 9, 16, 25, 1, 36, 2, 12]), t = pick(["ES", "VS", "EM", "VM", "sM"]);
+    const intro = `$X_1$, …, $X_{${n}}$ est un échantillon de taille $${n}$ d'une loi d'espérance $${mu}$ et de variance $${V}$.`;
+    if (t === "ES") return { enonce: `${intro} On pose $S = X_1 + \\dots + X_{${n}}$. Calcule $E(S)$.`, mode: "nombre", prefixe: "$E(S) =$", attendu: n * mu, aides: ["$E(S) = E(X_1) + \\dots + E(X_n) = nE(X)$.", `$n = ${n}$ et $E(X) = ${mu}$.`, `$${n} \\times ${par(mu)}$.`], solution: `$E(S) = ${n} \\times ${par(mu)} = ${n * mu}$.` };
+    if (t === "VS") return { enonce: `${intro} On pose $S = X_1 + \\dots + X_{${n}}$. Calcule $V(S)$.`, mode: "nombre", prefixe: "$V(S) =$", attendu: n * V, erreurs: [{ valeur: n * n * V, message: "Ce n'est pas $n^2V$ : les variances des variables indépendantes s'additionnent, $V(S) = nV(X)$." }], aides: ["Les $X_i$ sont indépendantes : $V(S) = V(X_1) + \\dots + V(X_n) = nV(X)$.", `$${n} \\times ${V}$.`, "Attention : ce n'est pas $n^2V(X)$."], solution: `$V(S) = ${n} \\times ${V} = ${n * V}$.` };
+    if (t === "EM") return { enonce: `${intro} Calcule l'espérance de la moyenne $M = \\dfrac{X_1 + \\dots + X_{${n}}}{${n}}$.`, mode: "nombre", prefixe: "$E(M) =$", attendu: mu, aides: ["$M = \\dfrac{S}{n}$, donc $E(M) = \\dfrac{E(S)}{n}$.", `$E(S) = ${n} \\times ${par(mu)}$.`, "On retrouve l'espérance de la loi."], solution: `$E(M) = \\dfrac{${n} \\times ${par(mu)}}{${n}} = ${mu}$ : la moyenne de l'échantillon a la même espérance que la loi.` };
+    if (t === "VM") return { enonce: `${intro} Calcule la variance de la moyenne $M = \\dfrac{X_1 + \\dots + X_{${n}}}{${n}}$ (valeur exacte, sous forme de fraction si besoin).`, mode: "nombre", prefixe: "$V(M) =$", attendu: V / n, erreurs: [{ valeur: V, message: "La variance de la moyenne est divisée par $n$ : $V(M) = \\dfrac{V(X)}{n}$." }, { valeur: lgnR(V / (n * n)), message: "$V\\left(\\dfrac{S}{n}\\right) = \\dfrac{V(S)}{n^2} = \\dfrac{nV(X)}{n^2} = \\dfrac{V(X)}{n}$." }, ...tsApprox(V / n)], aides: ["$V\\left(\\dfrac{S}{n}\\right) = \\dfrac{1}{n^2}V(S)$.", "$V(S) = nV(X)$.", `$V(M) = \\dfrac{${V}}{${n}}$.`], solution: `$V(M) = \\dfrac{1}{${n}^2} \\times ${n} \\times ${V} = \\dfrac{${V}}{${n}} = ${frac(V, n)}$ : plus l'échantillon est grand, moins la moyenne est dispersée.` };
+    const s = Math.sqrt(V / n);
+    if (!Number.isInteger(Math.sqrt(V)) || !Number.isInteger(Math.sqrt(n))) return GEN["lgn-echantillon"]();
+    return { enonce: `${intro} Calcule l'écart type de la moyenne $M$ (valeur exacte, sous forme de fraction si besoin).`, mode: "nombre", prefixe: "$\\sigma(M) =$", attendu: s, erreurs: [{ valeur: Math.sqrt(V), message: "L'écart type de la moyenne est divisé par $\\sqrt{n}$." }, ...tsApprox(s)], aides: ["$\\sigma(M) = \\sqrt{V(M)} = \\dfrac{\\sigma(X)}{\\sqrt{n}}$.", `$\\sigma(X) = \\sqrt{${V}} = ${Math.sqrt(V)}$ et $\\sqrt{${n}} = ${Math.sqrt(n)}$.`, `$\\dfrac{${Math.sqrt(V)}}{${Math.sqrt(n)}}$.`], solution: `$\\sigma(M) = \\dfrac{${Math.sqrt(V)}}{${Math.sqrt(n)}} = ${frac(Math.sqrt(V), Math.sqrt(n))}$.` };
+  };
+
+  GEN["lgn-bienayme"] = function () {
+    const mu = rand(0, 50), V = pick([4, 9, 16, 25, 2, 8, 12, 36, 1]), d = pick([2, 3, 4, 5, 6, 10]), t = pick(["sup", "sup", "inf"]);
+    if (V / (d * d) >= 1) return GEN["lgn-bienayme"]();
+    const b = V / (d * d);
+    if (t === "sup") return {
+      enonce: `$X$ a pour espérance $${mu}$ et pour variance $${V}$. D'après l'inégalité de Bienaymé-Tchebychev, quelle est la meilleure majoration de $P(|X - ${mu}| \\geqslant ${d})$ qu'elle fournit ? (valeur exacte, sous forme de fraction si besoin)`,
+      mode: "nombre", prefixe: "Majorant :", attendu: b,
+      erreurs: [{ valeur: V / d, message: "On divise par $\\delta^2$, pas par $\\delta$." }, ...tsApprox(b)],
+      aides: ["Inégalité de Bienaymé-Tchebychev : $P(|X - E(X)| \\geqslant \\delta) \\leqslant \\dfrac{V(X)}{\\delta^2}$.", `Ici $\\delta = ${d}$, donc $\\delta^2 = ${d * d}$.`, `$\\dfrac{${V}}{${d * d}}$.`],
+      solution: `$P(|X - ${mu}| \\geqslant ${d}) \\leqslant \\dfrac{${V}}{${d}^2} = ${frac(V, d * d)}$ : la probabilité de s'écarter de $${d}$ ou plus de l'espérance est au plus $${frac(V, d * d)}$.`
+    };
+    return {
+      enonce: `$X$ a pour espérance $${mu}$ et pour variance $${V}$. D'après l'inégalité de Bienaymé-Tchebychev, $P(${mu - d} < X < ${mu + d})$ est au moins égale à : (valeur exacte, sous forme de fraction si besoin)`,
+      mode: "nombre", prefixe: "Minorant :", attendu: 1 - b,
+      erreurs: [{ valeur: b, message: `Ça, c'est le majorant de la probabilité contraire $P(|X - ${mu}| \\geqslant ${d})$.` }, ...tsApprox(1 - b)],
+      aides: [`$${mu - d} < X < ${mu + d}$ équivaut à $|X - ${mu}| < ${d}$ : c'est le contraire de $|X - ${mu}| \\geqslant ${d}$.`, `$P(|X - ${mu}| \\geqslant ${d}) \\leqslant \\dfrac{${V}}{${d * d}}$.`, `Donc $P(|X - ${mu}| < ${d}) \\geqslant 1 - \\dfrac{${V}}{${d * d}}$.`],
+      solution: `$P(|X - ${mu}| < ${d}) = 1 - P(|X - ${mu}| \\geqslant ${d}) \\geqslant 1 - \\dfrac{${V}}{${d * d}} = ${frac(d * d - V, d * d)}$.`
+    };
+  };
+
+  GEN["lgn-concentration"] = function () {
+    const t = pick(["borne", "taille", "taille"]), [V, Vt] = pick([[0.25, "0{,}25"], [4, "4"], [1, "1"], [9, "9"], [0.16, "0{,}16"], [2, "2"]]), [d, dt] = pick([[0.1, "0{,}1"], [0.05, "0{,}05"], [0.5, "0{,}5"], [1, "1"], [0.2, "0{,}2"]]);
+    if (t === "borne") {
+      const n = pick([100, 200, 400, 500, 1000, 2500]), b = V / (n * d * d);
+      if (b >= 1) return GEN["lgn-concentration"]();
+      return {
+        enonce: `$M_n$ est la moyenne d'un échantillon de taille $n = ${n}$ d'une loi d'espérance $\\mu$ et de variance $${Vt}$. Que donne l'inégalité de concentration comme majorant de $P(|M_n - \\mu| \\geqslant ${dt})$ ?`,
+        mode: "nombre", prefixe: "Majorant :", attendu: lgnR(b),
+        erreurs: [{ valeur: lgnR(V / (d * d)), message: "N'oublie pas de diviser par $n$." }],
+        aides: ["Inégalité de concentration : $P(|M_n - \\mu| \\geqslant \\delta) \\leqslant \\dfrac{V(X)}{n\\delta^2}$.", `$n\\delta^2 = ${n} \\times ${dt}^2 = ${fr(lgnR(n * d * d))}$.`, `$\\dfrac{${Vt}}{${fr(lgnR(n * d * d))}}$.`],
+        solution: `$P(|M_n - \\mu| \\geqslant ${dt}) \\leqslant \\dfrac{${Vt}}{${n} \\times ${dt}^2} = ${fr(lgnR(b))}$.`
+      };
+    }
+    const [a, at] = pick([[0.05, "0{,}05"], [0.1, "0{,}1"], [0.01, "0{,}01"], [0.02, "0{,}02"]]);
+    const x = V / (a * d * d), n = Math.abs(x - Math.round(x)) < 1e-9 ? Math.round(x) : Math.ceil(x);
+    return {
+      enonce: `On veut que la moyenne $M_n$ d'un échantillon d'une loi de variance $${Vt}$ vérifie $P(|M_n - \\mu| \\geqslant ${dt}) \\leqslant ${at}$. D'après l'inégalité de concentration, quelle taille $n$ minimale suffit ?`,
+      mode: "nombre", prefixe: "$n =$", attendu: n,
+      erreurs: [{ valeur: Math.ceil(V / (a * d)), message: "Le $\\delta$ est au carré dans l'inégalité." }],
+      aides: ["Il suffit que $\\dfrac{V(X)}{n\\delta^2} \\leqslant \\alpha$, c'est-à-dire $n \\geqslant \\dfrac{V(X)}{\\alpha\\delta^2}$.", `$\\alpha\\delta^2 = ${at} \\times ${dt}^2 = ${fr(lgnR(a * d * d))}$.`, `$n \\geqslant \\dfrac{${Vt}}{${fr(lgnR(a * d * d))}} = ${nb(lgnR(x))}$.`],
+      solution: `$\\dfrac{${Vt}}{n \\times ${dt}^2} \\leqslant ${at} \\iff n \\geqslant \\dfrac{${Vt}}{${at} \\times ${dt}^2} = ${nb(lgnR(x))}$ : une taille de $${nb(n)}$ suffit.`
+    };
+  };
+
+  GEN["lgn-binomiale"] = function () {
+    const n = pick([100, 200, 400, 1000, 50, 500]), [p, pt] = pick([[0.5, "0{,}5"], [0.2, "0{,}2"], [0.1, "0{,}1"], [0.3, "0{,}3"], [0.4, "0{,}4"]]), t = pick(["V", "bt", "bt"]);
+    const V = lgnR(n * p * (1 - p));
+    if (t === "V") return {
+      enonce: `$X$ suit la loi $\\mathcal{B}(${n}\\,;${pt})$. En écrivant $X = X_1 + \\dots + X_{${n}}$ (somme de variables de Bernoulli indépendantes), calcule $V(X)$.`,
+      mode: "nombre", prefixe: "$V(X) =$", attendu: V,
+      aides: ["Chaque $X_i$ suit une loi de Bernoulli : $V(X_i) = p(1 - p)$.", "Les $X_i$ sont indépendantes : les variances s'additionnent.", `$V(X) = ${n} \\times ${pt} \\times ${fr(1 - p)}$.`],
+      solution: `$V(X) = n \\times p(1 - p) = ${n} \\times ${pt} \\times ${fr(1 - p)} = ${fr(V)}$ : c'est la démonstration de la formule $V(X) = np(1 - p)$.`
+    };
+    const d = pick([10, 20, 5, 15, 30, 50]), b = V / (d * d);
+    if (b >= 1) return GEN["lgn-binomiale"]();
+    return {
+      enonce: `$X$ suit la loi $\\mathcal{B}(${n}\\,;${pt})$, d'espérance $${fr(n * p)}$. Avec l'inégalité de Bienaymé-Tchebychev, majore $P(|X - ${fr(n * p)}| \\geqslant ${d})$ (valeur exacte, sous forme de fraction si besoin).`,
+      mode: "nombre", prefixe: "Majorant :", attendu: b, erreurs: tsApprox(b),
+      aides: [`$V(X) = np(1 - p) = ${fr(V)}$.`, "$P(|X - E(X)| \\geqslant \\delta) \\leqslant \\dfrac{V(X)}{\\delta^2}$.", `$\\dfrac{${fr(V)}}{${d}^2} = \\dfrac{${fr(V)}}{${d * d}}$.`],
+      solution: `$P(|X - ${fr(n * p)}| \\geqslant ${d}) \\leqslant \\dfrac{${fr(V)}}{${d * d}} = ${frac(Math.round(V * 100), d * d * 100)}$. Le calcul exact avec la loi binomiale donnerait une probabilité bien plus petite : l'inégalité est une majoration grossière, mais valable pour toutes les lois.`
+    };
+  };
+
+  GEN["lgn-python"] = function () {
+    const t = pick(["concentration", "moyenne", "frequence"]);
+    if (t === "concentration") {
+      const [V, Vs, Vt] = pick([[0.25, "0.25", "0{,}25"], [4, "4", "4"], [1, "1", "1"], [2, "2", "2"]]), [d, ds, dt] = pick([[0.1, "0.1", "0{,}1"], [0.05, "0.05", "0{,}05"], [0.5, "0.5", "0{,}5"]]), [a, as, at] = pick([[0.05, "0.05", "0{,}05"], [0.1, "0.1", "0{,}1"], [0.01, "0.01", "0{,}01"]]);
+      let n = 1; while (V / (n * d ** 2) > a) n++; // même ordre de calcul que Python : n * (d ** 2)
+      return {
+        enonce: `Qu'affiche ce programme ?\n\n\`\`\`python\nn = 1\nwhile ${Vs} / (n * ${ds}**2) > ${as}:\n    n = n + 1\nprint(n)\n\`\`\``,
+        mode: "nombre", prefixe: "Affichage :", attendu: n,
+        erreurs: [{ valeur: n - 1, message: "La boucle tourne tant que le majorant est **strictement supérieur** à " + `$${at}$` + " : compte le dernier passage." }],
+        aides: [`Le programme cherche le premier $n$ tel que $\\dfrac{${Vt}}{n \\times ${dt}^2} \\leqslant ${at}$ (inégalité de concentration).`, `C'est $n \\geqslant \\dfrac{${Vt}}{${at} \\times ${dt}^2}$.`, `$\\dfrac{${Vt}}{${at} \\times ${dt}^2} = ${nb(lgnR(V / (a * d * d)))}$.`],
+        solution: `Le premier entier $n$ tel que $\\dfrac{${Vt}}{n \\times ${dt}^2} \\leqslant ${at}$ est $${nb(n)}$.`
+      };
+    }
+    const faces = pick([4, 6, 8, 10, 12, 20]), mu = (faces + 1) / 2;
+    if (t === "moyenne") {
+      const ms = melangeChoix(`Un nombre proche de $${nb(mu)}$`, [`Exactement $${nb(mu)}$`, `Un nombre proche de $${faces}$`, "Un nombre proche de $1$"]);
+      return {
+        enonce: `Que peut-on attendre de l'affichage de ce programme ?\n\n\`\`\`python\nfrom random import randint\n\nn = 10000\ns = 0\nfor i in range(n):\n    s = s + randint(1, ${faces})\nprint(s / n)\n\`\`\``,
+        mode: "choix", choix: ms.choix, attendu: ms.attendu,
+        aides: [`$\\texttt{randint(1, ${faces})}$ simule un dé équilibré à $${faces}$ faces.`, "Le programme calcule la moyenne de $10\\,000$ lancers.", `Loi des grands nombres : la moyenne se rapproche de l'espérance $\\dfrac{1 + ${faces}}{2}$.`],
+        solution: `L'espérance d'un lancer est $\\dfrac{1 + 2 + \\dots + ${faces}}{${faces}} = ${nb(mu)}$. D'après la loi des grands nombres, la moyenne de $10\\,000$ lancers est très probablement proche de $${nb(mu)}$, sans être exactement égale (elle change à chaque exécution).`
+      };
+    }
+    const k = rand(1, faces), ms = melangeChoix(`Un nombre proche de $\\dfrac{1}{${faces}} \\approx ${nb(+(1 / faces).toFixed(3))}$`, [`Exactement $\\dfrac{1}{${faces}}$`, `Un nombre proche de $${k}$`, "Un nombre proche de $0{,}5$"]);
+    return {
+      enonce: `Que peut-on attendre de l'affichage de ce programme ?\n\n\`\`\`python\nfrom random import randint\n\nn = 10000\nc = 0\nfor i in range(n):\n    if randint(1, ${faces}) == ${k}:\n        c = c + 1\nprint(c / n)\n\`\`\``,
+      mode: "choix", choix: ms.choix, attendu: ms.attendu,
+      aides: [`Le programme compte combien de fois le dé à $${faces}$ faces donne $${k}$.`, "Il affiche la **fréquence** de cet événement sur $10\\,000$ lancers.", "Loi des grands nombres : la fréquence se rapproche de la probabilité."],
+      solution: `La fréquence observée se rapproche de la probabilité $\\dfrac{1}{${faces}}$ quand $n$ est grand, mais elle n'est pas exactement égale : elle fluctue d'une exécution à l'autre.`
+    };
+  };
+
   /* Séries « flash » d'un thème : mélange de ses générateurs */
   const THEMES = {
     "am-flash-cn": ["am-comparer", "am-fractions", "am-puissances", "am-ecritures", "am-ordre-grandeur", "am-coherence", "auto-conversions"],
@@ -16223,7 +16406,7 @@
 
 
   /* Une « erreur connue » ne doit jamais coïncider avec la bonne réponse (à la tolérance près) */
-  Object.keys(GEN).filter((k) => /^(auto|ld|am|cd|ar|cl|fa|ve|st|vx|tc|co|dr|fr|sg|pc|ec|sy|su|s2|pi|s5|d1|tr|d2|vr|ps|ex|va|sc|gr|sm|ea|tsu|tag|tlf|tcb|tsd|tdc|tln|tcv|tlg|tpe|tin|tld|trr|tec|rec|dvx|esp|lsu|bin|lfo|cnt|pse|lnx|pri|edo|trg|itg)-/.test(k)).forEach((k) => {
+  Object.keys(GEN).filter((k) => /^(auto|ld|am|cd|ar|cl|fa|ve|st|vx|tc|co|dr|fr|sg|pc|ec|sy|su|s2|pi|s5|d1|tr|d2|vr|ps|ex|va|sc|gr|sm|ea|tsu|tag|tlf|tcb|tsd|tdc|tln|tcv|tlg|tpe|tin|tld|trr|tec|rec|dvx|esp|lsu|bin|lfo|cnt|pse|lnx|pri|edo|trg|itg|lgn)-/.test(k)).forEach((k) => {
     const g = GEN[k];
     GEN[k] = (i) => { const q = g(i); if (q.erreurs) q.erreurs = q.erreurs.filter((e) => Math.abs(e.valeur - q.attendu) >= (q.tolerance || 1e-9)); return q; };
   });
