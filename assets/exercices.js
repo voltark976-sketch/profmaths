@@ -13508,6 +13508,258 @@
     };
   };
 
+  /* ---------- Terminale spécialité, chapitre 2 : dérivation et convexité (préfixe dvx-) ---------- */
+  const dvxLin = (a, b, v) => poly([a, b], v || "x"); // ax + b
+  const dvxSub = (t) => `C<tspan class="sub" dy="3">${t}</tspan>`;
+
+  FIGURES["dvx-convexe"] = () => {
+    const f = (x) => 0.35 * x * x, a = 1.5, T = (x) => 0.7 * a * (x - a) + f(a), A = -2.5, B = 3, k = (f(B) - f(A)) / (B - A), Co = (x) => f(A) + k * (x - A);
+    return graph({ xmin: -3.6, xmax: 4.2, ymin: -1.6, ymax: 4.6, h: 270, curves: [{ f, a: -3.4, b: 3.5, closed: false, label: dvxSub("f"), lx: -3.2, dx: 26, dy: -4 }, { f: T, a: -0.6, b: 4, closed: false, label: "tangente", lx: 3.9, dx: 2, dy: 30 }, { f: Co, a: A, b: B, closed: false, label: "corde", lx: 0.2, dx: 10, dy: -8 }], points: [{ x: a, y: f(a) }, { x: A, y: f(A) }, { x: B, y: f(B) }], aria: "Une fonction convexe : sa courbe est au-dessus de sa tangente et en dessous de la corde qui joint deux de ses points" });
+  };
+  FIGURES["dvx-inflexion"] = () => {
+    const f = (x) => 0.25 * x * x * x - 0.75 * x * x + 1.5, T = (x) => -0.75 * (x - 1) + 1;
+    return graph({ xmin: -2.4, xmax: 4.4, ymin: -1.8, ymax: 3.8, h: 260, curves: [{ f, a: -1.9, b: 4, closed: false, label: dvxSub("f"), lx: 3.7, dx: -8, dy: -6 }, { f: T, a: -1.2, b: 3.4, closed: false }], points: [{ x: 1, y: 1, label: "I" }], aria: "Point d'inflexion I : la courbe passe de concave (en forme de cloche) à convexe (en forme de U), et la tangente en I traverse la courbe" });
+  };
+
+  // Fonctions composées : expression, dérivée correcte et dérivées fausses classiques
+  function dvxCompose() {
+    const t = pick(["puiss", "puiss2", "racine", "racine2", "exp", "inverse"]);
+    const a = pick([2, 3, -1, 4, 5, -2]), b = randNZ(-5, 6), c = rand(1, 9), n = rand(2, 5), m = pick([1, 2, 3]);
+    if (t === "racine" && a < 0) return dvxCompose();
+    const u = dvxLin(a, b);
+    if (t === "puiss") return { du: `${a}`, f: `(${u})^{${n}}`, u, v: `x^{${n}}`, d: `${n * a}(${u})${n - 1 > 1 ? `^{${n - 1}}` : ""}`, faux: [`${n}(${u})${n - 1 > 1 ? `^{${n - 1}}` : ""}`, `${n * a}(${u})^{${n}}`, `${a}(${u})${n - 1 > 1 ? `^{${n - 1}}` : ""}`], val: (x) => (a * x + b) ** n, der: (x) => n * a * (a * x + b) ** (n - 1) };
+    if (t === "puiss2") { const v2 = `x^2 + ${c}`; return { du: "2x", f: `(${v2})^{${n}}`, u: v2, v: `x^{${n}}`, d: `${2 * n}x(${v2})${n - 1 > 1 ? `^{${n - 1}}` : ""}`, faux: [`${n}(${v2})${n - 1 > 1 ? `^{${n - 1}}` : ""}`, `2x(${v2})^{${n}}`, `${n}x(${v2})${n - 1 > 1 ? `^{${n - 1}}` : ""}`], val: (x) => (x * x + c) ** n, der: (x) => 2 * n * x * (x * x + c) ** (n - 1) }; }
+    if (t === "racine") return { du: `${a}`, f: `\\sqrt{${u}}`, u, v: "\\sqrt{x}", d: `\\dfrac{${a}}{2\\sqrt{${u}}}`, faux: [`\\dfrac{1}{2\\sqrt{${u}}}`, `\\dfrac{${a}}{\\sqrt{${u}}}`, `\\dfrac{${a}\\sqrt{${u}}}{2}`], val: (x) => Math.sqrt(a * x + b), der: (x) => a / (2 * Math.sqrt(a * x + b)) };
+    if (t === "racine2") { const v2 = `x^2 + ${c}`; return { du: "2x", f: `\\sqrt{${v2}}`, u: v2, v: "\\sqrt{x}", d: `\\dfrac{x}{\\sqrt{${v2}}}`, faux: [`\\dfrac{1}{2\\sqrt{${v2}}}`, `\\dfrac{2x}{\\sqrt{${v2}}}`, `\\dfrac{x}{2\\sqrt{${v2}}}`], val: (x) => Math.sqrt(x * x + c), der: (x) => x / Math.sqrt(x * x + c) }; }
+    if (t === "exp") { const p = poly([m, b, 0]), dp = poly([2 * m, b]); return { du: dp, f: `e^{${p}}`, u: p, v: "e^x", d: `(${dp})e^{${p}}`, faux: [`e^{${p}}`, `(${p})e^{${p}}`, `(${dp})e^{${dp}}`], val: (x) => Math.exp(m * x * x + b * x), der: (x) => (2 * m * x + b) * Math.exp(m * x * x + b * x) }; }
+    const v2 = `x^2 + ${c}`;
+    return { du: "2x", f: `\\dfrac{1}{${v2}}`, u: v2, v: "\\dfrac{1}{x}", d: `-\\dfrac{2x}{(${v2})^2}`, faux: [`\\dfrac{1}{2x}`, `-\\dfrac{1}{(${v2})^2}`, `\\dfrac{2x}{(${v2})^2}`], val: (x) => 1 / (x * x + c), der: (x) => (-2 * x) / (x * x + c) ** 2 };
+  }
+
+  GEN["dvx-forme"] = function () {
+    if (Math.random() < 0.4) {
+      const [ut, uf] = pick([["2x - 1", (x) => 2 * x - 1], ["x + 3", (x) => x + 3], ["3x", (x) => 3 * x], ["x^2", (x) => x * x], ["1 - x", (x) => 1 - x], ["x^2 + 1", (x) => x * x + 1]]);
+      const [vt, vf] = pick([["x^2", (x) => x * x], ["3x + 2", (x) => 3 * x + 2], ["x^3", (x) => x ** 3], ["2x - 5", (x) => 2 * x - 5], ["x^2 - 4", (x) => x * x - 4]]);
+      if (ut === vt) return GEN["dvx-forme"]();
+      const x0 = rand(-3, 3), ordre = pick(["vu", "uv"]);
+      const rep = ordre === "vu" ? vf(uf(x0)) : uf(vf(x0)), autre = ordre === "vu" ? uf(vf(x0)) : vf(uf(x0));
+      const [P, Q, PF, QF, Pt, Qt] = ordre === "vu" ? ["v", "u", vf, uf, vt, ut] : ["u", "v", uf, vf, ut, vt];
+      return {
+        enonce: `On pose $u(x) = ${ut}$ et $v(x) = ${vt}$. Calcule $${P}(${Q}(${x0}))$, c'est-à-dire $(${P} \\circ ${Q})(${x0})$.`,
+        mode: "nombre", prefixe: `$(${P} \\circ ${Q})(${x0}) =$`, attendu: rep,
+        erreurs: rep !== autre ? [{ valeur: autre, message: `Tu as calculé $${Q}(${P}(${x0}))$ : dans $${P} \\circ ${Q}$, on applique d'abord $${Q}$, puis $${P}$.` }] : [],
+        aides: [`$${P} \\circ ${Q}$ : on applique **d'abord** $${Q}$, **puis** $${P}$ au résultat.`, `$${Q}(${x0}) = ${QF(x0)}$.`, `Calcule $${P}(${QF(x0)})$ avec $${P}(x) = ${Pt}$.`],
+        solution: `$${Q}(${x0}) = ${QF(x0)}$, puis $${P}(${QF(x0)}) = ${PF(QF(x0))}$.`
+      };
+    }
+    const F = dvxCompose();
+    const ms = melangeChoix(`$u(x) = ${F.u}$ et $v(x) = ${F.v}$`, [`$u(x) = ${F.v}$ et $v(x) = ${F.u}$`, `$u(x) = ${F.u}$ et $v(x) = ${F.f}$`, `$u(x) = x$ et $v(x) = ${F.f}$ seulement`]);
+    return {
+      enonce: `La fonction $f(x) = ${F.f}$ s'écrit $f = v \\circ u$, c'est-à-dire $f(x) = v(u(x))$. Avec :`,
+      mode: "choix", choix: ms.choix, attendu: ms.attendu,
+      aides: ["Pour calculer $f(x)$, que fait-on **en premier** avec $x$ ? C'est la fonction $u$.", "On applique ensuite une fonction de référence au résultat : c'est $v$.", `Vérifie : $v(u(x))$ doit redonner $${F.f}$.`],
+      solution: `On calcule d'abord $u(x) = ${F.u}$, puis on applique $v(x) = ${F.v}$ : $v(u(x)) = ${F.f}$.`
+    };
+  };
+
+  GEN["dvx-derivee"] = function () {
+    const F = dvxCompose();
+    const ms = melangeChoix(`$f'(x) = ${F.d}$`, F.faux.map((x) => `$f'(x) = ${x}$`));
+    return {
+      enonce: `Quelle est la dérivée de $f(x) = ${F.f}$ ?`,
+      mode: "choix", choix: ms.choix, attendu: ms.attendu,
+      aides: ["$f = v \\circ u$ a pour dérivée $f' = u' \\times (v' \\circ u)$ : on n'oublie pas de multiplier par $u'$.", `Ici $u(x) = ${F.u}$ et $v(x) = ${F.v}$.`, "Cas usuels : $(u^n)' = nu'u^{n-1}$, $(\\sqrt{u})' = \\dfrac{u'}{2\\sqrt{u}}$, $(e^u)' = u'e^u$, $\\left(\\dfrac{1}{u}\\right)' = -\\dfrac{u'}{u^2}$."],
+      solution: `Avec $u(x) = ${F.u}$, $u'(x) = ${F.du}$, d'où $f'(x) = ${F.d}$.`
+    };
+  };
+
+  GEN["dvx-nombre"] = function () {
+    const t = pick(["puiss", "puiss2", "racine", "exp"]);
+    if (t === "puiss") {
+      const a = pick([2, 3, -1, -2, 4]), x0 = rand(-2, 2), k = pick([-2, -1, 1, 2, 3]), b = k - a * x0, n = rand(2, 4);
+      const v = n * a * k ** (n - 1);
+      return {
+        enonce: `$f(x) = (${dvxLin(a, b)})^{${n}}$. Calcule $f'(${x0})$.`,
+        mode: "nombre", prefixe: `$f'(${x0}) =$`, attendu: v,
+        erreurs: [{ valeur: n * k ** (n - 1), message: `Tu as oublié de multiplier par $u'(x) = ${a}$.` }],
+        aides: ["$(u^n)' = n \\, u' \\, u^{n-1}$.", `$f'(x) = ${n} \\times ${par(a)} \\times (${dvxLin(a, b)})^{${n - 1}}$.`, `En $x = ${x0}$ : $${dvxLin(a, b).replace(/x/, `\\times ${par(x0)}`)} = ${k}$.`],
+        solution: `$f'(x) = ${n * a}(${dvxLin(a, b)})^{${n - 1}}$ et $u(${x0}) = ${k}$, donc $f'(${x0}) = ${n * a} \\times ${par(k)}^{${n - 1}} = ${v}$.`
+      };
+    }
+    if (t === "puiss2") {
+      const c = rand(-3, 4), x0 = randNZ(-2, 2), n = rand(2, 3), w = x0 * x0 + c, v = 2 * n * x0 * w ** (n - 1);
+      return {
+        enonce: `$f(x) = (${poly([1, 0, c])})^{${n}}$. Calcule $f'(${x0})$.`,
+        mode: "nombre", prefixe: `$f'(${x0}) =$`, attendu: v,
+        erreurs: [{ valeur: n * w ** (n - 1), message: "Tu as oublié de multiplier par $u'(x) = 2x$." }],
+        aides: ["$(u^n)' = n \\, u' \\, u^{n-1}$ avec ici $u'(x) = 2x$.", `$f'(x) = ${n} \\times 2x \\times (${poly([1, 0, c])})^{${n - 1}}$.`, `En $x = ${x0}$ : $u(${x0}) = ${w}$.`],
+        solution: `$f'(x) = ${2 * n}x(${poly([1, 0, c])})^{${n - 1}}$, donc $f'(${x0}) = ${2 * n} \\times ${par(x0)} \\times ${par(w)}^{${n - 1}} = ${v}$.`
+      };
+    }
+    if (t === "racine") {
+      const a = pick([1, 2, 3, 4, 6]), r = rand(1, 5), x0 = rand(0, 4), b = r * r - a * x0, v = a / (2 * r);
+      return {
+        enonce: `$f(x) = \\sqrt{${dvxLin(a, b)}}$. Calcule $f'(${x0})$ (valeur exacte, sous forme de fraction si besoin).`,
+        mode: "nombre", prefixe: `$f'(${x0}) =$`, attendu: v,
+        erreurs: [{ valeur: 1 / (2 * r), message: `Tu as oublié le facteur $u'(x) = ${a}$.` }, ...tsApprox(v)],
+        aides: ["$(\\sqrt{u})' = \\dfrac{u'}{2\\sqrt{u}}$.", `$u(${x0}) = ${r * r}$, donc $\\sqrt{u(${x0})} = ${r}$.`, `$f'(${x0}) = \\dfrac{${a}}{2 \\times ${r}}$.`],
+        solution: `$f'(x) = \\dfrac{${a}}{2\\sqrt{${dvxLin(a, b)}}}$, et $\\sqrt{u(${x0})} = ${r}$, donc $f'(${x0}) = \\dfrac{${a}}{${2 * r}}${frac(a, 2 * r) === `\\dfrac{${a}}{${2 * r}}` ? "" : ` = ${frac(a, 2 * r)}`}$.`
+      };
+    }
+    const m = pick([1, 2, -1, 3]), x0 = randNZ(-3, 3), b = -m * x0, dv = 2 * m * x0 + b;
+    return {
+      enonce: `$f(x) = e^{${poly([m, b, 0])}}$. Calcule $f'(${x0})$.`,
+      mode: "nombre", prefixe: `$f'(${x0}) =$`, attendu: dv,
+      erreurs: [{ valeur: 1, message: "Tu as oublié de multiplier par $u'(x)$ : $(e^u)' = u'e^u$." }],
+      aides: ["$(e^u)' = u'e^u$.", `$u(x) = ${poly([m, b, 0])}$, donc $u'(x) = ${poly([2 * m, b])}$.`, `En $x = ${x0}$ : $u(${x0}) = 0$, donc $e^{u(${x0})} = 1$.`],
+      solution: `$f'(x) = (${poly([2 * m, b])})e^{${poly([m, b, 0])}}$. En $x = ${x0}$, l'exposant vaut $0$ : $f'(${x0}) = ${dv} \\times e^0 = ${dv}$.`
+    };
+  };
+
+  GEN["dvx-variations"] = function () {
+    const p = randNZ(-4, 4), t = pick(["expmin", "expmax", "racine", "carre"]);
+    if (t === "expmin" || t === "expmax") {
+      const s = t === "expmin" ? 1 : -1, q = rand(-3, 3), u = poly([s, -2 * s * p, q]);
+      const ms = melangeChoix(`un ${s > 0 ? "minimum" : "maximum"} en $x = ${p}$`, [`un ${s > 0 ? "maximum" : "minimum"} en $x = ${p}$`, `un ${s > 0 ? "minimum" : "maximum"} en $x = ${-p}$`, `un ${s > 0 ? "minimum" : "maximum"} en $x = ${2 * p}$`]);
+      return {
+        enonce: `On considère $f(x) = e^{${u}}$ sur $\\mathbb{R}$. La fonction $f$ admet :`,
+        mode: "choix", choix: ms.choix, attendu: ms.attendu,
+        aides: ["$(e^u)' = u'e^u$, et $e^u > 0$ : $f'$ a le signe de $u'$.", `$u'(x) = ${poly([2 * s, -2 * s * p])}$.`, `$u'(x) = 0$ pour $x = ${p}$ ; regarde le signe avant et après.`],
+        solution: `$f'(x) = (${poly([2 * s, -2 * s * p])})e^{${u}}$ a le signe de $${poly([2 * s, -2 * s * p])}$ : ${s > 0 ? "négatif" : "positif"} avant $${p}$, ${s > 0 ? "positif" : "négatif"} après. $f$ admet un **${s > 0 ? "minimum" : "maximum"}** en $x = ${p}$.`
+      };
+    }
+    if (t === "racine") {
+      const c = p * p + rand(1, 9), u = poly([1, -2 * p, c]);
+      return {
+        enonce: `On considère $f(x) = \\sqrt{${u}}$, définie sur $\\mathbb{R}$. En quelle valeur de $x$ la fonction $f$ atteint-elle son minimum ?`,
+        mode: "nombre", prefixe: "$x =$", attendu: p,
+        erreurs: [{ valeur: -p, message: "Attention au signe : résous $u'(x) = 0$." }],
+        aides: ["$(\\sqrt{u})' = \\dfrac{u'}{2\\sqrt{u}}$ a le signe de $u'$.", `$u'(x) = ${poly([2, -2 * p])}$.`, `$u'(x) = 0 \\iff x = ${p}$.`],
+        solution: `$f'(x) = \\dfrac{${poly([2, -2 * p])}}{2\\sqrt{${u}}}$ a le signe de $${poly([2, -2 * p])}$ : négatif puis positif. Minimum en $x = ${p}$, où $f(${p}) = ${Number.isInteger(Math.sqrt(c - p * p)) ? Math.sqrt(c - p * p) : `\\sqrt{${c - p * p}}`}$.`
+      };
+    }
+    const a = pick([1, 2, 3]), n = pick([2, 4]), u = dvxLin(a, -a * p);
+    return {
+      enonce: `On considère $f(x) = (${u})^{${n}} + ${rand(1, 9)}$. En quelle valeur de $x$ la fonction $f$ atteint-elle son minimum ?`,
+      mode: "nombre", prefixe: "$x =$", attendu: p,
+      erreurs: [{ valeur: -p, message: "Attention au signe : résous $u(x) = 0$." }],
+      aides: [`$f'(x) = ${n} \\times ${a} \\times (${u})^{${n - 1}}$.`, `$f'(x)$ a le signe de $(${u})^{${n - 1}}$, donc de $${u}$.`, `$${u} = 0 \\iff x = ${p}$.`],
+      solution: `$f'(x) = ${n * a}(${u})^{${n - 1}}$ est du signe de $${u}$ (puissance impaire) : négatif avant $${p}$, positif après. Minimum en $x = ${p}$.`
+    };
+  };
+
+  GEN["dvx-seconde"] = function () {
+    const t = pick(["poly", "poly", "exp", "xexp"]);
+    if (t === "poly") {
+      const a = randNZ(-2, 2), b = randNZ(-4, 4), c = rand(-5, 5), d = rand(-5, 5), x0 = rand(-2, 3), q = pick([0, 0, 1, -1]);
+      const co = q ? [q, a, b, c, d] : [a, b, c, d], deg = co.length - 1;
+      const d1 = co.slice(0, -1).map((k, i) => k * (deg - i)), d2 = d1.slice(0, -1).map((k, i) => k * (deg - 1 - i));
+      const val = d2.reduce((s, k) => s * x0 + k, 0), v1 = d1.reduce((s, k) => s * x0 + k, 0);
+      return {
+        enonce: `$f(x) = ${poly(co)}$. Calcule $f''(${x0})$.`,
+        mode: "nombre", prefixe: `$f''(${x0}) =$`, attendu: val,
+        erreurs: [{ valeur: v1, message: `Ça, c'est $f'(${x0})$ : il faut dériver deux fois.` }],
+        aides: ["$f''$ est la dérivée de $f'$.", `$f'(x) = ${poly(d1)}$.`, `$f''(x) = ${poly(d2)}$.`],
+        solution: `$f'(x) = ${poly(d1)}$ et $f''(x) = ${poly(d2)}$, donc $f''(${x0}) = ${val}$.`
+      };
+    }
+    if (t === "exp") {
+      const k = pick([2, 3, -1, -2, 0.5, 4]), kt = (v) => (v === 1 ? "" : v === -1 ? "-" : fr(v)), A = pick([1, 2, 3]);
+      const e = `e^{${kt(k)}x}`, pre = (v) => (v === 1 ? "" : v === -1 ? "-" : fr(v));
+      const ms = melangeChoix(`$f''(x) = ${pre(A * k * k)}${e}$`, [`$f''(x) = ${pre(A * k)}${e}$`, `$f''(x) = ${pre(A)}${e}$`, `$f''(x) = ${pre(2 * A * k)}${e}$`, `$f''(x) = ${pre(-A * k * k)}${e}$`]);
+      return {
+        enonce: `$f(x) = ${pre(A)}${e}$. Quelle est $f''(x)$ ?`,
+        mode: "choix", choix: ms.choix, attendu: ms.attendu,
+        aides: ["$\\left(e^{kx}\\right)' = ke^{kx}$.", `$f'(x) = ${pre(A * k)}${e}$.`, "Dérive une seconde fois : on multiplie encore par $k$."],
+        solution: `$f'(x) = ${pre(A * k)}${e}$ et $f''(x) = ${pre(A * k * k)}${e}$. Comme $f''(x) > 0$, $f$ est convexe sur $\\mathbb{R}$.`
+      };
+    }
+    const a = randNZ(-3, 3), x0 = rand(-3, 2);
+    // f(x) = (x + a)e^x : f'(x) = (x + a + 1)e^x, f''(x) = (x + a + 2)e^x
+    const ms = melangeChoix(`$f''(x) = (${dvxLin(1, a + 2)})e^x$`, [`$f''(x) = (${dvxLin(1, a + 1)})e^x$`, `$f''(x) = e^x$`, `$f''(x) = (${dvxLin(1, a)})e^x$`, `$f''(x) = 2e^x$`].filter((s) => !s.includes("(x)e")));
+    return {
+      enonce: `$f(x) = (${dvxLin(1, a)})e^x$. Quelle est $f''(x)$ ?`,
+      mode: "choix", choix: ms.choix, attendu: ms.attendu,
+      aides: ["Dérivée d'un produit : $(uv)' = u'v + uv'$.", `$f'(x) = 1 \\times e^x + (${dvxLin(1, a)})e^x = (${dvxLin(1, a + 1)})e^x$.`, "Recommence avec $f'$."],
+      solution: `$f'(x) = (${dvxLin(1, a + 1)})e^x$ puis $f''(x) = e^x + (${dvxLin(1, a + 1)})e^x = (${dvxLin(1, a + 2)})e^x$. Elle s'annule et change de signe en $x = ${-a - 2}$ : la courbe a un point d'inflexion d'abscisse $${-a - 2}$.`
+    };
+  };
+
+  GEN["dvx-fprime"] = function () {
+    const p = rand(-2, 2), s = pick([1, -1]), c = pick([-2, -1.5, -1, 0.5, 1]), A = p - 3, B = p + 3;
+    const fp = (x) => s * 0.5 * (x - p) ** 2 + (s > 0 ? c : -c);
+    const ys = [fp(A), fp(B), fp(p)], ymin = Math.floor(Math.min(...ys, 0)) - 1, ymax = Math.ceil(Math.max(...ys, 0)) + 1;
+    const fig = graph({ xmin: A - 0.6, xmax: B + 0.6, ymin, ymax, h: 260, curves: [{ f: fp, a: A, b: B, closed: true, label: dvxSub("f′"), lx: B, dx: -6, dy: -8 }], aria: `Courbe de la dérivée f′ sur [${A} ; ${B}] : elle ${s > 0 ? "décroît puis croît" : "croît puis décroît"}, avec un extremum en x = ${p}` });
+    if (Math.random() < 0.5) return {
+      enonce: `On a tracé la courbe de la **dérivée** $f'$ d'une fonction $f$ définie sur $[${A}\\,;${B}]$. Quelle est l'abscisse du point d'inflexion de la courbe de $f$ ?`,
+      figure: fig, mode: "nombre", prefixe: "$x =$", attendu: p,
+      aides: ["$f$ est convexe là où $f'$ est **croissante**, concave là où $f'$ est décroissante.", "Le point d'inflexion est là où $f'$ change de sens de variation.", "Repère l'abscisse du sommet de la courbe de $f'$."],
+      solution: `$f'$ est ${s > 0 ? "décroissante" : "croissante"} sur $[${A}\\,;${p}]$ puis ${s > 0 ? "croissante" : "décroissante"} sur $[${p}\\,;${B}]$ : $f$ change de convexité en $x = ${p}$, abscisse du point d'inflexion.`
+    };
+    const bonne = s > 0 ? `$[${p}\\,;${B}]$` : `$[${A}\\,;${p}]$`, autre = s > 0 ? `$[${A}\\,;${p}]$` : `$[${p}\\,;${B}]$`;
+    const ms = melangeChoix(bonne, [autre, `$[${A}\\,;${B}]$`, "Nulle part"]);
+    return {
+      enonce: `On a tracé la courbe de la **dérivée** $f'$ d'une fonction $f$ définie sur $[${A}\\,;${B}]$. Sur quel intervalle $f$ est-elle convexe ?`,
+      figure: fig, mode: "choix", choix: ms.choix, attendu: ms.attendu,
+      aides: ["Attention, c'est la courbe de $f'$, pas celle de $f$.", "$f$ est convexe là où $f'$ est **croissante**.", "Ne confonds pas avec le signe de $f'$, qui donne les variations de $f$."],
+      solution: `$f'$ est croissante sur ${bonne} : c'est là que $f$ est convexe. Elle est concave sur ${autre}.`
+    };
+  };
+
+  GEN["dvx-tangente"] = function () {
+    if (Math.random() < 0.3) {
+      const p = rand(-3, 2), q = p + rand(1, 4), cor = poly([p + q, -p * q]), I = `[${p}\\,;${q}]`;
+      const ms = melangeChoix(`$x^2 \\leqslant ${cor}$ pour tout $x$ de $${I}$`, [`$x^2 \\geqslant ${cor}$ pour tout $x$ de $${I}$`, `$x^2 \\leqslant ${cor}$ pour tout réel $x$`, `$x^2 = ${cor}$ pour tout $x$ de $${I}$`]);
+      return {
+        enonce: `La fonction carré est convexe sur $\\mathbb{R}$. La corde qui joint les points de sa courbe d'abscisses $${p}$ et $${q}$ a pour équation $y = ${cor}$. Quelle affirmation est vraie ?`,
+        mode: "choix", choix: ms.choix, attendu: ms.attendu,
+        aides: ["Une fonction convexe a sa courbe **en dessous** de ses cordes, entre les deux points.", "En dehors de l'intervalle, c'est l'inverse : la courbe repasse au-dessus de la droite.", `Teste une valeur : en $x = ${(p + q) / 2 === Math.round((p + q) / 2) ? (p + q) / 2 : p}$, compare $x^2$ et $${cor}$.`],
+        solution: `Entre $${p}$ et $${q}$, la courbe d'une fonction convexe est sous sa corde : $x^2 \\leqslant ${cor}$ pour tout $x$ de $${I}$. En dehors (par exemple en $x = ${q + 1}$ : $${(q + 1) ** 2} > ${(p + q) * (q + 1) - p * q}$), l'inégalité est fausse.`
+      };
+    }
+    const a = pick([1, 2, 3, 4]), s = pick([1, -1]), k = pick([2, 3, -1, -2, 0.5]);
+    const RAC = { 1: "\\dfrac{x}{2} + \\dfrac{1}{2}", 2: "\\dfrac{x}{4} + 1", 3: "\\dfrac{x}{6} + \\dfrac{3}{2}", 4: "\\dfrac{x}{8} + 2" };
+    const INV = { 1: "2 - x", 2: "1 - \\dfrac{x}{4}", 3: "\\dfrac{2}{3} - \\dfrac{x}{9}", 4: "\\dfrac{1}{2} - \\dfrac{x}{16}" };
+    const T = pick([
+      () => { const e = pick([0, 1, -1, 2]); return { f: "e^x", I: "\\mathbb{R}", cv: true, t: e === 0 ? "x + 1" : e === 1 ? "ex" : `e^{${e}}(${poly([1, 1 - e])})`, pt: `${e}` }; },
+      () => ({ f: `e^{${k === -1 ? "-" : fr(k)}x}`, I: "\\mathbb{R}", cv: true, t: `1 ${k < 0 ? "-" : "+"} ${Math.abs(k) === 1 ? "" : fr(Math.abs(k))}x`, pt: "0" }),
+      () => ({ f: "x^2", I: "\\mathbb{R}", cv: true, t: poly([2 * s * a, -a * a]), pt: `${s * a}` }),
+      () => ({ f: "-x^2", I: "\\mathbb{R}", cv: false, t: poly([-2 * s * a, a * a]), pt: `${s * a}` }),
+      () => ({ f: "\\sqrt{x}", I: "[0\\,;+\\infty[", cv: false, t: RAC[a], pt: `${a * a}` }),
+      () => { const b = Math.min(a, 3); return { f: "x^3", I: "[0\\,;+\\infty[", cv: true, t: poly([3 * b * b, -2 * b ** 3]), pt: `${b}` }; },
+      () => ({ f: "\\dfrac{1}{x}", I: "]0\\,;+\\infty[", cv: true, t: INV[a], pt: `${a}` })
+    ])();
+    const ge = `$${T.f} \\geqslant ${T.t}$`, le = `$${T.f} \\leqslant ${T.t}$`;
+    const ms = melangeChoix(T.cv ? ge : le, [T.cv ? le : ge, `$${T.f} = ${T.t}$`, `${T.cv ? ge : le} seulement pour $x \\geqslant ${T.pt}$`]);
+    return {
+      enonce: `La fonction $f : x \\mapsto ${T.f}$ est ${T.cv ? "convexe" : "concave"} sur $${T.I}$, et sa tangente au point d'abscisse $${T.pt}$ a pour équation $y = ${T.t}$. Quelle inégalité est vraie pour tout $x$ de $${T.I}$ ?`,
+      mode: "choix", choix: ms.choix, attendu: ms.attendu,
+      aides: ["Une fonction convexe a sa courbe **au-dessus** de toutes ses tangentes.", "Une fonction concave a sa courbe **en dessous** de toutes ses tangentes.", "C'est vrai sur tout l'intervalle, pas seulement d'un côté du point de contact."],
+      solution: `$f$ est ${T.cv ? "convexe" : "concave"} sur $${T.I}$ : sa courbe est ${T.cv ? "au-dessus" : "en dessous"} de sa tangente en $${T.pt}$, donc ${T.cv ? ge : le} pour tout $x$ de $${T.I}$ (avec égalité seulement en $x = ${T.pt}$).`
+    };
+  };
+
+  GEN["dvx-python"] = function () {
+    const [ft, f, d1, d2] = pick([["x**2", (x) => x * x, (x) => 2 * x, () => 2], ["x**3", (x) => x ** 3, (x) => 3 * x * x, (x) => 6 * x], ["3*x**2 - x", (x) => 3 * x * x - x, (x) => 6 * x - 1, () => 6], ["x**3 - 2*x", (x) => x ** 3 - 2 * x, (x) => 3 * x * x - 2, (x) => 6 * x], ["2*x**3 + x**2", (x) => 2 * x ** 3 + x * x, (x) => 6 * x * x + 2 * x, (x) => 12 * x + 2], ["x**4", (x) => x ** 4, (x) => 4 * x ** 3, (x) => 12 * x * x]]);
+    const a = rand(-2, 3), tex = ft.replace(/\*\*(\d)/g, "^$1").replace(/\*/g, "");
+    if (Math.random() < 0.5) {
+      const h = 0.001, v = (f(a + h) - f(a)) / h, r = Math.round(v * 100) / 100;
+      return {
+        enonce: `Ce programme calcule un taux de variation de $f(x) = ${tex}$ entre $a$ et $a + h$, avec $h$ très petit. Quelle valeur affiche $\\texttt{derivee(${a})}$ ? Arrondis au centième.\n\n\`\`\`python\ndef f(x):\n    return ${ft}\n\ndef derivee(a):\n    h = 0.001\n    return (f(a + h) - f(a)) / h\n\nprint(derivee(${a}))\n\`\`\``,
+        mode: "nombre", prefixe: "Affichage ≈", attendu: r, tolerance: 0.005,
+        aides: ["Quand $h$ est très petit, le taux $\\dfrac{f(a + h) - f(a)}{h}$ est proche de $f'(a)$.", `La valeur affichée est proche de $f'(${a}) = ${d1(a)}$, mais pas exactement égale.`, `Calcule $\\dfrac{f(${a} + 0{,}001) - f(${a})}{0{,}001}$ à la calculatrice.`],
+        solution: `Le programme affiche environ $${nb(+v.toFixed(6))}$, soit $${nb(r)}$ au centième. C'est une valeur approchée de $f'(${a}) = ${d1(a)}$ : l'écart vient de ce que $h$ n'est pas nul.`
+      };
+    }
+    const h = 0.01, v = (f(a + h) - 2 * f(a) + f(a - h)) / (h * h);
+    return {
+      enonce: `Ce programme calcule une valeur approchée de $f''(a)$ pour $f(x) = ${tex}$. Quelle valeur affiche $\\texttt{seconde(${a})}$ ? Arrondis à l'unité.\n\n\`\`\`python\ndef f(x):\n    return ${ft}\n\ndef seconde(a):\n    h = 0.01\n    return (f(a + h) - 2*f(a) + f(a - h)) / h**2\n\nprint(seconde(${a}))\n\`\`\``,
+      mode: "nombre", prefixe: "Affichage ≈", attendu: Math.round(v), tolerance: 0.5,
+      aides: ["Le programme approche la dérivée seconde : il suffit de calculer $f''(a)$.", `Dérive deux fois $f(x) = ${tex}$.`, `$f''(${a}) = ${d2(a)}$.`],
+      solution: `La valeur affichée est très proche de $f''(${a}) = ${d2(a)}$ (environ $${nb(+v.toFixed(4))}$). ${d2(a) > 0 ? "Elle est positive : $f$ est convexe autour de $a$." : d2(a) < 0 ? "Elle est négative : $f$ est concave autour de $a$." : "Elle est nulle : il y a peut-être un point d'inflexion."}`
+    };
+  };
+
   /* Séries « flash » d'un thème : mélange de ses générateurs */
   const THEMES = {
     "am-flash-cn": ["am-comparer", "am-fractions", "am-puissances", "am-ecritures", "am-ordre-grandeur", "am-coherence", "auto-conversions"],
@@ -13524,7 +13776,7 @@
 
 
   /* Une « erreur connue » ne doit jamais coïncider avec la bonne réponse (à la tolérance près) */
-  Object.keys(GEN).filter((k) => /^(auto|ld|am|cd|ar|cl|fa|ve|st|vx|tc|co|dr|fr|sg|pc|ec|sy|su|s2|pi|s5|d1|tr|d2|vr|ps|ex|va|sc|gr|sm|ea|tsu|tag|tlf|tcb|tsd|tdc|tln|tcv|tlg|tpe|tin|tld|trr|tec|rec)-/.test(k)).forEach((k) => {
+  Object.keys(GEN).filter((k) => /^(auto|ld|am|cd|ar|cl|fa|ve|st|vx|tc|co|dr|fr|sg|pc|ec|sy|su|s2|pi|s5|d1|tr|d2|vr|ps|ex|va|sc|gr|sm|ea|tsu|tag|tlf|tcb|tsd|tdc|tln|tcv|tlg|tpe|tin|tld|trr|tec|rec|dvx)-/.test(k)).forEach((k) => {
     const g = GEN[k];
     GEN[k] = (i) => { const q = g(i); if (q.erreurs) q.erreurs = q.erreurs.filter((e) => Math.abs(e.valeur - q.attendu) >= (q.tolerance || 1e-9)); return q; };
   });

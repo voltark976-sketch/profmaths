@@ -356,7 +356,7 @@ window.CATALOGUE = {
           id: "terminale-spe-derivation-convexite",
           numero: 2,
           titre: "Dérivation et convexité",
-          statut: "bientot",
+          statut: "disponible",
           drive: ""
         },
         {
