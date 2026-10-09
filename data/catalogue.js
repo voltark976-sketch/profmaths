@@ -426,7 +426,7 @@ window.CATALOGUE = {
           id: "terminale-spe-trigonometrie",
           numero: 12,
           titre: "Fonctions trigonométriques",
-          statut: "bientot",
+          statut: "disponible",
           drive: ""
         },
         {

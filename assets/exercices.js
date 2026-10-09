@@ -15717,6 +15717,263 @@
     };
   };
 
+  /* ---------- Terminale spécialité, chapitre 12 : fonctions trigonométriques (préfixe trg-) ---------- */
+  const trgPi = (k, d) => trTex(k, d); // kπ/d en TeX (fraction simplifiée)
+  const trgEns = (L) => (L.length ? `$\\left\\{${L.join("\\,;")}\\right\\}$` : "$\\varnothing$");
+
+  // Équations cos x = a et sin x = a sur ]-π ; π] : valeurs remarquables
+  const TRG_VAL = [["0", 0], ["\\dfrac{1}{2}", 0.5], ["-\\dfrac{1}{2}", -0.5], ["\\dfrac{\\sqrt{2}}{2}", Math.SQRT1_2], ["-\\dfrac{\\sqrt{2}}{2}", -Math.SQRT1_2], ["\\dfrac{\\sqrt{3}}{2}", Math.sqrt(3) / 2], ["-\\dfrac{\\sqrt{3}}{2}", -Math.sqrt(3) / 2], ["1", 1], ["-1", -1]];
+  // solutions dans ]-π ; π], en multiples de π/12 (k entier entre -11 et 12)
+  const trgSol = (fn, v) => { const S = []; for (let k = -11; k <= 12; k++) { const x = (k * Math.PI) / 12, y = fn === "cos" ? Math.cos(x) : Math.sin(x); if (Math.abs(y - v) < 1e-9) S.push(k); } return S; };
+  const trgTexK = (k) => trgPi(k, 12);
+
+  FIGURES["trg-courbes"] = () => graph({ xmin: -3.6, xmax: 7, ymin: -1.6, ymax: 1.8, h: 220, curves: [{ f: Math.sin, a: -Math.PI, b: 2 * Math.PI, closed: false, label: "sin", lx: 1.6, dx: 4, dy: -10 }, { f: Math.cos, a: -Math.PI, b: 2 * Math.PI, closed: false, label: "cos", lx: 0, dx: 26, dy: -6 }], marques: [{ x: -Math.PI, y: -0.35, texte: "−π" }, { x: Math.PI, y: -0.35, texte: "π" }, { x: 2 * Math.PI, y: -0.35, texte: "2π" }, { x: Math.PI / 2, y: 1.35, texte: "π/2" }], aria: "Courbes des fonctions sinus et cosinus de −π à 2π : deux vagues de hauteur 1, décalées d'un quart de période ; elles se répètent tous les 2π" });
+
+  GEN["trg-symetries"] = function () {
+    const t = pick(["formule", "formule", "parite", "periode"]);
+    if (t === "formule") {
+      const F = pick([
+        ["\\cos(-x)", "\\cos x"], ["\\sin(-x)", "-\\sin x"], ["\\cos(x + 2\\pi)", "\\cos x"], ["\\sin(x + 2\\pi)", "\\sin x"],
+        ["\\cos(\\pi - x)", "-\\cos x"], ["\\sin(\\pi - x)", "\\sin x"], ["\\cos(x + \\pi)", "-\\cos x"], ["\\sin(x + \\pi)", "-\\sin x"],
+        ["\\cos\\left(\\dfrac{\\pi}{2} - x\\right)", "\\sin x"], ["\\sin\\left(\\dfrac{\\pi}{2} - x\\right)", "\\cos x"], ["\\cos(x - 2\\pi)", "\\cos x"], ["\\sin(x - \\pi)", "-\\sin x"]
+      ]);
+      const ms = melangeChoix(`$${F[1]}$`, ["$\\cos x$", "$-\\cos x$", "$\\sin x$", "$-\\sin x$"].filter((x) => x !== `$${F[1]}$`));
+      return {
+        enonce: `Pour tout réel $x$, $${F[0]}$ est égal à :`,
+        mode: "choix", choix: ms.choix, attendu: ms.attendu,
+        aides: ["Place un point $M(x)$ sur le cercle trigonométrique, puis le point associé à l'expression.", "Symétries : $-x$ par rapport à l'axe des abscisses, $\\pi - x$ par rapport à l'axe des ordonnées, $x + \\pi$ par rapport à l'origine.", "Ajouter $2\\pi$ fait un tour complet : on revient au même point."],
+        solution: `$${F[0]} = ${F[1]}$ (lecture sur le cercle trigonométrique).`
+      };
+    }
+    if (t === "parite") {
+      const k = rand(2, 4);
+      const F = pick([
+        [`x\\sin x`, 0, "le produit de deux fonctions impaires"], [`x\\cos x`, 1, "le produit d'une fonction impaire et d'une fonction paire"], [`\\cos(${k}x)`, 0, "$\\cos(-" + k + "x) = \\cos(" + k + "x)$"], [`\\sin(${k}x)`, 1, "$\\sin(-" + k + "x) = -\\sin(" + k + "x)$"],
+        [`x^2 + \\cos x`, 0, "une somme de fonctions paires"], [`x^3 - \\sin x`, 1, "une somme de fonctions impaires"], [`\\sin x + \\cos x`, 2, "$f(-x) = -\\sin x + \\cos x$, qui n'est égal ni à $f(x)$ ni à $-f(x)$"], [`\\sin^2 x`, 0, "$(\\sin(-x))^2 = (-\\sin x)^2 = \\sin^2 x$"], [`\\dfrac{\\sin x}{x}`, 0, "un quotient de deux fonctions impaires"], [`x + \\cos x`, 2, "$f(-x) = -x + \\cos x$"]
+      ]);
+      const C = ["Paire", "Impaire", "Ni paire ni impaire"];
+      return {
+        enonce: `La fonction $f : x \\mapsto ${F[0]}$${F[0].includes("dfrac") ? " (définie sur $\\mathbb{R}^*$)" : ""} est :`,
+        mode: "choix", choix: C, attendu: F[1],
+        aides: ["Calcule $f(-x)$ en utilisant $\\cos(-x) = \\cos x$ et $\\sin(-x) = -\\sin x$.", "Si $f(-x) = f(x)$ : paire (courbe symétrique par rapport à l'axe des ordonnées). Si $f(-x) = -f(x)$ : impaire (symétrique par rapport à l'origine).", "Teste avec une valeur, par exemple $x = \\dfrac{\\pi}{2}$."],
+        solution: `$f$ est ${C[F[1]].toLowerCase()} : ${F[2]}.`
+      };
+    }
+    const k = rand(2, 5), fn = pick(["\\cos", "\\sin"]);
+    const ms = melangeChoix(`$${trgPi(2, k)}$`, [`$2\\pi$`, `$${k}\\pi$`, `$${trgPi(1, k)}$`]);
+    return {
+      enonce: `La fonction $f : x \\mapsto ${fn}(${k}x)$ est périodique. Quelle est sa période ?`,
+      mode: "choix", choix: ms.choix, attendu: ms.attendu,
+      aides: [`$${fn}$ est $2\\pi$-périodique : $${fn}(X + 2\\pi) = ${fn}(X)$.`, `Cherche $T$ tel que $${k}(x + T) = ${k}x + 2\\pi$.`, `$${k}T = 2\\pi$.`],
+      solution: `$f\\left(x + ${trgPi(2, k)}\\right) = ${fn}(${k}x + 2\\pi) = ${fn}(${k}x) = f(x)$ : $f$ est périodique de période $${trgPi(2, k)}$.`
+    };
+  };
+
+  GEN["trg-derivee"] = function () {
+    const a = pick([2, 3, -1, 4, 5, -2]), b = pick([0, 1, -1, 2]), at = a === 1 ? "" : a === -1 ? "-" : a, u = `${at}x${b === 0 ? "" : ` ${sg(b)}`}`;
+    const T = pick([
+      [`\\cos(${u})`, `${-a === 1 ? "" : -a === -1 ? "-" : -a}\\sin(${u})`, [`-\\sin(${u})`, `${a === 1 ? "" : a === -1 ? "-" : a}\\sin(${u})`, `${-a}\\cos(${u})`]],
+      [`\\sin(${u})`, `${at}\\cos(${u})`, [`\\cos(${u})`, `${-a === 1 ? "" : -a === -1 ? "-" : -a}\\cos(${u})`, `${at}\\sin(${u})`]],
+      ["x\\sin x", "\\sin x + x\\cos x", ["\\cos x", "x\\cos x", "\\sin x - x\\cos x"]],
+      ["x\\cos x", "\\cos x - x\\sin x", ["-\\sin x", "\\cos x + x\\sin x", "-x\\sin x"]],
+      ["\\cos^2 x", "-2\\sin x\\cos x", ["2\\cos x", "-2\\cos x", "2\\sin x\\cos x"]],
+      ["\\sin^2 x", "2\\sin x\\cos x", ["2\\sin x", "\\cos^2 x", "-2\\sin x\\cos x"]],
+      ["e^x\\cos x", "e^x(\\cos x - \\sin x)", ["-e^x\\sin x", "e^x(\\cos x + \\sin x)", "e^x\\sin x"]],
+      ["\\dfrac{\\sin x}{x}", "\\dfrac{x\\cos x - \\sin x}{x^2}", ["\\dfrac{\\cos x}{1}", "\\dfrac{\\sin x - x\\cos x}{x^2}", "\\dfrac{\\cos x}{x^2}"]],
+      ["\\cos x + \\sin x", "\\cos x - \\sin x", ["-\\sin x + \\cos x + 1", "\\sin x - \\cos x", "-\\cos x - \\sin x"]]
+    ]);
+    const ms = melangeChoix(`$f'(x) = ${T[1]}$`, T[2].filter((x) => x !== T[1]).map((x) => `$f'(x) = ${x}$`));
+    return {
+      enonce: `Quelle est la dérivée de $f(x) = ${T[0]}$ ?`,
+      mode: "choix", choix: ms.choix, attendu: ms.attendu,
+      aides: ["$(\\sin x)' = \\cos x$ et $(\\cos x)' = -\\sin x$.", "Composée : $(\\cos(ax + b))' = -a\\sin(ax + b)$ et $(\\sin(ax + b))' = a\\cos(ax + b)$.", "Pour un produit ou un quotient, utilise les formules usuelles."],
+      solution: `$f'(x) = ${T[1]}$.`
+    };
+  };
+
+  GEN["trg-equation"] = function () {
+    const fn = pick(["cos", "sin"]);
+    let enonce, S, a = null; // S : solutions en multiples de π/12 (remarquables), ou angle a = kπ/d (cas général)
+    if (Math.random() < 0.6) {
+      const [vt, v] = pick(TRG_VAL); S = trgSol(fn, v);
+      const forme = pick(["direct", "direct", "affine"]);
+      const aff = { "\\dfrac{1}{2}": ["2", "- 1"], "-\\dfrac{1}{2}": ["2", "+ 1"], "\\dfrac{\\sqrt{2}}{2}": ["2", "- \\sqrt{2}"], "-\\dfrac{\\sqrt{2}}{2}": ["2", "+ \\sqrt{2}"], "\\dfrac{\\sqrt{3}}{2}": ["2", "- \\sqrt{3}"], "-\\dfrac{\\sqrt{3}}{2}": ["2", "+ \\sqrt{3}"], "1": ["", "- 1"], "-1": ["", "+ 1"], "0": ["3", ""] }[vt];
+      enonce = forme === "affine" && aff[1] ? `$${aff[0]}\\${fn} x ${aff[1]} = 0$` : `$\\${fn} x = ${vt}$`;
+      const bonne = trgEns(S.map(trgTexK)), autre = trgSol(fn === "cos" ? "sin" : "cos", v).map(trgTexK), oppose = trgSol(fn, -v).map(trgTexK);
+      const ms = melangeChoix(bonne, [...new Set([trgEns(autre), trgEns(oppose), trgEns(S.slice(0, 1).map(trgTexK)), trgEns(S.map((k) => trgTexK(-k))), "$\\varnothing$"])].filter((x) => x !== bonne));
+      return {
+        enonce: `Résous dans $]-\\pi\\,;\\pi]$ l'équation ${enonce}.`,
+        figure: cercleTrig({ R: 96, grille: true, aria: "Cercle trigonométrique quadrillé" }),
+        figureSolution: cercleTrig({ R: 96, grille: true, points: S.map((k) => ({ a: (k * Math.PI) / 12, label: trTxt(k, 12), r: 22 })), aria: "Les solutions placées sur le cercle trigonométrique" }),
+        mode: "choix", choix: ms.choix, attendu: ms.attendu,
+        aides: [enonce.includes(" = 0") ? `Isole $\\${fn} x$ : on obtient $\\${fn} x = ${vt}$.` : `Sur le cercle trigonométrique, $\\${fn} x$ se lit sur l'axe des ${fn === "cos" ? "abscisses" : "ordonnées"}.`, `La droite ${fn === "cos" ? "verticale" : "horizontale"} d'équation ${fn === "cos" ? "$x" : "$y"} = ${vt}$ coupe le cercle en au plus deux points.`, fn === "cos" ? "Les solutions sont opposées : $\\alpha$ et $-\\alpha$." : "Les solutions sont $\\alpha$ et $\\pi - \\alpha$ (à ramener dans $]-\\pi\\,;\\pi]$)."],
+        solution: S.length ? `$\\${fn} x = ${vt}$. Les solutions dans $]-\\pi\\,;\\pi]$ sont ${bonne}.${S.length === 1 ? " Il n'y en a qu'une : la droite est tangente au cercle." : ""}` : "Aucune solution."
+      };
+    }
+    const d = pick([5, 7, 8, 9, 10, 12, 11]), k = rand(1, d - 1);
+    if (pgcd(k, d) !== 1 || 2 * k === d) return GEN["trg-equation"]();
+    a = trgPi(k, d);
+    const bonne = fn === "cos" ? trgEns([trgPi(-k, d), a]) : trgEns([a, trgPi(d - k, d)].sort((x, y) => x.length - y.length));
+    const pieges = fn === "cos" ? [trgEns([a, trgPi(d - k, d)]), trgEns([a]), trgEns([trgPi(-k, d), trgPi(k - d, d)])] : [trgEns([trgPi(-k, d), a]), trgEns([a]), trgEns([a, trgPi(k - d, d)])];
+    const ms = melangeChoix(bonne, pieges.filter((x) => x !== bonne));
+    return {
+      enonce: `Résous dans $]-\\pi\\,;\\pi]$ l'équation $\\${fn} x = \\${fn}\\left(${a}\\right)$.`,
+      figure: cercleTrig({ R: 96, points: [{ a: (k * Math.PI) / d, label: trTxt(k, d), r: 22 }], aria: `Le point du cercle associé à ${trTxt(k, d)}` }),
+      mode: "choix", choix: ms.choix, attendu: ms.attendu,
+      aides: [`Place le point associé à $${a}$ sur le cercle.`, fn === "cos" ? "Deux points du cercle ont le même cosinus : ils sont symétriques par rapport à l'axe des abscisses." : "Deux points du cercle ont le même sinus : ils sont symétriques par rapport à l'axe des ordonnées.", fn === "cos" ? "$\\cos x = \\cos a \\iff x = a$ ou $x = -a$ (à $2\\pi$ près)." : "$\\sin x = \\sin a \\iff x = a$ ou $x = \\pi - a$ (à $2\\pi$ près)."],
+      solution: `${fn === "cos" ? `$\\cos x = \\cos a \\iff x = a$ ou $x = -a$ (à $2\\pi$ près)` : `$\\sin x = \\sin a \\iff x = a$ ou $x = \\pi - a$ (à $2\\pi$ près)`}. Dans $]-\\pi\\,;\\pi]$ : ${bonne}.`
+    };
+  };
+
+  GEN["trg-inequation"] = function () {
+    if (Math.random() < 0.55) {
+      const fn = pick(["cos", "sin"]), d = pick([3, 4, 5, 6, 8, 10, 12]), k = rand(1, fn === "cos" ? d - 1 : Math.ceil(d / 2) - 1), s = pick([">", "<", "\\geqslant", "\\leqslant"]);
+      if (pgcd(k, d) !== 1 || (fn === "sin" && 2 * k >= d)) return GEN["trg-inequation"]();
+      const a = trgPi(k, d), b = trgPi(d - k, d), ma = trgPi(-k, d), mb = trgPi(k - d, d), large = s.includes("slant"), o = large ? "[" : "]", f = large ? "]" : "[";
+      const plus = s === ">" || s === "\\geqslant";
+      let bonne, pieges;
+      if (fn === "cos") {
+        bonne = plus ? `$\\left${o}${ma}\\,;${a}\\right${f}$` : `$\\left]-\\pi\\,;${ma}\\right${f === "]" ? "]" : "["} \\cup \\left${o}${a}\\,;\\pi\\right]$`;
+        pieges = plus ? [`$\\left${o}${a}\\,;\\pi\\right]$`, `$\\left${o}0\\,;${a}\\right${f}$`, `$\\left]-\\pi\\,;${ma}\\right${f === "]" ? "]" : "["} \\cup \\left${o}${a}\\,;\\pi\\right]$`] : [`$\\left${o}${ma}\\,;${a}\\right${f}$`, `$\\left${o}${a}\\,;\\pi\\right]$`, `$\\left]-\\pi\\,;${ma}\\right${f === "]" ? "]" : "["}$`];
+      } else {
+        bonne = plus ? `$\\left${o}${a}\\,;${b}\\right${f}$` : `$\\left]-\\pi\\,;${a}\\right${f === "]" ? "]" : "["} \\cup \\left${o}${b}\\,;\\pi\\right]$`;
+        pieges = plus ? [`$\\left${o}${a}\\,;\\pi\\right]$`, `$\\left${o}${ma}\\,;${a}\\right${f}$`, `$\\left]-\\pi\\,;${a}\\right${f === "]" ? "]" : "["} \\cup \\left${o}${b}\\,;\\pi\\right]$`] : [`$\\left${o}${a}\\,;${b}\\right${f}$`, `$\\left]-\\pi\\,;${a}\\right${f === "]" ? "]" : "["}$`, `$\\left${o}${mb}\\,;${ma}\\right${f}$`];
+      }
+      const ms = melangeChoix(bonne, pieges.filter((x) => x !== bonne));
+      return {
+        enonce: `Résous dans $]-\\pi\\,;\\pi]$ l'inéquation $\\${fn} x ${s} \\${fn}\\left(${a}\\right)$.`,
+        figure: cercleTrig({ R: 96, points: (fn === "cos" ? [[k, d], [-k, d]] : [[k, d], [d - k, d]]).map(([p, q]) => ({ a: (p * Math.PI) / q, label: trTxt(p, q), r: 22 })), aria: "Les deux points du cercle où l'égalité est atteinte" }),
+        mode: "choix", choix: ms.choix, attendu: ms.attendu,
+        aides: [`Sur le cercle, les points d'${fn === "cos" ? "abscisse" : "ordonnée"} $\\${fn}\\left(${a}\\right)$ sont associés à $${fn === "cos" ? `${ma}$ et $${a}` : `${a}$ et $${b}`}$.`, `Les points qui conviennent sont ${fn === "cos" ? (plus ? "à droite" : "à gauche") : (plus ? "au-dessus" : "au-dessous")} de la droite qui passe par ces deux points.`, "Lis l'arc correspondant dans $]-\\pi\\,;\\pi]$, en faisant attention aux crochets."],
+        solution: `Les points ${fn === "cos" ? (plus ? "à droite" : "à gauche") : (plus ? "au-dessus" : "au-dessous")} de la droite passant par les points associés à $${fn === "cos" ? `${ma}$ et $${a}` : `${a}$ et $${b}`}$ donnent ${bonne}.`
+      };
+    }
+    const T = pick([
+      ["\\cos x \\geqslant \\dfrac{1}{2}", "$\\left[-\\dfrac{\\pi}{3}\\,;\\dfrac{\\pi}{3}\\right]$", ["$\\left[\\dfrac{\\pi}{3}\\,;\\pi\\right]$", "$\\left[-\\dfrac{\\pi}{6}\\,;\\dfrac{\\pi}{6}\\right]$", "$\\left[0\\,;\\dfrac{\\pi}{3}\\right]$"]],
+      ["\\cos x < 0", "$\\left]-\\pi\\,;-\\dfrac{\\pi}{2}\\right[ \\cup \\left]\\dfrac{\\pi}{2}\\,;\\pi\\right]$", ["$\\left]-\\dfrac{\\pi}{2}\\,;\\dfrac{\\pi}{2}\\right[$", "$]-\\pi\\,;0[$", "$\\left]\\dfrac{\\pi}{2}\\,;\\pi\\right]$"]],
+      ["\\sin x > 0", "$]0\\,;\\pi[$", ["$]-\\pi\\,;0[$", "$\\left]-\\dfrac{\\pi}{2}\\,;\\dfrac{\\pi}{2}\\right[$", "$]0\\,;\\pi]$"]],
+      ["\\sin x \\geqslant \\dfrac{1}{2}", "$\\left[\\dfrac{\\pi}{6}\\,;\\dfrac{5\\pi}{6}\\right]$", ["$\\left[\\dfrac{\\pi}{6}\\,;\\pi\\right]$", "$\\left[\\dfrac{\\pi}{3}\\,;\\dfrac{2\\pi}{3}\\right]$", "$\\left[-\\dfrac{\\pi}{6}\\,;\\dfrac{\\pi}{6}\\right]$"]],
+      ["\\cos x \\leqslant -\\dfrac{\\sqrt{2}}{2}", "$\\left]-\\pi\\,;-\\dfrac{3\\pi}{4}\\right] \\cup \\left[\\dfrac{3\\pi}{4}\\,;\\pi\\right]$", ["$\\left[-\\dfrac{3\\pi}{4}\\,;\\dfrac{3\\pi}{4}\\right]$", "$\\left[\\dfrac{3\\pi}{4}\\,;\\pi\\right]$", "$\\left[-\\dfrac{\\pi}{4}\\,;\\dfrac{\\pi}{4}\\right]$"]],
+      ["\\sin x < -\\dfrac{\\sqrt{3}}{2}", "$\\left]-\\dfrac{2\\pi}{3}\\,;-\\dfrac{\\pi}{3}\\right[$", ["$\\left]-\\dfrac{5\\pi}{6}\\,;-\\dfrac{\\pi}{6}\\right[$", "$\\left]\\dfrac{\\pi}{3}\\,;\\dfrac{2\\pi}{3}\\right[$", "$\\left]-\\pi\\,;-\\dfrac{\\pi}{3}\\right[$"]],
+      ["2\\cos x - 1 > 0", "$\\left]-\\dfrac{\\pi}{3}\\,;\\dfrac{\\pi}{3}\\right[$", ["$\\left]\\dfrac{\\pi}{3}\\,;\\pi\\right]$", "$\\left]-\\dfrac{\\pi}{6}\\,;\\dfrac{\\pi}{6}\\right[$", "$]-\\pi\\,;\\pi]$"]],
+      ["2\\sin x + \\sqrt{3} \\geqslant 0", "$\\left]-\\pi\\,;-\\dfrac{2\\pi}{3}\\right] \\cup \\left[-\\dfrac{\\pi}{3}\\,;\\pi\\right]$", ["$\\left[-\\dfrac{2\\pi}{3}\\,;-\\dfrac{\\pi}{3}\\right]$", "$\\left[-\\dfrac{\\pi}{3}\\,;\\pi\\right]$", "$\\left[\\dfrac{\\pi}{3}\\,;\\pi\\right]$"]]
+    ]);
+    const ms = melangeChoix(T[1], T[2]);
+    return {
+      enonce: `Résous dans $]-\\pi\\,;\\pi]$ l'inéquation $${T[0]}$.`,
+      figure: cercleTrig({ R: 96, grille: true, aria: "Cercle trigonométrique quadrillé" }),
+      mode: "choix", choix: ms.choix, attendu: ms.attendu,
+      aides: ["Commence par résoudre l'équation associée (valeurs remarquables).", "Sur le cercle, colorie l'arc des points dont l'abscisse (cosinus) ou l'ordonnée (sinus) vérifie l'inégalité.", "Lis cet arc dans l'intervalle $]-\\pi\\,;\\pi]$, en faisant attention aux crochets."],
+      solution: `En lisant sur le cercle trigonométrique, l'ensemble des solutions dans $]-\\pi\\,;\\pi]$ est ${T[1]}.`
+    };
+  };
+
+  GEN["trg-variations"] = function () {
+    const t = pick(["ref", "kx", "kx", "etude", "etude"]);
+    const C = ["croissante", "décroissante", "croissante puis décroissante", "décroissante puis croissante"];
+    if (t === "ref") {
+      const T = pick([
+        ["\\cos", "[0\\,;\\pi]", 1, "$\\cos' = -\\sin \\leqslant 0$ sur $[0\\,;\\pi]$ : $\\cos$ décroît de $1$ à $-1$."],
+        ["\\cos", "[-\\pi\\,;0]", 0, "$\\cos' = -\\sin \\geqslant 0$ sur $[-\\pi\\,;0]$ : $\\cos$ croît de $-1$ à $1$."],
+        ["\\sin", "\\left[-\\dfrac{\\pi}{2}\\,;\\dfrac{\\pi}{2}\\right]", 0, "$\\sin' = \\cos \\geqslant 0$ sur cet intervalle : $\\sin$ croît de $-1$ à $1$."],
+        ["\\sin", "\\left[\\dfrac{\\pi}{2}\\,;\\pi\\right]", 1, "$\\sin' = \\cos \\leqslant 0$ sur cet intervalle : $\\sin$ décroît de $1$ à $0$."],
+        ["\\sin", "[0\\,;\\pi]", 2, "$\\sin' = \\cos$ est positive sur $\\left[0\\,;\\dfrac{\\pi}{2}\\right]$ puis négative : maximum $1$ en $\\dfrac{\\pi}{2}$."],
+        ["\\cos", "[-\\pi\\,;\\pi]", 2, "$\\cos' = -\\sin$ est positive sur $[-\\pi\\,;0]$ puis négative sur $[0\\,;\\pi]$ : maximum $1$ en $0$."],
+        ["\\sin", "[-\\pi\\,;0]", 3, "$\\sin' = \\cos$ est négative sur $\\left[-\\pi\\,;-\\dfrac{\\pi}{2}\\right]$ puis positive : minimum $-1$ en $-\\dfrac{\\pi}{2}$."]
+      ]);
+      return {
+        enonce: `Sur l'intervalle $${T[1]}$, la fonction $${T[0]}$ est :`,
+        mode: "choix", choix: C.map((c) => c[0].toUpperCase() + c.slice(1)), attendu: T[2],
+        aides: ["$\\cos' = -\\sin$ et $\\sin' = \\cos$.", "Étudie le signe de la dérivée sur l'intervalle (lecture sur le cercle).", "Vérifie avec la courbe de la fonction."],
+        solution: T[3]
+      };
+    }
+    if (t === "kx") {
+      const k = rand(2, 6), fn = pick(["sin", "cos"]);
+      const V = fn === "sin" ? [
+        [`\\left[0\\,;${trgPi(1, k)}\\right]`, 2, `$f'(x) = ${k}\\cos(${k}x)$. Pour $x \\in \\left[0\\,;${trgPi(1, k)}\\right]$, $${k}x \\in [0\\,;\\pi]$ : $\\cos(${k}x)$ est positif puis négatif. Maximum en $x = ${trgPi(1, 2 * k)}$.`, "[0\\,;\\pi]"],
+        [`\\left[0\\,;${trgPi(1, 2 * k)}\\right]`, 0, `$f'(x) = ${k}\\cos(${k}x)$. Pour $x \\in \\left[0\\,;${trgPi(1, 2 * k)}\\right]$, $${k}x \\in \\left[0\\,;\\dfrac{\\pi}{2}\\right]$ où le cosinus est positif : $f$ est croissante.`, "\\left[0\\,;\\dfrac{\\pi}{2}\\right]"],
+        [`\\left[${trgPi(1, 2 * k)}\\,;${trgPi(1, k)}\\right]`, 1, `$f'(x) = ${k}\\cos(${k}x)$. Pour $x$ dans cet intervalle, $${k}x \\in \\left[\\dfrac{\\pi}{2}\\,;\\pi\\right]$ où le cosinus est négatif : $f$ est décroissante.`, "\\left[\\dfrac{\\pi}{2}\\,;\\pi\\right]"]
+      ] : [
+        [`\\left[0\\,;${trgPi(1, k)}\\right]`, 1, `$f'(x) = -${k}\\sin(${k}x)$. Pour $x \\in \\left[0\\,;${trgPi(1, k)}\\right]$, $${k}x \\in [0\\,;\\pi]$ et $\\sin(${k}x) \\geqslant 0$ : $f$ est décroissante.`, "[0\\,;\\pi]"],
+        [`\\left[${trgPi(-1, k)}\\,;0\\right]`, 0, `$f'(x) = -${k}\\sin(${k}x)$. Pour $x \\in \\left[${trgPi(-1, k)}\\,;0\\right]$, $${k}x \\in [-\\pi\\,;0]$ et $\\sin(${k}x) \\leqslant 0$ : $f$ est croissante.`, "[-\\pi\\,;0]"]
+      ];
+      const [I, rep, sol, J] = pick(V);
+      return {
+        enonce: `Sur l'intervalle $${I}$, la fonction $f : x \\mapsto \\${fn}(${k}x)$ est :`,
+        mode: "choix", choix: C.map((c) => c[0].toUpperCase() + c.slice(1)), attendu: rep,
+        aides: [`$(\\${fn}(${k}x))' = ${fn === "sin" ? `${k}\\cos(${k}x)` : `-${k}\\sin(${k}x)`}$.`, `Quand $x$ parcourt $${I}$, $${k}x$ parcourt $${J}$.`, `Étudie le signe de $\\${fn === "sin" ? "cos" : "sin"}$ sur $${J}$ (cercle trigonométrique).`],
+        solution: sol
+      };
+    }
+    const T = pick([
+      ["x - \\sin x", "[0\\,;\\pi]", "Elle est croissante", "$f'(x) = 1 - \\cos x \\geqslant 0$ car $\\cos x \\leqslant 1$ : $f$ est croissante.", ["Elle est décroissante", "Elle admet un maximum en $\\dfrac{\\pi}{2}$", "Elle est constante"]],
+      ["x - \\dfrac{1}{2}\\sin x", "[-\\pi\\,;\\pi]", "Elle est croissante", "$f'(x) = 1 - \\dfrac{1}{2}\\cos x \\geqslant \\dfrac{1}{2} > 0$ : $f$ est croissante.", ["Elle est décroissante", "Elle admet un minimum en $0$", "Elle admet un maximum en $0$"]],
+      ["x - 2\\sin x", "[0\\,;\\pi]", "Elle admet un minimum en $\\dfrac{\\pi}{3}$", "$f'(x) = 1 - 2\\cos x$ s'annule pour $\\cos x = \\dfrac{1}{2}$, soit $x = \\dfrac{\\pi}{3}$ : négative avant, positive après. Minimum en $\\dfrac{\\pi}{3}$.", ["Elle est croissante", "Elle admet un maximum en $\\dfrac{\\pi}{3}$", "Elle admet un minimum en $\\dfrac{\\pi}{6}$"]],
+      ["2\\cos x + x", "[0\\,;\\pi]", "Elle admet un maximum en $\\dfrac{\\pi}{6}$", "$f'(x) = -2\\sin x + 1$ s'annule pour $\\sin x = \\dfrac{1}{2}$, soit $x = \\dfrac{\\pi}{6}$ ou $\\dfrac{5\\pi}{6}$ : positive sur $\\left[0\\,;\\dfrac{\\pi}{6}\\right]$, négative ensuite jusqu'à $\\dfrac{5\\pi}{6}$. Maximum en $\\dfrac{\\pi}{6}$.", ["Elle est croissante", "Elle admet un minimum en $\\dfrac{\\pi}{6}$", "Elle admet un maximum en $\\dfrac{\\pi}{3}$"]],
+      ["\\sin x + \\cos x", "[0\\,;\\pi]", "Elle admet un maximum en $\\dfrac{\\pi}{4}$", "$f'(x) = \\cos x - \\sin x$ s'annule en $\\dfrac{\\pi}{4}$, positive avant, négative après : maximum $f\\left(\\dfrac{\\pi}{4}\\right) = \\sqrt{2}$.", ["Elle est croissante", "Elle admet un minimum en $\\dfrac{\\pi}{4}$", "Elle admet un maximum en $\\dfrac{\\pi}{2}$"]],
+      ["x + \\cos x", "[0\\,;2\\pi]", "Elle est croissante", "$f'(x) = 1 - \\sin x \\geqslant 0$ car $\\sin x \\leqslant 1$.", ["Elle est décroissante", "Elle admet un maximum en $\\dfrac{\\pi}{2}$", "Elle admet un minimum en $\\pi$"]],
+      ["\\sin x - x", "[0\\,;\\pi]", "Elle est décroissante", "$f'(x) = \\cos x - 1 \\leqslant 0$ : $f$ est décroissante. Comme $f(0) = 0$, on en déduit $\\sin x \\leqslant x$ pour $x \\geqslant 0$.", ["Elle est croissante", "Elle admet un maximum en $\\dfrac{\\pi}{2}$", "Elle est constante"]],
+      ["\\cos x + \\dfrac{x^2}{2}", "[0\\,;\\pi]", "Elle est croissante", "$f'(x) = x - \\sin x \\geqslant 0$ sur $[0\\,;\\pi]$ (car $\\sin x \\leqslant x$) : $f$ est croissante.", ["Elle est décroissante", "Elle admet un minimum en $\\dfrac{\\pi}{2}$", "Elle est constante"]],
+      ["\\sin^2 x", "[0\\,;\\pi]", "Elle admet un maximum en $\\dfrac{\\pi}{2}$", "$f'(x) = 2\\sin x\\cos x$ est du signe de $\\cos x$ sur $[0\\,;\\pi]$ : positive puis négative, maximum $1$ en $\\dfrac{\\pi}{2}$.", ["Elle est croissante", "Elle admet un minimum en $\\dfrac{\\pi}{2}$", "Elle est décroissante"]],
+      ["\\cos^2 x", "[0\\,;\\pi]", "Elle admet un minimum en $\\dfrac{\\pi}{2}$", "$f'(x) = -2\\sin x\\cos x$ est du signe de $-\\cos x$ sur $[0\\,;\\pi]$ : négative puis positive, minimum $0$ en $\\dfrac{\\pi}{2}$.", ["Elle est décroissante", "Elle admet un maximum en $\\dfrac{\\pi}{2}$", "Elle est croissante"]]
+    ]);
+    const ms = melangeChoix(T[2], T[4]);
+    return {
+      enonce: `On étudie $f(x) = ${T[0]}$ sur $${T[1]}$. Que peut-on dire ?`,
+      mode: "choix", choix: ms.choix, attendu: ms.attendu,
+      aides: ["Calcule $f'(x)$ avec $\\cos' = -\\sin$ et $\\sin' = \\cos$.", "Utilise $-1 \\leqslant \\cos x \\leqslant 1$ et $-1 \\leqslant \\sin x \\leqslant 1$, ou résous $f'(x) = 0$ avec les valeurs remarquables.", "Étudie le signe de $f'$ sur l'intervalle."],
+      solution: T[3]
+    };
+  };
+
+  GEN["trg-limites"] = function () {
+    const k = rand(2, 7), m = rand(2, 5);
+    const T = pick([
+      ["\\dfrac{\\sin x}{x}", "0", "1", "C'est le nombre dérivé de $\\sin$ en $0$ : $\\cos 0 = 1$."],
+      [`\\dfrac{\\sin(${k}x)}{x}`, "0", `${k}`, `$\\dfrac{\\sin(${k}x)}{x} = ${k} \\times \\dfrac{\\sin(${k}x)}{${k}x}$, et $\\dfrac{\\sin X}{X} \\to 1$ quand $X = ${k}x \\to 0$.`],
+      [`\\dfrac{\\sin x}{${k}x}`, "0", `\\dfrac{1}{${k}}`, `$\\dfrac{\\sin x}{${k}x} = \\dfrac{1}{${k}} \\times \\dfrac{\\sin x}{x} \\to \\dfrac{1}{${k}}$.`],
+      ["\\dfrac{\\cos x - 1}{x}", "0", "0", "C'est le nombre dérivé de $\\cos$ en $0$ : $-\\sin 0 = 0$."],
+      ["\\dfrac{\\sin x}{x}", "+\\infty", "0", "$\\left|\\dfrac{\\sin x}{x}\\right| \\leqslant \\dfrac{1}{x}$ pour $x > 0$ : gendarmes."],
+      [`\\dfrac{\\sin(${k}x)}{\\sin(${m}x)}`, "0", frac(k, m), `On écrit $\\dfrac{\\sin(${k}x)}{${k}x} \\times \\dfrac{${m}x}{\\sin(${m}x)} \\times \\dfrac{${k}}{${m}}$ : les deux premiers facteurs tendent vers $1$.`],
+      ["x + \\sin x", "+\\infty", "+\\infty", "$x + \\sin x \\geqslant x - 1$ : comparaison."],
+      ["\\cos\\left(\\dfrac{1}{x}\\right)", "+\\infty", "1", "$\\dfrac{1}{x} \\to 0$ et $\\cos 0 = 1$ (composée)."],
+      [`x\\sin\\left(\\dfrac{1}{x}\\right)`, "+\\infty", "1", "On pose $X = \\dfrac{1}{x} \\to 0$ : l'expression vaut $\\dfrac{\\sin X}{X} \\to 1$."]
+    ]);
+    const ms = melangeChoix(`$${T[2]}$`, ["$0$", "$1$", "$+\\infty$", "Pas de limite", `$${k}$`, `$\\dfrac{1}{${k}}$`].filter((x) => x !== `$${T[2]}$`).slice(0, 3));
+    return {
+      enonce: `Quelle est la limite de $${T[0]}$ quand $x \\to ${T[1]}$ ?`,
+      mode: "choix", choix: ms.choix, attendu: ms.attendu,
+      aides: ["Limite à connaître : $\\lim\\limits_{x \\to 0} \\dfrac{\\sin x}{x} = 1$ (taux d'accroissement de $\\sin$ en $0$).", "Fais apparaître $\\dfrac{\\sin X}{X}$ avec $X \\to 0$.", "En $\\pm\\infty$, $\\sin x$ et $\\cos x$ sont bornés : pense aux gendarmes."],
+      solution: `${T[3]} Donc la limite vaut $${T[2]}$.`
+    };
+  };
+
+  GEN["trg-python"] = function () {
+    const t = pick(["valeur", "dicho"]);
+    if (t === "valeur") {
+      const [k, d] = pick([[1, 6], [1, 4], [1, 3], [2, 3], [3, 4], [5, 6], [1, 2], [-1, 3], [-1, 6], [-3, 4], [-2, 3], [-5, 6], [-1, 4], [7, 6], [5, 4], [4, 3]]), fn = pick(["sin", "cos"]);
+      const v = fn === "sin" ? Math.sin((k * Math.PI) / d) : Math.cos((k * Math.PI) / d), r = Math.round(v * 10000) / 10000;
+      return {
+        enonce: `Qu'affiche ce programme ?\n\n\`\`\`python\nfrom math import ${fn}, pi\n\nprint(round(${fn}(${k === 1 ? "" : k === -1 ? "-" : k + " * "}pi / ${d}), 4))\n\`\`\``,
+        mode: "nombre", prefixe: "Affichage :", attendu: r, tolerance: 0.00005 + 1e-9,
+        aides: [`Le programme calcule $\\${fn}\\left(${trgPi(k, d)}\\right)$, arrondi à $4$ décimales.`, "Utilise les valeurs remarquables : $\\dfrac{1}{2}$, $\\dfrac{\\sqrt{2}}{2} \\approx 0{,}7071$, $\\dfrac{\\sqrt{3}}{2} \\approx 0{,}8660$.", "Attention au signe (position sur le cercle)."],
+        solution: `$\\${fn}\\left(${trgPi(k, d)}\\right) \\approx ${nb(r)}$ : le programme affiche $${nb(r)}$.`
+      };
+    }
+    const n = rand(2, 5);
+    let a = 0, b = 1;
+    for (let i = 0; i < n; i++) { const m = (a + b) / 2; if ((Math.cos(a) - a) * (Math.cos(m) - m) <= 0) b = m; else a = m; }
+    const quoi = pick(["a", "b"]);
+    return {
+      enonce: `L'équation $\\cos x = x$ a une unique solution dans $[0\\,;1]$. Qu'affiche ce programme ?\n\n\`\`\`python\nfrom math import cos\n\na, b = 0, 1\nfor i in range(${n}):\n    m = (a + b) / 2\n    if (cos(a) - a) * (cos(m) - m) <= 0:\n        b = m\n    else:\n        a = m\nprint(${quoi})\n\`\`\``,
+      mode: "nombre", prefixe: "Affichage :", attendu: quoi === "a" ? a : b,
+      erreurs: [{ valeur: quoi === "a" ? b : a, message: `Ça, c'est la valeur de $\\texttt{${quoi === "a" ? "b" : "a"}}$.` }],
+      aides: ["C'est la dichotomie (chapitre 7) appliquée à $g(x) = \\cos x - x$.", "$g(0) = 1 > 0$, $g(0{,}5) \\approx 0{,}38 > 0$, $g(0{,}75) \\approx -0{,}02 < 0$.", `Fais les $${n}$ tours un par un.`],
+      solution: `Après $${n}$ tours, l'intervalle est $[${nb(a)}\\,;${nb(b)}]$ : le programme affiche $${nb(quoi === "a" ? a : b)}$. La solution vaut environ $0{,}739$.`
+    };
+  };
+
   /* Séries « flash » d'un thème : mélange de ses générateurs */
   const THEMES = {
     "am-flash-cn": ["am-comparer", "am-fractions", "am-puissances", "am-ecritures", "am-ordre-grandeur", "am-coherence", "auto-conversions"],
@@ -15733,7 +15990,7 @@
 
 
   /* Une « erreur connue » ne doit jamais coïncider avec la bonne réponse (à la tolérance près) */
-  Object.keys(GEN).filter((k) => /^(auto|ld|am|cd|ar|cl|fa|ve|st|vx|tc|co|dr|fr|sg|pc|ec|sy|su|s2|pi|s5|d1|tr|d2|vr|ps|ex|va|sc|gr|sm|ea|tsu|tag|tlf|tcb|tsd|tdc|tln|tcv|tlg|tpe|tin|tld|trr|tec|rec|dvx|esp|lsu|bin|lfo|cnt|pse|lnx|pri|edo)-/.test(k)).forEach((k) => {
+  Object.keys(GEN).filter((k) => /^(auto|ld|am|cd|ar|cl|fa|ve|st|vx|tc|co|dr|fr|sg|pc|ec|sy|su|s2|pi|s5|d1|tr|d2|vr|ps|ex|va|sc|gr|sm|ea|tsu|tag|tlf|tcb|tsd|tdc|tln|tcv|tlg|tpe|tin|tld|trr|tec|rec|dvx|esp|lsu|bin|lfo|cnt|pse|lnx|pri|edo|trg)-/.test(k)).forEach((k) => {
     const g = GEN[k];
     GEN[k] = (i) => { const q = g(i); if (q.erreurs) q.erreurs = q.erreurs.filter((e) => Math.abs(e.valeur - q.attendu) >= (q.tolerance || 1e-9)); return q; };
   });
