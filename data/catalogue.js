@@ -419,7 +419,7 @@ window.CATALOGUE = {
           id: "terminale-spe-equations-differentielles",
           numero: 11,
           titre: "Équations différentielles",
-          statut: "bientot",
+          statut: "disponible",
           drive: ""
         },
         {

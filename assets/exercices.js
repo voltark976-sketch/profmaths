@@ -15574,6 +15574,149 @@
     };
   };
 
+  /* ---------- Terminale spécialité, chapitre 11 : équations différentielles (préfixe edo-) ---------- */
+  const edoK = (a) => (a === 1 ? "" : a === -1 ? "-" : fr(a)); // coefficient devant x dans un exposant
+  const edoExp = (a) => `e^{${edoK(a)}x}`;
+  // Écriture de l'équation y' = ay + b sous une forme variée
+  function edoEcrire(a, b) {
+    const f = pick(["std", "std", "moins", "facteur"]);
+    if (f === "moins") return `y' ${a < 0 ? "+" : "-"} ${Math.abs(a) === 1 ? "" : fr(Math.abs(a))}y = ${fr(b)}`;
+    if (f === "facteur" && Number.isInteger(a) && Number.isInteger(b) && a !== -1 && a !== 1) return `${fr(-1)}y' ${a < 0 ? "-" : "+"} ${fr(Math.abs(a))}y ${b < 0 ? "-" : "+"} ${fr(Math.abs(b))} = 0`.replace("-1y'", "-y'").replace("+ 0 = 0", "= 0").replace("- 0 = 0", "= 0");
+    return `y' = ${a === 1 ? "" : a === -1 ? "-" : fr(a)}y${b === 0 ? "" : ` ${b < 0 ? "-" : "+"} ${fr(Math.abs(b))}`}`;
+  }
+
+  FIGURES["edo-courbes"] = () => graph({ xmin: -0.4, xmax: 6.4, ymin: -0.6, ymax: 8.6, h: 270, curves: [0.5, 2, 4, 6.5, 8].map((y0) => ({ f: (x) => 4 + (y0 - 4) * Math.exp(-0.7 * x), a: 0, b: 6.2, closed: false, couleur: y0 === 6.5 ? 1 : 0 })), hlines: [{ y: 4, label: "y = 4" }], aria: "Courbes de plusieurs solutions de y' = −0,7y + 2,8 : toutes se rapprochent de la solution constante y = 4, par en dessous ou par au-dessus selon la valeur de départ" });
+
+  GEN["edo-verifier"] = function () {
+    const a = pick([2, 3, -1, -2, 0.5, -3]), b = pick([0, 0, 2, -4, 6, 3]), C = pick([1, 2, 3, -1, 5]);
+    const p = b === 0 ? 0 : -b / a, pt = fr(p);
+    const bonne = `${C === 1 ? "" : C === -1 ? "-" : C}${edoExp(a)}${p === 0 ? "" : ` ${p < 0 ? "-" : "+"} ${fr(Math.abs(p))}`}`;
+    const fausses = [`${C === 1 ? "" : C === -1 ? "-" : C}${edoExp(-a)}${p === 0 ? "" : ` ${p < 0 ? "-" : "+"} ${fr(Math.abs(p))}`}`, `${C === 1 ? "" : C === -1 ? "-" : C}${edoExp(a)}${` ${p > 0 ? "-" : "+"} ${fr(Math.abs(p) || 1)}`}`, `${fr(a)}x${p === 0 ? "" : ` ${p < 0 ? "-" : "+"} ${fr(Math.abs(p))}`}`, `${C === 1 ? "" : C === -1 ? "-" : C}e^{x}${b === 0 ? "" : ` + ${fr(Math.abs(b))}`}`];
+    const ms = melangeChoix(`$y = ${bonne}$`, [...new Set(fausses)].filter((f) => f !== bonne).map((f) => `$y = ${f}$`));
+    return {
+      enonce: `Laquelle de ces fonctions est solution sur $\\mathbb{R}$ de l'équation différentielle $${edoEcrire(a, b)}$ ?`,
+      mode: "choix", choix: ms.choix, attendu: ms.attendu,
+      aides: ["Pour vérifier, on calcule $y'$ et on remplace $y$ et $y'$ dans l'équation.", "Rappel : $(e^{kx})' = ke^{kx}$.", `Écris d'abord l'équation sous la forme $y' = ay + b$ : ici $a = ${fr(a)}$${b ? ` et $b = ${fr(b)}$` : ""}.`],
+      solution: `L'équation s'écrit $y' = ${fr(a)}y${b === 0 ? "" : ` ${sg(b)}`}$. Avec $y = ${bonne}$ : $y' = ${fr(C * a)}${edoExp(a)}$, et $${fr(a)}y${b === 0 ? "" : ` ${sg(b)}`} = ${fr(C * a)}${edoExp(a)}${p === 0 ? "" : ` ${sg(a * p)} ${sg(b)}`}$${p === 0 ? "" : ` $= ${fr(C * a)}${edoExp(a)}$`}. Les deux membres sont égaux : c'est une solution.`
+    };
+  };
+
+  GEN["edo-yay"] = function () {
+    const t = pick(["choix", "choix", "valeur"]);
+    if (t === "valeur") {
+      const a = pick([1, 2, -1, 0.5, 3, -2]), y0 = randNZ(-5, 8), k = pick([2, 3, 4, 5]);
+      return {
+        enonce: `$f$ est la solution de $y' = ${a === 1 ? "" : a === -1 ? "-" : fr(a)}y$ telle que $f(0) = ${y0}$. Calcule $f\\left(${a === 1 ? `\\ln ${k}` : `\\dfrac{\\ln ${k}}{${fr(a)}}`}\\right)$.`,
+        mode: "nombre", prefixe: "Résultat :", attendu: y0 * k,
+        aides: [`Les solutions de $y' = ay$ sont $y = Ce^{ax}$ ; ici $f(x) = Ce^{${edoK(a)}x}$.`, `$f(0) = C = ${y0}$.`, `$e^{${fr(a)} \\times \\frac{\\ln ${k}}{${fr(a)}}} = e^{\\ln ${k}} = ${k}$.`.replace(`e^{1 \\times \\frac{\\ln ${k}}{1}}`, `e^{\\ln ${k}}`)],
+        solution: `$f(x) = ${y0}${edoExp(a)}$, donc $f = ${y0} \\times e^{\\ln ${k}} = ${y0} \\times ${k} = ${y0 * k}$.`
+      };
+    }
+    const a = pick([2, 3, -1, -2, 0.5, -4, 5, -0.5]), c = pick([1, 2, 3, 4, -1]);
+    const forme = pick(["std", "prod", "somme"]);
+    const eq = forme === "std" ? `y' = ${a === 1 ? "" : a === -1 ? "-" : fr(a)}y` : forme === "prod" ? `${c === 1 ? "" : c === -1 ? "-" : c}y' = ${fr(c * a)}y` : `y' ${a < 0 ? "+" : "-"} ${Math.abs(a) === 1 ? "" : fr(Math.abs(a))}y = 0`;
+    const ms = melangeChoix(`$y = Ce^{${edoK(a)}x}$, $C \\in \\mathbb{R}$`, [`$y = Ce^{${edoK(-a)}x}$, $C \\in \\mathbb{R}$`, `$y = e^{${edoK(a)}x} + C$, $C \\in \\mathbb{R}$`, `$y = ${fr(a)}Cx$, $C \\in \\mathbb{R}$`, `$y = Ce^{x}$, $C \\in \\mathbb{R}$`].filter((x) => !x.startsWith(`$y = Ce^{${edoK(a)}x}$`)));
+    return {
+      enonce: `Quelles sont les solutions sur $\\mathbb{R}$ de l'équation différentielle $${eq}$ ?`,
+      mode: "choix", choix: ms.choix, attendu: ms.attendu,
+      aides: ["Écris l'équation sous la forme $y' = ay$.", `Ici $a = ${fr(a)}$.`, "Les solutions de $y' = ay$ sont les fonctions $x \\mapsto Ce^{ax}$, $C$ réel."],
+      solution: `L'équation équivaut à $y' = ${fr(a)}y$ : ses solutions sont les fonctions $y = Ce^{${edoK(a)}x}$, avec $C$ réel.`
+    };
+  };
+
+  GEN["edo-yayb"] = function () {
+    const a = pick([2, 3, -1, -2, 0.5, -4, 4, -0.5]), b = randNZ(-6, 8) * (Number.isInteger(a) ? Math.abs(a) : 1), p = -b / a;
+    const pt = `${p < 0 ? "-" : "+"} ${fr(Math.abs(p))}`;
+    const ms = melangeChoix(`$y = Ce^{${edoK(a)}x} ${pt}$`, [`$y = Ce^{${edoK(a)}x} ${p < 0 ? "+" : "-"} ${fr(Math.abs(p))}$`, `$y = Ce^{${edoK(a)}x} ${b < 0 ? "-" : "+"} ${fr(Math.abs(b))}$`, `$y = Ce^{${edoK(-a)}x} ${pt}$`, `$y = Ce^{${fr(b)}x} + ${fr(a)}$`].filter((x) => x !== `$y = Ce^{${edoK(a)}x} ${pt}$`));
+    return {
+      enonce: `Quelles sont les solutions sur $\\mathbb{R}$ de l'équation différentielle $${edoEcrire(a, b)}$ ? ($C$ désigne un réel quelconque.)`,
+      mode: "choix", choix: ms.choix, attendu: ms.attendu,
+      aides: ["Écris l'équation sous la forme $y' = ay + b$.", `La solution constante vérifie $0 = ${fr(a)}y ${sg(b)}$, soit $y = -\\dfrac{b}{a} = ${fr(p)}$.`, "Les solutions sont $y = Ce^{ax} - \\dfrac{b}{a}$ : la solution constante plus les solutions de $y' = ay$."],
+      solution: `L'équation équivaut à $y' = ${fr(a)}y ${sg(b)}$. Solution constante : $y = -\\dfrac{${fr(b)}}{${fr(a)}} = ${fr(p)}$. Les solutions sont $y = Ce^{${edoK(a)}x} ${pt}$, $C$ réel.`.replace("\\dfrac{-", "\\dfrac{-").replace("-\\dfrac{-", "\\dfrac{")
+    };
+  };
+
+  GEN["edo-condition"] = function () {
+    const a = pick([2, -1, -2, 3, 0.5, -3, 1]), p = randNZ(-5, 6), b = -a * p, y0 = rand(-6, 9), C = y0 - p, t = pick(["C", "C", "lim"]);
+    if (C === 0) return GEN["edo-condition"]();
+    if (t === "lim" && a < 0) return {
+      enonce: `$f$ est la solution de $${edoEcrire(a, b)}$ telle que $f(0) = ${y0}$. Quelle est la limite de $f(x)$ quand $x \\to +\\infty$ ?`,
+      mode: "nombre", prefixe: "Limite :", attendu: p,
+      erreurs: [{ valeur: y0, message: "La condition initiale ne donne pas la limite : regarde ce que devient $Ce^{ax}$ quand $a < 0$." }],
+      aides: ["Les solutions sont $f(x) = Ce^{ax} - \\dfrac{b}{a}$.", `Ici $a = ${fr(a)} < 0$, donc $e^{${edoK(a)}x} \\to 0$ quand $x \\to +\\infty$.`, `La limite est la solution constante $-\\dfrac{b}{a} = ${p}$.`],
+      solution: `$f(x) = ${C}${edoExp(a)} ${sg(p)}$ et $e^{${edoK(a)}x} \\to 0$ : $f(x) \\to ${p}$, la solution constante (quelle que soit la valeur de départ).`
+    };
+    return {
+      enonce: `$f$ est la solution de $${edoEcrire(a, b)}$ telle que $f(0) = ${y0}$. On écrit $f(x) = Ce^{${edoK(a)}x} ${sg(p)}$. Que vaut $C$ ?`,
+      mode: "nombre", prefixe: "$C =$", attendu: C,
+      erreurs: [{ valeur: y0, message: `$f(0) = C + (${p})$ : n'oublie pas la solution constante.` }, { valeur: y0 + p, message: "Attention au signe de la solution constante." }],
+      aides: ["Remplace $x$ par $0$ : $e^0 = 1$.", `$f(0) = C ${sg(p)} = ${y0}$.`, "Résous en $C$."],
+      solution: `$f(0) = C ${sg(p)} = ${y0}$, donc $C = ${C}$ et $f(x) = ${C === 1 ? "" : C === -1 ? "-" : C}${edoExp(a)} ${sg(p)}$.`.replace("$f(x) = 0e", "$f(x) = 0 \\times e")
+    };
+  };
+
+  GEN["edo-modele"] = function () {
+    const t = pick(["refroid", "refroid", "demivie", "croissance"]);
+    if (t === "refroid") {
+      const Ta = pick([20, 25, 18, 22, 30]), T0 = pick([80, 90, 100, 70, 60, 5, 0]), [k, kt] = pick([[0.1, "0{,}1"], [0.05, "0{,}05"], [0.2, "0{,}2"], [0.08, "0{,}08"]]), tt = pick([5, 10, 15, 20, 30]);
+      const v = Ta + (T0 - Ta) * Math.exp(-k * tt), r = Math.round(v);
+      if (Math.abs(v - Math.round(v)) > 0.45) return GEN["edo-modele"]();
+      return {
+        enonce: `Un objet à $${T0}$ °C est placé dans une pièce à $${Ta}$ °C. Sa température $T(t)$ (en °C, $t$ en minutes) vérifie $T' = -${kt}(T - ${Ta})$, avec $T(0) = ${T0}$. Quelle est sa température au bout de $${tt}$ minutes, arrondie à l'unité ?`,
+        mode: "nombre", prefixe: `$T(${tt}) \\approx$`, attendu: r, tolerance: 0.5 + 1e-9, suffixe: "°C",
+        aides: [`L'équation s'écrit $T' = -${kt}T + ${nb(k * Ta)}$ : la solution constante est $${Ta}$ (température de la pièce).`, `$T(t) = Ce^{-${kt}t} + ${Ta}$, et $T(0) = C + ${Ta} = ${T0}$, donc $C = ${T0 - Ta}$.`, `$T(${tt}) = ${T0 - Ta}e^{-${nb(k * tt)}} + ${Ta}$.`],
+        solution: `$T(t) = ${Ta} ${sg(T0 - Ta)}e^{-${kt}t}$, donc $T(${tt}) = ${Ta} ${sg(T0 - Ta)}e^{-${nb(k * tt)}} \\approx ${nb(+v.toFixed(2))}$, soit environ $${r}$ °C.`
+      };
+    }
+    if (t === "demivie") {
+      const [k, kt] = pick([[0.1, "0{,}1"], [0.05, "0{,}05"], [0.2, "0{,}2"], [0.02, "0{,}02"], [0.3, "0{,}3"], [0.01, "0{,}01"], [0.15, "0{,}15"]]);
+      const unite = pick(["heures", "jours", "années"]), v = Math.log(2) / k, r = Math.round(v * 10) / 10;
+      return {
+        enonce: `La quantité $N(t)$ d'une substance radioactive vérifie $N' = -${kt}N$ ($t$ en ${unite}). Au bout de combien de temps la quantité a-t-elle diminué de moitié ? Arrondis au dixième.`,
+        mode: "nombre", prefixe: "Durée ≈", attendu: r, tolerance: 0.05 + 1e-9, suffixe: unite,
+        aides: [`$N(t) = N_0e^{-${kt}t}$, où $N_0 = N(0)$.`, `On cherche $t$ tel que $e^{-${kt}t} = \\dfrac{1}{2}$.`, `$-${kt}t = \\ln\\dfrac{1}{2} = -\\ln 2$, donc $t = \\dfrac{\\ln 2}{${kt}}$.`],
+        solution: `$N_0e^{-${kt}t} = \\dfrac{N_0}{2} \\iff t = \\dfrac{\\ln 2}{${kt}} \\approx ${nb(+v.toFixed(3))}$ : environ $${nb(r)}$ ${unite}. C'est la demi-vie, qui ne dépend pas de la quantité de départ.`
+      };
+    }
+    const [k, kt] = pick([[0.02, "0{,}02"], [0.03, "0{,}03"], [0.05, "0{,}05"], [0.1, "0{,}1"]]), P0 = pick([100, 200, 500, 1000]), m = pick([2, 3, 5]);
+    const v = Math.log(m) / k, r = Math.round(v);
+    if (Math.abs(v - r) > 0.45) return GEN["edo-modele"]();
+    return {
+      enonce: `Une population de bactéries vérifie $P' = ${kt}P$ ($t$ en heures), avec $P(0) = ${P0}$. Au bout de combien d'heures la population est-elle multipliée par $${m}$ ? Arrondis à l'unité.`,
+      mode: "nombre", prefixe: "Durée ≈", attendu: r, tolerance: 0.5 + 1e-9, suffixe: "h",
+      aides: [`$P(t) = ${P0}e^{${kt}t}$.`, `On cherche $t$ tel que $e^{${kt}t} = ${m}$.`, `$t = \\dfrac{\\ln ${m}}{${kt}}$.`],
+      solution: `$e^{${kt}t} = ${m} \\iff t = \\dfrac{\\ln ${m}}{${kt}} \\approx ${nb(+v.toFixed(2))}$ : environ $${r}$ heures.`
+    };
+  };
+
+  GEN["edo-particuliere"] = function () {
+    const a = pick([2, -1, -2, 3, 1, -3]);
+    // Solution particulière polynomiale de degré 1 : p(x) = αx + β, p' = α = a(αx + β) + (mx + n) → m = -aα, n = α - aβ
+    const al = randNZ(-3, 3), be = rand(-4, 4), m = -a * al, n = al - a * be;
+    const f = poly([m, n]), ptex = poly([al, be]);
+    const ms = melangeChoix(`$y = Ce^{${edoK(a)}x} ${ptex.startsWith("-") ? "- " + ptex.slice(1) : "+ " + ptex}$`, [`$y = Ce^{${edoK(a)}x}$`, `$y = Ce^{${edoK(-a)}x} ${ptex.startsWith("-") ? "- " + ptex.slice(1) : "+ " + ptex}$`, `$y = C(${ptex})e^{${edoK(a)}x}$`, `$y = ${ptex} + C$`]);
+    return {
+      enonce: `On considère l'équation $(E) : y' = ${a === 1 ? "" : a === -1 ? "-" : a}y ${f.startsWith("-") ? "- " + f.slice(1) : "+ " + f}$. On admet que $p(x) = ${ptex}$ est une solution particulière de $(E)$. Quelles sont toutes les solutions de $(E)$ ?`,
+      mode: "choix", choix: ms.choix, attendu: ms.attendu,
+      aides: ["Les solutions de $y' = ay + f$ sont les fonctions $p + h$, où $p$ est une solution particulière et $h$ une solution de $y' = ay$.", `Les solutions de $y' = ${edoK(a)}y$ sont $Ce^{${edoK(a)}x}$.`, "On additionne : solution particulière + solution générale de l'équation sans second membre."],
+      solution: `Les solutions de $y' = ${edoK(a)}y$ sont $Ce^{${edoK(a)}x}$ ; celles de $(E)$ sont donc $y = Ce^{${edoK(a)}x} ${ptex.startsWith("-") ? "- " + ptex.slice(1) : "+ " + ptex}$, $C$ réel. (Vérification : $p'(x) = ${al}$ et $${edoK(a)}p(x) ${f.startsWith("-") ? "- " + f.slice(1) : "+ " + f} = ${al}$.)`
+    };
+  };
+
+  GEN["edo-euler"] = function () {
+    const [a, as, at] = pick([[1, "1", "1"], [-1, "-1", "-1"], [2, "2", "2"], [-0.5, "-0.5", "-0{,}5"], [0.5, "0.5", "0{,}5"]]), b = pick([0, 0, 1, 2, -1]), [h, hs, ht] = pick([[0.1, "0.1", "0{,}1"], [0.5, "0.5", "0{,}5"], [0.25, "0.25", "0{,}25"], [0.2, "0.2", "0{,}2"]]);
+    const y0 = pick([1, 2, 0, 3]), N = rand(2, 4);
+    let y = y0; const vals = [y0];
+    for (let i = 0; i < N; i++) { y = y + h * (a * y + b); vals.push(y); }
+    const r = Math.round(y * 10000) / 10000;
+    return {
+      enonce: `La méthode d'Euler approche la solution de $y' = ${a === 1 ? "" : a === -1 ? "-" : at}y${b === 0 ? "" : ` ${sg(b)}`}$ avec $y(0) = ${y0}$, par pas de $${ht}$ : on remplace la courbe par sa tangente sur chaque petit intervalle. Qu'affiche ce programme ? (arrondi à $4$ décimales)\n\n\`\`\`python\ny = ${y0}\nh = ${hs}\nfor i in range(${N}):\n    y = y + h * (${as} * y${b === 0 ? "" : ` + ${b}`.replace("+ -", "- ")})\nprint(round(y, 4))\n\`\`\``,
+      mode: "nombre", prefixe: "Affichage :", attendu: r, tolerance: 0.00005 + 1e-9,
+      aides: ["À chaque tour : $y_{\\text{nouveau}} = y + h \\times y'$, avec $y' = " + (a === 1 ? "" : a === -1 ? "-" : at) + "y" + (b === 0 ? "" : ` ${sg(b)}`) + "$.", `Premier tour : $y = ${y0} + ${ht} \\times (${at} \\times ${y0}${b === 0 ? "" : ` ${sg(b)}`}) = ${nb(+vals[1].toFixed(6))}$.`, `Il y a $${N}$ tours en tout.`],
+      solution: `Valeurs successives : $${vals.map((v) => nb(+v.toFixed(6))).join("$ ; $")}$. Le programme affiche $${nb(r)}$, une valeur approchée de $y(${nb(+(N * h).toFixed(2))})$.`
+    };
+  };
+
   /* Séries « flash » d'un thème : mélange de ses générateurs */
   const THEMES = {
     "am-flash-cn": ["am-comparer", "am-fractions", "am-puissances", "am-ecritures", "am-ordre-grandeur", "am-coherence", "auto-conversions"],
@@ -15590,7 +15733,7 @@
 
 
   /* Une « erreur connue » ne doit jamais coïncider avec la bonne réponse (à la tolérance près) */
-  Object.keys(GEN).filter((k) => /^(auto|ld|am|cd|ar|cl|fa|ve|st|vx|tc|co|dr|fr|sg|pc|ec|sy|su|s2|pi|s5|d1|tr|d2|vr|ps|ex|va|sc|gr|sm|ea|tsu|tag|tlf|tcb|tsd|tdc|tln|tcv|tlg|tpe|tin|tld|trr|tec|rec|dvx|esp|lsu|bin|lfo|cnt|pse|lnx|pri)-/.test(k)).forEach((k) => {
+  Object.keys(GEN).filter((k) => /^(auto|ld|am|cd|ar|cl|fa|ve|st|vx|tc|co|dr|fr|sg|pc|ec|sy|su|s2|pi|s5|d1|tr|d2|vr|ps|ex|va|sc|gr|sm|ea|tsu|tag|tlf|tcb|tsd|tdc|tln|tcv|tlg|tpe|tin|tld|trr|tec|rec|dvx|esp|lsu|bin|lfo|cnt|pse|lnx|pri|edo)-/.test(k)).forEach((k) => {
     const g = GEN[k];
     GEN[k] = (i) => { const q = g(i); if (q.erreurs) q.erreurs = q.erreurs.filter((e) => Math.abs(e.valeur - q.attendu) >= (q.tolerance || 1e-9)); return q; };
   });
