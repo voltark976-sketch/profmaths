@@ -78,6 +78,11 @@ Les niveaux du catalogue sont Seconde, Automatismes, Première spécialité, Ter
 - `outils/comptes/creer-comptes.js` : création des comptes élèves et du compte professeur (voir « Comptes élèves »).
 - `firestore.rules` et `firebase.json` : règles de sécurité des comptes dans Firebase.
 
+## Règles de qualité des exercices
+- Une même série ne repose jamais deux fois la même question, et chaque générateur doit produire au moins 29 questions différentes.
+- Une question à deux réponses possibles (vrai/faux, oui/non) n'accorde pas de deuxième essai : une erreur affiche la solution et donne 0 point (`assets/app.js`). Les séries « vrai ou faux » de Terminale passent par `vraiFaux4` (`assets/exercices.js`) : une seule affirmation vraie (ou fausse) parmi quatre.
+- « Arrondi au millième / au centième / à l'unité / à la dizaine » : la tolérance n'accepte que le bon arrondi (0,0006 ; 0,006 ; 0,5 ; 5).
+
 ## Ajouter un chapitre
 1. Copier `data/seconde/fonctions.js` sous un nouveau nom et remplacer le contenu.
 2. Ajouter une ligne `<script src="data/...">` dans `index.html`.

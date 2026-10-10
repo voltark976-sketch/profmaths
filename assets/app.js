@@ -727,6 +727,12 @@
         if (fini) return;
         if (q.mode === "choix") {
           if (val === q.attendu) terminer(true);
+          else if (q.choix.length === 2) {
+            // deux choix (vrai/faux, oui/non) : pas de seconde chance, sinon le hasard rapporterait des points
+            erreurs++; p.querySelector(`.opt[data-k="${val}"]`).classList.add("barre-opt");
+            terminer(false, true);
+            fb.innerHTML = `<strong>Ce n'est pas ça.</strong> Avec deux réponses possibles, il n'y a pas de deuxième essai : lis bien la solution.` + fb.innerHTML.replace(/^<strong>Voici la solution\.<\/strong>[^<]*/, "");
+          }
           else { rate(); p.querySelector(`.opt[data-k="${val}"]`).classList.add("barre-opt"); p.querySelector(`.opt[data-k="${val}"]`).disabled = true; }
         } else if (q.mode === "nombre") {
           const v = lireNombre(val);

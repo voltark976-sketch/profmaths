@@ -1670,7 +1670,7 @@
     if (v < 0.02 || Math.abs(oubli - v) < 0.002) return GEN["ld-binomiale-egal"]();
     return {
       enonce: `$X$ suit la loi binomiale $\\mathcal{B}(${n}\\,;${fr(p)})$. Calcule $P(X = ${k})$. ${AIDE_ARR}`,
-      mode: "nombre", prefixe: `P(X = ${k}) ≈`, attendu: arr(v, 3), tolerance: 0.0011,
+      mode: "nombre", prefixe: `P(X = ${k}) ≈`, attendu: arr(v, 3), tolerance: 0.0006,
       erreurs: [{ valeur: arr(oubli, 3), message: `Tu as oublié le coefficient $\\dbinom{${n}}{${k}}$ qui compte les chemins à $${k}$ succès.` }],
       aides: ["$P(X = k) = \\dbinom{n}{k} p^k (1 - p)^{n - k}$.", `$\\dbinom{${n}}{${k}} = ${C(n, k)}$.`, `$P(X = ${k}) = ${C(n, k)} \\times ${fr(p)}^{${k}} \\times ${fr(1 - p)}^{${n - k}}$.`],
       solution: `$P(X = ${k}) = ${C(n, k)} \\times ${fr(p)}^{${k}} \\times ${fr(1 - p)}^{${n - k}} \\approx ${fr(arr(v, 4))}$`
@@ -1754,7 +1754,7 @@
     const form = t === "egal" ? `${fr(1 - p)}^{${k - 1}} \\times ${fr(p)}` : t === "sup" ? `${fr(1 - p)}^{${k}}` : `1 - ${fr(1 - p)}^{${k}}`;
     return {
       enonce: `À chaque essai, indépendamment, on réussit avec la probabilité $${fr(p)}$. $T$ est le rang du premier succès. Calcule $P(${ev})$. ${AIDE_ARR}`,
-      mode: "nombre", prefixe: `P(${ev.replace("\\leqslant", "≤")}) ≈`, attendu: arr(v, 3), tolerance: 0.0011,
+      mode: "nombre", prefixe: `P(${ev.replace("\\leqslant", "≤")}) ≈`, attendu: arr(v, 3), tolerance: 0.0006,
       erreurs: t === "egal" ? [{ valeur: arr((1 - p) ** k * p, 3), message: `Premier succès au rang $${k}$ : il y a $${k - 1}$ échecs avant, pas $${k}$.` }] : t === "sup" ? [{ valeur: arr((1 - p) ** (k - 1) * p, 3), message: `$T > ${k}$ signifie « pas de succès pendant les $${k}$ premiers essais » : $${k}$ échecs, sans succès imposé ensuite.` }] : [{ valeur: arr((1 - p) ** k, 3), message: "Ça, c'est $P(T > k)$. On veut l'événement contraire." }],
       aides: [t === "egal" ? `Premier succès au rang $${k}$ : $${k - 1}$ échecs, puis un succès.` : t === "sup" ? `$T > ${k}$ : les $${k}$ premiers essais sont des échecs.` : `Le contraire de $T \\leqslant ${k}$ est $T > ${k}$ : $${k}$ échecs de suite.`, "$P(T = k) = (1 - p)^{k - 1} p$ et $P(T > k) = (1 - p)^k$.", `$P(${ev}) = ${form}$.`],
       solution: `$P(${ev}) = ${form} \\approx ${fr(arr(v, 4))}$`
@@ -1773,7 +1773,7 @@
     const v = (1 - p) ** t;
     return {
       enonce: `$T$ suit la loi géométrique de paramètre $${fr(p)}$. Sachant que $T > ${s}$, calcule $P_{T > ${s}}(T > ${s + t})$. ${AIDE_ARR}`,
-      mode: "nombre", prefixe: "P ≈", attendu: arr(v, 3), tolerance: 0.0011,
+      mode: "nombre", prefixe: "P ≈", attendu: arr(v, 3), tolerance: 0.0006,
       erreurs: [{ valeur: arr((1 - p) ** (s + t), 3), message: `Il ne reste que $${t}$ essais à considérer : la loi est sans mémoire.` }],
       aides: ["Absence de mémoire : $P_{T > s}(T > s + t) = P(T > t)$.", `Ici, $P(T > ${t}) = (1 - p)^{${t}}$.`, `$= ${fr(1 - p)}^{${t}}$.`],
       solution: `$P_{T > ${s}}(T > ${s + t}) = P(T > ${t}) = ${fr(1 - p)}^{${t}} \\approx ${fr(arr(v, 4))}$`
@@ -1843,6 +1843,18 @@
   const cmpChoix = (A, B) => [`$${A} < ${B}$`, `$${A} > ${B}$`, `$${A} = ${B}$`];
   const cmpRep = (a, b) => (Math.abs(a - b) < 1e-12 ? 2 : a < b ? 0 : 1);
   const melangeChoix = (bonne, fausses) => { const c = shuffle([bonne, ...[...new Set(fausses)].filter((f) => f !== bonne).slice(0, 3)]); return { choix: c, attendu: c.indexOf(bonne) }; };
+  // Série « vrai ou faux » sans hasard : parmi 4 affirmations du tableau T ([énoncé, vrai ?, explication]), une seule est vraie (ou une seule est fausse)
+  const minus = (x) => x.replace(/^([A-ZÀÉÈ])(?=[a-zàâçéèêëîïôûù' ])/, (c) => c.toLowerCase());
+  const vraiFaux4 = (T, aides) => {
+    const net = (q) => q.replace(/^«\s*/, "").replace(/\s*»$/, "").replace(/\.$/, "");
+    const V = T.filter((t) => t[1]), F = T.filter((t) => !t[1]), modes = [];
+    if (V.length >= 1 && F.length >= 3) modes.push("vraie");
+    if (F.length >= 1 && V.length >= 3) modes.push("fausse");
+    const m = pick(modes), bon = pick(m === "vraie" ? V : F), autres = shuffle((m === "vraie" ? F : V).slice()).slice(0, 3);
+    const c = melangeChoix(net(bon[0]), autres.map((a) => net(a[0])));
+    return { enonce: `Une seule de ces affirmations est **${m}**. Laquelle ?`, mode: "choix", choix: c.choix, attendu: c.attendu, aides,
+      solution: `« ${net(bon[0])} » est ${m} : ${minus(bon[2])}\n\n` + autres.map((a) => `- « ${net(a[0])} » est ${m === "vraie" ? "fausse" : "vraie"} : ${minus(a[2])}`).join("\n") };
+  };
 
   // CN01 : comparer deux nombres
   GEN["am-comparer"] = function () {
@@ -6111,7 +6123,7 @@
     else if (!premier) solution += "\n\nPlus $n$ est grand, plus la ligne brisée « colle » à la courbe et plus l'approximation est bonne.";
     return {
       enonce: `On approche la longueur de la courbe de $f$ sur $[0\\,;${B}]$ par une ligne brisée de $n$ segments :\n\n` + code + "\n\n" + question,
-      mode: "nombre", prefixe: premier ? "L ≈" : "Longueur ≈", attendu: r, tolerance: 0.0011,
+      mode: "nombre", prefixe: premier ? "L ≈" : "Longueur ≈", attendu: r, tolerance: 0.0006,
       erreurs: !premier && n > 1 ? [{ valeur: Math.round(seg(0) * 1000) / 1000, message: "Ça, c'est seulement la longueur du premier segment : la boucle les additionne tous." }].filter((e) => Math.abs(e.valeur - r) > 0.002) : [],
       aides: [`On découpe $[0\\,;${B}]$ en $${n}$ morceau${n > 1 ? "x" : ""} de largeur $${nb(w)}$.`, "Chaque segment relie $(a\\,;f(a))$ et $(b\\,;f(b))$ ; sa longueur se calcule avec la formule de la distance (chapitre 7).", premier ? `Au premier passage, seul le segment de $${p(0)}$ à $${p(w)}$ est ajouté à $\\texttt{L}$.` : n === 1 ? `Un seul segment, de $${p(0)}$ à $${p(B)}$.` : "Additionne les longueurs des segments."],
       solution
@@ -7718,7 +7730,8 @@
         prisesC.push(boiteTexte(cosT[0], cosT[1], o.cosLabel || "cos x", 13, cosT[2]), boiteTexte(sinT[0], sinT[1], o.sinLabel || "sin x", 13, sinT[2]));
       }
     }
-    // étiquettes des points : à l'extérieur du cercle, écartées si elles tombent sur une autre étiquette
+    // étiquettes des points : à l'extérieur du cercle, écartées si elles tombent sur une autre étiquette ou sur un point
+    (o.points || []).forEach((p) => { const [x, y] = P(p.a); prisesC.push({ x1: x - 4.5, x2: x + 4.5, y1: y - 4.5, y2: y + 4.5 }); });
     (o.points || []).forEach((p) => {
       const [x, y] = P(p.a), [lx, ly] = P(p.a, R + (p.r || 18));
       s += `<circle class="g-point" cx="${x}" cy="${y}" r="${p.gros ? 4.5 : 3.5}"/>`;
@@ -8416,7 +8429,7 @@
       const rep = 1 / (2 * Math.sqrt(A)), exact = [1, 4, 16, 25, 64, 100].includes(A);
       return {
         enonce: `${code}\n\nVers quel nombre les valeurs affichées se rapprochent-elles ?${exact ? "" : " (Valeur exacte, ou arrondie au millième.)"}`,
-        mode: "nombre", prefixe: "Réponse :", attendu: rep, tolerance: 0.001,
+        mode: "nombre", prefixe: "Réponse :", attendu: rep, tolerance: 0.0006,
         erreurs: [{ valeur: Math.sqrt(A), message: `Ça, c'est $\\sqrt{${A}}$. Les valeurs sont des **taux de variation**.` }].filter((e) => Math.abs(e.valeur - rep) > 0.001),
         aides: ["Chaque valeur est le taux de variation de la racine carrée entre $" + A + "$ et $" + A + " + h$.", "Quand $h$ tend vers $0$, le taux tend vers le nombre dérivé.", `$(\\sqrt{x})' = \\dfrac{1}{2\\sqrt{x}}$ : calcule-le en $x = ${A}$.`],
         solution: `Les taux se rapprochent du nombre dérivé $\\dfrac{1}{2\\sqrt{${A}}} = ${frac(1, 2 * Math.sqrt(A))} ${exact ? `= ${nb(rep)}` : `\\approx ${nb(+rep.toFixed(4))}`}$.`
@@ -8461,7 +8474,7 @@
       const a = pick([-4, -3, -2, -1, 1, 2, 3, 4]), rep = -1 / (a * a);
       return {
         enonce: `${prog(INV, "inverse", a, K)}\n\nVers quel nombre les valeurs affichées se rapprochent-elles ? (Valeur exacte, ou arrondie au millième.)`,
-        mode: "nombre", prefixe: "Réponse :", attendu: rep, tolerance: 0.001,
+        mode: "nombre", prefixe: "Réponse :", attendu: rep, tolerance: 0.0006,
         erreurs: [{ valeur: 1 / (a * a), message: "Attention au signe : la fonction inverse est décroissante, ses nombres dérivés sont négatifs." }, { valeur: 1 / a, message: `Ça, c'est inverse(${a}), l'image de $${a}$. Les valeurs affichées sont des **taux de variation**.` }].filter((e, j, L) => Math.abs(e.valeur - rep) > 0.001 && L.findIndex((x) => x.valeur === e.valeur) === j),
         aides: [`Chaque valeur est le taux de variation de la fonction inverse entre $${a}$ et $${a} + h$.`, "Quand $h$ tend vers $0$, le taux tend vers le nombre dérivé.", `$\\left(\\dfrac{1}{x}\\right)' = -\\dfrac{1}{x^2}$ : calcule-le en $x = ${a}$.`],
         solution: `Les valeurs se rapprochent du nombre dérivé de la fonction inverse en $${a}$ : $-\\dfrac{1}{${par(a)}^2} = ${frac(-1, a * a)}${a * a === 1 ? "" : a * a === 9 ? ` \\approx ${fr(+rep.toFixed(3))}` : ` = ${fr(rep)}`}$.`
@@ -11346,7 +11359,7 @@
     }
     if (k === 1) {
       const n = pick([5, 8, 10]), v = Math.round(ctx.P0 * q ** n);
-      return { enonce: `${enon} Selon ce modèle, combien y aura-t-il de ${ctx.u === "€" ? "euros" : ctx.u} en ${ctx.an + n} ? (Arrondis à l'unité.)`, mode: "nombre", prefixe: `$P_{${n}} \\approx$`, attendu: v, tolerance: 1.01,
+      return { enonce: `${enon} Selon ce modèle, combien y aura-t-il de ${ctx.u === "€" ? "euros" : ctx.u} en ${ctx.an + n} ? (Arrondis à l'unité.)`, mode: "nombre", prefixe: `$P_{${n}} \\approx$`, attendu: v, tolerance: 0.5,
         erreurs: [{ valeur: Math.round(ctx.P0 * (1 + n * ctx.t / 100)), message: "Les hausses en pourcentage se **multiplient**, elles ne s'additionnent pas." }],
         aides: [`${ctx.an + n} correspond à $n = ${n}$.`, `$P_{${n}} = ${nb(ctx.P0)} \\times ${fr(q)}^{${n}}$.`, "Calcule à la calculatrice et arrondis."],
         solution: `$P_{${n}} = ${nb(ctx.P0)} \\times ${fr(q)}^{${n}} \\approx ${nb(v)}$.` };
@@ -11391,12 +11404,7 @@
       ["« Une suite qui tend vers $0$ a tous ses termes positifs. »", false, "Contre-exemple : $u_n = -\\dfrac{1}{n}$ tend vers $0$ et tous ses termes sont négatifs."],
       ["« Si $u_n \\to 2$ et $v_n \\to 3$, alors $u_n \\times v_n \\to 6$. »", true, "Produit des limites : $2 \\times 3 = 6$."]
     ];
-    const [q, v, s] = pick(T), c = melangeChoix(v ? "Vrai" : "Faux", [v ? "Faux" : "Vrai"]);
-    return {
-      enonce: `Vrai ou faux ? ${q}`, mode: "choix", choix: c.choix, attendu: c.attendu,
-      aides: ["« À partir d'un certain rang » : la propriété peut être fausse pour les premiers termes, mais vraie ensuite pour tous.", "Pour montrer qu'une affirmation est fausse, un contre-exemple suffit.", "Pense aux suites simples : $\\dfrac{1}{n}$, $n$, $(-1)^n$, $q^n$."],
-      solution: `**${v ? "Vrai" : "Faux"}.** ${s}`
-    };
+    return vraiFaux4(T, ["« À partir d'un certain rang » : la propriété peut être fausse pour les premiers termes, mais vraie ensuite pour tous.", "Pour montrer qu'une affirmation est fausse, un contre-exemple suffit.", "Pense aux suites simples : $\\dfrac{1}{n}$, $n$, $(-1)^n$, $q^n$."]);
   };
 
 
@@ -11532,7 +11540,10 @@
     const T = [
       ["x^2", "+\\infty", "+\\infty"], ["x^2", "-\\infty", "+\\infty"], ["x^3", "+\\infty", "+\\infty"], ["x^3", "-\\infty", "-\\infty"],
       ["\\sqrt{x}", "+\\infty", "+\\infty"], ["\\dfrac{1}{x}", "+\\infty", "0"], ["\\dfrac{1}{x}", "-\\infty", "0"], ["\\dfrac{1}{x}", "0^+", "+\\infty"], ["\\dfrac{1}{x}", "0^-", "-\\infty"],
-      ["e^x", "+\\infty", "+\\infty"], ["e^x", "-\\infty", "0"], ["\\dfrac{1}{x^2}", "0", "+\\infty"], ["\\dfrac{1}{\\sqrt{x}}", "+\\infty", "0"], ["e^{-x}", "+\\infty", "0"], ["\\dfrac{1}{x^2}", "+\\infty", "0"]
+      ["e^x", "+\\infty", "+\\infty"], ["e^x", "-\\infty", "0"], ["\\dfrac{1}{x^2}", "0", "+\\infty"], ["\\dfrac{1}{\\sqrt{x}}", "+\\infty", "0"], ["e^{-x}", "+\\infty", "0"], ["\\dfrac{1}{x^2}", "+\\infty", "0"],
+      ["-x^2", "+\\infty", "-\\infty"], ["-x^3", "+\\infty", "-\\infty"], ["x^4", "-\\infty", "+\\infty"], ["-e^x", "+\\infty", "-\\infty"], ["e^{-x}", "-\\infty", "+\\infty"],
+      ["\\dfrac{1}{x^3}", "0^+", "+\\infty"], ["\\dfrac{1}{x^3}", "0^-", "-\\infty"], ["-\\dfrac{1}{x}", "0^+", "-\\infty"], ["\\dfrac{2}{x}", "+\\infty", "0"], ["x^2 + 1", "+\\infty", "+\\infty"],
+      ["5 - x^2", "+\\infty", "-\\infty"], ["1 + \\dfrac{1}{x}", "+\\infty", "1"], ["2 - e^{-x}", "+\\infty", "2"], ["e^x + 1", "-\\infty", "1"], ["\\dfrac{1}{x} - 3", "+\\infty", "-3"]
     ];
     const [f, en, l] = pick(T), c = melangeChoix(tlfLim(l), ["$+\\infty$", "$-\\infty$", "$0$", "$1$"]);
     const ou = en === "0^+" ? "$0$ par valeurs positives" : en === "0^-" ? "$0$ par valeurs négatives" : en === "0" ? "$0$" : `$${en}$`;
@@ -11619,7 +11630,28 @@
       { f: (x) => Math.exp(x) + x - 2, tex: "e^x + x - 2", a: 0, b: 1 },
       { f: (x) => x ** 3 + 2 * x - 5, tex: "x^3 + 2x - 5", a: 1, b: 2 },
       { f: (x) => x * x - 7, tex: "x^2 - 7", a: 2, b: 3 },
-      { f: (x) => Math.exp(x) - 5, tex: "e^x - 5", a: 1, b: 2 }
+      { f: (x) => Math.exp(x) - 5, tex: "e^x - 5", a: 1, b: 2 },
+      { f: (x) => x ** 3 + x - 3, tex: "x^3 + x - 3", a: 1, b: 2 },
+      { f: (x) => x * x - 5, tex: "x^2 - 5", a: 2, b: 3 },
+      { f: (x) => x * x - 10, tex: "x^2 - 10", a: 3, b: 4 },
+      { f: (x) => x ** 3 - 5, tex: "x^3 - 5", a: 1, b: 2 },
+      { f: (x) => Math.exp(x) - 4, tex: "e^x - 4", a: 1, b: 2 },
+      { f: (x) => Math.exp(x) - 6, tex: "e^x - 6", a: 1, b: 2 },
+      { f: (x) => x ** 3 + 3 * x - 1, tex: "x^3 + 3x - 1", a: 0, b: 1 },
+      { f: (x) => Math.exp(x) + 2 * x - 3, tex: "e^x + 2x - 3", a: 0, b: 1 },
+      { f: (x) => x * x + x - 3, tex: "x^2 + x - 3", a: 1, b: 2 },
+      { f: (x) => x ** 3 - 10, tex: "x^3 - 10", a: 2, b: 3 },
+      { f: (x) => x * x - 2, tex: "x^2 - 2", a: 1, b: 2 },
+      { f: (x) => Math.exp(x) - 2, tex: "e^x - 2", a: 0, b: 1 },
+      { f: (x) => x ** 3 + x - 4, tex: "x^3 + x - 4", a: 1, b: 2 },
+      { f: (x) => x * x - 13, tex: "x^2 - 13", a: 3, b: 4 },
+      { f: (x) => Math.exp(x) - 10, tex: "e^x - 10", a: 2, b: 3 },
+      { f: (x) => x ** 3 + x * x - 3, tex: "x^3 + x^2 - 3", a: 1, b: 2 },
+      { f: (x) => x * x + 2 * x - 4, tex: "x^2 + 2x - 4", a: 1, b: 2 },
+      { f: (x) => Math.exp(x) + x - 4, tex: "e^x + x - 4", a: 1, b: 2 },
+      { f: (x) => x ** 3 - 3, tex: "x^3 - 3", a: 1, b: 2 },
+      { f: (x) => x * x - 20, tex: "x^2 - 20", a: 4, b: 5 },
+      { f: (x) => Math.exp(x) - 7, tex: "e^x - 7", a: 1, b: 2 }
     ]);
     let lo = P.a, hi = P.b; for (let k = 0; k < 60; k++) { const m = (lo + hi) / 2; if (P.f(lo) * P.f(m) <= 0) hi = m; else lo = m; }
     const r = lo, d = Math.floor(r * 10) / 10, bon = `$[${fr(d)}\\,;${fr(+(d + 0.1).toFixed(1))}]$`;
@@ -11660,12 +11692,7 @@
       ["Si $f$ est continue et strictement croissante sur $[1\\,;4]$ avec $f(1) = 2$ et $f(4) = 9$, l'équation $f(x) = 5$ a une unique solution sur $[1\\,;4]$.", true, "Corollaire du TVI : $5$ est entre $2$ et $9$ et $f$ est strictement monotone."],
       ["Si $f$ est continue et strictement croissante sur $[1\\,;4]$ avec $f(1) = 2$ et $f(4) = 9$, l'équation $f(x) = 10$ a une solution sur $[1\\,;4]$.", false, "$10 > 9 = f(4)$ et $f$ est croissante : $f(x) \\leqslant 9$ sur $[1\\,;4]$."]
     ];
-    const [q, v, s] = pick(T), c = melangeChoix(v ? "Vrai" : "Faux", [v ? "Faux" : "Vrai"]);
-    return {
-      enonce: `Vrai ou faux ? ${q}`, mode: "choix", choix: c.choix, attendu: c.attendu,
-      aides: ["TVI : continuité + changement de signe donnent **au moins** une solution.", "Pour l'unicité, il faut la stricte monotonie.", "Une réciproque peut être fausse : cherche un contre-exemple."],
-      solution: `**${v ? "Vrai" : "Faux"}.** ${s}`
-    };
+    return vraiFaux4(T, ["TVI : continuité + changement de signe donnent **au moins** une solution.", "Pour l'unicité, il faut la stricte monotonie.", "Une réciproque peut être fausse : cherche un contre-exemple."]);
   };
 
   GEN["tlf-modele"] = function () {
@@ -11719,7 +11746,7 @@
     ][t];
     return {
       enonce: `${intro} Calcule ${Q[0]} (arrondi au millième).`, figure: fig,
-      mode: "nombre", prefixe: "Valeur ≈", attendu: +Q[1].toFixed(3), tolerance: 0.0015,
+      mode: "nombre", prefixe: "Valeur ≈", attendu: +Q[1].toFixed(3), tolerance: 0.0006,
       erreurs: t === 1 ? [{ valeur: +s.toFixed(3), message: "Ça, c'est la sensibilité $P_M(T)$ : on demande $P_T(M)$, la probabilité inverse." }] : [],
       aides: ["Sensibilité $= P_M(T)$, spécificité $= P_{\\overline{M}}(\\overline{T})$, prévalence $= P(M)$ : complète l'arbre.", "$P(T)$ s'obtient avec la formule des probabilités totales.", "$P_T(M) = \\dfrac{P(M \\cap T)}{P(T)}$ (formule de Bayes)."],
       solution: Q[2]
@@ -11762,7 +11789,7 @@
     }
     const p0 = (1 - e) / (s + 1 - e);
     return { enonce: `La VPP d'un test de sensibilité $${fr(s)}$ et de spécificité $${fr(e)}$ est $f(p) = ${f}$. À partir de quelle prévalence $p$ la VPP dépasse-t-elle $0{,}5$ ? (Arrondi au millième.)`,
-      mode: "nombre", prefixe: "$p \\approx$", attendu: +p0.toFixed(3), tolerance: 0.0015,
+      mode: "nombre", prefixe: "$p \\approx$", attendu: +p0.toFixed(3), tolerance: 0.0006,
       aides: [`$f(p) \\geqslant 0{,}5 \\iff ${fr(s)}p \\geqslant 0{,}5\\,(${fr(s)}p + ${fr(+(1 - e).toFixed(2))}(1 - p))$.`,`Cela revient à $${fr(s)}p \\geqslant ${fr(+(1 - e).toFixed(2))}(1 - p)$.`, "Développe et isole $p$."],
       solution: `$${fr(s)}p \\geqslant ${fr(+(1 - e).toFixed(2))}(1 - p) \\iff ${fr(+(s + 1 - e).toFixed(2))}p \\geqslant ${fr(+(1 - e).toFixed(2))} \\iff p \\geqslant \\dfrac{${fr(+(1 - e).toFixed(2))}}{${fr(+(s + 1 - e).toFixed(2))}} \\approx ${fr(+p0.toFixed(3))}$. En dessous de cette prévalence, un test positif est plus souvent un faux positif qu'un vrai.` };
   };
@@ -11799,12 +11826,7 @@
       ["« La spécificité d'un test est la probabilité qu'une personne dont le test est négatif soit saine. »", false, "Ça, c'est la valeur prédictive négative $P_{\\overline{T}}(\\overline{M})$. La spécificité est $P_{\\overline{M}}(\\overline{T})$."],
       ["« Si $P_B(A) > P(A)$, l'information « $B$ est réalisé » rend $A$ plus probable. »", true, "La probabilité a posteriori dépasse la probabilité a priori."]
     ];
-    const [q, v, s] = pick(T), c = melangeChoix(v ? "Vrai" : "Faux", [v ? "Faux" : "Vrai"]);
-    return {
-      enonce: `Vrai ou faux ? ${q}`, mode: "choix", choix: c.choix, attendu: c.attendu,
-      aides: ["Lis bien l'événement en indice : c'est ce que l'on sait.", "Une implication et sa réciproque n'ont pas la même probabilité.", "Pense au dépistage d'une maladie rare."],
-      solution: `**${v ? "Vrai" : "Faux"}.** ${s}`
-    };
+    return vraiFaux4(T, ["Lis bien l'événement en indice : c'est ce que l'on sait.", "Une implication et sa réciproque n'ont pas la même probabilité.", "Pense au dépistage d'une maladie rare."]);
   };
 
   GEN["tcb-python"] = function () {
@@ -11875,7 +11897,7 @@
     return {
       enonce: `Le tableau donne la ${c.nom}. À la calculatrice, détermine la droite d'ajustement de $y$ en $x$ par la méthode des moindres carrés, $y = ax + b$. Donne ${quoi === "a" ? "$a$" : "$b$"} arrondi ${d === 3 ? "au millième" : "au centième"}.`,
       tableau: tsdTableau(xs, ys), figure: tsdNuage(xs, ys, { xl: c.xl, yl: c.yl }),
-      mode: "nombre", prefixe: `$${quoi} \\approx$`, attendu: +v.toFixed(d), tolerance: d === 3 ? 0.0015 : 0.011,
+      mode: "nombre", prefixe: `$${quoi} \\approx$`, attendu: +v.toFixed(d), tolerance: d === 3 ? 0.0006 : 0.006,
       aides: ["Entre les deux listes dans le mode statistique de la calculatrice (listes L1 et L2 ou équivalent).", "Choisis la régression linéaire (LinReg, ax + b).", "Vérifie : la droite passe par le point moyen $G(\\bar{x}\\,;\\bar{y})$."],
       solution: `La calculatrice donne $y \\approx ${fr(+S.a.toFixed(d))}x ${S.b < 0 ? "-" : "+"} ${fr(+Math.abs(S.b).toFixed(2))}$ (coefficient de corrélation $r \\approx ${fr(+S.r.toFixed(3))}$). Elle passe par $G(${fr(+S.mx.toFixed(2))}\\,;${fr(+S.my.toFixed(2))})$.`
     };
@@ -11906,10 +11928,10 @@
 
   GEN["tsd-correlation"] = function () {
     const T = [
-      [pick([0.97, 0.95, 0.99, 0.92]), "forte et positive : les points sont presque alignés sur une droite croissante"],
-      [-pick([0.97, 0.95, 0.99, 0.92]), "forte et négative : les points sont presque alignés sur une droite décroissante"],
-      [pick([0.1, -0.05, 0.15, -0.12, 0.02]), "très faible : un ajustement affine n'a pas de sens"],
-      [pick([0.6, 0.55, -0.6]), "moyenne : la tendance existe mais les points sont dispersés"]
+      [pick([0.97, 0.95, 0.99, 0.92, 0.93, 0.96, 0.98, 0.91]), "forte et positive : les points sont presque alignés sur une droite croissante"],
+      [-pick([0.97, 0.95, 0.99, 0.92, 0.93, 0.96, 0.98, 0.91]), "forte et négative : les points sont presque alignés sur une droite décroissante"],
+      [pick([0.1, -0.05, 0.15, -0.12, 0.02, 0.08, -0.18, 0.05]), "très faible : un ajustement affine n'a pas de sens"],
+      [pick([0.6, 0.55, -0.6, 0.65, -0.7, 0.5, -0.55]), "moyenne : la tendance existe mais les points sont dispersés"]
     ];
     const [r, s] = pick(T), opts = T.map((x) => x[1]), c = melangeChoix(s, opts);
     return {
@@ -11968,12 +11990,7 @@
       ["« Changer de variable (par exemple $z = x^2$) peut rendre un nuage presque aligné. »", true, "C'est l'idée de l'ajustement par changement de variable."],
       ["« Si $r = 1$, tous les points sont exactement sur une droite croissante. »", true, "$|r| = 1$ correspond à un alignement parfait ; $r > 0$ : droite croissante."]
     ];
-    const [q, v, s] = pick(T), c = melangeChoix(v ? "Vrai" : "Faux", [v ? "Faux" : "Vrai"]);
-    return {
-      enonce: `Vrai ou faux ? ${q}`, mode: "choix", choix: c.choix, attendu: c.attendu,
-      aides: ["$r$ mesure la qualité d'un alignement, pas une relation de cause à effet.", "Une extrapolation sort du domaine où le modèle a été construit.", "Pour une affirmation fausse, un contre-exemple suffit."],
-      solution: `**${v ? "Vrai" : "Faux"}.** ${s}`
-    };
+    return vraiFaux4(T, ["$r$ mesure la qualité d'un alignement, pas une relation de cause à effet.", "Une extrapolation sort du domaine où le modèle a été construit.", "Pour une affirmation fausse, un contre-exemple suffit."]);
   };
 
 
@@ -12062,7 +12079,7 @@
 
   GEN["tdc-optimisation"] = function () {
     if (Math.random() < 0.5) {
-      const c = pick([12, 18, 24, 30, 36, 42]), x = c / 6, V = x * (c - 2 * x) ** 2;
+      const c = pick([6, 9, 12, 15, 18, 21, 24, 27, 30, 33, 36, 39, 42, 45, 48, 54, 60]), x = c / 6, V = x * (c - 2 * x) ** 2;
       return {
         enonce: `Dans une feuille de tôle carrée de côté $${c}$ cm, on découpe un carré de côté $x$ à chaque coin pour plier une boîte sans couvercle. Son volume est $V(x) = x(${c} - 2x)^2$ pour $0 < x < ${c / 2}$. Pour quelle valeur de $x$ le volume est-il maximal ?`,
         mode: "nombre", prefixe: "$x =$", suffixe: "cm", attendu: x,
@@ -12071,7 +12088,7 @@
         solution: `$V'(x) = (${c} - 2x)(${c} - 6x)$ : positif pour $x < ${x}$, négatif après. Le volume est maximal pour $x = ${x}$ cm : $V(${x}) = ${x} \\times ${c - 2 * x}^2 = ${nb(V)}$ cm³.`
       };
     }
-    const P = pick([20, 24, 30, 40, 60]), x = P / 4, A = x * (P - 2 * x);
+    const P = pick([12, 16, 20, 24, 28, 30, 32, 36, 40, 44, 48, 50, 60]), x = P / 4, A = x * (P - 2 * x);
     return {
       enonce: `Un éleveur de Mayotte construit un enclos rectangulaire pour ses cabris le long d'un mur, avec $${P}$ m de grillage pour les trois autres côtés. Si $x$ est la largeur (côtés perpendiculaires au mur), l'aire est $A(x) = x(${P} - 2x)$. Pour quelle largeur l'aire est-elle maximale ?`,
       mode: "nombre", prefixe: "$x =$", suffixe: "m", attendu: x,
@@ -12092,12 +12109,7 @@
       ["« Pour $y \\geqslant 0$, $\\sqrt{y}$ est l'unique nombre positif dont le carré vaut $y$. »", true, "C'est la définition de la racine carrée, réciproque du carré sur $[0\\,;+\\infty[$."],
       ["« Les courbes de $x \\mapsto x^2$ (pour $x \\geqslant 0$) et de $x \\mapsto \\sqrt{x}$ sont symétriques par rapport à l'axe des ordonnées. »", false, "Elles sont symétriques par rapport à la droite $y = x$."]
     ];
-    const [q, v, s] = pick(T), c = melangeChoix(v ? "Vrai" : "Faux", [v ? "Faux" : "Vrai"]);
-    return {
-      enonce: `Vrai ou faux ? ${q}`, mode: "choix", choix: c.choix, attendu: c.attendu,
-      aides: ["Une équivalence demande que l'implication et sa réciproque soient vraies.", "Pense au cas des nombres négatifs pour la fonction carré.", "Pour les dérivées composées, n'oublie pas le facteur $a$ ou $u'$."],
-      solution: `**${v ? "Vrai" : "Faux"}.** ${s}`
-    };
+    return vraiFaux4(T, ["Une équivalence demande que l'implication et sa réciproque soient vraies.", "Pense au cas des nombres négatifs pour la fonction carré.", "Pour les dérivées composées, n'oublie pas le facteur $a$ ou $u'$."]);
   };
 
 
@@ -12146,11 +12158,14 @@
   };
 
   GEN["tln-inequation"] = function () {
-    const c = rand(1, 3), k = pick([2, 3, 5, 10]), t = rand(0, 2);
+    const c = rand(1, 5), k = pick([2, 3, 4, 5, 7, 10]), t = rand(0, 5);
     const S = [
       [`\\ln x < ${c}`, `$]0\\,;e^{${c}}[$`, [`$]-\\infty\\,;e^{${c}}[$`, `$]e^{${c}}\\,;+\\infty[$`, `$]0\\,;${c}[$`], `$\\ln x < ${c} \\iff 0 < x < e^{${c}}$ ($\\ln$ est définie sur $]0\\,;+\\infty[$ et strictement croissante).`],
       [`e^x > ${k}`, `$]\\ln ${k}\\,;+\\infty[$`, [`$]-\\infty\\,;\\ln ${k}[$`, `$]${k}\\,;+\\infty[$`, `$]e^{${k}}\\,;+\\infty[$`], `$e^x > ${k} \\iff x > \\ln ${k}$, car $\\ln$ est strictement croissante.`],
       [`\\ln x \\geqslant -${c}`, `$[e^{-${c}}\\,;+\\infty[$`, [`$]0\\,;e^{-${c}}]$`, `$[-${c}\\,;+\\infty[$`, `$]-\\infty\\,;e^{-${c}}]$`], `$\\ln x \\geqslant -${c} \\iff x \\geqslant e^{-${c}}$.`]
+      ,[`\\ln x > ${c}`, `$]e^{${c}}\\,;+\\infty[$`, [`$]0\\,;e^{${c}}[$`, `$]${c}\\,;+\\infty[$`, `$]-\\infty\\,;e^{${c}}[$`], `$\\ln x > ${c} \\iff x > e^{${c}}$, car $\\exp$ est strictement croissante.`],
+      [`e^x \\leqslant ${k}`, `$]-\\infty\\,;\\ln ${k}]$`, [`$[\\ln ${k}\\,;+\\infty[$`, `$]-\\infty\\,;${k}]$`, `$]0\\,;\\ln ${k}]$`], `$e^x \\leqslant ${k} \\iff x \\leqslant \\ln ${k}$ ; une exponentielle est définie sur $\\mathbb{R}$, pas seulement pour $x > 0$.`],
+      [`e^{2x} > ${k}`, `$\\left]\\dfrac{\\ln ${k}}{2}\\,;+\\infty\\right[$`, [`$]\\ln ${k}\\,;+\\infty[$`, `$]2\\ln ${k}\\,;+\\infty[$`, `$\\left]-\\infty\\,;\\dfrac{\\ln ${k}}{2}\\right[$`], `$e^{2x} > ${k} \\iff 2x > \\ln ${k} \\iff x > \\dfrac{\\ln ${k}}{2}$.`]
     ][t];
     const cc = melangeChoix(S[1], S[2]);
     return { enonce: `Ensemble des solutions de $${S[0]}$ :`, mode: "choix", choix: cc.choix, attendu: cc.attendu,
@@ -12174,7 +12189,7 @@
   };
 
   GEN["tln-derivee"] = function () {
-    const a = pick([2, 3, 5]), b = rand(1, 6), t = rand(0, 3);
+    const a = pick([2, 3, 4, 5, 7]), b = rand(1, 6), t = rand(0, 3);
     const F = [
       [`\\ln(${a}x + ${b})`, `\\dfrac{${a}}{${a}x + ${b}}`, [`\\dfrac{1}{${a}x + ${b}}`, `${a}\\ln(${a}x + ${b})`, `\\dfrac{${a}x + ${b}}{${a}}`], "$(\\ln u)' = \\dfrac{u'}{u}$ avec $u' = " + a + "$"],
       [`\\ln(x^2 + ${b})`, `\\dfrac{2x}{x^2 + ${b}}`, [`\\dfrac{1}{x^2 + ${b}}`, `\\dfrac{2x}{x}`, `2x\\ln(x^2 + ${b})`], "$(\\ln u)' = \\dfrac{u'}{u}$ avec $u' = 2x$"],
@@ -12188,7 +12203,7 @@
   };
 
   GEN["tln-variations"] = function () {
-    const a = pick([2, 3, 4, 5, 0.5]), t = rand(0, 2);
+    const a = pick([2, 4, 5, 8, 10, 0.5, 0.25, 0.2, 0.1, 1.25, 2.5, 1]), t = rand(0, 3);
     if (t === 0) return { enonce: `$f(x) = ${fr(a)}x - \\ln x$ sur $]0\\,;+\\infty[$. En quelle valeur de $x$ $f$ atteint-elle son minimum ?`, mode: "nombre", prefixe: "$x =$", attendu: +(1 / a).toFixed(4), tolerance: 1e-6,
       aides: ["$f'(x) = " + fr(a) + " - \\dfrac{1}{x} = \\dfrac{" + fr(a) + "x - 1}{x}$.", "Sur $]0\\,;+\\infty[$, le signe de $f'$ est celui de $" + fr(a) + "x - 1$.", "$f'$ s'annule en changeant de signe."],
       solution: `$f'(x) = \\dfrac{${fr(a)}x - 1}{x}$ : négatif pour $x < ${fr(+(1 / a).toFixed(4))}$, positif après. Minimum en $x = ${fr(+(1 / a).toFixed(4))}$.` };
@@ -12196,13 +12211,16 @@
       aides: ["$f'(x) = \\ln x + 1$.", "$\\ln x + 1 = 0 \\iff \\ln x = -1$.", "$\\ln x = -1 \\iff x = e^{-1}$."],
       solution: "$f'(x) = \\ln x + 1$ s'annule pour $x = e^{-1} = \\dfrac{1}{e}$, négatif avant, positif après : minimum en $\\dfrac{1}{e}$, qui vaut $-\\dfrac{1}{e}$." }; }
     const c = melangeChoix("croissante", ["décroissante", "croissante puis décroissante", "décroissante puis croissante"]);
-    return { enonce: `La fonction $f(x) = \\ln(x^2 + ${rand(1, 5)})$ est, sur $[0\\,;+\\infty[$ :`, mode: "choix", choix: c.choix, attendu: c.attendu,
+        if (t === 3) { const b = rand(2, 9); return { enonce: `$f(x) = x - ${b}\\ln x$ sur $]0\\,;+\\infty[$. En quelle valeur de $x$ $f$ atteint-elle son minimum ?`, mode: "nombre", prefixe: "$x =$", attendu: b,
+      aides: [`$f'(x) = 1 - \\dfrac{${b}}{x} = \\dfrac{x - ${b}}{x}$.`, `Sur $]0\\,;+\\infty[$, le signe de $f'$ est celui de $x - ${b}$.`, "$f'$ s'annule en changeant de signe."],
+      solution: `$f'(x) = \\dfrac{x - ${b}}{x}$ : négatif pour $x < ${b}$, positif après. Minimum en $x = ${b}$, où $f(${b}) = ${b} - ${b}\\ln ${b}$.` }; }
+    return { enonce: `La fonction $f(x) = \\ln(x^2 + ${rand(1, 9)})$ est, sur $[0\\,;+\\infty[$ :`, mode: "choix", choix: c.choix, attendu: c.attendu,
       aides: ["$f'(x) = \\dfrac{2x}{x^2 + b}$.", "Le dénominateur est positif.", "Pour $x \\geqslant 0$, $2x \\geqslant 0$."],
       solution: "$f'(x) = \\dfrac{2x}{x^2 + b} \\geqslant 0$ sur $[0\\,;+\\infty[$ : $f$ est **croissante** (comme $u = x^2 + b$, car $\\ln$ est croissante)." };
   };
 
   GEN["tln-limites"] = function () {
-    const T = [["\\ln x", "x \\to +\\infty", "+\\infty"], ["\\ln x", "x \\to 0,\\ x > 0", "-\\infty"], ["\\ln x - 5", "x \\to +\\infty", "+\\infty"], ["\\dfrac{1}{\\ln x}", "x \\to +\\infty", "0"], ["2 + \\ln x", "x \\to 0,\\ x > 0", "-\\infty"], ["-3\\ln x", "x \\to 0,\\ x > 0", "+\\infty"], ["\\ln(x^2 + 1)", "x \\to +\\infty", "+\\infty"], ["\\ln(1 + e^{-x})", "x \\to +\\infty", "0"]];
+    const T = [["\\ln x", "x \\to +\\infty", "+\\infty"], ["\\ln x", "x \\to 0,\\ x > 0", "-\\infty"], ["\\ln x - 5", "x \\to +\\infty", "+\\infty"], ["\\dfrac{1}{\\ln x}", "x \\to +\\infty", "0"], ["2 + \\ln x", "x \\to 0,\\ x > 0", "-\\infty"], ["-3\\ln x", "x \\to 0,\\ x > 0", "+\\infty"], ["\\ln(x^2 + 1)", "x \\to +\\infty", "+\\infty"], ["\\ln(1 + e^{-x})", "x \\to +\\infty", "0"], ["5\\ln x", "x \\to +\\infty", "+\\infty"], ["-\\ln x", "x \\to +\\infty", "-\\infty"], ["-\\ln x", "x \\to 0,\\ x > 0", "+\\infty"], ["\\ln x + 3", "x \\to 0,\\ x > 0", "-\\infty"], ["\\ln(2x)", "x \\to +\\infty", "+\\infty"], ["\\ln(x + 1)", "x \\to +\\infty", "+\\infty"], ["\\ln(e^x)", "x \\to -\\infty", "-\\infty"], ["\\ln x", "x \\to 1", "0"], ["\\ln(x^2)", "x \\to 0,\\ x > 0", "-\\infty"], ["\\dfrac{1}{\\ln x}", "x \\to 0,\\ x > 0", "0"], ["\\ln\\left(1 + \\dfrac{1}{x}\\right)", "x \\to +\\infty", "0"], ["(\\ln x)^2", "x \\to +\\infty", "+\\infty"], ["(\\ln x)^2", "x \\to 0,\\ x > 0", "+\\infty"], ["-2\\ln x + 1", "x \\to +\\infty", "-\\infty"], ["\\ln(3x + 2)", "x \\to +\\infty", "+\\infty"], ["\\ln(\\sqrt{x})", "x \\to +\\infty", "+\\infty"], ["\\ln(e^{-x} + 1)", "x \\to -\\infty", "+\\infty"], ["4 - \\ln x", "x \\to 0,\\ x > 0", "+\\infty"], ["\\ln x + \\ln 2", "x \\to 0,\\ x > 0", "-\\infty"], ["\\ln(x) - 1", "x \\to e", "0"], ["\\dfrac{3}{\\ln x}", "x \\to +\\infty", "0"]];
     const [f, ou, l] = pick(T), c = melangeChoix(`$${l}$`, ["$+\\infty$", "$-\\infty$", "$0$", "$1$"]);
     return { enonce: `$\\lim\\limits_{${ou}} ${f} =$`, mode: "choix", choix: c.choix, attendu: c.attendu,
       aides: ["$\\ln x \\to +\\infty$ quand $x \\to +\\infty$ (lentement).", "$\\ln x \\to -\\infty$ quand $x \\to 0$ avec $x > 0$ : asymptote verticale $x = 0$.", "$\\ln 1 = 0$."],
@@ -12211,15 +12229,15 @@
 
   GEN["tln-python"] = function () {
     if (Math.random() < 0.5) {
-      const n = rand(1, 4); let s = 0; for (let k = 1; k <= n; k++) s += 1 / ((2 * k - 1) * (2 * k));
+      const n = rand(1, 6); let s = 0; for (let k = 1; k <= n; k++) s += 1 / ((2 * k - 1) * (2 * k));
       return { enonce: "Série de Brouncker, qui approche $\\ln 2 \\approx 0{,}693$ :\n\n```python\ndef brouncker(n):\n    s = 0\n    for k in range(1, n + 1):\n        s = s + 1 / ((2*k - 1) * (2*k))\n    return s\n```\n\n" + `Que renvoie brouncker(${n}) ? (Arrondi au millième.)`,
-        mode: "nombre", prefixe: "Résultat ≈", attendu: +s.toFixed(3), tolerance: 0.0015,
+        mode: "nombre", prefixe: "Résultat ≈", attendu: +s.toFixed(3), tolerance: 0.0006,
         aides: ["La boucle ajoute $\\dfrac{1}{1 \\times 2}$, puis $\\dfrac{1}{3 \\times 4}$, puis $\\dfrac{1}{5 \\times 6}$…", `Il y a $${n}$ terme${n > 1 ? "s" : ""}.`, "Additionne et arrondis."],
         solution: `$${Array.from({ length: n }, (_, k) => `\\dfrac{1}{${2 * k + 1} \\times ${2 * k + 2}}`).join(" + ")} \\approx ${fr(+s.toFixed(3))}$. Plus $n$ est grand, plus on se rapproche de $\\ln 2$.` };
     }
-    const k = pick([1, 2, 3]), a = pick([2, 3, 10]); let r = a; for (let i = 0; i < k; i++) r = Math.sqrt(r); const v = 2 ** k * (r - 1);
+    const k = pick([1, 2, 3, 4, 5]), a = pick([2, 3, 5, 10, 0.5]); let r = a; for (let i = 0; i < k; i++) r = Math.sqrt(r); const v = 2 ** k * (r - 1);
     return { enonce: "Méthode de Briggs : après $k$ racines carrées successives, $a$ devient proche de $1$ et $\\ln a \\approx 2^k(\\text{résultat} - 1)$.\n\n```python\nfrom math import sqrt\n\ndef briggs(a, k):\n    for i in range(k):\n        a = sqrt(a)\n    return 2**k * (a - 1)\n```\n\n" + `Que renvoie briggs(${a}, ${k}) ? (Arrondi au millième.)`,
-      mode: "nombre", prefixe: "Résultat ≈", attendu: +v.toFixed(3), tolerance: 0.0015,
+      mode: "nombre", prefixe: "Résultat ≈", attendu: +v.toFixed(3), tolerance: 0.0006,
       aides: [`Prends $${k}$ fois la racine carrée de $${a}$.`, "Retire $1$, puis multiplie par $2^k$.", `Compare avec $\\ln ${a} \\approx ${fr(+Math.log(a).toFixed(3))}$.`],
       solution: `Après $${k}$ racine${k > 1 ? "s" : ""} : $${fr(+r.toFixed(5))}$. $2^{${k}} \\times (${fr(+r.toFixed(5))} - 1) \\approx ${fr(+v.toFixed(3))}$, proche de $\\ln ${a} \\approx ${fr(+Math.log(a).toFixed(3))}$ (et de plus en plus proche quand $k$ augmente).` };
   };
@@ -12237,10 +12255,7 @@
       ["« $\\ln\\left(\\dfrac{a}{b}\\right) = \\dfrac{\\ln a}{\\ln b}$. »", false, "C'est $\\ln a - \\ln b$. Contre-exemple : $\\ln\\left(\\dfrac{e^2}{e}\\right) = 1$ alors que $\\dfrac{2}{1} = 2$."],
       ["« La courbe de $\\ln$ a pour asymptote verticale l'axe des ordonnées. »", true, "$\\ln x \\to -\\infty$ quand $x \\to 0$ avec $x > 0$."]
     ];
-    const [q, v, s] = pick(T), c = melangeChoix(v ? "Vrai" : "Faux", [v ? "Faux" : "Vrai"]);
-    return { enonce: `Vrai ou faux ? ${q}`, mode: "choix", choix: c.choix, attendu: c.attendu,
-      aides: ["Rappels : $\\ln(ab) = \\ln a + \\ln b$, $\\ln\\left(\\dfrac{a}{b}\\right) = \\ln a - \\ln b$, $\\ln(a^n) = n\\ln a$.", "$\\ln$ est définie et strictement croissante sur $]0\\,;+\\infty[$, $\\ln 1 = 0$.", "Un contre-exemple suffit pour montrer qu'une égalité générale est fausse."],
-      solution: `**${v ? "Vrai" : "Faux"}.** ${s}` };
+    return vraiFaux4(T, ["Rappels : $\\ln(ab) = \\ln a + \\ln b$, $\\ln\\left(\\dfrac{a}{b}\\right) = \\ln a - \\ln b$, $\\ln(a^n) = n\\ln a$.", "$\\ln$ est définie et strictement croissante sur $]0\\,;+\\infty[$, $\\ln 1 = 0$.", "Un contre-exemple suffit pour montrer qu'une égalité générale est fausse."]);
   };
 
 
@@ -12249,7 +12264,7 @@
   FIGURES["trr-comparer"] = () => graph({ xmin: -0.08, xmax: 1.12, ymin: -0.08, ymax: 1.12, xstep: 0.1, ystep: 0.1, xetiq: 0.5, yetiq: 0.5, h: 300, curves: [{ f: (x) => 0.4 * x * x + 0.6 * x, a: 0, b: 1, closed: false, label: "A", lx: 0.6, dx: 16, dy: 12 }, { f: (x) => x ** 4, a: 0, b: 1, closed: false, label: "B", lx: 0.8, dx: 16, dy: 8 }, { f: (x) => x, a: 0, b: 1, closed: false }], aria: "Deux courbes de Lorenz : A, proche de la diagonale (Gini ≈ 0,13), et B, très creusée (Gini 0,6) : le pays B est plus inégalitaire" }).replace(/g-curve-2\b/g, "g-curve-0\" style=\"stroke-dasharray:4 4;stroke-width:1.4");
 
   // 20 revenus mensuels (en euros) triés, pour les déciles
-  const trrRevenus = () => { const base = pick([[90, 110, 120, 130, 140, 150, 170, 190, 210, 240, 260, 300, 350, 420, 520, 650, 850, 1100, 1700, 2600], [900, 1050, 1150, 1250, 1350, 1450, 1550, 1650, 1700, 1800, 1900, 2000, 2150, 2300, 2500, 2700, 3000, 3400, 4100, 5600]]); const k = pick([1, 1.1, 0.9]); return base.map((v) => Math.round((v * k) / 10) * 10); };
+  const trrRevenus = () => { const base = pick([[90, 110, 120, 130, 140, 150, 170, 190, 210, 240, 260, 300, 350, 420, 520, 650, 850, 1100, 1700, 2600], [900, 1050, 1150, 1250, 1350, 1450, 1550, 1650, 1700, 1800, 1900, 2000, 2150, 2300, 2500, 2700, 3000, 3400, 4100, 5600]]); const k = pick([0.8, 0.9, 1, 1.1, 1.2, 1.3]); return base.map((v) => Math.round((v * k) / 10) * 10); };
 
   GEN["trr-quantile"] = function () {
     const r = trrRevenus(), t = rand(0, 2), lieu = r[0] < 500 ? "un village de Mayotte" : "une ville de métropole";
@@ -12262,32 +12277,34 @@
 
   GEN["trr-interdecile"] = function () {
     const t = rand(0, 1);
-    if (t === 0) { const d1 = pick([100, 110, 120, 900, 1000, 1100]), d9 = d1 < 500 ? pick([1500, 1700, 1800]) : pick([3000, 3300, 3600]), q = d9 / d1;
+    if (t === 0) { const d1 = pick([90, 100, 110, 120, 130, 150, 800, 900, 1000, 1100, 1200]), d9 = d1 < 500 ? pick([1200, 1500, 1700, 1800, 2000]) : pick([2800, 3000, 3300, 3600, 4000]), q = d9 / d1;
       return { enonce: `Dans une population, le premier décile des niveaux de vie est $D_1 = ${d1}$ € et le neuvième décile est $D_9 = ${d9}$ €. Calcule le rapport interdécile $\\dfrac{D_9}{D_1}$ (arrondi au dixième).`, mode: "nombre", prefixe: "Rapport ≈", attendu: +q.toFixed(1), tolerance: 0.06,
         aides: ["Le rapport interdécile est $\\dfrac{D_9}{D_1}$.", `$\\dfrac{${d9}}{${d1}}$.`, "Plus il est grand, plus les écarts entre riches et pauvres sont importants."],
         solution: `$\\dfrac{${d9}}{${d1}} \\approx ${fr(+q.toFixed(1))}$ : le niveau de vie plancher des $10\\,\\%$ les plus aisés est $${fr(+q.toFixed(1))}$ fois le plafond des $10\\,\\%$ les plus modestes.` }; }
 
-    return { enonce: `INSEE, 2018 : le niveau de vie médian à Mayotte est de $260$ € par mois. Le neuvième décile $D_9$ vaut environ $6{,}8$ fois la médiane (contre $1{,}8$ fois en métropole). Calcule $D_9$ à Mayotte (arrondi à la dizaine).`, mode: "nombre", prefixe: "$D_9 \\approx$", suffixe: "€", attendu: 1770, tolerance: 10.1,
+    return { enonce: `INSEE, 2018 : le niveau de vie médian à Mayotte est de $260$ € par mois. Le neuvième décile $D_9$ vaut environ $6{,}8$ fois la médiane (contre $1{,}8$ fois en métropole). Calcule $D_9$ à Mayotte (arrondi à la dizaine).`, mode: "nombre", prefixe: "$D_9 \\approx$", suffixe: "€", attendu: 1770, tolerance: 5,
       aides: ["$D_9 = 6{,}8 \\times$ médiane.", "$6{,}8 \\times 260$.", "Arrondis à la dizaine."],
       solution: `$D_9 \\approx 6{,}8 \\times 260 \\approx 1\\,770$ € : les $10\\,\\%$ les plus aisés de Mayotte vivent avec plus de $1\\,770$ € par mois, alors que la moitié de la population vit avec moins de $260$ €. C'est proche du niveau de vie médian de la métropole.` };
   };
 
   GEN["trr-lorenz-lire"] = function () {
-    const n = pick([2, 3]), x = pick([0.2, 0.5, 0.8, 0.9]), L = (u) => u ** n, t = rand(0, 1);
-    const fig = graph({ xmin: -0.08, xmax: 1.12, ymin: -0.08, ymax: 1.12, xstep: 0.1, ystep: 0.1, xetiq: 0.5, yetiq: 0.5, h: 260, curves: [{ f: (u) => u, a: 0, b: 1, closed: false }, { f: L, a: 0, b: 1, closed: false }], points: [{ x, y: L(x) }], aria: "Courbe de Lorenz sous la diagonale" });
-    if (t === 0) return { enonce: `La courbe de Lorenz des revenus d'un pays est $L(x) = x^{${n}}$. Quelle part (en %) du revenu total les $${fr(x * 100)}\\,\\%$ les plus modestes perçoivent-ils ? (Arrondie à l'unité.)`, mode: "nombre", prefixe: "Part ≈", suffixe: "%", attendu: Math.round(L(x) * 100), tolerance: 0.6, figure: fig,
-      aides: ["$L(x)$ est la part du revenu total reçue par la proportion $x$ la plus modeste.", `Calcule $L(${fr(x)}) = ${fr(x)}^{${n}}$.`, "Convertis en pourcentage."],
-      solution: `$L(${fr(x)}) = ${fr(x)}^{${n}} = ${fr(+L(x).toFixed(4))}$ : les $${fr(x * 100)}\\,\\%$ les plus modestes perçoivent environ $${Math.round(L(x) * 100)}\\,\\%$ du revenu total.` };
-    const y = 0.9;
-    return { enonce: `La courbe de Lorenz des revenus d'un pays est $L(x) = x^{${n}}$. Quelle part (en %) du revenu total les $10\\,\\%$ les plus aisés perçoivent-ils ? (Arrondie à l'unité.)`, mode: "nombre", prefixe: "Part ≈", suffixe: "%", attendu: Math.round((1 - L(y)) * 100), tolerance: 0.6, figure: fig,
-      erreurs: [{ valeur: Math.round(L(0.1) * 100), message: "$L(0{,}1)$ est la part des $10\\,\\%$ les plus **modestes**." }],
-      aides: ["Les $90\\,\\%$ les plus modestes perçoivent $L(0{,}9)$.", "Les $10\\,\\%$ restants perçoivent le reste.", `$1 - 0{,}9^{${n}}$.`],
-      solution: `$1 - L(0{,}9) = 1 - 0{,}9^{${n}} = ${fr(+(1 - L(y)).toFixed(3))}$ : environ $${Math.round((1 - L(y)) * 100)}\\,\\%$ du revenu total pour les $10\\,\\%$ les plus aisés.` };
+    const n = pick([2, 3, 4]), L = (u) => u ** n, t = rand(0, 1);
+    if (t === 0) { const x = pick([0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.8, 0.9]);
+      const fig = graph({ xmin: -0.08, xmax: 1.12, ymin: -0.08, ymax: 1.12, xstep: 0.1, ystep: 0.1, xetiq: 0.5, yetiq: 0.5, h: 260, curves: [{ f: (u) => u, a: 0, b: 1, closed: false }, { f: L, a: 0, b: 1, closed: false }], points: [{ x, y: L(x) }], aria: "Courbe de Lorenz sous la diagonale" });
+      return { enonce: `La courbe de Lorenz des revenus d'un pays est $L(x) = x^{${n}}$. Quelle part (en %) du revenu total les $${fr(x * 100)}\\,\\%$ les plus modestes perçoivent-ils ? (Arrondie à l'unité.)`, mode: "nombre", prefixe: "Part ≈", suffixe: "%", attendu: Math.round(L(x) * 100), tolerance: 0.5, figure: fig,
+        aides: ["$L(x)$ est la part du revenu total reçue par la proportion $x$ la plus modeste.", `Calcule $L(${fr(x)}) = ${fr(x)}^{${n}}$.`, "Convertis en pourcentage."],
+        solution: `$L(${fr(x)}) = ${fr(x)}^{${n}} = ${fr(+L(x).toFixed(4))}$ : les $${fr(x * 100)}\\,\\%$ les plus modestes perçoivent environ $${Math.round(L(x) * 100)}\\,\\%$ du revenu total.` }; }
+    const q = pick([0.05, 0.1, 0.2, 0.3]), y = 1 - q;
+    const fig = graph({ xmin: -0.08, xmax: 1.12, ymin: -0.08, ymax: 1.12, xstep: 0.1, ystep: 0.1, xetiq: 0.5, yetiq: 0.5, h: 260, curves: [{ f: (u) => u, a: 0, b: 1, closed: false }, { f: L, a: 0, b: 1, closed: false }], points: [{ x: y, y: L(y) }], aria: "Courbe de Lorenz sous la diagonale" });
+    return { enonce: `La courbe de Lorenz des revenus d'un pays est $L(x) = x^{${n}}$. Quelle part (en %) du revenu total les $${fr(q * 100)}\\,\\%$ les plus aisés perçoivent-ils ? (Arrondie à l'unité.)`, mode: "nombre", prefixe: "Part ≈", suffixe: "%", attendu: Math.round((1 - L(y)) * 100), tolerance: 0.5, figure: fig,
+      erreurs: [{ valeur: Math.round(L(q) * 100), message: `$L(${fr(q)})$ est la part des $${fr(q * 100)}\\,\\%$ les plus **modestes**.` }],
+      aides: [`Les $${fr(y * 100)}\\,\\%$ les plus modestes perçoivent $L(${fr(y)})$.`, `Les $${fr(q * 100)}\\,\\%$ restants perçoivent le reste.`, `$1 - ${fr(y)}^{${n}}$.`],
+      solution: `$1 - L(${fr(y)}) = 1 - ${fr(y)}^{${n}} \\approx ${fr(+(1 - L(y)).toFixed(3))}$ : environ $${Math.round((1 - L(y)) * 100)}\\,\\%$ du revenu total pour les $${fr(q * 100)}\\,\\%$ les plus aisés.` };
   };
 
   GEN["trr-lorenz-proprietes"] = function () {
-    const ok = pick(["$x^2$", "$x^4$", "$\\dfrac{x + x^2}{2}$", "$\\dfrac{e^x - 1}{e - 1}$"]);
-    const T = [["$\\sqrt{x}$", "au-dessus de la diagonale, concave"], ["$0{,}5x$", "$L(1) = 0{,}5 \\neq 1$"], ["$x^2 + 0{,}1$", "$L(0) = 0{,}1 \\neq 0$"], ["$2x - x^2$", "au-dessus de la diagonale, concave"]];
+    const ok = pick(["$x^2$", "$x^3$", "$x^4$", "$\\dfrac{x + x^2}{2}$", "$\\dfrac{x + x^3}{2}$", "$\\dfrac{x^2 + x^3}{2}$", "$2^x - 1$", "$\\dfrac{e^x - 1}{e - 1}$"]);
+    const T = [["$\\sqrt{x}$", "au-dessus de la diagonale, concave"], ["$0{,}5x$", "$L(1) = 0{,}5 \\neq 1$"], ["$x^2 + 0{,}1$", "$L(0) = 0{,}1 \\neq 0$"], ["$2x - x^2$", "au-dessus de la diagonale, concave"], ["$1 - (1 - x)^2$", "au-dessus de la diagonale, concave"], ["$x^2 - 0{,}1$", "$L(0) = -0{,}1$, une part ne peut pas être négative"], ["$\\dfrac{x}{2}$", "$L(1) = 0{,}5 \\neq 1$"]];
     const fx = T.slice().sort(() => Math.random() - 0.5).slice(0, 3), c = melangeChoix(`$L(x) = ${ok.slice(1, -1)}$`, fx.map((f) => `$L(x) = ${f[0].slice(1, -1)}$`));
     return { enonce: "Laquelle de ces fonctions peut être une courbe de Lorenz sur $[0\\,;1]$ ?", mode: "choix", choix: c.choix, attendu: c.attendu,
       aides: ["Une courbe de Lorenz vérifie $L(0) = 0$ et $L(1) = 1$.", "Elle est croissante et convexe.", "Elle reste sous la diagonale : $L(x) \\leqslant x$."],
@@ -12295,25 +12312,36 @@
   };
 
   GEN["trr-gini"] = function () {
-    const t = rand(0, 1);
-    if (t === 0) { const n = pick([2, 3, 4, 5, 6, 7]), G = (n - 1) / (n + 1);
+    const t = rand(0, 3);
+    if (t === 0) { const n = rand(2, 12), G = (n - 1) / (n + 1);
       return { enonce: `La courbe de Lorenz d'un pays est $L(x) = x^{${n}}$. Calcule l'indice de Gini $G = 1 - 2\\displaystyle\\int_0^1 L(x)\\,\\mathrm{d}x$ (arrondi au centième).`, mode: "nombre", prefixe: "$G \\approx$", attendu: +G.toFixed(2), tolerance: 0.006,
         erreurs: [{ valeur: +(1 / (n + 1)).toFixed(2), message: "Ça, c'est l'intégrale de $L$. Il faut encore calculer $1 - 2\\int L$." }],
         aides: [`$\\displaystyle\\int_0^1 x^{${n}}\\,\\mathrm{d}x = \\dfrac{1}{${n + 1}}$.`, `$G = 1 - \\dfrac{2}{${n + 1}}$.`, "Calcule et arrondis."],
-        solution: `$\\displaystyle\\int_0^1 x^{${n}}\\,\\mathrm{d}x = \\dfrac{1}{${n + 1}}$, donc $G = 1 - \\dfrac{2}{${n + 1}} ${n % 2 ? "" : ` = \\dfrac{${n - 1}}{${n + 1}}`} \\approx ${fr(+G.toFixed(2))}$.` }; }
-    const a = pick([0.3, 0.45, 0.6, 0.75, 0.9]), G = a / 3;
-    return { enonce: `La courbe de Lorenz d'un pays est $L(x) = ${fr(a)}x^2 + ${fr(+(1 - a).toFixed(2))}x$. Calcule son indice de Gini (arrondi au centième).`, mode: "nombre", prefixe: "$G \\approx$", attendu: +G.toFixed(2), tolerance: 0.006,
-      aides: ["$G = 1 - 2\\displaystyle\\int_0^1 L(x)\\,\\mathrm{d}x$.", `$\\displaystyle\\int_0^1 L = \\dfrac{${fr(a)}}{3} + \\dfrac{${fr(+(1 - a).toFixed(2))}}{2}$.`, "Multiplie par $2$ et retire de $1$."],
-      solution: `$\\displaystyle\\int_0^1 L = \\dfrac{${fr(a)}}{3} + \\dfrac{${fr(+(1 - a).toFixed(2))}}{2}$, donc $G = 1 - \\dfrac{${fr(2 * a)}}{3} - ${fr(+(1 - a).toFixed(2))} = \\dfrac{${fr(a)}}{3} = ${fr(+G.toFixed(2))}$.` };
+        solution: `$\\displaystyle\\int_0^1 x^{${n}}\\,\\mathrm{d}x = \\dfrac{1}{${n + 1}}$, donc $G = 1 - \\dfrac{2}{${n + 1}} = \\dfrac{${n - 1}}{${n + 1}} ${Number.isInteger(+(G * 100).toFixed(6)) ? "=" : "\\approx"} ${fr(+G.toFixed(2))}$.` }; }
+    if (t === 1) { const a = pick([0.15, 0.3, 0.45, 0.6, 0.75, 0.9]), G = a / 3;
+      return { enonce: `La courbe de Lorenz d'un pays est $L(x) = ${fr(a)}x^2 + ${fr(+(1 - a).toFixed(2))}x$. Calcule son indice de Gini (arrondi au centième).`, mode: "nombre", prefixe: "$G \\approx$", attendu: +G.toFixed(2), tolerance: 0.006,
+        aides: ["$G = 1 - 2\\displaystyle\\int_0^1 L(x)\\,\\mathrm{d}x$.", `$\\displaystyle\\int_0^1 L = \\dfrac{${fr(a)}}{3} + \\dfrac{${fr(+(1 - a).toFixed(2))}}{2}$.`, "Multiplie par $2$ et retire de $1$."],
+        solution: `$\\displaystyle\\int_0^1 L = \\dfrac{${fr(a)}}{3} + \\dfrac{${fr(+(1 - a).toFixed(2))}}{2}$, donc $G = 1 - \\dfrac{${fr(2 * a)}}{3} - ${fr(+(1 - a).toFixed(2))} = \\dfrac{${fr(a)}}{3} = ${fr(+G.toFixed(2))}$.` }; }
+    if (t === 2) { const a = pick([0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]), G = a / 2;
+      return { enonce: `La courbe de Lorenz d'un pays est $L(x) = ${fr(a)}x^3 + ${fr(+(1 - a).toFixed(2))}x$. Calcule son indice de Gini (arrondi au centième).`, mode: "nombre", prefixe: "$G \\approx$", attendu: +G.toFixed(2), tolerance: 0.006,
+        aides: ["$G = 1 - 2\\displaystyle\\int_0^1 L(x)\\,\\mathrm{d}x$.", `$\\displaystyle\\int_0^1 L = \\dfrac{${fr(a)}}{4} + \\dfrac{${fr(+(1 - a).toFixed(2))}}{2}$.`, "Multiplie par $2$ et retire de $1$."],
+        solution: `$\\displaystyle\\int_0^1 L = \\dfrac{${fr(a)}}{4} + \\dfrac{${fr(+(1 - a).toFixed(2))}}{2}$, donc $G = 1 - \\dfrac{${fr(a)}}{2} - ${fr(+(1 - a).toFixed(2))} = \\dfrac{${fr(a)}}{2} = ${fr(+G.toFixed(2))}$.` }; }
+    const k = rand(1, 5), I = 1 / k - 1 / (Math.exp(k) - 1), G = 1 - 2 * I;
+    return { enonce: `La courbe de Lorenz d'un pays est $L(x) = \\dfrac{e^{${k === 1 ? "" : k}x} - 1}{e^{${k}} - 1}$. On admet que $\\displaystyle\\int_0^1 L(x)\\,\\mathrm{d}x = \\dfrac{1}{${k}} - \\dfrac{1}{e^{${k}} - 1}$. Calcule son indice de Gini (arrondi au centième).`, mode: "nombre", prefixe: "$G \\approx$", attendu: +G.toFixed(2), tolerance: 0.006,
+      erreurs: [{ valeur: +I.toFixed(2), message: "Ça, c'est l'intégrale de $L$. Il faut encore calculer $1 - 2\\int L$." }],
+      aides: ["$G = 1 - 2\\displaystyle\\int_0^1 L(x)\\,\\mathrm{d}x$.", `$\\displaystyle\\int_0^1 L \\approx ${fr(+I.toFixed(4))}$.`, "Multiplie par $2$ et retire de $1$."],
+      solution: `$\\displaystyle\\int_0^1 L \\approx ${fr(+I.toFixed(4))}$, donc $G \\approx 1 - 2 \\times ${fr(+I.toFixed(4))} \\approx ${fr(+G.toFixed(2))}$.` };
   };
 
   GEN["trr-gini-trapezes"] = function () {
-    const T = pick([[0, 0.02, 0.07, 0.15, 0.32, 1], [0, 0.08, 0.2, 0.36, 0.58, 1], [0, 0.05, 0.13, 0.26, 0.45, 1], [0, 0.1, 0.24, 0.42, 0.64, 1], [0, 0.06, 0.16, 0.3, 0.5, 1], [0, 0.03, 0.1, 0.21, 0.4, 1], [0, 0.09, 0.22, 0.39, 0.61, 1], [0, 0.04, 0.12, 0.25, 0.46, 1], [0, 0.07, 0.18, 0.34, 0.56, 1], [0, 0.12, 0.28, 0.47, 0.7, 1]]);
+    // parts de revenu des 5 quintiles, rangées de la plus petite à la plus grande (courbe convexe)
+    const parts = Array.from({ length: 5 }, () => rand(2, 40)).sort((x, y) => x - y), tot = parts.reduce((x, y) => x + y, 0);
+    const T = [0]; let c = 0; parts.forEach((v, k) => { c += v; T.push(k === 4 ? 1 : +(c / tot).toFixed(2)); });
     let S = 0; for (let k = 0; k < 5; k++) S += 0.2 * (T[k] + T[k + 1]) / 2; const G = 1 - 2 * S;
     const tab = T.map((v, k) => `$L(${fr(k / 5)}) = ${fr(v)}$`).join(" ; ");
     return { enonce: "On connaît la courbe de Lorenz d'un pays en quelques points (quintiles) : " + tab + ". On estime $\\displaystyle\\int_0^1 L$ par la méthode des trapèzes (pas $0{,}2$), avec ce programme :\n\n```python\nL = [" + T.join(", ") + "]\n\ndef gini(L):\n    s = 0\n    for k in range(5):\n        s = s + 0.2 * (L[k] + L[k + 1]) / 2\n    return 1 - 2 * s\n```\n\nQue renvoie gini(L) ? (Arrondi au centième.)", mode: "nombre", prefixe: "$G \\approx$", attendu: +G.toFixed(2), tolerance: 0.006,
       aides: ["Chaque trapèze a pour aire $0{,}2 \\times \\dfrac{L(x_k) + L(x_{k+1})}{2}$.", `La somme des aires vaut environ $${fr(+S.toFixed(3))}$.`, "$G = 1 - 2 \\times$ somme."],
-      solution: `Somme des trapèzes : $${fr(+S.toFixed(3))}$, donc $G \\approx 1 - 2 \\times ${fr(+S.toFixed(3))} \\approx ${fr(+G.toFixed(2))}$. ${G > 0.4 ? "C'est un pays très inégalitaire." : "Les inégalités sont modérées."}` };
+      solution: `Somme des trapèzes : $${fr(+S.toFixed(3))}$, donc $G \\approx 1 - 2 \\times ${fr(+S.toFixed(3))} \\approx ${fr(+G.toFixed(2))}$. ${G > 0.4 ? "C'est un pays très inégalitaire." : G > 0.25 ? "Les inégalités sont marquées." : "Les inégalités sont modérées."}` };
   };
 
   GEN["trr-logique"] = function () {
@@ -12331,10 +12359,7 @@
       ["« L'indice de Gini est le double de l'aire entre la diagonale et la courbe de Lorenz. »", true, "$G = 2\\displaystyle\\int_0^1 (x - L(x))\\,\\mathrm{d}x$."],
       ["« Le rapport interdécile peut être inférieur à $1$. »", false, "$D_9 \\geqslant D_1$, donc $\\dfrac{D_9}{D_1} \\geqslant 1$."]
     ];
-    const [q, v, s] = pick(T), c = melangeChoix(v ? "Vrai" : "Faux", [v ? "Faux" : "Vrai"]);
-    return { enonce: `Vrai ou faux ? ${q}`, mode: "choix", choix: c.choix, attendu: c.attendu,
-      aides: ["Courbe de Lorenz : $L(0) = 0$, $L(1) = 1$, croissante, convexe, sous la diagonale.", "$G = 1 - 2\\displaystyle\\int_0^1 L$.", "Pense au cas de l'égalité parfaite."],
-      solution: `**${v ? "Vrai" : "Faux"}.** ${s}` };
+    return vraiFaux4(T, ["Courbe de Lorenz : $L(0) = 0$, $L(1) = 1$, croissante, convexe, sous la diagonale.", "$G = 1 - 2\\displaystyle\\int_0^1 L$.", "Pense au cas de l'égalité parfaite."]);
   };
 
 
@@ -12344,7 +12369,7 @@
     return graph({ xmin: -1.5, xmax: 57, ymin: 9, ymax: 21.5, xstep: 5, xetiq: 10, ystep: 1, yetiq: 2, h: 260, padL: 26, xlabel: "n° échantillon", points: ecarts.map((e, k) => ({ x: k + 1, y: 15 + e })), hlines: [{ y: 15 + 2 * 1.732, label: "μ + 2σ/√n" }, { y: 15 - 2 * 1.732, label: "μ − 2σ/√n" }], aria: "40 moyennes d'échantillons de taille 25 autour de μ = 15 : 38 sur 40 (95 %) sont entre μ − 2σ/√n et μ + 2σ/√n" }); };
 
   GEN["tec-ecart-type"] = function () {
-    const s = pick([4, 6, 10, 12, 20]), n = pick([4, 16, 25, 100, 400]), t = rand(0, 1);
+    const s = pick([4, 6, 8, 10, 12, 15, 20]), n = pick([4, 16, 25, 100, 400]), t = rand(0, 1);
     if (t === 0) return { enonce: `Une variable aléatoire $X$ a pour écart type $\\sigma = ${s}$. On prélève des échantillons de taille $n = ${n}$. Quel est l'écart type de la série des moyennes, environ $\\dfrac{\\sigma}{\\sqrt{n}}$ ?`, mode: "nombre", prefixe: "$\\dfrac{\\sigma}{\\sqrt{n}} =$", attendu: s / Math.sqrt(n), tolerance: 0.001,
       erreurs: [{ valeur: s / n, message: "On divise par $\\sqrt{n}$, pas par $n$." }],
       aides: ["L'écart type des moyennes d'échantillons de taille $n$ est environ $\\dfrac{\\sigma}{\\sqrt{n}}$.", `$\\sqrt{${n}} = ${Math.sqrt(n)}$.`, `$\\dfrac{${s}}{${Math.sqrt(n)}}$.`],
@@ -12380,11 +12405,11 @@
 
   GEN["tec-taille"] = function () {
     const t = rand(0, 1);
-    if (t === 0) { const a = pick([0.1, 0.05, 0.04, 0.02]), n = Math.ceil(4 / (a * a) - 1e-9);
+    if (t === 0) { const a = pick([0.1, 0.05, 0.04, 0.02, 0.08, 0.025, 0.01]), n = Math.ceil(4 / (a * a) - 1e-9);
       return { enonce: `On veut une fourchette $\\left[f - \\dfrac{1}{\\sqrt{n}}\\,;f + \\dfrac{1}{\\sqrt{n}}\\right]$ d'amplitude au plus $${fr(a)}$. Quelle est la plus petite taille d'échantillon $n$ ?`, mode: "nombre", prefixe: "$n =$", attendu: n,
         aides: ["L'amplitude est $\\dfrac{2}{\\sqrt{n}}$.", `$\\dfrac{2}{\\sqrt{n}} \\leqslant ${fr(a)} \\iff \\sqrt{n} \\geqslant ${fr(2 / a)}$.`, `$n \\geqslant ${fr(2 / a)}^2$.`],
         solution: `$\\sqrt{n} \\geqslant ${fr(2 / a)}$, donc $n \\geqslant ${String(n).replace(/\B(?=(\d{3})+(?!\d))/g, "\\,")}$ : il faut interroger au moins $${String(n).replace(/\B(?=(\d{3})+(?!\d))/g, "\\,")}$ personnes.` }; }
-    const s = pick([5, 10, 12, 15]), e = pick([1, 2, 0.5]), n = Math.ceil((s / e) ** 2 - 1e-9);
+    const s = pick([3, 5, 8, 10, 12, 15, 20]), e = pick([1, 2, 0.5, 0.25]), n = Math.ceil((s / e) ** 2 - 1e-9);
     return { enonce: `$X$ a pour écart type $\\sigma = ${s}$. Quelle est la plus petite taille $n$ d'échantillon pour que $\\dfrac{\\sigma}{\\sqrt{n}} \\leqslant ${fr(e)}$ ?`, mode: "nombre", prefixe: "$n =$", attendu: n,
       aides: [`$\\dfrac{${s}}{\\sqrt{n}} \\leqslant ${fr(e)} \\iff \\sqrt{n} \\geqslant ${fr(s / e)}$.`, `$n \\geqslant ${fr(s / e)}^2$.`, "Prends le plus petit entier qui convient."],
       solution: `$n \\geqslant \\left(\\dfrac{${s}}{${fr(e)}}\\right)^2 = ${fr((s / e) ** 2)}$, donc $n = ${n}$.` };
@@ -12392,34 +12417,40 @@
 
   GEN["tec-biais"] = function () {
     const T = [
-      ["Pour estimer la part d'élèves vaccinés, on interroge les élèves présents à l'infirmerie.", "biaisé", "Les élèves de l'infirmerie ne sont pas représentatifs (ils y sont souvent pour une raison de santé)."],
-      ["Pour connaître le temps de trajet des élèves, on interroge uniquement ceux qui arrivent en retard.", "biaisé", "Les retardataires ont sans doute des trajets plus longs que la moyenne."],
-      ["Pour connaître l'avis des élèves sur la cantine, on tire au sort $100$ élèves dans la liste complète du lycée.", "non biaisé", "Le tirage au sort dans toute la population donne un échantillon représentatif."],
-      ["Pour un sondage sur l'usage des réseaux sociaux, on publie un questionnaire en ligne sur Instagram.", "biaisé", "Seuls des utilisateurs d'Instagram répondent : la population est mal représentée (biais de sélection)."],
-      ["Pour estimer la taille moyenne des élèves, on mesure tous les élèves d'une équipe de basket.", "biaisé", "Les basketteurs sont en général plus grands que la moyenne."],
-      ["Pour estimer la part de familles ayant l'eau courante à Mayotte, on tire au sort des logements dans tout le département.", "non biaisé", "Tous les logements ont la même chance d'être choisis."],
-      ["Pour connaître le temps de sommeil des élèves, on tire au sort $5$ élèves dans chaque classe du lycée.", "non biaisé", "Toutes les classes sont représentées et les élèves sont tirés au hasard."],
-      ["Pour estimer la fréquentation de la barge, on compte les passagers uniquement le samedi matin.", "biaisé", "Le samedi matin n'est pas représentatif de toute la semaine."],
-      ["Pour savoir si les élèves aiment le sport, on interroge les élèves inscrits à l'association sportive.", "biaisé", "Ces élèves aiment sans doute plus le sport que les autres."],
-      ["Pour estimer la part de Mahorais qui parlent shimaoré, on interroge des personnes tirées au sort sur les listes de tout le département.", "non biaisé", "Le tirage au sort dans toute la population évite le biais de sélection."],
-      ["Pour un sondage sur le prix des fruits, on interroge les clients d'un seul marché de Mamoudzou.", "biaisé", "Un seul marché ne représente pas tout le département (prix et clientèle différents)."]
-    ], [q, r, s] = pick(T), c = melangeChoix(r === "biaisé" ? "Oui, l'échantillon est biaisé" : "Non, l'échantillon est représentatif", [r === "biaisé" ? "Non, l'échantillon est représentatif" : "Oui, l'échantillon est biaisé"]);
-    return { enonce: `${q} Cette méthode présente-t-elle un biais ?`, mode: "choix", choix: c.choix, attendu: c.attendu,
-      aides: ["Un échantillon doit être tiré au hasard dans toute la population étudiée.", "Un biais apparaît si une partie de la population a plus de chances d'être choisie.", "Demande-toi : ces personnes sont-elles différentes des autres pour la question posée ?"],
-      solution: `**${r === "biaisé" ? "Oui" : "Non"}.** ${s}` };
+      ["Pour estimer la part d'élèves vaccinés, on interroge les élèves présents à l'infirmerie.", true, "les élèves de l'infirmerie ne sont pas représentatifs (ils y sont souvent pour une raison de santé)."],
+      ["Pour connaître le temps de trajet des élèves, on interroge uniquement ceux qui arrivent en retard.", true, "les retardataires ont sans doute des trajets plus longs que la moyenne."],
+      ["Pour connaître l'avis des élèves sur la cantine, on tire au sort $100$ élèves dans la liste complète du lycée.", false, "le tirage au sort dans toute la population donne un échantillon représentatif."],
+      ["Pour un sondage sur l'usage des réseaux sociaux, on publie un questionnaire en ligne sur Instagram.", true, "seuls des utilisateurs d'Instagram répondent (biais de sélection)."],
+      ["Pour estimer la taille moyenne des élèves, on mesure tous les élèves d'une équipe de basket.", true, "les basketteurs sont en général plus grands que la moyenne."],
+      ["Pour estimer la part de familles ayant l'eau courante à Mayotte, on tire au sort des logements dans tout le département.", false, "tous les logements ont la même chance d'être choisis."],
+      ["Pour connaître le temps de sommeil des élèves, on tire au sort $5$ élèves dans chaque classe du lycée.", false, "toutes les classes sont représentées et les élèves sont tirés au hasard."],
+      ["Pour estimer la fréquentation de la barge, on compte les passagers uniquement le samedi matin.", true, "le samedi matin n'est pas représentatif de toute la semaine."],
+      ["Pour savoir si les élèves aiment le sport, on interroge les élèves inscrits à l'association sportive.", true, "ces élèves aiment sans doute plus le sport que les autres."],
+      ["Pour estimer la part de Mahorais qui parlent shimaoré, on interroge des personnes tirées au sort sur les listes de tout le département.", false, "le tirage au sort dans toute la population évite le biais de sélection."],
+      ["Pour un sondage sur le prix des fruits, on interroge les clients d'un seul marché de Mamoudzou.", true, "un seul marché ne représente pas tout le département."],
+      ["Pour connaître l'avis des parents sur les horaires, on envoie le questionnaire à toutes les familles et on tire au sort parmi elles $200$ réponses à relancer jusqu'à obtenir une réponse.", false, "les familles sont tirées au hasard et on limite la non-réponse."],
+      ["Pour savoir si les élèves sont satisfaits du lycée, on demande « Tu es content de ton lycée, comme tout le monde ? »", true, "la question oriente la réponse (biais de réponse)."],
+      ["Pour estimer le temps passé sur les devoirs, on tire au sort $60$ élèves sur la liste de tous les inscrits.", false, "chaque élève a la même chance d'être choisi."]
+    ];
+    const biaises = T.filter((t) => t[1]), sains = T.filter((t) => !t[1]), cherche = Math.random() < 0.5 ? "biais" : "sain";
+    const bon = pick(cherche === "biais" ? biaises : sains), autres = shuffle((cherche === "biais" ? sains : biaises).slice()).slice(0, 3);
+    const c = melangeChoix(bon[0], autres.map((a) => a[0]));
+    return { enonce: `Une seule de ces méthodes de sondage ${cherche === "biais" ? "présente un **biais**" : "est **sans biais**"}. Laquelle ?`, mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: ["Un échantillon doit être tiré au hasard dans toute la population étudiée.", "Un biais apparaît si une partie de la population a plus de chances d'être choisie, ou si la question oriente la réponse.", "Demande-toi : ces personnes sont-elles différentes des autres pour la question posée ?"],
+      solution: `« ${bon[0]} » ${cherche === "biais" ? "est biaisée" : "est sans biais"} : ${bon[2]}\n\n` + autres.map((a) => `- « ${a[0]} » ${a[1] ? "est biaisée" : "est sans biais"} : ${a[2]}`).join("\n") };
   };
 
   GEN["tec-synthese"] = function () {
     const t = rand(0, 2);
-    if (t === 0) { const T = pick([20, 30, 40]), n = pick([25, 36, 100]), s = T / Math.sqrt(12), r = s / Math.sqrt(n);
+    if (t === 0) { const T = pick([15, 20, 30, 40, 60]), n = pick([16, 25, 36, 49, 64, 100]), s = T / Math.sqrt(12), r = s / Math.sqrt(n);
       return { enonce: `Synthèse (ch. 13 et 15) : le temps d'attente de la barge suit la loi uniforme sur $[0\\,;${T}]$, d'écart type $\\sigma = \\dfrac{${T}}{\\sqrt{12}}$. On note la moyenne des attentes sur $${n}$ traversées. Quel est environ l'écart type de cette moyenne ? (Arrondi au centième.)`, mode: "nombre", prefixe: "≈", suffixe: "min", attendu: +r.toFixed(2), tolerance: 0.006,
         aides: [`$\\sigma = \\dfrac{${T}}{\\sqrt{12}} \\approx ${fr(+s.toFixed(3))}$.`, "Écart type de la moyenne : $\\dfrac{\\sigma}{\\sqrt{n}}$.", `$\\dfrac{${fr(+s.toFixed(3))}}{\\sqrt{${n}}}$.`],
         solution: `$\\dfrac{\\sigma}{\\sqrt{${n}}} \\approx \\dfrac{${fr(+s.toFixed(3))}}{${Math.sqrt(n)}} \\approx ${fr(+r.toFixed(2))}$ min : sur $${n}$ traversées, l'attente moyenne reste proche de $${T / 2}$ min.` }; }
-    if (t === 1) { const p = pick([0.2, 0.3, 0.5]), n = pick([100, 400]), s = Math.sqrt(p * (1 - p)), r = s / Math.sqrt(n);
+    if (t === 1) { const p = pick([0.1, 0.2, 0.3, 0.4, 0.5]), n = pick([100, 400, 625, 900]), s = Math.sqrt(p * (1 - p)), r = s / Math.sqrt(n);
       return { enonce: `Synthèse (ch. 2 et 15) : $X$ suit la loi de Bernoulli de paramètre $${fr(p)}$, d'écart type $\\sqrt{p(1 - p)}$. Pour des échantillons de taille $${n}$, quel est l'écart type de la fréquence observée, $\\dfrac{\\sigma}{\\sqrt{n}}$ ? (Arrondi au millième.)`, mode: "nombre", prefixe: "≈", attendu: +r.toFixed(3), tolerance: 0.0006,
         aides: [`$\\sigma = \\sqrt{${fr(p)} \\times ${fr(1 - p)}} \\approx ${fr(+s.toFixed(4))}$.`, `Divise par $\\sqrt{${n}} = ${Math.sqrt(n)}$.`, "Arrondis au millième."],
         solution: `$\\dfrac{\\sqrt{${fr(p)} \\times ${fr(1 - p)}}}{${Math.sqrt(n)}} \\approx ${fr(+r.toFixed(3))}$. Comme $\\sqrt{p(1 - p)} \\leqslant 0{,}5$, on a $2\\dfrac{\\sigma}{\\sqrt{n}} \\leqslant \\dfrac{1}{\\sqrt{n}}$ : c'est l'origine de la fourchette.` }; }
-    const l = pick([0.1, 0.2, 0.5]), n = pick([25, 100]), r = 1 / l / Math.sqrt(n);
+    const l = pick([0.05, 0.1, 0.2, 0.25, 0.5]), n = pick([16, 25, 64, 100]), r = 1 / l / Math.sqrt(n);
     return { enonce: `Synthèse (ch. 13 et 15) : la durée de vie d'une ampoule suit la loi exponentielle de paramètre $${fr(l)}$ (en années) ; on admet que son écart type vaut $\\dfrac{1}{\\lambda}$. Quel est l'écart type de la durée de vie moyenne d'un lot de $${n}$ ampoules ?`, mode: "nombre", prefixe: "≈", suffixe: "ans", attendu: +r.toFixed(3), tolerance: 0.001,
       aides: [`$\\sigma = \\dfrac{1}{${fr(l)}} = ${fr(1 / l)}$.`, "Écart type de la moyenne : $\\dfrac{\\sigma}{\\sqrt{n}}$.", `$\\dfrac{${fr(1 / l)}}{${Math.sqrt(n)}}$.`],
       solution: `$\\dfrac{${fr(1 / l)}}{\\sqrt{${n}}} = ${fr(+r.toFixed(3))}$ an(s) : la durée moyenne d'un lot est bien plus prévisible que celle d'une ampoule.` };
@@ -12440,10 +12471,7 @@
       ["« Une question orientée dans un sondage peut créer un biais. »", true, "C'est un biais de réponse : la formulation influence les réponses."],
       ["« Environ $68\\,\\%$ des moyennes sont à moins de $\\dfrac{\\sigma}{\\sqrt{n}}$ de l'espérance. »", true, "C'est le repère pour $k = 1$."]
     ];
-    const [q, v, s] = pick(T), c = melangeChoix(v ? "Vrai" : "Faux", [v ? "Faux" : "Vrai"]);
-    return { enonce: `Vrai ou faux ? ${q}`, mode: "choix", choix: c.choix, attendu: c.attendu,
-      aides: ["Écart type des moyennes : $\\dfrac{\\sigma}{\\sqrt{n}}$.", "Fourchette au niveau $95\\,\\%$ : $f \\pm \\dfrac{1}{\\sqrt{n}}$.", "Distingue la fluctuation (hasard) et le biais (mauvaise méthode)."],
-      solution: `**${v ? "Vrai" : "Faux"}.** ${s}` };
+    return vraiFaux4(T, ["Écart type des moyennes : $\\dfrac{\\sigma}{\\sqrt{n}}$.", "Fourchette au niveau $95\\,\\%$ : $f \\pm \\dfrac{1}{\\sqrt{n}}$.", "Distingue la fluctuation (hasard) et le biais (mauvaise méthode)."]);
   };
 
 
@@ -12455,17 +12483,21 @@
   };
 
   GEN["tpe-verifier"] = function () {
-    const a = pick([2, -3, 3, -2, 0.5]), C = pick([3, -2, 5, 4]), b = pick([4, -6, 10]), t = rand(0, 3);
-    const T = [
-      [`y' = ${fr(a)}y`, `f(x) = ${C}e^{${fr(a)}x}`, true, `$f'(x) = ${fr(C * a)}e^{${fr(a)}x} = ${fr(a)} \\times ${C < 0 ? `(${C}e^{${fr(a)}x})` : `${C}e^{${fr(a)}x}`} = ${fr(a)}f(x)$ : c'est une solution.`],
-      [`y' = ${fr(a)}y`, `f(x) = e^{${fr(a)}x} + 1`, false, `$f'(x) = ${fr(a)}e^{${fr(a)}x}$ mais $${fr(a)}f(x) = ${fr(a)}e^{${fr(a)}x} + ${fr(a)}$ : les deux ne sont pas égaux, ce n'est pas une solution.`],
-      [`y' = ${fr(a)}y ${sg(b)}`, `f(x) = ${C}e^{${fr(a)}x} ${sgf(-b / a)}`.replace("+ -", "- "), true, `$f'(x) = ${fr(C * a)}e^{${fr(a)}x}$ et $${fr(a)}f(x) ${sg(b)} = ${fr(C * a)}e^{${fr(a)}x} ${sgf(-b)} ${sg(b)} = ${fr(C * a)}e^{${fr(a)}x}$ : c'est une solution.`],
-      [`y' = ${fr(a)}y ${sg(b)}`, `f(x) = ${C}e^{${fr(a)}x} ${sgf(b / a)}`.replace("+ -", "- "), false, `$${fr(a)}f(x) ${sg(b)} = ${fr(C * a)}e^{${fr(a)}x} ${sgf(b)} ${sg(b)}$, différent de $f'(x) = ${fr(C * a)}e^{${fr(a)}x}$ : ce n'est pas une solution (la constante devrait être $${fr(-b / a)}$).`]
-    ][t];
-    const c = melangeChoix(T[2] ? "Oui" : "Non", [T[2] ? "Non" : "Oui"]);
-    return { enonce: `La fonction $${T[1]}$ est-elle solution sur $\\mathbb{R}$ de l'équation différentielle $${T[0]}$ ?`, mode: "choix", choix: c.choix, attendu: c.attendu,
-      aides: ["Calcule $f'(x)$.", "Calcule séparément le membre de droite avec $f(x)$.", "Compare : $f$ est solution si l'égalité est vraie pour tout $x$."],
-      solution: T[3] };
+    const a = pick([2, -3, 3, -2, 0.5, -0.5, 4]), C = pick([3, -2, 5, 4, -1, 2]), l0 = pick([2, -3, 4, 5, -1, 10, -4]), b = -a * l0, avecB = Math.random() < 0.6;
+    const ea = `e^{${a === 1 ? "" : a === -1 ? "-" : fr(a)}x}`, coef = (k) => (k === 1 ? "" : k === -1 ? "-" : fr(k));
+    const plus = (k) => (k < 0 ? `- ${fr(-k)}` : `+ ${fr(k)}`);
+    if (!avecB) {
+      const bon = `f(x) = ${coef(C)}${ea}`, faux = [`f(x) = ${ea} + ${Math.abs(C)}`, `f(x) = ${coef(C)}e^{${fr(-a)}x}`, `f(x) = ${coef(C * a)}x${ea}`, `f(x) = ${coef(C)}e^{x} + ${fr(a)}`];
+      const c = melangeChoix(`$${bon}$`, shuffle(faux).slice(0, 3).map((x) => `$${x}$`));
+      return { enonce: `Laquelle de ces fonctions est solution sur $\\mathbb{R}$ de l'équation différentielle $y' = ${fr(a)}y$ ?`, mode: "choix", choix: c.choix, attendu: c.attendu,
+        aides: ["Les solutions de $y' = ay$ sont les fonctions $Ce^{ax}$.", "Pour vérifier : calcule $f'(x)$ et compare avec $" + fr(a) + "f(x)$.", "Une constante ajoutée ou un mauvais exposant casse l'égalité."],
+        solution: `$${bon}$ : $f'(x) = ${coef(C * a)}${ea} = ${fr(a)} \\times ${C < 0 ? `(${coef(C)}${ea})` : `${coef(C)}${ea}`} = ${fr(a)}f(x)$. Les autres ne vérifient pas $f' = ${fr(a)}f$.` };
+    }
+    const l = l0, bon = `f(x) = ${coef(C)}${ea} ${plus(l)}`, faux = [`f(x) = ${coef(C)}${ea} ${plus(-l)}`, `f(x) = ${coef(C)}${ea} ${plus(b)}`, `f(x) = ${coef(C)}e^{${fr(-a)}x} ${plus(l)}`, `f(x) = ${coef(C)}${ea}`];
+    const c = melangeChoix(`$${bon}$`, shuffle(faux).slice(0, 3).map((x) => `$${x}$`));
+    return { enonce: `Laquelle de ces fonctions est solution sur $\\mathbb{R}$ de l'équation différentielle $y' = ${fr(a)}y ${plus(b)}$ ?`, mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: ["Les solutions de $y' = ay + b$ sont les $Ce^{ax} - \\dfrac{b}{a}$.", `La solution constante est $-\\dfrac{${fr(b)}}{${fr(a)}} = ${fr(l)}$.`, "Vérifie en dérivant : la constante doit compenser $b$."],
+      solution: `La solution constante vaut $-\\dfrac{b}{a} = ${fr(l)}$, donc $${bon}$ convient : $f'(x) = ${coef(C * a)}${ea}$ et $${fr(a)}f(x) ${plus(b)} = ${coef(C * a)}${ea} ${plus(a * l)} ${plus(b)} = ${coef(C * a)}${ea}$.` };
   };
 
   GEN["tpe-primitive"] = function () {
@@ -12528,7 +12560,7 @@
       aides: [`$Q(t) = ${Q0}e^{-${fr(k)}t}$.`, `$${Q0}e^{-${fr(k)}t} = ${Q0 / 2} \\iff e^{-${fr(k)}t} = 0{,}5$.`, `$-${fr(k)}t = \\ln 0{,}5$, donc $t = \\dfrac{\\ln 2}{${fr(k)}}$.`],
       solution: `$e^{-${fr(k)}t} = 0{,}5 \\iff t = \\dfrac{\\ln 2}{${fr(k)}} \\approx ${fr(+T.toFixed(1))}$ h : c'est la demi-vie, la même quelle que soit la dose de départ.` }; }
     const h = pick([2, 4, 6, 8]), v = Q0 * Math.exp(-k * h);
-    return { enonce: `La quantité $Q(t)$ (en mg) d'un médicament vérifie $Q' = -${fr(k)}Q$, avec $Q(0) = ${Q0}$. Quelle quantité reste-t-il au bout de $${h}$ heures ? (Arrondi à l'unité.)`, mode: "nombre", prefixe: `$Q(${h}) \\approx$`, suffixe: "mg", attendu: Math.round(v), tolerance: 1.01,
+    return { enonce: `La quantité $Q(t)$ (en mg) d'un médicament vérifie $Q' = -${fr(k)}Q$, avec $Q(0) = ${Q0}$. Quelle quantité reste-t-il au bout de $${h}$ heures ? (Arrondi à l'unité.)`, mode: "nombre", prefixe: `$Q(${h}) \\approx$`, suffixe: "mg", attendu: Math.round(v), tolerance: 0.5,
       aides: ["$Q' = -kQ$ : $Q(t) = Q(0)e^{-kt}$.", `$Q(t) = ${Q0}e^{-${fr(k)}t}$.`, `Calcule $${Q0}e^{-${fr(+(k * h).toFixed(2))}}$.`],
       solution: `$Q(${h}) = ${Q0}e^{-${fr(+(k * h).toFixed(2))}} \\approx ${Math.round(v)}$ mg.` };
   };
@@ -12537,7 +12569,7 @@
     const a = pick([2, -0.5, 0.5, 3]), h = pick([0.1, 0.25, 0.5]), n = rand(2, 4), y = (1 + a * h) ** n;
     return {
       enonce: "Méthode d'Euler pour $y' = " + fr(a) + "y$, $y(0) = 1$, avec un pas $h = " + fr(h) + "$ :\n\n```python\ndef euler(a, h, n):\n    x = 0\n    y = 1\n    for i in range(n):\n        y = y + h * a * y\n        x = x + h\n    return y\n```\n\n" + `Que renvoie euler(${a}, ${h}, ${n}) ? (Arrondi au millième.)`,
-      mode: "nombre", prefixe: "Résultat ≈", attendu: +y.toFixed(3), tolerance: 0.0015,
+      mode: "nombre", prefixe: "Résultat ≈", attendu: +y.toFixed(3), tolerance: 0.0006,
       aides: ["À chaque pas : $y_{k+1} = y_k + h \\times y'(x_k) = y_k + h \\times a \\times y_k$.", `Donc $y$ est multiplié par $1 + ${fr(a)} \\times ${fr(h)} = ${fr(+(1 + a * h).toFixed(4))}$ à chaque pas.`, `Après $${n}$ pas : $${fr(+(1 + a * h).toFixed(4))}^{${n}}$.`],
       solution: `$y = ${fr(+(1 + a * h).toFixed(4))}^{${n}} \\approx ${fr(+y.toFixed(3))}$, une approximation de la valeur exacte $e^{${fr(+(a * h * n).toFixed(4))}} \\approx ${fr(+Math.exp(a * h * n).toFixed(3))}$.`
     };
@@ -12559,10 +12591,7 @@
       ["« Si $a > 0$, les solutions non nulles de $y' = ay$ tendent vers $0$ en $+\\infty$. »", false, "$Ce^{ax}$ tend vers $\\pm\\infty$ quand $a > 0$ et $C \\neq 0$."],
       ["« La demi-vie d'un médicament éliminé selon $Q' = -kQ$ ne dépend pas de la dose. »", true, "$t_{1/2} = \\dfrac{\\ln 2}{k}$."]
     ];
-    const [q, v, s] = pick(T), c = melangeChoix(v ? "Vrai" : "Faux", [v ? "Faux" : "Vrai"]);
-    return { enonce: `Vrai ou faux ? ${q}`, mode: "choix", choix: c.choix, attendu: c.attendu,
-      aides: ["$F$ primitive de $f$ : $F' = f$.", "$y' = ay$ : solutions $Ce^{ax}$ ; $y' = ay + b$ : $Ce^{ax} - \\dfrac{b}{a}$.", "Une condition initiale fixe la constante."],
-      solution: `**${v ? "Vrai" : "Faux"}.** ${s}` };
+    return vraiFaux4(T, ["$F$ primitive de $f$ : $F' = f$.", "$y' = ay$ : solutions $Ce^{ax}$ ; $y' = ay + b$ : $Ce^{ax} - \\dfrac{b}{a}$.", "Une condition initiale fixe la constante."]);
   };
 
 
@@ -12609,11 +12638,12 @@
 
   GEN["tin-calcul-exp"] = function () {
     const T = [
-      () => { const k = pick([1, 2, 3]); return [`\\displaystyle\\int_{0}^{${k}} e^{x}\\,\\mathrm{d}x`, Math.exp(k) - 1, `Une primitive de $e^x$ est $e^x$ : $e^{${k}} - e^0 = e^{${k}} - 1$`]; },
-      () => { const k = pick([2, 3, 4]); return [`\\displaystyle\\int_{1}^{${k}} \\dfrac{1}{x}\\,\\mathrm{d}x`, Math.log(k), `Une primitive de $\\dfrac{1}{x}$ est $\\ln x$ : $\\ln ${k} - \\ln 1 = \\ln ${k}$`]; },
+      () => { const k = pick([1, 2, 3, 0.5, 1.5, 2.5]); return [`\\displaystyle\\int_{0}^{${fr(k)}} e^{x}\\,\\mathrm{d}x`, Math.exp(k) - 1, `Une primitive de $e^x$ est $e^x$ : $e^{${fr(k)}} - e^0 = e^{${fr(k)}} - 1$`]; },
+      () => { const k = rand(2, 7); return [`\\displaystyle\\int_{0}^{\\ln ${k}} e^{x}\\,\\mathrm{d}x`, k - 1, `Une primitive de $e^x$ est $e^x$ : $e^{\\ln ${k}} - e^0 = ${k} - 1 = ${k - 1}$`]; },
+      () => { const k = pick([2, 3, 4, 5, 6, 8, 10]); return [`\\displaystyle\\int_{1}^{${k}} \\dfrac{1}{x}\\,\\mathrm{d}x`, Math.log(k), `Une primitive de $\\dfrac{1}{x}$ est $\\ln x$ : $\\ln ${k} - \\ln 1 = \\ln ${k}$`]; },
       () => [`\\displaystyle\\int_{1}^{e} \\dfrac{1}{x}\\,\\mathrm{d}x`, 1, "$\\ln e - \\ln 1 = 1 - 0 = 1$"],
-      () => { const k = pick([2, 0.5, -1]); return [`\\displaystyle\\int_{0}^{1} e^{${fr(k)}x}\\,\\mathrm{d}x`.replace("e^{-1x}", "e^{-x}"), (Math.exp(k) - 1) / k, `Une primitive est $\\dfrac{1}{${fr(k)}}e^{${fr(k)}x}$ : $\\dfrac{e^{${fr(k)}} - 1}{${fr(k)}}$`]; },
-      () => { const k = pick([1, 2]); return [`\\displaystyle\\int_{0}^{${k}} 2x e^{x^2}\\,\\mathrm{d}x`, Math.exp(k * k) - 1, `Forme $u'e^u$, primitive $e^{x^2}$ : $e^{${k * k}} - 1$`]; }
+      () => { const k = pick([2, 0.5, -1, 3, -2, -0.5]); return [`\\displaystyle\\int_{0}^{1} e^{${fr(k)}x}\\,\\mathrm{d}x`.replace("e^{-1x}", "e^{-x}"), (Math.exp(k) - 1) / k, `Une primitive est $\\dfrac{1}{${fr(k)}}e^{${fr(k)}x}$ : $\\dfrac{e^{${fr(k)}} - 1}{${fr(k)}}$`]; },
+      () => { const k = pick([1, 2, 0.5, 1.5]); return [`\\displaystyle\\int_{0}^{${fr(k)}} 2x e^{x^2}\\,\\mathrm{d}x`, Math.exp(k * k) - 1, `Forme $u'e^u$, primitive $e^{x^2}$ : $e^{${fr(k * k)}} - 1$`]; }
     ];
     const [e, v, s] = pick(T)();
     return { enonce: `Calcule $${e}$ (arrondi au centième).`, mode: "nombre", prefixe: "Intégrale ≈", attendu: +v.toFixed(2), tolerance: 0.006,
@@ -12644,20 +12674,33 @@
   };
 
   GEN["tin-entre-courbes"] = function () {
-    if (Math.random() < 0.4) { const k = rand(1, 3), A2 = (4 * k ** 3) / 3;
-      return { enonce: `Calcule l'aire du domaine compris entre la parabole $y = x^2$ et la droite $y = ${k * k}$, pour $x$ entre $${-k}$ et $${k}$ (arrondi au centième).`, mode: "nombre", prefixe: "Aire ≈", suffixe: "u.a.", attendu: +A2.toFixed(2), tolerance: 0.006,
-        figure: graph({ xmin: -k - 0.5, xmax: k + 0.5, ymin: -0.3 * k, ymax: k * k + 0.4 * k, ystep: k > 2 ? 2 : 1, h: 230, curves: [{ f: (x) => x * x, a: -k - 0.2, b: k + 0.2, closed: false }], hlines: [{ y: k * k }], aires: [{ f: () => k * k, g: (x) => x * x, a: -k, b: k }], aria: "Domaine entre la droite horizontale et la parabole" }),
+    const famille = pick([0, 0, 1, 2, 3]);
+    const fin = (A, exact) => `${exact} ${Number.isInteger(+A.toFixed(6)) ? "=" : "\\approx"} ${fr(+A.toFixed(2))}`;
+    if (famille === 1) { const k = rand(1, 6), A = (4 * k ** 3) / 3;
+      return { enonce: `Calcule l'aire du domaine compris entre la parabole $y = x^2$ et la droite $y = ${k * k}$, pour $x$ entre $${-k}$ et $${k}$ (arrondie au centième si besoin).`, mode: "nombre", prefixe: "Aire ≈", suffixe: "u.a.", attendu: +A.toFixed(2), tolerance: 0.006,
+        figure: graph({ xmin: -k - 0.5, xmax: k + 0.5, ymin: -0.3 * k, ymax: k * k + 0.4 * k, xstep: k > 3 ? 2 : 1, ystep: k > 4 ? 5 : k > 2 ? 2 : 1, h: 230, curves: [{ f: (x) => x * x, a: -k - 0.2, b: k + 0.2, closed: false }], hlines: [{ y: k * k }], aires: [{ f: () => k * k, g: (x) => x * x, a: -k, b: k }], aria: "Domaine entre la droite horizontale et la parabole" }),
         aides: [`Sur $[${-k}\\,;${k}]$, la droite est au-dessus : $${k * k} - x^2 \\geqslant 0$.`, `Aire $= \\displaystyle\\int_{${-k}}^{${k}} (${k * k} - x^2)\\,\\mathrm{d}x$.`, `Primitive : $${k === 1 ? "" : k * k}x - \\dfrac{x^3}{3}$.`],
-        solution: `$\\left[${k === 1 ? "" : k * k}x - \\dfrac{x^3}{3}\\right]_{${-k}}^{${k}} = ${fr(2 * k ** 3)} - \\dfrac{${2 * k ** 3}}{3} = \\dfrac{${4 * k ** 3}}{3} \\approx ${fr(+A2.toFixed(2))}$ u.a. (les $\\dfrac{2}{3}$ du rectangle, comme l'a montré Archimède).` }; }
-    const m = rand(1, 6), A = m ** 3 / 6;
-    return { enonce: `Calcule l'aire du domaine compris entre la droite $y = ${m === 1 ? "" : m}x$ et la parabole $y = x^2$, pour $x$ entre $0$ et $${m}$ (arrondi au centième).`, mode: "nombre", prefixe: "Aire ≈", suffixe: "u.a.", attendu: +A.toFixed(2), tolerance: 0.006,
-      figure: graph({ xmin: -0.3, xmax: m + 0.5, ymin: -0.3, ymax: m * m + 0.6, ystep: m > 2 ? 2 : 1, h: 230, curves: [{ f: (x) => m * x, a: 0, b: m + 0.2, closed: false }, { f: (x) => x * x, a: 0, b: Math.min(m + 0.2, Math.sqrt(m * m + 0.6)), closed: false }], aires: [{ f: (x) => m * x, g: (x) => x * x, a: 0, b: m }], aria: "Domaine entre la droite et la parabole" }),
-      aides: [`Sur $[0\\,;${m}]$, la droite est au-dessus : $${m}x - x^2 \\geqslant 0$.`, `Aire $= \\displaystyle\\int_0^{${m}} (${m === 1 ? "" : m}x - x^2)\\,\\mathrm{d}x$.`, `Primitive : $\\dfrac{${m}x^2}{2} - \\dfrac{x^3}{3}$.`],
-      solution: `$\\displaystyle\\int_0^{${m}} (${m === 1 ? "" : m}x - x^2)\\,\\mathrm{d}x = \\dfrac{${m ** 3}}{2} - \\dfrac{${m ** 3}}{3} = \\dfrac{${m ** 3}}{6} \\approx ${fr(+A.toFixed(2))}$ u.a.` };
+        solution: `$\\left[${k === 1 ? "" : k * k}x - \\dfrac{x^3}{3}\\right]_{${-k}}^{${k}} = ${2 * k ** 3} - \\dfrac{${2 * k ** 3}}{3} = ${fin(A, `\\dfrac{${4 * k ** 3}}{3}`)}$ u.a. : les $\\dfrac{2}{3}$ du rectangle, comme l'a montré Archimède.` }; }
+    if (famille === 2) { const n = rand(2, 6), A = 0.5 - 1 / (n + 1);
+      return { enonce: `Calcule l'aire du domaine compris entre la droite $y = x$ et la courbe $y = x^{${n}}$, pour $x$ entre $0$ et $1$ (arrondie au centième si besoin).`, mode: "nombre", prefixe: "Aire ≈", suffixe: "u.a.", attendu: +A.toFixed(2), tolerance: 0.006,
+        figure: graph({ xmin: -0.1, xmax: 1.2, ymin: -0.1, ymax: 1.2, xstep: 0.25, ystep: 0.25, xetiq: 0.5, yetiq: 0.5, h: 230, curves: [{ f: (x) => x, a: 0, b: 1.1, closed: false }, { f: (x) => x ** n, a: 0, b: 1.04, closed: false }], aires: [{ f: (x) => x, g: (x) => x ** n, a: 0, b: 1 }], aria: "Domaine entre la droite y = x et la courbe" }),
+        aides: [`Sur $[0\\,;1]$, $x^{${n}} \\leqslant x$ : la droite est au-dessus.`, `Aire $= \\displaystyle\\int_0^1 (x - x^{${n}})\\,\\mathrm{d}x$.`, `Primitive : $\\dfrac{x^2}{2} - \\dfrac{x^{${n + 1}}}{${n + 1}}$.`],
+        solution: `$\\left[\\dfrac{x^2}{2} - \\dfrac{x^{${n + 1}}}{${n + 1}}\\right]_0^1 = \\dfrac{1}{2} - \\dfrac{1}{${n + 1}} = ${fin(A, `\\dfrac{${n - 1}}{${2 * (n + 1)}}`)}$ u.a.` }; }
+    if (famille === 3) { const n = rand(1, 6), A = n / (n + 1);
+      return { enonce: `Calcule l'aire du domaine compris entre la droite $y = 1$ et la courbe $y = x${n > 1 ? `^{${n}}` : ""}$, pour $x$ entre $0$ et $1$ (arrondie au centième si besoin).`, mode: "nombre", prefixe: "Aire ≈", suffixe: "u.a.", attendu: +A.toFixed(2), tolerance: 0.006,
+        figure: graph({ xmin: -0.1, xmax: 1.2, ymin: -0.1, ymax: 1.25, xstep: 0.25, ystep: 0.25, xetiq: 0.5, yetiq: 0.5, h: 230, curves: [{ f: (x) => x ** n, a: 0, b: 1.04, closed: false }], hlines: [{ y: 1 }], aires: [{ f: () => 1, g: (x) => x ** n, a: 0, b: 1 }], aria: "Domaine entre la droite y = 1 et la courbe" }),
+        aides: [`Sur $[0\\,;1]$, $x${n > 1 ? `^{${n}}` : ""} \\leqslant 1$.`, `Aire $= \\displaystyle\\int_0^1 (1 - x${n > 1 ? `^{${n}}` : ""})\\,\\mathrm{d}x$.`, `Primitive : $x - \\dfrac{x^{${n + 1}}}{${n + 1}}$.`],
+        solution: `$\\left[x - \\dfrac{x^{${n + 1}}}{${n + 1}}\\right]_0^1 = 1 - \\dfrac{1}{${n + 1}} = ${fin(A, `\\dfrac{${n}}{${n + 1}}`)}$ u.a.` }; }
+    const [m, a] = pick([[1, 1], [2, 1], [3, 1], [4, 1], [5, 1], [6, 1], [1, 0.5], [2, 0.5], [3, 0.5], [2, 2], [4, 2], [6, 2], [3, 2], [5, 2], [3, 3], [6, 3]]), b = m / a, A = m ** 3 / (6 * a * a);
+    const px = a === 1 ? "x^2" : `${fr(a)}x^2`, dx = m === 1 ? "x" : `${m}x`;
+    return { enonce: `Calcule l'aire du domaine compris entre la droite $y = ${dx}$ et la parabole $y = ${px}$, pour $x$ entre $0$ et $${fr(b)}$ (arrondie au centième si besoin).`, mode: "nombre", prefixe: "Aire ≈", suffixe: "u.a.", attendu: +A.toFixed(2), tolerance: 0.006,
+      figure: graph({ xmin: -0.3, xmax: b + 0.5, ymin: -0.3, ymax: m * b + 0.6, xstep: b > 4 ? 2 : 1, ystep: m * b > 12 ? 5 : m * b > 4 ? 2 : 1, h: 230, curves: [{ f: (x) => m * x, a: 0, b: b + 0.2, closed: false }, { f: (x) => a * x * x, a: 0, b: Math.min(b + 0.2, Math.sqrt((m * b + 0.6) / a)), closed: false }], aires: [{ f: (x) => m * x, g: (x) => a * x * x, a: 0, b }], aria: "Domaine entre la droite et la parabole" }),
+      aides: [`Sur $[0\\,;${fr(b)}]$, la droite est au-dessus : $${dx} - ${px} \\geqslant 0$.`, `Aire $= \\displaystyle\\int_0^{${fr(b)}} (${dx} - ${px})\\,\\mathrm{d}x$.`, `Primitive : $\\dfrac{${m}x^2}{2} - \\dfrac{${fr(a)}x^3}{3}$.`],
+      solution: `$\\left[\\dfrac{${m}x^2}{2} - \\dfrac{${fr(a)}x^3}{3}\\right]_0^{${fr(b)}} = ${fin(A, `${fr(m * b * b / 2)} - ${fr(+(a * b ** 3 / 3).toFixed(4))}`)}$ u.a.` };
   };
 
   GEN["tin-signe"] = function () {
-    const c = rand(1, 3), a = c - rand(1, 3), b = c + rand(1, 3), I = ((b - c) ** 2 - (c - a) ** 2) / 2, t = rand(0, 1);
+    const c = rand(0, 3), a = c - rand(1, 3), b = c + rand(1, 3), I = ((b - c) ** 2 - (c - a) ** 2) / 2, t = rand(0, 1);
     if (t === 0) return { enonce: `Calcule $\\displaystyle\\int_{${a}}^{${b}} (x - ${c})\\,\\mathrm{d}x$. (La fonction change de signe en $${c}$.)`, mode: "nombre", prefixe: "Intégrale =", attendu: I,
       figure: graph({ xmin: Math.min(a, 0) - 0.5, xmax: b + 0.5, ymin: a - c - 0.5, ymax: b - c + 0.5, h: 220, curves: [{ f: (x) => x - c, a: a - 0.3, b: b + 0.3, closed: false }], aires: [{ f: (x) => x - c, a, b: c, neg: true }, { f: (x) => x - c, a: c, b }], aria: "Partie sous l'axe comptée négativement, partie au-dessus comptée positivement" }),
       erreurs: [{ valeur: ((b - c) ** 2 + (c - a) ** 2) / 2, message: "Ça, c'est l'aire totale. L'intégrale compte négativement la partie sous l'axe." }],
@@ -12675,30 +12718,34 @@
       [`$F(x) = \\displaystyle\\int_{${a}}^{x} f(t)\\,\\mathrm{d}t$. Que vaut $F(${a})$ ?`, "$0$", [`$f(${a})$`, "$1$", `$${a}$`], "Les deux bornes sont égales : l'intégrale est nulle."],
       [`$f$ est continue et positive. Comment varie $F(x) = \\displaystyle\\int_{${a}}^{x} f(t)\\,\\mathrm{d}t$ pour $x \\geqslant ${a}$ ?`, "$F$ est croissante", ["$F$ est décroissante", "$F$ est constante", "On ne peut pas savoir"], "$F' = f \\geqslant 0$ : $F$ est croissante (l'aire augmente quand $x$ augmente)."],
       [`$F(x) = \\displaystyle\\int_{0}^{x} e^{-t^2}\\,\\mathrm{d}t$. Que vaut $F'(1)$ ?`, "$e^{-1}$", ["$0$", "$-2e^{-1}$", "$1$"], "$F'(x) = e^{-x^2}$, donc $F'(1) = e^{-1}$, sans savoir calculer $F$."]
-    ], [q, r, f, s] = pick(T), c = melangeChoix(r, f);
+    ];
+    { const c = rand(0, 3), k = rand(1, 4); T.push([`$F(x) = \\displaystyle\\int_{${a}}^{x} (t^2 + ${k})\\,\\mathrm{d}t$. Que vaut $F'(${c})$ ?`, `$${c * c + k}$`, [`$${2 * c}$`, `$${c * c}$`, `$${c * c + k + 1}$`], `$F'(x) = x^2 + ${k}$ (théorème fondamental), donc $F'(${c}) = ${c * c + k}$.`]); }
+    { const k = rand(1, 5); T.push([`$f$ est continue et négative sur $[${a}\\,;${a + k}]$. Comment varie $F(x) = \\displaystyle\\int_{${a}}^{x} f(t)\\,\\mathrm{d}t$ sur cet intervalle ?`, "$F$ est décroissante", ["$F$ est croissante", "$F$ est constante", "$F$ est positive"], "$F' = f \\leqslant 0$ : $F$ est décroissante (on ajoute des aires comptées négativement)."]); }
+    { const k = pick([1, 2, 3, 0.5]); T.push([`$F(x) = \\displaystyle\\int_{0}^{x} e^{${fr(k)}t}\\,\\mathrm{d}t$. Que vaut $F'(0)$ ?`, "$1$", ["$0$", `$${fr(k)}$`, "$e$"], `$F'(x) = e^{${fr(k)}x}$, donc $F'(0) = e^0 = 1$.`]); }
+    const [q, r, f, s] = pick(T), c = melangeChoix(r, f);
     return { enonce: q, mode: "choix", choix: c.choix, attendu: c.attendu,
       aides: ["Théorème : si $f$ est continue, $x \\mapsto \\displaystyle\\int_a^x f(t)\\,\\mathrm{d}t$ est dérivable de dérivée $f$.", "C'est la primitive de $f$ qui s'annule en $a$.", "Le signe de $f$ donne les variations de $F$."],
       solution: s };
   };
 
   GEN["tin-parcelle"] = function () {
-    const L = pick([20, 30, 40]), k = pick([0.05, 0.1, 0.15]), A = (k * L ** 3) / 6;
-    return { enonce: `Une parcelle au bord du lagon est limitée par une route droite (l'axe des abscisses) et par la plage, modélisée par la courbe $y = ${fr(k)}x(${L} - x)$ pour $x$ entre $0$ et $${L}$ (en mètres). Calcule l'aire de la parcelle (arrondie au m²).`, mode: "nombre", prefixe: "Aire ≈", suffixe: "m²", attendu: Math.round(A), tolerance: 1.01,
+    const L = pick([10, 12, 20, 24, 30, 36, 40, 50, 60]), k = pick([0.05, 0.1, 0.15, 0.2]), A = (k * L ** 3) / 6;
+    return { enonce: `Une parcelle au bord du lagon est limitée par une route droite (l'axe des abscisses) et par la plage, modélisée par la courbe $y = ${fr(k)}x(${L} - x)$ pour $x$ entre $0$ et $${L}$ (en mètres). Calcule l'aire de la parcelle (arrondie au m²).`, mode: "nombre", prefixe: "Aire ≈", suffixe: "m²", attendu: Math.round(A), tolerance: 0.5,
       aides: [`Aire $= \\displaystyle\\int_0^{${L}} ${fr(k)}(${L}x - x^2)\\,\\mathrm{d}x$.`, `Primitive : $${fr(k)}\\left(\\dfrac{${L}x^2}{2} - \\dfrac{x^3}{3}\\right)$.`, `Calcule en $${L}$ (en $0$ elle vaut $0$).`],
       solution: `$${fr(k)} \\times \\left(\\dfrac{${L ** 3}}{2} - \\dfrac{${L ** 3}}{3}\\right) = ${fr(k)} \\times \\dfrac{${L ** 3}}{6} \\approx ${Math.round(A)}$ m². On retrouve la quadrature de la parabole d'Archimède : ce sont les $\\dfrac{2}{3}$ du rectangle de largeur $${L}$ et de hauteur le sommet $${fr(k * L * L / 4)}$.` };
   };
 
   GEN["tin-python"] = function () {
     const t = rand(0, 2);
-    if (t === 0) { const n = pick([2, 4, 5]); let S = 0; for (let k = 0; k < n; k++) S += (k / n) ** 2 / n;
-      return { enonce: "Méthode des rectangles (à gauche) pour $\\displaystyle\\int_0^1 x^2\\,\\mathrm{d}x$ :\n\n```python\ndef rectangles(n):\n    h = 1 / n\n    s = 0\n    for k in range(n):\n        s = s + h * (k * h) ** 2\n    return s\n```\n\n" + `Que renvoie rectangles(${n}) ? (Arrondi au millième.)`, mode: "nombre", prefixe: "Résultat ≈", attendu: +S.toFixed(3), tolerance: 0.0015,
+    if (t === 0) { const n = pick([2, 3, 4, 5, 8, 10]); let S = 0; for (let k = 0; k < n; k++) S += (k / n) ** 2 / n;
+      return { enonce: "Méthode des rectangles (à gauche) pour $\\displaystyle\\int_0^1 x^2\\,\\mathrm{d}x$ :\n\n```python\ndef rectangles(n):\n    h = 1 / n\n    s = 0\n    for k in range(n):\n        s = s + h * (k * h) ** 2\n    return s\n```\n\n" + `Que renvoie rectangles(${n}) ? (Arrondi au millième.)`, mode: "nombre", prefixe: "Résultat ≈", attendu: +S.toFixed(3), tolerance: 0.0006,
         aides: [`$h = \\dfrac{1}{${n}}$ et on additionne $h \\times f(kh)$ pour $k$ de $0$ à $${n - 1}$.`, "Chaque terme est l'aire d'un rectangle de largeur $h$.", "Additionne les aires des rectangles."],
         solution: `$${fr(+S.toFixed(4))}$ environ, une valeur approchée par défaut de $\\dfrac{1}{3} \\approx 0{,}333$ (meilleure quand $n$ augmente).` }; }
-    if (t === 1) { const n = pick([2, 4]); let S = 0; for (let k = 0; k < n; k++) S += (((k / n) ** 2 + ((k + 1) / n) ** 2) / 2) / n;
-      return { enonce: "Méthode des trapèzes pour $\\displaystyle\\int_0^1 x^2\\,\\mathrm{d}x$ :\n\n```python\ndef trapezes(n):\n    h = 1 / n\n    s = 0\n    for k in range(n):\n        s = s + h * ((k * h) ** 2 + ((k + 1) * h) ** 2) / 2\n    return s\n```\n\n" + `Que renvoie trapezes(${n}) ? (Arrondi au millième.)`, mode: "nombre", prefixe: "Résultat ≈", attendu: +S.toFixed(3), tolerance: 0.0015,
+    if (t === 1) { const n = pick([2, 3, 4, 5, 8, 10]); let S = 0; for (let k = 0; k < n; k++) S += (((k / n) ** 2 + ((k + 1) / n) ** 2) / 2) / n;
+      return { enonce: "Méthode des trapèzes pour $\\displaystyle\\int_0^1 x^2\\,\\mathrm{d}x$ :\n\n```python\ndef trapezes(n):\n    h = 1 / n\n    s = 0\n    for k in range(n):\n        s = s + h * ((k * h) ** 2 + ((k + 1) * h) ** 2) / 2\n    return s\n```\n\n" + `Que renvoie trapezes(${n}) ? (Arrondi au millième.)`, mode: "nombre", prefixe: "Résultat ≈", attendu: +S.toFixed(3), tolerance: 0.0006,
         aides: ["Chaque trapèze a pour aire $h \\times \\dfrac{f(x_k) + f(x_{k+1})}{2}$.", `$h = \\dfrac{1}{${n}}$.`, "Additionne les aires des trapèzes."],
         solution: `$${fr(+S.toFixed(4))}$ environ : par excès cette fois, et plus proche de $\\dfrac{1}{3}$ que les rectangles.` }; }
-    const N = pick([1000, 10000]), p = pick([0.31, 0.33, 0.34, 0.785]), dans = Math.round(p * N), B = p > 0.5 ? 1 : 2;
+    const N = pick([1000, 2000, 5000, 10000]), p = pick([0.31, 0.33, 0.34, 0.32, 0.35, 0.785, 0.78, 0.79]), dans = Math.round(p * N), B = p > 0.5 ? 1 : 2;
     return { enonce: `Méthode de Monte-Carlo : on tire $${N}$ points au hasard dans un rectangle d'aire $${B}$ contenant le domaine sous une courbe. $${dans}$ points tombent sous la courbe. Quelle estimation de l'intégrale obtient-on ?`, mode: "nombre", prefixe: "Estimation ≈", attendu: +(dans / N * B).toFixed(4), tolerance: 0.0006,
       aides: ["La proportion de points sous la courbe estime la part de l'aire du rectangle occupée par le domaine.", `Proportion : $\\dfrac{${dans}}{${N}}$.`, `Multiplie par l'aire du rectangle, $${B}$.`],
       solution: `$\\dfrac{${dans}}{${N}} \\times ${B} = ${fr(+(dans / N * B).toFixed(4))}$. Plus il y a de points, meilleure est l'estimation.` };
@@ -12720,10 +12767,7 @@
       ["« $\\displaystyle\\int_a^b f(x)\\,\\mathrm{d}x$ dépend du nom de la variable $x$. »", false, "La variable est muette : $\\displaystyle\\int_a^b f(t)\\,\\mathrm{d}t$ est le même nombre."],
       ["« La valeur moyenne d'une fonction constante égale à $5$ vaut $5$. »", true, "$\\dfrac{1}{b - a} \\times 5(b - a) = 5$."]
     ];
-    const [q, v, s] = pick(T), c = melangeChoix(v ? "Vrai" : "Faux", [v ? "Faux" : "Vrai"]);
-    return { enonce: `Vrai ou faux ? ${q}`, mode: "choix", choix: c.choix, attendu: c.attendu,
-      aides: ["Pense à l'interprétation en aire.", "Attention au signe de la fonction.", "Cherche un contre-exemple simple si tu penses que c'est faux."],
-      solution: `**${v ? "Vrai" : "Faux"}.** ${s}` };
+    return vraiFaux4(T, ["Pense à l'interprétation en aire.", "Attention au signe de la fonction.", "Cherche un contre-exemple simple si tu penses que c'est faux."]);
   };
 
 
@@ -12734,7 +12778,7 @@
 
   GEN["tld-densite"] = function () {
     const t = rand(0, 2);
-    if (t === 0) { const a = rand(0, 3), b = a + pick([2, 4, 5, 10]); return { enonce: `$f(x) = k$ sur $[${a}\\,;${b}]$ (et $0$ ailleurs). Pour quelle valeur de $k$ la fonction $f$ est-elle une densité ? (Valeur décimale.)`, mode: "nombre", prefixe: "$k =$", attendu: 1 / (b - a), tolerance: 0.0001,
+    if (t === 0) { const a = rand(0, 5), b = a + pick([2, 4, 5, 8, 10]); return { enonce: `$f(x) = k$ sur $[${a}\\,;${b}]$ (et $0$ ailleurs). Pour quelle valeur de $k$ la fonction $f$ est-elle une densité ? (Valeur décimale.)`, mode: "nombre", prefixe: "$k =$", attendu: 1 / (b - a), tolerance: 0.0001,
       aides: ["Une densité est positive et l'aire totale sous la courbe vaut $1$.", `L'aire est celle d'un rectangle de largeur $${b - a}$ et de hauteur $k$.`, `$${b - a}k = 1$.`],
       solution: `$${b - a}k = 1$, donc $k = \\dfrac{1}{${b - a}} = ${fr(1 / (b - a))}$ : c'est la loi uniforme sur $[${a}\\,;${b}]$.` }; }
     if (t === 1) { const c = pick([1, 2, 4, 5]); return { enonce: `$f(x) = kx$ sur $[0\\,;${c}]$ (et $0$ ailleurs). Pour quelle valeur de $k$ la fonction $f$ est-elle une densité ? (Valeur décimale.)`, mode: "nombre", prefixe: "$k =$", attendu: 2 / (c * c), tolerance: 0.0001,
@@ -12783,7 +12827,7 @@
   };
 
   GEN["tld-exp-esperance"] = function () {
-    const m = pick([2, 4, 5, 10, 20, 2000, 500]), t = rand(0, 1), l = 1 / m;
+    const m = pick([2, 4, 5, 8, 10, 20, 25, 40, 50, 100, 500, 1000, 2000, 5000]), t = rand(0, 1), l = 1 / m;
     if (t === 0) return { enonce: `La durée de vie (en ${m > 100 ? "heures" : "années"}) d'un appareil suit une loi exponentielle de durée de vie moyenne $${m}$. Quel est le paramètre $\\lambda$ ? (Valeur décimale.)`, mode: "nombre", prefixe: "$\\lambda =$", attendu: l, tolerance: l / 1000,
       aides: ["Pour la loi exponentielle, $E(X) = \\dfrac{1}{\\lambda}$.", `$\\dfrac{1}{\\lambda} = ${m}$.`, `$\\lambda = \\dfrac{1}{${m}}$.`],
       solution: `$\\lambda = \\dfrac{1}{${m}} = ${fr(l)}$.` };
@@ -12794,7 +12838,7 @@
   };
 
   GEN["tld-memoire"] = function () {
-    const l = pick([0.1, 0.2, 0.05]), s = pick([3, 5, 10]), t = pick([2, 4, 5]), p = Math.exp(-l * t);
+    const l = pick([0.1, 0.2, 0.05, 0.25, 0.5, 0.02]), s = pick([2, 3, 5, 10]), t = pick([1, 2, 3, 4, 5]), p = Math.exp(-l * t);
     return { enonce: `La durée de vie $X$ (en années) d'un composant suit la loi exponentielle de paramètre $${fr(l)}$. Il fonctionne déjà depuis $${s}$ ans. Quelle est la probabilité qu'il fonctionne encore au moins $${t}$ ans de plus ? (Arrondie au millième.)`, mode: "nombre", prefixe: "$P \\approx$", attendu: +p.toFixed(3), tolerance: 0.0006,
       erreurs: [{ valeur: +Math.exp(-l * (s + t)).toFixed(3), message: "Tu as calculé $P(X > " + (s + t) + ")$. On sait déjà que $X > " + s + "$ : c'est une probabilité conditionnelle." }],
       aides: ["On cherche $P_{X > " + s + "}(X > " + (s + t) + ")$.", "Absence de mémoire : $P_{X > s}(X > s + t) = P(X > t)$.", `$e^{-${fr(l)} \\times ${t}}$.`],
@@ -12802,27 +12846,30 @@
   };
 
   GEN["tld-demi-vie"] = function () {
-    const at = pick([["carbone 14", 1.21e-4, "ans"], ["iode 131", 0.0866, "jours"], ["radon 222", 0.181, "jours"], ["césium 137", 0.023, "ans"], ["polonium 210", 0.005, "jours"], ["tritium", 0.0564, "ans"], ["radium 226", 0.000433, "ans"]]), T = Math.log(2) / at[1], t = rand(0, 1);
-    if (t === 0) return { enonce: `La durée de vie d'un atome de ${at[0]} suit la loi exponentielle de paramètre $\\lambda = ${fr(at[1])}$ (${at[2] === "ans" ? "en années" : "en jours"}). Détermine $t$ tel que $P(X \\leqslant t) = 0{,}5$ (la demi-vie), arrondi à l'unité.`, mode: "nombre", prefixe: "$t \\approx$", suffixe: at[2], attendu: Math.round(T), tolerance: 1.01,
+    const at = pick([["carbone 14", 1.21e-4, "ans"], ["iode 131", 0.0866, "jours"], ["radon 222", 0.181, "jours"], ["césium 137", 0.023, "ans"], ["polonium 210", 0.005, "jours"], ["tritium", 0.0564, "ans"], ["radium 226", 0.000433, "ans"], ["phosphore 32", 0.0485, "jours"], ["strontium 90", 0.0241, "ans"], ["cobalt 60", 0.1315, "ans"], ["soufre 35", 0.00792, "jours"], ["fer 59", 0.0156, "jours"], ["chrome 51", 0.025, "jours"], ["américium 241", 0.0016, "ans"], ["thorium 228", 0.363, "ans"]]), T = Math.log(2) / at[1], t = rand(0, 1);
+    if (t === 0) return { enonce: `La durée de vie d'un atome de ${at[0]} suit la loi exponentielle de paramètre $\\lambda = ${fr(at[1])}$ (${at[2] === "ans" ? "en années" : "en jours"}). Détermine $t$ tel que $P(X \\leqslant t) = 0{,}5$ (la demi-vie), arrondi à l'unité.`, mode: "nombre", prefixe: "$t \\approx$", suffixe: at[2], attendu: Math.round(T), tolerance: 0.5,
       aides: ["$1 - e^{-\\lambda t} = 0{,}5 \\iff e^{-\\lambda t} = 0{,}5$.", "$-\\lambda t = \\ln 0{,}5 = -\\ln 2$.", "$t = \\dfrac{\\ln 2}{\\lambda}$."],
       solution: `$t = \\dfrac{\\ln 2}{${fr(at[1])}} \\approx ${String(Math.round(T)).replace(/\B(?=(\d{3})+(?!\d))/g, "\\,")}$ ${at[2]} : au bout de ce temps, la moitié des atomes se sont désintégrés.` };
     const m = 1 / at[1];
-    return { enonce: `La durée de vie d'un atome de ${at[0]} suit la loi exponentielle de paramètre $\\lambda = ${fr(at[1])}$ (${at[2] === "ans" ? "en années" : "en jours"}). Quelle est sa durée de vie moyenne ? (Arrondie à l'unité.)`, mode: "nombre", prefixe: "$E(X) \\approx$", suffixe: at[2], attendu: Math.round(m), tolerance: 1.01,
+    return { enonce: `La durée de vie d'un atome de ${at[0]} suit la loi exponentielle de paramètre $\\lambda = ${fr(at[1])}$ (${at[2] === "ans" ? "en années" : "en jours"}). Quelle est sa durée de vie moyenne ? (Arrondie à l'unité.)`, mode: "nombre", prefixe: "$E(X) \\approx$", suffixe: at[2], attendu: Math.round(m), tolerance: 0.5,
       aides: ["$E(X) = \\dfrac{1}{\\lambda}$.", `$\\dfrac{1}{${fr(at[1])}}$.`, "Arrondis à l'unité."],
       solution: `$E(X) = \\dfrac{1}{${fr(at[1])}} \\approx ${String(Math.round(m)).replace(/\B(?=(\d{3})+(?!\d))/g, "\\,")}$ ${at[2]} (plus long que la demi-vie, $\\dfrac{\\ln 2}{\\lambda} \\approx ${String(Math.round(T)).replace(/\B(?=(\d{3})+(?!\d))/g, "\\,")}$).` };
   };
 
   GEN["tld-esperance"] = function () {
-    const T = [
-      ["f(x) = 2x \\text{ sur } [0\\,;1]", 2 / 3, "\\displaystyle\\int_0^1 x \\times 2x\\,\\mathrm{d}x = \\left[\\dfrac{2x^3}{3}\\right]_0^1 = \\dfrac{2}{3}"],
-      ["f(x) = 3x^2 \\text{ sur } [0\\,;1]", 0.75, "\\displaystyle\\int_0^1 x \\times 3x^2\\,\\mathrm{d}x = \\left[\\dfrac{3x^4}{4}\\right]_0^1 = \\dfrac{3}{4}"],
-      ["f(x) = 2 - 2x \\text{ sur } [0\\,;1]", 1 / 3, "\\displaystyle\\int_0^1 (2x - 2x^2)\\,\\mathrm{d}x = 1 - \\dfrac{2}{3} = \\dfrac{1}{3}"],
-      ["f(x) = \\dfrac{x}{2} \\text{ sur } [0\\,;2]", 4 / 3, "\\displaystyle\\int_0^2 \\dfrac{x^2}{2}\\,\\mathrm{d}x = \\left[\\dfrac{x^3}{6}\\right]_0^2 = \\dfrac{4}{3}"],
-      ["f(x) = \\dfrac{1}{4} \\text{ sur } [2\\,;6]", 4, "\\displaystyle\\int_2^6 \\dfrac{x}{4}\\,\\mathrm{d}x = \\left[\\dfrac{x^2}{8}\\right]_2^6 = \\dfrac{36 - 4}{8} = 4"]
-    ], [f, v, s] = pick(T);
-    return { enonce: `$X$ a pour densité $${f}$. Calcule $E(X)$ (arrondie au centième).`, mode: "nombre", prefixe: "$E(X) \\approx$", attendu: +v.toFixed(2), tolerance: 0.006,
-      aides: ["$E(X) = \\displaystyle\\int_a^b x f(x)\\,\\mathrm{d}x$.", "Multiplie la densité par $x$, puis cherche une primitive.", "Calcule $F(b) - F(a)$."],
-      solution: `$E(X) = ${s} \\approx ${fr(+v.toFixed(2))}$.` };
+    const t = rand(0, 2);
+    if (t === 0) { const n = rand(1, 6), v = (n + 1) / (n + 2);
+      return { enonce: `$X$ a pour densité $f(x) = ${n + 1}x${n > 1 ? `^{${n}}` : ""}$ sur $[0\\,;1]$. Calcule $E(X)$ (arrondie au centième).`, mode: "nombre", prefixe: "$E(X) \\approx$", attendu: +v.toFixed(2), tolerance: 0.006,
+        aides: ["$E(X) = \\displaystyle\\int_0^1 x f(x)\\,\\mathrm{d}x$.", `$x f(x) = ${n + 1}x^{${n + 1}}$.`, `Une primitive est $\\dfrac{${n + 1}}{${n + 2}}x^{${n + 2}}$.`],
+        solution: `$E(X) = \\displaystyle\\int_0^1 ${n + 1}x^{${n + 1}}\\,\\mathrm{d}x = \\left[\\dfrac{${n + 1}x^{${n + 2}}}{${n + 2}}\\right]_0^1 = \\dfrac{${n + 1}}{${n + 2}} \\approx ${fr(+v.toFixed(2))}$.` }; }
+    if (t === 1) { const a = rand(0, 6), L = pick([2, 4, 5, 8, 10]), b = a + L, v = (a + b) / 2;
+      return { enonce: `$X$ a pour densité $f(x) = \\dfrac{1}{${L}}$ sur $[${a}\\,;${b}]$. Calcule $E(X)$ avec une intégrale.`, mode: "nombre", prefixe: "$E(X) =$", attendu: v,
+        aides: ["$E(X) = \\displaystyle\\int_a^b x f(x)\\,\\mathrm{d}x$.", `Une primitive de $\\dfrac{x}{${L}}$ est $\\dfrac{x^2}{${2 * L}}$.`, `Calcule $\\dfrac{${b}^2 - ${a}^2}{${2 * L}}$.`],
+        solution: `$E(X) = \\left[\\dfrac{x^2}{${2 * L}}\\right]_{${a}}^{${b}} = \\dfrac{${b * b} - ${a * a}}{${2 * L}} = ${fr(v)}$ : c'est le milieu de l'intervalle, comme pour toute loi uniforme.` }; }
+    const c = rand(1, 6), v = (2 * c) / 3;
+    return { enonce: `$X$ a pour densité $f(x) = \\dfrac{2x}{${c * c}}$ sur $[0\\,;${c}]$. Calcule $E(X)$ (arrondie au centième).`, mode: "nombre", prefixe: "$E(X) \\approx$", attendu: +v.toFixed(2), tolerance: 0.006,
+      aides: ["$E(X) = \\displaystyle\\int_0^{" + c + "} x f(x)\\,\\mathrm{d}x$.", `$x f(x) = \\dfrac{2x^2}{${c * c}}$.`, `Une primitive est $\\dfrac{2x^3}{${3 * c * c}}$.`],
+      solution: `$E(X) = \\left[\\dfrac{2x^3}{${3 * c * c}}\\right]_0^{${c}} = \\dfrac{${2 * c ** 3}}{${3 * c * c}} = \\dfrac{${2 * c}}{3} \\approx ${fr(+v.toFixed(2))}$.` };
   };
 
   GEN["tld-repartition"] = function () {
@@ -12837,7 +12884,11 @@
       ["$F$ est la fonction de répartition de $X$. $P(X > a) =$", "$1 - F(a)$", ["$F(a)$", "$F(a) - 1$", "$f(a)$"], "Événement contraire de $X \\leqslant a$."],
       ["Quel lien y a-t-il entre la fonction de répartition $F$ et la densité $f$ ?", "$F' = f$", ["$f' = F$", "$F = f$", "$F \\times f = 1$"], "$F$ est la primitive de $f$ qui s'annule au début de l'intervalle."],
       ["$X$ suit la loi exponentielle de paramètre $0{,}5$. $F(2) =$", "$1 - e^{-1}$", ["$e^{-1}$", "$0{,}5e^{-1}$", "$1$"], "$F(t) = 1 - e^{-0{,}5t}$, donc $F(2) = 1 - e^{-1} \\approx 0{,}632$."]
-    ], [q, r, f, s] = pick(T), c = melangeChoix(r, f);
+    ];
+    { const a = rand(0, 4), L = pick([4, 5, 10]), j = rand(1, L - 1), b = a + L, x = a + j; T.push([`$X$ suit la loi uniforme sur $[${a}\\,;${b}]$, de fonction de répartition $F$. Que vaut $F(${x})$ ?`, `$${fr(j / L)}$`, [`$${fr(1 / L)}$`, `$${fr(1 - j / L)}$`, `$${x}$`], `$F(${x}) = P(X \\leqslant ${x}) = \\dfrac{${x} - ${a}}{${L}} = ${fr(j / L)}$.`]); }
+    { const l = pick([0.1, 0.2, 0.5, 1]), t = pick([1, 2, 3, 5]); T.push([`$X$ suit la loi exponentielle de paramètre $${fr(l)}$. Sa fonction de répartition en $${t}$ vaut :`, `$F(${t}) = 1 - e^{-${fr(l * t)}}$`, [`$F(${t}) = e^{-${fr(l * t)}}$`, `$F(${t}) = ${fr(l)}e^{-${fr(l * t)}}$`, `$F(${t}) = 1 - e^{${fr(l * t)}}$`], `$F(t) = 1 - e^{-\\lambda t}$, donc $F(${t}) = 1 - e^{-${fr(l * t)}} \\approx ${fr(+(1 - Math.exp(-l * t)).toFixed(3))}$.`]); }
+    { const n = pick([2, 3, 4]), x = pick([0.2, 0.5, 0.8]); T.push([`$X$ a pour densité $f(x) = ${n + 1}x^{${n}}$ sur $[0\\,;1]$. Que vaut $P(X \\leqslant ${fr(x)})$ ?`, `$${fr(+(x ** (n + 1)).toFixed(5))}$`, [`$${fr(x)}$`, `$${fr(+((n + 1) * x ** n).toFixed(5))}$`, `$${fr(+(1 - x ** (n + 1)).toFixed(5))}$`], `$F(x) = x^{${n + 1}}$ (primitive de $f$ nulle en $0$), donc $P(X \\leqslant ${fr(x)}) = ${fr(x)}^{${n + 1}} = ${fr(+(x ** (n + 1)).toFixed(5))}$.`]); }
+    const [q, r, f, s] = pick(T), c = melangeChoix(r, f);
     return { enonce: q, mode: "choix", choix: c.choix, attendu: c.attendu,
       aides: ["$F(x) = P(X \\leqslant x) = \\displaystyle\\int_a^x f(t)\\,\\mathrm{d}t$.", "$F$ est une primitive de la densité.", "Les probabilités sont des aires sous la densité."],
       solution: s };
@@ -12845,11 +12896,11 @@
 
   GEN["tld-python"] = function () {
     const t = rand(0, 2);
-    if (t === 0) { const l = pick([0.5, 2, 0.1]), u = pick([0.5, 0.75, 0.9]), x = -Math.log(1 - u) / l;
+    if (t === 0) { const l = pick([0.5, 2, 0.1, 0.25, 1, 4]), u = pick([0.5, 0.75, 0.9, 0.2, 0.3, 0.6]), x = -Math.log(1 - u) / l;
       return { enonce: "On simule une loi exponentielle à partir d'un nombre au hasard entre $0$ et $1$ :\n\n```python\nfrom random import random\nfrom math import log\n\ndef expo(lam):\n    u = random()\n    return -log(1 - u) / lam\n```\n\n" + `Si random() renvoie $${fr(u)}$, que renvoie expo(${l}) ? (Arrondi au centième.)`, mode: "nombre", prefixe: "Résultat ≈", attendu: +x.toFixed(2), tolerance: 0.006,
         aides: ["log est le logarithme népérien $\\ln$.", `$x = -\\dfrac{\\ln(1 - ${fr(u)})}{${fr(l)}}$.`, `$\\ln(${fr(+(1 - u).toFixed(2))}) \\approx ${fr(+Math.log(1 - u).toFixed(4))}$.`],
         solution: `$x = -\\dfrac{\\ln ${fr(+(1 - u).toFixed(2))}}{${fr(l)}} \\approx ${fr(+x.toFixed(2))}$. On a résolu $1 - e^{-\\lambda x} = u$ : $x$ est la valeur dont la fonction de répartition vaut $u$.` }; }
-    if (t === 1) { const n = pick([10, 12, 20, 50]);
+    if (t === 1) { const n = pick([10, 12, 20, 30, 40, 50, 100]);
       return { enonce: "On additionne des nombres au hasard de la loi uniforme sur $[0\\,;1]$ :\n\n```python\nfrom random import random\n\ndef somme(n):\n    s = 0\n    for i in range(n):\n        s = s + random()\n    return s\n```\n\n" + `Autour de quelle valeur se répartissent les résultats de somme(${n}) ?`, mode: "nombre", prefixe: "Environ", attendu: n / 2,
         aides: ["Chaque random() suit la loi uniforme sur $[0\\,;1]$, d'espérance $0{,}5$.", "L'espérance d'une somme est la somme des espérances.", `$${n} \\times 0{,}5$.`],
         solution: `$E(S) = ${n} \\times 0{,}5 = ${fr(n / 2)}$. En répétant beaucoup de fois, l'histogramme des sommes prend une forme de cloche centrée sur $${fr(n / 2)}$.` }; }
@@ -12875,10 +12926,7 @@
       ["« La demi-vie d'un atome radioactif vaut $\\dfrac{1}{\\lambda}$. »", false, "C'est $\\dfrac{\\ln 2}{\\lambda}$ ; $\\dfrac{1}{\\lambda}$ est la durée de vie moyenne."],
       ["« La densité de la loi uniforme sur $[2\\,;6]$ vaut $\\dfrac{1}{4}$. »", true, "$\\dfrac{1}{6 - 2}$, pour que l'aire totale vaille $1$."]
     ];
-    const [q, v, s] = pick(T), c = melangeChoix(v ? "Vrai" : "Faux", [v ? "Faux" : "Vrai"]);
-    return { enonce: `Vrai ou faux ? ${q}`, mode: "choix", choix: c.choix, attendu: c.attendu,
-      aides: ["Une probabilité est une aire sous la densité.", "Loi exponentielle : $P(X > t) = e^{-\\lambda t}$, $E(X) = \\dfrac{1}{\\lambda}$.", "Cherche un contre-exemple si tu penses que c'est faux."],
-      solution: `**${v ? "Vrai" : "Faux"}.** ${s}` };
+    return vraiFaux4(T, ["Une probabilité est une aire sous la densité.", "Loi exponentielle : $P(X > t) = e^{-\\lambda t}$, $E(X) = \\dfrac{1}{\\lambda}$.", "Cherche un contre-exemple si tu penses que c'est faux."]);
   };
 
 
@@ -12897,14 +12945,15 @@
         solution: `$f'(x) = ${poly([3 * a, 2 * b, c])}$ et $f''(x) = ${poly([6 * a, 2 * b])}$, donc $f''(${x0}) = ${v}$.` };
     }
     if (t === 1) {
-      const k = pick([2, 3, -1, -2, 0.5]), c = melangeChoix(`$${fr(k * k)}e^{${fr(k)}x}$`, [`$${fr(k)}e^{${fr(k)}x}$`, `$e^{${fr(k)}x}$`, `$${fr(2 * k)}e^{${fr(k)}x}$`]);
-      return { enonce: `$f(x) = e^{${fr(k)}x}$. Quelle est $f''(x)$ ?`, mode: "choix", choix: c.choix, attendu: c.attendu,
-        aides: ["$\\left(e^{kx}\\right)' = ke^{kx}$.", `$f'(x) = ${fr(k)}e^{${fr(k)}x}$.`, "Dérive encore une fois."],
-        solution: `$f'(x) = ${fr(k)}e^{${fr(k)}x}$ et $f''(x) = ${fr(k)} \\times ${fr(k)}e^{${fr(k)}x} = ${fr(k * k)}e^{${fr(k)}x}$. Comme $f''(x) > 0$, $f$ est convexe sur $\\mathbb{R}$.` };
+      const k = pick([2, 3, -1, -2, 0.5, -3, 4]), coef = (m) => (m === 1 ? "" : m === -1 ? "-" : fr(m)), ek = `e^{${coef(k)}x}`;
+      const c = melangeChoix(`$${coef(k * k)}${ek}$`, [`$${coef(k)}${ek}$`, `$${ek}$`, `$${coef(2 * k)}${ek}$`, `$${coef(-k * k)}${ek}$`]);
+      return { enonce: `$f(x) = ${ek}$. Quelle est $f''(x)$ ?`, mode: "choix", choix: c.choix, attendu: c.attendu,
+        aides: ["$\\left(e^{kx}\\right)' = ke^{kx}$.", `$f'(x) = ${coef(k)}${ek}$.`, "Dérive encore une fois."],
+        solution: `$f'(x) = ${coef(k)}${ek}$ et $f''(x) = ${fr(k)} \\times ${k < 0 ? `(${coef(k)}${ek})` : `${coef(k)}${ek}`} = ${coef(k * k)}${ek}$. Comme $f''(x) > 0$, $f$ est convexe sur $\\mathbb{R}$.` };
     }
     const c = melangeChoix("$-\\dfrac{1}{x^2}$", ["$\\dfrac{1}{x^2}$", "$\\dfrac{1}{x}$", "$-\\dfrac{2}{x^3}$"]);
     return { enonce: "$f(x) = \\ln x$ sur $]0\\,;+\\infty[$. Quelle est $f''(x)$ ?", mode: "choix", choix: c.choix, attendu: c.attendu,
-      aides: ["$(\\ln x)' = \\dfrac{1}{x}$.", "$\\left(\\dfrac{1}{x}\\right)' = -\\dfrac{1}{x^2}$.", "Que dit le signe de $f''$ ?"],
+      aides: ["$(\\ln x)' = \\dfrac{1}{x}$ (chapitre 8).", "$\\left(\\dfrac{1}{x}\\right)' = -\\dfrac{1}{x^2}$.", "Que dit le signe de $f''$ ?"],
       solution: "$f'(x) = \\dfrac{1}{x}$ et $f''(x) = -\\dfrac{1}{x^2} < 0$ : $\\ln$ est concave sur $]0\\,;+\\infty[$." };
   };
 
@@ -12963,6 +13012,10 @@
       ["$f(x) = \\sqrt{x}$ est concave ; sa tangente en $1$ est $y = \\dfrac{x}{2} + \\dfrac{1}{2}$. Pour $x \\geqslant 0$ :", "$\\sqrt{x} \\leqslant \\dfrac{x + 1}{2}$", ["$\\sqrt{x} \\geqslant \\dfrac{x + 1}{2}$", "$\\sqrt{x} = \\dfrac{x + 1}{2}$", "$\\sqrt{x} \\leqslant x$"], "Concave : la courbe est sous ses tangentes."],
       ["$f(x) = e^x$ est convexe. Entre les points d'abscisses $0$ et $1$, on a pour $x$ dans $[0\\,;1]$ :", "$e^x \\leqslant 1 + (e - 1)x$", ["$e^x \\geqslant 1 + (e - 1)x$", "$e^x = 1 + (e - 1)x$", "$e^x \\leqslant x$"], "Convexe : sous la sécante, qui a pour équation $y = 1 + (e - 1)x$."]
     ];
+    { const av = pick([0.1, 0.2, 0.3, 0.4, 0.5, -0.2, -0.5]); T.push([`Avec $e^x \\geqslant x + 1$, que peut-on dire de $e^{${fr(av)}}$ ?`, `$e^{${fr(av)}} \\geqslant ${fr(1 + av)}$`, [`$e^{${fr(av)}} \\leqslant ${fr(1 + av)}$`, `$e^{${fr(av)}} = ${fr(1 + av)}$`, `$e^{${fr(av)}} \\leqslant ${fr(av)}$`], `On remplace $x$ par $${fr(av)}$ : $e^{${fr(av)}} \\geqslant ${fr(1 + av)}$ (en fait $e^{${fr(av)}} \\approx ${fr(+Math.exp(av).toFixed(3))}$).`]); }
+    { const bv = pick([1.1, 1.5, 2, 3, 4, 0.5, 0.8]); T.push([`Avec $\\ln x \\leqslant x - 1$, que peut-on dire de $\\ln ${fr(bv)}$ ?`, `$\\ln ${fr(bv)} \\leqslant ${fr(+(bv - 1).toFixed(1))}$`, [`$\\ln ${fr(bv)} \\geqslant ${fr(+(bv - 1).toFixed(1))}$`, `$\\ln ${fr(bv)} = ${fr(+(bv - 1).toFixed(1))}$`, `$\\ln ${fr(bv)} \\geqslant ${fr(bv)}$`], `On remplace $x$ par $${fr(bv)}$ : $\\ln ${fr(bv)} \\leqslant ${fr(+(bv - 1).toFixed(1))}$ (en fait $\\ln ${fr(bv)} \\approx ${fr(+Math.log(bv).toFixed(3))}$).`]); }
+    { const x0 = pick([1, 2, 3]); T.push([`$f(x) = x^3$ est convexe sur $[0\\,;+\\infty[$ ; sa tangente en $${x0}$ est $y = ${3 * x0 * x0}x - ${2 * x0 ** 3}$. Pour $x \\geqslant 0$ :`, `$x^3 \\geqslant ${3 * x0 * x0}x - ${2 * x0 ** 3}$`, [`$x^3 \\leqslant ${3 * x0 * x0}x - ${2 * x0 ** 3}$`, `$x^3 = ${3 * x0 * x0}x - ${2 * x0 ** 3}$`, `$x^3 \\leqslant ${x0}x$`], "Convexe : la courbe est au-dessus de ses tangentes."]); }
+    { const x0 = pick([1, 4, 9]), r0 = Math.sqrt(x0); T.push([`$f(x) = \\sqrt{x}$ est concave ; sa tangente en $${x0}$ est $y = \\dfrac{x}{${2 * r0}} + ${fr(r0 / 2)}$. Pour $x \\geqslant 0$ :`, `$\\sqrt{x} \\leqslant \\dfrac{x}{${2 * r0}} + ${fr(r0 / 2)}$`, [`$\\sqrt{x} \\geqslant \\dfrac{x}{${2 * r0}} + ${fr(r0 / 2)}$`, `$\\sqrt{x} = \\dfrac{x}{${2 * r0}} + ${fr(r0 / 2)}$`, `$\\sqrt{x} \\leqslant x$`], "Concave : la courbe est sous ses tangentes."]); }
     const [q, b, f, s] = pick(T), c = melangeChoix(b, f);
     return { enonce: q, mode: "choix", choix: c.choix, attendu: c.attendu,
       aides: ["Convexe : sous les sécantes, au-dessus des tangentes.", "Concave : au-dessus des sécantes, sous les tangentes.", "Fais un petit dessin."],
@@ -12980,10 +13033,7 @@
       ["« Au point d'inflexion, la tangente traverse la courbe. »", true, "La courbe passe d'un côté de la tangente à l'autre."],
       ["« $x \\mapsto x^3$ est convexe sur $\\mathbb{R}$. »", false, "$f''(x) = 6x$ est négatif pour $x < 0$ : concave sur $]-\\infty\\,;0]$, convexe sur $[0\\,;+\\infty[$."]
     ];
-    const [q, v, s] = pick(T), c = melangeChoix(v ? "Vrai" : "Faux", [v ? "Faux" : "Vrai"]);
-    return { enonce: `Vrai ou faux ? ${q}`, mode: "choix", choix: c.choix, attendu: c.attendu,
-      aides: ["Point d'inflexion : $f''$ s'annule **en changeant de signe**.", "Convexe ⇔ $f'$ croissante ⇔ $f'' \\geqslant 0$ (pour $f$ deux fois dérivable).", "Pour la négation d'une propriété « pour tout », il suffit d'un contre-exemple."],
-      solution: `**${v ? "Vrai" : "Faux"}.** ${s}` };
+    return vraiFaux4(T, ["Point d'inflexion : $f''$ s'annule **en changeant de signe**.", "Convexe ⇔ $f'$ croissante ⇔ $f'' \\geqslant 0$ (pour $f$ deux fois dérivable).", "Pour la négation d'une propriété « pour tout », il suffit d'un contre-exemple."]);
   };
 
   GEN["tcv-epidemie"] = function () {
@@ -13000,13 +13050,15 @@
   };
 
   GEN["tcv-python"] = function () {
-    const F = pick([["x**2", (x) => x * x, true], ["x**3", (x) => x ** 3, false], ["2**x", (x) => 2 ** x, true], ["-x**2", (x) => -x * x, false]]);
     const a = pick([-2, -1, 0]), b = pick([1, 2, 3]);
-    let sous = true; for (let k = 1; k < 100; k++) { const x = a + (b - a) * k / 100; const sec = F[1](a) + (F[1](b) - F[1](a)) * (x - a) / (b - a); if (F[1](x) > sec + 1e-12) sous = false; }
-    const c = melangeChoix(sous ? "True" : "False", [sous ? "False" : "True"]);
-    return { enonce: "On teste numériquement si la courbe est sous sa sécante entre $a$ et $b$ :\n\n```python\ndef f(x):\n    return " + F[0] + "\n\ndef sous_secante(a, b):\n    for k in range(1, 100):\n        x = a + (b - a) * k / 100\n        s = f(a) + (f(b) - f(a)) * (x - a) / (b - a)\n        if f(x) > s:\n            return False\n    return True\n```\n\n" + `Que renvoie la fonction pour $a = ${a}$ et $b = ${b}$ ?`, mode: "choix", choix: c.choix, attendu: c.attendu,
-      aides: ["s est la valeur de la sécante en $x$.", "La fonction renvoie False dès qu'un point de la courbe est au-dessus de la sécante.", "Une fonction convexe sur $[a\\,;b]$ est sous ses sécantes."],
-      solution: sous ? `Sur $[${a}\\,;${b}]$, la fonction est convexe : la courbe reste sous la sécante, la fonction renvoie True.` : `Sur $[${a}\\,;${b}]$, la fonction n'est pas convexe : un point de la courbe passe au-dessus de la sécante, la fonction renvoie False.` };
+    const sur = (f) => { for (let k = 1; k < 100; k++) { const x = a + (b - a) * k / 100, sec = f(a) + (f(b) - f(a)) * (x - a) / (b - a); if (f(x) > sec + 1e-12) return false; } return true; };
+    const P = [["$x^2$", (x) => x * x], ["$2^x$", (x) => 2 ** x], ["$x^4$", (x) => x ** 4], ["$(x - 1)^2$", (x) => (x - 1) ** 2], ["$3^x$", (x) => 3 ** x], ["$x^3$", (x) => x ** 3], ["$-x^2$", (x) => -x * x], ["$-2^x$", (x) => -(2 ** x)], ["$1 - x^4$", (x) => 1 - x ** 4], ["$x^2 + x$", (x) => x * x + x]];
+    const V = P.filter((f) => sur(f[1])), F = P.filter((f) => !sur(f[1])), cherche = F.length && (V.length < 3 || Math.random() < 0.5) ? false : true;
+    const bon = pick(cherche ? V : F), autres = shuffle((cherche ? F : V).slice()).slice(0, 3);
+    const c = melangeChoix(bon[0], autres.map((f) => f[0]));
+    return { enonce: "On teste numériquement si la courbe est sous sa sécante entre $a$ et $b$ :\n\n```python\ndef sous_secante(f, a, b):\n    for k in range(1, 100):\n        x = a + (b - a) * k / 100\n        s = f(a) + (f(b) - f(a)) * (x - a) / (b - a)\n        if f(x) > s:\n            return False\n    return True\n```\n\n" + `Pour laquelle de ces fonctions $f$ l'appel avec $a = ${a}$ et $b = ${b}$ renvoie-t-il ${cherche ? "True" : "False"} ?`, mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: ["s est la valeur de la sécante en $x$ : la fonction renvoie False dès qu'un point de la courbe passe au-dessus.", "Une fonction convexe sur $[a\\,;b]$ est sous ses sécantes : elle renvoie True.", `Cherche ${cherche ? "la seule fonction convexe" : "la seule fonction qui n'est pas convexe"} sur $[${a}\\,;${b}]$.`],
+      solution: `La fonction ${bon[0]} ${cherche ? `est convexe sur $[${a}\\,;${b}]$ : la courbe reste sous la sécante, l'appel renvoie True` : `n'est pas convexe sur $[${a}\\,;${b}]$ : un point passe au-dessus de la sécante, l'appel renvoie False`}. Les trois autres ${cherche ? "ne sont pas convexes sur cet intervalle" : "sont convexes sur cet intervalle"}.` };
   };
 
 
@@ -13029,7 +13081,7 @@
     ][t];
     return {
       enonce: `${ctx}. Chaque épreuve est un succès avec la probabilité $p = ${tlgTex(p)}$, indépendamment des autres. $X$ est le rang du premier succès. Calcule ${Q[0]} (arrondi au millième).`,
-      mode: "nombre", prefixe: "Valeur ≈", attendu: +Q[1].toFixed(3), tolerance: 0.0015,
+      mode: "nombre", prefixe: "Valeur ≈", attendu: +Q[1].toFixed(3), tolerance: 0.0006,
       aides: ["$X$ suit la loi géométrique de paramètre $p$ : $P(X = k) = (1 - p)^{k-1}p$.", "« $X > n$ » signifie : les $n$ premières épreuves sont des échecs, donc $P(X > n) = (1 - p)^n$.", "$P(X \\leqslant n) = 1 - P(X > n)$."],
       solution: `${Q[2]} \\approx ${fr(+Q[1].toFixed(3))}$.`.replace("$ \\approx", " \\approx")
     };
@@ -13037,21 +13089,21 @@
 
   GEN["tlg-esperance"] = function () {
     const t = rand(0, 2);
-    if (t === 0) { const p = pick([0.1, 0.2, 0.25, 0.5, 0.05, 0.04]); return { enonce: `$X$ suit la loi géométrique de paramètre $p = ${fr(p)}$. Combien d'épreuves faut-il attendre en moyenne pour le premier succès ?`, mode: "nombre", prefixe: "$E(X) =$", attendu: +(1 / p).toFixed(4),
+    if (t === 0) { const p = pick([0.1, 0.2, 0.25, 0.5, 0.05, 0.04, 0.02, 0.01, 0.125, 0.4, 0.8, 0.008, 0.016, 0.625]); return { enonce: `$X$ suit la loi géométrique de paramètre $p = ${fr(p)}$. Combien d'épreuves faut-il attendre en moyenne pour le premier succès ?`, mode: "nombre", prefixe: "$E(X) =$", attendu: +(1 / p).toFixed(4),
       erreurs: [{ valeur: p, message: "$E(X) = \\dfrac{1}{p}$ : plus le succès est rare, plus l'attente est longue." }],
       aides: ["L'espérance de la loi géométrique de paramètre $p$ est $\\dfrac{1}{p}$ (admis).", `$\\dfrac{1}{${fr(p)}}$.`, "Interprète : en moyenne sur de nombreuses répétitions."],
       solution: `$E(X) = \\dfrac{1}{${fr(p)}} = ${fr(+(1 / p).toFixed(4))}$ : en moyenne, le premier succès arrive à la $${fr(+(1 / p).toFixed(4))}$e épreuve.` }; }
-    if (t === 1) { const T = pick([10, 20, 50, 100]); return { enonce: `Une crue « ${T === 10 ? "décennale" : T === 100 ? "centennale" : `de période de retour ${T} ans`} » de la rivière a, chaque année, la probabilité $p = \\dfrac{1}{${T}}$ de se produire, indépendamment des autres années. Quel est le temps d'attente moyen (en années) avant la prochaine ?`, mode: "nombre", prefixe: "$E(X) =$", suffixe: "ans", attendu: T,
+    if (t === 1) { const T = pick([5, 10, 20, 25, 50, 100, 200]); return { enonce: `Une crue « ${T === 10 ? "décennale" : T === 100 ? "centennale" : `de période de retour ${T} ans`} » de la rivière a, chaque année, la probabilité $p = \\dfrac{1}{${T}}$ de se produire, indépendamment des autres années. Quel est le temps d'attente moyen (en années) avant la prochaine ?`, mode: "nombre", prefixe: "$E(X) =$", suffixe: "ans", attendu: T,
       aides: ["$X$, l'année de la prochaine crue, suit une loi géométrique.", "$E(X) = \\dfrac{1}{p}$.", `$p = \\dfrac{1}{${T}}$.`],
       solution: `$E(X) = \\dfrac{1}{1/${T}} = ${T}$ ans : c'est le sens de « période de retour de $${T}$ ans ». Cela ne veut pas dire qu'elle arrivera exactement dans $${T}$ ans !` }; }
-    const p = pick([0.2, 0.25, 0.5, 0.1]), c = melangeChoix(`$\\dfrac{1}{${fr(p)}} = ${fr(1 / p)}$`, [`$${fr(p)}$`, `$1 - ${fr(p)} = ${fr(+(1 - p).toFixed(2))}$`, `$\\dfrac{1 - ${fr(p)}}{${fr(p)}}$`]);
+    const p = pick([0.2, 0.25, 0.5, 0.1, 0.4, 0.05, 0.125, 0.8]), c = melangeChoix(`$\\dfrac{1}{${fr(p)}} = ${fr(1 / p)}$`, [`$${fr(p)}$`, `$1 - ${fr(p)} = ${fr(+(1 - p).toFixed(2))}$`, `$\\dfrac{1 - ${fr(p)}}{${fr(p)}}$`]);
     return { enonce: `Pour un temps d'attente $X$ de loi géométrique de paramètre $p = ${fr(p)}$, l'espérance vaut :`, mode: "choix", choix: c.choix, attendu: c.attendu,
       aides: ["Retiens : $E(X) = \\dfrac{1}{p}$.", "Vérifie avec un dé : $p = \\dfrac{1}{6}$ donne $6$ lancers en moyenne.", "Plus $p$ est petit, plus l'attente moyenne est longue."],
       solution: `$E(X) = \\dfrac{1}{p} = ${fr(1 / p)}$.` };
   };
 
   GEN["tlg-crue"] = function () {
-    const T = pick([10, 20, 50, 100]), n = pick([5, 10, 20, 30, 50]), p = 1 / T, v = 1 - (1 - p) ** n;
+    const T = pick([10, 20, 25, 50, 100, 200]), n = pick([5, 10, 15, 20, 30, 50]), p = 1 / T, v = 1 - (1 - p) ** n;
     return {
       enonce: `Une crue a chaque année la probabilité $\\dfrac{1}{${T}}$ de se produire, indépendamment des autres années. Quelle est la probabilité qu'il y ait **au moins une** crue en $${n}$ ans ? (Arrondi au centième.)`,
       mode: "nombre", prefixe: "Probabilité ≈", attendu: +v.toFixed(2), tolerance: 0.006,
@@ -13062,7 +13114,7 @@
   };
 
   GEN["tlg-seuil"] = function () {
-    const p = pick([0.1, 0.2, 0.05, 0.3, 0.01]), a = pick([0.9, 0.95, 0.99]), n = Math.ceil(Math.log(1 - a) / Math.log(1 - p) - 1e-12);
+    const p = pick([0.1, 0.2, 0.05, 0.3, 0.01, 0.15, 0.25, 0.4, 0.02, 0.5]), a = pick([0.9, 0.95, 0.99]), n = Math.ceil(Math.log(1 - a) / Math.log(1 - p) - 1e-12);
     return {
       enonce: `$X$ suit la loi géométrique de paramètre $${fr(p)}$. Quel est le plus petit entier $n$ tel que $P(X \\leqslant n) \\geqslant ${fr(a)}$ ?`,
       mode: "nombre", prefixe: "$n =$", attendu: n,
@@ -13075,7 +13127,7 @@
     const p = pick([0.1, 0.2, 0.25, 0.3]), m = rand(2, 6), n = rand(1, 4);
     if (Math.random() < 0.6) return {
       enonce: `$X$ suit la loi géométrique de paramètre $${fr(p)}$. Sachant que $X > ${m}$ (pas de succès lors des $${m}$ premières épreuves), quelle est la probabilité que $X > ${m + n}$ ? (Arrondi au millième.)`,
-      mode: "nombre", prefixe: "Probabilité ≈", attendu: +((1 - p) ** n).toFixed(3), tolerance: 0.0015,
+      mode: "nombre", prefixe: "Probabilité ≈", attendu: +((1 - p) ** n).toFixed(3), tolerance: 0.0006,
       erreurs: [{ valeur: +((1 - p) ** (m + n)).toFixed(3), message: "On sait déjà que $X > " + m + "$ : c'est une probabilité **conditionnelle**." }],
       aides: ["Absence de mémoire : $P_{X > m}(X > m + n) = P(X > n)$.", `Ici, cela vaut $P(X > ${n})$.`, `$P(X > ${n}) = ${fr(+(1 - p).toFixed(2))}^{${n}}$.`],
       solution: `$P_{X > ${m}}(X > ${m + n}) = \\dfrac{${fr(+(1 - p).toFixed(2))}^{${m + n}}}{${fr(+(1 - p).toFixed(2))}^{${m}}} = ${fr(+(1 - p).toFixed(2))}^{${n}} \\approx ${fr(+((1 - p) ** n).toFixed(3))}$ : la loi « oublie » les $${m}$ échecs déjà observés.`
@@ -13087,13 +13139,17 @@
   };
 
   GEN["tlg-python"] = function () {
-    const p = pick([0.1, 0.2, 0.25, 0.5]);
-    if (Math.random() < 0.5) {
+    const p = pick([0.1, 0.2, 0.25, 0.5, 0.05, 0.4, 0.125, 0.02, 0.01, 0.04, 0.08, 0.8]);
+    if (Math.random() < 0.4) {
       const c = melangeChoix(`environ $${fr(1 / p)}$`, [`environ $${fr(p)}$`, `exactement $${fr(1 / p)}$`, `environ $${fr(+(1 - p).toFixed(2))}$`]);
       return { enonce: "```python\nfrom random import random\n\ndef attente(p):\n    n = 1\n    while random() >= p:\n        n = n + 1\n    return n\n\ndef moyenne(p, N):\n    s = 0\n    for i in range(N):\n        s = s + attente(p)\n    return s / N\n```\n\n" + `Pour $N$ très grand, moyenne(${p}, N) donne :`, mode: "choix", choix: c.choix, attendu: c.attendu,
         aides: ["attente(p) simule le rang du premier succès : loi géométrique de paramètre $p$.", "La moyenne de nombreuses simulations se rapproche de l'espérance (loi des grands nombres).", "$E(X) = \\dfrac{1}{p}$."],
         solution: `attente simule une loi géométrique de paramètre $${fr(p)}$. Par la loi des grands nombres, la moyenne se rapproche de $E(X) = \\dfrac{1}{${fr(p)}} = ${fr(1 / p)}$, mais pas exactement (simulation).` };
     }
+    if (Math.random() < 0.5) { const n = rand(1, 4), v = (1 - p) ** n;
+      return { enonce: "```python\nfrom random import random\n\ndef attente(p):\n    n = 1\n    while random() >= p:\n        n = n + 1\n    return n\n```\n\n" + `Quelle est la probabilité que attente(${p}) renvoie un nombre strictement plus grand que $${n}$ ? (Arrondie au millième.)`, mode: "nombre", prefixe: "$P \\approx$", attendu: +v.toFixed(3), tolerance: 0.0006,
+        aides: ["attente(p) suit la loi géométrique de paramètre $p$.", `Renvoyer plus que $${n}$, c'est avoir $${n}$ échecs de suite.`, `$P(X > ${n}) = (1 - ${fr(p)})^{${n}}$.`],
+        solution: `$P(X > ${n}) = ${fr(+(1 - p).toFixed(3))}^{${n}} \\approx ${fr(+v.toFixed(3))}$.` }; }
     const c = melangeChoix("le rang du premier succès", ["le nombre de succès", "la probabilité de succès", "le nombre d'échecs après le premier succès"]);
     return { enonce: "```python\nfrom random import random\n\ndef attente(p):\n    n = 1\n    while random() >= p:\n        n = n + 1\n    return n\n```\n\nQue renvoie attente(p) ?", mode: "choix", choix: c.choix, attendu: c.attendu,
       aides: ["random() < p simule un succès de probabilité $p$.", "La boucle continue tant que c'est un échec.", "n compte les épreuves jusqu'au succès inclus."],
@@ -13115,10 +13171,7 @@
       ["« $P(X \\leqslant n) = 1 - (1 - p)^n$. »", true, "Événement contraire de « $n$ échecs de suite »."],
       ["« La loi exponentielle est la version continue de la loi géométrique. »", true, "Toutes deux décrivent un temps d'attente sans mémoire (tu le verras au chapitre 13)."]
     ];
-    const [q, v, s] = pick(T), c = melangeChoix(v ? "Vrai" : "Faux", [v ? "Faux" : "Vrai"]);
-    return { enonce: `Vrai ou faux ? ${q}`, mode: "choix", choix: c.choix, attendu: c.attendu,
-      aides: ["Loi géométrique : $P(X = k) = (1 - p)^{k-1}p$, $P(X > n) = (1 - p)^n$, $E(X) = \\dfrac{1}{p}$.", "Absence de mémoire : le passé ne change pas l'avenir.", "Une espérance est une moyenne, pas une certitude."],
-      solution: `**${v ? "Vrai" : "Faux"}.** ${s}` };
+    return vraiFaux4(T, ["Loi géométrique : $P(X = k) = (1 - p)^{k-1}p$, $P(X > n) = (1 - p)^n$, $E(X) = \\dfrac{1}{p}$.", "Absence de mémoire : le passé ne change pas l'avenir.", "Une espérance est une moyenne, pas une certitude."]);
   };
 
 
@@ -15857,7 +15910,7 @@
     const N = itgDouze(dco, r1, r2), v = N / 12;
     return {
       enonce: `Les courbes de $f(x) = ${poly(fco)}$ et de $g(x) = ${poly([m, n])}$ se coupent en $x = ${r1}$ et $x = ${r2}$, et $f \\geqslant g$ entre ces deux valeurs. Calcule l'aire du domaine compris entre les deux courbes (valeur exacte, sous forme de fraction si besoin).`,
-      figure: (() => { const F = (x) => -x * x + (r1 + r2 + m) * x - r1 * r2 + n, G = (x) => m * x + n, ys = []; for (let x = r1 - 0.9; x <= r2 + 0.9; x += 0.1) ys.push(F(x), G(x)); const lo = Math.max(Math.min(...ys), Math.min(F(r1 - 0.6), F(r2 + 0.6), G(r1 - 0.9), G(r2 + 0.9))), hi = Math.max(...ys); return graph({ xmin: r1 - 1, xmax: r2 + 1, ymin: Math.floor(Math.min(lo, 0)) - 0.5, ymax: Math.ceil(Math.max(hi, 0)) + 0.5, h: 260, curves: [{ f: F, a: r1 - 0.6, b: r2 + 0.6, closed: false, label: "C<tspan class=\"sub\" dy=\"3\">f</tspan>", lx: (r1 + r2) / 2, dx: 10, dy: -8 }, { f: G, a: r1 - 0.9, b: r2 + 0.9, closed: false, label: "C<tspan class=\"sub\" dy=\"3\">g</tspan>", lx: r2 + 0.9, dx: -4, dy: 16 }], aires: [{ f: F, g: G, a: r1, b: r2 }], aria: "Domaine compris entre une parabole et une droite" }); })(),
+      figure: (() => { const F = (x) => -x * x + (r1 + r2 + m) * x - r1 * r2 + n, G = (x) => m * x + n, ys = []; for (let x = r1 - 0.9; x <= r2 + 0.9; x += 0.1) ys.push(F(x), G(x)); const lo = Math.max(Math.min(...ys), Math.min(F(r1 - 0.6), F(r2 + 0.6), G(r1 - 0.9), G(r2 + 0.9))), hi = Math.max(...ys); return graph({ xmin: r1 - 1, xmax: r2 + 1, ymin: Math.floor(Math.min(lo, 0)) - 0.5, ymax: Math.ceil(Math.max(hi, 0)) + 0.5, h: 260, padL: 26, curves: [{ f: F, a: r1 - 0.6, b: r2 + 0.6, closed: false, label: "C<tspan class=\"sub\" dy=\"3\">f</tspan>", lx: (r1 + r2) / 2, dx: 10, dy: -8 }, { f: G, a: r1 - 0.9, b: r2 + 0.9, closed: false, label: "C<tspan class=\"sub\" dy=\"3\">g</tspan>", lx: r2 + 0.9, dx: -4, dy: 16 }], aires: [{ f: F, g: G, a: r1, b: r2 }], aria: "Domaine compris entre une parabole et une droite" }); })(),
       mode: "nombre", prefixe: "Aire :", attendu: v,
       erreurs: tsApprox(v),
       aides: ["Si $f \\geqslant g$ sur $[a\\,;b]$, l'aire entre les courbes est $\\displaystyle\\int_a^b (f(x) - g(x))\\,\\mathrm{d}x$.", `$f(x) - g(x) = ${poly(dco)}$.`, `Une primitive de $f - g$ est $${priPoly(dco)}$.`],
