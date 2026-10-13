@@ -92,7 +92,11 @@ Les niveaux du catalogue sont Seconde, Automatismes, Première spécialité, Ter
 Les liens de `index.html` finissent par `?v=...` (par exemple `?v=20261007b`). À chaque mise en ligne, remplacer cette valeur partout dans `index.html` par une nouvelle (la date, plus une lettre). Sinon, les navigateurs des élèves peuvent garder l'ancienne version des fichiers jusqu'à 10 minutes, même après avoir rechargé la page.
 
 ## Le jeu « Les Salles »
-Le jeu est dans le dossier `les-salles/` (page `les-salles/index.html`). La page **Jeu** du site (lien « Jeu » en haut, adresse `#jeu`) l'affiche dans un cadre ; le code de cette page est la fonction `pageJeu` de `assets/app.js`. La sauvegarde du jeu reste dans le navigateur de chaque élève.
+Le jeu existe en deux versions :
+- **Moyen (lycée)** : dossier `les-salles/`, adresse `#jeu.moyen` ;
+- **Facile (primaire et collège)** : dossier `les-salles-ecole/`, adresse `#jeu.facile`.
+
+La page **Jeu** du site (lien « Jeu » en haut, adresse `#jeu`) propose de choisir le niveau, puis affiche la version choisie dans un cadre ; le code de cette page est la fonction `pageJeu` de `assets/app.js` (liste `VERSIONS_JEU`). La sauvegarde de chaque version reste dans le navigateur de chaque élève, sous une clé différente (`salles-maths-progression` et `salles-ecole-progression`). Pour mettre à jour la version école, suivez les étapes ci-dessous avec le dossier `les-salles-ecole`.
 
 Installer une nouvelle version du jeu :
 1. Décompressez le nouveau zip : vous obtenez un dossier `les-salles`.

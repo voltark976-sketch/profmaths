@@ -271,7 +271,7 @@
     if (chap === "compte") pageCompte();
     else if (chap === "suivi") pageSuivi();
     else if (chap === "avatar") pageAvatar();
-    else if (chap === "jeu") pageJeu();
+    else if (chap === "jeu") pageJeu(onglet);
     else if (chap && window.CHAPITRES && CHAPITRES[chap]) pageChapitre(chap, onglet || "cours");
     else if (chap && CATALOGUE.niveaux.some((n) => "niveau-" + n.id === chap)) pageNiveau(CATALOGUE.niveaux.find((n) => "niveau-" + n.id === chap));
     else pageAccueil();
@@ -334,7 +334,7 @@
     h += `</nav>`;
     // À découvrir : le jeu et les chaînes YouTube
     h += `<h2 class="titre-bloc">À découvrir</h2><div class="decouvrir">
-      <a class="promo promo-jeu" href="#jeu"><span class="promo-ico" aria-hidden="true">🏛️</span><span class="promo-t"><span class="eyebrow">Le jeu · Seconde</span><strong>Les Salles</strong><span>Explore un temple grec et résous les exercices gravés sur les stèles pour ouvrir les portes. Se joue au clavier, sur ordinateur.</span><span class="promo-btn">Découvrir le jeu →</span></span></a>
+      <a class="promo promo-jeu" href="#jeu"><span class="promo-ico" aria-hidden="true">🏛️</span><span class="promo-t"><span class="eyebrow">Le jeu · du primaire au lycée</span><strong>Les Salles</strong><span>Explore un temple grec et résous les exercices gravés sur les stèles pour ouvrir les portes. Deux niveaux : Facile (primaire et collège) et Moyen (lycée). Se joue au clavier, sur ordinateur.</span><span class="promo-btn">Découvrir le jeu →</span></span></a>
       <a class="promo promo-yt" href="${YT_PROF}?sub_confirmation=1" target="_blank" rel="noopener"><span class="promo-ico" aria-hidden="true">▶</span><span class="promo-t"><span class="eyebrow">Ma chaîne YouTube</span><strong>Profmaths</strong><span>Toutes les vidéos de cours et les corrections d'exercices de ce site. Abonne-toi pour ne rater aucune nouvelle vidéo !</span><span class="promo-btn">S'abonner à la chaîne</span></span></a>
       <a class="promo promo-monka" href="${YT_MONKA}" target="_blank" rel="noopener"><span class="promo-ico" aria-hidden="true">▶</span><span class="promo-t"><span class="eyebrow">En complément</span><strong>Yvan Monka</strong><span>Une autre explication, pas à pas, de chaque notion du lycée. Pratique pour revoir une méthode autrement.</span><span class="promo-btn">Voir sa chaîne →</span></span></a>
     </div>`;
@@ -422,14 +422,32 @@
     }));
   }
 
-  /* ---------- Page jeu : « Les Salles », dans le dossier les-salles/ ---------- */
-  function pageJeu() {
+  /* ---------- Page jeu : « Les Salles », deux versions ----------
+     #jeu : choix du niveau ; #jeu.facile : dossier les-salles-ecole/ (primaire et collège) ;
+     #jeu.moyen : dossier les-salles/ (lycée). Chaque version a sa propre sauvegarde. */
+  const VERSIONS_JEU = {
+    facile: { nom: "Facile", public: "primaire et collège", dossier: "les-salles-ecole" },
+    moyen: { nom: "Moyen", public: "lycée", dossier: "les-salles" }
+  };
+  function pageJeu(version) {
     document.title = "Les Salles · ProfMaths";
-    $app.innerHTML = `<section class="page-jeu"><p class="eyebrow">Jeu · Seconde</p><h1>Les Salles</h1>
-      <p class="lead">Un jeu de plateforme dans un temple grec : résous les exercices gravés sur les stèles pour ouvrir les portes.</p>
+    const v = VERSIONS_JEU[version];
+    const intro = `<p class="eyebrow">Jeu</p><h1>Les Salles</h1>
+      <p class="lead">Un jeu de plateforme dans un temple grec : résous les exercices gravés sur les stèles pour ouvrir les portes.</p>`;
+    if (!v) {
+      $app.innerHTML = `<section class="page-jeu">${intro}
+        <h2 class="titre-bloc">Choisis ton niveau</h2>
+        <div class="choix-jeu">${Object.keys(VERSIONS_JEU).map((k) =>
+          `<a class="btn" href="#jeu.${k}">${VERSIONS_JEU[k].nom} (${VERSIONS_JEU[k].public})</a>`).join("")}</div>
+        <p class="muted">Chaque niveau garde sa propre progression dans ce navigateur.</p></section>`;
+      return;
+    }
+    const src = `${v.dossier}/index.html`;
+    $app.innerHTML = `<section class="page-jeu">${intro}
+      <p><strong>Niveau ${v.nom} (${v.public})</strong> · <a href="#jeu">changer de niveau</a></p>
       <p class="muted">Se joue au clavier, sur ordinateur. Clique une fois dans le jeu (le bouton « Commencer » suffit) pour que les touches répondent. Ta progression reste dans ce navigateur.</p>
-      <iframe class="cadre-jeu" src="les-salles/index.html" title="Jeu Les Salles" width="100%" height="720" style="border:0"></iframe>
-      <p class="muted"><a href="les-salles/index.html" target="_blank" rel="noopener">Ouvrir le jeu en plein écran</a></p></section>`;
+      <iframe class="cadre-jeu" src="${src}" title="Jeu Les Salles, niveau ${v.nom}" width="100%" height="720" style="border:0"></iframe>
+      <p class="muted"><a href="${src}" target="_blank" rel="noopener">Ouvrir le jeu en plein écran</a></p></section>`;
   }
 
   /* ---------- Page compte ---------- */
