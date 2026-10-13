@@ -334,7 +334,7 @@
     h += `</nav>`;
     // À découvrir : le jeu et les chaînes YouTube
     h += `<h2 class="titre-bloc">À découvrir</h2><div class="decouvrir">
-      <a class="promo promo-jeu" href="#jeu"><span class="promo-ico" aria-hidden="true">🏛️</span><span class="promo-t"><span class="eyebrow">Le jeu · du primaire au lycée</span><strong>Les Salles</strong><span>Explore un temple grec et résous les exercices gravés sur les stèles pour ouvrir les portes. Deux niveaux : Facile (primaire et collège) et Moyen (lycée). Se joue au clavier, sur ordinateur.</span><span class="promo-btn">Découvrir le jeu →</span></span></a>
+      <a class="promo promo-jeu" href="#jeu"><span class="promo-ico" aria-hidden="true">🏛️</span><span class="promo-t"><span class="eyebrow">Le jeu · du primaire au lycée</span><strong>Les Salles</strong><span>Explore un temple grec et résous les exercices gravés sur les stèles pour ouvrir les portes. Deux niveaux : Facile (primaire et collège) et Moyen (lycée). Se joue sur ordinateur ou sur téléphone.</span><span class="promo-btn">Découvrir le jeu →</span></span></a>
       <a class="promo promo-yt" href="${YT_PROF}?sub_confirmation=1" target="_blank" rel="noopener"><span class="promo-ico" aria-hidden="true">▶</span><span class="promo-t"><span class="eyebrow">Ma chaîne YouTube</span><strong>Profmaths</strong><span>Toutes les vidéos de cours et les corrections d'exercices de ce site. Abonne-toi pour ne rater aucune nouvelle vidéo !</span><span class="promo-btn">S'abonner à la chaîne</span></span></a>
       <a class="promo promo-monka" href="${YT_MONKA}" target="_blank" rel="noopener"><span class="promo-ico" aria-hidden="true">▶</span><span class="promo-t"><span class="eyebrow">En complément</span><strong>Yvan Monka</strong><span>Une autre explication, pas à pas, de chaque notion du lycée. Pratique pour revoir une méthode autrement.</span><span class="promo-btn">Voir sa chaîne →</span></span></a>
     </div>`;
@@ -445,7 +445,7 @@
     const src = `${v.dossier}/index.html`;
     $app.innerHTML = `<section class="page-jeu">${intro}
       <p><strong>Niveau ${v.nom} (${v.public})</strong> · <a href="#jeu">changer de niveau</a></p>
-      <p class="muted">Se joue au clavier, sur ordinateur. Clique une fois dans le jeu (le bouton « Commencer » suffit) pour que les touches répondent. Ta progression reste dans ce navigateur.</p>
+      <p class="muted">Sur ordinateur, se joue au clavier : clique une fois dans le jeu (le bouton « Commencer » suffit) pour que les touches répondent. Sur téléphone, des boutons apparaissent sous la salle : ouvre plutôt le jeu en plein écran et tiens ton téléphone à l'horizontale. Ta progression reste dans ce navigateur.</p>
       <iframe class="cadre-jeu" src="${src}" title="Jeu Les Salles, niveau ${v.nom}" width="100%" height="720" style="border:0"></iframe>
       <p class="muted"><a href="${src}" target="_blank" rel="noopener">Ouvrir le jeu en plein écran</a></p></section>`;
   }

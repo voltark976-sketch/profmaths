@@ -51,6 +51,60 @@ var Commandes = (function () {
     window.addEventListener("blur", function () {
       enfoncees.gauche = enfoncees.droite = enfoncees.saut = false;
     });
+
+    installerTactile(quandInteragir);
+  }
+
+  // ---------------------------------------------------------------
+  //  Sur téléphone et tablette : des boutons à toucher.
+  //  Ils n'apparaissent que sur un écran tactile (la page reçoit
+  //  alors la classe « tactile ») : sur ordinateur, rien ne change.
+  // ---------------------------------------------------------------
+  function installerTactile(quandInteragir) {
+    var manette = document.createElement("div");
+    manette.id = "manette";
+    manette.innerHTML =
+      '<div class="manette-groupe">' +
+        '<button type="button" data-action="gauche" aria-label="Courir à gauche">◀</button>' +
+        '<button type="button" data-action="droite" aria-label="Courir à droite">▶</button>' +
+      '</div>' +
+      '<div class="manette-groupe">' +
+        '<button type="button" data-action="lire" aria-label="Lire une stèle">Lire</button>' +
+        '<button type="button" data-action="saut" aria-label="Sauter">▲</button>' +
+      '</div>';
+    var zone = document.getElementById("zone-jeu");
+    zone.parentNode.insertBefore(manette, zone.nextSibling);
+
+    // Un doigt posé sur un bouton le garde enfoncé ; on le relâche
+    // quand le doigt se lève, glisse hors du bouton ou est interrompu.
+    Array.prototype.forEach.call(manette.querySelectorAll("button"), function (b) {
+      var action = b.getAttribute("data-action");
+      function appuyer(e) {
+        e.preventDefault();
+        b.classList.add("appuye");
+        if (action === "lire") { quandInteragir(); return; }
+        if (action === "saut" && !enfoncees.saut) sautVientDEtrePresse = true;
+        enfoncees[action] = true;
+      }
+      function relacher() {
+        b.classList.remove("appuye");
+        if (action !== "lire") enfoncees[action] = false;
+      }
+      b.addEventListener("pointerdown", appuyer);
+      b.addEventListener("pointerup", relacher);
+      b.addEventListener("pointercancel", relacher);
+      b.addEventListener("pointerleave", relacher);
+      b.addEventListener("contextmenu", function (e) { e.preventDefault(); });
+    });
+
+    function activer() {
+      if (document.documentElement.classList.contains("tactile")) return;
+      document.documentElement.classList.add("tactile");
+      window.dispatchEvent(new Event("resize")); // la salle se redessine à la place qui reste
+    }
+    if (window.matchMedia && window.matchMedia("(hover: none) and (pointer: coarse)").matches) activer();
+    // Un ordinateur à écran tactile : les boutons apparaissent au premier toucher.
+    window.addEventListener("touchstart", activer, { passive: true });
   }
 
   // Lit l'état des touches pour l'image en cours.

@@ -560,3 +560,62 @@ kbd {
   .combat .ligne-reponse { margin: 8px 0 6px; }
   .combat .contexte { padding: 6px 10px; font-size: 1rem; }
 }
+
+/* ---------- Téléphone et tablette : les boutons à toucher ----------
+   La classe « tactile » n'est posée que sur un écran tactile
+   (voir commandes.js) : sur ordinateur, rien de ceci ne s'applique. */
+#manette { display: none; }
+.tactile #manette {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 12px 8px;
+  touch-action: none;
+}
+.manette-groupe { display: flex; gap: 10px; }
+#manette button {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  font-size: 1.5rem;
+  line-height: 1;
+  padding: 0;
+  color: var(--or);
+  background: rgba(36, 26, 18, 0.88);
+  border: 2px solid var(--or-sombre);
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+}
+#manette button[data-action="lire"] { font-size: 0.85rem; }
+#manette button.appuye { background: var(--or-sombre); color: var(--fond); border-color: var(--or); }
+
+/* Sur écran tactile, l'aide au clavier ne sert pas et l'en-tête se fait plus discret */
+.tactile .aide { display: none; }
+.tactile body { height: 100dvh; }
+.tactile header { padding: 6px 10px 4px; }
+.tactile .outils { gap: 5px; }
+.tactile .outils button, .tactile .outils select, .tactile .compteur { font-size: 0.72rem; padding: 4px 8px; }
+.tactile #athena { margin-top: 4px; font-size: 0.9rem; }
+.tactile #zone-jeu { padding: 6px; }
+.tactile footer { padding: 4px 10px 6px; }
+
+/* Téléphone tenu à l'horizontale : les boutons se posent sur les côtés de la salle */
+@media (orientation: landscape) and (max-height: 520px) {
+  .tactile #athena, .tactile footer, .tactile #chapitre { display: none; }
+  .tactile h1 { font-size: 1rem; }
+  .tactile #manette {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    padding: 0 10px 10px;
+    pointer-events: none;
+    z-index: 5;
+  }
+  .tactile #manette button { pointer-events: auto; width: 58px; height: 58px; opacity: 0.85; }
+  .tactile #zone-jeu { padding: 4px 136px; }
+}
