@@ -21,6 +21,12 @@ service cloud.firestore {
         && request.resource.data.keys().hasOnly(['identifiant', 'prenom', 'nom', 'classe', 'groupe', 'xp', 'exo', 'qcm', 'jeux', 'avatar', 'quand', 'creeLe', 'majLe'])
         && profilDuCompte(request.resource.data);
     }
+    // Progression personnelle d'un professeur (exercices faits avec son propre compte)
+    match /profs/{uid} {
+      allow read: if prof() && request.auth.uid == uid;
+      allow create, update: if prof() && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(['xp', 'exo', 'qcm', 'jeux', 'avatar', 'quand', 'majLe']);
+    }
     match /classement/{uid} {
       allow read: if eleve() || prof();
       allow write: if eleve() && request.auth.uid == uid

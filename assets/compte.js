@@ -5,7 +5,8 @@
   Les comptes sont créés par le professeur (outils/comptes/LISEZMOI.md) : identifiant et mot de passe,
   sans adresse e-mail. Le prénom, la classe et le groupe sont inscrits dans le compte lui-même
   (« custom claims ») : les règles Firestore refusent tout compte qui n'a pas été créé ainsi.
-  Le compte du professeur (claim prof) lit la progression de tous les élèves (page #suivi).
+  Le compte du professeur (claim prof) lit la progression de tous les élèves (page #suivi) ;
+  sa propre progression est rangée à part (collection « profs »), hors du suivi et du classement.
 */
 (function () {
   "use strict";
@@ -17,6 +18,9 @@
   let fb = null; // { auth, db }
   let minuterie = null;
   let dernierClassement = ""; // évite de renvoyer la même ligne du classement
+  // Fiche de progression : celle d'un élève (eleves/uid) ou celle du professeur (profs/uid)
+  const fiche = (e) => fb.db.collection(e.prof ? "profs" : "eleves").doc(e.uid);
+  const lireProg = (d) => ({ xp: d.xp || 0, exo: d.exo || {}, qcm: d.qcm || {}, jeux: d.jeux || {}, avatar: d.avatar || null, quand: d.quand || {} });
   // Points du classement : somme des records de l'élève sur tous les Défis chrono
   const pointsJeux = (jeux) => Object.values(jeux || {}).reduce((s, v) => s + (+v || 0), 0);
 
@@ -60,7 +64,19 @@
       let c;
       try { c = (await u.getIdTokenResult()).claims; }
       catch (e) { c = null; }
-      if (c && c.prof) { eleve = { uid: u.uid, identifiant: idTech, prenom: c.prenom || "Professeur", classe: "", prof: true, groupes: Array.isArray(c.groupes) ? c.groupes : null }; ecouteur(eleve, null); return; }
+      if (c && c.prof) {
+        const p = { uid: u.uid, identifiant: idTech, prenom: c.prenom || "Professeur", classe: "", prof: true, groupes: Array.isArray(c.groupes) ? c.groupes : null };
+        try {
+          const snap = await fiche(p).get();
+          eleve = p;
+          ecouteur(eleve, lireProg(snap.exists ? snap.data() : {}));
+        } catch (e) {
+          // Lecture impossible : on n'écrase pas la fiche avec la copie de l'appareil, on relira plus tard
+          eleve = Object.assign(p, { lectureEchouee: true });
+          ecouteur(eleve, null);
+        }
+        return;
+      }
       if (c && !c.eleve) {
         // Compte qui n'a pas été créé par le professeur : refusé
         erreurCompte = "Ce compte n'existe plus. Demande tes identifiants à ton professeur.";
@@ -74,7 +90,7 @@
         // Première connexion : la fiche de l'élève est créée à partir de son compte
         if (!snap.exists) await ref.set(Object.assign({}, profil, { xp: 0, exo: {}, qcm: {}, creeLe: firebase.firestore.FieldValue.serverTimestamp() }));
         eleve = Object.assign({ uid: u.uid }, profil);
-        ecouteur(eleve, { xp: d.xp || 0, exo: d.exo || {}, qcm: d.qcm || {}, jeux: d.jeux || {}, avatar: d.avatar || null, quand: d.quand || {} });
+        ecouteur(eleve, lireProg(d));
       } catch (e) {
         // Lecture impossible (réseau) : on n'écrase pas le compte avec la copie de l'appareil, on relira plus tard
         eleve = Object.assign({ uid: u.uid, lectureEchouee: true }, profil);
@@ -89,11 +105,10 @@
     if (relectureEnCours || !eleve) return;
     relectureEnCours = true;
     const e = eleve;
-    fb.db.collection("eleves").doc(e.uid).get().then((snap) => {
+    fiche(e).get().then((snap) => {
       if (eleve !== e) return;
-      const d = snap.exists ? snap.data() : {};
       e.lectureEchouee = false;
-      ecouteur(e, { xp: d.xp || 0, exo: d.exo || {}, qcm: d.qcm || {}, jeux: d.jeux || {}, avatar: d.avatar || null, quand: d.quand || {} });
+      ecouteur(e, lireProg(snap.exists ? snap.data() : {}));
     }).catch(() => {}).then(() => { relectureEnCours = false; });
   }
   function messageFirebase(e) {
@@ -207,18 +222,18 @@
     sauver(prog) {
       if (!eleve) return;
       clearTimeout(minuterie);
-      if (eleve.prof) return; // le compte du professeur n'enregistre pas de progression
       const copie = { xp: prog.xp, exo: Object.assign({}, prog.exo), qcm: Object.assign({}, prog.qcm), jeux: Object.assign({}, prog.jeux), quand: Object.assign({}, prog.quand) };
       if (prog.avatar) copie.avatar = Object.assign({}, prog.avatar);
       minuterie = setTimeout(() => {
         if (fb && eleve.lectureEchouee) { relire(); return; }
         if (fb) {
-          fb.db.collection("eleves").doc(eleve.uid)
+          fiche(eleve)
             .set(Object.assign(copie, { majLe: firebase.firestore.FieldValue.serverTimestamp() }), { merge: true })
             .catch(() => {}); // hors ligne : la copie locale reste, elle repartira au prochain enregistrement
           // Classement : seulement le prénom, la classe et les points (lisible par les élèves connectés)
           const pts = pointsJeux(copie.jeux), sig = [eleve.uid, eleve.prenom, eleve.classe, pts].join("|");
-          if (pts > 0 && eleve.prenom && sig !== dernierClassement) {
+          // Le professeur n'apparaît pas dans le classement des élèves
+          if (pts > 0 && !eleve.prof && eleve.prenom && sig !== dernierClassement) {
             fb.db.collection("classement").doc(eleve.uid)
               .set({ prenom: eleve.prenom, classe: eleve.classe || "", points: pts, majLe: firebase.firestore.FieldValue.serverTimestamp() })
               .then(() => { dernierClassement = sig; }).catch(() => {});
