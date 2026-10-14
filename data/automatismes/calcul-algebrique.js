@@ -11,7 +11,7 @@ window.CHAPITRES["auto-calcul-algebrique"] = {
   titre: "Calcul algébrique",
   accroche: "Remplacer des lettres par des nombres, réduire, développer, factoriser, résoudre, isoler une variable et étudier un signe.",
 
-  playlist: "",
+  playlist: "https://www.youtube.com/playlist?list=PLVTjofGlms14",
   drive: "https://drive.google.com/drive/folders/1FSdCJtja6emqTtKUZ_RQNPUYfwfHvoLv",
   pdfs: [
     { titre: "Dossier élève de Seconde (parties P3 et P4)", url: "https://drive.google.com/file/d/1vr9e5N38rAOQLWIvUR5suK6l6ciyoLNY/view" }
@@ -20,7 +20,7 @@ window.CHAPITRES["auto-calcul-algebrique"] = {
   cours: [
     {
       titre: "Calculer avec des lettres (CA01, CA05)",
-      video: { titre: "Vidéo d'Yvan Monka : appliquer une formule (substitution)", youtube: "https://youtu.be/FOSVfFdDi7w" },
+      video: { titre: "Vidéo de ton prof : utiliser des formules dans des situations concrètes", youtube: "https://youtu.be/WOSEvJv7GwQ" },
       texte:
         "- Remplacer une lettre par un nombre : on met le nombre **entre parenthèses** s'il est négatif. Pour $a = -2$ : $3a^2 = 3 \\times (-2)^2 = 12$.\n" +
         "- Priorités : parenthèses, puis puissances, puis multiplications et divisions, puis additions et soustractions.\n" +
@@ -38,7 +38,7 @@ window.CHAPITRES["auto-calcul-algebrique"] = {
         "- $-(a - b) = -a + b$ : le signe $-$ change le signe de **chaque** terme.\n" +
         "- Identités remarquables : $(a + b)^2 = a^2 + 2ab + b^2$, $(a - b)^2 = a^2 - 2ab + b^2$, $(a + b)(a - b) = a^2 - b^2$.\n" +
         "- Factoriser : on cherche un **facteur commun**, sinon une identité remarquable. On vérifie en redéveloppant.",
-      video: { titre: "Vidéo d'Yvan Monka : factoriser avec une identité remarquable", youtube: "https://youtu.be/T9T4IeYGEe4" },
+      video: { titre: "Vidéo de ton prof : développer et factoriser avec les identités remarquables", youtube: "https://youtu.be/zrIo7AksY5o" },
       exemple: {
         enonce: "Développer $(2x - 3)^2$ et factoriser $5x^2 - 10x$.",
         solution: "$(2x - 3)^2 = 4x^2 - 12x + 9$.\n\n$5x^2 - 10x = 5x(x - 2)$."
@@ -50,7 +50,7 @@ window.CHAPITRES["auto-calcul-algebrique"] = {
         "- On regroupe les $x$ d'un côté et les nombres de l'autre, puis on divise par le coefficient de $x$.\n" +
         "- Dans une inéquation, multiplier ou diviser par un nombre **négatif** change le sens : $-2x \\geqslant 6 \\iff x \\leqslant -3$.\n" +
         "- On peut toujours vérifier une solution en la remplaçant dans l'équation de départ.",
-      video: { titre: "Vidéo d'Yvan Monka : résoudre une équation du premier degré", youtube: "https://youtu.be/quzC5C3a9jM" },
+      video: { titre: "Vidéo de ton prof : équations et inéquations", youtube: "https://youtu.be/2Fv54-YT1lI" },
       exemple: {
         enonce: "Résoudre $5 - 3x < 11$.",
         solution: "$-3x < 6 \\iff x > -2$ (on divise par $-3$, le sens change)."
@@ -58,7 +58,7 @@ window.CHAPITRES["auto-calcul-algebrique"] = {
     },
     {
       titre: "Isoler une variable (CA04)",
-      video: { titre: "Vidéo d'Yvan Monka : exprimer une grandeur en fonction d'une autre", youtube: "https://youtu.be/se9gyoJkkJ0" },
+      video: { titre: "Vidéo de ton prof : isoler une variable dans une formule", youtube: "https://youtu.be/4h0pTjSfrdE" },
       texte:
         "- On traite la formule comme une équation dont l'inconnue est la lettre à isoler.\n" +
         "- On enlève d'abord ce qui est **ajouté ou soustrait**, puis ce qui **multiplie ou divise**.\n" +
@@ -94,7 +94,15 @@ window.CHAPITRES["auto-calcul-algebrique"] = {
     }
   ],
 
-  videos: [],
+  videos: [
+    { titre: "Exercice 7 · Supprimer les parenthèses", type: "Réduire", youtube: "https://youtu.be/FX8UOq0J7uM" },
+    { titre: "Exercice 8 · Identités remarquables", type: "Développer", youtube: "https://youtu.be/zrIo7AksY5o" },
+    { titre: "Exercice 9 · Forme développée ou factorisée ?", type: "Choisir", youtube: "https://youtu.be/QcZ8u7ROq60" },
+    { titre: "Exercice 10 · Équations et inéquations", type: "Résoudre", youtube: "https://youtu.be/2Fv54-YT1lI" },
+    { titre: "Exercice 11 · Isoler une variable", type: "Formules", youtube: "https://youtu.be/4h0pTjSfrdE" },
+    { titre: "Exercice 12 · Applications numériques et modélisation", type: "Modéliser", youtube: "https://youtu.be/WOSEvJv7GwQ" }
+  ],
+  videosNote: "Vidéos de ton prof (playlist « Secondes : automatismes ») : les énoncés sont dans le dossier élève ci-dessus.",
 
   exercices: [
     { type: "am-substituer", titre: "CA01 · Remplacer des lettres par des nombres", etape: "Programme de Seconde", nb: 5 },

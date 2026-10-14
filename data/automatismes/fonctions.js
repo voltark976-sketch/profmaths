@@ -11,7 +11,7 @@ window.CHAPITRES["auto-fonctions"] = {
   titre: "Fonctions et représentations",
   accroche: "Lire une courbe, tester un point, reconnaître une fonction affine et manipuler l'équation d'une droite.",
 
-  playlist: "",
+  playlist: "https://www.youtube.com/playlist?list=PLVTjofGlms14",
   drive: "https://drive.google.com/drive/folders/1FSdCJtja6emqTtKUZ_RQNPUYfwfHvoLv",
   pdfs: [
     { titre: "Dossier élève de Seconde (partie P6)", url: "https://drive.google.com/file/d/1vr9e5N38rAOQLWIvUR5suK6l6ciyoLNY/view" }
@@ -24,7 +24,7 @@ window.CHAPITRES["auto-fonctions"] = {
         "- **Image** de $a$ : on part de $a$ sur l'axe des abscisses, on va jusqu'à la courbe, puis on lit l'ordonnée. C'est $f(a)$.\n" +
         "- **Antécédents** de $b$ : on trace la droite horizontale $y = b$ et on lit les abscisses des points d'intersection avec la courbe.\n" +
         "- Un nombre a **une seule** image, mais peut avoir zéro, un ou plusieurs antécédents.",
-      video: { titre: "Vidéo d'Yvan Monka : lire une image ou un antécédent", youtube: "https://youtu.be/VM2iC9P3Qmg" },
+      video: { titre: "Vidéo de ton prof : lire un graphique, images et antécédents", youtube: "https://youtu.be/SSnZlcRgllg" },
       figure: "courbe-u",
       exemple: {
         enonce: "Avec la courbe de $u$ ci-contre, lire $u(1)$ et les antécédents de $3$.",
@@ -33,7 +33,7 @@ window.CHAPITRES["auto-fonctions"] = {
     },
     {
       titre: "Un point est-il sur la courbe ? (FR02)",
-      video: { titre: "Vidéo d'Yvan Monka : vérifier si un point appartient à une droite", youtube: "https://youtu.be/XA0YajthETQ" },
+      video: { titre: "Vidéo de ton prof : exploiter une équation de courbe", youtube: "https://youtu.be/A--qoNu8uno" },
       texte:
         "- Le point $M(x_M\\,;y_M)$ appartient à la courbe de $f$ si et seulement si $f(x_M) = y_M$.\n" +
         "- On calcule l'image de l'**abscisse** et on compare à l'**ordonnée**.\n" +
@@ -45,7 +45,7 @@ window.CHAPITRES["auto-fonctions"] = {
     },
     {
       titre: "Fonctions linéaires et affines (FR03)",
-      video: { titre: "Vidéo d'Yvan Monka : le cours sur les fonctions affines", youtube: "https://youtu.be/n5_pRx4ozIg" },
+      video: { titre: "Vidéo de ton prof : reconnaître une fonction affine", youtube: "https://youtu.be/hfiPikWtwoA" },
       texte:
         "- Fonction **affine** : $f(x) = mx + p$. Sa courbe est une **droite**.\n" +
         "- Fonction **linéaire** : $f(x) = mx$ (cas $p = 0$). Sa droite passe par l'origine, et elle traduit une situation de proportionnalité.\n" +
@@ -87,7 +87,12 @@ window.CHAPITRES["auto-fonctions"] = {
     }
   ],
 
-  videos: [],
+  videos: [
+    { titre: "Exercice 16 · Images et antécédents", type: "Graphique", youtube: "https://youtu.be/SSnZlcRgllg" },
+    { titre: "Exercice 17 · Équation d'une courbe", type: "Courbe", youtube: "https://youtu.be/A--qoNu8uno" },
+    { titre: "Exercice 18 · Reconnaître une fonction affine", type: "Affine", youtube: "https://youtu.be/hfiPikWtwoA" }
+  ],
+  videosNote: "Vidéos de ton prof (playlist « Secondes : automatismes ») : les énoncés sont dans le dossier élève ci-dessus.",
 
   exercices: [
     { type: "lecture-image", titre: "FR01 · Lire une image", etape: "Programme de Seconde", nb: 4 },

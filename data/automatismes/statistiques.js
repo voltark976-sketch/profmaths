@@ -11,7 +11,7 @@ window.CHAPITRES["auto-statistiques"] = {
   titre: "Statistiques",
   accroche: "Lire un graphique, calculer moyenne, médiane et quartiles, et comparer deux séries avec des boîtes à moustaches.",
 
-  playlist: "",
+  playlist: "https://www.youtube.com/playlist?list=PLVTjofGlms14",
   drive: "https://drive.google.com/drive/folders/1FSdCJtja6emqTtKUZ_RQNPUYfwfHvoLv",
   pdfs: [
     { titre: "Dossier élève de Seconde (partie P9)", url: "https://drive.google.com/file/d/1vr9e5N38rAOQLWIvUR5suK6l6ciyoLNY/view" }
@@ -20,7 +20,7 @@ window.CHAPITRES["auto-statistiques"] = {
   cours: [
     {
       titre: "Lire un graphique (ST01, ST04, ST05)",
-      video: { titre: "Vidéo d'Yvan Monka : lire et interpréter un graphique", youtube: "https://youtu.be/CR4lSAfho5A" },
+      video: { titre: "Vidéo de ton prof : lire et commenter des graphiques", youtube: "https://youtu.be/sbcsgw91EO0" },
       texte:
         "- Diagramme en **bâtons** ou en **barres** : la hauteur donne l'effectif (ou la fréquence) de chaque valeur.\n" +
         "- Diagramme **circulaire** : les angles sont proportionnels aux effectifs. Le disque entier ($360°$) représente $100\\,\\%$ : un secteur de $90°$ représente $25\\,\\%$.\n" +
@@ -34,7 +34,7 @@ window.CHAPITRES["auto-statistiques"] = {
     },
     {
       titre: "Moyenne (ST02, ST06)",
-      video: { titre: "Vidéo d'Yvan Monka : appliquer la linéarité de la moyenne", youtube: "https://youtu.be/Z4bwDyrtO8A" },
+      video: { titre: "Vidéo de ton prof : moyenne, médiane, quartiles", youtube: "https://youtu.be/ncb1y7IwBZA" },
       texte:
         "- Moyenne : $\\bar{x} = \\dfrac{\\text{somme des valeurs}}{\\text{nombre de valeurs}}$.\n" +
         "- Avec des effectifs : $\\bar{x} = \\dfrac{n_1 x_1 + n_2 x_2 + \\dots + n_p x_p}{N}$, où $N$ est l'effectif total (moyenne **pondérée**).\n" +
@@ -60,7 +60,7 @@ window.CHAPITRES["auto-statistiques"] = {
     },
     {
       titre: "Comparer avec des boîtes à moustaches (ST03)",
-      video: { titre: "Vidéo d'Yvan Monka : construire un diagramme en boîte", youtube: "https://youtu.be/la7c0Yf8VyM" },
+      video: { titre: "Vidéo de ton prof : comparer deux séries", youtube: "https://youtu.be/ZuVX12i3Wp4" },
       texte:
         "- La boîte va de $Q_1$ à $Q_3$, le trait intérieur est la médiane, les moustaches vont jusqu'au minimum et au maximum.\n" +
         "- Pour comparer deux séries : on compare les **médianes** (position) et les **écarts interquartiles** (dispersion : largeur de la boîte).\n" +
@@ -73,7 +73,12 @@ window.CHAPITRES["auto-statistiques"] = {
     }
   ],
 
-  videos: [],
+  videos: [
+    { titre: "Exercice 25 · Moyenne, médiane, quartiles", type: "Indicateurs", youtube: "https://youtu.be/ncb1y7IwBZA" },
+    { titre: "Exercice 26 · Lire et commenter des graphiques", type: "Graphiques", youtube: "https://youtu.be/sbcsgw91EO0" },
+    { titre: "Exercice 27 · Comparer deux séries", type: "Boîtes", youtube: "https://youtu.be/ZuVX12i3Wp4" }
+  ],
+  videosNote: "Vidéos de ton prof (playlist « Secondes : automatismes ») : les énoncés sont dans le dossier élève ci-dessus.",
 
   exercices: [
     { type: "am-diagramme", titre: "ST01 · Lire un diagramme", etape: "Programme de Seconde", nb: 5 },

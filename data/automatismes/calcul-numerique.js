@@ -13,7 +13,7 @@ window.CHAPITRES["auto-calcul-numerique"] = {
   titre: "Calcul numérique",
   accroche: "Comparer, calculer avec des fractions et des puissances, changer d'écriture, estimer et convertir : les réflexes de calcul à avoir sans calculatrice.",
 
-  playlist: "",
+  playlist: "https://www.youtube.com/playlist?list=PLVTjofGlms14",
   drive: "https://drive.google.com/drive/folders/1FSdCJtja6emqTtKUZ_RQNPUYfwfHvoLv",
   pdfs: [
     { titre: "Dossier élève de Seconde (parties P1 et P2)", url: "https://drive.google.com/file/d/1vr9e5N38rAOQLWIvUR5suK6l6ciyoLNY/view" }
@@ -40,7 +40,7 @@ window.CHAPITRES["auto-calcul-numerique"] = {
         "- Multiplier : $\\dfrac{a}{b} \\times \\dfrac{c}{d} = \\dfrac{a \\times c}{b \\times d}$.\n" +
         "- Diviser, c'est multiplier par l'**inverse** : $\\dfrac{a}{b} \\div \\dfrac{c}{d} = \\dfrac{a}{b} \\times \\dfrac{d}{c}$.\n" +
         "- On simplifie le résultat : $\\dfrac{6}{8} = \\dfrac{3}{4}$.",
-      video: { titre: "Vidéo d'Yvan Monka : calculer avec des fractions", youtube: "https://youtu.be/Z86gfJOKgBg" },
+      video: { titre: "Vidéo de ton prof : calculer avec des fractions", youtube: "https://youtu.be/Zp_aC-8QbWw" },
       exemple: {
         enonce: "Calculer $\\dfrac{2}{3} + \\dfrac{1}{4}$ et $\\dfrac{3}{5} \\div \\dfrac{9}{10}$.",
         solution: "$\\dfrac{8}{12} + \\dfrac{3}{12} = \\dfrac{11}{12}$.\n\n$\\dfrac{3}{5} \\times \\dfrac{10}{9} = \\dfrac{30}{45} = \\dfrac{2}{3}$."
@@ -75,6 +75,7 @@ window.CHAPITRES["auto-calcul-numerique"] = {
     },
     {
       titre: "Ordre de grandeur et vraisemblance (CN05, CN06)",
+      video: { titre: "Vidéo de ton prof : estimer un ordre de grandeur", youtube: "https://youtu.be/_hvRtHJSt5I" },
       texte:
         "- Ordre de grandeur : on arrondit chaque nombre à une valeur simple, puis on calcule de tête : $387 \\times 0{,}52 \\approx 400 \\times 0{,}5 = 200$.\n" +
         "- Avant de valider un résultat, on se pose quatre questions : l'**ordre de grandeur** est-il bon ? l'**unité** ? le **signe** ? la valeur a-t-elle du **sens** ?\n" +
@@ -100,7 +101,15 @@ window.CHAPITRES["auto-calcul-numerique"] = {
     }
   ],
 
-  videos: [],
+  videos: [
+    { titre: "Exercice 1 · Calculer avec des fractions", type: "Fractions", youtube: "https://youtu.be/Zp_aC-8QbWw" },
+    { titre: "Exercice 2 · Puissances et écriture scientifique", type: "Puissances", youtube: "https://youtu.be/DKvTtv77YIw" },
+    { titre: "Exercice 3 · Comparer deux nombres", type: "Comparer", youtube: "https://youtu.be/qt6CzZFcV3s" },
+    { titre: "Exercice 4 · Conversions d'unités", type: "Unités", youtube: "https://youtu.be/ZmsrIiQvadQ" },
+    { titre: "Exercice 5 · Ordres de grandeur", type: "Estimer", youtube: "https://youtu.be/_hvRtHJSt5I" },
+    { titre: "Exercice 6 · Débit et vitesse moyenne", type: "Vraisemblance", youtube: "https://youtu.be/-bw7RzHajyI" }
+  ],
+  videosNote: "Vidéos de ton prof (playlist « Secondes : automatismes ») : les énoncés sont dans le dossier élève ci-dessus.",
 
   exercices: [
     { type: "am-comparer", titre: "CN01 · Comparer deux nombres", etape: "Programme de Seconde", nb: 6 },

@@ -11,7 +11,7 @@ window.CHAPITRES["auto-evolutions"] = {
   titre: "Évolutions et variations",
   accroche: "Hausses, baisses, coefficients multiplicateurs, taux successifs et taux réciproques : savoir passer d'un pourcentage à une multiplication.",
 
-  playlist: "",
+  playlist: "https://www.youtube.com/playlist?list=PLVTjofGlms14",
   drive: "https://drive.google.com/drive/folders/1FSdCJtja6emqTtKUZ_RQNPUYfwfHvoLv",
   pdfs: [
     { titre: "Dossier élève de Seconde (partie P5)", url: "https://drive.google.com/file/d/1vr9e5N38rAOQLWIvUR5suK6l6ciyoLNY/view" }
@@ -24,7 +24,7 @@ window.CHAPITRES["auto-evolutions"] = {
         "- Augmenter de $t\\,\\%$, c'est **multiplier** par $1 + \\dfrac{t}{100}$ : augmenter de $5\\,\\%$, c'est multiplier par $1{,}05$.\n" +
         "- Diminuer de $t\\,\\%$, c'est multiplier par $1 - \\dfrac{t}{100}$ : diminuer de $20\\,\\%$, c'est multiplier par $0{,}8$.\n" +
         "- Ce nombre s'appelle le **coefficient multiplicateur** $CM$. Hausse : $CM > 1$. Baisse : $0 < CM < 1$.",
-      video: { titre: "Vidéo d'Yvan Monka : coefficient multiplicateur", youtube: "https://youtu.be/-5QmcMuzy5I" },
+      video: { titre: "Vidéo de ton prof : pourcentages et coefficients multiplicateurs", youtube: "https://youtu.be/DWf_35WEQuI" },
       exemple: {
         enonce: "Par quel nombre multiplie-t-on pour augmenter de $3\\,\\%$ ? pour baisser de $12\\,\\%$ ?",
         solution: "$1 + 0{,}03 = 1{,}03$.\n\n$1 - 0{,}12 = 0{,}88$."
@@ -36,7 +36,7 @@ window.CHAPITRES["auto-evolutions"] = {
         "- $V_{\\text{finale}} = V_{\\text{initiale}} \\times CM$.\n" +
         "- Pour retrouver la valeur initiale, on **divise** : $V_{\\text{initiale}} = \\dfrac{V_{\\text{finale}}}{CM}$.\n" +
         "- Attention : après une baisse de $20\\,\\%$, on ne retrouve pas le prix de départ en ajoutant $20\\,\\%$.",
-      video: { titre: "Vidéo d'Yvan Monka : appliquer une hausse ou une baisse", youtube: "https://youtu.be/-5QmcMuzy5I" },
+      video: { titre: "Vidéo de ton prof : retrouver une valeur initiale", youtube: "https://youtu.be/WwLJCEUa2t4" },
       exemple: {
         enonce: "Après une hausse de $25\\,\\%$, un article coûte $45$ €. Quel était son prix avant ?",
         solution: "$\\dfrac{45}{1{,}25} = 36$ €."
@@ -60,7 +60,7 @@ window.CHAPITRES["auto-evolutions"] = {
         "- Évolutions successives : on **multiplie** les coefficients. $CM_{\\text{global}} = CM_1 \\times CM_2$.\n" +
         "- Une hausse de $10\\,\\%$ suivie d'une baisse de $10\\,\\%$ donne $1{,}1 \\times 0{,}9 = 0{,}99$, soit une **baisse** de $1\\,\\%$ : les pourcentages ne s'additionnent pas.\n" +
         "- Taux réciproque : l'évolution qui ramène à la valeur de départ a pour coefficient $CM' = \\dfrac{1}{CM}$.",
-      video: { titre: "Vidéo d'Yvan Monka : taux d'évolution successifs", youtube: "https://youtu.be/qOg2eXd8Hv0" },
+      video: { titre: "Vidéo de ton prof : raisonner sur les évolutions successives", youtube: "https://youtu.be/xb81PxfmSWQ" },
       exemple: {
         enonce: "Un prix baisse de $20\\,\\%$. Quelle hausse permet de revenir au prix initial ?",
         solution: "$CM = 0{,}8$, donc $CM' = \\dfrac{1}{0{,}8} = 1{,}25$ : il faut une hausse de $25\\,\\%$."
@@ -68,7 +68,12 @@ window.CHAPITRES["auto-evolutions"] = {
     }
   ],
 
-  videos: [],
+  videos: [
+    { titre: "Exercice 13 · Pourcentages et coefficients multiplicateurs", type: "Coefficient", youtube: "https://youtu.be/DWf_35WEQuI" },
+    { titre: "Exercice 14 · Proportions et évolutions", type: "Valeur initiale", youtube: "https://youtu.be/WwLJCEUa2t4" },
+    { titre: "Exercice 15 · Évolutions successives", type: "Raisonner", youtube: "https://youtu.be/xb81PxfmSWQ" }
+  ],
+  videosNote: "Vidéos de ton prof (playlist « Secondes : automatismes ») : les énoncés sont dans le dossier élève ci-dessus.",
 
   exercices: [
     { type: "coefficient", titre: "EV01 · Taux et coefficient multiplicateur", etape: "Programme de Seconde", nb: 6 },

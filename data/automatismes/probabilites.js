@@ -11,7 +11,7 @@ window.CHAPITRES["auto-probabilites"] = {
   titre: "Probabilités",
   accroche: "Événement contraire, somme des probabilités, équiprobabilité, tableaux croisés et arbres pondérés.",
 
-  playlist: "",
+  playlist: "https://www.youtube.com/playlist?list=PLVTjofGlms14",
   drive: "https://drive.google.com/drive/folders/1FSdCJtja6emqTtKUZ_RQNPUYfwfHvoLv",
   pdfs: [
     { titre: "Dossier élève de Seconde (partie P10)", url: "https://drive.google.com/file/d/1vr9e5N38rAOQLWIvUR5suK6l6ciyoLNY/view" }
@@ -20,7 +20,7 @@ window.CHAPITRES["auto-probabilites"] = {
   cours: [
     {
       titre: "Les règles de base (PR01, PR02, PR03)",
-      video: { titre: "Vidéo d'Yvan Monka : le cours sur les probabilités", youtube: "https://youtu.be/dvx_O37gfyY" },
+      video: { titre: "Vidéo de ton prof : les automatismes en probabilités", youtube: "https://youtu.be/hpiDv1RpXAg" },
       texte:
         "- Une probabilité est toujours comprise entre $0$ (événement impossible) et $1$ (événement certain).\n" +
         "- La somme des probabilités de toutes les issues vaut $1$.\n" +
@@ -33,7 +33,7 @@ window.CHAPITRES["auto-probabilites"] = {
     },
     {
       titre: "Équiprobabilité (PR04)",
-      video: { titre: "Vidéo d'Yvan Monka : calculer des probabilités (dés spéciaux)", youtube: "https://youtu.be/Y9u4EnP01wo" },
+      video: { titre: "Vidéo de ton prof : urne, cartes, deux dés", youtube: "https://youtu.be/rkdNL-3Ih9Q" },
       texte:
         "- Quand toutes les issues ont la même probabilité (dé équilibré, tirage « au hasard »), on dit qu'il y a équiprobabilité.\n" +
         "- Alors $P(A) = \\dfrac{\\text{nombre d'issues favorables}}{\\text{nombre d'issues possibles}}$.\n" +
@@ -72,7 +72,12 @@ window.CHAPITRES["auto-probabilites"] = {
     }
   ],
 
-  videos: [],
+  videos: [
+    { titre: "Exercice 28 · Les automatismes en probabilités", type: "Règles", youtube: "https://youtu.be/hpiDv1RpXAg" },
+    { titre: "Exercice 29 · Urne, cartes, deux dés", type: "Calculer", youtube: "https://youtu.be/rkdNL-3Ih9Q" },
+    { titre: "Exercice 30 · Raisonner avec les probabilités", type: "Raisonner", youtube: "https://youtu.be/iliNfgwWyLM" }
+  ],
+  videosNote: "Vidéos de ton prof (playlist « Secondes : automatismes ») : les énoncés sont dans le dossier élève ci-dessus.",
 
   exercices: [
     { type: "auto-probabilites", titre: "PR01 à PR04 · Dé, urne, événement contraire", etape: "Programme de Seconde", nb: 5 },

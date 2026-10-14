@@ -12,7 +12,7 @@ window.CHAPITRES["auto-proportions"] = {
   titre: "Proportions et pourcentages",
   accroche: "Calculer une proportion, l'écrire de plusieurs façons, retrouver une partie ou le tout : la base de toute l'information chiffrée.",
 
-  playlist: "",
+  playlist: "https://www.youtube.com/playlist?list=PLVTjofGlms14",
   drive: "https://drive.google.com/drive/folders/1FSdCJtja6emqTtKUZ_RQNPUYfwfHvoLv",
   pdfs: [
     { titre: "Dossier élève de Seconde (partie P5)", url: "https://drive.google.com/file/d/1vr9e5N38rAOQLWIvUR5suK6l6ciyoLNY/view" }
@@ -25,7 +25,7 @@ window.CHAPITRES["auto-proportions"] = {
         "- La proportion d'une partie $A$ dans un ensemble $E$ est $p = \\dfrac{n_A}{n_E}$ (effectif de la partie ÷ effectif total).\n" +
         "- C'est toujours un nombre entre $0$ et $1$, qu'on exprime souvent en pourcentage : $p = 0{,}35 = 35\\,\\%$.\n" +
         "- On divise toujours par l'effectif de l'ensemble **de référence** : « parmi les filles » veut dire qu'on divise par le nombre de filles.",
-      video: { titre: "Vidéo d'Yvan Monka : passer d'un effectif à une proportion", youtube: "https://youtu.be/r8S46rk9x9k" },
+      video: { titre: "Vidéo de ton prof : pourcentages et coefficients multiplicateurs", youtube: "https://youtu.be/DWf_35WEQuI" },
       exemple: {
         enonce: "Dans un lycée de $1\\,250$ élèves, $450$ sont en Seconde. Quelle proportion cela représente-t-il ?",
         solution: "$p = \\dfrac{450}{1\\,250} = 0{,}36 = 36\\,\\%$."
@@ -60,7 +60,7 @@ window.CHAPITRES["auto-proportions"] = {
       texte:
         "- Si $A$ est une partie de $B$, et $B$ une partie de $E$, alors $p_{A/E} = p_{A/B} \\times p_{B/E}$.\n" +
         "- On **multiplie** les proportions, on ne les additionne pas.",
-      video: { titre: "Vidéo d'Yvan Monka : calculer un pourcentage de pourcentage", youtube: "https://youtu.be/nPPRsOW2veU" },
+      video: { titre: "Vidéo de ton prof : proportions et évolutions", youtube: "https://youtu.be/WwLJCEUa2t4" },
       exemple: {
         enonce: "$60\\,\\%$ des élèves d'un lycée sont des filles, et $25\\,\\%$ des filles font du handball. Quel pourcentage des élèves sont des filles qui font du handball ?",
         solution: "$0{,}6 \\times 0{,}25 = 0{,}15$, soit $15\\,\\%$ des élèves."
@@ -68,7 +68,11 @@ window.CHAPITRES["auto-proportions"] = {
     }
   ],
 
-  videos: [],
+  videos: [
+    { titre: "Exercice 13 · Pourcentages et coefficients multiplicateurs", type: "Pourcentages", youtube: "https://youtu.be/DWf_35WEQuI" },
+    { titre: "Exercice 14 · Proportions et évolutions", type: "Proportions", youtube: "https://youtu.be/WwLJCEUa2t4" }
+  ],
+  videosNote: "Vidéos de ton prof (playlist « Secondes : automatismes ») : les énoncés sont dans le dossier élève ci-dessus.",
 
   exercices: [
     { type: "proportion-pourcentage", titre: "PP01 · Calculer une proportion", etape: "Programme de Seconde", nb: 5 },

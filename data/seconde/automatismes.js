@@ -12,7 +12,7 @@ window.CHAPITRES["seconde-automatismes"] = {
   titre: "Automatismes",
   accroche: "Ce qu'il faut savoir faire vite et sans erreur, souvent de tête : 10 fiches flash et des séries d'entraînement.",
 
-  playlist: "",
+  playlist: "https://www.youtube.com/playlist?list=PLVTjofGlms14",
   drive: "https://drive.google.com/drive/folders/1FSdCJtja6emqTtKUZ_RQNPUYfwfHvoLv",
   pdfs: [
     {
@@ -30,7 +30,7 @@ window.CHAPITRES["seconde-automatismes"] = {
         "- Diviser par une fraction, c'est multiplier par son **inverse** : $\\dfrac{a}{b} \\div \\dfrac{c}{d} = \\dfrac{a}{b} \\times \\dfrac{d}{c}$.\n" +
         "- $a^m \\times a^n = a^{m+n}$, $\\dfrac{a^m}{a^n} = a^{m-n}$, $(a^m)^n = a^{mn}$, $a^0 = 1$, $a^{-n} = \\dfrac{1}{a^n}$.\n" +
         "- Écriture scientifique : $a \\times 10^n$ avec $1 \\leqslant a < 10$, par exemple $52\\,300 = 5{,}23 \\times 10^4$.",
-      video: { titre: "Vidéo d'Yvan Monka : calculer avec des fractions", youtube: "https://youtu.be/Z86gfJOKgBg" },
+      video: { titre: "Vidéo de ton prof : calculer avec des fractions", youtube: "https://youtu.be/Zp_aC-8QbWw" },
       exemple: {
         enonce: "Calculer $\\dfrac{3}{4} - \\dfrac{1}{3}$ et $2^5 \\times 2^{-2}$.",
         solution: "$\\dfrac{9}{12} - \\dfrac{4}{12} = \\dfrac{5}{12}$ et $2^{5 + (-2)} = 2^3 = 8$.\n\nPièges : $(-3)^2 = 9$ mais $-3^2 = -9$ ; $2^3 \\times 2^4 = 2^7$, pas $4^7$."
@@ -56,7 +56,7 @@ window.CHAPITRES["seconde-automatismes"] = {
         "- $(a + b)^2 = a^2 + 2ab + b^2$ et $(a - b)^2 = a^2 - 2ab + b^2$.\n" +
         "- $(a + b)(a - b) = a^2 - b^2$.\n" +
         "- Factoriser : chercher un facteur commun, sinon une identité remarquable. On vérifie en redéveloppant.",
-      video: { titre: "Vidéo d'Yvan Monka : factoriser avec une identité remarquable", youtube: "https://youtu.be/T9T4IeYGEe4" },
+      video: { titre: "Vidéo de ton prof : développer et factoriser avec les identités remarquables", youtube: "https://youtu.be/zrIo7AksY5o" },
       exemple: {
         enonce: "Développer $(x - 3)^2$ et factoriser $x^2 - 25$.",
         solution: "$(x - 3)^2 = x^2 - 6x + 9$ (et non $x^2 - 9$).\n\n$x^2 - 25 = (x - 5)(x + 5)$."
@@ -69,7 +69,7 @@ window.CHAPITRES["seconde-automatismes"] = {
         "- $x^2 = a$ : deux solutions $\\sqrt{a}$ et $-\\sqrt{a}$ si $a > 0$, une seule ($0$) si $a = 0$, aucune si $a < 0$.\n" +
         "- Dans une inéquation, multiplier ou diviser par un nombre **négatif** change le sens : $-2x \\geqslant 6 \\iff x \\leqslant -3$.\n" +
         "- Isoler une variable : $d = vt \\iff t = \\dfrac{d}{v}$.",
-      video: { titre: "Vidéo d'Yvan Monka : résoudre une équation du premier degré", youtube: "https://youtu.be/quzC5C3a9jM" },
+      video: { titre: "Vidéo de ton prof : équations et inéquations", youtube: "https://youtu.be/2Fv54-YT1lI" },
       exemple: {
         enonce: "Résoudre $3x - 7 = x + 5$.",
         solution: "$3x - x = 5 + 7 \\iff 2x = 12 \\iff x = 6$. $S = \\{6\\}$"
@@ -81,7 +81,7 @@ window.CHAPITRES["seconde-automatismes"] = {
         "- Proportion : $p = \\dfrac{n_A}{n_E}$ ; partie $n_A = p \\times n_E$ ; tout $n_E = \\dfrac{n_A}{p}$.\n" +
         "- $+t\\,\\%$ : $\\times \\left(1 + \\dfrac{t}{100}\\right)$ ; $-t\\,\\%$ : $\\times \\left(1 - \\dfrac{t}{100}\\right)$.\n" +
         "- Évolutions successives : on multiplie les coefficients. Valeur initiale : on divise par le coefficient.",
-      video: { titre: "Vidéo d'Yvan Monka : coefficient multiplicateur", youtube: "https://youtu.be/-5QmcMuzy5I" },
+      video: { titre: "Vidéo de ton prof : pourcentages et coefficients multiplicateurs", youtube: "https://youtu.be/DWf_35WEQuI" },
       exemple: {
         enonce: "Un article à $60$ € baisse de $15\\,\\%$. Nouveau prix ?",
         solution: "$60 \\times 0{,}85 = 51$ €."
@@ -93,7 +93,7 @@ window.CHAPITRES["seconde-automatismes"] = {
         "- $M(x\\,;y) \\in \\mathcal{C}_f \\iff y = f(x)$ : on calcule l'image de l'abscisse et on compare à l'ordonnée.\n" +
         "- Image : unique. Antécédents : zéro, un ou plusieurs.\n" +
         "- $f(x) = ax + b$ est **affine** (droite) ; si $b = 0$, elle est **linéaire** (droite passant par l'origine). $a$ est le coefficient directeur : $a = \\dfrac{f(x_2) - f(x_1)}{x_2 - x_1}$.",
-      video: { titre: "Vidéo d'Yvan Monka : lire une image ou un antécédent", youtube: "https://youtu.be/VM2iC9P3Qmg" },
+      video: { titre: "Vidéo de ton prof : lire un graphique, images et antécédents", youtube: "https://youtu.be/SSnZlcRgllg" },
       exemple: {
         enonce: "$f(x) = 2x^2 - 1$. Le point $A(-2\\,;7)$ est-il sur la courbe de $f$ ?",
         solution: "$f(-2) = 2 \\times 4 - 1 = 7$ : oui, $A \\in \\mathcal{C}_f$."
@@ -101,7 +101,7 @@ window.CHAPITRES["seconde-automatismes"] = {
     },
     {
       titre: "Repérage, aires et volumes",
-      video: { titre: "Vidéo d'Yvan Monka : calculer des volumes (boule, cylindre)", youtube: "https://youtu.be/ZnB0RIPlIsw" },
+      video: { titre: "Vidéo de ton prof : périmètres, aires, volumes", youtube: "https://youtu.be/UgnC010qfVI" },
       texte:
         "- Rectangle $L \\times \\ell$ ; triangle $\\dfrac{\\text{base} \\times \\text{hauteur}}{2}$ ; disque $\\pi r^2$ ; cercle $2\\pi r$.\n" +
         "- Pavé $L \\times \\ell \\times h$ ; prisme et cylindre $\\mathcal{B} \\times h$ ($\\pi r^2 h$) ; pyramide et cône $\\dfrac{1}{3}\\mathcal{B} \\times h$ ; boule $\\dfrac{4}{3}\\pi r^3$.\n" +
@@ -130,7 +130,7 @@ window.CHAPITRES["seconde-automatismes"] = {
         "- Médiane : on **range** les valeurs ; c'est la valeur du milieu (ou la moyenne des deux du milieu si $N$ est pair).\n" +
         "- Quartiles $Q_1$, $Q_3$ : rangs $\\dfrac{N}{4}$ et $\\dfrac{3N}{4}$ arrondis à l'entier supérieur. Étendue = max − min.\n" +
         "- Diagramme circulaire : angle = fréquence $\\times 360^\\circ$.",
-      video: { titre: "Vidéo d'Yvan Monka : moyenne, médiane, quartiles", youtube: "https://youtu.be/qKrgLZKGE8o" },
+      video: { titre: "Vidéo de ton prof : moyenne, médiane, quartiles", youtube: "https://youtu.be/ncb1y7IwBZA" },
       exemple: {
         enonce: "Médiane de la série $3 ; 8 ; 5 ; 12 ; 9 ; 1$ ?",
         solution: "Rangée : $1 ; 3 ; 5 ; 8 ; 9 ; 12$. Six valeurs : médiane $= \\dfrac{5 + 8}{2} = 6{,}5$."
@@ -138,7 +138,7 @@ window.CHAPITRES["seconde-automatismes"] = {
     },
     {
       titre: "Probabilités",
-      video: { titre: "Vidéo d'Yvan Monka : le cours sur les probabilités", youtube: "https://youtu.be/dvx_O37gfyY" },
+      video: { titre: "Vidéo de ton prof : les automatismes en probabilités", youtube: "https://youtu.be/hpiDv1RpXAg" },
       texte:
         "- Une probabilité est toujours entre $0$ et $1$ ; la somme des probabilités des issues vaut $1$.\n" +
         "- Événement contraire : $P(\\overline{A}) = 1 - P(A)$.\n" +
@@ -151,7 +151,37 @@ window.CHAPITRES["seconde-automatismes"] = {
     }
   ],
 
-  videos: [],
+  videos: [
+    { titre: "Exercice 1 · Calculer avec des fractions", type: "P1", youtube: "https://youtu.be/Zp_aC-8QbWw" },
+    { titre: "Exercice 2 · Puissances et écriture scientifique", type: "P1", youtube: "https://youtu.be/DKvTtv77YIw" },
+    { titre: "Exercice 3 · Comparer deux nombres", type: "P1", youtube: "https://youtu.be/qt6CzZFcV3s" },
+    { titre: "Exercice 4 · Conversions d'unités", type: "P2", youtube: "https://youtu.be/ZmsrIiQvadQ" },
+    { titre: "Exercice 5 · Ordres de grandeur", type: "P2", youtube: "https://youtu.be/_hvRtHJSt5I" },
+    { titre: "Exercice 6 · Débit et vitesse moyenne", type: "P2", youtube: "https://youtu.be/-bw7RzHajyI" },
+    { titre: "Exercice 7 · Supprimer les parenthèses", type: "P3", youtube: "https://youtu.be/FX8UOq0J7uM" },
+    { titre: "Exercice 8 · Identités remarquables", type: "P3", youtube: "https://youtu.be/zrIo7AksY5o" },
+    { titre: "Exercice 9 · Forme développée ou factorisée ?", type: "P3", youtube: "https://youtu.be/QcZ8u7ROq60" },
+    { titre: "Exercice 10 · Équations et inéquations", type: "P4", youtube: "https://youtu.be/2Fv54-YT1lI" },
+    { titre: "Exercice 11 · Isoler une variable", type: "P4", youtube: "https://youtu.be/4h0pTjSfrdE" },
+    { titre: "Exercice 12 · Applications numériques et modélisation", type: "P4", youtube: "https://youtu.be/WOSEvJv7GwQ" },
+    { titre: "Exercice 13 · Pourcentages et coefficients multiplicateurs", type: "P5", youtube: "https://youtu.be/DWf_35WEQuI" },
+    { titre: "Exercice 14 · Proportions et évolutions", type: "P5", youtube: "https://youtu.be/WwLJCEUa2t4" },
+    { titre: "Exercice 15 · Évolutions successives", type: "P5", youtube: "https://youtu.be/xb81PxfmSWQ" },
+    { titre: "Exercice 16 · Images et antécédents", type: "P6", youtube: "https://youtu.be/SSnZlcRgllg" },
+    { titre: "Exercice 17 · Équation d'une courbe", type: "P6", youtube: "https://youtu.be/A--qoNu8uno" },
+    { titre: "Exercice 18 · Reconnaître une fonction affine", type: "P6", youtube: "https://youtu.be/hfiPikWtwoA" },
+    { titre: "Exercice 19 · Repérage", type: "P7", youtube: "https://youtu.be/KTPki_bOLzU" },
+    { titre: "Exercice 21 · Périmètres, aires, volumes", type: "P7", youtube: "https://youtu.be/UgnC010qfVI" },
+    { titre: "Exercice 25 · Moyenne, médiane, quartiles", type: "P9", youtube: "https://youtu.be/ncb1y7IwBZA" },
+    { titre: "Exercice 26 · Lire et commenter des graphiques", type: "P9", youtube: "https://youtu.be/sbcsgw91EO0" },
+    { titre: "Exercice 27 · Comparer deux séries", type: "P9", youtube: "https://youtu.be/ZuVX12i3Wp4" },
+    { titre: "Exercice 28 · Les automatismes en probabilités", type: "P10", youtube: "https://youtu.be/hpiDv1RpXAg" },
+    { titre: "Exercice 29 · Urne, cartes, deux dés", type: "P10", youtube: "https://youtu.be/rkdNL-3Ih9Q" },
+    { titre: "Exercice 30 · Raisonner avec les probabilités", type: "P10", youtube: "https://youtu.be/iliNfgwWyLM" },
+    { titre: "Exercice 31 · Test final : 24 QCM", type: "Test", youtube: "https://youtu.be/FoEpt0a0qBE" },
+    { titre: "Exercice 32 · Synthèse : la citerne du faré", type: "Synthèse", youtube: "https://youtu.be/_q_XdOJxjik" }
+  ],
+  videosNote: "Vidéos de ton prof (playlist « Secondes : automatismes ») : les énoncés sont dans le dossier élève ci-dessus.",
 
   /* ---------- 2. SÉRIES FLASH ---------- */
   exercices: [

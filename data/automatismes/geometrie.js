@@ -12,7 +12,7 @@ window.CHAPITRES["auto-geometrie"] = {
   titre: "Géométrie",
   accroche: "Repérer un point, calculer un périmètre, une aire ou un volume, utiliser Pythagore, Thalès et la trigonométrie du triangle rectangle, sans calculatrice.",
 
-  playlist: "",
+  playlist: "https://www.youtube.com/playlist?list=PLVTjofGlms14",
   drive: "https://drive.google.com/drive/folders/1FSdCJtja6emqTtKUZ_RQNPUYfwfHvoLv",
   pdfs: [
     { titre: "Dossier élève de Seconde (parties P7 et P8)", url: "https://drive.google.com/file/d/1vr9e5N38rAOQLWIvUR5suK6l6ciyoLNY/view" }
@@ -21,6 +21,7 @@ window.CHAPITRES["auto-geometrie"] = {
   cours: [
     {
       titre: "Se repérer (GE01)",
+      video: { titre: "Vidéo de ton prof : repérage sur une droite et dans le plan", youtube: "https://youtu.be/KTPki_bOLzU" },
       texte:
         "- Sur une **droite graduée**, chaque point a une abscisse : positive à droite de $0$, négative à gauche.\n" +
         "- Dans un **repère** du plan, un point a deux coordonnées $(x\\,;y)$ : d'abord l'**abscisse** (axe horizontal), puis l'**ordonnée** (axe vertical).\n" +
@@ -32,6 +33,7 @@ window.CHAPITRES["auto-geometrie"] = {
     },
     {
       titre: "Périmètres, aires et volumes (GE02)",
+      video: { titre: "Vidéo de ton prof : périmètres, aires, volumes", youtube: "https://youtu.be/UgnC010qfVI" },
       texte:
         "- **Périmètres** : la somme des côtés d'un polygone ; rectangle $2(L + \\ell)$ ; carré $4c$ ; cercle $2\\pi r = \\pi d$.\n" +
         "- **Aires** : rectangle $L \\times \\ell$ ; triangle $\\dfrac{\\text{base} \\times \\text{hauteur}}{2}$ ; disque $\\pi r^2$.\n" +
@@ -67,7 +69,11 @@ window.CHAPITRES["auto-geometrie"] = {
     }
   ],
 
-  videos: [],
+  videos: [
+    { titre: "Exercice 19 · Repérage", type: "Repérer", youtube: "https://youtu.be/KTPki_bOLzU" },
+    { titre: "Exercice 21 · Périmètres, aires, volumes", type: "Grandeurs", youtube: "https://youtu.be/UgnC010qfVI" }
+  ],
+  videosNote: "Vidéos de ton prof (playlist « Secondes : automatismes ») : les énoncés sont dans le dossier élève ci-dessus.",
 
   exercices: [
     { type: "am-repere-droite", titre: "GE01 · Abscisse sur une droite graduée", etape: "Programme de Seconde", nb: 5 },
