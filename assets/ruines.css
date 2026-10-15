@@ -16,6 +16,7 @@
   scrollbar-color: #c9a25e #f1dfb4;
 }
 /* Couleurs des niveaux : mêmes teintes, un peu plus profondes pour rester bien lisibles sur le grès */
+:root[data-theme="ruines"] [data-niv="college"], :root[data-theme="ruines"] [data-niv="sixieme"], :root[data-theme="ruines"] [data-niv="cinquieme"], :root[data-theme="ruines"] [data-niv="quatrieme"], :root[data-theme="ruines"] [data-niv="troisieme"] { --ac: #3c6e1f; }
 :root[data-theme="ruines"] [data-niv="automatismes"] { --ac: #964c04; --sigil: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 3 3'><path d='M0.56 0.06h.88v.88h-.88zM0.56 1.06h.88v.88h-.88zM0.56 2.06h.88v.88h-.88zM1.56 2.06h.88v.88h-.88z'/></svg>"); }
 :root[data-theme="ruines"] [data-niv="premiere"] { --sigil: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 3 3'><path d='M0.06 0.56h.88v.88h-.88zM1.06 0.56h.88v.88h-.88zM1.06 1.56h.88v.88h-.88zM2.06 1.56h.88v.88h-.88z'/></svg>"); }
 :root[data-theme="ruines"] [data-niv="terminale-spe"] { --ac: #a52d55; --sigil: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 3 3'><path d='M1.06 0.56h.88v.88h-.88zM2.06 0.56h.88v.88h-.88zM0.06 1.56h.88v.88h-.88zM1.06 1.56h.88v.88h-.88z'/></svg>"); }

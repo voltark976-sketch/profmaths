@@ -8,9 +8,145 @@
   - drive   : lien du sous-dossier Drive du chapitre
   - code    : sigle affiché dans la pastille (sinon le numéro du chapitre, ou « A »)
   - fichier : nom de la variable du fichier de contenu (seulement si disponible)
+  Un niveau avec groupe: "college" (6e, 5e, 4e, 3e) n'a pas sa propre carte sur l'accueil :
+  il est rangé derrière la carte « Collège » (page #college).
 */
 window.CATALOGUE = {
   niveaux: [
+    {
+      id: "sixieme",
+      nom: "6e",
+      groupe: "college",
+      intro: "Programme de 6e en vigueur depuis la rentrée 2025 (cycle 3). Les chapitres arrivent un par un ; en attendant, les vidéos sont celles d'Yvan Monka.",
+      chapitres: [
+        {
+          id: "sixieme-nombres",
+          numero: 1,
+          titre: "Nombres entiers et décimaux",
+          statut: "disponible",
+          drive: ""
+        },
+        {
+          id: "sixieme-operations",
+          numero: 2,
+          titre: "Addition, soustraction et multiplication des décimaux",
+          statut: "bientot",
+          drive: ""
+        },
+        {
+          id: "sixieme-division",
+          numero: 3,
+          titre: "Division euclidienne, division décimale et durées",
+          statut: "bientot",
+          drive: ""
+        },
+        {
+          id: "sixieme-fractions",
+          numero: 4,
+          titre: "Fractions",
+          statut: "bientot",
+          drive: ""
+        },
+        {
+          id: "sixieme-proportionnalite",
+          numero: 5,
+          titre: "Proportionnalité",
+          statut: "bientot",
+          drive: ""
+        },
+        {
+          id: "sixieme-pourcentages",
+          numero: 6,
+          titre: "Pourcentages",
+          statut: "bientot",
+          drive: ""
+        },
+        {
+          id: "sixieme-algebre",
+          numero: 7,
+          titre: "Pensée algébrique : motifs et schémas en barre",
+          statut: "bientot",
+          drive: ""
+        },
+        {
+          id: "sixieme-donnees-probabilites",
+          numero: 8,
+          titre: "Organisation de données et probabilités",
+          statut: "bientot",
+          drive: ""
+        },
+        {
+          id: "sixieme-distances-cercles",
+          numero: 9,
+          titre: "Distances, cercles et médiatrice",
+          statut: "bientot",
+          drive: ""
+        },
+        {
+          id: "sixieme-angles",
+          numero: 10,
+          titre: "Angles et bissectrice",
+          statut: "bientot",
+          drive: ""
+        },
+        {
+          id: "sixieme-triangles",
+          numero: 11,
+          titre: "Triangles",
+          statut: "bientot",
+          drive: ""
+        },
+        {
+          id: "sixieme-symetrie",
+          numero: 12,
+          titre: "Symétrie axiale",
+          statut: "bientot",
+          drive: ""
+        },
+        {
+          id: "sixieme-perimetres-aires",
+          numero: 13,
+          titre: "Longueurs, périmètres et aires",
+          statut: "bientot",
+          drive: ""
+        },
+        {
+          id: "sixieme-espace-volumes",
+          numero: 14,
+          titre: "Solides, vision dans l'espace et volumes",
+          statut: "bientot",
+          drive: ""
+        },
+        {
+          id: "sixieme-informatique",
+          numero: 15,
+          titre: "Initiation à la pensée informatique",
+          statut: "bientot",
+          drive: ""
+        }
+      ]
+    },
+    {
+      id: "cinquieme",
+      nom: "5e",
+      groupe: "college",
+      intro: "Nouveau programme de 5e, en vigueur à la rentrée 2026 (BO du 5 mars 2026). Les chapitres sont en préparation.",
+      chapitres: []
+    },
+    {
+      id: "quatrieme",
+      nom: "4e",
+      groupe: "college",
+      intro: "Programme de 4e en vigueur en 2026-2027 (cycle 4, programme de 2020). Les chapitres sont en préparation.",
+      chapitres: []
+    },
+    {
+      id: "troisieme",
+      nom: "3e",
+      groupe: "college",
+      intro: "Programme de 3e en vigueur en 2026-2027 (cycle 4, programme de 2020), celui du brevet 2027. Les chapitres sont en préparation.",
+      chapitres: []
+    },
     {
       id: "seconde",
       nom: "Seconde",
