@@ -35,5 +35,42 @@ service cloud.firestore {
         && request.resource.data.classe == request.auth.token.classe
         && request.resource.data.points is int && request.resource.data.points >= 0;
     }
+
+    // Fréquentation du site : compteurs anonymes (aucun nom), lus seulement par les professeurs.
+    // N'importe quel visiteur peut ajouter 1 à un compteur, jamais plus d'un à la fois, jamais retirer.
+    function jour(j) { return j is string && j.matches('20[0-9]{2}-[01][0-9]-[0-3][0-9]'); }
+    function vaut1(k) { return !(k in request.resource.data) || request.resource.data[k] == 1; }
+    function modifies() { return request.resource.data.diff(resource.data).affectedKeys(); }
+    function plusUn(k) { return !(k in modifies()) || request.resource.data[k] == resource.data.get(k, 0) + 1; }
+    // Classes : un élève connecté n'ajoute 1 qu'au compteur de sa propre classe (groupe inscrit dans son compte)
+    function classeOk(avant) {
+      let apres = request.resource.data.get('classes', {});
+      let d = apres.diff(avant).affectedKeys();
+      return d.size() == 0 || (eleve() && d.hasOnly([request.auth.token.groupe])
+        && apres[request.auth.token.groupe] == avant.get(request.auth.token.groupe, 0) + 1);
+    }
+    // Un document par jour (AAAA-MM-JJ) : visites, téléphone ou ordinateur, jeu, élèves connectés par classe
+    match /visites/{j} {
+      allow read: if prof();
+      allow create: if jour(j) && request.resource.data.j == j
+        && request.resource.data.keys().hasOnly(['j', 'visites', 'tel', 'pc', 'jeu', 'classes'])
+        && vaut1('visites') && vaut1('tel') && vaut1('pc') && vaut1('jeu')
+        && request.resource.data.get('classes', {}) is map && classeOk({});
+      allow update: if modifies().hasOnly(['visites', 'tel', 'pc', 'jeu', 'classes'])
+        && plusUn('visites') && plusUn('tel') && plusUn('pc') && plusUn('jeu')
+        && request.resource.data.get('classes', {}) is map && classeOk(resource.data.get('classes', {}));
+    }
+    // Un document par jour et par chapitre : nombre d'ouvertures de chaque onglet
+    match /visitesChap/{id} {
+      allow read: if prof();
+      allow create: if jour(request.resource.data.j)
+        && request.resource.data.ch is string && request.resource.data.ch.matches('[a-z0-9-]{1,60}')
+        && id == request.resource.data.j + '_' + request.resource.data.ch
+        && request.resource.data.keys().hasOnly(['j', 'ch', 'cours', 'exercices', 'qcm', 'defi', 'methode'])
+        && request.resource.data.keys().size() == 3
+        && vaut1('cours') && vaut1('exercices') && vaut1('qcm') && vaut1('defi') && vaut1('methode');
+      allow update: if modifies().hasOnly(['cours', 'exercices', 'qcm', 'defi', 'methode']) && modifies().size() == 1
+        && plusUn('cours') && plusUn('exercices') && plusUn('qcm') && plusUn('defi') && plusUn('methode');
+    }
   }
 }

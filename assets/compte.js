@@ -58,45 +58,81 @@
     await Promise.all([chargerScript(base + "firebase-auth-compat.js"), chargerScript(base + "firebase-firestore-compat.js")]);
     firebase.initializeApp(CFG.firebase);
     fb = { auth: firebase.auth(), db: firebase.firestore() };
-    fb.auth.onAuthStateChanged(async (u) => {
-      if (!u) { eleve = null; ecouteur(null, null); return; }
-      const idTech = (u.email || "").split("@")[0];
-      let c;
-      try { c = (await u.getIdTokenResult()).claims; }
-      catch (e) { c = null; }
-      if (c && c.prof) {
-        const p = { uid: u.uid, identifiant: idTech, prenom: c.prenom || "Professeur", classe: "", prof: true, groupes: Array.isArray(c.groupes) ? c.groupes : null };
-        try {
-          const snap = await fiche(p).get();
-          eleve = p;
-          ecouteur(eleve, lireProg(snap.exists ? snap.data() : {}));
-        } catch (e) {
-          // Lecture impossible : on n'écrase pas la fiche avec la copie de l'appareil, on relira plus tard
-          eleve = Object.assign(p, { lectureEchouee: true });
-          ecouteur(eleve, null);
-        }
-        return;
-      }
-      if (c && !c.eleve) {
-        // Compte qui n'a pas été créé par le professeur : refusé
-        erreurCompte = "Ce compte n'existe plus. Demande tes identifiants à ton professeur.";
-        fb.auth.signOut(); return;
-      }
-      const profil = c ? { identifiant: idTech, prenom: c.prenom || "", nom: c.nom || "", classe: c.classe || "", groupe: c.groupe || "" } : { identifiant: idTech, prenom: "", classe: "" };
+    // Les visites ne sont comptées qu'une fois le compte connu (le professeur n'est pas compté)
+    fb.auth.onAuthStateChanged((u) => etatCompte(u).then(visitesPretes));
+  }
+  async function etatCompte(u) {
+    if (!u) { eleve = null; ecouteur(null, null); return; }
+    const idTech = (u.email || "").split("@")[0];
+    let c;
+    try { c = (await u.getIdTokenResult()).claims; }
+    catch (e) { c = null; }
+    if (c && c.prof) {
+      const p = { uid: u.uid, identifiant: idTech, prenom: c.prenom || "Professeur", classe: "", prof: true, groupes: Array.isArray(c.groupes) ? c.groupes : null };
       try {
-        const ref = fb.db.collection("eleves").doc(u.uid);
-        const snap = await ref.get();
-        const d = snap.exists ? snap.data() : {};
-        // Première connexion : la fiche de l'élève est créée à partir de son compte
-        if (!snap.exists) await ref.set(Object.assign({}, profil, { xp: 0, exo: {}, qcm: {}, creeLe: firebase.firestore.FieldValue.serverTimestamp() }));
-        eleve = Object.assign({ uid: u.uid }, profil);
-        ecouteur(eleve, lireProg(d));
+        const snap = await fiche(p).get();
+        eleve = p;
+        ecouteur(eleve, lireProg(snap.exists ? snap.data() : {}));
       } catch (e) {
-        // Lecture impossible (réseau) : on n'écrase pas le compte avec la copie de l'appareil, on relira plus tard
-        eleve = Object.assign({ uid: u.uid, lectureEchouee: true }, profil);
+        // Lecture impossible : on n'écrase pas la fiche avec la copie de l'appareil, on relira plus tard
+        eleve = Object.assign(p, { lectureEchouee: true });
         ecouteur(eleve, null);
       }
-    });
+      return;
+    }
+    if (c && !c.eleve) {
+      // Compte qui n'a pas été créé par le professeur : refusé
+      erreurCompte = "Ce compte n'existe plus. Demande tes identifiants à ton professeur.";
+      fb.auth.signOut(); return;
+    }
+    const profil = c ? { identifiant: idTech, prenom: c.prenom || "", nom: c.nom || "", classe: c.classe || "", groupe: c.groupe || "" } : { identifiant: idTech, prenom: "", classe: "" };
+    try {
+      const ref = fb.db.collection("eleves").doc(u.uid);
+      const snap = await ref.get();
+      const d = snap.exists ? snap.data() : {};
+      // Première connexion : la fiche de l'élève est créée à partir de son compte
+      if (!snap.exists) await ref.set(Object.assign({}, profil, { xp: 0, exo: {}, qcm: {}, creeLe: firebase.firestore.FieldValue.serverTimestamp() }));
+      eleve = Object.assign({ uid: u.uid }, profil);
+      ecouteur(eleve, lireProg(d));
+    } catch (e) {
+      // Lecture impossible (réseau) : on n'écrase pas le compte avec la copie de l'appareil, on relira plus tard
+      eleve = Object.assign({ uid: u.uid, lectureEchouee: true }, profil);
+      ecouteur(eleve, null);
+    }
+  }
+
+  /* ---------- Fréquentation : compteurs anonymes (aucun nom, aucun cookie) ----------
+    Chaque appareil est compté une fois par jour : pour le site (téléphone ou ordinateur),
+    pour chaque onglet de chapitre ouvert, pour le jeu, et pour la classe d'un élève connecté.
+    Le professeur n'est pas compté, ni les essais sur l'ordinateur (localhost). */
+  const CLE_VUS = "profmaths:vus";
+  const ONGLETS_COMPTES = ["cours", "exercices", "qcm", "defi", "methode"];
+  const ESSAI_LOCAL = location.protocol === "file:" || /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname);
+  let pretVisites = false, attenteVisites = [];
+  function visitesPretes() {
+    pretVisites = true;
+    const a = attenteVisites; attenteVisites = [];
+    a.forEach((args) => compterVisite(...args));
+  }
+  function compterVisite(page, onglet) {
+    if (!fb || ESSAI_LOCAL || (eleve && eleve.prof)) return;
+    const j = new Date().toLocaleDateString("fr-CA"); // date du jour sur l'appareil, AAAA-MM-JJ
+    let vus = lireJSON(CLE_VUS, null);
+    if (!vus || vus.d !== j || !Array.isArray(vus.k)) vus = { d: j, k: [] };
+    const nouveau = (k) => !vus.k.includes(k) && vus.k.push(k);
+    const plus1 = () => firebase.firestore.FieldValue.increment(1);
+    const jour = {};
+    if (nouveau("site")) { jour.visites = plus1(); jour[matchMedia("(pointer: coarse)").matches ? "tel" : "pc"] = plus1(); }
+    if (page === "jeu" && nouveau("jeu")) jour.jeu = plus1();
+    if (eleve && eleve.groupe && !eleve.lectureEchouee && nouveau("eleve:" + eleve.uid)) jour.classes = { [eleve.groupe]: plus1() };
+    const envois = [];
+    if (Object.keys(jour).length) envois.push(fb.db.collection("visites").doc(j).set(Object.assign({ j }, jour), { merge: true }));
+    if (page && page !== "jeu" && ONGLETS_COMPTES.includes(onglet) && nouveau(page + "." + onglet)) {
+      envois.push(fb.db.collection("visitesChap").doc(j + "_" + page).set({ j, ch: page, [onglet]: plus1() }, { merge: true }));
+    }
+    if (!envois.length) return;
+    ecrireJSON(CLE_VUS, vus);
+    envois.forEach((p) => p.catch(() => {})); // hors ligne ou refusé : tant pis, ce n'est qu'un compteur
   }
   let erreurCompte = "";
   // Nouvel essai de lecture du compte après un échec ; la fusion se fait dans l'écouteur, qui enregistre ensuite
@@ -216,6 +252,19 @@
       // Professeur rattaché à certaines classes : on ne demande que celles-là (les règles refusent le reste)
       const snaps = !g ? [await col.get()] : await Promise.all(Array.from({ length: Math.ceil(g.length / 30) }, (_, i) => col.where("groupe", "in", g.slice(i * 30, i * 30 + 30)).get()));
       return snaps.flatMap((snap) => snap.docs.map((d) => Object.assign({ uid: d.id }, d.data())));
+    },
+
+    // Compte une visite (page = identifiant du chapitre, « jeu » ou rien ; onglet du chapitre)
+    visite(page, onglet) {
+      if (pretVisites) compterVisite(page, onglet);
+      else if (attenteVisites.length < 20) attenteVisites.push([page, onglet]);
+    },
+
+    // Professeur : compteurs de fréquentation depuis la date « depuis » (AAAA-MM-JJ)
+    async frequentation(depuis) {
+      if (!fb || !eleve || !eleve.prof) return null;
+      const [jours, chap] = await Promise.all(["visites", "visitesChap"].map((c) => fb.db.collection(c).where("j", ">=", depuis).get()));
+      return { jours: jours.docs.map((d) => d.data()), chapitres: chap.docs.map((d) => d.data()) };
     },
 
     // Enregistre la progression (regroupe les envois rapprochés pour économiser le réseau)

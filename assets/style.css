@@ -655,3 +655,21 @@ table.suivi { border-collapse: collapse; background: var(--surface); font-varian
 .suivi td.fait { background: var(--bon-pale); color: var(--ylang); }
 .suivi td.qcm { color: var(--encre); }
 .suivi td.vide { color: var(--doux); }
+/* Page professeur : fréquentation du site */
+.btns-prof { display: flex; flex-wrap: wrap; gap: 10px; }
+.freq-tuiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin: 14px 0; }
+.freq-tuile { background: var(--surface); border: 1px solid var(--trait); border-radius: var(--r); padding: 10px 12px; display: grid; gap: 2px; }
+.freq-tuile b { font: 800 1.6rem/1.1 var(--f-titre); font-variant-numeric: tabular-nums; }
+.freq-tuile span { color: var(--doux); font-size: 0.88rem; }
+.freq-barres { display: flex; align-items: flex-end; gap: 2px; height: 140px; padding: 0 2px; border-bottom: 1px solid var(--trait); }
+.freq-barres span { flex: 1 1 0; min-width: 0; height: 100%; display: flex; align-items: flex-end; cursor: pointer; }
+.freq-barres i { display: block; width: 100%; max-width: 24px; margin: 0 auto; min-height: 1px; background: var(--ac); border-radius: 4px 4px 0 0; opacity: 0.85; }
+.freq-barres span:hover i, .freq-barres .on i { opacity: 1; outline: 2px solid var(--encre); outline-offset: 1px; }
+.freq-axe { display: flex; justify-content: space-between; color: var(--doux); font-size: 0.85rem; margin-top: 4px; }
+.freq-niv, .freq-classes { list-style: none; padding: 0; margin: 10px 0; display: grid; gap: 8px; }
+.freq-niv li { display: grid; grid-template-columns: 1fr auto; gap: 4px 10px; align-items: center; }
+.freq-niv .piste { grid-column: 1 / -1; grid-row: 2; height: 14px; background: var(--surface); box-shadow: inset 0 0 0 1px var(--trait); border-radius: 4px; overflow: hidden; }
+.freq-niv i { display: block; height: 100%; background: var(--ac); border-radius: 0 4px 4px 0; }
+.freq-niv b, .freq-classes b { font-variant-numeric: tabular-nums; }
+.freq-classes li { display: flex; justify-content: space-between; gap: 10px; padding: 6px 10px; background: var(--surface); border: 1px solid var(--trait); border-radius: 10px; }
+.freq-chap tbody th { white-space: normal; min-width: 9em; max-width: 14em; }

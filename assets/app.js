@@ -270,11 +270,16 @@
     $xpLien.toggleAttribute("aria-current", chap === "avatar");
     if (chap === "compte") pageCompte();
     else if (chap === "suivi") pageSuivi();
+    else if (chap === "frequentation") pageFrequentation();
     else if (chap === "avatar") pageAvatar();
     else if (chap === "jeu") pageJeu(onglet);
     else if (chap && window.CHAPITRES && CHAPITRES[chap]) pageChapitre(chap, onglet || "cours");
     else if (chap && CATALOGUE.niveaux.some((n) => "niveau-" + n.id === chap)) pageNiveau(CATALOGUE.niveaux.find((n) => "niveau-" + n.id === chap));
     else pageAccueil();
+    // Fréquentation anonyme (une fois par appareil et par jour)
+    if (chap === "jeu") Compte.visite("jeu");
+    else if (chap && window.CHAPITRES && CHAPITRES[chap]) Compte.visite(chap, ONGLETS.some((o) => o.id === onglet) ? onglet : "cours");
+    else Compte.visite();
     // Couleur du niveau (Seconde, Première...) pour habiller la page niveau et la page chapitre
     const niv = CATALOGUE.niveaux.find((n) => "niveau-" + n.id === chap || n.chapitres.some((ch) => ch.id === chap));
     if (niv) $app.dataset.niv = niv.id; else delete $app.dataset.niv;
@@ -459,7 +464,7 @@
     if (e && e.prof) {
       $app.innerHTML = `<section class="page-compte"><p class="eyebrow">Compte professeur</p><h1>Bonjour !</h1>
         <p class="lead">Identifiant : <strong>${esc(e.identifiant)}</strong></p>
-        <p><a class="btn" href="#suivi">Suivi des élèves</a></p>
+        <p class="btns-prof"><a class="btn" href="#suivi">Suivi des élèves</a> <a class="btn" href="#frequentation">Fréquentation du site</a></p>
         <button class="btn-sec" id="deco">Se déconnecter</button></section>`;
       document.getElementById("deco").addEventListener("click", () => Compte.deconnecter().then(() => { location.hash = ""; }));
       return;
@@ -571,7 +576,7 @@
       if (aFait) faits++;
       return `<tr><th scope="row">${esc(x.nom || "")} ${esc(x.prenom || x.identifiant || "")}</th>${cases}${qcm}<td>${dernier ? date(dernier) : "–"}</td><td>${x.xp || 0}</td></tr>`;
     }).join("");
-    $app.innerHTML = `<section class="page-suivi"><p class="eyebrow">Compte professeur</p><h1>Suivi des élèves</h1>
+    $app.innerHTML = `<section class="page-suivi"><p class="eyebrow">Compte professeur · <a href="#frequentation">Fréquentation du site</a></p><h1>Suivi des élèves</h1>
       <div class="suivi-choix">
         <label>Classe <select id="s-groupe">${groupes.map((g) => `<option${g === suiviChoix.groupe ? " selected" : ""}>${esc(g)}</option>`).join("")}</select></label>
         <label>Chapitre <select id="s-chap">${chaps.map((ch) => `<option value="${esc(ch.id)}"${ch.id === suiviChoix.chap ? " selected" : ""}>${esc(ch.niveau)} · ${esc(ch.titre)}</option>`).join("")}</select></label>
@@ -586,6 +591,88 @@
     maj("chap", document.getElementById("s-chap"));
     maj("depuis", document.getElementById("s-depuis"));
     document.getElementById("s-maj").addEventListener("click", pageSuivi);
+  }
+
+  /* ---------- Page professeur : fréquentation du site (compteurs anonymes, voir compte.js) ---------- */
+  const freqChoix = { jours: 30, niveau: "" };
+  let freqCache = null; // { depuis, data } : les données déjà lues servent aussi pour une période plus courte
+  const jourISO = (d) => d.toLocaleDateString("fr-CA");
+  async function pageFrequentation(recharger) {
+    document.title = "Fréquentation · ProfMaths";
+    const e = Compte.eleve();
+    if (!e || !e.prof) {
+      $app.innerHTML = `<section class="page-compte"><p class="eyebrow">Fréquentation du site</p><h1>Page réservée au professeur</h1><p><a class="btn" href="#compte">Se connecter</a></p></section>`;
+      return;
+    }
+    const debut = new Date(); debut.setDate(debut.getDate() - freqChoix.jours + 1);
+    const depuis = jourISO(debut);
+    if (recharger === true || !freqCache || freqCache.depuis > depuis) {
+      $app.innerHTML = `<section class="page-suivi"><p class="eyebrow">Compte professeur</p><h1>Fréquentation du site</h1><p class="muted" id="freq-etat">Chargement…</p></section>`;
+      try { freqCache = { depuis, data: await Compte.frequentation(depuis) }; }
+      catch (x) { document.getElementById("freq-etat").textContent = "Lecture impossible. Vérifie la connexion internet puis recharge la page."; return; }
+      if (location.hash !== "#frequentation") return;
+    }
+    afficherFrequentation(depuis);
+  }
+  function afficherFrequentation(depuis) {
+    const d = (freqCache && freqCache.data) || { jours: [], chapitres: [] };
+    const jours = d.jours.filter((x) => x.j >= depuis), lus = d.chapitres.filter((x) => x.j >= depuis);
+    const somme = (l, f) => l.reduce((s, x) => s + (+x[f] || 0), 0);
+    const nb = (n) => n.toLocaleString("fr-FR");
+    const dateCourte = (j) => new Date(j + "T12:00").toLocaleDateString("fr-FR", { day: "numeric", month: "short" });
+    const dateLongue = (j) => new Date(j + "T12:00").toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" });
+    // Visites jour par jour (un jour sans visite compte 0)
+    const parJour = {};
+    jours.forEach((x) => { parJour[x.j] = x; });
+    const serie = [], auj = jourISO(new Date());
+    for (const t = new Date(depuis + "T12:00"); jourISO(t) <= auj; t.setDate(t.getDate() + 1)) serie.push({ j: jourISO(t), n: +(parJour[jourISO(t)] || {}).visites || 0 });
+    const total = somme(jours, "visites"), tel = somme(jours, "tel"), pc = somme(jours, "pc"), jeu = somme(jours, "jeu");
+    const max = Math.max(1, ...serie.map((s) => s.n)), record = serie.reduce((a, b) => (b.n > a.n ? b : a), serie[0]);
+    const classes = {};
+    jours.forEach((x) => Object.entries(x.classes || {}).forEach(([g, n]) => { classes[g] = (classes[g] || 0) + (+n || 0); }));
+    const eleves = Object.values(classes).reduce((s, n) => s + n, 0);
+    // Onglets ouverts, par chapitre puis par niveau
+    const OC = ["cours", "exercices", "qcm", "defi", "methode"];
+    const parChap = {};
+    lus.forEach((x) => { const c = parChap[x.ch] || (parChap[x.ch] = { total: 0 }); OC.forEach((o) => { c[o] = (c[o] || 0) + (+x[o] || 0); c.total += +x[o] || 0; }); });
+    const niveaux = CATALOGUE.niveaux.map((n) => ({ id: n.id, nom: n.nom, chaps: n.chapitres.filter((ch) => parChap[ch.id]).map((ch) => Object.assign({ id: ch.id, titre: ch.titre }, parChap[ch.id])) }))
+      .map((n) => Object.assign(n, { total: n.chaps.reduce((s, c) => s + c.total, 0) }));
+    const maxNiv = Math.max(1, ...niveaux.map((n) => n.total));
+    if (!niveaux.some((n) => n.id === freqChoix.niveau)) freqChoix.niveau = "";
+    const chapsVus = niveaux.filter((n) => !freqChoix.niveau || n.id === freqChoix.niveau).flatMap((n) => n.chaps).sort((a, b) => b.total - a.total);
+    const pct = (a, b) => (b ? Math.round((a / b) * 100) : 0);
+    const tuile = (v, t) => `<div class="freq-tuile"><b>${v}</b><span>${t}</span></div>`;
+    const vide = `<p class="muted">Aucune visite enregistrée sur cette période.</p>`;
+    $app.innerHTML = `<section class="page-suivi page-freq"><p class="eyebrow">Compte professeur · <a href="#suivi">Suivi des élèves</a></p><h1>Fréquentation du site</h1>
+      <div class="suivi-choix">
+        <label>Période <select id="f-jours">${[[7, "7 derniers jours"], [30, "30 derniers jours"], [90, "90 derniers jours"], [365, "12 derniers mois"]].map(([v, t]) => `<option value="${v}"${v === freqChoix.jours ? " selected" : ""}>${t}</option>`).join("")}</select></label>
+        <button class="btn-sec" id="f-maj" type="button">Actualiser</button>
+      </div>
+      <div class="freq-tuiles">${tuile(nb(total), "visites")}${tuile(nb(Math.round((total / serie.length) * 10) / 10), "par jour en moyenne")}${tuile(pct(tel, tel + pc) + " %", "sur téléphone ou tablette")}${tuile(nb(eleves), "connexions d'élèves")}</div>
+      <h2>Visites par jour</h2>
+      ${total ? `<div class="freq-barres" id="freq-barres" role="img" aria-label="Visites par jour : record ${record.n} le ${dateLongue(record.j)}">${serie.map((s) => `<span data-j="${s.j}" data-n="${s.n}" title="${dateCourte(s.j)} : ${s.n}"><i style="height:${(s.n / max) * 100}%"></i></span>`).join("")}</div>
+      <div class="freq-axe"><span>${dateCourte(serie[0].j)}</span><span>${dateCourte(auj)}</span></div>
+      <p class="muted" id="freq-info" aria-live="polite">Record : <strong>${record.n}</strong> visite${record.n > 1 ? "s" : ""} le ${dateLongue(record.j)}. Touche une barre pour voir son jour.</p>` : vide}
+      <h2>Par niveau</h2>
+      <p class="muted">Onglets de chapitre ouverts (cours, exercices, QCM, défi, méthode).${jeu ? ` Jeu Les Salles : ${nb(jeu)} visite${jeu > 1 ? "s" : ""}.` : ""}</p>
+      ${niveaux.some((n) => n.total) ? `<ul class="freq-niv">${niveaux.map((n) => `<li data-niv="${esc(n.id)}"><span>${esc(n.nom)}</span><span class="piste"><i style="width:${(n.total / maxNiv) * 100}%"></i></span><b>${nb(n.total)}</b></li>`).join("")}</ul>` : vide}
+      <h2>Par chapitre</h2>
+      <div class="suivi-choix"><label>Niveau <select id="f-niv"><option value="">Tous les niveaux</option>${niveaux.map((n) => `<option value="${esc(n.id)}"${n.id === freqChoix.niveau ? " selected" : ""}>${esc(n.nom)}</option>`).join("")}</select></label></div>
+      ${chapsVus.length ? `<div class="scroll-x"><table class="suivi freq-chap"><thead><tr><th>Chapitre</th><th>Cours</th><th>Exos</th><th>QCM</th><th>Défi</th><th>Méthode</th><th>Total</th></tr></thead><tbody>${chapsVus.map((c) => `<tr><th scope="row"><a href="#${esc(c.id)}">${esc(c.titre)}</a></th>${OC.map((o) => `<td>${c[o] ? nb(c[o]) : "·"}</td>`).join("")}<td><strong>${nb(c.total)}</strong></td></tr>`).join("")}</tbody></table></div>` : vide}
+      <h2>Élèves connectés, par classe</h2>
+      ${eleves ? `<ul class="freq-classes">${Object.entries(classes).sort((a, b) => b[1] - a[1]).map(([g, n]) => `<li><span>${esc(g)}</span><b>${nb(n)}</b></li>`).join("")}</ul>` : `<p class="muted">Aucun élève connecté sur cette période.</p>`}
+      <p class="muted">Ces chiffres sont anonymes : aucun nom n'est enregistré, seulement des compteurs. Un appareil compte une fois par jour pour le site et une fois par jour pour chaque onglet de chapitre ; un élève connecté compte une fois par jour pour sa classe. Ordinateurs : ${nb(pc)} · téléphones et tablettes : ${nb(tel)}. Tes propres visites (compte professeur) ne sont pas comptées.</p></section>`;
+    document.getElementById("f-jours").addEventListener("change", (ev) => { freqChoix.jours = +ev.target.value; pageFrequentation(); });
+    document.getElementById("f-niv").addEventListener("change", (ev) => { freqChoix.niveau = ev.target.value; afficherFrequentation(depuis); });
+    document.getElementById("f-maj").addEventListener("click", () => pageFrequentation(true));
+    const barres = document.getElementById("freq-barres"), info = document.getElementById("freq-info");
+    if (barres) ["click", "pointerover"].forEach((t) => barres.addEventListener(t, (ev) => {
+      const b = ev.target.closest("[data-j]");
+      if (!b) return;
+      barres.querySelectorAll(".on").forEach((x) => x.classList.remove("on"));
+      b.classList.add("on");
+      info.innerHTML = `${dateLongue(b.dataset.j).replace(/^./, (c) => c.toUpperCase())} : <strong>${b.dataset.n}</strong> visite${b.dataset.n > 1 ? "s" : ""}.`;
+    }));
   }
 
   /* ---------- Page chapitre ---------- */

@@ -133,6 +133,9 @@ Les identifiants arrivent dans `Documents\Gestion site lycée` : `identifiants.c
 Connecté avec le compte professeur, la page **Suivi des élèves** (`#suivi`, lien sur la page Mon compte) montre, par classe et par chapitre, les étoiles de chaque série, le score au QCM et la date du dernier essai. Le champ « Fait depuis le » ne compte que ce qui a été fait après la date donnée (le jour où le devoir a été donné, par exemple).
 Un élève n'apparaît qu'après sa première connexion.
 
+### Fréquentation du site
+La page **Fréquentation du site** (`#frequentation`, lien sur la page Mon compte du professeur) montre les visites par jour, la part des téléphones, les onglets ouverts par niveau et par chapitre, et les élèves connectés par classe, sur 7, 30 ou 90 jours ou 12 mois. Ce sont des compteurs anonymes rangés dans Firestore (collections `visites` et `visitesChap`) : aucun nom, aucun cookie, aucun service extérieur. Chaque appareil compte une fois par jour pour le site et une fois par jour pour chaque onglet ; les visites des comptes professeurs et les essais en local (localhost) ne sont pas comptés. Les règles `firestore.rules` n'autorisent qu'à ajouter 1 à un compteur, et seuls les professeurs peuvent les lire.
+
 ### Sécurité (Firebase)
 Le prénom, le nom, la classe et le groupe sont inscrits dans le compte lui-même au moment de la création. Les règles `firestore.rules` n'acceptent que ces comptes : un compte créé autrement ne peut rien lire ni écrire, et un élève ne peut ni changer son nom ni lire la progression des autres. Après une modification des règles :
 ```
