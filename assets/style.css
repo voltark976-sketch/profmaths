@@ -152,6 +152,8 @@ pre.code code { font: inherit; }
 .g-guide { stroke: var(--doux); stroke-width: 1; stroke-dasharray: 2 3; }
 /* Quadrillage du collège (carré unité partagé en 100) */
 .g-unite { fill: none; stroke: var(--encre); stroke-width: 2; }
+.g-vide { fill: none; }
+.bandes .g-grid line { stroke: var(--encre); stroke-width: 1.4; }
 .quadrillage .g-colorie { fill: var(--lagon); fill-opacity: 0.45; }
 
 /* Vidéos */

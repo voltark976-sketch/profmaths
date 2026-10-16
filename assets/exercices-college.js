@@ -1170,8 +1170,269 @@
       solution: `$${naifH}$ h $${naifM}$ min $= ${naifH}$ h $+ 1$ h $${naifM - 60}$ min $=$ ${minTex(s)}.` };
   };
 
+  /* =====================================================================
+     6e, chapitre 4 : fractions (préfixe f6-)
+     Les réponses en fraction sont annoncées dans la consigne ; une valeur décimale approchée tapée
+     par l'élève reçoit le message « valeur exacte » (FRAC_APPROX), sans être comptée juste.
+     ===================================================================== */
+  const pgcd = (a, b) => (b ? pgcd(b, a % b) : Math.abs(a));
+  const fr = (a, b) => `\\dfrac{${a}}{${b}}`;
+  const frNet = (a, b) => { const g = pgcd(a, b); return b / g === 1 ? `${a / g}` : fr(a / g, b / g); };
+  const CONSIGNE_FR = " Donne le résultat sous forme d'une fraction (par exemple 7/6).";
+  // Valeurs décimales approchées (troncatures et arrondis à 1, 2 ou 3 décimales) d'une fraction non décimale
+  const FRAC_APPROX = (v) => { const out = []; [1, 2, 3].forEach((k) => { const p = P10(k); [Math.floor(v * p) / p, Math.round(v * p) / p].forEach((x) => { if (Math.abs(x - v) > 1e-9 && !out.some((e) => e.valeur === x)) out.push({ valeur: x, message: "Ce n'est qu'une valeur approchée : donne la **valeur exacte** sous forme de fraction, par exemple 7/6." }); }); }); return out; };
+
+  // Bande (ou plusieurs bandes) partagée en b parts égales, a parts coloriées
+  function bandes(a, b) {
+    const nb = Math.max(1, Math.ceil(a / b)), W = 300, h = 34, gap = 12, x0 = 10, y0 = 8, w = W - 2 * x0;
+    const H = y0 * 2 + nb * h + (nb - 1) * gap;
+    let s = `<svg class="graph bandes" viewBox="0 0 ${W} ${H}" role="img" aria-label="${nb > 1 ? nb + " bandes unité" : "Une bande unité"} partagée${nb > 1 ? "s" : ""} en ${b} parts égales, ${a} parts coloriées">`;
+    for (let k = 0; k < nb; k++) {
+      const y = y0 + k * (h + gap);
+      for (let i = 0; i < b; i++) {
+        const plein = k * b + i < a;
+        s += `<rect class="${plein ? "g-aire g-colorie" : "g-vide"}" x="${+(x0 + (i * w) / b).toFixed(1)}" y="${y}" width="${+(w / b).toFixed(1)}" height="${h}"/>`;
+      }
+      s += `<g class="g-grid">${Array.from({ length: b - 1 }, (_, i) => `<line x1="${+(x0 + ((i + 1) * w) / b).toFixed(1)}" y1="${y}" x2="${+(x0 + ((i + 1) * w) / b).toFixed(1)}" y2="${y + h}"/>`).join("")}</g>`;
+      s += `<rect class="g-unite" x="${x0}" y="${y}" width="${w}" height="${h}"/>`;
+    }
+    return s + `</svg>`;
+  }
+  // Demi-droite graduée d'origine 0 : chaque unité partagée en b, n unités, points [{ k (numérateur), label }]
+  function droiteFractions(b, n, points) {
+    const W = 320, padL = 16, padR = 24, y0 = 30, H = 54, N = b * n, ux = (W - padL - padR) / N, X = (i) => +(padL + i * ux).toFixed(1);
+    let s = `<svg class="graph droite demi-droite" viewBox="0 0 ${W} ${H}" role="img" aria-label="Demi-droite graduée d'origine 0, chaque unité partagée en ${b} parts égales">`;
+    s += `<g class="g-axis"><line x1="${X(0)}" y1="${y0}" x2="${W - 6}" y2="${y0}"/><path d="M${W - 2} ${y0} l-8 -4 v8z"/></g><g class="g-tick">`;
+    for (let i = 0; i <= N; i++) {
+      const u = i % b === 0;
+      s += `<line class="g-graduation" x1="${X(i)}" y1="${y0 - (u ? 7 : 4)}" x2="${X(i)}" y2="${y0 + (u ? 7 : 4)}"/>`;
+      if (u) s += `<text x="${X(i)}" y="${y0 + 20}" text-anchor="middle">${i / b}</text>`;
+    }
+    s += `</g>`;
+    (points || []).forEach((p) => { s += `<circle class="g-point" cx="${X(p.k)}" cy="${y0}" r="3.5"/><text class="g-plabel" x="${X(p.k)}" y="${y0 - 11}" text-anchor="middle">${p.label}</text>`; });
+    return s + `</svg>`;
+  }
+  FIGURES["f6-bande"] = () => bandes(3, 4);
+  FIGURES["f6-bande-7"] = () => bandes(7, 4);
+  FIGURES["f6-droite"] = () => droiteFractions(5, 2, [{ k: 3, label: "M" }, { k: 7, label: "N" }]);
+
+  GEN["f6-partage"] = function () {
+    const b = rand(2, 12), a = Math.random() < 0.25 ? rand(b + 1, 2 * b - 1) : rand(1, b - 1);
+    const bon = `$${fr(a, b)}$`;
+    const fausses = [fr(b, a), a < b ? fr(a, b - a) : fr(a - b, b), fr(b - a > 0 ? b - a : a + 1, b), fr(a, b + 1), fr(a, 2 * b)].map((x) => `$${x}$`);
+    const c = melange(bon, fausses.filter((x) => x !== bon));
+    return {
+      enonce: a > b ? "Chaque bande représente une unité. Quelle fraction d'une bande la partie coloriée représente-t-elle ?" : "La bande représente une unité. Quelle fraction de la bande est coloriée ?",
+      figure: bandes(a, b), mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: [`Chaque bande est partagée en $${b}$ parts égales : chaque part est $${fr(1, b)}$ de la bande.`, "Compte les parts coloriées : c'est le numérateur.", "Le dénominateur dit en combien de parts égales on a partagé **une** unité."],
+      solution: `Une unité est partagée en $${b}$ parts égales et on colorie $${a}$ part${a > 1 ? "s" : ""} : c'est $${fr(a, b)}$${a > b ? `, plus que $1$ unité ($${fr(a, b)} = 1 + ${fr(a - b, b)}$)` : ""}.`
+    };
+  };
+
+  GEN["f6-quotient"] = function () {
+    const t = rand(0, 3);
+    if (t === 0) { // écriture décimale d'un quotient
+      const b = pick([2, 4, 5, 8, 10, 20, 25, 50, 100]), a = rand(1, 4 * b);
+      if (a % b === 0) return GEN["f6-quotient"]();
+      return { enonce: `Donne l'écriture décimale de $${fr(a, b)}$.`, mode: "nombre", prefixe: "Écriture décimale :", attendu: a / b,
+        erreurs: [{ valeur: +(a + "." + b), message: `$${fr(a, b)}$ n'est pas « $${a}$ virgule $${b}$ » : c'est le quotient $${a} \\div ${b}$.` }],
+        aides: [`$${fr(a, b)}$, c'est le quotient de $${a}$ par $${b}$ : $${a} \\div ${b}$.`, "Pose la division décimale.", "Vérifie : le résultat multiplié par le dénominateur redonne le numérateur."],
+        solution: `$${fr(a, b)} = ${a} \\div ${b} = ${nb(a / b)}$. Vérification : $${b} \\times ${nb(a / b)} = ${a}$.` };
+    }
+    if (t === 1) { // égalité à trous multiplicative
+      let b = rand(2, 12), a = rand(1, 15); if (a % b === 0) a++;
+      const v = a / b;
+      return { enonce: `Complète : $${b} \\times \\ldots = ${a}$.${CONSIGNE_FR}`, mode: "nombre", prefixe: "Le nombre manquant est", attendu: v,
+        erreurs: [{ valeur: b / a, message: "Le dénominateur, c'est le nombre par lequel on multiplie : ici $" + b + "$." }, ...FRAC_APPROX(v)],
+        aides: [`On cherche le nombre qui, multiplié par $${b}$, donne $${a}$.`, `Par définition, c'est le quotient de $${a}$ par $${b}$.`, `On l'écrit $${fr(a, b)}$ : $${b} \\times ${fr(a, b)} = ${a}$.`],
+        solution: `$${b} \\times ${fr(a, b)} = ${a}$ : le nombre manquant est $${fr(a, b)}$${Number.isInteger(v * 1000) ? ` $= ${nb(v)}$` : ""}.` };
+    }
+    if (t === 2) { // nature du quotient
+      const b = rand(2, 12), a = rand(1, 60);
+      const v = a / b;
+      // décimal si le dénominateur de la fraction simplifiée n'a que 2 et 5 comme facteurs premiers
+      let m = b / pgcd(a, b); while (m % 2 === 0) m /= 2; while (m % 5 === 0) m /= 5;
+      const vraie = Number.isInteger(v) ? 0 : m === 1 ? 1 : 2;
+      const choix = ["Un nombre entier", "Un nombre décimal qui n'est pas entier", "Un nombre qui n'est pas décimal"];
+      return { enonce: `Le quotient $${fr(a, b)}$ est :`, mode: "choix", choix, attendu: vraie,
+        aides: [`Calcule $${a} \\div ${b}$.`, "Si la division tombe juste sans virgule, c'est un entier ; si elle s'arrête après la virgule, c'est un décimal.", "Si la division ne s'arrête jamais, le quotient n'est pas décimal."],
+        solution: [`$${fr(a, b)} = ${v}$ : c'est un nombre entier.`, `$${fr(a, b)} = ${nb(v)}$ : la division s'arrête, c'est un décimal (pas un entier).`, `$${fr(a, b)} = ${(Math.floor(v * 1000) / 1000).toFixed(3).replace(".", "{,}")}\\ldots$ : la division ne s'arrête jamais, ce n'est pas un nombre décimal.`][vraie] };
+    }
+    // le quotient de a par b
+    const a = rand(2, 20), b = rand(2, 20); if (a === b) return GEN["f6-quotient"]();
+    const c = melange(`$${fr(a, b)}$`, [`$${fr(b, a)}$`, `$${a} \\times ${b}$`, `$${a} + ${b}$`, `$${nb(+(a + "." + b))}$`]);
+    return { enonce: `Le quotient de $${a}$ par $${b}$ s'écrit :`, mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: ["Le quotient de $a$ par $b$, c'est $a \\div b$.", "En écriture fractionnaire : $a$ au numérateur, $b$ au dénominateur.", "Le premier nombre cité est celui qu'on divise."],
+      solution: `Le quotient de $${a}$ par $${b}$, c'est $${a} \\div ${b} = ${fr(a, b)}$.` };
+  };
+
+  GEN["f6-droite"] = function () {
+    const b = pick([2, 3, 4, 5, 6, 8, 10]), n = b >= 8 ? 2 : 3, k = rand(1, b * n - 1);
+    if (k % b === 0) return GEN["f6-droite"]();
+    const L = pick(LETTRES);
+    const bon = `$${fr(k, b)}$`;
+    const fausses = [fr(k, b + 1), fr(b, k), fr(k % b || 1, b), b !== 10 ? nb(k / 10) : fr(k, 2 * b), fr(k + 1, b)].map((x) => `$${x}$`);
+    const c = melange(bon, fausses.filter((x) => x !== bon));
+    return {
+      enonce: `Quelle est l'abscisse du point $${L}$ ?`,
+      figure: droiteFractions(b, n, [{ k, label: L }]), mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: ["Compte en combien de parts égales est partagée **une unité** (de $0$ à $1$) : compte les intervalles, pas les traits.", `Chaque graduation vaut $${fr(1, b)}$.`, `Compte les graduations de $0$ jusqu'au point $${L}$.`],
+      solution: `L'unité est partagée en $${b}$ : une graduation vaut $${fr(1, b)}$. $${L}$ est à $${k}$ graduations de $0$ : $${L}(${fr(k, b)})$${k > b ? `, et $${fr(k, b)} = ${Math.floor(k / b)} + ${fr(k % b, b)}$` : ""}.`
+    };
+  };
+
+  GEN["f6-egales"] = function () {
+    const t = rand(0, 2), a = rand(1, 9), b = rand(a + 1, 12), k = rand(2, 9);
+    if (pgcd(a, b) !== 1) return GEN["f6-egales"]();
+    if (t === 0) { // compléter en multipliant
+      const haut = Math.random() < 0.5;
+      return { enonce: haut ? `Complète : $${fr(a, b)} = ${fr("\\ldots", b * k)}$.` : `Complète : $${fr(a, b)} = ${fr(a * k, "\\ldots")}$.`, mode: "nombre", prefixe: haut ? "Numérateur :" : "Dénominateur :", attendu: haut ? a * k : b * k,
+        erreurs: [{ valeur: haut ? a + (b * k - b) : b + (a * k - a), message: "On ne change pas une fraction en **ajoutant** le même nombre : il faut **multiplier** en haut et en bas par le même nombre." }],
+        aides: [haut ? `De $${b}$ à $${b * k}$ au dénominateur, on a multiplié par combien ?` : `De $${a}$ à $${a * k}$ au numérateur, on a multiplié par combien ?`, `On a multiplié par $${k}$.`, "On fait la même chose à l'autre étage de la fraction."],
+        solution: `$${fr(a, b)} = ${fr(`${a} \\times ${k}`, `${b} \\times ${k}`)} = ${fr(a * k, b * k)}$.` };
+    }
+    if (t === 1) { // simplifier
+      const bas = Math.random() < 0.5;
+      return { enonce: bas ? `Complète : $${fr(a * k, b * k)} = ${fr(a, "\\ldots")}$.` : `Complète : $${fr(a * k, b * k)} = ${fr("\\ldots", b)}$.`, mode: "nombre", prefixe: bas ? "Dénominateur :" : "Numérateur :", attendu: bas ? b : a,
+        erreurs: [{ valeur: bas ? b * k - (a * k - a) : a * k - (b * k - b), message: "On ne change pas une fraction en **soustrayant** : il faut **diviser** en haut et en bas par le même nombre." }],
+        aides: [bas ? `De $${a * k}$ à $${a}$ au numérateur, on a divisé par combien ?` : `De $${b * k}$ à $${b}$ au dénominateur, on a divisé par combien ?`, `On a divisé par $${k}$.`, "On fait la même chose à l'autre étage."],
+        solution: `$${fr(a * k, b * k)} = ${fr(`${a * k} \\div ${k}`, `${b * k} \\div ${k}`)} = ${fr(a, b)}$.` };
+    }
+    const bon = `$${fr(a * k, b * k)}$`;
+    const c = melange(bon, [`$${fr(a + k, b + k)}$`, `$${fr(a * k, b)}$`, `$${fr(a, b * k)}$`, `$${fr(b, a)}$`].filter((x) => x !== bon));
+    return { enonce: `Quelle fraction est égale à $${fr(a, b)}$ ?`, mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: ["Une fraction ne change pas si on multiplie (ou divise) son numérateur **et** son dénominateur par un même nombre.", "Ajouter le même nombre en haut et en bas change la fraction.", "Pour chaque choix, cherche par quoi on a multiplié le numérateur, puis le dénominateur."],
+      solution: `$${fr(a, b)} = ${fr(`${a} \\times ${k}`, `${b} \\times ${k}`)} = ${fr(a * k, b * k)}$.` };
+  };
+
+  GEN["f6-comparer"] = function () {
+    const t = rand(0, 2);
+    if (t < 2) {
+      let A, B, expl;
+      if (t === 0) { const b = rand(3, 15), a1 = rand(1, 2 * b), a2 = rand(1, 2 * b); A = [a1, b]; B = [a2, b]; expl = "Même dénominateur : on compare les numérateurs."; }
+      else { const b = rand(2, 9), k = rand(2, 5), a1 = rand(1, 2 * b), a2 = rand(1, 2 * b * k); A = [a1, b]; B = [a2, b * k]; expl = `On écrit $${fr(a1, b)} = ${fr(a1 * k, b * k)}$ pour avoir le même dénominateur, puis on compare les numérateurs.`; }
+      if (Math.random() < 0.5) [A, B] = [B, A];
+      const va = A[0] / A[1], vb = B[0] / B[1], choix = [`$${fr(...A)} < ${fr(...B)}$`, `$${fr(...A)} > ${fr(...B)}$`, `$${fr(...A)} = ${fr(...B)}$`];
+      const rep = Math.abs(va - vb) < 1e-12 ? 2 : va < vb ? 0 : 1;
+      return { enonce: `Compare $${fr(...A)}$ et $${fr(...B)}$.`, mode: "choix", choix, attendu: rep,
+        aides: ["Pour comparer des fractions, on les écrit avec le **même dénominateur**.", "Si un dénominateur est un multiple de l'autre, on ne transforme qu'une des deux fractions.", "Avec le même dénominateur, la plus grande fraction est celle qui a le plus grand numérateur."],
+        solution: `${expl} Donc ${choix[rep]}.` };
+    }
+    // ranger dans l'ordre croissant (même dénominateur ou multiples)
+    const b = rand(2, 6), k = 2, nums = shuffle(Array.from({ length: 2 * b * k - 1 }, (_, i) => i + 1)).slice(0, 4);
+    const fs = nums.map((n, i) => (i % 2 === 0 && n % k === 0 ? [n / k, b] : [n, b * k]));
+    const v = (f) => f[0] / f[1];
+    if (new Set(fs.map(v)).size < 4) return GEN["f6-comparer"]();
+    const bonL = fs.slice().sort((x, y) => v(x) - v(y)), T = (L) => `$${L.map((f) => fr(...f)).join(" < ")}$`;
+    const piegeNum = fs.slice().sort((x, y) => x[0] - y[0] || x[1] - y[1]);
+    const ech = bonL.slice(); const j = rand(0, 2); [ech[j], ech[j + 1]] = [ech[j + 1], ech[j]];
+    const c = melange(T(bonL), [T(piegeNum), T(ech), T(bonL.slice().reverse())]);
+    return { enonce: `Range dans l'ordre croissant : $${fs.map((f) => fr(...f)).join(" \\; ; \\; ")}$.`, mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: [`Écris toutes les fractions avec le dénominateur $${b * k}$.`, `Par exemple, $${fr(1, b)} = ${fr(k, b * k)}$.`, "Range ensuite les numérateurs du plus petit au plus grand."],
+      solution: `Avec le dénominateur $${b * k}$ : $${fs.map((f) => (f[1] === b ? fr(f[0] * k, b * k) : fr(...f))).join(" \\; ; \\; ")}$. Donc ${T(bonL)}.` };
+  };
+
+  GEN["f6-encadrer"] = function () {
+    const b = rand(2, 9), a = rand(b + 1, 9 * b);
+    if (a % b === 0) return GEN["f6-encadrer"]();
+    const q = Math.floor(a / b), r = a % b, t = rand(0, 2);
+    if (t === 2) { // nombre mixte
+      const c = melange(`$${q} + ${fr(r, b)}$`, [`$${q + 1} + ${fr(r, b)}$`, `$${r} + ${fr(q, b)}$`, `$${q} + ${fr(b - r, b)}$`, `$${q - 1 > 0 ? q - 1 : q + 2} + ${fr(r, b)}$`]);
+      return { enonce: `Écris $${fr(a, b)}$ comme la somme d'un entier et d'une fraction plus petite que $1$.`, mode: "choix", choix: c.choix, attendu: c.attendu,
+        aides: [`Combien de fois $${b}$ dans $${a}$ ? Fais la division euclidienne.`, `$${a} = ${b} \\times ${q} + ${r}$.`, `Donc $${fr(a, b)} = ${fr(b * q, b)} + ${fr(r, b)}$.`],
+        solution: `$${a} = ${b} \\times ${q} + ${r}$, donc $${fr(a, b)} = ${fr(b * q, b)} + ${fr(r, b)} = ${q} + ${fr(r, b)}$.` };
+    }
+    const bas = t === 0;
+    return { enonce: `On encadre $${fr(a, b)}$ par deux entiers consécutifs : $n < ${fr(a, b)} < n + 1$. ${bas ? "Que vaut $n$ ?" : "Que vaut $n + 1$ ?"}`, mode: "nombre", prefixe: bas ? "$n =$" : "$n + 1 =$", attendu: bas ? q : q + 1,
+      erreurs: [{ valeur: bas ? q + 1 : q, message: bas ? "Ça, c'est l'entier juste après." : "Ça, c'est l'entier juste avant." }, { valeur: r, message: "Ça, c'est le reste de la division." }],
+      aides: [`Cherche le plus grand multiple de $${b}$ inférieur à $${a}$.`, `$${b} \\times ${q} = ${b * q}$ et $${b} \\times ${q + 1} = ${b * (q + 1)}$.`, `Donc $${fr(b * q, b)} < ${fr(a, b)} < ${fr(b * (q + 1), b)}$.`],
+      solution: `$${fr(b * q, b)} = ${q}$ et $${fr(b * (q + 1), b)} = ${q + 1}$, donc $${q} < ${fr(a, b)} < ${q + 1}$.` };
+  };
+
+  GEN["f6-addsous"] = function () {
+    const plus = Math.random() < 0.6, t = rand(0, 2);
+    let A, B, D, expl;
+    if (t === 0) { const b = rand(3, 15); let a1 = rand(1, 2 * b), a2 = rand(1, 2 * b); if (a1 === b || a2 === b) return GEN["f6-addsous"](); if (!plus && a1 < a2) [a1, a2] = [a2, a1]; if (!plus && a1 === a2) a1++; A = [a1, b]; B = [a2, b]; D = b; expl = "Même dénominateur : on calcule avec les numérateurs et on garde le dénominateur."; }
+    else if (t === 1) { const b = rand(2, 9), k = rand(2, 4); let a1 = rand(1, 2 * b), a2 = rand(1, 2 * b * k); A = [a1, b]; B = [a2, b * k]; if (Math.random() < 0.5) [A, B] = [B, A]; if (!plus && A[0] / A[1] <= B[0] / B[1]) [A, B] = [B, A]; if (!plus && A[0] / A[1] === B[0] / B[1]) return GEN["f6-addsous"](); D = b * k; expl = `On met d'abord les deux fractions au dénominateur $${b * k}$.`; }
+    else { const b = rand(2, 9), n = rand(1, 5), a = rand(1, 2 * b); A = [n, 1]; B = [a, b]; if (!plus && n * b <= a) return GEN["f6-addsous"](); D = b; expl = `On écrit $${n} = ${fr(n * b, b)}$.`; }
+    const na = A[0] * (D / A[1]), nb2 = B[0] * (D / B[1]), N = plus ? na + nb2 : na - nb2, v = N / D;
+    const tA = A[1] === 1 ? `${A[0]}` : fr(...A);
+    const naif = plus ? (A[0] + B[0]) / (A[1] + B[1]) : (A[0] - B[0]) / (A[1] - B[1] || 1);
+    return {
+      enonce: `Calcule $${tA} ${plus ? "+" : "-"} ${fr(...B)}$.${CONSIGNE_FR}`,
+      mode: "nombre", prefixe: "Résultat :", attendu: v,
+      erreurs: [...(isFinite(naif) && Math.abs(naif - v) > 1e-9 ? [{ valeur: naif, message: "On n'additionne pas les dénominateurs : on met les fractions au même dénominateur, puis on calcule avec les numérateurs." }] : []), ...(Number.isInteger(v * 1000) ? [] : FRAC_APPROX(v))],
+      aides: ["On ne peut additionner ou soustraire que des fractions de **même dénominateur**.", expl, "Calcule avec les numérateurs et garde le dénominateur."],
+      solution: `${expl} $${tA} ${plus ? "+" : "-"} ${fr(...B)} = ${t === 0 ? "" : `${fr(na, D)} ${plus ? "+" : "-"} ${fr(nb2, D)} = `}${fr(N, D)}$${pgcd(N, D) > 1 ? ` $= ${frNet(N, D)}$` : ""}.`
+    };
+  };
+
+  GEN["f6-fois"] = function () {
+    const t = rand(0, 2);
+    if (t === 0) { // fraction d'une quantité
+      const b = rand(2, 10), a = rand(1, b - 1), k = rand(2, 12), N = b * k;
+      const [unite, obj] = pick([["", "œufs"], ["", "élèves"], [" €", ""], [" m", ""], [" kg", ""], ["", "mangues"]]);
+      return { enonce: `Calcule les $${fr(a, b)}$ de $${N}$${unite}${obj ? " " + obj : ""}.`, mode: "nombre", prefixe: "Résultat :", suffixe: (unite.trim() || obj), attendu: a * k,
+        erreurs: [{ valeur: k, message: `Ça, c'est $${fr(1, b)}$ de $${N}$. Il en faut $${a}$ fois plus.` }, { valeur: N * a + b, message: "Prendre une fraction d'une quantité, c'est multiplier par la fraction." }],
+        aides: [`Prendre les $${fr(a, b)}$ de $${N}$, c'est calculer $${fr(a, b)} \\times ${N}$.`, `Commence par $${fr(1, b)}$ de $${N}$ : $${N} \\div ${b} = ${k}$.`, `Puis multiplie par $${a}$.`],
+        solution: `$${fr(a, b)} \\times ${N} = (${N} \\div ${b}) \\times ${a} = ${k} \\times ${a} = ${a * k}$.` };
+    }
+    if (t === 1) { // fraction d'un nombre, résultat décimal
+      const b = pick([2, 4, 5, 10]), a = rand(1, b - 1), N = rand(3, 40);
+      if ((a * N) % b === 0) return GEN["f6-fois"]();
+      const v = (a * N) / b;
+      return { enonce: `Calcule $${fr(a, b)} \\times ${N}$. Donne le résultat sous forme décimale.`, mode: "nombre", prefixe: "Résultat :", attendu: v,
+        aides: [`$${fr(a, b)} \\times ${N} = ${fr(`${a} \\times ${N}`, b)}$.`, `$${a} \\times ${N} = ${a * N}$.`, `Il reste à calculer $${a * N} \\div ${b}$.`],
+        solution: `$${fr(a, b)} \\times ${N} = ${fr(a * N, b)} = ${nb(v)}$.` };
+    }
+    // entier × fraction, résultat en fraction
+    const b = rand(3, 11), a = rand(1, b - 1), k = rand(2, 9);
+    if ((a * k) % b === 0) return GEN["f6-fois"]();
+    const v = (a * k) / b;
+    return { enonce: `Calcule $${k} \\times ${fr(a, b)}$.${CONSIGNE_FR}`, mode: "nombre", prefixe: "Résultat :", attendu: v,
+      erreurs: [{ valeur: (a * k) / (b * k), message: "On ne multiplie que le numérateur : le dénominateur ne change pas." }, ...(Number.isInteger(v * 1000) ? [] : FRAC_APPROX(v))],
+      aides: [`$${k} \\times ${fr(a, b)}$, c'est $${fr(a, b)}$ répété $${k}$ fois.`, `On multiplie le numérateur par $${k}$ et on garde le dénominateur $${b}$.`, `$${k} \\times ${a} = ${k * a}$.`],
+      solution: `$${k} \\times ${fr(a, b)} = ${fr(`${k} \\times ${a}`, b)} = ${fr(k * a, b)}$${pgcd(k * a, b) > 1 ? ` $= ${frNet(k * a, b)}$` : ""}.` };
+  };
+
+  GEN["f6-probleme"] = function () {
+    const t = rand(0, 3);
+    if (t === 0) { // reste d'une classe
+      const b = pick([3, 4, 5, 6, 8]), a = rand(1, b - 1), k = rand(3, 6), N = b * k;
+      const [activ, autre] = pick([["la natation", "le football"], ["le chant", "le théâtre"], ["le bus", "le taxi-brousse"], ["l'anglais", "l'espagnol"]]);
+      const pa = (a * N) / b;
+      return { enonce: `Dans une classe de $${N}$ élèves, les $${fr(a, b)}$ choisissent ${activ} et les autres ${autre}. Combien d'élèves choisissent ${autre} ?`, mode: "nombre", prefixe: "Élèves :", attendu: N - pa,
+        erreurs: [{ valeur: pa, message: `Ça, ce sont les élèves qui choisissent ${activ}.` }],
+        aides: [`Calcule d'abord les $${fr(a, b)}$ de $${N}$.`, `$${N} \\div ${b} = ${k}$, puis $${k} \\times ${a} = ${pa}$.`, "Les autres, c'est le total moins ce nombre."],
+        solution: `$${fr(a, b)}$ de $${N}$ : $${pa}$ élèves choisissent ${activ}. Les autres : $${N} - ${pa} = ${N - pa}$ élèves.` };
+    }
+    if (t === 1) { // fraction restante d'un gâteau / champ
+      const b = pick([4, 6, 8, 10, 12]), a1 = rand(1, b / 2), a2 = rand(1, b - a1 - 1), r = b - a1 - a2;
+      return { enonce: `Un agriculteur plante des bananiers sur $${fr(a1, b)}$ de son champ et du manioc sur $${fr(a2, b)}$. Quelle fraction du champ reste libre ?${CONSIGNE_FR}`, mode: "nombre", prefixe: "Fraction libre :", attendu: r / b,
+        erreurs: [{ valeur: (a1 + a2) / b, message: "Ça, c'est la partie plantée. On demande la partie libre." }, ...(Number.isInteger((r / b) * 1000) ? [] : FRAC_APPROX(r / b))],
+        aides: ["Le champ entier, c'est $1$, soit $" + fr(b, b) + "$.", `Partie plantée : $${fr(a1, b)} + ${fr(a2, b)} = ${fr(a1 + a2, b)}$.`, `Partie libre : $${fr(b, b)} - ${fr(a1 + a2, b)}$.`],
+        solution: `Partie plantée : $${fr(a1 + a2, b)}$. Partie libre : $${fr(b, b)} - ${fr(a1 + a2, b)} = ${fr(r, b)}$${pgcd(r, b) > 1 ? ` $= ${frNet(r, b)}$` : ""}.` };
+    }
+    if (t === 2) { // distance parcourue
+      const b = pick([2, 3, 4, 5]), a = rand(1, b - 1), k = rand(Math.ceil(20 / b), Math.floor(50 / b)), D = b * k;
+      if (pgcd(a, b) !== 1) return GEN["f6-probleme"]();
+      return { enonce: `Un sentier de randonnée vers le mont Choungui mesure $${D}$ hm. Une randonneuse a parcouru les $${fr(a, b)}$ du sentier. Combien d'hectomètres lui reste-t-il à parcourir ?`, mode: "nombre", prefixe: "Il reste", suffixe: "hm", attendu: D - (a * D) / b,
+        erreurs: [{ valeur: (a * D) / b, message: "Ça, c'est ce qu'elle a déjà parcouru." }],
+        aides: [`Calcule les $${fr(a, b)}$ de $${D}$.`, `$${D} \\div ${b} = ${k}$, puis $\\times ${a}$.`, "Retire ce résultat de la longueur totale."],
+        solution: `Parcouru : $${fr(a, b)} \\times ${D} = ${(a * D) / b}$ hm. Reste : $${D} - ${(a * D) / b} = ${D - (a * D) / b}$ hm.` };
+    }
+    // comparer deux parts
+    const b = rand(2, 6), k = 2, a1 = rand(1, b - 1), a2 = rand(1, b * k - 1);
+    if (a1 * k === a2) return GEN["f6-probleme"]();
+    const p1 = fr(a1, b), p2 = fr(a2, b * k), qui = a1 * k > a2 ? 0 : 1;
+    const choix = ["Fatima", "Ali", "Ils ont mangé autant"];
+    return { enonce: `Fatima mange $${p1}$ d'une pizza et Ali $${p2}$ d'une autre pizza de même taille. Qui a mangé le plus ?`, mode: "choix", choix, attendu: qui,
+      aides: ["Pour comparer, écris les deux fractions avec le même dénominateur.", `$${p1} = ${fr(a1 * k, b * k)}$.`, "Compare les numérateurs."],
+      solution: `$${p1} = ${fr(a1 * k, b * k)}$ et ${qui === 0 ? `$${a1 * k} > ${a2}$` : `$${a1 * k} < ${a2}$`} : c'est ${choix[qui]} qui a mangé le plus.` };
+  };
+
   /* Une « erreur connue » ne doit jamais coïncider avec la bonne réponse ; propriétés internes retirées */
-  Object.keys(GEN).filter((k) => /^(n6|o6|d6)-/.test(k)).forEach((k) => {
+  Object.keys(GEN).filter((k) => /^(n6|o6|d6|f6)-/.test(k)).forEach((k) => {
     const g = GEN[k];
     GEN[k] = (i) => {
       const q = g(i);

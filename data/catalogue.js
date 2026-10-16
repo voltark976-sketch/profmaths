@@ -45,7 +45,7 @@ window.CATALOGUE = {
           id: "sixieme-fractions",
           numero: 4,
           titre: "Fractions",
-          statut: "bientot",
+          statut: "disponible",
           drive: ""
         },
         {
