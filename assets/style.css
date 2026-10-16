@@ -481,6 +481,18 @@ a.chap:hover .go { transform: translateX(3px); }
 .promo-yt .promo-btn { background: #e62117; color: #fff; }
 .promo-monka .promo-ico { background: #8a9ba0; }
 .promo-monka .eyebrow { color: var(--doux); }
+/* Accueil : deux grandes cartes, Collège et Lycée */
+.cartes-cycle { display: grid; gap: 12px; }
+.carte-cycle { position: relative; overflow: hidden; isolation: isolate; display: grid; gap: 6px; align-content: start; min-height: 9.5rem; padding: 18px 18px 16px; border-radius: 20px; background: linear-gradient(135deg, var(--ac-pale), var(--surface) 78%); border: 1px solid color-mix(in srgb, var(--ac) 30%, transparent); border-top: 6px solid var(--ac); box-shadow: var(--ombre); color: var(--encre); text-decoration: none; transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s; animation: monte 0.4s ease both; }
+.carte-cycle:hover { transform: translateY(-3px); box-shadow: var(--ombre-haut); border-color: var(--ac); }
+.carte-cycle .eyebrow { color: var(--ac); }
+.carte-cycle strong { font: 800 2rem/1.05 var(--f-titre); color: var(--ac); }
+.cycle-glyphe { position: absolute; z-index: -1; right: 10px; top: -18px; font: 800 7.5rem/1 var(--f-titre); color: var(--ac); opacity: 0.13; pointer-events: none; }
+.cycle-classes { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+.cycle-classes span { padding: 3px 10px; border-radius: 999px; background: var(--surface); border: 1px solid color-mix(in srgb, var(--ac) 35%, transparent); color: var(--ac); font: 700 0.85rem/1.4 var(--f-texte); }
+.cycle-pied { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 6px; }
+.carte-cycle .go { flex: none; width: 38px; height: 38px; border-radius: 50%; display: grid; place-items: center; background: var(--ac); color: var(--surface); font-weight: 800; }
+.carte-cycle:hover .go { transform: translateX(3px); }
 /* Page d'un niveau */
 .niv-head { padding: 6px 0 4px; }
 .niv-head h1 { display: flex; align-items: center; gap: 12px; color: var(--ac); }
@@ -493,6 +505,10 @@ a.chap:hover .go { transform: translateX(3px); }
   .carte-niv .carte-niv-t { gap: 4px; }
   .carte-niv .go { align-self: flex-end; margin-top: auto; }
   .decouvrir { grid-template-columns: 1.15fr 1fr 1fr; align-items: stretch; }
+  .cartes-cycle { grid-template-columns: 1fr 1fr; gap: 16px; }
+  .carte-cycle { min-height: 13rem; padding: 24px 24px 20px; }
+  .carte-cycle strong { font-size: 2.6rem; }
+  .cycle-glyphe { font-size: 10.5rem; }
   @media (min-width: 1000px) { .cartes-niv { grid-template-columns: repeat(5, minmax(0, 1fr)); } }
   .chapitres-niv { grid-template-columns: repeat(auto-fill, minmax(22rem, 1fr)); gap: 12px; }
 }

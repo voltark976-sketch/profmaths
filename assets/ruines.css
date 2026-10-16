@@ -65,6 +65,7 @@
   background-image: linear-gradient(180deg, #fffdf8, #fcf3e1); border-color: #e2c993; }
 :where(:root[data-theme="ruines"]) .carte-niv, :where(:root[data-theme="ruines"]) .promo, :where(:root[data-theme="ruines"]) .profil, :where(:root[data-theme="ruines"]) .opt-av { border-radius: 10px; }
 :where(:root[data-theme="ruines"]) .carte-niv { border-left-color: var(--ac); }
+:where(:root[data-theme="ruines"]) .carte-cycle { border-radius: 10px; background-image: linear-gradient(135deg, color-mix(in srgb, var(--ac-pale) 70%, #fffdf8), #fcf3e1 78%); border-color: #e2c993; border-top-color: var(--ac); }
 :where(:root[data-theme="ruines"]) .methode { border-top-color: var(--ac); }
 :where(:root[data-theme="ruines"]) .promo-jeu { border-color: #e0b552; }
 :where(:root[data-theme="ruines"]) .profil-grand { background-image: linear-gradient(135deg, color-mix(in srgb, var(--lagon-pale) 80%, var(--surface)), var(--surface) 70%); }

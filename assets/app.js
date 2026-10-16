@@ -273,7 +273,7 @@
     else if (chap === "frequentation") pageFrequentation();
     else if (chap === "avatar") pageAvatar();
     else if (chap === "jeu") pageJeu(onglet);
-    else if (chap === "college") pageCollege();
+    else if (chap === "college" || chap === "lycee") pageCycle(chap);
     else if (chap && window.CHAPITRES && CHAPITRES[chap]) pageChapitre(chap, onglet || "cours");
     else if (chap && CATALOGUE.niveaux.some((n) => "niveau-" + n.id === chap)) pageNiveau(CATALOGUE.niveaux.find((n) => "niveau-" + n.id === chap));
     else pageAccueil();
@@ -283,7 +283,7 @@
     else Compte.visite();
     // Couleur du niveau (Seconde, Première...) pour habiller la page niveau et la page chapitre
     const niv = CATALOGUE.niveaux.find((n) => "niveau-" + n.id === chap || n.chapitres.some((ch) => ch.id === chap));
-    if (niv) $app.dataset.niv = niv.id; else if (chap === "college") $app.dataset.niv = "college"; else delete $app.dataset.niv;
+    if (niv) $app.dataset.niv = niv.id; else if (chap === "college" || chap === "lycee") $app.dataset.niv = chap; else delete $app.dataset.niv;
   }
   window.addEventListener("hashchange", () => { route(); window.scrollTo(0, 0); });
 
@@ -316,7 +316,6 @@
   const YT_PROF = "https://www.youtube.com/@Profmaths-q1p";
   const YT_MONKA = "https://www.youtube.com/@YMONKA";
   const ACCROCHES = {
-    college: "6e, 5e, 4e et 3e",
     sixieme: "Nombres, fractions, géométrie : les bases",
     cinquieme: "Nouveau programme 2026",
     quatrieme: "Puissances, Pythagore, calcul littéral",
@@ -328,8 +327,12 @@
     terminale: "Option maths complémentaires"
   };
   const chapitresEnLigne = (n) => n.chapitres.filter((ch) => ch.statut === "disponible" && window.CHAPITRES && CHAPITRES[ch.id]).length;
-  // Les niveaux du collège (groupe « college ») sont rangés derrière une seule carte « Collège »
-  const NIV_COLLEGE = () => CATALOGUE.niveaux.filter((n) => n.groupe === "college");
+  // L'accueil a deux grandes cartes : Collège (niveaux du groupe « college ») et Lycée (tous les autres)
+  const CYCLES = {
+    college: { nom: "Collège", sous: "De la 6e à la 3e", glyphe: "÷", lead: "Choisis ta classe. Chaque chapitre suit le programme officiel en vigueur cette année.", niveaux: () => CATALOGUE.niveaux.filter((n) => n.groupe === "college") },
+    lycee: { nom: "Lycée", sous: "De la Seconde à la Terminale", glyphe: "∫", lead: "Choisis ta classe. Les chapitres sont rangés dans l'ordre des playlists de la chaîne.", niveaux: () => CATALOGUE.niveaux.filter((n) => n.groupe !== "college") }
+  };
+  const COURT = { "Première spécialité": "Première spé", "Terminale spécialité": "Terminale spé", "Terminale maths complémentaires": "Terminale compl." };
   const carteNiveau = (href, id, nom, nb) => `<a class="carte-niv" href="${href}" data-niv="${esc(id)}"><span class="pastille-niv" aria-hidden="true"></span><span class="carte-niv-t"><strong>${esc(nom)}</strong>${ACCROCHES[id] ? `<span class="accroche">${esc(ACCROCHES[id])}</span>` : ""}<span class="meta">${nb ? `${nb} chapitre${nb > 1 ? "s" : ""} en ligne` : "En préparation"}</span></span><span class="go" aria-hidden="true">→</span></a>`;
 
   function pageAccueil() {
@@ -339,11 +342,17 @@
     const nbQcm = dispos.reduce((s, k) => s + CHAPITRES[k].qcm.length, 0);
     let h = `<section class="hero"><div class="hero-in"><p class="eyebrow">Maths au collège et au lycée · Mayotte</p><h1>Une vidéo, un cours, des exercices. À ton rythme.</h1><p class="lead">Choisis ton niveau : tous ses chapitres s'affichent, dans l'ordre des playlists de la chaîne.</p>
       <ul class="chiffres"><li><b>${dispos.length}</b> chapitres</li><li><b>${nbSeries}</b> séries d'exercices</li><li><b>${nbQcm}</b> questions de QCM</li></ul></div>${DECOR_HERO}</section>`;
-    // Choix du niveau : chaque carte ouvre la page du niveau avec tous ses chapitres
-    h += `<h2 class="titre-bloc">Choisis ton niveau</h2><nav class="cartes-niv" aria-label="Niveaux">`;
-    const college = NIV_COLLEGE();
-    if (college.length) h += carteNiveau("#college", "college", "Collège", college.reduce((s, n) => s + chapitresEnLigne(n), 0));
-    CATALOGUE.niveaux.filter((n) => n.groupe !== "college").forEach((n) => { h += carteNiveau(`#niveau-${esc(n.id)}`, n.id, n.nom, chapitresEnLigne(n)); });
+    // Deux grandes cartes, Collège et Lycée : chacune ouvre la page qui regroupe ses classes
+    h += `<h2 class="titre-bloc">Choisis ton niveau</h2><nav class="cartes-cycle" aria-label="Collège ou lycée">`;
+    Object.keys(CYCLES).forEach((k) => {
+      const C = CYCLES[k], nivs = C.niveaux();
+      if (!nivs.length) return;
+      const nb = nivs.reduce((s, n) => s + chapitresEnLigne(n), 0);
+      h += `<a class="carte-cycle" href="#${k}" data-niv="${k}"><span class="cycle-glyphe" aria-hidden="true">${C.glyphe}</span>
+        <span class="eyebrow">${esc(C.sous)}</span><strong>${esc(C.nom)}</strong>
+        <span class="cycle-classes">${nivs.map((n) => `<span>${esc(COURT[n.nom] || n.nom)}</span>`).join("")}</span>
+        <span class="cycle-pied"><span class="meta">${nb ? `${nb} chapitre${nb > 1 ? "s" : ""} en ligne` : "En préparation"}</span><span class="go" aria-hidden="true">→</span></span></a>`;
+    });
     h += `</nav>`;
     // À découvrir : le jeu et les chaînes YouTube
     h += `<h2 class="titre-bloc">À découvrir</h2><div class="decouvrir">
@@ -357,13 +366,14 @@
   }
   const piedDePage = () => `<footer class="pied"><a href="${YT_PROF}" target="_blank" rel="noopener">Chaîne YouTube</a><a href="https://drive.google.com/drive/folders/1mTeWgDGTv4hNYrD_ozxN9-cSDDGH_Oqn" target="_blank" rel="noopener">Cours et corrigés (Drive)</a></footer>`;
 
-  /* ---------- Page Collège : les quatre classes ---------- */
-  function pageCollege() {
-    document.title = "Collège · ProfMaths";
+  /* ---------- Pages Collège et Lycée : les classes de chaque cycle ---------- */
+  function pageCycle(k) {
+    const C = CYCLES[k];
+    document.title = `${C.nom} · ProfMaths`;
     let h = `<a class="retour" href="#">← Accueil</a>
-      <header class="niv-head"><p class="eyebrow">Niveau</p><h1><span class="pastille-niv" aria-hidden="true"></span>Collège</h1><p class="lead">Choisis ta classe. Chaque chapitre suit le programme officiel en vigueur cette année.</p></header>
-      <nav class="cartes-niv" aria-label="Classes du collège">`;
-    NIV_COLLEGE().forEach((n) => { h += carteNiveau(`#niveau-${esc(n.id)}`, n.id, n.nom, chapitresEnLigne(n)); });
+      <header class="niv-head"><p class="eyebrow">${esc(C.sous)}</p><h1><span class="pastille-niv" aria-hidden="true"></span>${esc(C.nom)}</h1><p class="lead">${esc(C.lead)}</p></header>
+      <nav class="cartes-niv" aria-label="Classes du ${k === "college" ? "collège" : "lycée"}">`;
+    C.niveaux().forEach((n) => { h += carteNiveau(`#niveau-${esc(n.id)}`, n.id, n.nom, chapitresEnLigne(n)); });
     h += `</nav>` + piedDePage();
     $app.innerHTML = h;
   }
@@ -371,9 +381,9 @@
   /* ---------- Page d'un niveau : tous ses chapitres ---------- */
   function pageNiveau(n) {
     document.title = `${n.nom} · ProfMaths`;
-    const auCollege = n.groupe === "college";
-    let h = `<a class="retour" href="${auCollege ? "#college" : "#"}">← ${auCollege ? "Collège" : "Accueil"}</a>
-      <header class="niv-head"><p class="eyebrow">${auCollege ? "Collège" : "Niveau"}</p><h1><span class="pastille-niv" aria-hidden="true"></span>${esc(n.nom)}</h1>${n.intro ? `<p class="lead">${esc(n.intro)}</p>` : `<p class="lead">Choisis ton chapitre. Ils sont rangés dans l'ordre de la playlist.</p>`}</header>
+    const cycle = n.groupe === "college" ? "college" : "lycee";
+    let h = `<a class="retour" href="#${cycle}">← ${CYCLES[cycle].nom}</a>
+      <header class="niv-head"><p class="eyebrow">${CYCLES[cycle].nom}</p><h1><span class="pastille-niv" aria-hidden="true"></span>${esc(n.nom)}</h1>${n.intro ? `<p class="lead">${esc(n.intro)}</p>` : `<p class="lead">Choisis ton chapitre. Ils sont rangés dans l'ordre de la playlist.</p>`}</header>
       <ol class="chapitres chapitres-niv">`;
     if (!n.chapitres.length) h += `<li><div class="chap chap-off"><span class="num num-a">…</span><span class="chap-t"><strong>Les chapitres arrivent bientôt</strong><span class="meta">En attendant, révise avec les vidéos d'<a href="${YT_MONKA}" target="_blank" rel="noopener">Yvan Monka</a>.</span></span></div></li>`;
     n.chapitres.forEach((ch) => {

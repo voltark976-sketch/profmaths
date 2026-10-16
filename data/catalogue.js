@@ -9,7 +9,8 @@
   - code    : sigle affiché dans la pastille (sinon le numéro du chapitre, ou « A »)
   - fichier : nom de la variable du fichier de contenu (seulement si disponible)
   Un niveau avec groupe: "college" (6e, 5e, 4e, 3e) n'a pas sa propre carte sur l'accueil :
-  il est rangé derrière la carte « Collège » (page #college).
+  il est rangé derrière la carte « Collège » (page #college). Les autres niveaux sont
+  rangés derrière la carte « Lycée » (page #lycee).
 */
 window.CATALOGUE = {
   niveaux: [
