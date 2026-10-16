@@ -94,6 +94,7 @@
       if (!snap.exists) await ref.set(Object.assign({}, profil, { xp: 0, exo: {}, qcm: {}, creeLe: firebase.firestore.FieldValue.serverTimestamp() }));
       eleve = Object.assign({ uid: u.uid }, profil);
       ecouteur(eleve, lireProg(d));
+      setTimeout(envoyerTemps, 5000); // temps resté sur l'appareil (page fermée hors ligne)
     } catch (e) {
       // Lecture impossible (réseau) : on n'écrase pas le compte avec la copie de l'appareil, on relira plus tard
       eleve = Object.assign({ uid: u.uid, lectureEchouee: true }, profil);
@@ -134,6 +135,48 @@
     ecrireJSON(CLE_VUS, vus);
     envois.forEach((p) => p.catch(() => {})); // hors ligne ou refusé : tant pis, ce n'est qu'un compteur
   }
+
+  /* ---------- Temps passé sur le site (élève connecté seulement, visible par son professeur) ----------
+    On compte le temps actif : onglet visible et élève qui touche, tape ou fait défiler la page
+    depuis moins de 3 minutes (ou qui regarde une vidéo). Le temps s'ajoute dans la fiche de l'élève :
+    temps.j[jour] (total du jour) et temps.ch[chapitre] (total par chapitre, « jeu » pour Les Salles),
+    temps.der[chapitre] (dernier jour où l'élève y a passé du temps).
+    Envoi groupé toutes les 5 minutes et quand on quitte la page ; en attendant, il est gardé sur l'appareil. */
+  const CLE_TEMPS = "profmaths:temps";
+  const PAS_TEMPS = 15, INACTIF = 3 * 60e3, ENVOI_TEMPS = 300; // secondes, millisecondes, secondes
+  let pageTemps = "", derniereAction = Date.now();
+  const actif = () => { derniereAction = Date.now(); };
+  ["pointerdown", "pointermove", "keydown", "scroll", "touchstart", "input"].forEach((t) => window.addEventListener(t, actif, { passive: true, capture: true }));
+  const compteTemps = () => fb && eleve && !eleve.prof && !eleve.lectureEchouee && !ESSAI_LOCAL;
+  function attenteTemps() {
+    const a = lireJSON(CLE_TEMPS, null);
+    return a && eleve && a.uid === eleve.uid && a.j && a.ch && a.der ? a : { uid: eleve.uid, n: 0, j: {}, ch: {}, der: {} };
+  }
+  setInterval(() => {
+    if (!compteTemps() || document.visibilityState !== "visible") return;
+    const video = document.activeElement && document.activeElement.tagName === "IFRAME";
+    if (!video && Date.now() - derniereAction > INACTIF) return;
+    const a = attenteTemps(), j = new Date().toLocaleDateString("fr-CA");
+    a.n += PAS_TEMPS;
+    a.j[j] = (a.j[j] || 0) + PAS_TEMPS;
+    if (pageTemps) { a.ch[pageTemps] = (a.ch[pageTemps] || 0) + PAS_TEMPS; a.der[pageTemps] = j; }
+    ecrireJSON(CLE_TEMPS, a);
+    if (a.n >= ENVOI_TEMPS) envoyerTemps();
+  }, PAS_TEMPS * 1000);
+  function envoyerTemps() {
+    if (!compteTemps()) return;
+    const a = attenteTemps();
+    if (!a.n) return;
+    try { localStorage.removeItem(CLE_TEMPS); } catch (e) {}
+    const plus = (v) => firebase.firestore.FieldValue.increment(v), j = {}, ch = {};
+    for (const k in a.j) j[k] = plus(a.j[k]);
+    for (const k in a.ch) ch[k] = plus(a.ch[k]);
+    fb.db.collection("eleves").doc(eleve.uid)
+      .set({ temps: { j, ch, der: a.der }, vuLe: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true })
+      .catch(() => {}); // refusé : ces quelques minutes sont perdues, sans gêner l'élève
+  }
+  document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden") envoyerTemps(); });
+  window.addEventListener("pagehide", envoyerTemps);
   let erreurCompte = "";
   // Nouvel essai de lecture du compte après un échec ; la fusion se fait dans l'écouteur, qui enregistre ensuite
   let relectureEnCours = false;
@@ -222,6 +265,7 @@
 
     async deconnecter() {
       clearTimeout(minuterie);
+      envoyerTemps();
       if (fb) { await fb.auth.signOut(); return; }
       try { localStorage.removeItem(SESSION); } catch (e) {}
       eleve = null; ecouteur(null, null);
@@ -256,6 +300,7 @@
 
     // Compte une visite (page = identifiant du chapitre, « jeu » ou rien ; onglet du chapitre)
     visite(page, onglet) {
+      pageTemps = page && /^[a-z0-9-]{1,60}$/.test(page) ? page : "";
       if (pretVisites) compterVisite(page, onglet);
       else if (attenteVisites.length < 20) attenteVisites.push([page, onglet]);
     },

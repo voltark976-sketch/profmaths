@@ -13,12 +13,14 @@ service cloud.firestore {
         && d.classe == request.auth.token.classe && d.groupe == request.auth.token.groupe;
     }
 
+    // temps : temps actif sur le site (secondes, par jour et par chapitre), vuLe : dernière activité, lus par le professeur
     match /eleves/{uid} {
       // Un professeur ne lit que les élèves de ses classes (marque « groupes » ; sans elle, toutes les classes)
       allow read: if (eleve() && request.auth.uid == uid)
         || (prof() && (!('groupes' in request.auth.token) || resource.data.groupe in request.auth.token.groupes));
       allow create, update: if eleve() && request.auth.uid == uid
-        && request.resource.data.keys().hasOnly(['identifiant', 'prenom', 'nom', 'classe', 'groupe', 'xp', 'exo', 'qcm', 'jeux', 'avatar', 'quand', 'creeLe', 'majLe'])
+        && request.resource.data.keys().hasOnly(['identifiant', 'prenom', 'nom', 'classe', 'groupe', 'xp', 'exo', 'qcm', 'jeux', 'avatar', 'quand', 'temps', 'vuLe', 'creeLe', 'majLe'])
+        && request.resource.data.get('temps', {}) is map
         && profilDuCompte(request.resource.data);
     }
     // Progression personnelle d'un professeur (exercices faits avec son propre compte)

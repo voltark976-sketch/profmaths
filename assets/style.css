@@ -678,6 +678,16 @@ table.suivi { border-collapse: collapse; background: var(--surface); font-varian
 .suivi td.fait { background: var(--bon-pale); color: var(--ylang); }
 .suivi td.qcm { color: var(--encre); }
 .suivi td.vide { color: var(--doux); }
+/* Vue « Tout le site » : un nom ouvre le détail par chapitre ; élève inactif sur la période en grisé */
+.lien-eleve { font: inherit; color: var(--ac); background: none; border: 0; padding: 0; cursor: pointer; text-align: left; text-decoration: underline; text-underline-offset: 3px; }
+.lien-eleve[aria-expanded="true"] { font-weight: 700; }
+.suivi tr.inactif td, .suivi tr.inactif th { color: var(--doux); }
+.suivi-detail td { text-align: left; white-space: normal; background: var(--fond); }
+/* La liste reste dans l'écran même quand le tableau défile de côté */
+.suivi-detail ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; position: sticky; left: 8px; max-width: min(36em, calc(100vw - 80px)); max-width: min(36em, calc(100cqw - 26px)); }
+.page-suivi .scroll-x { container-type: inline-size; }
+.suivi-detail li { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 2px 12px; }
+.suivi-detail li span:last-child { color: var(--doux); font-variant-numeric: tabular-nums; }
 /* Page professeur : fréquentation du site */
 .btns-prof { display: flex; flex-wrap: wrap; gap: 10px; }
 .freq-tuiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin: 14px 0; }
