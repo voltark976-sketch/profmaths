@@ -1431,8 +1431,162 @@
       solution: `$${p1} = ${fr(a1 * k, b * k)}$ et ${qui === 0 ? `$${a1 * k} > ${a2}$` : `$${a1 * k} < ${a2}$`} : c'est ${choix[qui]} qui a mangé le plus.` };
   };
 
+  /* =====================================================================
+     6e, chapitre 5 : proportionnalité (préfixe p6-)
+     Programme : proportionnalité entre deux grandeurs, reliée au « prix au kilo » ; procédures de linéarité
+     (multiplicative, additive) et retour à l'unité ; tableaux avec le nom et l'unité de chaque grandeur ;
+     initiation aux échelles. Le produit en croix n'est pas enseigné, le coefficient n'est pas nommé.
+     ===================================================================== */
+  // Situations : [objet au pluriel, unité de la première grandeur, prix ou valeur pour 1 (en centièmes), unité de la seconde]
+  const SITUATIONS_P = [
+    ["cahiers", "cahiers", [80, 250], "€", "Cahiers"], ["mangues", "mangues", [40, 150], "€", "Mangues"], ["kg de riz", "kg", [120, 300], "€", "Riz en kg"],
+    ["litres d'essence", "L", [185, 210], "€", "Essence en L"], ["tickets de bus", "tickets", [100, 250], "€", "Tickets"], ["kg de tomates", "kg", [200, 500], "€", "Tomates en kg"],
+    ["bouteilles d'eau", "bouteilles", [40, 120], "€", "Bouteilles"]
+  ];
+  const cTex = (c) => (c % 100 ? ecrit(c, 2) : ecrit(c / 100)); // valeur en centièmes, écrite avec deux décimales si besoin
+  const tabP = (nom1, nom2, xs, ys) => ({ lignes: [[`\\text{${nom1}}`, ...xs], [`\\text{${nom2}}`, ...ys]] });
+
+  GEN["p6-reconnaitre"] = function () {
+    if (Math.random() < 0.5) { // une situation parmi quatre
+      const n1 = rand(2, 6), k = rand(2, 4), p = rand(3, 9) * 50;
+      const PROP = [
+        `$${n1}$ cahiers identiques coûtent $${cTex(n1 * p)}$ € et $${n1 * k}$ cahiers coûtent $${cTex(n1 * k * p)}$ €.`,
+        `En $${n1}$ min, un robinet qui coule toujours de la même façon remplit $${n1 * 3}$ L ; en $${n1 * k}$ min, il remplit $${n1 * k * 3}$ L.`,
+        `Une voiture qui roule toujours à la même vitesse parcourt $${n1 * 15}$ km en $${n1 * 10}$ min et $${n1 * k * 15}$ km en $${n1 * k * 10}$ min.`
+      ];
+      const age = rand(5, 10);
+      const NON = [
+        `À $${age}$ ans, Anli mesurait $${ecrit(rand(110, 135), 2)}$ m ; à $${age * 2}$ ans, il mesure $${ecrit(rand(160, 180), 2)}$ m.`,
+        `Un taxi-brousse coûte $${rand(2, 3)}$ € de prise en charge plus $1$ € par km : $${n1}$ km coûtent $${n1 + 2}$ € et $${n1 * k}$ km coûtent $${n1 * k + 2}$ €.`,
+        `Un abonnement de cantine coûte $${rand(20, 40)}$ € par mois, que l'on mange $${n1}$ fois ou $${n1 * k}$ fois.`,
+        `Une bougie mesure $${n1 * 2 + 10}$ cm ; après $${n1}$ h, elle mesure $${n1 * 2 + 10 - n1}$ cm, et après $${n1 * k}$ h, $${n1 * 2 + 10 - n1 * k > 0 ? n1 * 2 + 10 - n1 * k : 1}$ cm.`,
+        `À $8$ h, il fait $${rand(24, 26)}$ °C à Mamoudzou ; à $16$ h, il fait $${rand(29, 32)}$ °C.`
+      ];
+      const bon = pick(PROP), c = melange(bon, shuffle(NON).slice(0, 3));
+      return { enonce: "Laquelle de ces situations est une situation de **proportionnalité** ?", mode: "choix", choix: c.choix, attendu: c.attendu,
+        aides: ["Deux grandeurs sont proportionnelles si, quand on multiplie l'une par un nombre, l'autre est multipliée par le **même** nombre.", "Cherche par combien est multipliée la première grandeur, puis vérifie la seconde.", "Une somme fixe à payer en plus (prise en charge, abonnement) empêche la proportionnalité."],
+        solution: `${bon.replace(/\.$/, "")} : quand la première grandeur est multipliée par $${k}$, la seconde aussi. Dans les autres situations, ce n'est pas le cas.` };
+    }
+    // un tableau : proportionnel ou non, avec la bonne raison
+    const [obj, u1, pr, u2, court] = pick(SITUATIONS_P), p = rand(pr[0] / 10, pr[1] / 10) * 10;
+    const xs = shuffle([2, 3, 4, 5, 6, 8, 10]).slice(0, 3).sort((a, b) => a - b), prop = Math.random() < 0.5;
+    const ys = xs.map((x) => x * p);
+    const faute = rand(0, 2); if (!prop) ys[faute] += pick([-1, 1]) * rand(1, 3) * 10;
+    const bons = prop ? `Oui : le prix pour $1$ est toujours $${cTex(p)}$ €` : `Non : $${xs[faute]}$ ${u1} ne coûtent pas $${xs[faute]} \\times ${cTex(p)}$ €`;
+    const fausses = prop
+      ? [`Non : les prix ne sont pas des nombres entiers`, `Non : les deux lignes n'augmentent pas de la même façon`, `Oui : les deux lignes augmentent`]
+      : [`Oui : les deux lignes augmentent`, `Oui : le prix pour $1$ est toujours $${cTex(p)}$ €`, `Non : les prix sont trop grands`];
+    const c = melange(bons, fausses);
+    return { enonce: `Le prix est-il proportionnel au nombre de ${obj} ?`, tableau: tabP(court, "Prix en €", xs, ys.map(cTex)),
+      mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: ["Calcule le prix pour $1$ dans chaque colonne : divise le prix par la quantité.", "Si on trouve toujours le même prix pour $1$, c'est un tableau de proportionnalité.", "Que les nombres augmentent ne suffit pas."],
+      solution: prop ? `$${xs.map((x, i) => `${cTex(ys[i])} \\div ${x} = ${cTex(p)}`).join("$ ; $")}$ : le prix pour $1$ est toujours le même, c'est un tableau de proportionnalité.`
+        : `$${xs[faute]} \\times ${cTex(p)} = ${cTex(xs[faute] * p)}$, et pas $${cTex(ys[faute])}$ : le prix pour $1$ n'est pas toujours le même. Ce n'est pas un tableau de proportionnalité.` };
+  };
+
+  GEN["p6-lineaire-mult"] = function () {
+    const [obj, u1, pr, u2] = pick(SITUATIONS_P), p = rand(pr[0] / 5, pr[1] / 5) * 5, n = rand(2, 8), k = rand(2, 5), fois = Math.random() < 0.6;
+    const a = fois ? n : n * k, b = fois ? n * k : n;
+    return { enonce: `$${a}$ ${obj} coûtent $${cTex(a * p)}$ €. Le prix est proportionnel à la quantité. Combien coûtent $${b}$ ${obj} ?`, mode: "nombre", prefixe: "Prix :", suffixe: "€", attendu: (b * p) / 100,
+      erreurs: [{ valeur: (a * p + (b - a) * 100) / 100, message: "Ce n'est pas une addition : la quantité est multipliée (ou divisée), le prix aussi." }],
+      aides: [`De $${a}$ à $${b}$ ${obj}, la quantité est ${fois ? `multipliée par $${k}$` : `divisée par $${k}$`}.`, `Le prix est donc ${fois ? "multiplié" : "divisé"} par $${k}$ lui aussi.`, `Calcule $${cTex(a * p)} ${fois ? "\\times" : "\\div"} ${k}$.`],
+      solution: `$${b} = ${a} ${fois ? "\\times" : "\\div"} ${k}$, donc le prix est $${cTex(a * p)} ${fois ? "\\times" : "\\div"} ${k} = ${cTex(b * p)}$ €.` };
+  };
+
+  GEN["p6-lineaire-add"] = function () {
+    const [obj, u1, pr] = pick(SITUATIONS_P), p = rand(pr[0] / 5, pr[1] / 5) * 5;
+    let a = rand(2, 9), b = rand(2, 9); if (a === b) b++;
+    const moins = Math.random() < 0.35 && a !== b;
+    const [g, s] = a > b ? [a, b] : [b, a], cible = moins ? g - s : a + b;
+    return { enonce: `$${a}$ ${obj} coûtent $${cTex(a * p)}$ € et $${b}$ ${obj} coûtent $${cTex(b * p)}$ €. Le prix est proportionnel à la quantité. Combien coûtent $${cible}$ ${obj} ?`, mode: "nombre", prefixe: "Prix :", suffixe: "€", attendu: (cible * p) / 100,
+      aides: [moins ? `$${cible} = ${g} - ${s}$.` : `$${cible} = ${a} + ${b}$.`, `Le prix de $${cible}$ ${obj} est donc ${moins ? "la différence" : "la somme"} des deux prix.`, moins ? `Calcule $${cTex(g * p)} - ${cTex(s * p)}$.` : `Calcule $${cTex(a * p)} + ${cTex(b * p)}$.`],
+      solution: moins ? `$${cible} = ${g} - ${s}$, donc le prix est $${cTex(g * p)} - ${cTex(s * p)} = ${cTex(cible * p)}$ €.` : `$${cible} = ${a} + ${b}$, donc le prix est $${cTex(a * p)} + ${cTex(b * p)} = ${cTex(cible * p)}$ €.` };
+  };
+
+  GEN["p6-unite"] = function () {
+    const t = rand(0, 1);
+    if (t === 0) {
+      const [obj, u1, pr] = pick(SITUATIONS_P), p = rand(pr[0] / 5, pr[1] / 5) * 5, a = rand(3, 9);
+      let b = rand(2, 12); while (b === a || b % a === 0 || a % b === 0) b = rand(2, 13);
+      const pourUn = Math.random() < 0.35;
+      return { enonce: pourUn ? `$${a}$ ${obj} coûtent $${cTex(a * p)}$ €. Combien coûte $1$ ${obj.replace(/s( |$)/, "$1").replace(/^kg/, "kg")} ?` : `$${a}$ ${obj} coûtent $${cTex(a * p)}$ €. Le prix est proportionnel à la quantité. Combien coûtent $${b}$ ${obj} ?`,
+        mode: "nombre", prefixe: "Prix :", suffixe: "€", attendu: ((pourUn ? 1 : b) * p) / 100,
+        erreurs: [{ valeur: (a * p) / 100 + (b - a), message: "On ne peut pas ajouter : passe d'abord par le prix pour $1$." }],
+        aides: ["Calcule d'abord le prix pour **une** unité : c'est le retour à l'unité.", `$${cTex(a * p)} \\div ${a} = ${cTex(p)}$ € pour $1$.`, pourUn ? "C'est la réponse !" : `Multiplie ensuite par $${b}$.`],
+        solution: `Pour $1$ : $${cTex(a * p)} \\div ${a} = ${cTex(p)}$ €.${pourUn ? "" : ` Pour $${b}$ : $${cTex(p)} \\times ${b} = ${cTex(b * p)}$ €.`}` };
+    }
+    // battements du cœur, vitesse régulière
+    const [phrase, u, q] = pick([["Au repos, le cœur de Nadia bat $VAL$ fois en $A$ minutes. Combien de fois bat-il en $B$ minutes ?", "battements", [60, 80]], ["Une imprimante imprime $VAL$ pages en $A$ minutes. Combien de pages en $B$ minutes ?", "pages", [8, 20]], ["Un cycliste qui roule à vitesse constante parcourt $VAL$ km en $A$ heures. Combien de kilomètres en $B$ heures ?", "km", [15, 25]]]);
+    const v = rand(q[0], q[1]), a = rand(2, 5); let b = rand(2, 9); while (b === a || b % a === 0) b = rand(2, 9);
+    return { enonce: phrase.replace("$VAL$", `$${v * a}$`).replace("$A$", `$${a}$`).replace("$B$", `$${b}$`) + " (on suppose que c'est proportionnel)", mode: "nombre", prefixe: "Réponse :", suffixe: u, attendu: v * b,
+      aides: ["Calcule d'abord pour **une** minute (ou une heure) : c'est le retour à l'unité.", `$${v * a} \\div ${a} = ${v}$.`, `Puis multiplie par $${b}$.`],
+      solution: `Pour $1$ : $${v * a} \\div ${a} = ${v}$. Pour $${b}$ : $${v} \\times ${b} = ${v * b}$ ${u}.` };
+  };
+
+  GEN["p6-tableau"] = function () {
+    const [obj, u1, pr, u2, court] = pick(SITUATIONS_P), p = rand(pr[0] / 10, pr[1] / 10) * 10;
+    const xs = shuffle([2, 3, 4, 5, 6, 8, 10, 12]).slice(0, 3).sort((a, b) => a - b), trou = rand(0, 2);
+    const ys = xs.map((x) => cTex(x * p)); ys[trou] = "?";
+    // une procédure possible : d'une autre colonne par multiplication, addition, ou par le prix pour 1
+    const j = xs.findIndex((x, i) => i !== trou && xs[trou] % x === 0), s = xs.findIndex((x, i) => i !== trou && xs.some((y, l) => l !== trou && l !== i && x + y === xs[trou]));
+    let indice;
+    if (j >= 0) indice = `$${xs[trou]} = ${xs[j]} \\times ${xs[trou] / xs[j]}$ : multiplie le prix de $${xs[j]}$ par $${xs[trou] / xs[j]}$.`;
+    else if (s >= 0) { const l = xs.findIndex((y, l) => l !== trou && l !== s && xs[s] + y === xs[trou]); indice = `$${xs[trou]} = ${xs[s]} + ${xs[l]}$ : ajoute les prix de ces deux colonnes.`; }
+    else indice = `Calcule d'abord le prix pour $1$, puis multiplie par $${xs[trou]}$.`;
+    return { enonce: `Ce tableau est un tableau de proportionnalité. Quel nombre manque à la place du point d'interrogation ?`, tableau: tabP(court, "Prix en €", xs, ys),
+      mode: "nombre", prefixe: "? =", attendu: (xs[trou] * p) / 100,
+      aides: ["Cherche un lien entre la quantité de la colonne « ? » et celle d'une autre colonne.", indice, `Le prix pour $1$ est $${cTex(p)}$ €.`],
+      solution: `Le prix pour $1$ est $${cTex(xs[(trou + 1) % 3] * p)} \\div ${xs[(trou + 1) % 3]} = ${cTex(p)}$ €, donc pour $${xs[trou]}$ : $${cTex(p)} \\times ${xs[trou]} = ${cTex(xs[trou] * p)}$ €.` };
+  };
+
+  GEN["p6-echelle"] = function () {
+    const t = rand(0, 2);
+    if (t < 2) {
+      const [ctx, u, e, uu] = pick([["Sur le plan du collège", "cm", pick([2, 5, 10, 20]), "m"], ["Sur une carte de Mayotte", "cm", pick([2, 3, 5]), "km"], ["Sur le plan du village", "cm", pick([10, 20, 50]), "m"]]);
+      const L = Dc(rand(11, 95), 1), R = mulD(L, Dc(e));
+      if (t === 0) return { enonce: `${ctx}, $1$ ${u} représente $${e}$ ${uu} dans la réalité. Un segment mesure $${tD(L)}$ ${u} sur le plan. Quelle longueur réelle représente-t-il ?`, mode: "nombre", prefixe: "Longueur réelle :", suffixe: uu, attendu: vD(R),
+        aides: ["Les longueurs réelles sont proportionnelles aux longueurs sur le plan.", `$1$ ${u} sur le plan $\\rightarrow$ $${e}$ ${uu} en vrai.`, `Calcule $${tD(L)} \\times ${e}$.`],
+        solution: `$${tD(L)} \\times ${e} = ${tD(R)}$ : il représente $${tD(R)}$ ${uu}.`, tableau: tabP(`Plan en ${u}`, `Réalité en ${uu}`, ["1", tD(L)], [String(e), "?"]) };
+      return { enonce: `${ctx}, $1$ ${u} représente $${e}$ ${uu} dans la réalité. Une longueur réelle de $${tD(R)}$ ${uu} mesure combien sur le plan ?`, mode: "nombre", prefixe: "Sur le plan :", suffixe: u, attendu: vD(L),
+        aides: ["Les longueurs réelles sont proportionnelles aux longueurs sur le plan.", `$${e}$ ${uu} en vrai $\\rightarrow$ $1$ ${u} sur le plan.`, `Calcule $${tD(R)} \\div ${e}$.`],
+        solution: `$${tD(R)} \\div ${e} = ${tD(L)}$ : elle mesure $${tD(L)}$ ${u} sur le plan.` };
+    }
+    const e = pick([2, 3, 4, 5, 10]), dim = rand(4, 15), autre = dim + rand(1, 6);
+    return { enonce: `On agrandit une photo : toutes les longueurs sont multipliées par le même nombre. Un côté de $${dim}$ cm devient $${dim * e}$ cm. Que devient un autre côté de $${autre}$ cm ?`, mode: "nombre", prefixe: "Il devient", suffixe: "cm", attendu: autre * e,
+      erreurs: [{ valeur: autre + dim * (e - 1), message: "On n'ajoute pas le même nombre : les longueurs sont **multipliées** par le même nombre." }],
+      aides: [`$${dim} \\times ${e} = ${dim * e}$ : les longueurs sont multipliées par $${e}$.`, `L'autre côté est aussi multiplié par $${e}$.`, `Calcule $${autre} \\times ${e}$.`],
+      solution: `Les longueurs sont multipliées par $${e}$ : $${autre} \\times ${e} = ${autre * e}$ cm.` };
+  };
+
+  GEN["p6-probleme"] = function () {
+    const t = rand(0, 2);
+    if (t === 0) { // recette
+      const pers = pick([4, 6, 8]), k = pick([2, 3, 0.5]), pers2 = pers * k;
+      const farine = pers * 50, coco = pers * 10, sucre = pers * 25;
+      const [ing, q, u] = pick([["farine", farine, "g"], ["lait de coco", coco, "cL"], ["sucre", sucre, "g"]]);
+      return { enonce: `Pour un gâteau de $${pers}$ personnes, il faut $${farine}$ g de farine, $${coco}$ cL de lait de coco et $${sucre}$ g de sucre. Quelle quantité de ${ing} faut-il pour $${pers2}$ personnes ?`, mode: "nombre", prefixe: "Il faut", suffixe: u, attendu: q * k,
+        erreurs: [{ valeur: q + (pers2 - pers), message: "Les quantités sont proportionnelles au nombre de personnes : on multiplie (ou on divise), on n'ajoute pas." }],
+        aides: [`De $${pers}$ à $${pers2}$ personnes, on ${k < 1 ? "divise par $2$" : `multiplie par $${k}$`}.`, `Toutes les quantités sont ${k < 1 ? "divisées par $2$" : `multipliées par $${k}$`}.`, `Calcule pour le ${ing} : $${q}$ ${u}.`],
+        solution: `$${pers2} = ${pers} ${k < 1 ? "\\div 2" : `\\times ${k}`}$, donc il faut $${q} ${k < 1 ? "\\div 2" : `\\times ${k}`} = ${nb(q * k)}$ ${u} de ${ing}.` };
+    }
+    if (t === 1) { // essence et distance
+      const conso = rand(5, 8), d = pick([100, 200, 50, 300]), d2 = pick([150, 250, 400, 350, 450]);
+      if (d2 === d) return GEN["p6-probleme"]();
+      const L1 = (conso * d) / 100;
+      return { enonce: `Une voiture consomme $${nb(L1)}$ L d'essence pour $${d}$ km. Sa consommation est proportionnelle à la distance. Combien consomme-t-elle pour $${d2}$ km ?`, mode: "nombre", prefixe: "Consommation :", suffixe: "L", attendu: (conso * d2) / 100,
+        aides: ["Passe par une distance simple : $50$ km ou $100$ km.", `Pour $100$ km, elle consomme $${conso}$ L.`, `$${d2} = ${d2 / 50} \\times 50$, ou décompose $${d2}$ en centaines et dizaines.`],
+        solution: `Pour $100$ km : $${conso}$ L, donc pour $50$ km : $${nb(conso / 2)}$ L. Pour $${d2}$ km : $${nb(conso / 2)} \\times ${d2 / 50} = ${nb((conso * d2) / 100)}$ L.` };
+    }
+    // salaire ou location à l'heure
+    const pH = rand(8, 12), h = rand(2, 6), h2 = rand(7, 20);
+    return { enonce: `Pour garder sa petite sœur, Moinécha gagne $${pH * h}$ € en $${h}$ heures. Combien gagne-t-elle en $${h2}$ heures, au même tarif ?`, mode: "nombre", prefixe: "Elle gagne", suffixe: "€", attendu: pH * h2,
+      erreurs: [{ valeur: pH * h + (h2 - h), message: "Elle ne gagne pas $1$ € de plus par heure : calcule d'abord ce qu'elle gagne en $1$ heure." }],
+      aides: ["Calcule d'abord ce qu'elle gagne en $1$ heure.", `$${pH * h} \\div ${h} = ${pH}$ € par heure.`, `Puis multiplie par $${h2}$.`],
+      solution: `En $1$ heure : $${pH * h} \\div ${h} = ${pH}$ €. En $${h2}$ heures : $${pH} \\times ${h2} = ${pH * h2}$ €.` };
+  };
+
   /* Une « erreur connue » ne doit jamais coïncider avec la bonne réponse ; propriétés internes retirées */
-  Object.keys(GEN).filter((k) => /^(n6|o6|d6|f6)-/.test(k)).forEach((k) => {
+  Object.keys(GEN).filter((k) => /^(n6|o6|d6|f6|p6)-/.test(k)).forEach((k) => {
     const g = GEN[k];
     GEN[k] = (i) => {
       const q = g(i);

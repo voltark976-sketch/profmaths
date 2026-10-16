@@ -52,7 +52,7 @@ window.CATALOGUE = {
           id: "sixieme-proportionnalite",
           numero: 5,
           titre: "Proportionnalité",
-          statut: "bientot",
+          statut: "disponible",
           drive: ""
         },
         {
