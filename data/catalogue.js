@@ -38,7 +38,7 @@ window.CATALOGUE = {
           id: "sixieme-division",
           numero: 3,
           titre: "Division euclidienne, division décimale et durées",
-          statut: "bientot",
+          statut: "disponible",
           drive: ""
         },
         {

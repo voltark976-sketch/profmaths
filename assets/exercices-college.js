@@ -900,8 +900,278 @@
     };
   };
 
+  /* =====================================================================
+     6e, chapitre 3 : division euclidienne, division décimale et durées (préfixe d6-)
+     Programme : division euclidienne d'un entier par un entier inférieur à 100,
+     division d'un décimal par un entier non nul inférieur à 10.
+     ===================================================================== */
+  const diviseurs = (n) => { const d = []; for (let k = 1; k <= n; k++) if (n % k === 0) d.push(k); return d; };
+  // Horaire ou durée : « $14$ h $05$ » (min sur deux chiffres pour un horaire)
+  const hTex = (h, m, horaire) => `$${h}$ h${m || horaire ? ` $${horaire ? String(m).padStart(2, "0") : m}$${horaire ? "" : " min"}` : ""}`;
+  const minTex = (t, horaire) => hTex(Math.floor(t / 60), t % 60, horaire);
+
+  GEN["d6-multiples"] = function () {
+    const t = rand(0, 4);
+    if (t === 0 || t === 1) { // un multiple parmi quatre, ou un non-diviseur parmi quatre
+      const b = rand(3, 15);
+      if (t === 0) {
+        const k = rand(4, 30), bon = b * k;
+        const fausses = shuffle([bon + 1, bon - 1, bon + rand(2, b - 1), bon - rand(2, b - 1), b * 10 + 1, bon + b + 1]).filter((x) => x > 0 && x % b !== 0);
+        const c = melange(`$${ecrit(bon)}$`, fausses.map((x) => `$${ecrit(x)}$`));
+        return { enonce: `Lequel de ces nombres est un **multiple** de $${b}$ ?`, mode: "choix", choix: c.choix, attendu: c.attendu,
+          aides: [`Un multiple de $${b}$ est un nombre de la table de $${b}$ : $${b} \\times 1$, $${b} \\times 2$, $${b} \\times 3$…`, `Pour chaque nombre, cherche s'il existe un entier $k$ avec $${b} \\times k$ égal à ce nombre.`, `Tu peux aussi diviser par $${b}$ : un multiple donne un reste nul.`],
+          solution: `$${ecrit(bon)} = ${b} \\times ${k}$ : c'est un multiple de $${b}$. Les autres nombres donnent un reste non nul quand on les divise par $${b}$.` };
+      }
+      const n = pick([12, 18, 20, 24, 30, 36, 40, 42, 48, 50, 54, 56, 60, 63, 64, 72, 75, 80, 84, 90, 96, 100]);
+      const D = diviseurs(n).filter((x) => x > 1 && x < n), non = shuffle(Array.from({ length: Math.min(n - 2, 20) }, (_, i) => i + 2).filter((x) => n % x !== 0))[0];
+      if (D.length < 3 || !non) return GEN["d6-multiples"]();
+      const c = melange(`$${non}$`, shuffle(D).slice(0, 3).map((x) => `$${x}$`));
+      return { enonce: `Lequel de ces nombres n'est **pas** un diviseur de $${n}$ ?`, mode: "choix", choix: c.choix, attendu: c.attendu,
+        aides: [`$a$ est un diviseur de $${n}$ si $${n}$ est dans la table de $a$.`, `Pour chaque nombre, divise $${n}$ par ce nombre : le reste est-il nul ?`, "Pense aux tables de multiplication."],
+        solution: `$${n} = ${non} \\times ${Math.floor(n / non)} + ${n % non}$ : le reste n'est pas nul, donc $${non}$ n'est pas un diviseur de $${n}$. Les autres le sont : ${shuffle(D).slice(0, 2).map((x) => `$${n} = ${x} \\times ${n / x}$`).join(" ; ")}.` };
+    }
+    if (t === 2) { // critères de divisibilité par 2, 5 ou 10
+      const [p, regle] = pick([[2, "son chiffre des unités est $0$, $2$, $4$, $6$ ou $8$ (il est pair)"], [5, "son chiffre des unités est $0$ ou $5$"], [10, "son chiffre des unités est $0$"]]);
+      const base = rand(10, 9999) * 10, ok = base + pick(p === 2 ? [0, 2, 4, 6, 8] : p === 5 ? [0, 5] : [0]);
+      const fausses = shuffle([1, 3, 7, 9, p === 2 ? 5 : 2, p === 10 ? 5 : 1].map((u) => base + u)).filter((x) => x % p !== 0);
+      const c = melange(`$${ecrit(ok)}$`, [...new Set(fausses)].map((x) => `$${ecrit(x)}$`));
+      return { enonce: `Lequel de ces nombres est **divisible par ${p}** ?`, mode: "choix", choix: c.choix, attendu: c.attendu,
+        aides: ["Il suffit de regarder le **chiffre des unités**.", `Un nombre est divisible par $${p}$ si ${regle}.`, "Pas besoin de poser de division."],
+        solution: `$${ecrit(ok)}$ est divisible par $${p}$ : ${regle}.` };
+    }
+    if (t === 3) { // le plus petit multiple au-dessus d'un seuil
+      const b = rand(6, 25), s = rand(50, 400), rep = (Math.floor(s / b) + 1) * b;
+      return { enonce: `Quel est le plus petit multiple de $${b}$ strictement supérieur à $${s}$ ?`, mode: "nombre", prefixe: "Le multiple est", attendu: rep,
+        erreurs: [{ valeur: rep - b, message: `Ce multiple est plus petit que $${s}$ (ou égal) : prends le suivant.` }],
+        aides: [`Divise $${s}$ par $${b}$ : quel est le quotient ?`, `$${b} \\times ${Math.floor(s / b)} = ${b * Math.floor(s / b)}$.`, `Le multiple suivant est $${b} \\times ${Math.floor(s / b) + 1}$.`],
+        solution: `$${s} = ${b} \\times ${Math.floor(s / b)} + ${s % b}$, donc le multiple cherché est $${b} \\times ${Math.floor(s / b) + 1} = ${rep}$.` };
+    }
+    // vocabulaire : 56 = 8 × 7
+    const a = rand(3, 12), b = rand(3, 12), n = a * b;
+    const bon = `$${n}$ est un multiple de $${a}$`;
+    const c = melange(bon, [`$${a}$ est un multiple de $${n}$`, `$${n}$ est un diviseur de $${a}$`, `$${a}$ est divisible par $${n}$`]);
+    return { enonce: `On sait que $${n} = ${a} \\times ${b}$. Quelle phrase est juste ?`, mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: [`Dans $${n} = ${a} \\times ${b}$, le grand nombre $${n}$ est dans la table de $${a}$ et de $${b}$.`, `On dit : $${n}$ est un **multiple** de $${a}$ ; $${a}$ est un **diviseur** de $${n}$ ; $${n}$ est **divisible** par $${a}$.`, "Un diviseur est plus petit que (ou égal à) son multiple."],
+      solution: `$${n} = ${a} \\times ${b}$ : $${n}$ est un multiple de $${a}$ et de $${b}$, et $${a}$ et $${b}$ sont des diviseurs de $${n}$. Donc : ${bon}.` };
+  };
+
+  GEN["d6-euclide"] = function () {
+    const b = Math.random() < 0.5 ? rand(2, 9) : rand(11, 99), q = rand(b < 10 ? 12 : 2, b < 10 ? 999 : 99), r = rand(0, b - 1), a = b * q + r;
+    const t = rand(0, 3);
+    if (t === 3) {
+      const bon = `$${ecrit(a)} = ${b} \\times ${q} + ${r}$`;
+      const fausses = [q > 1 ? `$${ecrit(a)} = ${b} \\times ${q - 1} + ${r + b}$` : null, `$${ecrit(a)} = ${b} \\times ${q + 1} - ${b - r}$`, `$${b} = ${ecrit(a)} \\times ${q} + ${r}$`, `$${ecrit(a)} = ${r} \\times ${q} + ${b}$`].filter(Boolean);
+      const c = melange(bon, fausses);
+      return { enonce: `Quelle égalité traduit la division euclidienne de $${ecrit(a)}$ par $${b}$ ?`, mode: "choix", choix: c.choix, attendu: c.attendu,
+        aides: ["L'égalité de la division euclidienne : dividende $=$ diviseur $\\times$ quotient $+$ reste.", "Le reste est toujours **plus petit que le diviseur**.", "Il n'y a pas de soustraction dans l'égalité euclidienne."],
+        solution: `${bon}, avec un reste $${r} < ${b}$. Dans $${ecrit(a)} = ${b} \\times ${q > 1 ? q - 1 : q} + ${q > 1 ? r + b : r}$, le reste serait trop grand.` };
+    }
+    const quoi = t === 0 ? "quotient" : "reste";
+    return {
+      enonce: t === 2 ? `Complète l'égalité de la division euclidienne : $${ecrit(a)} = ${b} \\times ${q} + \\ldots$` : `Effectue la division euclidienne de $${ecrit(a)}$ par $${b}$. Quel est le **${quoi}** ?`,
+      mode: "nombre", prefixe: t === 2 ? "Le reste est" : `Le ${quoi} est`, attendu: t === 0 ? q : r,
+      erreurs: t === 0 ? [{ valeur: q + 1, message: `$${b} \\times ${q + 1} = ${ecrit(b * (q + 1))}$ dépasse $${ecrit(a)}$.` }, { valeur: q - 1, message: "Le reste serait plus grand que le diviseur : on peut encore mettre une fois le diviseur." }] : [{ valeur: r + b, message: "Le reste doit être plus petit que le diviseur." }],
+      aides: [`Cherche combien de fois $${b}$ « va » dans $${ecrit(a)}$ : c'est le quotient.`, `Pose la division, ou encadre : $${b} \\times ${q} = ${ecrit(b * q)}$ et $${b} \\times ${q + 1} = ${ecrit(b * (q + 1))}$.`, "Le reste, c'est ce qui manque pour arriver au dividende ; il est plus petit que le diviseur."],
+      solution: `$${ecrit(a)} = ${b} \\times ${q} + ${r}$, avec $${r} < ${b}$. Le quotient est $${q}$ et le reste est $${r}$.`
+    };
+  };
+
+  GEN["d6-euclide-pb"] = function () {
+    const t = rand(0, 4);
+    if (t === 0) { // nombre de bus (on arrondit au-dessus)
+      const p = pick([40, 45, 50, 55, 59, 63]), n = rand(2, 7) * p + rand(1, p - 1), q = Math.floor(n / p);
+      return { enonce: `Pour une sortie, $${ecrit(n)}$ élèves du collège prennent des cars de $${p}$ places. Combien de cars faut-il réserver ?`, mode: "nombre", prefixe: "Il faut", suffixe: "cars", attendu: q + 1,
+        erreurs: [{ valeur: q, message: `Avec $${q}$ cars, il reste $${n % p}$ élèves sans place.` }],
+        aides: [`Combien de fois $${p}$ dans $${ecrit(n)}$ ? Fais la division euclidienne.`, `$${ecrit(n)} = ${p} \\times ${q} + ${n % p}$.`, "Que faire des élèves qui restent ?"],
+        solution: `$${ecrit(n)} = ${p} \\times ${q} + ${n % p}$ : $${q}$ cars pleins, et il reste $${n % p}$ élèves. Il faut donc $${q + 1}$ cars.` };
+    }
+    if (t === 1) { // boîtes pleines
+      const [obj, p] = pick([["œufs", 6], ["œufs", 12], ["mangues", 8], ["bouteilles", 6], ["yaourts", 4], ["crayons", 10], ["ananas", 9]]), n = rand(30, 400), q = Math.floor(n / p);
+      const rest = Math.random() < 0.5;
+      return { enonce: `On range $${n}$ ${obj} dans des cartons de $${p}$. ${rest ? `Combien de ${obj} reste-t-il hors des cartons pleins ?` : "Combien de cartons pleins obtient-on ?"}`, mode: "nombre", prefixe: rest ? "Il en reste" : "Cartons pleins :", attendu: rest ? n % p : q,
+        erreurs: rest ? [{ valeur: q, message: "Ça, c'est le nombre de cartons pleins (le quotient). On demande le reste." }] : [{ valeur: n % p, message: "Ça, c'est le reste. On demande le quotient." }, { valeur: q + 1, message: "Le dernier carton n'est pas plein." }],
+        aides: [`Fais la division euclidienne de $${n}$ par $${p}$.`, "Le quotient donne le nombre de cartons pleins.", "Le reste donne ce qui ne remplit pas un carton."],
+        solution: `$${n} = ${p} \\times ${q} + ${n % p}$ : $${q}$ cartons pleins, et il reste $${n % p}$ ${obj}.` };
+    }
+    if (t === 2) { // partage équitable (valeur d'une part)
+      const k = rand(3, 9), part = rand(8, 120), r = rand(0, k - 1), n = k * part + r;
+      return { enonce: `Un pêcheur de M'tsapéré partage $${n}$ poissons entre ses $${k}$ enfants, chacun autant, le plus possible. Combien chaque enfant reçoit-il de poissons ?`, mode: "nombre", prefixe: "Chacun reçoit", attendu: part,
+        erreurs: r ? [{ valeur: r, message: "Ça, c'est le reste : les poissons qui ne peuvent pas être partagés." }] : [],
+        aides: ["On partage en parts égales : c'est une division.", `Divise $${n}$ par $${k}$ : le quotient donne la part de chacun.`, `$${k} \\times ${part} = ${k * part}$.`],
+        solution: `$${n} = ${k} \\times ${part} + ${r}$ : chaque enfant reçoit $${part}$ poissons${r ? ` et il en reste $${r}$` : ""}.` };
+    }
+    if (t === 3) { // jours et semaines
+      const n = rand(15, 400), q = Math.floor(n / 7), sem = Math.random() < 0.5;
+      return { enonce: `Combien de semaines ${sem ? "complètes" : "complètes et de jours"} y a-t-il dans $${n}$ jours ? ${sem ? "Donne le nombre de semaines complètes." : "Donne le nombre de jours qui restent."}`, mode: "nombre", prefixe: sem ? "Semaines :" : "Jours restants :", attendu: sem ? q : n % 7,
+        erreurs: sem ? [{ valeur: n % 7, message: "Ça, ce sont les jours qui restent." }] : [{ valeur: q, message: "Ça, c'est le nombre de semaines." }],
+        aides: ["Une semaine compte $7$ jours.", `Fais la division euclidienne de $${n}$ par $7$.`, "Quotient : semaines complètes ; reste : jours en plus."],
+        solution: `$${n} = 7 \\times ${q} + ${n % 7}$ : $${q}$ semaines complètes et $${n % 7}$ jour${n % 7 > 1 ? "s" : ""}.` };
+    }
+    // ficelle ou ruban : combien de morceaux (groupement)
+    const L = rand(150, 980), p = rand(12, 45), q = Math.floor(L / p);
+    return { enonce: `On découpe un ruban de $${L}$ cm en morceaux de $${p}$ cm. Combien de morceaux de $${p}$ cm obtient-on ?`, mode: "nombre", prefixe: "Morceaux :", attendu: q,
+      erreurs: [{ valeur: q + 1, message: `Le dernier morceau ne mesure que $${L % p}$ cm.` }, { valeur: L % p, message: "Ça, c'est la longueur qui reste." }],
+      aides: [`On cherche combien de fois $${p}$ cm dans $${L}$ cm.`, `Fais la division euclidienne de $${L}$ par $${p}$.`, `$${p} \\times ${q} = ${p * q}$.`],
+      solution: `$${L} = ${p} \\times ${q} + ${L % p}$ : on obtient $${q}$ morceaux, et il reste $${L % p}$ cm.` };
+  };
+
+  GEN["d6-division"] = function () {
+    const b = rand(2, 9);
+    // quotient décimal exact : q = k / 10^d ; pour 3, 6, 7, 9 le dividende est choisi multiple
+    const d = rand(0, 2), k = rand(11, 9999);
+    let q = Dc(k, d);
+    if ([2, 4, 5, 8].includes(b) && Math.random() < 0.6) { const e = b === 2 || b === 5 ? 1 : b === 4 ? 2 : 3; q = Dc(rand(101, 9999), Math.min(3, d + e)); }
+    const a = mulD(q, Dc(b));
+    if (a.m % 10 === 0 && a.d > 0) return GEN["d6-division"]();
+    const R = Dc(a.m, a.d); // a = q × b
+    const nq = q;
+    if (q.m % 10 === 0 && q.d > 0) return GEN["d6-division"]();
+    return {
+      enonce: `Calcule : $${tD(a)} \\div ${b}$.`,
+      mode: "nombre", prefixe: "Résultat :", attendu: vD(nq),
+      erreurs: [{ valeur: vD(nq) * 10, message: "La virgule est mal placée : on l'écrit au quotient au moment où l'on « franchit » la virgule du dividende." }, { valeur: Math.floor(vD(nq)), message: "La division ne s'arrête pas au reste : ajoute des zéros après la virgule et continue." }],
+      aides: ["Pose la division comme une division euclidienne.", "Quand tu abaisses le premier chiffre après la virgule, écris une **virgule au quotient**.", "Si le reste n'est pas nul, ajoute un $0$ au dividende et continue."],
+      solution: `$${tD(a)} \\div ${b} = ${tD(nq)}$. Vérification : $${b} \\times ${tD(nq)} = ${tD(R)}$.`
+    };
+  };
+
+  GEN["d6-arrondi-div"] = function () {
+    const b = pick([3, 6, 7, 9, 3, 6, 7]), a = rand(10, 999);
+    if (a % b === 0) return GEN["d6-arrondi-div"]();
+    const [p, nom] = pick([[0, "à l'unité"], [1, "au dixième"], [2, "au centième"]]);
+    const v = a / b, arr = Math.round(v * P10(p) + 1e-9) / P10(p), tronc = Math.floor(v * P10(p) + 1e-9) / P10(p);
+    const ecran = (Math.floor(v * 10000) / 10000).toFixed(4).replace(".", "{,}");
+    const ctx = pick(["", "", `On partage $${a}$ € entre $${b}$ personnes. `, `Un ruban de $${a}$ cm est coupé en $${b}$ morceaux égaux. `]);
+    return {
+      enonce: `${ctx}Donne la valeur arrondie ${nom} de $${a} \\div ${b}$.`,
+      mode: "nombre", prefixe: "Arrondi :", attendu: arr,
+      erreurs: arr !== tronc ? [{ valeur: tronc, message: "Tu as coupé sans arrondir : regarde le chiffre suivant." }] : [],
+      aides: [`Pose la division et calcule un chiffre de plus que la précision demandée.`, `On trouve $${a} \\div ${b} = ${ecran}\\ldots$ : la division ne s'arrête jamais.`, "De $0$ à $4$ on garde, de $5$ à $9$ on monte."],
+      solution: `$${a} \\div ${b} = ${ecran}\\ldots$ Ce quotient n'est pas un nombre décimal. Sa valeur arrondie ${nom} est $${nb(arr)}$.`
+    };
+  };
+
+  GEN["d6-division-pb"] = function () {
+    const t = rand(0, 3);
+    if (t === 0) { const k = rand(2, 9), c = rand(80, 990), tot = k * c; // prix d'un objet, en centimes
+      const [obj, pl] = pick([["cahier", "cahiers"], ["stylo", "stylos"], ["ananas", "ananas"], ["pain au chocolat", "pains au chocolat"], ["savon", "savons"]]);
+      return { enonce: `$${k}$ ${pl} coûtent $${eurC(tot)}$ €. Combien coûte un ${obj} ?`, mode: "nombre", prefixe: "Prix :", suffixe: "€", attendu: c / 100,
+        erreurs: [{ valeur: (tot * k) / 100, message: `Ça, c'est le prix de $${k} \\times ${k}$ objets : on cherche le prix d'**un** ${obj}, il faut diviser.` }],
+        aides: ["Le prix d'un objet est plus petit que le prix de tous : c'est une division.", `Calcule $${eurC(tot)} \\div ${k}$.`, `Vérifie : $${k} \\times$ (ta réponse) doit redonner $${eurC(tot)}$.`],
+        solution: `$${eurC(tot)} \\div ${k} = ${eurC(c)}$ : un ${obj} coûte $${eurC(c)}$ €. Vérification : $${k} \\times ${eurC(c)} = ${eurC(tot)}$.` }; }
+    if (t === 1) { const k = rand(2, 8), part = Dc(rand(105, 990), 2), L = mulD(part, Dc(k));
+      if (part.m % 10 === 0) return GEN["d6-division-pb"]();
+      return { enonce: `Une planche de $${tD(L)}$ m est coupée en $${k}$ morceaux de même longueur. Quelle est la longueur d'un morceau ?`, mode: "nombre", prefixe: "Longueur :", suffixe: "m", attendu: vD(part),
+        erreurs: [{ valeur: vD(part) * 10, message: "Vérifie la place de la virgule avec un ordre de grandeur." }],
+        aides: ["On partage en parts égales : c'est une division.", `Calcule $${tD(L)} \\div ${k}$.`, "Écris la virgule au quotient quand tu franchis la virgule du dividende."],
+        solution: `$${tD(L)} \\div ${k} = ${tD(part)}$ : chaque morceau mesure $${tD(part)}$ m.` }; }
+    if (t === 2) { const k = rand(3, 9), moy = Dc(rand(50, 200), 1), tot = mulD(moy, Dc(k));
+      if (moy.m % 10 === 0) return GEN["d6-division-pb"]();
+      return { enonce: `En $${k}$ jours, il est tombé $${tD(tot)}$ mm de pluie à Mamoudzou, autant chaque jour. Combien de millimètres sont tombés par jour ?`, mode: "nombre", prefixe: "Par jour :", suffixe: "mm", attendu: vD(moy),
+        erreurs: [{ valeur: vD(moy) * 10, message: "Vérifie la place de la virgule avec un ordre de grandeur." }],
+        aides: ["On répartit la même quantité chaque jour : c'est une division.", `Calcule $${tD(tot)} \\div ${k}$.`, "Vérifie en multipliant ton résultat par le nombre de jours."],
+        solution: `$${tD(tot)} \\div ${k} = ${tD(moy)}$ : il est tombé $${tD(moy)}$ mm par jour.` }; }
+    // facture partagée entre amis
+    const k = rand(2, 9), c = rand(250, 2500), tot = k * c;
+    return { enonce: `$${k}$ amis partagent l'addition d'un restaurant de $${eurC(tot)}$ €, chacun la même somme. Combien paie chacun ?`, mode: "nombre", prefixe: "Chacun paie", suffixe: "€", attendu: c / 100,
+      erreurs: [{ valeur: (tot - c) / 100, message: "On partage en parts égales : c'est une division, pas une soustraction." }],
+      aides: ["Partager en parts égales, c'est diviser.", `Calcule $${eurC(tot)} \\div ${k}$.`, `Vérifie : $${k} \\times$ (ta réponse) $= ${eurC(tot)}$.`],
+      solution: `$${eurC(tot)} \\div ${k} = ${eurC(c)}$ : chacun paie $${eurC(c)}$ €.` };
+  };
+  const eurC = (c) => (c % 100 ? ecrit(c, 2) : ecrit(c / 100)); // prix en centimes, écrit avec deux décimales
+
+  GEN["d6-conv-duree"] = function () {
+    const t = rand(0, 6);
+    if (t === 0) { const h = rand(1, 12), m = rand(1, 59);
+      return { enonce: `Convertis ${hTex(h, m)} en minutes.`, mode: "nombre", prefixe: "En minutes :", suffixe: "min", attendu: h * 60 + m,
+        erreurs: [{ valeur: h * 100 + m, message: "Une heure, c'est $60$ minutes, pas $100$." }, { valeur: h * 60, message: `N'oublie pas les $${m}$ minutes.` }],
+        aides: ["$1$ h $= 60$ min.", `$${h}$ h $= ${h} \\times 60$ min.`, `Ajoute les $${m}$ minutes.`],
+        solution: `$${h} \\times 60 + ${m} = ${h * 60 + m}$ : ${hTex(h, m)} $= ${h * 60 + m}$ min.` }; }
+    if (t === 1) { const m = rand(1, 40), s = rand(0, 59);
+      return { enonce: `Convertis $${m}$ min${s ? ` $${s}$ s` : ""} en secondes.`, mode: "nombre", prefixe: "En secondes :", suffixe: "s", attendu: m * 60 + s,
+        erreurs: [{ valeur: m * 100 + s, message: "Une minute, c'est $60$ secondes, pas $100$." }],
+        aides: ["$1$ min $= 60$ s.", `$${m}$ min $= ${m} \\times 60$ s.`, s ? `Ajoute les $${s}$ secondes.` : "Calcule le produit."],
+        solution: `$${m} \\times 60${s ? ` + ${s}` : ""} = ${ecrit(m * 60 + s)}$ s.` }; }
+    if (t === 2) { // minutes vers h min (choix)
+      const tot = rand(61, 600); if (tot % 60 === 0) return GEN["d6-conv-duree"]();
+      const h = Math.floor(tot / 60), m = tot % 60;
+      const fausses = [hTex(Math.floor(tot / 100), tot % 100), hTex(h - 1 > 0 ? h - 1 : h + 1, m), hTex(h, (m + 10) % 60 || 5), hTex(h + 1, m)].filter((x) => x !== hTex(h, m));
+      const c = melange(hTex(h, m), fausses);
+      return { enonce: `Convertis $${tot}$ min en heures et minutes.`, mode: "choix", choix: c.choix, attendu: c.attendu,
+        aides: ["Combien de fois $60$ dans ce nombre de minutes ?", `Fais la division euclidienne de $${tot}$ par $60$.`, "Le quotient donne les heures, le reste les minutes."],
+        solution: `$${tot} = 60 \\times ${h} + ${m}$ : $${tot}$ min $=$ ${hTex(h, m)}.` }; }
+    if (t === 3) { // heures décimales vers minutes
+      const [f, mm] = pick([[Dc(5, 1), 30], [Dc(25, 2), 15], [Dc(75, 2), 45], [Dc(1, 1), 6], [Dc(2, 1), 12], [Dc(3, 1), 18], [Dc(4, 1), 24], [Dc(6, 1), 36], [Dc(8, 1), 48]]);
+      const h = rand(0, 5), x = addD(Dc(h), f);
+      return { enonce: `Convertis $${tD(x)}$ h en minutes.`, mode: "nombre", prefixe: "En minutes :", suffixe: "min", attendu: h * 60 + mm,
+        erreurs: [{ valeur: h * 60 + Math.round(vD(f) * 100), message: `$${tD(f)}$ h ne vaut pas $${Math.round(vD(f) * 100)}$ min : calcule $${tD(f)} \\times 60$.` }],
+        aides: ["$1$ h $= 60$ min, donc on multiplie par $60$.", `$${tD(f)}$ h $= ${tD(f)} \\times 60$ min.`, `Par exemple, $0{,}5$ h est une demi-heure : $30$ min.`],
+        solution: `$${tD(x)} \\times 60 = ${h * 60 + mm}$ : $${tD(x)}$ h $= ${h * 60 + mm}$ min${h ? `, soit ${hTex(h, mm)}` : ""}.` }; }
+    if (t === 4) { // h min vers heures décimales
+      const [mm, f] = pick([[30, Dc(5, 1)], [15, Dc(25, 2)], [45, Dc(75, 2)], [6, Dc(1, 1)], [12, Dc(2, 1)], [18, Dc(3, 1)], [24, Dc(4, 1)], [36, Dc(6, 1)], [48, Dc(8, 1)], [54, Dc(9, 1)]]);
+      const h = rand(1, 9), x = addD(Dc(h), f);
+      return { enonce: `Écris ${hTex(h, mm)} en heures, sous forme décimale.`, mode: "nombre", prefixe: "En heures :", suffixe: "h", attendu: vD(x),
+        erreurs: [{ valeur: h + mm / 100, message: `$${mm}$ min ne font pas $${tD(Dc(mm, 2))}$ h : une heure a $60$ minutes, pas $100$.` }],
+        aides: ["$1$ min $= \\dfrac{1}{60}$ h. Quelle fraction d'heure font ces minutes ?", "$30$ min $= 0{,}5$ h ; $15$ min $= 0{,}25$ h ; $6$ min $= 0{,}1$ h.", `Calcule $${mm} \\div 60$.`],
+        solution: `$${mm} \\div 60 = ${tD(f)}$, donc ${hTex(h, mm)} $= ${tD(x)}$ h.` }; }
+    if (t === 5) { // grandes unités
+      const [enonce, rep, sol] = pick([
+        (() => { const n = rand(2, 9); return [`Combien d'heures y a-t-il dans $${n}$ jours ?`, n * 24, `$1$ jour $= 24$ h, donc $${n} \\times 24 = ${n * 24}$ h.`]; })(),
+        (() => { const n = rand(2, 20); return [`Combien d'années y a-t-il dans $${n}$ siècles ?`, n * 100, `$1$ siècle $= 100$ ans, donc $${n * 100}$ ans.`]; })(),
+        (() => { const n = rand(2, 5); return [`Combien d'années y a-t-il dans $${n}$ millénaires ?`, n * 1000, `$1$ millénaire $= 1\\,000$ ans, donc $${ecrit(n * 1000)}$ ans.`]; })(),
+        (() => { const n = rand(2, 9); return [`Combien de jours y a-t-il dans $${n}$ semaines ?`, n * 7, `$1$ semaine $= 7$ jours, donc $${n * 7}$ jours.`]; })(),
+        (() => { const an = pick([2024, 2028, 2032, 2020]); return [`Combien de jours compte l'année ${"$" + an + "$"}, qui est bissextile ?`, 366, "Une année bissextile compte $366$ jours (le $29$ février en plus)."]; })(),
+        (() => { const n = rand(2, 12); return [`Combien de minutes font $${n}$ quarts d'heure ?`, n * 15, `Un quart d'heure, c'est $15$ min : $${n} \\times 15 = ${n * 15}$ min.`]; })(),
+        (() => { const n = rand(2, 9); return [`Combien de minutes font $${n}$ demi-heures ?`, n * 30, `Une demi-heure, c'est $30$ min : $${n} \\times 30 = ${n * 30}$ min.`]; })()
+      ]);
+      return { enonce, mode: "nombre", prefixe: "Réponse :", attendu: rep, aides: ["$1$ jour $= 24$ h ; $1$ semaine $= 7$ jours ; $1$ année $= 365$ ou $366$ jours.", "$1$ siècle $= 100$ ans ; $1$ millénaire $= 1\\,000$ ans.", "Un quart d'heure $= 15$ min ; une demi-heure $= 30$ min ; trois quarts d'heure $= 45$ min."], solution: sol };
+    }
+    // secondes vers h min s : on demande les minutes
+    const s = rand(3700, 30000), h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), r = s % 60;
+    return { enonce: `On écrit $${ecrit(s)}$ s sous la forme … h … min … s. Combien de **minutes** ?`, mode: "nombre", prefixe: "Minutes :", suffixe: "min", attendu: m,
+      erreurs: [{ valeur: Math.floor(s / 60), message: "Ça, c'est le nombre total de minutes : il faut encore en retirer les heures entières." }],
+      aides: ["Divise d'abord par $60$ : tu obtiens des minutes et des secondes.", `$${ecrit(s)} = 60 \\times ${Math.floor(s / 60)} + ${r}$.`, `Puis divise $${Math.floor(s / 60)}$ min par $60$ pour trouver les heures.`],
+      solution: `$${ecrit(s)} = 60 \\times ${Math.floor(s / 60)} + ${r}$, puis $${Math.floor(s / 60)} = 60 \\times ${h} + ${m}$. Donc $${ecrit(s)}$ s $= ${h}$ h $${m}$ min $${r}$ s.` };
+  };
+
+  GEN["d6-horaires"] = function () {
+    const t = rand(0, 3);
+    // [début de phrase, pronom, durée maximale en minutes]
+    const TRAJETS = [["Le taxi-brousse part de Mamoudzou", "il", 80], ["La barge quitte Mamoudzou", "elle", 30], ["Le car part de Sada", "il", 95], ["Le bus scolaire part de Combani", "il", 55], ["Le film commence", "il", 190], ["Le match de football commence", "il", 110]];
+    const longs = TRAJETS.filter((x) => x[2] >= 65);
+    const [debut, pron, dmax] = t === 1 ? pick(longs) : pick(TRAJETS), evt = /film|match/.test(debut);
+    if (t === 0 || t === 1) { // heure d'arrivée
+      const dep = rand(6 * 60, 20 * 60), dur = t === 1 ? rand(65, dmax) : rand(10, Math.min(59, dmax)), arr = dep + dur;
+      const fausses = [arr - 60, arr + 60, arr + 40, arr - 40, arr + 10, arr - 10];
+      const naif = Math.floor(dep / 60) + Math.floor(dur / 60), naifM = (dep % 60) + (dur % 60); // « 14 h 85 »
+      const opts = [minTex(arr, true), ...(naifM >= 60 ? [`$${naif}$ h $${naifM}$`] : []), ...fausses.filter((x) => x !== arr && x > 0).map((x) => minTex(x, true))];
+      const c = melange(opts[0], [...new Set(opts.slice(1))]);
+      return { enonce: `${debut} à ${minTex(dep, true)}. ${evt ? "Il" : "Le trajet"} dure ${dur >= 60 ? minTex(dur) : `$${dur}$ min`}. À quelle heure ${evt ? "se termine-t-il" : `arrive-t-${pron}`} ?`, mode: "choix", choix: c.choix, attendu: c.attendu,
+        aides: ["Ajoute d'abord les heures, puis les minutes.", "Si tu dépasses $60$ minutes, transforme $60$ min en $1$ heure.", `Tu peux aussi compléter jusqu'à l'heure pile : de ${minTex(dep, true)} à $${Math.floor(dep / 60) + 1}$ h, il y a $${60 - (dep % 60)}$ min.`],
+        solution: `${minTex(dep, true)} $+$ ${dur >= 60 ? minTex(dur) : `$${dur}$ min`} $=$ ${minTex(arr, true)}${naifM >= 60 ? ` (et pas $${naif}$ h $${naifM}$ : $${naifM}$ min $= 1$ h $${naifM - 60}$ min)` : ""}.` };
+    }
+    if (t === 2) { // durée entre deux horaires, en minutes
+      const dep = rand(6 * 60, 20 * 60), dur = rand(12, dmax), arr = dep + dur;
+      const naif = (Math.floor(arr / 60) - Math.floor(dep / 60)) * 100 + (arr % 60) - (dep % 60);
+      return { enonce: `${debut} à ${minTex(dep, true)} et ${evt ? "se termine" : "arrive"} à ${minTex(arr, true)}. Combien de minutes ${evt ? "a-t-il duré" : "a duré le trajet"} ?`, mode: "nombre", prefixe: "Durée :", suffixe: "min", attendu: dur,
+        erreurs: naif !== dur ? [{ valeur: naif, message: "On ne soustrait pas les horaires comme des nombres décimaux : une heure, c'est $60$ minutes." }] : [],
+        aides: [`Va de ${minTex(dep, true)} jusqu'à l'heure pile suivante : combien de minutes ?`, "Compte ensuite les heures entières, puis les minutes jusqu'à l'arrivée.", "Additionne toutes les étapes, en minutes."],
+        solution: arr < Math.floor(dep / 60) * 60 + 60
+          ? `Même heure : $${arr % 60} - ${dep % 60} = ${dur}$ min.`
+          : `De ${minTex(dep, true)} à ${minTex(Math.floor(dep / 60) * 60 + 60, true)} : $${60 - (dep % 60)}$ min, puis jusqu'à ${minTex(arr, true)} : $${arr - (Math.floor(dep / 60) * 60 + 60)}$ min. En tout : $${60 - (dep % 60)} + ${arr - (Math.floor(dep / 60) * 60 + 60)} = ${dur}$ min${dur >= 60 ? `, soit ${minTex(dur)}` : ""}.` };
+    }
+    // somme de deux durées
+    const a = rand(65, 300), b = rand(65, 300);
+    if ((a % 60) + (b % 60) < 60) return GEN["d6-horaires"]();
+    const s = a + b, naifH = Math.floor(a / 60) + Math.floor(b / 60), naifM = (a % 60) + (b % 60);
+    const c = melange(minTex(s), [`$${naifH}$ h $${naifM}$ min`, minTex(s - 60), minTex(s + 40), minTex(s - 40)]);
+    return { enonce: `Calcule ${minTex(a)} $+$ ${minTex(b)}.`, mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: ["Additionne les heures entre elles et les minutes entre elles.", `Les minutes font $${naifM}$ min : c'est plus que $60$.`, `$${naifM}$ min $= 1$ h $${naifM - 60}$ min.`],
+      solution: `$${naifH}$ h $${naifM}$ min $= ${naifH}$ h $+ 1$ h $${naifM - 60}$ min $=$ ${minTex(s)}.` };
+  };
+
   /* Une « erreur connue » ne doit jamais coïncider avec la bonne réponse ; propriétés internes retirées */
-  Object.keys(GEN).filter((k) => /^(n6|o6)-/.test(k)).forEach((k) => {
+  Object.keys(GEN).filter((k) => /^(n6|o6|d6)-/.test(k)).forEach((k) => {
     const g = GEN[k];
     GEN[k] = (i) => {
       const q = g(i);
