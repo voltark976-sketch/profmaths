@@ -30,7 +30,7 @@ window.CATALOGUE = {
           id: "sixieme-operations",
           numero: 2,
           titre: "Addition, soustraction et multiplication des décimaux",
-          statut: "bientot",
+          statut: "disponible",
           drive: ""
         },
         {

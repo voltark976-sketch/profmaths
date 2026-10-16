@@ -577,8 +577,331 @@
     };
   };
 
+  /* =====================================================================
+     6e, chapitre 2 : addition, soustraction et multiplication des décimaux (préfixe o6-)
+     Les décimaux sont gardés sous la forme { m, d } (m entier, valeur m / 10^d) : aucun calcul approché.
+     ===================================================================== */
+  const Dc = (m, d) => ({ m, d: d || 0 });
+  const vD = (x) => x.m / P10(x.d);
+  const tD = (x) => ecritNet(x.m, x.d);
+  const addD = (a, b) => { const d = Math.max(a.d, b.d); return Dc(a.m * P10(d - a.d) + b.m * P10(d - b.d), d); };
+  const subD = (a, b) => { const d = Math.max(a.d, b.d); return Dc(a.m * P10(d - a.d) - b.m * P10(d - b.d), d); };
+  const mulD = (a, b) => Dc(a.m * b.m, a.d + b.d);
+  // Un décimal « propre » : d chiffres après la virgule, le dernier non nul
+  function decimal(maxEnt, dmax, dmin) {
+    const d = rand(dmin || 0, dmax);
+    let m; do { m = rand(d ? 1 : 1, (maxEnt + 1) * P10(d) - 1); } while (d && m % 10 === 0);
+    return Dc(m, d);
+  }
+  // Mauvais alignement : on écrit les nombres l'un sous l'autre en calant les derniers chiffres
+  const malAligne = (a, b, signe) => { const d = Math.max(a.d, b.d); return (a.m + signe * b.m) / P10(d); };
+
+  // Figures : quadrillage d'une ou deux unités, partagées en 10 × 10, avec un rectangle colorié de L dixièmes sur l dixièmes
+  function quadrillage(L, l) {
+    const u = L > 10 ? 2 : 1, c = 13, W = u * 10 * c + 20, H = 10 * c + 20, x0 = 10, y0 = 10;
+    let s = `<svg class="graph quadrillage" viewBox="0 0 ${W} ${H}" role="img" aria-label="Carré unité partagé en 100 petits carrés ; rectangle colorié de ${L} dixièmes sur ${l} dixièmes">`;
+    s += `<rect class="g-aire g-colorie" x="${x0}" y="${y0 + (10 - l) * c}" width="${L * c}" height="${l * c}"/>`;
+    s += `<g class="g-grid">`;
+    for (let i = 0; i <= u * 10; i++) s += `<line x1="${x0 + i * c}" y1="${y0}" x2="${x0 + i * c}" y2="${y0 + 10 * c}"/>`;
+    for (let j = 0; j <= 10; j++) s += `<line x1="${x0}" y1="${y0 + j * c}" x2="${x0 + u * 10 * c}" y2="${y0 + j * c}"/>`;
+    s += `</g>`;
+    for (let k = 0; k < u; k++) s += `<rect class="g-unite" x="${x0 + k * 10 * c}" y="${y0}" width="${10 * c}" height="${10 * c}"/>`;
+    return s + `</svg>`;
+  }
+  FIGURES["o6-quadrillage"] = () => quadrillage(3, 4);
+
+  GEN["o6-vocab"] = function () {
+    const op = rand(0, 2), a = decimal(60, 2), b = op === 2 ? decimal(9, 1) : decimal(60, 2);
+    let A = a, B = b; if (op === 1 && vD(A) < vD(B)) [A, B] = [B, A];
+    if (op === 1 && vD(A) === vD(B)) A = addD(A, Dc(1, 0));
+    const R = op === 0 ? addD(A, B) : op === 1 ? subD(A, B) : mulD(A, B);
+    const sym = ["+", "-", "\\times"][op], NOM = ["la somme", "la différence", "le produit"][op], OPER = ["les termes", "les termes", "les facteurs"][op];
+    const t = rand(0, 3);
+    const egalite = `$${tD(A)} ${sym} ${tD(B)} = ${tD(R)}$`;
+    const aides = ["Addition : on ajoute des **termes**, le résultat est une **somme**.", "Soustraction : le résultat est une **différence**. Multiplication : on multiplie des **facteurs**, le résultat est un **produit**.", "« Le produit de $5$ par $7$ », c'est $5 \\times 7$ ; « la différence de $9$ et de $4$ », c'est $9 - 4$."];
+    const maj = (x) => x[0].toUpperCase() + x.slice(1);
+    if (t === 0) {
+      const c = melange(maj(NOM), ["La somme", "La différence", "Le produit", "Un facteur", "Un terme"].filter((x) => x !== maj(NOM)).slice(0, 4).sort(() => Math.random() - 0.5));
+      return { enonce: `Dans l'égalité ${egalite}, comment s'appelle le nombre $${tD(R)}$ ?`, mode: "choix", choix: c.choix, attendu: c.attendu, aides, solution: `C'est le résultat d'une ${["addition", "soustraction", "multiplication"][op]} : $${tD(R)}$ est **${NOM}** de $${tD(A)}$ et de $${tD(B)}$.` };
+    }
+    if (t === 1) {
+      const c = melange(maj(OPER), ["Les termes", "Les facteurs", "Les produits", "Les sommes", "Les différences"].filter((x) => x !== maj(OPER)));
+      return { enonce: `Dans l'égalité ${egalite}, comment s'appellent les nombres $${tD(A)}$ et $${tD(B)}$ ?`, mode: "choix", choix: c.choix, attendu: c.attendu, aides, solution: `Dans une ${["addition", "soustraction", "multiplication"][op]}, les nombres qu'on ${["ajoute", "soustrait", "multiplie"][op]} s'appellent **${OPER}**.` };
+    }
+    if (t === 2) {
+      const c = melange(maj(NOM), ["La somme", "La différence", "Le produit"].filter((x) => x !== maj(NOM)).concat(["Le facteur"]));
+      return { enonce: `Complète : « … de $${tD(A)}$ ${op === 2 ? "par" : "et de"} $${tD(B)}$ vaut $${tD(R)}$. »`, mode: "choix", choix: c.choix, attendu: c.attendu, aides, solution: `$${tD(A)} ${sym} ${tD(B)} = ${tD(R)}$ : c'est **${NOM}** de $${tD(A)}$ ${op === 2 ? "par" : "et de"} $${tD(B)}$.` };
+    }
+    return {
+      enonce: `Calcule ${NOM} de $${tD(A)}$ ${op === 2 ? "par" : "et de"} $${tD(B)}$.`,
+      mode: "nombre", prefixe: "Résultat :", attendu: vD(R),
+      erreurs: op !== 0 ? [{ valeur: vD(addD(A, B)), message: `Ça, c'est la somme. On demande ${NOM}.` }] : [{ valeur: vD(mulD(A, B)), message: "Ça, c'est le produit. La somme, c'est une addition." }],
+      aides, solution: `${maj(NOM)} de $${tD(A)}$ ${op === 2 ? "par" : "et de"} $${tD(B)}$ : $${tD(A)} ${sym} ${tD(B)} = ${tD(R)}$.`
+    };
+  };
+
+  GEN["o6-addsous"] = function () {
+    let a, b;
+    do { a = decimal(rand(0, 1) ? 99 : 999, 3); b = decimal(rand(0, 1) ? 99 : 999, 3); } while (a.d === b.d && Math.random() < 0.7);
+    const plus = Math.random() < 0.5;
+    if (!plus && vD(a) < vD(b)) [a, b] = [b, a];
+    if (!plus && vD(a) === vD(b)) a = addD(a, Dc(rand(1, 9), 0));
+    const R = plus ? addD(a, b) : subD(a, b), d = Math.max(a.d, b.d);
+    const naif = malAligne(a, b, plus ? 1 : -1);
+    const col = `\\begin{array}{r} ${ecrit(a.m * P10(d - a.d), d)} \\\\ ${plus ? "+" : "-"}\\ ${ecrit(b.m * P10(d - b.d), d)} \\\\ \\hline ${ecrit(R.m, d)} \\end{array}`;
+    return {
+      enonce: `Calcule : $${tD(a)} ${plus ? "+" : "-"} ${tD(b)}$.`,
+      mode: "nombre", prefixe: "Résultat :", attendu: vD(R),
+      erreurs: naif !== vD(R) && naif >= 0 ? [{ valeur: naif, message: "Les virgules doivent être l'une sous l'autre : aligne les unités avec les unités, les dixièmes avec les dixièmes." }] : [],
+      aides: ["Pose l'opération en colonnes, **virgule sous virgule**.", `Complète par des zéros inutiles pour avoir $${d}$ chiffre${d > 1 ? "s" : ""} après la virgule dans les deux nombres.`, plus ? "Additionne de droite à gauche, sans oublier les retenues." : "Soustrais de droite à gauche ; si le chiffre du haut est trop petit, emprunte une unité au rang de gauche."],
+      solution: `On aligne les virgules : $${col}$. Donc $${tD(a)} ${plus ? "+" : "-"} ${tD(b)} = ${tD(R)}$.`
+    };
+  };
+
+  GEN["o6-calcul"] = function () {
+    const t = rand(0, 4), n = () => rand(2, 30), dn = () => (Math.random() < 0.4 ? Dc(rand(11, 99), 1) : Dc(rand(2, 40), 0));
+    let tex, R, faux, etapes, prem;
+    if (t === 0) { // a + b - c ou a - b + c, de gauche à droite
+      let a = dn(), b = dn(), c = dn();
+      if (Math.random() < 0.5) { while (vD(a) + vD(b) < vD(c)) a = addD(a, Dc(10, 0)); R = subD(addD(a, b), c); tex = `${tD(a)} + ${tD(b)} - ${tD(c)}`; faux = null; prem = `${tD(a)} + ${tD(b)}`; etapes = [`${tD(addD(a, b))} - ${tD(c)}`]; }
+      else { while (vD(a) < vD(b) + vD(c) + 0.0001) a = addD(a, Dc(10, 0)); R = addD(subD(a, b), c); tex = `${tD(a)} - ${tD(b)} + ${tD(c)}`; faux = vD(subD(a, addD(b, c))); prem = `${tD(a)} - ${tD(b)}`; etapes = [`${tD(subD(a, b))} + ${tD(c)}`]; }
+    } else if (t === 1) { // a - (b + c)
+      const b = dn(), c = dn(); let a = dn(); while (vD(a) < vD(b) + vD(c)) a = addD(a, Dc(10, 0));
+      R = subD(a, addD(b, c)); tex = `${tD(a)} - (${tD(b)} + ${tD(c)})`; faux = vD(addD(subD(a, b), c)); etapes = [`${tD(a)} - ${tD(addD(b, c))}`];
+    } else if (t === 2) { // a × (b - c) ou (a + b) × c, avec des entiers
+      const a = rand(2, 9), b = rand(5, 20), c = rand(1, b - 1);
+      if (Math.random() < 0.5) { R = Dc(a * (b - c)); tex = `${a} \\times (${b} - ${c})`; faux = a * b - c; etapes = [`${a} \\times ${b - c}`]; }
+      else { R = Dc((b + c) * a); tex = `(${b} + ${c}) \\times ${a}`; faux = b + c * a; etapes = [`${b + c} \\times ${a}`]; }
+    } else if (t === 3) { // a - (b - c)
+      const c = n(), b = c + n(); let a = b + n();
+      R = Dc(a - (b - c)); tex = `${a} - (${b} - ${c})`; faux = a - b - c; etapes = [`${a} - ${b - c}`];
+    } else { // parenthèses doubles
+      const e = rand(1, 9), c = rand(1, 9), b = c + e + rand(1, 12), a = b - c - e + rand(5, 30);
+      R = Dc(a - (b - (c + e))); tex = `${a} - (${b} - (${c} + ${e}))`; faux = a - (b - c) + e; etapes = [`${a} - (${b} - ${c + e})`, `${a} - ${b - (c + e)}`];
+    }
+    const L = pick(["A", "B", "C", "D", "E"]);
+    return {
+      enonce: `Calcule $${L} = ${tex}$.`,
+      mode: "nombre", prefixe: `$${L} =$`, attendu: vD(R),
+      erreurs: faux !== null && faux !== undefined && Math.abs(faux - vD(R)) > 1e-9 ? [{ valeur: faux, message: t === 0 ? "Sans parenthèses, avec seulement $+$ et $-$, on calcule **de gauche à droite**." : "Commence par le calcul **entre parenthèses**." }] : [],
+      aides: t === 0
+        ? ["Il n'y a que des additions et des soustractions : on calcule **de gauche à droite**.", `Commence par $${prem}$.`, "Écris une ligne par étape, avec le signe $=$ au début de chaque ligne."]
+        : ["On commence **toujours** par les calculs entre parenthèses.", t === 4 ? "Avec deux paires de parenthèses, on commence par les plus **intérieures**." : "Remplace la parenthèse par son résultat, puis termine le calcul.", "Écris une ligne par étape, avec le signe $=$ au début de chaque ligne."],
+      solution: `$${L} = ${tex}$\n\n` + etapes.map((e) => `$${L} = ${e}$`).join("\n\n") + `\n\n$${L} = ${tD(R)}$`
+    };
+  };
+
+  GEN["o6-astuce"] = function () {
+    const t = rand(0, 3);
+    if (t === 0) { // regrouper des facteurs
+      const [p, q, pv] = pick([[Dc(25, 1), Dc(4), 10], [Dc(5, 1), Dc(2), 1], [Dc(25), Dc(4), 100], [Dc(5), Dc(2), 10], [Dc(2), Dc(50), 100], [Dc(25, 2), Dc(4), 1], [Dc(125, 1), Dc(8), 100], [Dc(5), Dc(20), 100]]);
+      const k = rand(3, 99), ord = shuffle([tD(p), tD(q), String(k)]);
+      return {
+        enonce: `Calcule astucieusement : $${ord.join(" \\times ")}$.`,
+        mode: "nombre", prefixe: "Résultat :", attendu: pv * k,
+        aides: ["Dans une multiplication, on peut changer l'ordre des facteurs et les regrouper comme on veut.", `Cherche deux facteurs dont le produit est un nombre « rond » : $${tD(p)} \\times ${tD(q)} = ${pv}$.`, `Il reste à calculer $${pv} \\times ${k}$.`],
+        solution: `$${ord.join(" \\times ")} = (${tD(p)} \\times ${tD(q)}) \\times ${k} = ${pv} \\times ${k} = ${ecrit(pv * k)}$.`
+      };
+    }
+    if (t === 1) { // regrouper des termes
+      const f = rand(1, 9), x = Dc(rand(1, 30) * 10 + f, 1), z = Dc(rand(1, 30) * 10 + (10 - f), 1), y = decimal(50, 1, 1);
+      const ord = shuffle([x, y, z]).map(tD), R = addD(addD(x, y), z), xz = addD(x, z);
+      return {
+        enonce: `Calcule astucieusement : $${ord.join(" + ")}$.`,
+        mode: "nombre", prefixe: "Résultat :", attendu: vD(R),
+        aides: ["Dans une addition, on peut changer l'ordre des termes et les regrouper comme on veut.", "Cherche deux termes dont les dixièmes font une unité entière.", `$${tD(x)} + ${tD(z)} = ${tD(xz)}$.`],
+        solution: `$${ord.join(" + ")} = (${tD(x)} + ${tD(z)}) + ${tD(y)} = ${tD(xz)} + ${tD(y)} = ${tD(R)}$.`
+      };
+    }
+    if (t === 2) { // multiplier par 0,5 ; 4 ; 5 ; 20 ; 50
+      const [f, regle] = pick([[Dc(5, 1), "Multiplier par $0{,}5$, c'est prendre la **moitié**."], [Dc(4), "Multiplier par $4$, c'est prendre le **double du double**."], [Dc(5), "Multiplier par $5$, c'est multiplier par $10$ puis prendre la moitié."], [Dc(20), "Multiplier par $20$, c'est multiplier par $2$ puis par $10$."], [Dc(50), "Multiplier par $50$, c'est multiplier par $100$ puis prendre la moitié."]]);
+      const x = Math.random() < 0.6 ? Dc(rand(6, 99) * 2) : Dc(rand(11, 99), 1);
+      const R = mulD(x, f);
+      return {
+        enonce: `Calcule mentalement : $${tD(x)} \\times ${tD(f)}$.`,
+        mode: "nombre", prefixe: "Résultat :", attendu: vD(R),
+        aides: [regle, "Fais le calcul en deux étapes simples, sans poser l'opération.", "Vérifie avec un ordre de grandeur."],
+        solution: `${regle} $${tD(x)} \\times ${tD(f)} = ${tD(R)}$.`
+      };
+    }
+    // ajouter ou soustraire 9 ; 99 ; 0,9 ; 0,99 ; 299
+    const [k, rond, ec, mot] = pick([[Dc(9), Dc(10), Dc(1), "10"], [Dc(99), Dc(100), Dc(1), "100"], [Dc(9, 1), Dc(1), Dc(1, 1), "1"], [Dc(99, 2), Dc(1), Dc(1, 2), "1"], [Dc(299), Dc(300), Dc(1), "300"], [Dc(19), Dc(20), Dc(1), "20"]]);
+    const plus = Math.random() < 0.5;
+    let x = decimal(500, 2); while (!plus && vD(x) <= vD(k)) x = addD(x, Dc(300));
+    const R = plus ? addD(x, k) : subD(x, k);
+    return {
+      enonce: `Calcule mentalement : $${tD(x)} ${plus ? "+" : "-"} ${tD(k)}$.`,
+      mode: "nombre", prefixe: "Résultat :", attendu: vD(R),
+      erreurs: [{ valeur: vD(plus ? addD(x, rond) : subD(x, rond)), message: `Tu as ${plus ? "ajouté" : "retiré"} $${mot}$ : il faut encore ${plus ? "retirer" : "ajouter"} $${tD(ec)}$.` }],
+      aides: [`$${tD(k)}$, c'est $${mot} - ${tD(ec)}$.`, `${plus ? "Ajoute" : "Retire"} $${mot}$, c'est plus facile.`, `Puis ${plus ? "retire" : "ajoute"} $${tD(ec)}$ pour corriger.`],
+      solution: `$${tD(x)} ${plus ? "+" : "-"} ${tD(k)} = ${tD(x)} ${plus ? "+" : "-"} ${mot} ${plus ? "-" : "+"} ${tD(ec)} = ${tD(plus ? addD(x, rond) : subD(x, rond))} ${plus ? "-" : "+"} ${tD(ec)} = ${tD(R)}$.`
+    };
+  };
+
+  GEN["o6-quadrillage"] = function () {
+    const L = rand(1, 19), l = rand(1, 9);
+    if (L === 10) return GEN["o6-quadrillage"]();
+    const A = Dc(L, 1), B = Dc(l, 1), R = mulD(A, B);
+    const fig = quadrillage(L, l);
+    if (Math.random() < 0.35) {
+      const bon = `$${tD(A)} \\times ${tD(B)}$`;
+      const c = melange(bon, [`$${L} \\times ${l}$`, `$${tD(A)} + ${tD(B)}$`, `$${tD(Dc(L, 2))} \\times ${tD(B)}$`, `$${tD(A)} \\times ${l}$`]);
+      return {
+        enonce: "Le grand carré a une aire de $1$ (une unité). Quelle multiplication donne l'aire de la partie coloriée ?",
+        figure: fig, mode: "choix", choix: c.choix, attendu: c.attendu,
+        aides: ["Le côté du grand carré mesure $1$ : il est partagé en $10$ parts. Chaque part mesure $0{,}1$.", `La partie coloriée mesure $${L}$ parts sur $${l}$ parts.`, "L'aire d'un rectangle est longueur $\\times$ largeur."],
+        solution: `La partie coloriée est un rectangle de $${tD(A)}$ sur $${tD(B)}$ : son aire est ${bon}, soit $${L * l}$ petits carrés de $0{,}01$, donc $${tD(R)}$.`
+      };
+    }
+    return {
+      enonce: `Le grand carré a une aire de $1$ (une unité). À l'aide de la figure, calcule $${tD(A)} \\times ${tD(B)}$.`,
+      figure: fig, mode: "nombre", prefixe: "Résultat :", attendu: vD(R),
+      erreurs: [{ valeur: (L * l) / 10, message: `Un petit carré n'est pas un dixième de l'unité : il en faut $100$ pour remplir le grand carré.` }, { valeur: L * l, message: "Compare au grand carré : la partie coloriée est-elle plus grande que l'unité ?" }],
+      aides: ["Le grand carré est partagé en $100$ petits carrés : chacun a une aire de $0{,}01$ (un centième).", `La partie coloriée contient $${L} \\times ${l}$ petits carrés.`, `Il y a donc $${L * l}$ centièmes.`],
+      solution: `La partie coloriée contient $${L} \\times ${l} = ${L * l}$ petits carrés, soit $${L * l}$ centièmes : $${tD(A)} \\times ${tD(B)} = ${tD(R)}$.${L > 10 ? " Elle déborde sur le deuxième carré : le résultat est plus grand que $" + tD(B) + "$." : " Le résultat est plus petit que chacun des deux facteurs."}`
+    };
+  };
+
+  GEN["o6-produit"] = function () {
+    const a = decimal(rand(0, 1) ? 9 : 99, 2, 1), b = Math.random() < 0.3 ? Dc(rand(2, 9)) : decimal(rand(0, 1) ? 9 : 30, 2, 1);
+    if (a.m * b.m > 99999) return GEN["o6-produit"]();
+    const R = mulD(a, b), nd = a.d + b.d;
+    if (Math.random() < 0.3) {
+      return {
+        enonce: `On sait que $${ecrit(a.m)} \\times ${ecrit(b.m)} = ${ecrit(a.m * b.m)}$. Calcule $${tD(a)} \\times ${tD(b)}$.`,
+        mode: "nombre", prefixe: "Résultat :", attendu: vD(R),
+        erreurs: [{ valeur: (a.m * b.m) / P10(Math.max(a.d, b.d)), message: "Compte les chiffres après la virgule dans **les deux** facteurs, et additionne-les." }],
+        aides: [`$${tD(a)} = ${ecrit(a.m)} \\times ${tD(Dc(1, a.d))}$${b.d ? ` et $${tD(b)} = ${ecrit(b.m)} \\times ${tD(Dc(1, b.d))}$` : ""}.`, `Le produit a donc autant de chiffres après la virgule que les deux facteurs ensemble : $${a.d} + ${b.d} = ${nd}$.`, `Pars de $${ecrit(a.m * b.m)}$ et place la virgule pour avoir $${nd}$ chiffre${nd > 1 ? "s" : ""} après elle.`],
+        solution: `$${tD(a)} \\times ${tD(b)} = ${ecrit(a.m)} \\times ${ecrit(b.m)} \\times ${tD(Dc(1, nd))} = ${ecrit(a.m * b.m)} \\times ${tD(Dc(1, nd))} = ${tD(R)}$.`
+      };
+    }
+    const errs = [{ valeur: (a.m * b.m) / P10(nd - 1), message: "La virgule n'est pas au bon endroit : compte les chiffres après la virgule dans les deux facteurs." }, { valeur: (a.m * b.m) / P10(nd + 1), message: "La virgule n'est pas au bon endroit : compte les chiffres après la virgule dans les deux facteurs." }];
+    // erreur classique : multiplier les parties entières, puis les parties décimales
+    const ea = Math.floor(vD(a)), eb = Math.floor(vD(b)), fa = a.m % P10(a.d), fb = b.m % P10(b.d);
+    if (a.d === b.d && a.d === 1 && ea && eb) errs.push({ valeur: +(String(ea * eb) + "." + String(fa * fb)), message: "On ne multiplie pas séparément les parties entières et les parties décimales : pose la multiplication sans les virgules." });
+    return {
+      enonce: `Calcule : $${tD(a)} \\times ${tD(b)}$.`,
+      mode: "nombre", prefixe: "Résultat :", attendu: vD(R),
+      erreurs: errs,
+      aides: ["Multiplie d'abord les nombres **sans les virgules**, comme des entiers.", `Compte les chiffres après la virgule : $${a.d}$ ${b.d ? `et $${b.d}$` : "et $0$"}, soit $${nd}$ en tout.`, `Place la virgule dans le résultat pour avoir $${nd}$ chiffre${nd > 1 ? "s" : ""} après elle, puis contrôle avec un ordre de grandeur.`],
+      solution: `$${ecrit(a.m)} \\times ${ecrit(b.m)} = ${ecrit(a.m * b.m)}$ ; il faut $${nd}$ chiffre${nd > 1 ? "s" : ""} après la virgule : $${tD(a)} \\times ${tD(b)} = ${tD(R)}$. Ordre de grandeur : $${ordre(vD(a))} \\times ${ordre(vD(b))} = ${nb(ordre(vD(a)) * ordre(vD(b)))}$.`.replace(/\{,\}0+\$/, "$")
+    };
+  };
+  // Valeur « ronde » proche, pour un ordre de grandeur (un seul chiffre significatif)
+  function ordre(x) { if (x <= 0) return 0; const p = Math.floor(Math.log10(x)); const r = Math.round(x / 10 ** p) * 10 ** p; return +r.toPrecision(1); }
+
+  GEN["o6-virgule"] = function () {
+    const A = rand(12, 999), B = rand(2, 99), P = A * B;
+    const da = rand(0, 2), db = rand(da ? 0 : 1, 2), nd = da + db;
+    if (A % 10 === 0 || B % 10 === 0) return GEN["o6-virgule"]();
+    const bon = `$${tD(Dc(P, nd))}$`;
+    const fausses = [nd - 1, nd + 1, nd - 2, nd + 2, Math.max(da, db)].filter((k) => k >= 0 && k !== nd).map((k) => `$${tD(Dc(P, k))}$`);
+    const c = melange(bon, [...new Set(fausses)]);
+    return {
+      enonce: `On sait que $${ecrit(A)} \\times ${ecrit(B)} = ${ecrit(P)}$. Combien vaut $${tD(Dc(A, da))} \\times ${tD(Dc(B, db))}$ ?`,
+      mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: ["Compte les chiffres après la virgule dans chaque facteur.", `Ici : $${da} + ${db} = ${nd}$ chiffre${nd > 1 ? "s" : ""} après la virgule dans le produit.`, "Contrôle avec un ordre de grandeur."],
+      solution: `$${da} + ${db} = ${nd}$ chiffre${nd > 1 ? "s" : ""} après la virgule : $${tD(Dc(A, da))} \\times ${tD(Dc(B, db))} = ${tD(Dc(P, nd))}$. Ordre de grandeur : $${nb(ordre(A / P10(da)))} \\times ${nb(ordre(B / P10(db)))} = ${nb(+(ordre(A / P10(da)) * ordre(B / P10(db))).toPrecision(6))}$.`
+    };
+  };
+
+  GEN["o6-ordre"] = function () {
+    const somme = Math.random() < 0.3;
+    if (somme) {
+      const a = decimal(rand(0, 1) ? 99 : 999, 2, 1), b = decimal(rand(0, 1) ? 99 : 999, 2, 1), R = addD(a, b);
+      const oa = ordre(vD(a)), ob = ordre(vD(b)), og = oa + ob;
+      const c = melange(`$${nb(og)}$`, [og * 10, og / 10, og * 100, og + oa].filter((x) => x !== og && x > 0).map((x) => `$${nb(x)}$`));
+      return {
+        enonce: `Quel est le meilleur ordre de grandeur de $${tD(a)} + ${tD(b)}$ ?`,
+        mode: "choix", choix: c.choix, attendu: c.attendu,
+        aides: ["Remplace chaque nombre par une valeur « ronde » proche.", `$${tD(a)} \\approx ${nb(oa)}$ et $${tD(b)} \\approx ${nb(ob)}$.`, "Fais le calcul avec les valeurs rondes."],
+        solution: `$${tD(a)} + ${tD(b)} \\approx ${nb(oa)} + ${nb(ob)} = ${nb(og)}$. (Le résultat exact est $${tD(R)}$.)`
+      };
+    }
+    let a, b; do { a = decimal(rand(0, 1) ? 9 : 99, 2, 1); b = decimal(rand(0, 1) ? 9 : 50, 2, 1); } while (vD(a) < 1.5 || vD(b) < 1.5);
+    const R = mulD(a, b), og = ordre(vD(a)) * ordre(vD(b));
+    const ks = shuffle([-2, -1, 1, 2]).slice(0, 3);
+    const bon = `$${tD(R)}$`;
+    const c = melange(bon, ks.map((k) => `$${tD(k > 0 ? Dc(R.m * P10(k), R.d) : Dc(R.m, R.d - k))}$`));
+    return {
+      enonce: `Sans poser la multiplication, trouve le bon résultat de $${tD(a)} \\times ${tD(b)}$.`,
+      mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: ["Cherche un ordre de grandeur : remplace chaque facteur par une valeur ronde proche.", `$${tD(a)} \\approx ${nb(ordre(vD(a)))}$ et $${tD(b)} \\approx ${nb(ordre(vD(b)))}$.`, `$${nb(ordre(vD(a)))} \\times ${nb(ordre(vD(b)))} = ${nb(og)}$ : choisis le résultat le plus proche.`],
+      solution: `Ordre de grandeur : $${nb(ordre(vD(a)))} \\times ${nb(ordre(vD(b)))} = ${nb(og)}$. Le seul résultat proche est $${tD(R)}$.`
+    };
+  };
+
+  GEN["o6-probleme"] = function () {
+    const t = rand(0, 5);
+    const eur = (c) => (c % 100 ? ecrit(c, 2) : ecrit(c / 100)), eurD = (x) => eur(Math.round(vD(x) * 100)); // prix avec deux décimales (c en centimes)
+    if (t === 0) { // marché : monnaie rendue
+      const kg = Dc(rand(2, 6) * 5, 1), prix = Dc(rand(15, 60) * 10, 2), regime = rand(20, 80) * 10; // prix en €/kg, régime en centimes
+      const mangues = mulD(kg, prix); const cm = mangues.m * P10(4 - mangues.d) / 100; // centimes
+      if (!Number.isInteger(cm)) return GEN["o6-probleme"]();
+      const total = cm + regime, billet = total < 1000 ? 1000 : total < 2000 ? 2000 : 5000;
+      return {
+        enonce: `Au marché de Mamoudzou, tu achètes $${tD(kg)}$ kg de mangues à $${eurD(prix)}$ € le kilo et un régime de bananes à $${eur(regime)}$ €. Tu paies avec un billet de $${billet / 100}$ €. Combien te rend-on ?`,
+        mode: "nombre", prefixe: "On te rend", suffixe: "€", attendu: (billet - total) / 100,
+        erreurs: [{ valeur: total / 100, message: "Ça, c'est ce que tu paies. On demande la monnaie rendue." }, { valeur: (billet - cm) / 100, message: "N'oublie pas les bananes." }],
+        aides: [`Prix des mangues : $${tD(kg)} \\times ${eurD(prix)}$.`, "Ajoute le prix du régime de bananes pour avoir le total.", `La monnaie rendue, c'est $${billet / 100}$ € moins le total.`],
+        solution: `Mangues : $${tD(kg)} \\times ${eurD(prix)} = ${eur(cm)}$ €. Total : $${eur(cm)} + ${eur(regime)} = ${eur(total)}$ €. Monnaie : $${billet / 100} - ${eur(total)} = ${eur(billet - total)}$ €.`
+      };
+    }
+    if (t === 1) { // grillage autour d'un enclos rectangulaire
+      const L = decimal(40, 2, 1), l = decimal(20, 2, 1), P = addD(addD(L, L), addD(l, l));
+      return {
+        enonce: `Un enclos à chèvres rectangulaire mesure $${tD(L)}$ m de long et $${tD(l)}$ m de large. Quelle longueur de grillage faut-il pour en faire le tour ?`,
+        mode: "nombre", prefixe: "Longueur :", suffixe: "m", attendu: vD(P),
+        erreurs: [{ valeur: vD(addD(L, l)), message: "Ça, c'est la moitié du tour : il y a deux longueurs et deux largeurs." }, { valeur: vD(mulD(L, l)), message: "Ça, c'est l'aire. Le tour, c'est le périmètre : on additionne les côtés." }],
+        aides: ["Faire le tour, c'est additionner les longueurs des quatre côtés.", "Un rectangle a deux longueurs et deux largeurs.", "Pose l'addition virgule sous virgule."],
+        solution: `$${tD(L)} + ${tD(L)} + ${tD(l)} + ${tD(l)} = ${tD(P)}$ : il faut $${tD(P)}$ m de grillage.`
+      };
+    }
+    if (t === 2) { // essence
+      const litres = rand(8, 45), prix = Dc(rand(180, 210), 2), R = mulD(Dc(litres), prix);
+      return {
+        enonce: `À la station, un litre d'essence coûte $${eurD(prix)}$ €. Combien paie-t-on pour $${litres}$ litres ?`,
+        mode: "nombre", prefixe: "Prix :", suffixe: "€", attendu: vD(R),
+        erreurs: [{ valeur: (litres * prix.m) / 10, message: "La virgule n'est pas au bon endroit : vérifie avec un ordre de grandeur (environ $2$ € le litre)." }],
+        aides: ["Un litre coûte $" + eurD(prix) + "$ € : pour plusieurs litres, on multiplie.", `Calcule $${litres} \\times ${eurD(prix)}$.`, `Ordre de grandeur : $${litres} \\times 2 = ${litres * 2}$ €.`],
+        solution: `$${litres} \\times ${eurD(prix)} = ${eurD(R)}$ : on paie $${eurD(R)}$ €.`
+      };
+    }
+    if (t === 3) { // plongée : différence de profondeurs
+      const a = decimal(30, 2, 1), b = decimal(15, 2, 1); let A = a, B = b; if (vD(A) < vD(B)) [A, B] = [B, A]; if (vD(A) === vD(B)) A = addD(A, Dc(3));
+      const R = subD(A, B);
+      return {
+        enonce: `Dans le lagon, une plongeuse descend à $${tD(A)}$ m de profondeur, puis remonte jusqu'à $${tD(B)}$ m de profondeur. De combien de mètres est-elle remontée ?`,
+        mode: "nombre", prefixe: "Elle est remontée de", suffixe: "m", attendu: vD(R),
+        erreurs: [{ valeur: vD(addD(A, B)), message: "On cherche l'écart entre les deux profondeurs : c'est une soustraction." }, { valeur: malAligne(A, B, -1), message: "Aligne les virgules avant de soustraire." }],
+        aides: ["On cherche l'écart entre deux profondeurs.", `Calcule $${tD(A)} - ${tD(B)}$.`, "Pose la soustraction virgule sous virgule."],
+        solution: `$${tD(A)} - ${tD(B)} = ${tD(R)}$ : elle est remontée de $${tD(R)}$ m.`
+      };
+    }
+    if (t === 4) { // aire d'une parcelle
+      const L = decimal(30, 1, 1), l = decimal(12, 1, 1), R = mulD(L, l);
+      return {
+        enonce: `Une parcelle rectangulaire de manioc mesure $${tD(L)}$ m sur $${tD(l)}$ m. Quelle est son aire ?`,
+        mode: "nombre", prefixe: "Aire :", suffixe: "m²", attendu: vD(R),
+        erreurs: [{ valeur: vD(addD(addD(L, L), addD(l, l))), message: "Ça, c'est le périmètre (le tour). L'aire, c'est longueur × largeur." }, { valeur: (L.m * l.m) / 10, message: "La virgule n'est pas au bon endroit : il faut deux chiffres après la virgule." }],
+        aides: ["L'aire d'un rectangle, c'est longueur $\\times$ largeur.", `Calcule $${tD(L)} \\times ${tD(l)}$ : d'abord sans les virgules.`, "Le produit a autant de chiffres après la virgule que les deux facteurs ensemble."],
+        solution: `$${tD(L)} \\times ${tD(l)} = ${tD(R)}$ : l'aire est $${tD(R)}$ m².`
+      };
+    }
+    // sortie scolaire : prix pour un groupe
+    const n = rand(12, 35), prix = Dc(rand(15, 95) * 10, 2), car = rand(80, 250);
+    const R = addD(mulD(Dc(n), prix), Dc(car));
+    return {
+      enonce: `Pour une sortie à la plage de N'Gouja, la classe loue un car pour $${car}$ € et chacun des $${n}$ élèves paie un repas de $${eurD(prix)}$ €. Combien coûte la sortie en tout ?`,
+      mode: "nombre", prefixe: "Total :", suffixe: "€", attendu: vD(R),
+      erreurs: [{ valeur: vD(mulD(Dc(n), prix)), message: "N'oublie pas le prix du car." }, { valeur: car + vD(prix), message: "Le repas est payé par chaque élève : multiplie par le nombre d'élèves." }],
+      aides: [`Prix des repas : $${n} \\times ${eurD(prix)}$.`, "Ajoute ensuite le prix du car.", "Vérifie avec un ordre de grandeur."],
+      solution: `Repas : $${n} \\times ${eurD(prix)} = ${eurD(mulD(Dc(n), prix))}$ €. Total : $${eurD(mulD(Dc(n), prix))} + ${car} = ${eurD(R)}$ €.`
+    };
+  };
+
   /* Une « erreur connue » ne doit jamais coïncider avec la bonne réponse ; propriétés internes retirées */
-  Object.keys(GEN).filter((k) => /^n6-/.test(k)).forEach((k) => {
+  Object.keys(GEN).filter((k) => /^(n6|o6)-/.test(k)).forEach((k) => {
     const g = GEN[k];
     GEN[k] = (i) => {
       const q = g(i);
