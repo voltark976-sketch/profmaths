@@ -111,7 +111,16 @@ Sur GitHub, le plus simple est de demander à Claude de le faire : il remplace l
 Voir `MISE-EN-LIGNE.md` (GitHub Pages, gratuit, sans rien installer).
 
 ## Comptes élèves
-Les comptes sont **créés par le professeur** : les élèves ne peuvent plus s'inscrire. Chaque élève se connecte avec l'identifiant (`prenom.nom`) et le mot de passe qu'on lui a remis.
+Les comptes des classes sont **créés par le professeur** : chaque élève se connecte avec l'identifiant (`prenom.nom`) et le mot de passe qu'on lui a remis (transmis sur Pronote).
+
+### Comptes créés sur le site
+La page Mon compte > « Créer un compte » propose deux choix, après un rappel aux élèves de M. Cadena qu'ils ont déjà leurs identifiants :
+- **Élève** : prénom, nom (facultatif), niveau, identifiant et mot de passe. Le compte est rangé dans « Autres élèves » (collection Firestore `inscrits`) : la progression est gardée, mais l'élève n'apparaît ni dans le suivi des classes ni dans le classement, et ne voit pas le classement.
+- **Professeur** : prénom, nom, établissement, niveaux de ses classes, contact, message. La demande (collection `demandesProf`) reste **en attente** ; le demandeur n'a aucun droit et un bouton lui ouvre un mail déjà rédigé vers voltark976@gmail.com. Il peut aussi écrire directement à cette adresse.
+
+Seul le compte **prof.maths** voit la page **Demandes de comptes** (`#demandes`, lien sur sa page Mon compte) : approuver, refuser, retirer l'accès, et la liste des autres élèves. Un professeur approuvé reçoit ses droits à sa connexion suivante : sa progression est gardée (collection `profs`), il n'apparaît pas dans le classement et ne voit aucun élève ni la fréquentation. Pour qu'il suive des classes, lui créer un compte avec `--prof` (ci-dessous).
+Ces comptes ont une adresse technique `identifiant@inscrits.profmaths.example.com` (les comptes des classes : `@profmaths.example.com`) ; à la connexion, le site essaie d'abord les comptes des classes. Un refus ne supprime pas le compte : on peut le supprimer dans la console Firebase > Authentication.
+Les règles le vérifient côté Firebase : un compte créé sur le site ne lit et n'écrit que sa propre fiche ou sa propre demande, ne peut pas créer une demande déjà approuvée ni changer son statut, et seul prof.maths (marque `prof` et adresse `prof.maths@…`) lit les demandes et change leur statut.
 Leur progression (points, étoiles, meilleur QCM, date du dernier essai de chaque série) est enregistrée après chaque exercice.
 Sans compte, la progression reste sur l'appareil mais ne rejoint pas le compte : chaque compte commence au niveau 1 et ne retrouve que sa propre progression.
 À la déconnexion, la progression est effacée de l'appareil (utile sur un téléphone partagé) mais reste dans le compte.
@@ -141,7 +150,7 @@ Le choix **Tout le site** (premier de la liste des chapitres, ouvert par défaut
 La page **Fréquentation du site** (`#frequentation`, lien sur la page Mon compte du professeur) montre les visites par jour, la part des téléphones, les onglets ouverts par niveau et par chapitre, et les élèves connectés par classe, sur 7, 30 ou 90 jours ou 12 mois. Ce sont des compteurs anonymes rangés dans Firestore (collections `visites` et `visitesChap`) : aucun nom, aucun cookie, aucun service extérieur. Chaque appareil compte une fois par jour pour le site et une fois par jour pour chaque onglet ; les visites des comptes professeurs et les essais en local (localhost) ne sont pas comptés. Les règles `firestore.rules` n'autorisent qu'à ajouter 1 à un compteur, et seuls les professeurs peuvent les lire.
 
 ### Sécurité (Firebase)
-Le prénom, le nom, la classe et le groupe sont inscrits dans le compte lui-même au moment de la création. Les règles `firestore.rules` n'acceptent que ces comptes : un compte créé autrement ne peut rien lire ni écrire, et un élève ne peut ni changer son nom ni lire la progression des autres. Après une modification des règles :
+Le prénom, le nom, la classe et le groupe sont inscrits dans le compte lui-même au moment de la création. Les règles `firestore.rules` n'ouvrent les classes, le classement et la fréquentation qu'à ces comptes ; un compte créé sur le site n'a que sa fiche « Autres élèves » ou sa demande de compte professeur (voir plus haut), tout autre compte ne peut rien lire ni écrire, et un élève ne peut ni changer son nom ni lire la progression des autres. Après une modification des règles :
 ```
 firebase deploy --only firestore:rules --project profmaths-ca535
 ```

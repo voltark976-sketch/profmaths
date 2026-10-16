@@ -1,7 +1,8 @@
 rules_version = '2';
 // Règles Firestore du site (publiées avec : firebase deploy --only firestore:rules)
-// Seuls les comptes créés par le professeur (outils/comptes) portent les marques « eleve » ou « prof » :
-// un compte créé autrement (inscription, Google…) ne peut rien lire ni écrire.
+// Seuls les comptes créés par le professeur (outils/comptes) portent les marques « eleve » ou « prof ».
+// Un compte créé sur le site (@inscrits…) n'a accès qu'à sa propre fiche (inscrits) ou à sa demande de compte
+// professeur (demandesProf) ; tout autre compte (ancienne inscription, Google…) ne peut rien lire ni écrire.
 service cloud.firestore {
   match /databases/{database}/documents {
     function eleve() { return request.auth != null && request.auth.token.eleve == true; }
@@ -23,11 +24,50 @@ service cloud.firestore {
         && request.resource.data.get('temps', {}) is map
         && profilDuCompte(request.resource.data);
     }
-    // Progression personnelle d'un professeur (exercices faits avec son propre compte)
+    // Progression personnelle d'un professeur (exercices faits avec son propre compte, ou compte prof approuvé)
     match /profs/{uid} {
-      allow read: if prof() && request.auth.uid == uid;
-      allow create, update: if prof() && request.auth.uid == uid
+      allow read: if (prof() || profApprouve()) && request.auth.uid == uid;
+      allow create, update: if (prof() || profApprouve()) && request.auth.uid == uid
         && request.resource.data.keys().hasOnly(['xp', 'exo', 'qcm', 'jeux', 'avatar', 'quand', 'majLe']);
+    }
+
+    // ---------- Comptes créés sur le site (adresse technique @inscrits.profmaths.example.com, sans marque) ----------
+    // Ils ne lisent rien des classes du professeur (élèves, classement, fréquentation).
+    function inscrit() {
+      return request.auth != null && request.auth.token.email is string
+        && request.auth.token.email.matches('[a-z0-9._-]{3,30}@inscrits[.]profmaths[.]example[.]com')
+        && !('eleve' in request.auth.token) && !('prof' in request.auth.token);
+    }
+    function idCompte() { return request.auth.token.email.split('@')[0]; }
+    // Seul le compte prof.maths (créé par outils/comptes) voit et décide les demandes
+    function chef() { return prof() && request.auth.token.email == 'prof.maths@profmaths.example.com'; }
+    function texte(v, min, max) { return v is string && v.size() >= min && v.size() <= max; }
+    function profApprouve() {
+      return inscrit() && get(/databases/$(database)/documents/demandesProf/$(request.auth.uid)).data.statut == 'approuve';
+    }
+    // Élève hors des classes du professeur (« Autres élèves ») : sa fiche et sa progression
+    match /inscrits/{uid} {
+      allow read: if (inscrit() && request.auth.uid == uid) || chef();
+      allow create, update: if inscrit() && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(['identifiant', 'prenom', 'nom', 'niveau', 'xp', 'exo', 'qcm', 'jeux', 'avatar', 'quand', 'creeLe', 'majLe'])
+        && request.resource.data.identifiant == idCompte()
+        && texte(request.resource.data.prenom, 1, 40) && texte(request.resource.data.get('nom', ''), 0, 40)
+        && texte(request.resource.data.get('niveau', ''), 0, 40);
+    }
+    // Demande de compte professeur : créée « en attente » par le demandeur, seul prof.maths change son statut
+    match /demandesProf/{uid} {
+      allow read: if (inscrit() && request.auth.uid == uid) || chef();
+      allow create: if inscrit() && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(['identifiant', 'prenom', 'nom', 'etablissement', 'niveaux', 'contact', 'message', 'statut', 'creeLe'])
+        && request.resource.data.identifiant == idCompte()
+        && request.resource.data.statut == 'attente'
+        && texte(request.resource.data.prenom, 1, 40) && texte(request.resource.data.nom, 1, 40)
+        && texte(request.resource.data.get('etablissement', ''), 0, 80) && texte(request.resource.data.contact, 1, 80)
+        && texte(request.resource.data.get('message', ''), 0, 500)
+        && request.resource.data.niveaux is list && request.resource.data.niveaux.size() >= 1 && request.resource.data.niveaux.size() <= 12;
+      allow update: if chef()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['statut', 'decideLe'])
+        && request.resource.data.statut in ['attente', 'approuve', 'refuse'];
     }
     match /classement/{uid} {
       allow read: if eleve() || prof();

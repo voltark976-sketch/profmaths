@@ -27,7 +27,8 @@ window.CONFIG_COMPTES = {
     messagingSenderId: "830391678944",
     appId: "1:830391678944:web:f472650d4f317277c41d85"
   },
-  // Les comptes sont créés par le professeur (outils/comptes/creer-comptes.js) : pas d'inscription ni de connexion Google.
+  // Comptes des classes créés par le professeur (outils/comptes/creer-comptes.js) ; sur le site, un élève peut créer un compte « Autres élèves »
+  // et un professeur peut demander un compte, approuvé depuis prof.maths. Pas de connexion Google.
   // Classes (filtres du classement du Défi chrono)
   classes: ["Seconde", "Première spécialité", "Terminale spécialité", "Terminale maths complémentaires"]
 };

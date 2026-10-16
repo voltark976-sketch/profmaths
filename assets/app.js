@@ -270,6 +270,7 @@
     $xpLien.toggleAttribute("aria-current", chap === "avatar");
     if (chap === "compte") pageCompte();
     else if (chap === "suivi") pageSuivi();
+    else if (chap === "demandes") pageDemandes();
     else if (chap === "frequentation") pageFrequentation();
     else if (chap === "avatar") pageAvatar();
     else if (chap === "jeu") pageJeu(onglet);
@@ -491,14 +492,34 @@
     document.title = "Mon compte · ProfMaths";
     const e = Compte.eleve();
     const demo = Compte.demo ? `<p class="demo">Mode démonstration : le compte n'est gardé que sur cet appareil. Les vrais comptes, accessibles partout, seront activés à la mise en ligne.</p>` : "";
-    const classes = Compte.classes.map((c) => `<option>${esc(c)}</option>`).join("");
+    const deco = () => document.getElementById("deco").addEventListener("click", () => Compte.deconnecter().then(() => { location.hash = ""; }));
+    if (e && e.prof && e.externe) {
+      // Professeur extérieur approuvé : sa progression est gardée, il ne voit aucun élève
+      $app.innerHTML = `<section class="page-compte"><p class="eyebrow">Compte professeur</p><h1>Bonjour ${esc(e.prenom || "")} !</h1>
+        <p class="lead">Identifiant : <strong>${esc(e.identifiant)}</strong></p>
+        <p>Votre compte professeur est validé : vous pouvez utiliser tout le site, votre progression est enregistrée et vous n'apparaissez pas dans les classements des élèves.</p>
+        <p class="muted">Pour que vos élèves aient des comptes rattachés à vos classes, écrivez à <a href="mailto:${MAIL_PROF}">${MAIL_PROF}</a>.</p>
+        <button class="btn-sec" id="deco">Se déconnecter</button></section>`;
+      return deco();
+    }
     if (e && e.prof) {
       $app.innerHTML = `<section class="page-compte"><p class="eyebrow">Compte professeur</p><h1>Bonjour !</h1>
         <p class="lead">Identifiant : <strong>${esc(e.identifiant)}</strong></p>
-        <p class="btns-prof"><a class="btn" href="#suivi">Suivi des élèves</a> <a class="btn" href="#frequentation">Fréquentation du site</a></p>
+        <p class="btns-prof"><a class="btn" href="#suivi">Suivi des élèves</a> <a class="btn" href="#frequentation">Fréquentation du site</a>${Compte.chef() ? ` <a class="btn" href="#demandes">Demandes de comptes</a>` : ""}</p>
         <button class="btn-sec" id="deco">Se déconnecter</button></section>`;
-      document.getElementById("deco").addEventListener("click", () => Compte.deconnecter().then(() => { location.hash = ""; }));
-      return;
+      return deco();
+    }
+    if (e && e.attente) {
+      const d = e.demande || {};
+      const refus = e.attente === "refuse";
+      $app.innerHTML = `<section class="page-compte"><p class="eyebrow">Compte professeur</p><h1>${refus ? "Demande non retenue" : "Demande envoyée"}</h1>
+        <p class="lead">Identifiant : <strong>${esc(e.identifiant)}</strong></p>
+        <p>${refus ? `Votre demande de compte professeur n'a pas été acceptée. Pour en parler, écrivez à <a href="mailto:${MAIL_PROF}">${MAIL_PROF}</a>.`
+          : "Votre demande est enregistrée. M. Cadena doit l'approuver : vous aurez vos droits de professeur à la prochaine connexion après son accord."}</p>
+        ${refus ? "" : `<p class="demo">Pour qu'il la voie plus vite, prévenez-le par un mail déjà rédigé : il ne reste qu'à l'envoyer.</p>
+        <p><a class="btn" href="${mailDemande(Object.assign({ identifiant: e.identifiant }, d))}">Prévenir M. Cadena par mail</a></p>`}
+        <button class="btn-sec" id="deco">Se déconnecter</button></section>`;
+      return deco();
     }
     if (e) {
       let lignes = "";
@@ -508,49 +529,131 @@
         lignes += `<li><a class="chap" href="#${ch.id}"><span class="chap-t"><strong>${esc(ch.titre)}</strong><span class="meta">${esc(n.nom)} · ${b.got}/${b.total} étoiles${b.qcm !== undefined ? ` · QCM ${Math.min(b.qcm, tailleQcm(CHAPITRES[ch.id]))}/${tailleQcm(CHAPITRES[ch.id])}` : ""}</span><span class="barre"><span style="width:${Math.round((b.got / b.total) * 100)}%"></span></span></span></a></li>`;
       }));
       $app.innerHTML = `<section class="page-compte"><p class="eyebrow">Mon compte</p><h1>Bonjour ${esc(e.prenom || e.identifiant)} !</h1>
-        <p class="lead">Identifiant : <strong>${esc(e.identifiant)}</strong>${e.classe ? ` · ${esc(e.classe)}${e.groupe ? " " + esc(e.groupe) : ""}` : ""}</p>${demo}
+        <p class="lead">Identifiant : <strong>${esc(e.identifiant)}</strong>${e.classe ? ` · ${esc(e.classe)}${e.groupe ? " " + esc(e.groupe) : ""}${e.niveau ? " (" + esc(e.niveau) + ")" : ""}` : ""}</p>${demo}
+        ${e.inscrit ? `<p class="demo">Tu es dans une classe de M. Cadena ? Déconnecte-toi et utilise plutôt les identifiants transmis sur Pronote : c'est avec eux que ton professeur voit ton travail.</p>` : ""}
         ${carteProfil()}
         <h2>Ma progression</h2><ol class="chapitres">${lignes}</ol>
         <p class="muted">Ta progression est enregistrée automatiquement après chaque exercice et chaque QCM.</p>
         <button class="btn-sec" id="deco">Se déconnecter</button>
         <p class="muted">Sur un téléphone partagé, pense à te déconnecter : tes points restent sauvegardés dans ton compte.</p></section>`;
-      document.getElementById("deco").addEventListener("click", () => Compte.deconnecter().then(() => { location.hash = ""; }));
-      return;
+      return deco();
     }
-    // Les comptes sont créés par le professeur ; la création n'existe qu'en mode démonstration
-    const creation = Compte.demo;
+    // Connexion, ou création d'un compte : élève (hors des classes de M. Cadena) ou demande de compte professeur
+    const niveaux = CATALOGUE.niveaux.filter((n) => n.id !== "automatismes" && n.nom !== "Automatismes").map((n) => n.nom);
+    const options = niveaux.concat("Autre").map((n) => `<option>${esc(n)}</option>`).join("");
+    const cases = niveaux.map((n) => `<label class="case"><input type="checkbox" name="pr-niv" value="${esc(n)}"> ${esc(n)}</label>`).join("");
+    const champsCompte = (p) => `<label for="${p}-id">Identifiant choisi <span class="aide-champ">ex. : prenom.nom</span></label><input id="${p}-id" name="username" autocomplete="username" autocapitalize="none" spellcheck="false" required>
+        <label for="${p}-mdp">Mot de passe <span class="aide-champ">6 caractères minimum</span></label><input id="${p}-mdp" name="password" type="password" autocomplete="new-password" minlength="6" required>`;
     $app.innerHTML = `<section class="page-compte"><p class="eyebrow">Mon compte</p><h1>Garde ta progression partout</h1>
-      <p class="lead">Connecte-toi avec l'identifiant et le mot de passe donnés par ton professeur : ton niveau, ton avatar et tes étoiles te suivent sur tous tes appareils.</p>${demo}
-      ${creation ? `<div class="bascule" role="tablist"><button role="tab" id="t-co" aria-selected="true">J'ai déjà un compte</button><button role="tab" id="t-cr" aria-selected="false">Créer mon compte</button></div>` : ""}
+      <p class="lead">Avec un compte, ton niveau, ton avatar et tes étoiles te suivent sur tous tes appareils.</p>${demo}
+      <div class="bascule" role="tablist"><button type="button" role="tab" id="t-co" aria-selected="true">Me connecter</button><button type="button" role="tab" id="t-cr" aria-selected="false">Créer un compte</button></div>
       <form id="f-co" class="formulaire" autocomplete="on">
         <label for="co-id">Identifiant <span class="aide-champ">ex. : prenom.nom</span></label><input id="co-id" name="username" autocomplete="username" autocapitalize="none" spellcheck="false" required>
         <label for="co-mdp">Mot de passe</label><input id="co-mdp" name="password" type="password" autocomplete="current-password" required>
         <p class="erreur" role="alert">${esc(Compte.erreurCompte())}</p><button class="btn" type="submit">Me connecter</button>
-        <p class="muted">Pas encore d'identifiant, ou mot de passe oublié ? Demande à ton professeur.</p>
+        <p class="muted">Élève de M. Cadena : tes identifiants t'ont été transmis sur Pronote. Mot de passe oublié ? Demande-le à ton professeur.</p>
       </form>
-      ${creation ? `<form id="f-cr" class="formulaire" autocomplete="on" hidden>
-        <label for="cr-prenom">Prénom</label><input id="cr-prenom" autocomplete="given-name" required>
-        <label for="cr-classe">Classe</label><select id="cr-classe">${classes}</select>
-        <label for="cr-id">Identifiant <span class="aide-champ">ex. : prenom.n2</span></label><input id="cr-id" name="username" autocomplete="username" autocapitalize="none" spellcheck="false" required>
-        <label for="cr-mdp">Mot de passe <span class="aide-champ">6 caractères minimum</span></label><input id="cr-mdp" name="password" type="password" autocomplete="new-password" minlength="6" required>
-        <p class="erreur" role="alert"></p><button class="btn" type="submit">Créer mon compte</button>
-      </form>` : ""}</section>`;
+      <div id="p-cr" hidden>
+        <p class="note-cadena"><strong>Tu es dans une classe de M. Cadena ?</strong> Ne crée pas de compte : tu as déjà un identifiant et un mot de passe, transmis sur Pronote. Utilise « Me connecter ».</p>
+        <p class="qui">Je suis :</p>
+        <div class="bascule" role="tablist"><button type="button" role="tab" id="t-el" aria-selected="true">Élève</button><button type="button" role="tab" id="t-pr" aria-selected="false">Professeur</button></div>
+        <form id="f-el" class="formulaire" autocomplete="on">
+          <label for="el-prenom">Prénom</label><input id="el-prenom" autocomplete="given-name" maxlength="40" required>
+          <label for="el-nom">Nom <span class="aide-champ">facultatif</span></label><input id="el-nom" autocomplete="family-name" maxlength="40">
+          <label for="el-niv">Niveau</label><select id="el-niv">${options}</select>
+          ${champsCompte("el")}
+          <p class="erreur" role="alert"></p><button class="btn" type="submit">Créer mon compte</button>
+          <p class="muted">Ton compte est rangé dans « Autres élèves » : tu gardes ta progression, mais tu n'apparais pas dans les classes ni dans le classement des élèves de M. Cadena.</p>
+        </form>
+        <form id="f-pr" class="formulaire" autocomplete="on" hidden>
+          <p class="note">Un compte professeur est validé par M. Cadena. Deux possibilités : lui écrire directement à <a href="${mailDemande({})}">${MAIL_PROF}</a>, ou remplir ce formulaire : la demande lui arrive sur son compte, et un mail tout prêt vous est proposé pour le prévenir.</p>
+          <label for="pr-prenom">Prénom</label><input id="pr-prenom" autocomplete="given-name" maxlength="40" required>
+          <label for="pr-nom">Nom</label><input id="pr-nom" autocomplete="family-name" maxlength="40" required>
+          <label for="pr-etab">Établissement <span class="aide-champ">facultatif</span></label><input id="pr-etab" autocomplete="organization" maxlength="80">
+          <fieldset class="cases"><legend>Niveaux de vos classes</legend>${cases}</fieldset>
+          <label for="pr-contact">E-mail ou téléphone <span class="aide-champ">pour vous répondre</span></label><input id="pr-contact" autocomplete="email" maxlength="80" required>
+          <label for="pr-msg">Message <span class="aide-champ">facultatif</span></label><textarea id="pr-msg" rows="3" maxlength="500"></textarea>
+          ${champsCompte("pr")}
+          <p class="erreur" role="alert"></p><button class="btn" type="submit">Envoyer ma demande</button>
+        </form>
+      </div></section>`;
     const envoyer = (form, action) => form.addEventListener("submit", async (ev) => {
       ev.preventDefault();
       const err = form.querySelector(".erreur"), b = form.querySelector("button[type=submit]");
       err.textContent = ""; b.disabled = true;
       try { await action(); } catch (x) { err.textContent = x.message; b.disabled = false; }
     });
-    const fco = document.getElementById("f-co");
-    envoyer(fco, () => Compte.connecter(document.getElementById("co-id").value, document.getElementById("co-mdp").value));
-    if (!creation) return;
-    const fcr = document.getElementById("f-cr"), tco = document.getElementById("t-co"), tcr = document.getElementById("t-cr");
-    const montrer = (cr) => { fco.hidden = cr; fcr.hidden = !cr; tco.setAttribute("aria-selected", !cr); tcr.setAttribute("aria-selected", cr); };
-    tco.addEventListener("click", () => montrer(false));
-    tcr.addEventListener("click", () => montrer(true));
-    envoyer(fcr, () => Compte.creer({
-      prenom: document.getElementById("cr-prenom").value, classe: document.getElementById("cr-classe").value,
-      identifiant: document.getElementById("cr-id").value, mdp: document.getElementById("cr-mdp").value
+    const val = (id) => document.getElementById(id).value;
+    const onglets = (a, b, pa, pb) => {
+      const montrer = (deux) => { pa.hidden = deux; pb.hidden = !deux; a.setAttribute("aria-selected", !deux); b.setAttribute("aria-selected", deux); };
+      a.addEventListener("click", () => montrer(false));
+      b.addEventListener("click", () => montrer(true));
+    };
+    const fco = document.getElementById("f-co"), fel = document.getElementById("f-el"), fpr = document.getElementById("f-pr");
+    onglets(document.getElementById("t-co"), document.getElementById("t-cr"), fco, document.getElementById("p-cr"));
+    onglets(document.getElementById("t-el"), document.getElementById("t-pr"), fel, fpr);
+    envoyer(fco, () => Compte.connecter(val("co-id"), val("co-mdp")));
+    envoyer(fel, () => Compte.creer({ type: "eleve", prenom: val("el-prenom"), nom: val("el-nom"), niveau: val("el-niv"), classe: val("el-niv"), identifiant: val("el-id"), mdp: val("el-mdp") }));
+    envoyer(fpr, () => Compte.creer({
+      type: "prof", prenom: val("pr-prenom"), nom: val("pr-nom"), etablissement: val("pr-etab"), contact: val("pr-contact"), message: val("pr-msg"),
+      niveaux: [...fpr.querySelectorAll("[name=pr-niv]:checked")].map((c) => c.value), identifiant: val("pr-id"), mdp: val("pr-mdp")
+    }));
+  }
+
+  // Mail tout prêt pour une demande de compte professeur (le professeur n'a qu'à l'envoyer)
+  const MAIL_PROF = "voltark976@gmail.com";
+  function mailDemande(d) {
+    const l = [
+      "Bonjour,", "", "Je souhaite un compte professeur sur le site ProfMaths.", "",
+      "Prénom et nom : " + [d.prenom, d.nom].filter(Boolean).join(" "),
+      "Établissement : " + (d.etablissement || ""),
+      "Niveaux de mes classes : " + (d.niveaux || []).join(", "),
+      "Contact : " + (d.contact || "")
+    ];
+    if (d.identifiant) l.push("Identifiant choisi sur le site : " + d.identifiant, "", "Ma demande est enregistrée sur le site : il reste à l'approuver depuis le compte prof.maths (Mon compte > Demandes de comptes).");
+    if (d.message) l.push("", d.message);
+    l.push("", "Merci !");
+    return `mailto:${MAIL_PROF}?subject=${encodeURIComponent("Demande de compte professeur ProfMaths")}&body=${encodeURIComponent(l.join("\n"))}`;
+  }
+
+  /* ---------- Page prof.maths : demandes de comptes professeurs et élèves inscrits sur le site ---------- */
+  async function pageDemandes() {
+    document.title = "Demandes de comptes · ProfMaths";
+    if (!Compte.chef()) {
+      $app.innerHTML = `<section class="page-compte"><p class="eyebrow">Demandes de comptes</p><h1>Page réservée au compte prof.maths</h1><p><a class="btn" href="#compte">Mon compte</a></p></section>`;
+      return;
+    }
+    $app.innerHTML = `<section class="page-compte page-demandes"><p class="eyebrow">Compte professeur</p><h1>Demandes de comptes</h1><p class="muted" id="dem-etat">Chargement…</p></section>`;
+    let r;
+    try { r = await Compte.demandes(); }
+    catch (x) { document.getElementById("dem-etat").textContent = "Lecture impossible. Vérifie la connexion internet puis recharge la page."; return; }
+    if (location.hash !== "#demandes") return;
+    const date = (t) => (t && t.toDate ? t.toDate().toLocaleDateString("fr-FR") : "");
+    const tri = (a, b) => ((b.creeLe && b.creeLe.seconds) || 0) - ((a.creeLe && a.creeLe.seconds) || 0);
+    const ETAT = { attente: "En attente", approuve: "Approuvée", refuse: "Refusée" };
+    const contact = (c) => (/@/.test(c) ? `<a href="mailto:${esc(c)}">${esc(c)}</a>` : esc(c));
+    const carte = (d) => `<li class="demande ${esc(d.statut)}">
+      <p><strong>${esc(d.prenom)} ${esc(d.nom)}</strong> <span class="etat">${ETAT[d.statut] || esc(d.statut)}</span></p>
+      <p class="meta">Identifiant ${esc(d.identifiant)} · demandé le ${date(d.creeLe)}</p>
+      ${d.etablissement ? `<p>${esc(d.etablissement)}</p>` : ""}
+      <p>Niveaux : ${esc((d.niveaux || []).join(", "))}</p>
+      <p>Contact : ${contact(d.contact || "")}</p>
+      ${d.message ? `<p class="msg">${esc(d.message)}</p>` : ""}
+      <p class="btns-prof">${d.statut !== "approuve" ? `<button class="btn" data-dem="${esc(d.uid)}" data-statut="approuve">Approuver</button>` : ""}${d.statut !== "refuse" ? ` <button class="btn-sec" data-dem="${esc(d.uid)}" data-statut="refuse">${d.statut === "approuve" ? "Retirer l'accès" : "Refuser"}</button>` : ""}${d.statut === "refuse" ? ` <button class="btn-sec" data-dem="${esc(d.uid)}" data-statut="attente">Remettre en attente</button>` : ""}</p></li>`;
+    const enAttente = r.profs.filter((d) => d.statut === "attente").sort(tri), traitees = r.profs.filter((d) => d.statut !== "attente").sort(tri);
+    const eleves = r.eleves.sort(tri);
+    document.querySelector(".page-demandes").innerHTML = `<p class="eyebrow">Compte professeur</p><h1>Demandes de comptes</h1>
+      <h2>Professeurs en attente (${enAttente.length})</h2>
+      ${enAttente.length ? `<ul class="demandes">${enAttente.map(carte).join("")}</ul>` : `<p class="muted">Aucune demande en attente.</p>`}
+      <p class="muted">Un professeur approuvé reçoit ses droits à sa prochaine connexion : sa progression est gardée, il n'apparaît pas dans le classement et ne voit aucun élève. Pour qu'il suive des classes, crée-lui un compte avec outils/comptes (option --prof).</p>
+      ${traitees.length ? `<details><summary>Demandes déjà traitées (${traitees.length})</summary><ul class="demandes">${traitees.map(carte).join("")}</ul></details>` : ""}
+      <h2>Autres élèves (${eleves.length})</h2>
+      <p class="muted">Élèves qui ont créé leur compte sur le site. Ils n'apparaissent ni dans tes classes ni dans le classement.</p>
+      ${eleves.length ? `<div class="table-defile"><table class="table-autres"><tr><th>Élève</th><th>Niveau</th><th>Identifiant</th><th>Créé le</th><th>XP</th></tr>${eleves.map((x) => `<tr><td>${esc(x.prenom)} ${esc(x.nom || "")}</td><td>${esc(x.niveau || "")}</td><td>${esc(x.identifiant)}</td><td>${date(x.creeLe)}</td><td>${+x.xp || 0}</td></tr>`).join("")}</table></div>` : `<p class="muted">Aucun pour l'instant.</p>`}`;
+    document.querySelectorAll("[data-dem]").forEach((b) => b.addEventListener("click", async () => {
+      b.disabled = true;
+      try { await Compte.decider(b.dataset.dem, b.dataset.statut); pageDemandes(); }
+      catch (x) { b.disabled = false; alert("Modification impossible : " + x.message); }
     }));
   }
 
@@ -560,7 +663,7 @@
   async function pageSuivi() {
     document.title = "Suivi des élèves · ProfMaths";
     const e = Compte.eleve();
-    if (!e || !e.prof) {
+    if (!e || !e.prof || e.externe) {
       $app.innerHTML = `<section class="page-compte"><p class="eyebrow">Suivi des élèves</p><h1>Page réservée au professeur</h1><p><a class="btn" href="#compte">Se connecter</a></p></section>`;
       return;
     }
@@ -694,7 +797,7 @@
   async function pageFrequentation(recharger) {
     document.title = "Fréquentation · ProfMaths";
     const e = Compte.eleve();
-    if (!e || !e.prof) {
+    if (!e || !e.prof || e.externe) {
       $app.innerHTML = `<section class="page-compte"><p class="eyebrow">Fréquentation du site</p><h1>Page réservée au professeur</h1><p><a class="btn" href="#compte">Se connecter</a></p></section>`;
       return;
     }
@@ -1126,6 +1229,7 @@
     Compte.classement(demande).then((l) => {
       if (demande !== filtreClassement || !$top.isConnected) return;
       if (l === null) { $top.innerHTML = `<li class="top-vide"><a href="#compte">Connecte-toi</a> pour voir le classement et y apparaître.</li>`; return; }
+      if (l.reserve) { $top.innerHTML = `<li class="top-vide">Le classement est réservé aux classes de M. Cadena. Tes records restent dans ton compte.</li>`; return; }
       if (!l.length) { $top.innerHTML = `<li class="top-vide">Personne pour l'instant. Lance un défi pour être le premier !</li>`; return; }
       $top.innerHTML = l.map((x, k) => `<li class="${x.moi ? "moi" : ""}"><span class="rang">${["🥇", "🥈", "🥉"][k] || k + 1}</span><span class="top-nom"><strong>${esc(x.prenom)}</strong>${!demande && x.classe ? `<span class="meta">${esc(classeCourte(x.classe))}</span>` : ""}</span><span class="top-pts">${x.points} pts</span></li>`).join("");
     }).catch(() => {
