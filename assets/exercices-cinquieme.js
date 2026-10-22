@@ -3,7 +3,7 @@
   Ce fichier se charge après assets/exercices-college.js et reprend ses outils (window.PM_EXO.college).
   Mêmes règles : chaque générateur fabrique une question avec des nombres tirés au hasard, la réponse
   attendue, trois indices progressifs et la solution rédigée.
-  Préfixes : rc5- (règles de calcul), tr5-, fr5-, pp5-, an5-, dv5-.
+  Préfixes : rc5- (règles de calcul), tr5-, fr5-, pp5-, an5-, dv5-, sc5-.
 */
 (function () {
   "use strict";
@@ -882,8 +882,112 @@
       solution: `$${k} \\times ${nbm} = ${k * nbm} \\leq ${lim}$ et $${k} \\times ${nbm + 1} = ${k * (nbm + 1)} > ${lim}$ : il y a $${nbm}$ multiples de $${k}$.` };
   };
 
+  /* =====================================================================
+     Chapitre 7 : symétries (sc5-) — symétrie centrale, centre de symétrie
+     ===================================================================== */
+  // Quadrillage 12 × 8 ; points [nom, [x, y], classe], polygones { pts, classe, num }
+  function grilleC(o) {
+    const u = 24, W = 12 * u + 16, H = 8 * u + 16, X = (x) => 8 + x * u, Y = (y) => 8 + (8 - y) * u;
+    let s = `<svg class="graph grille-sym" viewBox="0 0 ${W} ${H}" role="img" aria-label="${o.aria}"><g class="g-grid">`;
+    for (let i = 0; i <= 12; i++) s += `<line x1="${X(i)}" y1="${Y(0)}" x2="${X(i)}" y2="${Y(8)}"/>`;
+    for (let j = 0; j <= 8; j++) s += `<line x1="${X(0)}" y1="${Y(j)}" x2="${X(12)}" y2="${Y(j)}"/>`;
+    s += `</g>`;
+    (o.polys || []).forEach((p) => {
+      s += `<polygon class="${p.classe || "g-poly"}" points="${p.pts.map(([x, y]) => `${X(x)},${Y(y)}`).join(" ")}"/>`;
+      if (p.num) { const g = p.pts.reduce((a, [x, y]) => [a[0] + x / p.pts.length, a[1] + y / p.pts.length], [0, 0]); s += `<text class="g-num-angle" x="${X(g[0])}" y="${Y(g[1]) + 5}" text-anchor="middle">${p.num}</text>`; }
+    });
+    if (o.axe) { const [[x1, y1], [x2, y2]] = o.axe; s += `<line class="g-axe" x1="${X(x1)}" y1="${Y(y1)}" x2="${X(x2)}" y2="${Y(y2)}"/>`; }
+    (o.points || []).forEach(([n, [x, y], cl]) => { s += `<circle class="${cl || "g-point"}" cx="${X(x)}" cy="${Y(y)}" r="3.5"/><text class="g-plabel" x="${X(x) + 6}" y="${Y(y) - 6}">${n}</text>`; });
+    if (o.centre) { const [x, y] = o.centre; s += `<path class="g-code" d="M${X(x) - 5} ${Y(y) - 5}L${X(x) + 5} ${Y(y) + 5}M${X(x) - 5} ${Y(y) + 5}L${X(x) + 5} ${Y(y) - 5}"/><text class="g-plabel" x="${X(x) + 6}" y="${Y(y) + 15}">O</text>`; }
+    return s + `</svg>`;
+  }
+  const dansG8 = ([x, y]) => x >= 0 && x <= 12 && y >= 0 && y <= 8;
+  const sym = (O) => ([x, y]) => [2 * O[0] - x, 2 * O[1] - y];
+  FIGURES["sc5-point"] = () => grilleC({ centre: [6, 4], points: [["A", [3, 6]], ["A'", [9, 2]]], aria: "Quadrillage : A et son symétrique A' par rapport au point O, milieu de [AA']" });
+  FIGURES["sc5-figure"] = () => grilleC({ centre: [6, 4], polys: [{ pts: [[2, 5], [5, 5], [5, 7]] }, { pts: [[10, 3], [7, 3], [7, 1]], classe: "g-poly g-poly-image" }], aria: "Quadrillage : un triangle et son image par la symétrie de centre O, retournée d'un demi-tour" });
+
+  GEN["sc5-point"] = function () {
+    for (let e = 0; e < 2000; e++) {
+      const O = [rand(4, 8), rand(3, 5)], A = [rand(1, 11), rand(1, 7)];
+      if (A[0] === O[0] || A[1] === O[1] || Math.abs(A[0] - O[0]) + Math.abs(A[1] - O[1]) < 4) continue;
+      const img = sym(O)(A), cand = [img, [2 * O[0] - A[0], A[1]], [A[0], 2 * O[1] - A[1]], [img[0] + pick([-2, 2]), img[1] + pick([-1, 1])], [O[0] + (O[0] - A[0]) * 2, O[1] + (O[1] - A[1]) * 2]].filter(([x, y]) => x >= 0 && x <= 11 && y >= 0 && y <= 7);
+      const uniq = []; cand.forEach((p) => { if (!uniq.some((q) => q[0] === p[0] && q[1] === p[1]) && !(p[0] === A[0] && p[1] === A[1])) uniq.push(p); });
+      if (uniq.length < 4 || uniq[0] !== cand[0]) continue;
+      const loin = uniq.slice(0, 4); if (loin.some((p, i) => Math.abs(p[0] - O[0]) + Math.abs(p[1] - O[1]) < 2 || loin.some((q, j) => j !== i && Math.abs(p[0] - q[0]) + Math.abs(p[1] - q[1]) < 2))) continue;
+      const pts = shuffle(uniq.slice(0, 4).map((p, i) => ({ p, ok: i === 0 }))), noms = ["B", "C", "D", "E"];
+      const bonne = noms[pts.findIndex((x) => x.ok)];
+      return { enonce: "Quel point est le symétrique de $A$ par rapport au point $O$ ?", figure: grilleC({ centre: O, points: [["A", A], ...pts.map((x, i) => [noms[i], x.p])], aria: `Quadrillage avec le point O, le point A et quatre points B, C, D, E` }), mode: "choix", choix: noms.map((n) => `$${n}$`), attendu: noms.indexOf(bonne),
+        aides: ["Le symétrique de $A$ par rapport à $O$ est le point $A'$ tel que $O$ soit le **milieu** de $[AA']$.", "Compte les carreaux pour aller de $A$ à $O$ (horizontalement et verticalement).", "Recommence le même déplacement à partir de $O$."],
+        solution: `De $A$ à $O$ : $${O[0] - A[0] > 0 ? "+" : ""}${O[0] - A[0]}$ carreaux horizontalement et $${O[1] - A[1] > 0 ? "+" : ""}${O[1] - A[1]}$ verticalement. On refait le même déplacement depuis $O$ : on arrive en $${bonne}$, et $O$ est bien le milieu de $[A${bonne}]$.` };
+    }
+  };
+
+  const FORMES5 = [
+    [[0, 0], [3, 0], [3, 2]], [[0, 0], [2, 0], [2, 1], [1, 3]], [[0, 0], [3, 0], [1, 2]], [[0, 0], [1, 0], [1, 2], [3, 2], [3, 3], [0, 3]], [[0, 0], [2, 0], [3, 2], [0, 1]]
+  ];
+  GEN["sc5-figure"] = function () {
+    for (let e = 0; e < 3000; e++) {
+      const F = pick(FORMES5), O = [rand(5, 7), 4], d = [rand(0, 3), rand(0, 5)], A = F.map(([x, y]) => [x + d[0], y + d[1]]);
+      const v = [rand(5, 8), rand(-3, 3)], c = sym(O);
+      const imgs = [A.map(c), A.map(([x, y]) => [2 * O[0] - x, y]), A.map(([x, y]) => [x, 2 * O[1] - y]), A.map(([x, y]) => [x + v[0], y + v[1]])];
+      if (![A, ...imgs].every((P) => P.every(dansG8))) continue;
+      const bb = (P) => [Math.min(...P.map((p) => p[0])), Math.max(...P.map((p) => p[0])), Math.min(...P.map((p) => p[1])), Math.max(...P.map((p) => p[1]))], B = [A, ...imgs].map(bb);
+      if (B.some((b, i) => B.some((c, j) => j > i && b[0] <= c[1] && c[0] <= b[1] && b[2] <= c[3] && c[2] <= b[3]))) continue;
+      if (B.some((b) => b[0] <= O[0] && O[0] <= b[1] && b[2] <= O[1] && O[1] <= b[3])) continue;
+      const ordre = shuffle([0, 1, 2, 3]), polys = ordre.map((k, i) => ({ pts: imgs[k], classe: "g-poly g-poly-image", num: String(i + 1) }));
+      const bonne = ordre.indexOf(0) + 1;
+      return { enonce: "La figure de départ est celle sans numéro. Quelle figure numérotée est son image par la symétrie de centre $O$ ?", figure: grilleC({ centre: O, polys: [{ pts: A }, ...polys], aria: "Quadrillage : une figure, le centre O et quatre figures numérotées de 1 à 4" }), mode: "choix", choix: ["$1$", "$2$", "$3$", "$4$"], attendu: bonne - 1,
+        aides: ["La symétrie centrale fait faire un **demi-tour** à la figure autour de $O$.", "Prends un sommet de la figure et construis son symétrique : $O$ doit être le milieu du segment.", "Vérifie avec un deuxième sommet. Attention : une figure seulement retournée « en miroir » est une symétrie axiale."],
+        solution: `La figure $${bonne}$ est obtenue par un demi-tour autour de $O$ : chaque sommet a son image de l'autre côté de $O$, à la même distance. Les autres figures sont obtenues par des symétries axiales ou par un glissement.` };
+    }
+  };
+
+  GEN["sc5-proprietes"] = function () {
+    const t = rand(0, 4), x = Dc(rand(15, 95), 1), X1 = tD(x);
+    if (t === 0) return { enonce: `$A'$ est le symétrique de $A$ par rapport au point $O$, et $OA = ${X1}$ cm. Combien mesure $AA'$ ?`, mode: "nombre", prefixe: "$AA' =$", suffixe: "cm", attendu: (x.m * 2) / 10,
+      erreurs: [{ valeur: x.m / 10, message: "$O$ est le milieu de $[AA']$ : $AA'$ est deux fois plus long que $OA$." }],
+      aides: ["Par la symétrie de centre $O$, $O$ est le milieu de $[AA']$.", "Donc $OA' = OA$.", "$AA' = OA + OA'$."], solution: `$O$ est le milieu de $[AA']$ : $AA' = 2 \\times ${X1} = ${tD(mulD(x, Dc(2)))}$ cm.` };
+    if (t === 1) return { enonce: `Par la symétrie de centre $O$, le segment $[MN]$ a pour image $[M'N']$. On sait que $MN = ${X1}$ cm. Combien mesure $M'N'$ ?`, mode: "nombre", prefixe: "$M'N' =$", suffixe: "cm", attendu: x.m / 10,
+      aides: ["La symétrie centrale conserve les longueurs.", "Le segment image a la même longueur que le segment de départ.", "Aucun calcul n'est nécessaire."], solution: `La symétrie centrale conserve les longueurs : $M'N' = MN = ${X1}$ cm.` };
+    if (t === 2) { const a = rand(15, 165); return { enonce: `Par la symétrie de centre $O$, le triangle $ABC$ a pour image $A'B'C'$, et $\\widehat{ABC} = ${a}^\\circ$. Combien mesure $\\widehat{A'B'C'}$ ?`, mode: "nombre", prefixe: "Mesure :", suffixe: "°", attendu: a,
+      erreurs: [{ valeur: 180 - a, message: "Le demi-tour ne change pas les angles : la mesure est conservée." }],
+      aides: ["La symétrie centrale conserve les angles.", "L'image d'un angle est un angle de même mesure.", "Aucun calcul n'est nécessaire."], solution: `La symétrie centrale conserve les angles : $\\widehat{A'B'C'} = \\widehat{ABC} = ${a}^\\circ$.` }; }
+    if (t === 3) { const a = rand(6, 60), b = rand(4, 30), aire = a * b; return { enonce: `Un rectangle de $${a}$ cm sur $${b}$ cm a pour image, par une symétrie centrale, un autre rectangle. Quelle est l'aire de ce rectangle image ?`, mode: "nombre", prefixe: "Aire :", suffixe: "cm²", attendu: aire,
+      aides: ["La symétrie centrale conserve les longueurs, donc aussi les aires.", "Le rectangle image a les mêmes dimensions.", `Aire $= ${a} \\times ${b}$.`], solution: `Les dimensions sont conservées : l'aire de l'image est $${a} \\times ${b} = ${aire}$ cm², comme celle du rectangle de départ.` }; }
+    const q = pick([
+      ["Par une symétrie centrale, l'image d'une droite $(d)$ est une droite :", "parallèle à $(d)$", ["perpendiculaire à $(d)$", "qui coupe $(d)$ en $O$", "toujours confondue avec $(d)$"], "L'image d'une droite par une symétrie centrale est une droite parallèle (confondue avec elle si elle passe par $O$)."],
+      ["Par une symétrie centrale, trois points alignés ont pour images trois points :", "alignés", ["qui forment un triangle", "confondus", "sur un cercle de centre $O$"], "La symétrie centrale conserve l'alignement."],
+      ["Le symétrique du point $O$ par la symétrie de centre $O$ est :", "le point $O$ lui-même", ["un point à $1$ cm de $O$", "il n'existe pas", "le milieu d'un segment"], "Le centre est le seul point qui ne bouge pas : il est son propre symétrique."],
+      ["$A'$ est le symétrique de $A$ par rapport à $O$. Alors :", "$O$ est le milieu de $[AA']$", ["$O$ est sur la médiatrice de $[AA']$ seulement", "$(AA')$ est perpendiculaire à une droite passant par $O$", "$OA' = 2 \\times OA$"], "C'est la définition : $O$ est le milieu du segment qui joint un point et son image."],
+      ["Une symétrie centrale correspond à :", "un demi-tour autour du centre", ["un pliage le long d'une droite", "un quart de tour autour du centre", "un glissement"], "La symétrie centrale fait tourner la figure de $180^\\circ$ autour de $O$."]
+    ]);
+    const { choix, attendu } = melange(q[1], q[2]);
+    return { enonce: q[0], mode: "choix", choix, attendu, aides: ["La symétrie centrale est un demi-tour autour du centre $O$.", "Elle conserve les longueurs, les angles, les aires et l'alignement.", "L'image d'une droite est une droite parallèle."], solution: `Réponse : ${q[1]}. ${q[3]}` };
+  };
+
+  GEN["sc5-centre"] = function () {
+    const t = rand(0, 2);
+    const AVEC = ["un carré", "un rectangle", "un losange", "un parallélogramme", "un cercle", "un segment", "un hexagone régulier"], SANS = ["un triangle équilatéral", "un triangle isocèle", "un trapèze isocèle", "un demi-cercle", "un triangle rectangle", "un pentagone régulier", "un cerf-volant"];
+    const LAVEC = ["N", "S", "Z", "H", "O", "X", "I"], LSANS = ["A", "M", "T", "E", "V", "W", "Y", "U", "C", "K", "L", "F"];
+    if (t === 0) {
+      const ok = pick(AVEC), { choix, attendu } = melange(ok, shuffle(SANS.slice()).slice(0, 3));
+      return { enonce: "Laquelle de ces figures possède un centre de symétrie ?", mode: "choix", choix, attendu,
+        aides: ["Un point $O$ est un centre de symétrie d'une figure si, après un demi-tour autour de $O$, la figure se superpose à elle-même.", "Imagine la figure tournée « la tête en bas ».", "Les triangles n'ont jamais de centre de symétrie."], solution: `${ok[0].toUpperCase() + ok.slice(1)} possède un centre de symétrie : un demi-tour autour de ce point la laisse inchangée. Les autres figures, retournées, ne se superposent pas à elles-mêmes.` };
+    }
+    if (t === 1) {
+      const ok = pick(LAVEC), { choix, attendu } = melange(`la lettre ${ok}`, shuffle(LSANS.slice()).slice(0, 3).map((l) => `la lettre ${l}`));
+      return { enonce: "Écrites en majuscules d'imprimerie simples, laquelle de ces lettres possède un centre de symétrie ?", mode: "choix", choix, attendu,
+        aides: ["Fais tourner la lettre d'un demi-tour (la tête en bas) : est-elle inchangée ?", "Attention : avoir un axe de symétrie ne suffit pas.", "Le A, le M, le T ont un axe mais pas de centre."], solution: `La lettre ${ok} retournée d'un demi-tour reste la même : elle a un centre de symétrie.` };
+    }
+    const q = pick([["un parallélogramme quelconque", "un centre de symétrie mais aucun axe"], ["un rectangle (non carré)", "un centre de symétrie et deux axes"], ["un losange (non carré)", "un centre de symétrie et deux axes"], ["un carré", "un centre de symétrie et quatre axes"], ["un triangle isocèle (non équilatéral)", "un axe de symétrie et aucun centre"], ["un triangle équilatéral", "trois axes de symétrie et aucun centre"], ["la lettre N", "un centre de symétrie mais aucun axe"], ["la lettre H", "un centre de symétrie et deux axes"]]);
+    const autres = ["un centre de symétrie mais aucun axe", "un centre de symétrie et deux axes", "un axe de symétrie et aucun centre", "un centre de symétrie et quatre axes", "trois axes de symétrie et aucun centre"].filter((x) => x !== q[1]);
+    const { choix, attendu } = melange(q[1], shuffle(autres).slice(0, 3));
+    return { enonce: `Que possède ${q[0]} ?`, mode: "choix", choix, attendu,
+      aides: ["Axe de symétrie : on plie la figure, les deux moitiés se superposent.", "Centre de symétrie : on fait un demi-tour, la figure se superpose à elle-même.", "Une figure peut avoir l'un, l'autre, les deux ou aucun."], solution: `${q[0][0].toUpperCase() + q[0].slice(1)} possède ${q[1]}.` };
+  };
+
   /* Une « erreur connue » ne doit jamais coïncider avec la bonne réponse */
-  Object.keys(GEN).filter((k) => /^(rc5|tr5|fr5|pp5|an5|dv5)-/.test(k)).forEach((k) => {
+  Object.keys(GEN).filter((k) => /^(rc5|tr5|fr5|pp5|an5|dv5|sc5)-/.test(k)).forEach((k) => {
     const g = GEN[k];
     GEN[k] = (i) => {
       const q = g(i);

@@ -179,7 +179,7 @@ window.CATALOGUE = {
           id: "cinquieme-symetries",
           numero: 7,
           titre: "Symétries",
-          statut: "bientot",
+          statut: "disponible",
           drive: ""
         },
         {
