@@ -164,6 +164,12 @@ pre.code code { font: inherit; }
 .g-secteur-1 { fill: var(--ylang); }
 .g-secteur-2 { fill: var(--courbe2); }
 .g-secteur-3 { fill: var(--bon); }
+/* Figures de géométrie du collège */
+.g-cercle { fill: none; stroke: var(--lagon); stroke-width: 2; }
+.g-disque { fill: var(--lagon); fill-opacity: 0.15; stroke: none; }
+.g-segment { stroke: var(--encre); stroke-width: 2; stroke-linecap: round; }
+.g-droite { stroke: var(--encre); stroke-width: 1.4; }
+.g-code { fill: none; stroke: var(--ylang); stroke-width: 1.8; }
 .quadrillage .g-colorie { fill: var(--lagon); fill-opacity: 0.45; }
 
 /* Vidéos */

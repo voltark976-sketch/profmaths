@@ -80,7 +80,7 @@ window.CATALOGUE = {
           id: "sixieme-distances-cercles",
           numero: 9,
           titre: "Distances, cercles et médiatrice",
-          statut: "bientot",
+          statut: "disponible",
           drive: ""
         },
         {

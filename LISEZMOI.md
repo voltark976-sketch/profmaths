@@ -15,6 +15,7 @@ Site statique : aucune base de données, aucun compte élève. Ouvrir `index.htm
   - `data/sixieme/pourcentages.js` : 6e, chapitre 6 (sens et écritures d'un pourcentage, calcul mental, appliquer un pourcentage, proportion en pourcentage, remises et comparaisons). Générateurs `t6-`.
   - `data/sixieme/algebre.js` : 6e, chapitre 7 (égalités à trous, programmes de calcul, suites, motifs évolutifs, schémas en barre). Générateurs `a6-` ; figures `dessinMotif()` et `schemaBarres()`. Vidéos de jaicompris Maths, CommeUnJeu, Mathlab et Maître Lucas (pas de vidéo Monka pour ce chapitre).
   - `data/sixieme/donnees-probabilites.js` : 6e, chapitre 8 (tableaux, diagrammes en barres et circulaires, courbes, probabilités en équiprobabilité, fréquences). Générateurs `g6-` ; figures `diagrammeBarres()`, `diagrammeCirculaire()`, `courbeDonnees()`.
+  - `data/sixieme/distances-cercles.js` : 6e, chapitre 9 (notations, milieu, cercle et disque, distance à un point, médiatrice). Générateurs `c6-` ; figures `geo()` (points, segments, droites, cercles, codage).
 - `data/seconde/ensembles.js` : chapitre 1 de Seconde (ensembles de nombres, intervalles, valeur absolue). Les générateurs d'exercices correspondants commencent par `ens-`, `int-` et `abs-` dans `assets/exercices.js`.
 - `data/seconde/information-chiffree.js` : chapitre 3 de Seconde.
 - `data/seconde/arithmetique.js` : chapitre 4 de Seconde (multiples, diviseurs, parité, nombres premiers, fractions irréductibles). Générateurs `ar-` dans `assets/exercices.js`.

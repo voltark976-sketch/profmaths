@@ -2083,8 +2083,191 @@
       solution: `La fréquence $${fr(obs, N)}$ est proche de $${fr(N / 6, N)} = ${fr(1, 6)}$ : c'est ce qu'on attend d'un dé équilibré. Sur un grand nombre de lancers, la fréquence se rapproche de la probabilité, mais n'est presque jamais exactement égale.` };
   };
 
+  /* =====================================================================
+     6e, chapitre 9 : distances, cercles et médiatrice (préfixe c6-)
+     Programme : distance entre deux points, milieu d'un segment ; cercle, disque, rayon, diamètre, corde
+     (comme ensembles de points) ; problèmes de distance à un point ; médiatrice (définition et propriété
+     caractéristique) ; lexique, notations et codage.
+     ===================================================================== */
+  /* Figure de géométrie en pixels. o = { W, H, pts: { A: [x, y] }, segs: [["A", "B"]], droites: [["A", "B"]],
+     demi: [["A", "B"]] (demi-droite [AB)), cercles: [["O", r]], disques: [["O", r]], codes: [["A", "I", n]] (n traits),
+     droitAngle: [["A", "I", "M"]] (angle droit en I), cachés: ["O"] (points sans étiquette) } */
+  function geo(o) {
+    const W = o.W || 320, H = o.H || 200, P = o.pts;
+    let s = `<svg class="graph geo" viewBox="0 0 ${W} ${H}" role="img" aria-label="${o.aria || "Figure de géométrie"}">`;
+    (o.disques || []).forEach(([c, r]) => { s += `<circle class="g-disque" cx="${P[c][0]}" cy="${P[c][1]}" r="${r}"/>`; });
+    (o.cercles || []).forEach(([c, r]) => { s += `<circle class="g-cercle" cx="${P[c][0]}" cy="${P[c][1]}" r="${r}"/>`; });
+    const prolonge = (a, b, k1, k2) => { const dx = P[b][0] - P[a][0], dy = P[b][1] - P[a][1]; return [P[a][0] - k1 * dx, P[a][1] - k1 * dy, P[b][0] + k2 * dx, P[b][1] + k2 * dy].map((v) => +v.toFixed(1)); };
+    (o.droites || []).forEach(([a, b]) => { const [x1, y1, x2, y2] = prolonge(a, b, 0.6, 0.6); s += `<line class="g-droite" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}"/>`; });
+    (o.demi || []).forEach(([a, b]) => { const [x1, y1, x2, y2] = prolonge(a, b, 0, 0.7); s += `<line class="g-droite" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}"/>`; });
+    (o.segs || []).forEach(([a, b]) => { s += `<line class="g-segment" x1="${P[a][0]}" y1="${P[a][1]}" x2="${P[b][0]}" y2="${P[b][1]}"/>`; });
+    (o.codes || []).forEach(([a, b, n]) => {
+      const mx = (P[a][0] + P[b][0]) / 2, my = (P[a][1] + P[b][1]) / 2, dx = P[b][0] - P[a][0], dy = P[b][1] - P[a][1], L = Math.hypot(dx, dy), ux = dx / L, uy = dy / L;
+      for (let k = 0; k < n; k++) { const c = (k - (n - 1) / 2) * 4; const cx = mx + ux * c, cy = my + uy * c; s += `<line class="g-code" x1="${+(cx - uy * 6 + ux * 2).toFixed(1)}" y1="${+(cy + ux * 6 + uy * 2).toFixed(1)}" x2="${+(cx + uy * 6 - ux * 2).toFixed(1)}" y2="${+(cy - ux * 6 - uy * 2).toFixed(1)}"/>`; }
+    });
+    (o.droitAngle || []).forEach(([a, i, b]) => {
+      const u = (p) => { const dx = P[p][0] - P[i][0], dy = P[p][1] - P[i][1], L = Math.hypot(dx, dy); return [dx / L * 9, dy / L * 9]; };
+      const [ax, ay] = u(a), [bx, by] = u(b), x = P[i][0], y = P[i][1];
+      s += `<path class="g-code" d="M${+(x + ax).toFixed(1)} ${+(y + ay).toFixed(1)} L${+(x + ax + bx).toFixed(1)} ${+(y + ay + by).toFixed(1)} L${+(x + bx).toFixed(1)} ${+(y + by).toFixed(1)}"/>`;
+    });
+    Object.entries(P).forEach(([n, [x, y]]) => {
+      if ((o.caches || []).includes(n)) return;
+      s += `<circle class="g-point" cx="${x}" cy="${y}" r="3"/>`;
+      const [dx, dy] = (o.decal && o.decal[n]) || [7, -7];
+      s += `<text class="g-plabel" x="${x + dx}" y="${y + dy}" text-anchor="${dx < 0 ? "end" : dx === 0 ? "middle" : "start"}">${n}</text>`;
+    });
+    return s + `</svg>`;
+  }
+  // Point sur un cercle de centre c, rayon r, angle en degrés
+  const surCercle = (c, r, deg) => [+(c[0] + r * Math.cos((deg * Math.PI) / 180)).toFixed(1), +(c[1] - r * Math.sin((deg * Math.PI) / 180)).toFixed(1)];
+  const decalDe = (c, p, d) => { const dx = p[0] - c[0], dy = p[1] - c[1], L = Math.hypot(dx, dy) || 1; return [+((dx / L) * (d || 12)).toFixed(0) - 3, +((dy / L) * (d || 12) + 4).toFixed(0)]; };
+
+  // Une figure « cercle » aux lettres tirées au hasard : centre, rayon, diamètre, corde
+  function figureCercle() {
+    const L = shuffle(["A", "B", "C", "D", "E", "F", "M", "N", "P", "R", "S", "T"]), O = pick(["O", "K", "I"]);
+    const c = [130, 100], r = 78, a0 = rand(0, 359);
+    const [rA, d1, d2, c1, c2] = L;
+    const pts = { [O]: c, [rA]: surCercle(c, r, a0 + 100), [d1]: surCercle(c, r, a0 + 200), [d2]: surCercle(c, r, a0 + 20), [c1]: surCercle(c, r, a0 + 250), [c2]: surCercle(c, r, a0 + 330) };
+    const decal = {}; Object.keys(pts).forEach((n) => { if (n !== O) decal[n] = decalDe(c, pts[n], 13); }); decal[O] = [6, 14];
+    return { O, rA, d1, d2, c1, c2, fig: geo({ W: 320, H: 200, pts, cercles: [[O, r]], segs: [[O, rA], [d1, d2], [c1, c2]], decal, aria: `Cercle de centre ${O} avec un rayon, un diamètre et une corde` }) };
+  }
+  FIGURES["c6-cercle"] = () => geo({ W: 320, H: 200, pts: { O: [130, 100], A: surCercle([130, 100], 78, 120), B: surCercle([130, 100], 78, 210), C: surCercle([130, 100], 78, 30), D: surCercle([130, 100], 78, 260), E: surCercle([130, 100], 78, 340) }, cercles: [["O", 78]], segs: [["O", "A"], ["B", "C"], ["D", "E"]], decal: { O: [6, 14], A: decalDe([130, 100], surCercle([130, 100], 78, 120), 13), B: decalDe([130, 100], surCercle([130, 100], 78, 210), 13), C: decalDe([130, 100], surCercle([130, 100], 78, 30), 13), D: decalDe([130, 100], surCercle([130, 100], 78, 260), 13), E: decalDe([130, 100], surCercle([130, 100], 78, 340), 13) }, aria: "Cercle de centre O : rayon [OA], diamètre [BC], corde [DE]" });
+  function figureMediatrice(lettres) {
+    const [A, B, I, M, N] = lettres || ["A", "B", "I", "M", "N"];
+    const pts = { [A]: [60, 120], [B]: [240, 120], [I]: [150, 120], [M]: [150, 40], [N]: [150, 175] };
+    return geo({ W: 320, H: 195, pts, segs: [[A, B], [M, A], [M, B]], droites: [[M, N]], codes: [[A, I, 2], [I, B, 2], [M, A, 1], [M, B, 1]], droitAngle: [[B, I, M]], decal: { [A]: [-8, 4], [B]: [8, 4], [I]: [7, 14], [M]: [8, -2], [N]: [8, 4] }, aria: `Médiatrice de [${A}${B}] passant par ${I}, ${M} et ${N}, avec ${M}${A} = ${M}${B}` });
+  }
+  FIGURES["c6-mediatrice"] = () => figureMediatrice();
+
+  GEN["c6-vocab"] = function () {
+    const F = figureCercle(), t = rand(0, 3);
+    const seg = [[`[${F.O}${F.rA}]`, "Un rayon", `il relie le centre $${F.O}$ à un point du cercle`], [`[${F.d1}${F.d2}]`, "Un diamètre", `il relie deux points du cercle en passant par le centre $${F.O}$`], [`[${F.c1}${F.c2}]`, "Une corde", "il relie deux points du cercle sans passer par le centre"]][t % 3];
+    if (t === 3) {
+      const c = melange("Le centre du cercle", ["Un rayon du cercle", "Le diamètre du cercle", "Une corde du cercle"]);
+      return { enonce: `Sur la figure, comment s'appelle le point $${F.O}$ ?`, figure: F.fig, mode: "choix", choix: c.choix, attendu: c.attendu,
+        aides: ["Tous les points du cercle sont à la même distance d'un point particulier.", "Ce point est au milieu, à l'intérieur du cercle.", "Un rayon, un diamètre et une corde sont des segments, pas des points."],
+        solution: `$${F.O}$ est le **centre** du cercle : tous les points du cercle sont à la même distance de $${F.O}$.` };
+    }
+    const c = melange(seg[1], ["Un rayon", "Un diamètre", "Une corde", "Un centre"].filter((x) => x !== seg[1]));
+    return { enonce: `Sur la figure, le segment $${seg[0]}$ est :`, figure: F.fig, mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: ["Un **rayon** va du centre à un point du cercle.", "Un **diamètre** va d'un point du cercle à un autre en passant par le centre.", "Une **corde** relie deux points du cercle, sans forcément passer par le centre."],
+      solution: `$${seg[0]}$ est ${seg[1].toLowerCase()} : ${seg[2]}.` };
+  };
+
+  GEN["c6-mesures"] = function () {
+    const t = rand(0, 3), r = Dc(rand(11, 99), 1), d = mulD(r, Dc(2)), O = pick(["O", "K", "C"]), [A, B] = shuffle(["A", "B", "M", "N", "P", "R"]).slice(0, 2);
+    if (t === 0) return { enonce: `Un cercle a pour rayon $${tD(r)}$ cm. Quel est son diamètre ?`, mode: "nombre", prefixe: "Diamètre :", suffixe: "cm", attendu: vD(d),
+      erreurs: [{ valeur: vD(r) / 2, message: "Le diamètre est **deux fois plus long** que le rayon." }],
+      aides: ["Un diamètre est formé de deux rayons bout à bout.", "Diamètre $=$ $2 \\times$ rayon.", `Calcule $2 \\times ${tD(r)}$.`], solution: `Diamètre $= 2 \\times ${tD(r)} = ${tD(d)}$ cm.` };
+    if (t === 1) return { enonce: `Un cercle a pour diamètre $${tD(d)}$ cm. Quel est son rayon ?`, mode: "nombre", prefixe: "Rayon :", suffixe: "cm", attendu: vD(r),
+      erreurs: [{ valeur: vD(d) * 2, message: "Le rayon est **deux fois plus court** que le diamètre." }],
+      aides: ["Le rayon est la moitié du diamètre.", "Rayon $=$ diamètre $\\div 2$.", `Calcule $${tD(d)} \\div 2$.`], solution: `Rayon $= ${tD(d)} \\div 2 = ${tD(r)}$ cm.` };
+    if (t === 2) return { enonce: `$${A}$ et $${B}$ sont deux points du cercle de centre $${O}$, et $${O}${A} = ${tD(r)}$ cm. Combien mesure $${O}${B}$ ?`, mode: "nombre", prefixe: `$${O}${B} =$`, suffixe: "cm", attendu: vD(r),
+      erreurs: [{ valeur: vD(d), message: `$${O}${B}$ est un rayon, pas un diamètre.` }],
+      aides: [`$${O}${A}$ et $${O}${B}$ relient tous les deux le centre à un point du cercle.`, "Ce sont deux rayons du même cercle.", "Tous les rayons d'un cercle ont la même longueur."], solution: `$[${O}${A}]$ et $[${O}${B}]$ sont deux rayons du même cercle : $${O}${B} = ${O}${A} = ${tD(r)}$ cm.` };
+    return { enonce: `$[${A}${B}]$ est un diamètre du cercle de centre $${O}$, et $${O}${A} = ${tD(r)}$ cm. Combien mesure $${A}${B}$ ?`, mode: "nombre", prefixe: `$${A}${B} =$`, suffixe: "cm", attendu: vD(d),
+      erreurs: [{ valeur: vD(r), message: `$${A}${B}$ est un diamètre : il mesure deux rayons.` }],
+      aides: [`$[${O}${A}]$ est un rayon.`, `Le diamètre $[${A}${B}]$ est formé de deux rayons : $[${A}${O}]$ et $[${O}${B}]$.`, `Calcule $2 \\times ${tD(r)}$.`], solution: `$${A}${B} = ${A}${O} + ${O}${B} = 2 \\times ${tD(r)} = ${tD(d)}$ cm.` };
+  };
+
+  GEN["c6-position"] = function () {
+    const r = rand(2, 9), O = pick(["O", "K", "C"]), M = pick(["M", "N", "P", "R"]), pos = rand(0, 2);
+    const dist = pos === 0 ? Dc(r) : pos === 1 ? Dc(rand(1, r * 10 - 1), 1) : Dc(rand(r * 10 + 1, r * 10 + 40), 1);
+    if (dist.m % 10 === 0 && dist.d) dist.m /= 10, dist.d = 0;
+    const ctx = Math.random() < 0.35;
+    const choix = [`$${M}$ est sur le cercle`, `$${M}$ est à l'intérieur du disque, mais pas sur le cercle`, `$${M}$ est à l'extérieur du disque`];
+    return { enonce: ctx ? `Une chèvre est attachée au piquet $${O}$ par une corde de $${r}$ m. Une touffe d'herbe $${M}$ est à $${tD(dist)}$ m du piquet. Où se trouve la touffe d'herbe par rapport au disque que la chèvre peut brouter ?` : `On considère le cercle de centre $${O}$ et de rayon $${r}$ cm. On sait que $${O}${M} = ${tD(dist)}$ cm. Où se trouve le point $${M}$ ?`,
+      mode: "choix", choix: ctx ? [`Sur le bord : la chèvre l'atteint tout juste`, `À l'intérieur : la chèvre peut la manger`, `À l'extérieur : la chèvre ne peut pas l'atteindre`] : choix, attendu: pos,
+      aides: [`Compare la distance $${O}${M}$ au rayon $${r}$.`, "Égale au rayon : sur le cercle. Plus petite : à l'intérieur du disque. Plus grande : à l'extérieur.", "Le disque, c'est le cercle et tout son intérieur."],
+      solution: `$${O}${M} = ${tD(dist)}$ ${pos === 0 ? "=" : pos === 1 ? "<" : ">"} $${r}$ : ${[`le point est sur le cercle (à exactement $${r}$ du centre)`, "le point est plus près du centre que le cercle : il est à l'intérieur du disque", "le point est plus loin du centre que le cercle : il est à l'extérieur du disque"][pos]}.` };
+  };
+
+  GEN["c6-milieu"] = function () {
+    const t = rand(0, 2), [A, B, I] = shuffle(["A", "B", "C", "D", "E", "F"]).slice(0, 2).concat(pick(["I", "J", "K"])), L = Dc(rand(21, 199), 1);
+    const m = Dc(L.m * 5, L.d + 1);
+    if (t === 0) return { enonce: `$${I}$ est le milieu du segment $[${A}${B}]$ et $${A}${B} = ${tD(L)}$ cm. Combien mesure $${A}${I}$ ?`, mode: "nombre", prefixe: `$${A}${I} =$`, suffixe: "cm", attendu: vD(L) / 2,
+      erreurs: [{ valeur: vD(L) * 2, message: "Le milieu partage le segment en deux : on divise par $2$." }],
+      aides: ["Le milieu est sur le segment et à égale distance des deux extrémités.", `$${A}${I} = ${I}${B}$ et $${A}${I} + ${I}${B} = ${A}${B}$.`, `Calcule $${tD(L)} \\div 2$.`], solution: `$${A}${I} = ${tD(L)} \\div 2 = ${tD(m)}$ cm.` };
+    if (t === 1) return { enonce: `$${I}$ est le milieu du segment $[${A}${B}]$ et $${I}${B} = ${tD(m)}$ cm. Combien mesure $${A}${B}$ ?`, mode: "nombre", prefixe: `$${A}${B} =$`, suffixe: "cm", attendu: vD(L),
+      erreurs: [{ valeur: vD(m) / 2, message: `$${A}${B}$ est le segment entier : il mesure deux fois $${I}${B}$.` }],
+      aides: [`$${I}$ partage $[${A}${B}]$ en deux segments de même longueur.`, `$${A}${I} = ${I}${B} = ${tD(m)}$ cm.`, `$${A}${B} = 2 \\times ${tD(m)}$.`], solution: `$${A}${B} = 2 \\times ${tD(m)} = ${tD(L)}$ cm.` };
+    const bon = `$${I} \\in [${A}${B}]$ et $${A}${I} = ${I}${B}$`;
+    const c = melange(bon, [`$${A}${I} = ${I}${B}$ seulement`, `$${I} \\in [${A}${B}]$ seulement`, `$${I} \\in (${A}${B})$ et $${A}${I} = 2 \\times ${I}${B}$`]);
+    return { enonce: `$${I}$ est le milieu du segment $[${A}${B}]$ si et seulement si :`, mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: ["Le milieu doit être **sur** le segment.", "Il doit aussi être **à égale distance** des deux extrémités.", "Il faut les deux conditions à la fois."],
+      solution: `Le milieu de $[${A}${B}]$ appartient au segment et le partage en deux segments de même longueur : ${bon}. Un point à égale distance de $${A}$ et $${B}$ mais hors du segment n'est pas le milieu.` };
+  };
+
+  GEN["c6-mediatrice"] = function () {
+    const t = rand(0, 3), [A, B] = shuffle(["A", "B", "C", "D", "E"]).slice(0, 2), M = pick(["M", "N", "P", "R", "S"]);
+    if (t === 0) { const x = Dc(rand(15, 95), 1);
+      return { enonce: `Le point $${M}$ est sur la médiatrice du segment $[${A}${B}]$, et $${M}${A} = ${tD(x)}$ cm. Combien mesure $${M}${B}$ ?`, figure: figureMediatrice([A, B, "I", M, "N"]), mode: "nombre", prefixe: `$${M}${B} =$`, suffixe: "cm", attendu: vD(x),
+        aides: ["Rappelle-toi la propriété de la médiatrice.", "Tout point de la médiatrice d'un segment est à égale distance des deux extrémités.", `Donc $${M}${A} = ${M}${B}$.`],
+        solution: `$${M}$ est sur la médiatrice de $[${A}${B}]$, donc il est à égale distance de $${A}$ et de $${B}$ : $${M}${B} = ${M}${A} = ${tD(x)}$ cm.` }; }
+    if (t === 1) { // quel point est sur la médiatrice ?
+      const noms = shuffle(["E", "F", "G", "H", "K", "L"]).slice(0, 4), bonIdx = rand(0, 3);
+      const d = noms.map((n, k) => { const a = rand(2, 9); return k === bonIdx ? [a, a] : [a, a + pick([-1, 1, 2])]; });
+      const c = melange(`$${noms[bonIdx]}$`, noms.filter((_, k) => k !== bonIdx).map((n) => `$${n}$`));
+      return { enonce: `On connaît les distances de quatre points à $${A}$ et à $${B}$ : ${noms.map((n, k) => `$${n}${A} = ${d[k][0]}$ cm et $${n}${B} = ${d[k][1]}$ cm`).join(" ; ")}. Lequel est sur la médiatrice de $[${A}${B}]$ ?`, mode: "choix", choix: c.choix, attendu: c.attendu,
+        aides: ["Les points de la médiatrice sont à **égale distance** de $" + A + "$ et de $" + B + "$.", "Pour chaque point, compare ses deux distances.", "Un seul point a ses deux distances égales."],
+        solution: `$${noms[bonIdx]}${A} = ${noms[bonIdx]}${B} = ${d[bonIdx][0]}$ cm : $${noms[bonIdx]}$ est à égale distance de $${A}$ et de $${B}$, il est sur la médiatrice de $[${A}${B}]$.` }; }
+    if (t === 2) { const bon = `la droite perpendiculaire à $[${A}${B}]$ qui passe par son milieu`;
+      const c = melange(bon, [`la droite qui passe par $${A}$ et $${B}$`, `une droite perpendiculaire à $[${A}${B}]$ qui passe par $${A}$`, `une droite qui passe par le milieu de $[${A}${B}]$, dans n'importe quelle direction`]);
+      return { enonce: `La médiatrice du segment $[${A}${B}]$ est :`, mode: "choix", choix: c.choix, attendu: c.attendu,
+        aides: ["« Média » : le milieu ; « trice » : qui coupe.", "Elle passe par le milieu du segment.", "Elle forme un angle droit avec le segment."],
+        solution: `La médiatrice de $[${A}${B}]$ est ${bon}. Tous ses points sont à égale distance de $${A}$ et de $${B}$.` }; }
+    const x = rand(3, 9), y = x + rand(1, 4);
+    const choix = [`Oui : $${M}${A} = ${M}${B}$`, `Non : $${M}${A} \\neq ${M}${B}$`, `On ne peut pas savoir sans la figure`];
+    const egal = Math.random() < 0.5;
+    const cc = melange(choix[egal ? 0 : 1], [choix[egal ? 1 : 0], choix[2], `Oui : $${M}$ est entre $${A}$ et $${B}$`]);
+    return { enonce: `On sait que $${M}${A} = ${x}$ cm et $${M}${B} = ${egal ? x : y}$ cm. Le point $${M}$ est-il sur la médiatrice de $[${A}${B}]$ ?`, mode: "choix", choix: cc.choix, attendu: cc.attendu,
+      aides: ["La médiatrice de $[" + A + B + "]$ est formée de tous les points à égale distance de $" + A + "$ et de $" + B + "$.", "Compare $" + M + A + "$ et $" + M + B + "$.", "C'est une propriété caractéristique : elle marche dans les deux sens."],
+      solution: egal ? `$${M}${A} = ${M}${B}$ : $${M}$ est à égale distance de $${A}$ et de $${B}$, il est sur la médiatrice de $[${A}${B}]$.` : `$${M}${A} \\neq ${M}${B}$ : $${M}$ n'est pas à égale distance de $${A}$ et de $${B}$, il n'est pas sur la médiatrice.` };
+  };
+
+  GEN["c6-notations"] = function () {
+    const [A, B] = shuffle(["A", "B", "C", "D", "E", "F"]).slice(0, 2), t = rand(0, 1);
+    if (t === 0) {
+      const obj = pick([["le segment d'extrémités $" + A + "$ et $" + B + "$", `[${A}${B}]`], ["la droite qui passe par $" + A + "$ et $" + B + "$", `(${A}${B})`], ["la demi-droite d'origine $" + A + "$ qui passe par $" + B + "$", `[${A}${B})`], ["la longueur du segment d'extrémités $" + A + "$ et $" + B + "$", `${A}${B}`]]);
+      const c = melange(`$${obj[1]}$`, [`$[${A}${B}]$`, `$(${A}${B})$`, `$[${A}${B})$`, `$${A}${B}$`, `$[${B}${A})$`].filter((x) => x !== `$${obj[1]}$`));
+      return { enonce: `Comment note-t-on ${obj[0]} ?`, mode: "choix", choix: c.choix, attendu: c.attendu,
+        aides: ["Crochets $[\\;]$ : le segment s'arrête aux deux points. Parenthèses $(\\;)$ : la droite continue des deux côtés.", "Demi-droite : un crochet du côté de l'origine, une parenthèse de l'autre côté.", "Sans crochets ni parenthèses, c'est une longueur (un nombre)."],
+        solution: `On note ${obj[0]} : $${obj[1]}$.` };
+    }
+    // appartenance : trois points alignés A, C, B dans cet ordre
+    const C = pick(["M", "N", "P"]), E = pick(["R", "S", "T"]);
+    const pts = { [A]: [50, 110], [C]: [150, 110], [B]: [250, 110], [E]: [150, 40] };
+    const fig = geo({ W: 320, H: 150, pts, droites: [[A, B]], decal: { [A]: [0, 20], [C]: [0, 20], [B]: [0, 20], [E]: [8, -4] }, aria: `Points ${A}, ${C}, ${B} alignés dans cet ordre sur une droite, et ${E} hors de la droite` });
+    const vraies = [`$${C} \\in [${A}${B}]$`, `$${A} \\in (${C}${B})$`, `$${B} \\in [${A}${C})$`, `$${E} \\notin (${A}${B})$`, `$${A} \\notin [${C}${B}]$`];
+    const fausses = [`$${A} \\in [${C}${B}]$`, `$${E} \\in (${A}${B})$`, `$${C} \\notin [${A}${B}]$`, `$${A} \\in [${C}${B})$`, `$${B} \\notin (${A}${C})$`];
+    const c = melange(pick(vraies), shuffle(fausses).slice(0, 3));
+    return { enonce: `Sur la figure, $${A}$, $${C}$ et $${B}$ sont alignés dans cet ordre. Quelle écriture est juste ?`, figure: fig, mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: ["$\\in$ se lit « appartient à », $\\notin$ « n'appartient pas à ».", "Un segment s'arrête à ses extrémités ; une droite continue des deux côtés ; une demi-droite continue d'un seul côté.", "Pour chaque écriture, regarde si le point est vraiment sur l'objet."],
+      solution: `${c.choix[c.attendu]} est juste. Les autres sont fausses : par exemple, $${A}$ n'est pas entre $${C}$ et $${B}$, donc $${A} \\notin [${C}${B}]$.` };
+  };
+
+  GEN["c6-probleme"] = function () {
+    const t = rand(0, 2);
+    if (t === 0) { const r = rand(2, 8), v = rand(0, 2); const d = v === 0 ? Dc(r * 10 - rand(1, 15), 1) : v === 1 ? Dc(r * 10 + rand(1, 15), 1) : Dc(r * 10, 1);
+      const choix = ["Oui, elle est dans la zone couverte", "Non, elle est en dehors de la zone couverte", "Elle est exactement à la limite de la zone"];
+      const rep = vD(d) < r ? 0 : vD(d) > r ? 1 : 2;
+      return { enonce: `Une antenne relais couvre tous les points situés à $${r}$ km d'elle ou moins. Une maison est à $${tD(d)}$ km de l'antenne. Est-elle couverte ?`, mode: "choix", choix, attendu: rep,
+        aides: ["La zone couverte est un **disque** de centre l'antenne.", `Son rayon est $${r}$ km.`, `Compare $${tD(d)}$ à $${r}$.`],
+        solution: `$${tD(d)}$ ${rep === 0 ? "<" : rep === 1 ? ">" : "="} $${r}$ : ${["la maison est dans le disque, elle est couverte.", "la maison est hors du disque, elle n'est pas couverte.", "la maison est sur le cercle, à la limite de la zone."][rep]}` }; }
+    if (t === 1) { const c1 = pick(["Kani-Kéli", "Bandrélé", "Dembéni", "Sada"]), c2 = pick(["Ouangani", "Chiconi", "Tsingoni", "Mtsamboro"]);
+      const c = melange("Sur la médiatrice du segment qui relie les deux villages", ["Au milieu exact de la route qui relie les deux villages, seulement", "Dans le village le plus grand", "N'importe où sur la route qui relie les deux villages"]);
+      return { enonce: `On veut construire une salle de sport à égale distance des villages de ${c1} et de ${c2}. Où peut-on la placer ?`, mode: "choix", choix: c.choix, attendu: c.attendu,
+        aides: ["Quels sont les points à égale distance de deux points ?", "C'est une propriété de la médiatrice.", "Le milieu est un de ces points, mais il y en a beaucoup d'autres."],
+        solution: "Les points à égale distance de deux points sont exactement ceux de la **médiatrice** du segment qui les relie. Le milieu en fait partie, mais toute la médiatrice convient." }; }
+    const r = rand(3, 12);
+    return { enonce: `Une chèvre est attachée à un piquet par une corde de $${r}$ m. Quelle est la plus grande distance entre deux touffes d'herbe qu'elle peut brouter ?`, mode: "nombre", prefixe: "Distance :", suffixe: "m", attendu: 2 * r,
+      erreurs: [{ valeur: r, message: "Deux touffes peuvent être de part et d'autre du piquet." }],
+      aides: ["La chèvre peut brouter dans un disque de centre le piquet.", `Le rayon du disque est $${r}$ m.`, "La plus grande distance entre deux points d'un disque est son diamètre."],
+      solution: `La chèvre broute dans un disque de rayon $${r}$ m. Deux points les plus éloignés sont aux extrémités d'un diamètre : $2 \\times ${r} = ${2 * r}$ m.` };
+  };
+
   /* Une « erreur connue » ne doit jamais coïncider avec la bonne réponse ; propriétés internes retirées */
-  Object.keys(GEN).filter((k) => /^(n6|o6|d6|f6|p6|t6|a6|g6)-/.test(k)).forEach((k) => {
+  Object.keys(GEN).filter((k) => /^(n6|o6|d6|f6|p6|t6|a6|g6|c6)-/.test(k)).forEach((k) => {
     const g = GEN[k];
     GEN[k] = (i) => {
       const q = g(i);
