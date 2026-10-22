@@ -186,7 +186,7 @@ window.CATALOGUE = {
           id: "cinquieme-relatifs",
           numero: 8,
           titre: "Nombres relatifs et repérage",
-          statut: "bientot",
+          statut: "disponible",
           drive: ""
         },
         {

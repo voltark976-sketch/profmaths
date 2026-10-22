@@ -3,7 +3,7 @@
   Ce fichier se charge après assets/exercices-college.js et reprend ses outils (window.PM_EXO.college).
   Mêmes règles : chaque générateur fabrique une question avec des nombres tirés au hasard, la réponse
   attendue, trois indices progressifs et la solution rédigée.
-  Préfixes : rc5- (règles de calcul), tr5-, fr5-, pp5-, an5-, dv5-, sc5-.
+  Préfixes : rc5- (règles de calcul), tr5-, fr5-, pp5-, an5-, dv5-, sc5-, nr5-.
 */
 (function () {
   "use strict";
@@ -986,8 +986,112 @@
       aides: ["Axe de symétrie : on plie la figure, les deux moitiés se superposent.", "Centre de symétrie : on fait un demi-tour, la figure se superpose à elle-même.", "Une figure peut avoir l'un, l'autre, les deux ou aucun."], solution: `${q[0][0].toUpperCase() + q[0].slice(1)} possède ${q[1]}.` };
   };
 
+  /* =====================================================================
+     Chapitre 8 : nombres relatifs et repérage (nr5-)
+     ===================================================================== */
+  const rel = (x) => (x < 0 ? `-${nb(-x)}` : nb(x)); // écriture KaTeX d'un relatif
+  const relP = (x) => (x < 0 ? `(${rel(x)})` : rel(x));
+  // Droite graduée : de a à a + n*pas, points [nom, valeur]
+  function droiteRel(a, pas, n, points, aria) {
+    const W = 320, x0 = 18, L = W - 36, X = (v) => x0 + ((v - a) / (pas * n)) * L, y = 52;
+    let s = `<svg class="graph" viewBox="0 0 ${W} 86" role="img" aria-label="${aria}"><line class="g-segment" x1="${x0 - 8}" y1="${y}" x2="${W - 8}" y2="${y}"/><path class="g-end" d="M${W - 4} ${y}l-9 -4.5v9z"/>`;
+    for (let i = 0; i <= n; i++) { const v = +(a + i * pas).toFixed(6), lab = Math.abs(v) < 1e-9 || i === 0 || i === n || (Number.isInteger(v) && n <= 12) || (Number.isInteger(v) && v % 5 === 0) || (pas < 1 && Math.abs(v / (pas * 5) - Math.round(v / (pas * 5))) < 1e-9);
+      s += `<line class="g-graduation" x1="${X(v)}" y1="${y - (lab ? 7 : 4)}" x2="${X(v)}" y2="${y + (lab ? 7 : 4)}"/>`;
+      if (lab) s += `<text class="g-tick" x="${X(v)}" y="${y + 22}" text-anchor="middle">${String(v).replace(".", ",").replace("-", "−")}</text>`; }
+    points.forEach(([nm, v]) => { s += `<circle class="g-point" cx="${X(v)}" cy="${y}" r="4"/><text class="g-plabel" x="${X(v)}" y="${y - 14}" text-anchor="middle">${nm}</text>`; });
+    return s + `</svg>`;
+  }
+  // Repère orthogonal de -5 à 5 en abscisse, de -3 à 3 en ordonnée
+  function repere(points, aria) {
+    const u = 28, W = 320, H = 6 * u + 40, ox = 160, oy = H / 2, X = (x) => ox + x * u, Y = (y) => oy - y * u;
+    let s = `<svg class="graph" viewBox="0 0 ${W} ${H}" role="img" aria-label="${aria}"><g class="g-grid">`;
+    for (let i = -5; i <= 5; i++) s += `<line x1="${X(i)}" y1="${Y(-3.4)}" x2="${X(i)}" y2="${Y(3.4)}"/>`;
+    for (let j = -3; j <= 3; j++) s += `<line x1="${X(-5.4)}" y1="${Y(j)}" x2="${X(5.4)}" y2="${Y(j)}"/>`;
+    s += `</g><g class="g-axis"><line x1="${X(-5.5)}" y1="${oy}" x2="${X(5.5)}" y2="${oy}"/><line x1="${ox}" y1="${Y(-3.5)}" x2="${ox}" y2="${Y(3.5)}"/></g>`;
+    s += `<text class="g-tick" x="${ox - 9}" y="${oy + 13}">0</text><text class="g-tick" x="${X(1) - 3}" y="${oy + 13}">1</text><text class="g-tick" x="${ox - 10}" y="${Y(1) + 4}">1</text>`;
+    points.forEach(([n, [x, y]]) => { s += `<circle class="g-point" cx="${X(x)}" cy="${Y(y)}" r="4"/><text class="g-plabel" x="${X(x) + 6}" y="${Y(y) - 6}">${n}</text>`; });
+    return s + `</svg>`;
+  }
+  const coord = ([x, y]) => `$(${rel(x)} \\, ; \\, ${rel(y)})$`;
+  FIGURES["nr5-droite"] = () => droiteRel(-5, 1, 10, [["A", -3], ["B", 2], ["C", -1]], "Droite graduée de −5 à 5 : A d'abscisse −3, B d'abscisse 2, C d'abscisse −1");
+  FIGURES["nr5-repere"] = () => repere([["A", [3, 2]], ["B", [-4, 1]], ["C", [-2, -3]], ["D", [2, -1]]], "Repère : A(3 ; 2), B(−4 ; 1), C(−2 ; −3), D(2 ; −1)");
+
+  GEN["nr5-vocab"] = function () {
+    const t = rand(0, 3), x = pick([rand(1, 99), rand(11, 99) / 10]) * (Math.random() < 0.5 ? -1 : 1);
+    if (t === 0) return { enonce: `Quel est l'opposé de $${rel(x)}$ ?`, mode: "nombre", prefixe: "Opposé :", attendu: -x,
+      erreurs: [{ valeur: x, message: "L'opposé a le même nombre sans signe, mais le signe contraire." }],
+      aides: ["Deux nombres opposés sont à la même distance de zéro, de part et d'autre.", "On change seulement le signe.", x < 0 ? "L'opposé d'un nombre négatif est positif." : "L'opposé d'un nombre positif est négatif."], solution: `L'opposé de $${rel(x)}$ est $${rel(-x)}$ : ils sont à la même distance de $0$.` };
+    if (t === 1) return { enonce: `Quelle est la distance à zéro (la valeur absolue) de $${rel(x)}$ ?`, mode: "nombre", prefixe: "Distance à zéro :", attendu: Math.abs(x),
+      erreurs: x < 0 ? [{ valeur: x, message: "Une distance est toujours positive." }] : [],
+      aides: ["La distance à zéro d'un nombre, c'est le nombre sans son signe.", "Sur une droite graduée, c'est l'écart entre le point et l'origine.", "Une distance n'est jamais négative."], solution: `La distance à zéro de $${rel(x)}$ est $${nb(Math.abs(x))}$.` };
+    if (t === 2) {
+      const sorte = pick([["strictement négatif", (v) => v < 0], ["strictement positif", (v) => v > 0], ["positif", (v) => v >= 0], ["négatif", (v) => v <= 0]]);
+      let bons, faux; for (;;) { const L = shuffle([0, rand(1, 9), -rand(1, 9), rand(11, 99) / 10, -rand(11, 99) / 10, rand(10, 50), -rand(10, 50)]); bons = L.filter(sorte[1]); faux = L.filter((v) => !sorte[1](v)); if (bons.length >= 1 && faux.length >= 3) break; }
+      const bon = bons.includes(0) && (sorte[0] === "positif" || sorte[0] === "négatif") && Math.random() < 0.6 ? 0 : bons[0];
+      const { choix, attendu } = melange(`$${rel(bon)}$`, faux.slice(0, 3).map((v) => `$${rel(v)}$`));
+      return { enonce: `Lequel de ces nombres est ${sorte[0]} ?`, mode: "choix", choix, attendu,
+        aides: ["Un nombre négatif s'écrit avec le signe $-$ ; un nombre positif, sans signe (ou avec $+$).", "$0$ est à la fois positif et négatif ; il n'est ni strictement positif ni strictement négatif.", "« Strictement » exclut $0$."], solution: `$${rel(bon)}$ est ${sorte[0]}.${bon === 0 ? " En effet, $0$ est à la fois positif et négatif." : ""}` };
+    }
+    const c = pick([
+      [`Le Mont Bénara culmine à $660$ m d'altitude et une plongeuse descend à $25$ m sous le niveau de la mer. Quel nombre relatif donne l'altitude de la plongeuse, en mètres ?`, -25, "Sous le niveau de la mer, l'altitude est négative."],
+      [`À Mamoudzou il fait $28$ °C. Dans un congélateur, il fait $18$ °C en dessous de zéro. Quel nombre relatif donne la température du congélateur, en °C ?`, -18, "En dessous de zéro, la température est négative."],
+      [`Un compte bancaire a un solde de $40$ €. On paie $65$ € par carte. Quel nombre relatif donne le nouveau solde, en euros ?`, -25, "Quand on dépense plus que ce qu'on a, le solde devient négatif."],
+      [`Un ascenseur part du rez-de-chaussée (étage $0$) et descend de $3$ étages au parking. À quel étage relatif arrive-t-il ?`, -3, "En dessous du rez-de-chaussée, les étages sont négatifs."]
+    ]);
+    return { enonce: c[0], mode: "nombre", prefixe: "Nombre :", attendu: c[1], erreurs: [{ valeur: -c[1], message: c[2] }],
+      aides: ["Choisis une origine (le zéro) : niveau de la mer, $0$ °C, début de notre ère, rez-de-chaussée.", "Au-dessus de l'origine : positif. En dessous : négatif.", c[2]], solution: `${c[2]} La réponse est $${rel(c[1])}$.` };
+  };
+
+  GEN["nr5-abscisse"] = function () {
+    const conf = pick([[1, 1, 10], [1, 1, 12], [0.5, 2, 10], [0.1, 10, 10], [2, 1, 10], [5, 1, 10], [0.2, 5, 10], [0.25, 4, 8]]), [pas, , n] = conf;
+    const a = +(-pas * rand(2, n - 2)).toFixed(6);
+    const k = rand(0, n), v = +(a + k * pas).toFixed(6);
+    if (Math.abs(v) < 1e-9 || k === 0 || k === n) return GEN["nr5-abscisse"]();
+    const lire = Math.random() < 0.6;
+    if (lire) return { enonce: "Quelle est l'abscisse du point $M$ ?", figure: droiteRel(a, pas, n, [["M", v]], `Droite graduée de ${a} avec un pas de ${pas} ; le point M`), mode: "nombre", prefixe: "Abscisse :", attendu: v,
+      erreurs: [{ valeur: -v, message: "Attention au signe : à gauche de zéro, les abscisses sont négatives." }],
+      aides: ["Repère l'origine (le $0$) et le sens : les nombres augmentent vers la droite.", `Chaque graduation vaut $${nb(pas)}$.`, `Compte les graduations entre $0$ et $M$.`], solution: `$M$ est à $${Math.round(Math.abs(v) / pas)}$ graduations ${v < 0 ? "à gauche" : "à droite"} de $0$, chacune valant $${nb(pas)}$ : son abscisse est $${rel(v)}$.` };
+    const noms = ["A", "B", "C", "D"], vals = new Set([v]); while (vals.size < 4) { const kk = rand(1, n - 1), w = +(a + kk * pas).toFixed(6); vals.add(w); }
+    const V = shuffle([...vals]), bon = noms[V.indexOf(v)];
+    return { enonce: `Quel point a pour abscisse $${rel(v)}$ ?`, figure: droiteRel(a, pas, n, V.map((w, i) => [noms[i], w]), "Droite graduée avec quatre points A, B, C, D"), mode: "choix", choix: noms.map((m) => `$${m}$`), attendu: noms.indexOf(bon),
+      aides: ["Repère le $0$ sur la droite.", `Chaque graduation vaut $${nb(pas)}$.`, v < 0 ? "Un nombre négatif est à gauche de $0$." : "Un nombre positif est à droite de $0$."], solution: `$${rel(v)}$ est à $${Math.round(Math.abs(v) / pas)}$ graduations ${v < 0 ? "à gauche" : "à droite"} de $0$ : c'est le point $${bon}$.` };
+  };
+
+  GEN["nr5-comparer"] = function () {
+    const t = rand(0, 3);
+    if (t <= 2) {
+      const g = () => (Math.random() < 0.5 ? rand(1, 30) : rand(1, 99) / 10) * (Math.random() < 0.65 ? -1 : 1);
+      let a = g(), b = g(); if (t === 1) b = -a; if (t === 2) b = +(a + pick([-1, 1]) * pick([0.1, 1, 0.5])).toFixed(1);
+      if (a === b) return GEN["nr5-comparer"]();
+      const rep = a < b ? 0 : 1;
+      return { enonce: `Compare : $${rel(a)} \\; \\ldots \\; ${rel(b)}$`, mode: "choix", choix: ["$<$", "$>$", "$=$"], attendu: rep,
+        aides: ["Un nombre négatif est toujours plus petit qu'un nombre positif.", "Deux nombres négatifs : le plus petit est celui qui a la plus grande distance à zéro.", "Imagine les deux nombres sur une droite graduée : le plus petit est à gauche."],
+        solution: a < 0 && b < 0 ? `Les deux nombres sont négatifs ; $${rel(a < b ? a : b)}$ est plus loin de zéro, donc plus petit : $${rel(a)} ${rep ? ">" : "<"} ${rel(b)}$.` : `$${rel(a)} ${rep ? ">" : "<"} ${rel(b)}$ : ${(a < 0) !== (b < 0) ? "un nombre négatif est plus petit qu'un nombre positif" : "sur une droite graduée, le plus petit est à gauche"}.` };
+    }
+    const L = []; while (L.length < 4) { const v = (Math.random() < 0.5 ? rand(1, 20) : rand(1, 99) / 10) * (Math.random() < 0.6 ? -1 : 1); if (!L.includes(v)) L.push(v); }
+    const tri = L.slice().sort((p, q) => p - q), txt = (A) => "$" + A.map(rel).join(" < ") + "$";
+    const fausses = [txt(L.slice().sort((p, q) => Math.abs(p) - Math.abs(q))), txt(tri.slice().reverse()), txt([tri[1], tri[0], tri[2], tri[3]]), txt([tri[0], tri[1], tri[3], tri[2]])].filter((x) => x !== txt(tri));
+    const { choix, attendu } = melange(txt(tri), fausses);
+    return { enonce: `Range dans l'ordre croissant : $${L.map(rel).join(" \\; ; \\; ")}$`, mode: "choix", choix, attendu,
+      aides: ["Ordre croissant : du plus petit au plus grand.", "Commence par les négatifs : le plus éloigné de zéro est le plus petit.", "Puis les positifs, du plus petit au plus grand."], solution: `Dans l'ordre croissant : ${txt(tri)}.` };
+  };
+
+  GEN["nr5-repere"] = function () {
+    const t = rand(0, 1), P = []; while (P.length < 4) { const p = [rand(-5, 5), rand(-3, 3)]; if (p[0] !== 0 && p[1] !== 0 && !P.some((q) => q[0] === p[0] && q[1] === p[1]) && !P.some((q) => q[0] === p[1] && q[1] === p[0])) P.push(p); }
+    const noms = ["A", "B", "C", "D"], i = rand(0, 3), p = P[i];
+    if (t === 0) {
+      const { choix, attendu } = melange(coord(p), [coord([p[1], p[0]]), coord([-p[0], p[1]]), coord([p[0], -p[1]]), coord([-p[0], -p[1]])].filter((c) => c !== coord(p)));
+      return { enonce: `Quelles sont les coordonnées du point $${noms[i]}$ ?`, figure: repere(P.map((q, k) => [noms[k], q]), "Repère avec quatre points A, B, C, D"), mode: "choix", choix, attendu,
+        aides: ["Les coordonnées s'écrivent (abscisse ; ordonnée).", "L'abscisse se lit sur l'axe horizontal, l'ordonnée sur l'axe vertical.", "À gauche de l'axe vertical, l'abscisse est négative ; en dessous de l'axe horizontal, l'ordonnée est négative."],
+        solution: `$${noms[i]}$ est à $${Math.abs(p[0])}$ ${p[0] < 0 ? "à gauche" : "à droite"} de l'origine et $${Math.abs(p[1])}$ ${p[1] < 0 ? "en dessous" : "au-dessus"} : ses coordonnées sont ${coord(p)}.` };
+    }
+    return { enonce: `Quel point a pour coordonnées ${coord(p)} ?`, figure: repere(P.map((q, k) => [noms[k], q]), "Repère avec quatre points A, B, C, D"), mode: "choix", choix: noms.map((m) => `$${m}$`), attendu: i,
+      aides: ["Le premier nombre est l'abscisse (horizontal), le second l'ordonnée (vertical).", `Pars de l'origine et déplace-toi de $${Math.abs(p[0])}$ ${p[0] < 0 ? "vers la gauche" : "vers la droite"}.`, `Puis de $${Math.abs(p[1])}$ ${p[1] < 0 ? "vers le bas" : "vers le haut"}.`],
+      solution: `Abscisse $${rel(p[0])}$, ordonnée $${rel(p[1])}$ : c'est le point $${noms[i]}$.` };
+  };
+
   /* Une « erreur connue » ne doit jamais coïncider avec la bonne réponse */
-  Object.keys(GEN).filter((k) => /^(rc5|tr5|fr5|pp5|an5|dv5|sc5)-/.test(k)).forEach((k) => {
+  Object.keys(GEN).filter((k) => /^(rc5|tr5|fr5|pp5|an5|dv5|sc5|nr5)-/.test(k)).forEach((k) => {
     const g = GEN[k];
     GEN[k] = (i) => {
       const q = g(i);
