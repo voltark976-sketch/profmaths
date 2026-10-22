@@ -193,7 +193,7 @@ window.CATALOGUE = {
           id: "cinquieme-calculs-relatifs",
           numero: 9,
           titre: "Additionner et soustraire des relatifs",
-          statut: "bientot",
+          statut: "disponible",
           drive: ""
         },
         {

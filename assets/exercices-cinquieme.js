@@ -3,7 +3,7 @@
   Ce fichier se charge après assets/exercices-college.js et reprend ses outils (window.PM_EXO.college).
   Mêmes règles : chaque générateur fabrique une question avec des nombres tirés au hasard, la réponse
   attendue, trois indices progressifs et la solution rédigée.
-  Préfixes : rc5- (règles de calcul), tr5-, fr5-, pp5-, an5-, dv5-, sc5-, nr5-.
+  Préfixes : rc5- (règles de calcul), tr5-, fr5-, pp5-, an5-, dv5-, sc5-, nr5-, cr5-.
 */
 (function () {
   "use strict";
@@ -1090,8 +1090,90 @@
       solution: `Abscisse $${rel(p[0])}$, ordonnée $${rel(p[1])}$ : c'est le point $${noms[i]}$.` };
   };
 
+  /* =====================================================================
+     Chapitre 9 : additionner et soustraire des relatifs (cr5-)
+     ===================================================================== */
+  const r1 = (x) => Math.round(x * 100) / 100;
+  const sgn = (x) => (x < 0 ? `(${rel(x)})` : Math.random() < 0.5 ? `(+${nb(x)})` : nb(x));
+  const tireRel = (dec) => (dec ? rand(1, 99) / 10 : rand(1, 20)) * (Math.random() < 0.55 ? -1 : 1);
+
+  GEN["cr5-addition"] = function () {
+    const dec = Math.random() < 0.3, a = tireRel(dec), b = tireRel(dec), s = r1(a + b);
+    const memeSigne = (a < 0) === (b < 0);
+    return { enonce: `Calcule : $${sgn(a)} + ${sgn(b)}$`, mode: "nombre", prefixe: "Résultat :", attendu: s,
+      erreurs: [{ valeur: r1(-s), message: "Le résultat a le signe du nombre qui a la plus grande distance à zéro." }, ...(memeSigne ? [] : [{ valeur: r1(Math.abs(a) + Math.abs(b)) * (Math.abs(a) > Math.abs(b) ? Math.sign(a) : Math.sign(b)), message: "Les deux nombres sont de signes contraires : on soustrait les distances à zéro." }])],
+      aides: ["Même signe : on additionne les distances à zéro et on garde le signe.", "Signes contraires : on soustrait les distances à zéro et on prend le signe de celui qui a la plus grande distance à zéro.", memeSigne ? `$${nb(Math.abs(a))} + ${nb(Math.abs(b))} = ${nb(r1(Math.abs(a) + Math.abs(b)))}$.` : `$${nb(Math.max(Math.abs(a), Math.abs(b)))} - ${nb(Math.min(Math.abs(a), Math.abs(b)))} = ${nb(r1(Math.abs(Math.abs(a) - Math.abs(b))))}$.`],
+      solution: memeSigne ? `Même signe : $${nb(Math.abs(a))} + ${nb(Math.abs(b))} = ${nb(Math.abs(s))}$, avec le signe ${a < 0 ? "$-$" : "$+$"}. Résultat : $${rel(s)}$.` : `Signes contraires : $${nb(Math.max(Math.abs(a), Math.abs(b)))} - ${nb(Math.min(Math.abs(a), Math.abs(b)))} = ${nb(Math.abs(s))}$, avec le signe du nombre le plus éloigné de zéro. Résultat : $${rel(s)}$.` };
+  };
+
+  GEN["cr5-soustraction"] = function () {
+    const dec = Math.random() < 0.3, a = tireRel(dec), b = tireRel(dec), d = r1(a - b);
+    return { enonce: `Calcule : $${sgn(a)} - ${sgn(b)}$`, mode: "nombre", prefixe: "Résultat :", attendu: d,
+      erreurs: [{ valeur: r1(a + b), message: "Soustraire un nombre, c'est **ajouter son opposé** : il faut changer le signe du deuxième nombre." }, { valeur: r1(-d), message: "Attention au signe du résultat." }],
+      aides: ["Soustraire un nombre revient à ajouter son opposé.", `$${sgn(a)} - ${sgn(b)} = ${sgn(a)} + ${relP(-b)}$.`, "Puis applique la règle de l'addition."],
+      solution: `$${sgn(a)} - ${sgn(b)} = ${sgn(a)} + ${relP(-b)} = ${rel(d)}$.` };
+  };
+
+  GEN["cr5-simplifier"] = function () {
+    const n = rand(3, 4), T = Array.from({ length: n }, () => tireRel(false)), ops = Array.from({ length: n - 1 }, () => pick(["+", "-"]));
+    const expr = rel(T[0]) + ops.map((o, i) => ` ${o} ${T[i + 1] < 0 ? `(${rel(T[i + 1])})` : `(+${T[i + 1]})`}`).join("");
+    const termes = [T[0], ...ops.map((o, i) => (o === "+" ? T[i + 1] : -T[i + 1]))];
+    const simple = (L) => L.map((v, i) => (i === 0 ? rel(v) : v < 0 ? `- ${nb(-v)}` : `+ ${nb(v)}`)).join(" ");
+    const bonne = `$${simple(termes)}$`;
+    const f1 = `$${simple([T[0], ...ops.map((o, i) => (o === "+" ? -T[i + 1] : T[i + 1]))])}$`;
+    const f2 = `$${simple([T[0], ...T.slice(1).map((v, i) => (ops[i] === "-" ? -Math.abs(v) : Math.abs(v)))])}$`;
+    const f3 = `$${simple([T[0], ...T.slice(1)])}$`;
+    if (Math.random() < 0.5) {
+      const { choix, attendu } = melange(bonne, [f1, f2, f3].filter((x) => x !== bonne));
+      if (choix.length < 3) return GEN["cr5-simplifier"]();
+      return { enonce: `Quelle est l'écriture simplifiée (sans parenthèses) de $${expr}$ ?`, mode: "choix", choix, attendu,
+        aides: ["Deux signes qui se suivent : $+(+a) = +a$, $+(-a) = -a$, $-(+a) = -a$, $-(-a) = +a$.", "Des signes identiques donnent $+$ ; des signes contraires donnent $-$.", "Traite chaque parenthèse une par une."],
+        solution: `On applique la règle des signes à chaque parenthèse : $${expr} = ${simple(termes)}$.` };
+    }
+    const v = termes.reduce((s, x) => s + x, 0);
+    return { enonce: `Calcule : $${expr}$`, mode: "nombre", prefixe: "Résultat :", attendu: v,
+      aides: ["Commence par supprimer les parenthèses avec la règle des signes.", `On obtient $${simple(termes)}$.`, "Regroupe les nombres positifs d'un côté, les négatifs de l'autre."],
+      solution: `$${expr} = ${simple(termes)}$. Positifs : $${nb(termes.filter((x) => x > 0).reduce((s, x) => s + x, 0))}$ ; négatifs : $${rel(termes.filter((x) => x < 0).reduce((s, x) => s + x, 0))}$. Résultat : $${rel(v)}$.` };
+  };
+
+  GEN["cr5-enchainer"] = function () {
+    const n = rand(4, 6), termes = Array.from({ length: n }, (_, i) => (rand(1, 25)) * (i === 0 ? (Math.random() < 0.5 ? -1 : 1) : Math.random() < 0.5 ? -1 : 1));
+    const txt = termes.map((v, i) => (i === 0 ? rel(v) : v < 0 ? `- ${nb(-v)}` : `+ ${nb(v)}`)).join(" "), v = termes.reduce((s, x) => s + x, 0);
+    const P = termes.filter((x) => x > 0).reduce((s, x) => s + x, 0), N = termes.filter((x) => x < 0).reduce((s, x) => s + x, 0);
+    return { enonce: `Calcule : $${txt}$`, mode: "nombre", prefixe: "Résultat :", attendu: v,
+      erreurs: [{ valeur: P - N, message: "Les nombres précédés de $-$ se retirent : regroupe les positifs et les négatifs séparément." }],
+      aides: ["Chaque nombre est précédé de son signe : c'est une somme de relatifs.", "Additionne tous les nombres précédés de $+$ (ou sans signe), puis tous ceux précédés de $-$.", `Positifs : $${P}$ ; négatifs : $${rel(N)}$.`],
+      solution: `Positifs : $${termes.filter((x) => x > 0).map(nb).join(" + ") || 0} = ${P}$. Négatifs : $${termes.filter((x) => x < 0).map(rel).join(" ")} = ${rel(N)}$. Résultat : $${P} + ${relP(N)} = ${rel(v)}$.` };
+  };
+
+  GEN["cr5-problemes"] = function () {
+    const t = rand(0, 3);
+    if (t === 0) {
+      const a = rand(-15, 5), b = rand(-5, 25); if (a === b) return GEN["cr5-problemes"]();
+      return { enonce: `Le matin, un thermomètre indique $${rel(a)}$ °C ; l'après-midi, il indique $${rel(b)}$ °C. De combien de degrés la température a-t-elle ${b > a ? "augmenté" : "baissé"} ?`, mode: "nombre", prefixe: "Écart :", suffixe: "°C", attendu: Math.abs(b - a),
+        erreurs: [{ valeur: Math.abs(Math.abs(b) - Math.abs(a)), message: "Attention : quand on passe sous zéro, il faut compter les degrés de chaque côté de zéro." }],
+        aides: ["L'écart entre deux températures, c'est la différence : la plus haute moins la plus basse.", `$${rel(Math.max(a, b))} - ${relP(Math.min(a, b))}$.`, "Soustraire un nombre négatif revient à ajouter son opposé."],
+        solution: `$${rel(Math.max(a, b))} - ${relP(Math.min(a, b))} = ${Math.abs(b - a)}$ : la température a ${b > a ? "augmenté" : "baissé"} de $${Math.abs(b - a)}$ °C.` };
+    }
+    if (t === 1) {
+      const h = rand(50, 660), p = rand(5, 40);
+      return { enonce: `Un randonneur est au sommet d'une colline, à $${h}$ m d'altitude, pendant qu'une plongeuse explore le récif à $${p}$ m sous le niveau de la mer ($${rel(-p)}$ m). Quelle est la différence d'altitude entre eux ?`, mode: "nombre", prefixe: "Différence :", suffixe: "m", attendu: h + p,
+        erreurs: [{ valeur: h - p, message: `Il faut calculer $${h} - (${rel(-p)})$, et soustraire un négatif revient à ajouter.` }],
+        aides: ["Différence d'altitude : la plus haute moins la plus basse.", `$${h} - (${rel(-p)})$.`, "Soustraire un nombre, c'est ajouter son opposé."], solution: `$${h} - (${rel(-p)}) = ${h} + ${p} = ${h + p}$ m.` };
+    }
+    if (t === 2) {
+      const e = rand(1, 5), m = rand(1, 8), d = rand(1, 6);
+      return { enonce: `Un ascenseur part de l'étage $${e}$. Il descend de $${e + m}$ étages, puis remonte de $${d}$ étages. À quel étage arrive-t-il ? (Les étages du parking sont négatifs.)`, mode: "nombre", prefixe: "Étage :", attendu: e - (e + m) + d,
+        aides: ["Une descente se traduit par un nombre négatif, une montée par un nombre positif.", `Calcule $${e} - ${e + m} + ${d}$.`, `$${e} - ${e + m} = ${rel(-m)}$.`], solution: `$${e} - ${e + m} + ${d} = ${rel(-m)} + ${d} = ${rel(d - m)}$ : l'ascenseur arrive à l'étage $${rel(d - m)}$.` };
+    }
+    const s0 = rand(10, 80), dep = rand(20, 120), rec = rand(5, 60), fin = s0 - dep + rec;
+    return { enonce: `Le solde du compte de Saïd est de $${s0}$ €. Il paie $${dep}$ € par carte, puis reçoit $${rec}$ €. Quel est son nouveau solde, en euros ?`, mode: "nombre", prefixe: "Solde :", suffixe: "€", attendu: fin,
+      erreurs: [{ valeur: s0 + dep + rec, message: "Un paiement fait baisser le solde." }],
+      aides: ["Un paiement se traduit par un nombre négatif, un versement par un positif.", `Calcule $${s0} - ${dep} + ${rec}$.`, `$${s0} - ${dep} = ${rel(s0 - dep)}$.`], solution: `$${s0} - ${dep} + ${rec} = ${rel(s0 - dep)} + ${rec} = ${rel(fin)}$ €.${fin < 0 ? " Le compte est à découvert." : ""}` };
+  };
+
   /* Une « erreur connue » ne doit jamais coïncider avec la bonne réponse */
-  Object.keys(GEN).filter((k) => /^(rc5|tr5|fr5|pp5|an5|dv5|sc5|nr5)-/.test(k)).forEach((k) => {
+  Object.keys(GEN).filter((k) => /^(rc5|tr5|fr5|pp5|an5|dv5|sc5|nr5|cr5)-/.test(k)).forEach((k) => {
     const g = GEN[k];
     GEN[k] = (i) => {
       const q = g(i);
