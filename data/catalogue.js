@@ -172,7 +172,7 @@ window.CATALOGUE = {
           id: "cinquieme-divisibilite",
           numero: 6,
           titre: "Divisibilité",
-          statut: "bientot",
+          statut: "disponible",
           drive: ""
         },
         {

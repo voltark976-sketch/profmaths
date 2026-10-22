@@ -3,7 +3,7 @@
   Ce fichier se charge après assets/exercices-college.js et reprend ses outils (window.PM_EXO.college).
   Mêmes règles : chaque générateur fabrique une question avec des nombres tirés au hasard, la réponse
   attendue, trois indices progressifs et la solution rédigée.
-  Préfixes : rc5- (règles de calcul), tr5-, fr5-, pp5-, an5-.
+  Préfixes : rc5- (règles de calcul), tr5-, fr5-, pp5-, an5-, dv5-.
 */
 (function () {
   "use strict";
@@ -771,8 +771,119 @@
         solution: `$\\widehat{${C}} = 180^\\circ - ${a}^\\circ - ${b}^\\circ = ${c}^\\circ$, puis l'angle extérieur vaut $180^\\circ - ${c}^\\circ = ${ext}^\\circ$ (c'est aussi $${a}^\\circ + ${b}^\\circ$).` }; })();
   };
 
+  /* =====================================================================
+     Chapitre 6 : divisibilité (dv5-)
+     ===================================================================== */
+  const { diviseurs } = window.PM_EXO.college;
+  const sommeChiffres = (n) => String(n).split("").reduce((s, c) => s + +c, 0);
+
+  GEN["dv5-euclide"] = function () {
+    const t = rand(0, 3);
+    if (t <= 1) {
+      const b = rand(3, 25), q = rand(4, 60), r = rand(1, b - 1), a = b * q + r, ask = t === 0 ? "quotient" : "reste";
+      return { enonce: `Dans la division euclidienne de $${nb(a)}$ par $${b}$, quel est le ${ask} ?`, mode: "nombre", prefixe: `${ask[0].toUpperCase() + ask.slice(1)} :`, attendu: t === 0 ? q : r,
+        erreurs: t === 0 ? [{ valeur: r, message: "Ça, c'est le reste." }] : [{ valeur: q, message: "Ça, c'est le quotient." }],
+        aides: [`Cherche le plus grand multiple de $${b}$ qui ne dépasse pas $${nb(a)}$.`, `$${b} \\times ${q} = ${nb(b * q)}$ et $${b} \\times ${q + 1} = ${nb(b * (q + 1))}$.`, `Le reste est ce qu'il manque pour aller jusqu'à $${nb(a)}$ ; il est plus petit que $${b}$.`],
+        solution: `$${nb(a)} = ${b} \\times ${q} + ${r}$ avec $${r} < ${b}$ : le quotient est $${q}$ et le reste $${r}$.` };
+    }
+    const b = pick([6, 8, 10, 12, 15, 20, 24, 30, 45, 50]), q = rand(5, 40), r = rand(1, b - 1), a = b * q + r;
+    const ctx = pick([
+      [`On range $${nb(a)}$ œufs dans des boîtes de $${b}$.`, "Combien de boîtes pleines obtient-on ?", q, "boîtes", `On obtient $${q}$ boîtes pleines (et il reste $${r}$ œufs).`],
+      [`$${nb(a)}$ élèves partent en sortie dans des bus de $${b}$ places.`, "Combien de bus faut-il au minimum ?", q + 1, "bus", `$${q}$ bus pleins ne suffisent pas : il reste $${r}$ élèves, il faut un bus de plus, soit $${q + 1}$ bus.`],
+      [`Un pêcheur de Mtsapéré partage $${nb(a)}$ poissons en lots de $${b}$.`, "Combien de poissons restent hors des lots ?", r, "poissons", `Il fait $${q}$ lots et il reste $${r}$ poissons.`]
+    ]);
+    return { enonce: `${ctx[0]} ${ctx[1]}`, mode: "nombre", prefixe: "Réponse :", suffixe: ctx[3], attendu: ctx[2],
+      erreurs: [ctx[2] === q + 1 ? { valeur: q, message: "Avec ce nombre de bus, il reste des élèves à transporter." } : ctx[2] === q ? { valeur: q + 1, message: "La dernière boîte n'est pas pleine." } : { valeur: q, message: "Ça, c'est le nombre de lots. On demande ce qui reste." }],
+      aides: [`Effectue la division euclidienne de $${nb(a)}$ par $${b}$.`, `$${nb(a)} = ${b} \\times ${q} + ${r}$.`, "Réfléchis : la réponse est-elle le quotient, le reste, ou le quotient plus un ?"],
+      solution: `$${nb(a)} = ${b} \\times ${q} + ${r}$. ${ctx[4]}` };
+  };
+
+  GEN["dv5-decimal"] = function () {
+    const d = pick([Dc(rand(2, 9), 1), Dc(rand(11, 99), 1), Dc(rand(2, 9), 2), Dc(rand(12, 48), 2)]), q = Dc(rand(2, 60) * (Math.random() < 0.3 ? 1 : 1), Math.random() < 0.3 ? 1 : 0);
+    const a = mulD(d, q), p = 10 ** d.d, aE = Dc(a.m * (a.d >= d.d ? 1 : 10 ** (d.d - a.d)), Math.max(0, a.d - d.d));
+    return { enonce: `Calcule $${tD(a)} \\div ${tD(d)}$.`, mode: "nombre", prefixe: "Résultat :", attendu: q.m / 10 ** q.d,
+      aides: [`On ne divise pas par un nombre décimal : on multiplie les deux nombres par $${p}$ pour que le diviseur devienne entier.`, `$${tD(a)} \\div ${tD(d)} = ${tD(aE)} \\div ${d.m}$.`, `Pose la division de $${tD(aE)}$ par $${d.m}$.`],
+      solution: `$${tD(a)} \\div ${tD(d)} = (${tD(a)} \\times ${p}) \\div (${tD(d)} \\times ${p}) = ${tD(aE)} \\div ${d.m} = ${tD(q)}$.` };
+  };
+
+  GEN["dv5-criteres"] = function () {
+    const t = rand(0, 2);
+    if (t === 0) {
+      const k = pick([2, 3, 5, 9, 10]);
+      const crit = { 2: "son chiffre des unités est $0$, $2$, $4$, $6$ ou $8$", 3: "la somme de ses chiffres est divisible par $3$", 5: "son chiffre des unités est $0$ ou $5$", 9: "la somme de ses chiffres est divisible par $9$", 10: "son chiffre des unités est $0$" }[k];
+      const ok = (n) => n % k === 0;
+      let bon; do bon = rand(100, 9999); while (!ok(bon) || (k === 3 && bon % 9 === 0 && Math.random() < 0.5));
+      const faux = []; while (faux.length < 3) { const n = rand(100, 9999); if (!ok(n) && !faux.includes(n)) { if ((k === 9 && n % 3 === 0) || (k === 10 && n % 5 === 0) || (k === 5 && n % 10 !== 5 && n % 2 === 0) || Math.random() < 0.6) faux.push(n); } }
+      const { choix, attendu } = melange(`$${nb(bon)}$`, faux.map((n) => `$${nb(n)}$`));
+      return { enonce: `Lequel de ces nombres est divisible par $${k}$ ?`, mode: "choix", choix, attendu,
+        aides: [`Un nombre est divisible par $${k}$ si ${crit}.`, k === 3 || k === 9 ? "Calcule la somme des chiffres de chaque nombre." : "Regarde le chiffre des unités de chaque nombre.", k === 9 ? "Attention : divisible par $3$ ne suffit pas pour être divisible par $9$." : "Un seul nombre convient."],
+        solution: `$${nb(bon)}$ est divisible par $${k}$ car ${k === 3 || k === 9 ? `$${String(bon).split("").join(" + ")} = ${sommeChiffres(bon)}$, qui est divisible par $${k}$` : crit.replace("son chiffre", "son chiffre")}. Les autres ne le sont pas.` };
+    }
+    if (t === 1) {
+      for (;;) {
+        const n = rand(100, 9999) * 9, s = String(n), i = rand(0, s.length - 1); if (s[0] === "0" || (i === 0 && s[0] === "9")) continue;
+        const trou = s.slice(0, i) + "\\ldots" + s.slice(i + 1), c = +s[i];
+        const autres = sommeChiffres(n) - c; if (c === 0 && (9 - autres % 9) % 9 === 0 && i === 0) continue;
+        if (c === 0 || c === 9) continue;
+        return { enonce: `On remplace les pointillés par un chiffre pour que le nombre $${trou}$ soit divisible par $9$. Quel chiffre ?`, mode: "nombre", prefixe: "Chiffre :", attendu: c,
+          aides: ["Un nombre est divisible par $9$ si la somme de ses chiffres est divisible par $9$.", `La somme des chiffres connus vaut $${autres}$.`, `Quel chiffre ajouter à $${autres}$ pour obtenir un multiple de $9$ ?`],
+          solution: `$${autres} + ${c} = ${autres + c}$, qui est un multiple de $9$ : le chiffre est $${c}$ (c'est le seul de $1$ à $8$ qui convient).` };
+      }
+    }
+    const n = rand(100, 99999), k = pick([3, 9]), s = sommeChiffres(n), oui = n % k === 0;
+    const OPTS = [`Oui, car la somme de ses chiffres est divisible par $${k}$`, `Non, car la somme de ses chiffres n'est pas divisible par $${k}$`, `Oui, car il se termine par un chiffre impair`, `Non, car il ne se termine pas par $${k}$`];
+    const { choix, attendu } = melange(oui ? OPTS[0] : OPTS[1], [oui ? OPTS[1] : OPTS[0], OPTS[2], OPTS[3]]);
+    return { enonce: `Le nombre $${nb(n)}$ est-il divisible par $${k}$ ?`, mode: "choix", choix, attendu,
+      aides: [`Critère : un nombre est divisible par $${k}$ si la somme de ses chiffres est divisible par $${k}$.`, "Le chiffre des unités ne sert à rien pour $3$ et $9$.", `Somme des chiffres : $${String(n).split("").join(" + ")}$.`],
+      solution: `$${String(n).split("").join(" + ")} = ${s}$, ${oui ? "divisible" : "pas divisible"} par $${k}$ : $${nb(n)}$ ${oui ? "est" : "n'est pas"} divisible par $${k}$.` };
+  };
+
+  GEN["dv5-diviseurs"] = function () {
+    const t = rand(0, 2);
+    if (t === 0) {
+      const n = pick([12, 18, 20, 24, 28, 30, 32, 36, 40, 42, 45, 48, 50, 54, 56, 60, 63, 64, 72, 75, 80, 84, 90, 96, 100]), D = diviseurs(n);
+      return { enonce: `Combien le nombre $${n}$ a-t-il de diviseurs (en comptant $1$ et $${n}$) ?`, mode: "nombre", prefixe: "Nombre de diviseurs :", attendu: D.length,
+        erreurs: [{ valeur: D.length - 2, message: `On compte aussi $1$ et $${n}$, qui sont des diviseurs de $${n}$.` }],
+        aides: [`Cherche les produits égaux à $${n}$ : $1 \\times ${n}$, $2 \\times \\ldots$`, "Les diviseurs vont par paires : quand on en trouve un, on en trouve un autre.", "Arrête-toi quand les deux facteurs se croisent."],
+        solution: `Les diviseurs de $${n}$ sont : $${D.join(" \\; ; \\; ")}$. Il y en a $${D.length}$.` };
+    }
+    if (t === 1) {
+      const [p, q] = pick([[3, 7], [7, 13], [3, 17], [7, 11], [11, 13], [3, 19], [7, 17], [13, 17], [3, 23], [7, 19], [11, 17], [3, 29], [13, 19], [17, 19], [7, 23]]), n = p * q;
+      return { enonce: `Le nombre $${n}$ s'écrit comme le produit de deux nombres entiers différents de $1$. Complète : $${n} = ${p} \\times \\ldots$`, mode: "nombre", prefixe: "Nombre manquant :", attendu: q,
+        aides: [`Cherche le quotient de $${n}$ par $${p}$.`, "Tu peux poser la division.", `$${p} \\times 10 = ${p * 10}$.`], solution: `$${n} \\div ${p} = ${q}$, donc $${n} = ${p} \\times ${q}$.` };
+    }
+    const n = pick([24, 30, 36, 40, 42, 48, 54, 60, 72, 84, 90]), D = diviseurs(n), nonD = []; for (let k = 2; k < n && nonD.length < 6; k++) if (n % k && k > 3) nonD.push(k);
+    const bon = pick(nonD), vrais = shuffle(D.filter((d) => d > 1 && d < n).slice()).slice(0, 3);
+    const { choix, attendu } = melange(`$${bon}$`, vrais.map((d) => `$${d}$`));
+    return { enonce: `Lequel de ces nombres n'est **pas** un diviseur de $${n}$ ?`, mode: "choix", choix, attendu,
+      aides: ["$a$ est un diviseur de $n$ si la division de $n$ par $a$ tombe juste (reste $0$).", "Teste chaque nombre avec une division ou un critère.", `Les diviseurs de $${n}$ vont par paires : $1 \\times ${n}$, $2 \\times ${n / 2}$…`],
+      solution: `$${n} \\div ${bon}$ ne tombe pas juste (reste $${n % bon}$) : $${bon}$ n'est pas un diviseur de $${n}$. Les autres le sont : ${vrais.map((d) => `$${n} = ${d} \\times ${n / d}$`).join(", ")}.` };
+  };
+
+  GEN["dv5-problemes"] = function () {
+    const t = rand(0, 2);
+    if (t === 0) {
+      const [a, b] = pick([[4, 6], [6, 8], [6, 9], [8, 12], [10, 15], [12, 18], [9, 12], [6, 10], [15, 20], [12, 20], [10, 25], [14, 21]]), m = (a * b) / pgcd(a, b);
+      return { enonce: `À la gare maritime, une barge part toutes les $${a}$ minutes et un amphidrome toutes les $${b}$ minutes. Ils partent ensemble à $7$ h. Au bout de combien de minutes repartiront-ils ensemble pour la première fois ?`, mode: "nombre", prefixe: "Durée :", suffixe: "min", attendu: m,
+        erreurs: m !== a * b ? [{ valeur: a * b, message: `C'est bien un multiple commun, mais pas le plus petit.` }] : [],
+        aides: [`Écris les multiples de $${a}$ : $${a}$ ; $${2 * a}$ ; $${3 * a}$ ; …`, `Écris les multiples de $${b}$ : $${b}$ ; $${2 * b}$ ; …`, "Cherche le plus petit nombre présent dans les deux listes."],
+        solution: `Multiples de $${a}$ : $${Array.from({ length: m / a }, (_, i) => a * (i + 1)).join(" ; ")}$. Multiples de $${b}$ : $${Array.from({ length: m / b }, (_, i) => b * (i + 1)).join(" ; ")}$. Le premier multiple commun est $${m}$ : ils repartiront ensemble au bout de $${m}$ minutes.` };
+    }
+    if (t === 1) {
+      const n = pick([12, 18, 20, 24, 28, 30, 36, 40, 42, 48]), D = diviseurs(n).filter((d) => d > 1 && d < n);
+      return { enonce: `Le professeur veut placer les $${n}$ élèves de la classe en rangées qui ont toutes le même nombre d'élèves, avec au moins $2$ rangées et au moins $2$ élèves par rangée. Combien de dispositions différentes sont possibles ?`, mode: "nombre", prefixe: "Dispositions :", attendu: D.length,
+        erreurs: [{ valeur: D.length + 2, message: "Une seule rangée, ou un élève par rangée : c'est interdit par l'énoncé." }],
+        aides: [`Le nombre d'élèves par rangée doit être un diviseur de $${n}$.`, `Liste les diviseurs de $${n}$.`, `Retire $1$ et $${n}$.`],
+        solution: `Il faut un diviseur de $${n}$ autre que $1$ et $${n}$ : $${D.join(" \\; ; \\; ")}$. Il y a $${D.length}$ dispositions (par exemple $${D[0]}$ rangées de $${n / D[0]}$ élèves).` };
+    }
+    const k = pick([3, 4, 6, 7, 9, 12, 15]), lim = rand(50, 150), nbm = Math.floor(lim / k);
+    return { enonce: `Combien y a-t-il de multiples de $${k}$ compris entre $1$ et $${lim}$ ?`, mode: "nombre", prefixe: "Nombre :", attendu: nbm,
+      aides: [`Les multiples de $${k}$ sont $${k} \\times 1$, $${k} \\times 2$, $${k} \\times 3$, …`, `Cherche le plus grand multiple de $${k}$ qui ne dépasse pas $${lim}$.`, `$${k} \\times ${nbm} = ${k * nbm}$.`],
+      solution: `$${k} \\times ${nbm} = ${k * nbm} \\leq ${lim}$ et $${k} \\times ${nbm + 1} = ${k * (nbm + 1)} > ${lim}$ : il y a $${nbm}$ multiples de $${k}$.` };
+  };
+
   /* Une « erreur connue » ne doit jamais coïncider avec la bonne réponse */
-  Object.keys(GEN).filter((k) => /^(rc5|tr5|fr5|pp5|an5)-/.test(k)).forEach((k) => {
+  Object.keys(GEN).filter((k) => /^(rc5|tr5|fr5|pp5|an5|dv5)-/.test(k)).forEach((k) => {
     const g = GEN[k];
     GEN[k] = (i) => {
       const q = g(i);

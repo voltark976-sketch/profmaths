@@ -27,6 +27,7 @@ Site statique : aucune base de données, aucun compte élève. Ouvrir `index.htm
   - `data/cinquieme/fractions.js` : 5e, chapitre 3 (fractions égales, entier + fraction, comparer et ranger, additionner et soustraire avec dénominateurs quelconques, problèmes). Générateurs `fr5-`.
   - `data/cinquieme/proportionnalite.js` : 5e, chapitre 4 (reconnaître et compléter un tableau, prix unitaire, recette, vitesse moyenne, pourcentages, échelles). Générateurs `pp5-`.
   - `data/cinquieme/angles.js` : 5e, chapitre 5 (vocabulaire des angles, alternes-internes et correspondants, parallélisme, somme des angles du triangle et démonstration). Générateurs `an5-` ; figure `figParalleles()`.
+  - `data/cinquieme/divisibilite.js` : 5e, chapitre 6 (division euclidienne, division par un décimal, multiples et diviseurs, critères par 2, 3, 5, 9, 10, problèmes de multiples communs). Générateurs `dv5-`.
 - `data/seconde/ensembles.js` : chapitre 1 de Seconde (ensembles de nombres, intervalles, valeur absolue). Les générateurs d'exercices correspondants commencent par `ens-`, `int-` et `abs-` dans `assets/exercices.js`.
 - `data/seconde/information-chiffree.js` : chapitre 3 de Seconde.
 - `data/seconde/arithmetique.js` : chapitre 4 de Seconde (multiples, diviseurs, parité, nombres premiers, fractions irréductibles). Générateurs `ar-` dans `assets/exercices.js`.
