@@ -2613,8 +2613,164 @@
       solution: `${txt(n).replace("$", "").replace("$", "")} : ${pourquoi}.`.replace(/^Une infinité/, "Une infinité d'axes").replace(/^Aucun/, "Aucun axe") };
   };
 
+  /* =====================================================================
+     6e, chapitre 13 : longueurs, périmètres et aires (préfixe pa6-)
+     Programme : unités de longueur (kilo- à milli-) et conversions ; périmètre d'une figure (contour), du carré,
+     du rectangle ; périmètre du disque proportionnel au diamètre, formule ; figures composées ; unités d'aire
+     (cm², dm², m²) et conversions ; aire sur quadrillage ; formules de l'aire du carré et du rectangle.
+     ===================================================================== */
+  const UL = [["km", 3], ["hm", 2], ["dam", 1], ["m", 0], ["dm", -1], ["cm", -2], ["mm", -3]];
+  const UA = [["m²", 0], ["dm²", -2], ["cm²", -4]];
+  // Rectangle (ou carré) coté, en pixels proportionnels
+  function figureRectangle(L, l, unite, carre) {
+    const W = 320, H = 170, k = Math.min(220 / L, 110 / l), w = L * k, h = l * k, x0 = (W - w) / 2, y0 = 20 + (110 - h) / 2;
+    let s = `<svg class="graph geo" viewBox="0 0 ${W} ${H}" role="img" aria-label="${carre ? "Carré" : "Rectangle"} de ${nbTexte(L)} ${unite} sur ${nbTexte(l)} ${unite}">`;
+    s += `<rect class="g-poly" x="${+x0.toFixed(1)}" y="${+y0.toFixed(1)}" width="${+w.toFixed(1)}" height="${+h.toFixed(1)}"/>`;
+    [[x0, y0], [x0 + w - 9, y0], [x0, y0 + h - 9], [x0 + w - 9, y0 + h - 9]].forEach(([x, y]) => { s += `<rect class="g-code" x="${+x.toFixed(1)}" y="${+y.toFixed(1)}" width="9" height="9"/>`; });
+    s += `<text class="g-mesure" x="${+(x0 + w / 2).toFixed(1)}" y="${+(y0 + h + 18).toFixed(1)}" text-anchor="middle">${nbTexte(L)} ${unite}</text>`;
+    if (!carre) s += `<text class="g-mesure" x="${+(x0 + w + 6).toFixed(1)}" y="${+(y0 + h / 2 + 4).toFixed(1)}">${nbTexte(l)} ${unite}</text>`;
+    return s + `</svg>`;
+  }
+  // Figure en L : rectangle a × b dont on retire un coin c × d (en haut à droite)
+  function figureL(a, b, c, d, unite) {
+    const W = 320, H = 190, k = Math.min(190 / a, 130 / b), X = (x) => +(62 + x * k).toFixed(1), Y = (y) => +(162 - y * k).toFixed(1);
+    const pts = [[0, 0], [a, 0], [a, b - d], [a - c, b - d], [a - c, b], [0, b]];
+    let s = `<svg class="graph geo" viewBox="0 0 ${W} ${H}" role="img" aria-label="Figure en L : rectangle de ${a} sur ${b} auquel on a retiré un coin de ${c} sur ${d}">`;
+    s += `<polygon class="g-poly" points="${pts.map(([x, y]) => `${X(x)},${Y(y)}`).join(" ")}"/>`;
+    const lab = (x, y, t, ancre) => { s += `<text class="g-mesure" x="${x}" y="${y}" text-anchor="${ancre}">${t}</text>`; };
+    lab(X(a / 2), Y(0) + 16, `${nbTexte(a)} ${unite}`, "middle");
+    lab(X(0) - 6, Y(b / 2) + 4, `${nbTexte(b)} ${unite}`, "end");
+    lab(X(a) + 6, Y((b - d) / 2) + 4, `${nbTexte(b - d)} ${unite}`, "start");
+    lab(X(a - c / 2), Y(b - d) + 16, `${nbTexte(c)} ${unite}`, "middle");
+    lab(X(a - c) + 6, Y(b - d / 2) + 4, `${nbTexte(d)} ${unite}`, "start");
+    lab(X((a - c) / 2), Y(b) - 6, `${nbTexte(a - c)} ${unite}`, "middle");
+    return s + `</svg>`;
+  }
+  // Cercle de diamètre donné
+  function figureCercleDiam(dTexte) {
+    const pts = { O: [160, 85], A: [90, 85], B: [230, 85] };
+    return geo({ W: 320, H: 175, pts, cercles: [["O", 70]], segs: [["A", "B"]], caches: [], decal: { O: [0, 16], A: [-10, 4], B: [8, 4] }, aria: `Cercle de diamètre ${dTexte}` }).replace("</svg>", `<text class="g-mesure" x="160" y="76" text-anchor="middle">${dTexte}</text></svg>`);
+  }
+  // Figure sur quadrillage : ensemble de carreaux coloriés
+  function grilleAire(cases, nx, ny) {
+    const u = 22, W = nx * u + 16, H = ny * u + 16;
+    let s = `<svg class="graph grille-sym" viewBox="0 0 ${W} ${H}" role="img" aria-label="Figure de ${cases.length} carreaux sur quadrillage">`;
+    cases.forEach(([x, y]) => { s += `<rect class="g-poly" x="${8 + x * u}" y="${8 + y * u}" width="${u}" height="${u}"/>`; });
+    s += `<g class="g-grid">`; for (let i = 0; i <= nx; i++) s += `<line x1="${8 + i * u}" y1="8" x2="${8 + i * u}" y2="${8 + ny * u}"/>`; for (let j = 0; j <= ny; j++) s += `<line x1="8" y1="${8 + j * u}" x2="${8 + nx * u}" y2="${8 + j * u}"/>`;
+    return s + `</g></svg>`;
+  }
+  FIGURES["pa6-rectangle"] = () => figureRectangle(7, 4, "cm");
+  FIGURES["pa6-cercle"] = () => figureCercleDiam("6 cm");
+  FIGURES["pa6-L"] = () => figureL(8, 6, 3, 2, "m");
+
+  GEN["pa6-conv-long"] = function () {
+    let i = rand(0, 6), j = rand(0, 6); while (j === i) j = rand(0, 6);
+    const [u1, e1] = UL[i], [u2, e2] = UL[j], x = Math.random() < 0.5 ? Dc(rand(1, 999)) : decimal(99, 2, 1);
+    const R = e1 > e2 ? mulD(x, Dc(P10(e1 - e2))) : Dc(x.m, x.d + (e2 - e1));
+    return { enonce: `Convertis : $${tD(x)}$ ${u1} $= \\ldots$ ${u2}.`, mode: "nombre", prefixe: "Réponse :", suffixe: u2, attendu: vD(R),
+      erreurs: [{ valeur: e1 > e2 ? vD(x) / P10(e1 - e2) : vD(x) * P10(e2 - e1), message: `Mauvais sens : ${e1 > e2 ? "l'unité d'arrivée est plus petite, il en faut plus" : "l'unité d'arrivée est plus grande, il en faut moins"}.` }],
+      aides: ["Rappel : km, hm, dam, m, dm, cm, mm ; chaque unité vaut $10$ fois la suivante.", `De ${u1} à ${u2}, il y a $${Math.abs(e1 - e2)}$ rang${Math.abs(e1 - e2) > 1 ? "s" : ""}.`, e1 > e2 ? `On multiplie par $${ecrit(P10(e1 - e2))}$.` : `On divise par $${ecrit(P10(e2 - e1))}$.`],
+      solution: `$1$ ${e1 > e2 ? u1 : u2} $= ${ecrit(P10(Math.abs(e1 - e2)))}$ ${e1 > e2 ? u2 : u1}, donc $${tD(x)}$ ${u1} $= ${tD(R)}$ ${u2}.` };
+  };
+
+  GEN["pa6-perimetre"] = function () {
+    const t = rand(0, 3), u = pick(["cm", "m"]);
+    if (t === 0) { const L = decimal(15, 1, 0), l = decimal(Math.floor(vD(L)) || 1, 1, 0); if (vD(l) >= vD(L) || vD(l) === 0) return GEN["pa6-perimetre"]();
+      const P = mulD(addD(L, l), Dc(2));
+      return { enonce: `Calcule le périmètre de ce rectangle.`, figure: figureRectangle(vD(L), vD(l), u), mode: "nombre", prefixe: "Périmètre :", suffixe: u, attendu: vD(P),
+        erreurs: [{ valeur: vD(addD(L, l)), message: "Ça, c'est seulement une longueur et une largeur : il y a deux longueurs et deux largeurs." }, { valeur: vD(mulD(L, l)), message: "Ça, c'est l'aire. Le périmètre est la longueur du contour." }],
+        aides: ["Le périmètre est la longueur du **tour** de la figure.", "Un rectangle a deux longueurs et deux largeurs.", "$P = 2 \\times (L + l)$."], solution: `$P = 2 \\times (${tD(L)} + ${tD(l)}) = 2 \\times ${tD(addD(L, l))} = ${tD(P)}$ ${u}.` }; }
+    if (t === 1) { const c = decimal(20, 1, 0); if (!vD(c)) return GEN["pa6-perimetre"](); const P = mulD(c, Dc(4));
+      return { enonce: `Un carré a des côtés de $${tD(c)}$ ${u}. Quel est son périmètre ?`, mode: "nombre", prefixe: "Périmètre :", suffixe: u, attendu: vD(P),
+        erreurs: [{ valeur: vD(mulD(c, c)), message: "Ça, c'est l'aire du carré." }, { valeur: vD(mulD(c, Dc(2))), message: "Un carré a quatre côtés." }],
+        aides: ["Un carré a $4$ côtés de même longueur.", "$P = 4 \\times c$.", `Calcule $4 \\times ${tD(c)}$.`], solution: `$P = 4 \\times ${tD(c)} = ${tD(P)}$ ${u}.` }; }
+    if (t === 2) { const n = rand(3, 6), cotes = Array.from({ length: n }, () => decimal(9, 1, 0)).map((x) => (vD(x) ? x : Dc(5)));
+      const P = cotes.reduce((s, x) => addD(s, x), Dc(0)), nom = ["", "", "", "triangle", "quadrilatère", "pentagone", "hexagone"][n];
+      return { enonce: `Un ${nom} a des côtés de ${cotes.map((x) => `$${tD(x)}$`).join(" ; ")} ${u}. Quel est son périmètre ?`, mode: "nombre", prefixe: "Périmètre :", suffixe: u, attendu: vD(P),
+        aides: ["Le périmètre est la somme des longueurs de tous les côtés.", "Additionne-les en posant l'addition si besoin.", "Vérifie que tu n'as oublié aucun côté."], solution: `$P = ${cotes.map(tD).join(" + ")} = ${tD(P)}$ ${u}.` }; }
+    const a = rand(6, 12), b = rand(4, 8), c = rand(1, a - 2), d = rand(1, b - 2), P = 2 * (a + b);
+    return { enonce: "Calcule le périmètre de cette figure (tous les angles sont droits).", figure: figureL(a, b, c, d, "m"), mode: "nombre", prefixe: "Périmètre :", suffixe: "m", attendu: P,
+      erreurs: [{ valeur: P - c - d, message: "Il manque des côtés : fais bien le tour complet de la figure." }, { valeur: a * b - c * d, message: "Ça, c'est l'aire. On demande le contour." }],
+      aides: ["Fais le tour de la figure et additionne les six côtés.", `Côtés connus : $${a}$, $${b - d}$, $${c}$, $${d}$, $${a - c}$, $${b}$ — le côté de $${d}$ m se lit comme $${b} - ${b - d}$.`, "Astuce : pour une figure en escalier, le périmètre est celui du grand rectangle."],
+      solution: `$${a} + ${b - d} + ${c} + ${d} + ${a - c} + ${b} = ${P}$ m (c'est aussi le périmètre du rectangle de $${a}$ m sur $${b}$ m).` };
+  };
+
+  GEN["pa6-cercle"] = function () {
+    const t = rand(0, 2);
+    if (t === 0) { const d = Dc(rand(2, 30)), P = mulD(d, Dc(314, 2));
+      return { enonce: `Un cercle a pour diamètre $${tD(d)}$ cm. Calcule son périmètre en prenant $3{,}14$ comme valeur approchée de $\\pi$.`, figure: figureCercleDiam(`${tD(d)} cm`), mode: "nombre", prefixe: "Périmètre ≈", suffixe: "cm", attendu: vD(P),
+        erreurs: [{ valeur: vD(mulD(P, Dc(2))), message: "Tu as utilisé le diamètre comme un rayon : $P = \\pi \\times d$, ou $2 \\times \\pi \\times r$." }, { valeur: vD(P) / 2, message: "La formule avec le diamètre est $P = \\pi \\times d$." }],
+        aides: ["Le périmètre d'un cercle est proportionnel à son diamètre.", "$P = \\pi \\times d$, avec $\\pi \\approx 3{,}14$.", `Calcule $3{,}14 \\times ${tD(d)}$.`], solution: `$P = \\pi \\times d \\approx 3{,}14 \\times ${tD(d)} = ${tD(P)}$ cm.` }; }
+    if (t === 1) { const r = Dc(rand(2, 20)), P = mulD(mulD(r, Dc(2)), Dc(314, 2));
+      return { enonce: `Un cercle a pour rayon $${tD(r)}$ cm. Calcule son périmètre en prenant $3{,}14$ pour $\\pi$.`, mode: "nombre", prefixe: "Périmètre ≈", suffixe: "cm", attendu: vD(P),
+        erreurs: [{ valeur: vD(mulD(r, Dc(314, 2))), message: "Avec le rayon, il faut d'abord doubler : $d = 2 \\times r$." }],
+        aides: [`Le diamètre est le double du rayon : $d = 2 \\times ${tD(r)}$.`, "$P = \\pi \\times d$.", "Prends $\\pi \\approx 3{,}14$."], solution: `$d = 2 \\times ${tD(r)} = ${2 * vD(r)}$ cm, puis $P \\approx 3{,}14 \\times ${2 * vD(r)} = ${tD(P)}$ cm.` }; }
+    // rectangle surmonté d'un demi-cercle : périmètre
+    const L = rand(4, 12) * 2, l = rand(3, 10), demi = mulD(Dc(L), Dc(157, 2)), P = addD(demi, Dc(L + 2 * l));
+    return { enonce: `Une fenêtre a la forme d'un rectangle de $${L}$ dm de large et $${l}$ dm de haut, surmonté d'un demi-cercle de diamètre $${L}$ dm. Calcule le périmètre de la fenêtre, avec $\\pi \\approx 3{,}14$.`, mode: "nombre", prefixe: "Périmètre ≈", suffixe: "dm", attendu: vD(P),
+      erreurs: [{ valeur: vD(addD(demi, Dc(2 * L + 2 * l))), message: "Le côté du haut du rectangle est remplacé par le demi-cercle : on ne le compte pas." }],
+      aides: ["Le contour est formé de trois côtés du rectangle et d'un demi-cercle.", `Demi-cercle : $(3{,}14 \\times ${L}) \\div 2$.`, `Côtés : $${L} + ${l} + ${l}$.`], solution: `Demi-cercle : $3{,}14 \\times ${L} \\div 2 = ${tD(demi)}$ dm. Côtés : $${L} + ${l} + ${l} = ${L + 2 * l}$ dm. Total : $${tD(P)}$ dm.` };
+  };
+
+  GEN["pa6-conv-aire"] = function () {
+    let i = rand(0, 2), j = rand(0, 2); while (j === i) j = rand(0, 2);
+    const [u1, e1] = UA[i], [u2, e2] = UA[j], x = Math.random() < 0.5 ? Dc(rand(1, 999)) : decimal(99, 2, 1);
+    const R = e1 > e2 ? mulD(x, Dc(P10(e1 - e2))) : Dc(x.m, x.d + (e2 - e1));
+    const faux = e1 > e2 ? vD(x) * P10((e1 - e2) / 2) : vD(x) / P10((e2 - e1) / 2);
+    return { enonce: `Convertis : $${tD(x)}$ ${u1} $= \\ldots$ ${u2}.`, mode: "nombre", prefixe: "Réponse :", suffixe: u2, attendu: vD(R),
+      erreurs: [{ valeur: faux, message: "Pour les aires, on passe d'une unité à la suivante en multipliant par $100$, pas par $10$." }],
+      aides: ["$1$ m² $= 100$ dm² et $1$ dm² $= 100$ cm².", `De ${u1} à ${u2} : ${e1 > e2 ? "unité plus petite, on multiplie" : "unité plus grande, on divise"}.`, e1 > e2 ? `On multiplie par $${ecrit(P10(e1 - e2))}$.` : `On divise par $${ecrit(P10(e2 - e1))}$.`],
+      solution: `$1$ ${e1 > e2 ? u1 : u2} $= ${ecrit(P10(Math.abs(e1 - e2)))}$ ${e1 > e2 ? u2 : u1}, donc $${tD(x)}$ ${u1} $= ${tD(R)}$ ${u2}.` };
+  };
+
+  GEN["pa6-aire"] = function () {
+    const t = rand(0, 3), u = pick(["cm", "m"]);
+    if (t === 0) { const L = decimal(15, 1, 0), l = decimal(Math.max(1, Math.floor(vD(L))), 1, 0); if (vD(l) >= vD(L) || vD(l) === 0) return GEN["pa6-aire"]();
+      const A = mulD(L, l);
+      return { enonce: "Calcule l'aire de ce rectangle.", figure: figureRectangle(vD(L), vD(l), u), mode: "nombre", prefixe: "Aire :", suffixe: `${u}²`, attendu: vD(A),
+        erreurs: [{ valeur: vD(mulD(addD(L, l), Dc(2))), message: "Ça, c'est le périmètre. L'aire est la surface : longueur $\\times$ largeur." }],
+        aides: ["L'aire d'un rectangle est longueur $\\times$ largeur.", `$\\mathscr{A} = ${tD(L)} \\times ${tD(l)}$.`, `L'unité est le ${u}² (${u === "cm" ? "centimètre" : "mètre"} carré).`], solution: `$\\mathscr{A} = ${tD(L)} \\times ${tD(l)} = ${tD(A)}$ ${u}².` }; }
+    if (t === 1) { const c = Dc(rand(2, 15)), A = mulD(c, c);
+      return { enonce: `Un carré a des côtés de $${tD(c)}$ ${u}. Quelle est son aire ?`, mode: "nombre", prefixe: "Aire :", suffixe: `${u}²`, attendu: vD(A),
+        erreurs: [{ valeur: 4 * vD(c), message: "Ça, c'est le périmètre. L'aire est côté $\\times$ côté." }, { valeur: 2 * vD(c), message: "L'aire est côté $\\times$ côté, pas côté $\\times 2$." }],
+        aides: ["L'aire d'un carré est côté $\\times$ côté.", `$\\mathscr{A} = ${tD(c)} \\times ${tD(c)}$.`, `L'unité est le ${u}².`], solution: `$\\mathscr{A} = ${tD(c)} \\times ${tD(c)} = ${tD(A)}$ ${u}².` }; }
+    if (t === 2) { // quadrillage
+      const nx = 12, ny = 7, cases = [], x0 = rand(0, 3), y0 = rand(0, 1), w = rand(3, 6), h = rand(2, 4);
+      for (let i = 0; i < w; i++) for (let j = 0; j < h; j++) cases.push([x0 + i, y0 + j]);
+      const ext = rand(1, 3); for (let i = 0; i < ext; i++) cases.push([x0 + i, y0 + h]);
+      const ext2 = rand(0, 2); for (let j = 0; j < ext2; j++) cases.push([x0 + w, y0 + j]);
+      if (y0 + h >= ny || x0 + w >= nx) return GEN["pa6-aire"]();
+      return { enonce: "Chaque carreau du quadrillage a une aire de $1$ cm². Quelle est l'aire de la figure coloriée ?", figure: grilleAire(cases, nx, ny), mode: "nombre", prefixe: "Aire :", suffixe: "cm²", attendu: cases.length,
+        aides: ["Compte les carreaux coloriés.", `Tu peux découper la figure en rectangles : par exemple un rectangle de $${w} \\times ${h}$ carreaux.`, "Ajoute les carreaux qui restent."],
+        solution: `Rectangle de $${w} \\times ${h} = ${w * h}$ carreaux, plus $${ext + ext2}$ carreau${ext + ext2 > 1 ? "x" : ""} : $${cases.length}$ cm².` }; }
+    const a = rand(6, 12), b = rand(4, 8), c = rand(1, a - 2), d = rand(1, b - 2), A = a * b - c * d;
+    return { enonce: "Calcule l'aire de cette figure (tous les angles sont droits).", figure: figureL(a, b, c, d, "m"), mode: "nombre", prefixe: "Aire :", suffixe: "m²", attendu: A,
+      erreurs: [{ valeur: a * b, message: "C'est l'aire du grand rectangle : il faut retirer le coin qui manque." }, { valeur: 2 * (a + b), message: "Ça, c'est le périmètre." }],
+      aides: ["Imagine le grand rectangle complet, puis retire le coin qui manque.", `Grand rectangle : $${a} \\times ${b}$.`, `Coin retiré : $${c} \\times ${d}$.`],
+      solution: `$${a} \\times ${b} - ${c} \\times ${d} = ${a * b} - ${c * d} = ${A}$ m².` };
+  };
+
+  GEN["pa6-probleme"] = function () {
+    const t = rand(0, 2), L = rand(5, 25), l = rand(3, L - 1);
+    if (t === 0) return { enonce: `Un jardin rectangulaire mesure $${L}$ m sur $${l}$ m. Quelle longueur de grillage faut-il pour l'entourer ?`, mode: "nombre", prefixe: "Grillage :", suffixe: "m", attendu: 2 * (L + l),
+      erreurs: [{ valeur: L * l, message: "Entourer, c'est faire le tour : c'est un périmètre, pas une aire." }],
+      aides: ["Entourer le jardin : on cherche la longueur du tour.", "C'est le périmètre du rectangle.", `$2 \\times (${L} + ${l})$.`], solution: `Périmètre : $2 \\times (${L} + ${l}) = ${2 * (L + l)}$ m de grillage.` };
+    if (t === 1) return { enonce: `Une terrasse rectangulaire mesure $${L}$ m sur $${l}$ m. Combien de m² de carrelage faut-il pour la recouvrir ?`, mode: "nombre", prefixe: "Carrelage :", suffixe: "m²", attendu: L * l,
+      erreurs: [{ valeur: 2 * (L + l), message: "Recouvrir une surface, c'est une aire, pas un périmètre." }],
+      aides: ["Recouvrir la terrasse : on cherche une surface.", "C'est l'aire du rectangle.", `$${L} \\times ${l}$.`], solution: `Aire : $${L} \\times ${l} = ${L * l}$ m² de carrelage.` };
+    const c = rand(3, 12), d = rand(2, 9);
+    const pc = c * c, pd = 4 * c;
+    const choix = [`Même périmètre, mais pas la même aire`, `Même aire, mais pas le même périmètre`, `Même périmètre et même aire`, `Ni le même périmètre, ni la même aire`];
+    // rectangle (c+d) × (c−d) comparé au carré c × c
+    if (d >= c) return GEN["pa6-probleme"]();
+    const rep = 0, cc = melange(choix[rep], choix.filter((_, k) => k !== rep));
+    return { enonce: `On compare un carré de côté $${c}$ cm et un rectangle de $${c + d}$ cm sur $${c - d}$ cm. Que peut-on dire ?`, mode: "choix", choix: cc.choix, attendu: cc.attendu,
+      aides: ["Calcule le périmètre et l'aire de chaque figure.", `Carré : $P = 4 \\times ${c}$ et $\\mathscr{A} = ${c} \\times ${c}$.`, `Rectangle : $P = 2 \\times (${c + d} + ${c - d})$ et $\\mathscr{A} = ${c + d} \\times ${c - d}$.`],
+      solution: `Carré : $P = ${pd}$ cm et $\\mathscr{A} = ${pc}$ cm². Rectangle : $P = ${2 * (2 * c)}$ cm et $\\mathscr{A} = ${(c + d) * (c - d)}$ cm². Même périmètre, mais l'aire du rectangle est plus petite : périmètre et aire ne varient pas ensemble.` };
+  };
+
   /* Une « erreur connue » ne doit jamais coïncider avec la bonne réponse ; propriétés internes retirées */
-  Object.keys(GEN).filter((k) => /^(n6|o6|d6|f6|p6|t6|a6|g6|c6|an6|tg6|sx6)-/.test(k)).forEach((k) => {
+  Object.keys(GEN).filter((k) => /^(n6|o6|d6|f6|p6|t6|a6|g6|c6|an6|tg6|sx6|pa6)-/.test(k)).forEach((k) => {
     const g = GEN[k];
     GEN[k] = (i) => {
       const q = g(i);

@@ -108,7 +108,7 @@ window.CATALOGUE = {
           id: "sixieme-perimetres-aires",
           numero: 13,
           titre: "Longueurs, périmètres et aires",
-          statut: "bientot",
+          statut: "disponible",
           drive: ""
         },
         {
