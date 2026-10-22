@@ -18,6 +18,7 @@ Site statique : aucune base de données, aucun compte élève. Ouvrir `index.htm
   - `data/sixieme/distances-cercles.js` : 6e, chapitre 9 (notations, milieu, cercle et disque, distance à un point, médiatrice). Générateurs `c6-` ; figures `geo()` (points, segments, droites, cercles, codage).
   - `data/sixieme/angles.js` : 6e, chapitre 10 (notation, nature, mesure au rapporteur, angles adjacents, supplémentaires, opposés par le sommet, bissectrice). Générateurs `an6-` ; figures `rapporteur()`, `figureAngle()`, `figureSecantes()`.
   - `data/sixieme/triangles.js` : 6e, chapitre 11 (construction et inégalité des longueurs, triangles particuliers et codage, somme des angles, cercle circonscrit). Générateurs `tg6-` ; figure `figureTriangle()`.
+  - `data/sixieme/symetrie.js` : 6e, chapitre 12 (symétrique d'un point sur quadrillage, définition par la médiatrice, propriétés de conservation, axes de symétrie des figures usuelles). Générateurs `sx6-` ; figures `grilleSym()`, `figureForme()`.
 - `data/seconde/ensembles.js` : chapitre 1 de Seconde (ensembles de nombres, intervalles, valeur absolue). Les générateurs d'exercices correspondants commencent par `ens-`, `int-` et `abs-` dans `assets/exercices.js`.
 - `data/seconde/information-chiffree.js` : chapitre 3 de Seconde.
 - `data/seconde/arithmetique.js` : chapitre 4 de Seconde (multiples, diviseurs, parité, nombres premiers, fractions irréductibles). Générateurs `ar-` dans `assets/exercices.js`.

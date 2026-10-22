@@ -101,7 +101,7 @@ window.CATALOGUE = {
           id: "sixieme-symetrie",
           numero: 12,
           titre: "Symétrie axiale",
-          statut: "bientot",
+          statut: "disponible",
           drive: ""
         },
         {

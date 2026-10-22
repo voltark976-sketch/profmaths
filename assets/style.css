@@ -176,6 +176,10 @@ pre.code code { font: inherit; }
 .g-arc { fill: none; stroke: var(--ylang); stroke-width: 2; }
 .g-num-angle { font-size: 13px; fill: var(--lagon); }
 .g-mesure { font: 700 11px var(--f-texte); fill: var(--lagon); }
+.g-axe { stroke: var(--faux); stroke-width: 2; stroke-dasharray: 6 4; }
+.g-axe-nom { fill: var(--faux); }
+.g-poly { fill: var(--lagon); fill-opacity: 0.2; stroke: var(--encre); stroke-width: 1.8; }
+.g-poly-image { fill: var(--ylang); fill-opacity: 0.25; }
 .quadrillage .g-colorie { fill: var(--lagon); fill-opacity: 0.45; }
 
 /* Vidéos */

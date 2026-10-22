@@ -2500,8 +2500,121 @@
       solution: `Le cercle circonscrit au triangle $${A}${B}${C}$ est le cercle qui passe par ses trois sommets $${A}$, $${B}$ et $${C}$.` };
   };
 
+  /* =====================================================================
+     6e, chapitre 12 : symétrie axiale (préfixe sx6-)
+     Programme : définition du symétrique d'un point par rapport à une droite ; propriétés de la symétrie axiale
+     pour construire (conservation des longueurs, des angles, des alignements) ; axes de symétrie (automatisme).
+     Supports : quadrillage, puis papier uni.
+     ===================================================================== */
+  // Quadrillage de 12 × 8 carreaux, un axe (d) et des points nommés ; coordonnées entières, (0, 0) en bas à gauche
+  const SYM = {
+    v: (a) => ({ f: ([x, y]) => [2 * a - x, y], trait: [[a, -0.4], [a, 8.4]], nom: "verticale" }),
+    h: (b) => ({ f: ([x, y]) => [x, 2 * b - y], trait: [[-0.4, b], [12.4, b]], nom: "horizontale" }),
+    d: (c) => ({ f: ([x, y]) => [y - c, x + c], trait: [[-c - 0.4 < 0 ? 0 : -c, (-c - 0.4 < 0 ? c : 0)], [8 - c, 8]], nom: "en biais" })
+  };
+  function grilleSym(axe, points, polys) {
+    const u = 24, W = 12 * u + 16, H = 8 * u + 16, X = (x) => 8 + x * u, Y = (y) => 8 + (8 - y) * u;
+    let s = `<svg class="graph grille-sym" viewBox="0 0 ${W} ${H}" role="img" aria-label="Quadrillage avec un axe de symétrie (d)"><g class="g-grid">`;
+    for (let i = 0; i <= 12; i++) s += `<line x1="${X(i)}" y1="${Y(0)}" x2="${X(i)}" y2="${Y(8)}"/>`;
+    for (let j = 0; j <= 8; j++) s += `<line x1="${X(0)}" y1="${Y(j)}" x2="${X(12)}" y2="${Y(j)}"/>`;
+    s += `</g>`;
+    (polys || []).forEach((p) => { s += `<polygon class="${p.classe || "g-poly"}" points="${p.pts.map(([x, y]) => `${X(x)},${Y(y)}`).join(" ")}"/>`; });
+    const [[x1, y1], [x2, y2]] = axe.trait;
+    s += `<line class="g-axe" x1="${X(x1)}" y1="${Y(y1)}" x2="${X(x2)}" y2="${Y(y2)}"/><text class="g-plabel g-axe-nom" x="${X(x2) + (axe.nom === "horizontale" ? -24 : 6)}" y="${Y(y2) + (axe.nom === "horizontale" ? -6 : 14)}">(d)</text>`;
+    points.forEach(([n, [x, y]]) => { s += `<circle class="g-point" cx="${X(x)}" cy="${Y(y)}" r="3.5"/><text class="g-plabel" x="${X(x) + 6}" y="${Y(y) - 6}">${n}</text>`; });
+    return s + `</svg>`;
+  }
+  const dansGrille = ([x, y]) => x >= 0 && x <= 12 && y >= 0 && y <= 8;
+  function axeHasard() {
+    const t = rand(0, 2);
+    if (t === 0) return SYM.v(rand(4, 8));
+    if (t === 1) return SYM.h(rand(3, 5));
+    const c = rand(-3, 0); const A = SYM.d(c); A.trait = [[-c, 0], [8 - c, 8]]; return A;
+  }
+  FIGURES["sx6-grille"] = () => { const a = SYM.v(6); return grilleSym(a, [["A", [3, 5]], ["A'", [9, 5]]], [{ pts: [[2, 1], [4, 1], [4, 3]] }, { pts: [[10, 1], [8, 1], [8, 3]], classe: "g-poly g-poly-image" }]); };
+
+  GEN["sx6-point"] = function () {
+    for (let essai = 0; essai < 40; essai++) {
+      const axe = axeHasard(), A = [rand(0, 12), rand(0, 8)], img = axe.f(A);
+      if (!dansGrille(img) || (img[0] === A[0] && img[1] === A[1])) continue;
+      // pièges : symétrique par un autre axe, glissement, point à la même distance mais pas en face
+      const pieges = [[img[0], A[1]], [A[0], img[1]], [img[0] + 1, img[1]], [img[0], img[1] + 1], [img[0] - 1, img[1] - 1], [2 * img[0] - A[0], 2 * img[1] - A[1]], [img[1], img[0]]]
+        .filter((p) => dansGrille(p) && !(p[0] === img[0] && p[1] === img[1]) && !(p[0] === A[0] && p[1] === A[1]));
+      const autres = []; pieges.forEach((p) => { if (autres.length < 3 && !autres.some((q) => q[0] === p[0] && q[1] === p[1])) autres.push(p); });
+      if (autres.length < 3) continue;
+      const lettres = shuffle(["E", "F", "G", "H", "K", "L", "R", "S"]).slice(0, 4), P = shuffle([img, ...autres]);
+      const bon = lettres[P.indexOf(img)];
+      const c = melange(`$${bon}$`, lettres.filter((l) => l !== bon).map((l) => `$${l}$`));
+      return { enonce: "Sur le quadrillage, quel point est le symétrique du point $A$ par rapport à la droite $(d)$ ?", figure: grilleSym(axe, [["A", A], ...P.map((p, k) => [lettres[k], p])]), mode: "choix", choix: c.choix, attendu: c.attendu,
+        aides: ["Le symétrique est **de l'autre côté** de $(d)$, **à la même distance**.", `Le segment qui relie $A$ à son symétrique est **perpendiculaire** à $(d)$${axe.nom === "en biais" ? " : il suit les diagonales des carreaux" : ""}.`, "Compte les carreaux (ou les diagonales) entre $A$ et $(d)$, puis compte-les de l'autre côté."],
+        solution: `$(d)$ doit être la médiatrice du segment qui relie $A$ à son symétrique : le point $${bon}$ est de l'autre côté de $(d)$, à la même distance, et $[A${bon}]$ est perpendiculaire à $(d)$.` };
+    }
+    return GEN["sx6-point"]();
+  };
+
+  GEN["sx6-definition"] = function () {
+    const t = rand(0, 2), [A, M] = shuffle(["A", "B", "C", "M", "N", "P"]).slice(0, 2);
+    if (t === 0) { const c = melange(`$(d)$ est la médiatrice du segment $[${A}${A}']$`, [`$(d)$ passe par $${A}$ et $${A}'$`, `$(d)$ est parallèle à $(${A}${A}')$`, `$${A}'$ est sur la droite $(d)$`]);
+      return { enonce: `« $${A}'$ est le symétrique de $${A}$ par rapport à la droite $(d)$ » signifie que :`, mode: "choix", choix: c.choix, attendu: c.attendu,
+        aides: ["Le symétrique est de l'autre côté de la droite, à la même distance.", "La droite coupe $[" + A + A + "']$ en son milieu.", "Et elle lui est perpendiculaire."],
+        solution: `$${A}'$ est le symétrique de $${A}$ par rapport à $(d)$ quand $(d)$ est la **médiatrice** de $[${A}${A}']$ : elle passe par son milieu et lui est perpendiculaire.` }; }
+    if (t === 1) { const L = Dc(rand(11, 99), 1), d = Dc(L.m * 5, L.d + 1);
+      return { enonce: `$${A}'$ est le symétrique de $${A}$ par rapport à $(d)$, et $${A}${A}' = ${tD(L)}$ cm. À quelle distance de la droite $(d)$ se trouve le point $${A}$ ?`, mode: "nombre", prefixe: "Distance :", suffixe: "cm", attendu: vD(L) / 2,
+        erreurs: [{ valeur: vD(L), message: `$${A}$ et $${A}'$ sont chacun à la même distance de $(d)$ : on partage $${A}${A}'$ en deux.` }],
+        aides: [`$(d)$ est la médiatrice de $[${A}${A}']$ : elle passe par son milieu.`, `$${A}$ est donc à la moitié de $${A}${A}'$ de la droite.`, `Calcule $${tD(L)} \\div 2$.`], solution: `$(d)$ passe par le milieu de $[${A}${A}']$ : la distance est $${tD(L)} \\div 2 = ${tD(d)}$ cm.` }; }
+    const c = melange(`$${M}'$ est confondu avec $${M}$`, [`$${M}'$ est à $2$ cm de $${M}$`, `$${M}$ n'a pas de symétrique`, `$${M}'$ est sur la perpendiculaire à $(d)$, loin de $(d)$`]);
+    return { enonce: `Le point $${M}$ est sur la droite $(d)$. Son symétrique $${M}'$ par rapport à $(d)$ :`, mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: ["Le symétrique est à la même distance de $(d)$ que le point de départ.", `Ici, $${M}$ est à une distance $0$ de $(d)$.`, "Un point de l'axe ne bouge pas."], solution: `$${M}$ est sur $(d)$, à une distance $0$ : son symétrique est lui-même, $${M}' = ${M}$.` };
+  };
+
+  GEN["sx6-proprietes"] = function () {
+    const t = rand(0, 3), [A, B, C] = NOMS_TRI();
+    if (t === 0) { const L = Dc(rand(15, 95), 1);
+      return { enonce: `Le triangle $${A}'${B}'${C}'$ est le symétrique du triangle $${A}${B}${C}$ par rapport à une droite. On sait que $${A}${B} = ${tD(L)}$ cm. Combien mesure $${A}'${B}'$ ?`, mode: "nombre", prefixe: `$${A}'${B}' =$`, suffixe: "cm", attendu: vD(L),
+        aides: ["La symétrie axiale est comme un pliage : la figure ne change pas de forme ni de taille.", "Elle **conserve les longueurs**.", `$[${A}'${B}']$ est le symétrique de $[${A}${B}]$.`], solution: `La symétrie axiale conserve les longueurs : $${A}'${B}' = ${A}${B} = ${tD(L)}$ cm.` }; }
+    if (t === 1) { const a = rand(15, 160);
+      return { enonce: `Le triangle $${A}'${B}'${C}'$ est le symétrique du triangle $${A}${B}${C}$ par rapport à une droite, et $\\widehat{${A}${B}${C}} = ${a}$°. Combien mesure $\\widehat{${A}'${B}'${C}'}$ ?`, mode: "nombre", prefixe: "Mesure :", suffixe: "°", attendu: a,
+        erreurs: [{ valeur: 180 - a, message: "La symétrie ne « retourne » pas la mesure : elle conserve les angles." }],
+        aides: ["Pense au pliage : l'angle se pose exactement sur son symétrique.", "La symétrie axiale **conserve les angles**.", `$\\widehat{${A}'${B}'${C}'}$ est le symétrique de $\\widehat{${A}${B}${C}}$.`], solution: `La symétrie axiale conserve les angles : $\\widehat{${A}'${B}'${C}'} = ${a}$°.` }; }
+    if (t === 2) { const [obj, img] = pick([["d'une droite", "une droite"], ["d'un segment de $5$ cm", "un segment de $5$ cm"], ["d'un cercle de rayon $3$ cm", "un cercle de rayon $3$ cm"], ["d'un carré", "un carré de même côté"], ["de trois points alignés", "trois points alignés"]]);
+      const faux = ["un objet plus grand", "un objet plus petit", "un objet déformé", "une droite parallèle à l'axe dans tous les cas", "un cercle de rayon double"].filter((x) => x !== img);
+      const c = melange(img[0].toUpperCase() + img.slice(1), shuffle(faux).slice(0, 3).map((x) => x[0].toUpperCase() + x.slice(1)));
+      return { enonce: `Par une symétrie axiale, le symétrique ${obj} est :`, mode: "choix", choix: c.choix, attendu: c.attendu,
+        aides: ["La symétrie axiale conserve les longueurs, les angles et les alignements.", "Elle conserve donc la nature et la taille des figures.", "Pense à un pliage le long de l'axe."], solution: `La symétrie axiale conserve les formes et les mesures : le symétrique ${obj} est ${img}.` }; }
+    const r = rand(2, 9);
+    return { enonce: `Le cercle $(\\mathscr{C}')$ est le symétrique du cercle $(\\mathscr{C})$ de centre $O$ et de rayon $${r}$ cm. Quel est le rayon de $(\\mathscr{C}')$ ?`, mode: "nombre", prefixe: "Rayon :", suffixe: "cm", attendu: r,
+      aides: ["Le symétrique d'un cercle est un cercle.", "La symétrie conserve les longueurs, donc les rayons.", "Son centre est le symétrique $O'$ de $O$."], solution: `Le symétrique d'un cercle est un cercle de même rayon, $${r}$ cm, dont le centre est le symétrique de $O$.` };
+  };
+
+  // Axes de symétrie de figures usuelles
+  function figureForme(nom) {
+    const W = 320, H = 170, cx = 160, cy = 85, poly = (pts) => `<polygon class="g-poly" points="${pts.map(([x, y]) => `${+x.toFixed(1)},${+y.toFixed(1)}`).join(" ")}"/>`;
+    const reg = (n, r, rot) => Array.from({ length: n }, (_, k) => [cx + r * Math.cos(((rot || -90) + (360 * k) / n) * Math.PI / 180), cy + r * Math.sin(((rot || -90) + (360 * k) / n) * Math.PI / 180)]);
+    const F = {
+      "un carré": poly([[100, 25], [220, 25], [220, 145], [100, 145]]), "un rectangle (non carré)": poly([[70, 40], [250, 40], [250, 130], [70, 130]]),
+      "un losange (non carré)": poly([[160, 15], [240, 85], [160, 155], [80, 85]]), "un triangle équilatéral": poly(reg(3, 80)),
+      "un triangle isocèle (non équilatéral)": poly([[160, 15], [215, 155], [105, 155]]), "un triangle quelconque": poly([[70, 150], [260, 130], [120, 25]]),
+      "un parallélogramme (quelconque)": poly([[60, 140], [200, 140], [260, 30], [120, 30]]), "un hexagone régulier": poly(reg(6, 75, 0)),
+      "un pentagone régulier": poly(reg(5, 78)), "un trapèze isocèle": poly([[60, 145], [260, 145], [210, 30], [110, 30]]), "un cercle": `<circle class="g-poly" cx="${cx}" cy="${cy}" r="70"/>`
+    };
+    return `<svg class="graph geo" viewBox="0 0 ${W} ${H}" role="img" aria-label="Figure : ${nom}">${F[nom]}</svg>`;
+  }
+  const AXES = [["un carré", 4], ["un rectangle (non carré)", 2], ["un losange (non carré)", 2], ["un triangle équilatéral", 3], ["un triangle isocèle (non équilatéral)", 1], ["un triangle quelconque", 0], ["un parallélogramme (quelconque)", 0], ["un hexagone régulier", 6], ["un pentagone régulier", 5], ["un trapèze isocèle", 1], ["un cercle", "infini"]];
+  FIGURES["sx6-rectangle"] = () => figureForme("un rectangle (non carré)");
+
+  GEN["sx6-axes"] = function () {
+    const [nom, n] = pick(AXES), avecFig = Math.random() < 0.7;
+    const txt = (k) => (k === "infini" ? "Une infinité" : k === 0 ? "Aucun" : `$${k}$ axe${k > 1 ? "s" : ""}`);
+    const autres = [0, 1, 2, 3, 4, 6, "infini"].filter((k) => k !== n).sort(() => Math.random() - 0.5).slice(0, 3);
+    const c = melange(txt(n), autres.map(txt));
+    const pourquoi = { "un carré": "ses deux diagonales et les deux médiatrices de ses côtés", "un rectangle (non carré)": "les deux médiatrices de ses côtés (pas ses diagonales)", "un losange (non carré)": "ses deux diagonales", "un triangle équilatéral": "les trois médiatrices de ses côtés", "un triangle isocèle (non équilatéral)": "la médiatrice de sa base", "un triangle quelconque": "aucun pliage ne superpose les deux moitiés", "un parallélogramme (quelconque)": "aucun pliage ne superpose les deux moitiés (même pas les diagonales)", "un hexagone régulier": "trois droites qui joignent des sommets opposés et trois médiatrices de côtés", "un pentagone régulier": "les cinq droites qui joignent un sommet au milieu du côté opposé", "un trapèze isocèle": "la médiatrice de ses deux bases", "un cercle": "toutes les droites qui passent par son centre" }[nom];
+    return { enonce: `Combien d'axes de symétrie a ${nom} ?`, figure: avecFig ? figureForme(nom) : undefined, mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: ["Un axe de symétrie partage la figure en deux parties qui se superposent par pliage.", "Imagine les pliages possibles : selon les diagonales, selon les médiatrices des côtés…", "Attention : les diagonales d'un rectangle ou d'un parallélogramme ne sont pas des axes de symétrie."],
+      solution: `${txt(n).replace("$", "").replace("$", "")} : ${pourquoi}.`.replace(/^Une infinité/, "Une infinité d'axes").replace(/^Aucun/, "Aucun axe") };
+  };
+
   /* Une « erreur connue » ne doit jamais coïncider avec la bonne réponse ; propriétés internes retirées */
-  Object.keys(GEN).filter((k) => /^(n6|o6|d6|f6|p6|t6|a6|g6|c6|an6|tg6)-/.test(k)).forEach((k) => {
+  Object.keys(GEN).filter((k) => /^(n6|o6|d6|f6|p6|t6|a6|g6|c6|an6|tg6|sx6)-/.test(k)).forEach((k) => {
     const g = GEN[k];
     GEN[k] = (i) => {
       const q = g(i);
