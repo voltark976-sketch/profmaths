@@ -200,7 +200,7 @@ window.CATALOGUE = {
           id: "cinquieme-graphiques",
           numero: 10,
           titre: "Graphiques et grandeurs en fonction d'une autre",
-          statut: "bientot",
+          statut: "disponible",
           drive: ""
         },
         {

@@ -31,6 +31,7 @@ Site statique : aucune base de données, aucun compte élève. Ouvrir `index.htm
   - `data/cinquieme/symetries.js` : 5e, chapitre 7 (symétrie centrale : définition, construction sur quadrillage, propriétés, centre de symétrie). Générateurs `sc5-` ; figure `grilleC()`.
   - `data/cinquieme/relatifs.js` : 5e, chapitre 8 (relatifs, opposé, distance à zéro, droite graduée, comparer et ranger, repère). Générateurs `nr5-` ; figures `droiteRel()` et `repere()`.
   - `data/cinquieme/calculs-relatifs.js` : 5e, chapitre 9 (addition et soustraction de relatifs, suppression des parenthèses, sommes de plusieurs relatifs, problèmes). Générateurs `cr5-`.
+  - `data/cinquieme/graphiques.js` : 5e, chapitre 10 (en fonction de, formules et tableaux de valeurs, lecture de graphiques, proportionnalité et points alignés avec l'origine). Générateurs `gf5-` ; figure `grapheXY()`.
 - `data/seconde/ensembles.js` : chapitre 1 de Seconde (ensembles de nombres, intervalles, valeur absolue). Les générateurs d'exercices correspondants commencent par `ens-`, `int-` et `abs-` dans `assets/exercices.js`.
 - `data/seconde/information-chiffree.js` : chapitre 3 de Seconde.
 - `data/seconde/arithmetique.js` : chapitre 4 de Seconde (multiples, diviseurs, parité, nombres premiers, fractions irréductibles). Générateurs `ar-` dans `assets/exercices.js`.

@@ -3,7 +3,7 @@
   Ce fichier se charge après assets/exercices-college.js et reprend ses outils (window.PM_EXO.college).
   Mêmes règles : chaque générateur fabrique une question avec des nombres tirés au hasard, la réponse
   attendue, trois indices progressifs et la solution rédigée.
-  Préfixes : rc5- (règles de calcul), tr5-, fr5-, pp5-, an5-, dv5-, sc5-, nr5-, cr5-.
+  Préfixes : rc5- (règles de calcul), tr5-, fr5-, pp5-, an5-, dv5-, sc5-, nr5-, cr5-, gf5-.
 */
 (function () {
   "use strict";
@@ -1172,8 +1172,96 @@
       aides: ["Un paiement se traduit par un nombre négatif, un versement par un positif.", `Calcule $${s0} - ${dep} + ${rec}$.`, `$${s0} - ${dep} = ${rel(s0 - dep)}$.`], solution: `$${s0} - ${dep} + ${rec} = ${rel(s0 - dep)} + ${rec} = ${rel(fin)}$ €.${fin < 0 ? " Le compte est à découvert." : ""}` };
   };
 
+  /* =====================================================================
+     Chapitre 10 : graphiques et grandeurs en fonction d'une autre (gf5-)
+     ===================================================================== */
+  // Graphique dans un repère d'origine 0 : points [x, y], reliés ou non
+  function grapheXY(o) {
+    const W = 320, H = 210, x0 = 40, y0 = 176, haut = 18, droite = W - 14;
+    const X = (x) => +(x0 + ((droite - x0) * x) / o.xmax).toFixed(1), Y = (y) => +(y0 - ((y0 - haut) * y) / o.ymax).toFixed(1);
+    let s = `<svg class="graph" viewBox="0 0 ${W} ${H + 16}" role="img" aria-label="${o.aria}"><g class="g-grid">`;
+    for (let x = 0; x <= o.xmax + 1e-9; x += o.pasX) s += `<line x1="${X(x)}" y1="${haut}" x2="${X(x)}" y2="${y0}"/>`;
+    for (let y = 0; y <= o.ymax + 1e-9; y += o.pasY) s += `<line x1="${x0}" y1="${Y(y)}" x2="${droite}" y2="${Y(y)}"/>`;
+    s += `</g><g class="g-tick">`;
+    for (let x = 0; x <= o.xmax + 1e-9; x += o.pasX * (o.etiqX || 1)) s += `<text x="${X(x)}" y="${y0 + 14}" text-anchor="middle">${nbTexteC(x)}</text>`;
+    for (let y = o.pasY * (o.etiqY || 1); y <= o.ymax + 1e-9; y += o.pasY * (o.etiqY || 1)) s += `<text x="${x0 - 5}" y="${Y(y) + 3.5}" text-anchor="end">${nbTexteC(y)}</text>`;
+    s += `</g><g class="g-axis"><line x1="${x0}" y1="${y0}" x2="${droite + 4}" y2="${y0}"/><line x1="${x0}" y1="${y0}" x2="${x0}" y2="${haut - 8}"/></g>`;
+    if (o.relier) s += `<polyline class="g-curve" points="${o.pts.map(([x, y]) => `${X(x)},${Y(y)}`).join(" ")}"/>`;
+    o.pts.forEach(([x, y]) => { s += `<circle class="g-point" cx="${X(x)}" cy="${Y(y)}" r="3.5"/>`; });
+    s += `<text class="g-plabel" x="${x0 + 4}" y="${haut - 6}">${o.ylab}</text><text class="g-plabel" x="${droite}" y="${y0 + 32}" text-anchor="end">${o.xlab}</text>`;
+    return s + `</svg>`;
+  }
+  const nbTexteC = (x) => String(+x.toFixed(6)).replace(".", ",");
+  FIGURES["gf5-rando"] = () => grapheXY({ pts: [[0, 0], [1, 4], [2, 8], [3, 8], [4, 11], [5, 14]], xmax: 5, ymax: 16, pasX: 1, pasY: 2, relier: true, xlab: "durée (h)", ylab: "distance (km)", aria: "Distance parcourue en fonction de la durée : 4 km par heure, une pause entre 2 h et 3 h, 14 km en 5 h" });
+  FIGURES["gf5-prop"] = () => grapheXY({ pts: [[1, 3], [2, 6], [3, 9], [4, 12], [5, 15]], xmax: 6, ymax: 18, pasX: 1, pasY: 3, relier: false, xlab: "masse (kg)", ylab: "prix (€)", aria: "Prix en fonction de la masse : points alignés avec l'origine, 3 € par kilogramme" });
+
+  GEN["gf5-lire"] = function () {
+    // randonnée : vitesse v, pause éventuelle, lecture directe ou inverse
+    for (let e = 0; e < 50; e++) {
+      const v = pick([2, 3, 4, 5]), n = rand(5, 7), pause = rand(1, n - 2), pts = [[0, 0]]; let d = 0;
+      for (let h = 1; h <= n; h++) { if (h !== pause + 1) d += v * (h > pause + 1 && Math.random() < 0.4 ? 0.5 : 1); pts.push([h, d]); }
+      if (pts.some(([, y]) => !Number.isInteger(y))) continue;
+      const ymax = Math.ceil(d / 4) * 4 + 4, fig = grapheXY({ pts, xmax: n, ymax, pasX: 1, pasY: 2, etiqY: 2, relier: true, xlab: "durée (h)", ylab: "distance (km)", aria: "Distance parcourue par un randonneur en fonction de la durée de marche" });
+      const t = rand(0, 3), h = rand(1, n);
+      if (t === 0) return { enonce: `Le graphique donne la distance parcourue par un randonneur en fonction de la durée de marche. Quelle distance a-t-il parcourue au bout de $${h}$ h ?`, figure: fig, mode: "nombre", prefixe: "Distance :", suffixe: "km", attendu: pts[h][1],
+        aides: ["La durée se lit sur l'axe horizontal, la distance sur l'axe vertical.", `Pars de $${h}$ sur l'axe horizontal et monte jusqu'à la courbe.`, "Puis lis la valeur correspondante sur l'axe vertical."], solution: `Au bout de $${h}$ h, le point de la courbe est à la hauteur $${pts[h][1]}$ : il a parcouru $${pts[h][1]}$ km.` };
+      if (t === 1) return { enonce: "Le graphique donne la distance parcourue par un randonneur en fonction de la durée de marche. Pendant combien d'heures a-t-il fait une pause ?", figure: fig, mode: "nombre", prefixe: "Pause :", suffixe: "h", attendu: 1,
+        aides: ["Pendant une pause, la distance ne change pas.", "Cherche le morceau de courbe horizontal.", "Lis sur l'axe horizontal le début et la fin de ce morceau."], solution: `La courbe est horizontale entre $${pause}$ h et $${pause + 1}$ h : la distance reste $${pts[pause][1]}$ km. La pause a duré $1$ h.` };
+      if (t === 2) return { enonce: "Le graphique donne la distance parcourue par un randonneur en fonction de la durée de marche. Quelle distance a-t-il parcourue en tout ?", figure: fig, mode: "nombre", prefixe: "Distance totale :", suffixe: "km", attendu: d,
+        aides: ["La distance totale est la distance à la fin de la randonnée.", "Regarde le dernier point de la courbe.", "Lis sa hauteur sur l'axe vertical."], solution: `Le dernier point est à la hauteur $${d}$ : il a parcouru $${d}$ km.` };
+      const cible = pts.find(([x, y], i) => i > 0 && y > 0 && pts.filter((q) => q[1] === y).length === 1); if (!cible) continue;
+      return { enonce: `Le graphique donne la distance parcourue par un randonneur en fonction de la durée de marche. Au bout de combien d'heures avait-il parcouru $${cible[1]}$ km ?`, figure: fig, mode: "nombre", prefixe: "Durée :", suffixe: "h", attendu: cible[0],
+        aides: ["Cette fois, on part de l'axe vertical (la distance).", `Pars de $${cible[1]}$ sur l'axe vertical et va horizontalement jusqu'à la courbe.`, "Descends ensuite sur l'axe horizontal."], solution: `La courbe atteint $${cible[1]}$ km au point d'abscisse $${cible[0]}$ : au bout de $${cible[0]}$ h.` };
+    }
+  };
+
+  GEN["gf5-formule"] = function () {
+    const t = rand(0, 3);
+    const C = [
+      () => { const a = pick([6, 7, 8, 9, 12]), b = pick([2, 3, 4, 5]), n = rand(2, 9); return { e: `Au cinéma, le prix $P$ (en €) à payer pour $n$ places et un pot de pop-corn est $P = ${a} \\times n + ${b}$. Calcule le prix pour $${n}$ places.`, r: a * n + b, s: `$P = ${a} \\times ${n} + ${b} = ${a * n} + ${b} = ${a * n + b}$ €.`, err: a * (n + b), u: "€" }; },
+      () => { const c = Dc(rand(12, 25), 1), p = rand(3, 5), d = rand(2, 30), r = addD(Dc(p), mulD(c, Dc(d))); return { e: `Un taxi facture une prise en charge de $${p}$ € puis $${tD(c)}$ € par kilomètre. Le prix est $P = ${p} + ${tD(c)} \\times d$ où $d$ est la distance en km. Calcule $P$ pour $d = ${d}$.`, r: r.m / 10 ** r.d, s: `$P = ${p} + ${tD(c)} \\times ${d} = ${p} + ${tD(mulD(c, Dc(d)))} = ${tD(r)}$ €.`, err: (p + c.m / 10) * d, u: "€" }; },
+      () => { const c = rand(2, 12); return { e: `Le périmètre $P$ d'un carré de côté $c$ est donné par la formule $P = 4 \\times c$. Calcule $P$ pour $c = ${c}$ cm.`, r: 4 * c, s: `$P = 4 \\times ${c} = ${4 * c}$ cm.`, err: c * c, u: "cm" }; },
+      () => { const L = rand(3, 12), l = rand(2, L - 1); return { e: `Le périmètre $P$ d'un rectangle de longueur $L$ et de largeur $\\ell$ est $P = 2 \\times (L + \\ell)$. Calcule $P$ pour $L = ${L}$ cm et $\\ell = ${l}$ cm.`, r: 2 * (L + l), s: `$P = 2 \\times (${L} + ${l}) = 2 \\times ${L + l} = ${2 * (L + l)}$ cm.`, err: 2 * L + l, u: "cm" }; }
+    ];
+    if (t <= 1 || Math.random() < 0.5) { const q = C[rand(0, 3)](); return { enonce: q.e, mode: "nombre", prefixe: "Résultat :", suffixe: q.u, attendu: q.r, erreurs: [{ valeur: q.err, message: "Respecte les priorités : multiplications d'abord, sauf s'il y a des parenthèses." }],
+      aides: ["On remplace la lettre par sa valeur : c'est une substitution.", "On écrit le signe $\\times$ entre le nombre et la valeur remplacée.", "On applique les priorités opératoires."], solution: q.s }; }
+    const a = rand(2, 9), b = rand(1, 15), xs = [0, 1, 2, 5, 10].slice(0, 5), i = rand(1, 4);
+    return { enonce: `La masse $M$ (en kg) d'un carton contenant $n$ bouteilles est $M = ${a} \\times n + ${b}$. Complète le tableau : que vaut $M$ pour $n = ${xs[i]}$ ?`, tableau: { lignes: [["n", ...xs.map(String)], ["M", ...xs.map((x, k) => (k === i ? "\\ldots" : String(a * x + b)))]] }, mode: "nombre", prefixe: "$M =$", suffixe: "kg", attendu: a * xs[i] + b,
+      erreurs: [{ valeur: a * xs[i], message: `N'oublie pas d'ajouter $${b}$ (la masse du carton vide).` }],
+      aides: [`Remplace $n$ par $${xs[i]}$ dans la formule.`, `$M = ${a} \\times ${xs[i]} + ${b}$.`, "Multiplication d'abord, puis addition."], solution: `$M = ${a} \\times ${xs[i]} + ${b} = ${a * xs[i] + b}$ kg.` };
+  };
+
+  GEN["gf5-produire"] = function () {
+    const t = rand(0, 5);
+    const Q = [
+      () => { const a = rand(2, 15); return [`Un cahier coûte $${a}$ €. Quelle formule donne le prix $P$ (en €) de $n$ cahiers en fonction de $n$ ?`, `$P = ${a} \\times n$`, [`$P = ${a} + n$`, `$P = n \\div ${a}$`, `$P = ${a} \\times n + ${a}$`], `Chaque cahier coûte $${a}$ € : pour $n$ cahiers, $P = ${a} \\times n$ (on écrit aussi $P = ${a}n$).`]; },
+      () => { const p = rand(2, 8), c = pick([1.5, 2, 2.5, 1.2, 1.8, 3]); const C = nb(c); return [`Un taxi facture $${p}$ € de prise en charge, puis $${C}$ € par kilomètre. Quelle formule donne le prix $P$ (en €) en fonction de la distance $d$ (en km) ?`, `$P = ${p} + ${C} \\times d$`, [`$P = (${p} + ${C}) \\times d$`, `$P = ${p} \\times d + ${C}$`, `$P = ${C} \\times d$`], `On paie $${p}$ € une seule fois, puis $${C}$ € pour chaque kilomètre : $P = ${p} + ${C} \\times d$.`]; },
+      () => [`Quelle formule donne l'aire $\\mathcal{A}$ d'un carré en fonction de la longueur $c$ de son côté ?`, "$\\mathcal{A} = c \\times c$", ["$\\mathcal{A} = 4 \\times c$", "$\\mathcal{A} = 2 \\times c$", "$\\mathcal{A} = c + c$"], "L'aire d'un carré est côté fois côté : $\\mathcal{A} = c \\times c = c^2$."],
+      () => { const a = rand(2, 12), m = rand(5, 20); return [`Un abonnement de streaming coûte $${m}$ € par mois, plus $${a}$ € par film loué. Quelle formule donne le prix $P$ (en €) payé dans un mois en fonction du nombre $f$ de films loués ?`, `$P = ${m} + ${a} \times f$`, [`$P = (${m} + ${a}) \times f$`, `$P = ${m} \times f + ${a}$`, `$P = ${a} \times f$`], `On paie $${m}$ € une fois, plus $${a}$ € pour chaque film : $P = ${m} + ${a} \times f$.`]; },
+      () => { const l = rand(2, 9); return [`Un rectangle a une largeur de $${l}$ cm. Quelle formule donne son périmètre $P$ (en cm) en fonction de sa longueur $L$ ?`, `$P = 2 \times (L + ${l})$`, [`$P = 2 \times L + ${l}$`, `$P = L \times ${l}$`, `$P = L + ${l}$`], `Le périmètre est le double de la somme de la longueur et de la largeur : $P = 2 \times (L + ${l})$.`]; },
+      () => { const a = rand(2, 9); return [`On choisit un nombre $x$, on le multiplie par $${a}$, puis on retire $1$. Quelle formule donne le résultat $R$ en fonction de $x$ ?`, `$R = ${a} \\times x - 1$`, [`$R = ${a} \\times (x - 1)$`, `$R = x - ${a} \\times 1$`, `$R = ${a} + x - 1$`], `On multiplie d'abord $x$ par $${a}$, puis on retire $1$ : $R = ${a} \\times x - 1$, sans parenthèses.`]; }
+    ];
+    const [q, bonne, faux, expl] = Q[t]();
+    const { choix, attendu } = melange(bonne, faux);
+    return { enonce: q, mode: "choix", choix, attendu, aides: ["Teste chaque formule avec une valeur simple (par exemple $1$ ou $2$).", "Vérifie que le résultat obtenu correspond bien à la situation.", "Attention aux parenthèses : elles changent l'ordre des calculs."], solution: `Réponse : ${bonne}. ${expl}` };
+  };
+
+  GEN["gf5-proportionnalite"] = function () {
+    const t = rand(0, 2), k = pick([1.5, 2, 2.5, 3, 4, 5]), n = 5, xs = [1, 2, 3, 4, 5];
+    let pts, nature;
+    if (t === 0) { pts = xs.map((x) => [x, x * k]); nature = 0; }
+    else if (t === 1) { const b = pick([2, 3, 4]); pts = xs.map((x) => [x, x * k + b]); nature = 1; }
+    else { pts = xs.map((x) => [x, Math.max(1, Math.round(x * k + pick([-2, -1, 1, 2]) * (x % 2)))]); nature = 2; if (pts.every(([x, y]) => y === x * k)) return GEN["gf5-proportionnalite"](); }
+    const ymax = Math.ceil(Math.max(...pts.map((p) => p[1])) / 2) * 2 + 2;
+    const fig = grapheXY({ pts, xmax: 6, ymax, pasX: 1, pasY: ymax > 20 ? 4 : 2, relier: false, xlab: "quantité", ylab: "prix (€)", aria: "Nuage de points représentant un prix en fonction d'une quantité" });
+    const choix = ["Oui : les points sont alignés avec l'origine du repère", "Non : les points sont alignés, mais pas avec l'origine", "Non : les points ne sont pas alignés"];
+    return { enonce: "Ce graphique représente-t-il une situation de proportionnalité ?", figure: fig, mode: "choix", choix, attendu: nature,
+      aides: ["Une situation de proportionnalité est représentée par des points **alignés avec l'origine** du repère.", "Vérifie d'abord si les points sont alignés (sur une même droite).", "Puis prolonge mentalement la droite : passe-t-elle par l'origine $(0 \\, ; \\, 0)$ ?"],
+      solution: [`Les points sont alignés sur une droite qui passe par l'origine : c'est une situation de proportionnalité (coefficient $${nb(k)}$).`, "Les points sont alignés, mais la droite ne passe pas par l'origine : ce n'est pas une situation de proportionnalité.", "Les points ne sont pas alignés : ce n'est pas une situation de proportionnalité."][nature] };
+  };
+
   /* Une « erreur connue » ne doit jamais coïncider avec la bonne réponse */
-  Object.keys(GEN).filter((k) => /^(rc5|tr5|fr5|pp5|an5|dv5|sc5|nr5|cr5)-/.test(k)).forEach((k) => {
+  Object.keys(GEN).filter((k) => /^(rc5|tr5|fr5|pp5|an5|dv5|sc5|nr5|cr5|gf5)-/.test(k)).forEach((k) => {
     const g = GEN[k];
     GEN[k] = (i) => {
       const q = g(i);
