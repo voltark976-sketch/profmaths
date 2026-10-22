@@ -73,7 +73,7 @@ window.CATALOGUE = {
           id: "sixieme-donnees-probabilites",
           numero: 8,
           titre: "Organisation de données et probabilités",
-          statut: "bientot",
+          statut: "disponible",
           drive: ""
         },
         {

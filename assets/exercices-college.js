@@ -1880,8 +1880,211 @@
       solution: `$${T} - ${y} = ${T - y}$ € pour les $${n}$ ${o}, donc ${un} coûte $${T - y} \\div ${n} = ${x}$ €.` };
   };
 
+  /* =====================================================================
+     6e, chapitre 8 : organisation et gestion de données, probabilités (préfixe g6-)
+     Programme : lire un tableau, un diagramme en barres, un diagramme circulaire, une courbe ; construire un tableau,
+     filtrer des données selon un critère ; probabilité entre 0 et 1, calcul en situation d'équiprobabilité
+     (« a chances sur b » devient a/b), comparaison avec les fréquences d'une expérience répétée.
+     ===================================================================== */
+  // Diagramme en barres : cats = [[nom, valeur]], pas = graduation de l'axe
+  function diagrammeBarres(cats, pas, unite) {
+    const W = 320, H = 190, x0 = 34, y0 = 150, haut = 12, vmax = Math.ceil(Math.max(...cats.map((c) => c[1])) / pas) * pas;
+    const Y = (v) => +(y0 - ((y0 - haut) * v) / vmax).toFixed(1), bw = (W - x0 - 10) / cats.length;
+    let s = `<svg class="graph diag-barres" viewBox="0 0 ${W} ${H}" role="img" aria-label="Diagramme en barres${unite ? " (" + unite + ")" : ""}">`;
+    s += `<g class="g-grid">`; for (let v = 0; v <= vmax; v += pas) s += `<line x1="${x0}" y1="${Y(v)}" x2="${W - 6}" y2="${Y(v)}"/>`; s += `</g>`;
+    s += `<g class="g-tick">`; for (let v = 0; v <= vmax; v += pas) s += `<text x="${x0 - 5}" y="${Y(v) + 3.5}" text-anchor="end">${v}</text>`; s += `</g>`;
+    cats.forEach(([nom, v], i) => {
+      const x = x0 + i * bw + bw * 0.18, w = bw * 0.64;
+      s += `<rect class="g-aire g-colorie g-barre" x="${+x.toFixed(1)}" y="${Y(v)}" width="${+w.toFixed(1)}" height="${+(y0 - Y(v)).toFixed(1)}"/>`;
+      s += `<text class="g-plabel" x="${+(x + w / 2).toFixed(1)}" y="${y0 + 15}" text-anchor="middle">${nom}</text>`;
+    });
+    s += `<g class="g-axis"><line x1="${x0}" y1="${y0}" x2="${W - 6}" y2="${y0}"/><line x1="${x0}" y1="${y0}" x2="${x0}" y2="${haut - 6}"/></g>`;
+    if (unite) s += `<text class="g-plabel" x="${x0 + 4}" y="${haut - 2}">${unite}</text>`;
+    return s + `</svg>`;
+  }
+  // Diagramme circulaire : parts = [[nom, fraction (en 24e)]] ; légende à droite
+  function diagrammeCirculaire(parts) {
+    const W = 320, H = 150, cx = 80, cy = 75, r = 64, tot = parts.reduce((s, p) => s + p[1], 0);
+    let s = `<svg class="graph diag-circ" viewBox="0 0 ${W} ${H}" role="img" aria-label="Diagramme circulaire : ${parts.map((p) => p[0]).join(", ")}">`, a = -Math.PI / 2;
+    parts.forEach(([nom, v], i) => {
+      const b = a + (2 * Math.PI * v) / tot, grand = b - a > Math.PI ? 1 : 0;
+      const x1 = +(cx + r * Math.cos(a)).toFixed(1), y1 = +(cy + r * Math.sin(a)).toFixed(1), x2 = +(cx + r * Math.cos(b)).toFixed(1), y2 = +(cy + r * Math.sin(b)).toFixed(1);
+      s += v === tot ? `<circle class="g-secteur g-secteur-${i}" cx="${cx}" cy="${cy}" r="${r}"/>` : `<path class="g-secteur g-secteur-${i}" d="M${cx} ${cy} L${x1} ${y1} A${r} ${r} 0 ${grand} 1 ${x2} ${y2} Z"/>`;
+      s += `<rect class="g-secteur g-secteur-${i}" x="170" y="${18 + i * 30}" width="16" height="16"/><text class="g-plabel" x="194" y="${31 + i * 30}">${nom}</text>`;
+      a = b;
+    });
+    return s + `</svg>`;
+  }
+  // Courbe : points [[x, y]] reliés, axes gradués
+  function courbeDonnees(pts, xlab, ylab, pasY) {
+    const W = 320, H = 200, x0 = 34, y0 = 160, haut = 16, xmin = pts[0][0], xmax = pts[pts.length - 1][0];
+    const ymin = Math.floor(Math.min(...pts.map((p) => p[1])) / pasY) * pasY, ymax = Math.ceil(Math.max(...pts.map((p) => p[1])) / pasY) * pasY;
+    const X = (x) => +(x0 + ((W - x0 - 14) * (x - xmin)) / (xmax - xmin)).toFixed(1), Y = (y) => +(y0 - ((y0 - haut) * (y - ymin)) / (ymax - ymin)).toFixed(1);
+    let s = `<svg class="graph courbe-donnees" viewBox="0 0 ${W} ${H}" role="img" aria-label="Courbe : ${ylab} en fonction de ${xlab}">`;
+    s += `<g class="g-grid">`; for (let y = ymin; y <= ymax; y += pasY) s += `<line x1="${x0}" y1="${Y(y)}" x2="${W - 8}" y2="${Y(y)}"/>`; pts.forEach(([x]) => { s += `<line x1="${X(x)}" y1="${haut}" x2="${X(x)}" y2="${y0}"/>`; }); s += `</g>`;
+    s += `<g class="g-tick">`; for (let y = ymin; y <= ymax; y += pasY) s += `<text x="${x0 - 5}" y="${Y(y) + 3.5}" text-anchor="end">${y}</text>`;
+    pts.forEach(([x], i) => { if (pts.length <= 8 || i % 2 === 0) s += `<text x="${X(x)}" y="${y0 + 14}" text-anchor="middle">${x}</text>`; }); s += `</g>`;
+    s += `<g class="g-axis"><line x1="${x0}" y1="${y0}" x2="${W - 8}" y2="${y0}"/><line x1="${x0}" y1="${y0}" x2="${x0}" y2="${haut - 6}"/></g>`;
+    s += `<polyline class="g-curve" points="${pts.map(([x, y]) => `${X(x)},${Y(y)}`).join(" ")}"/>`;
+    pts.forEach(([x, y]) => { s += `<circle class="g-point" cx="${X(x)}" cy="${Y(y)}" r="3"/>`; });
+    s += `<text class="g-plabel" x="${x0 + 4}" y="${haut - 4}">${ylab}</text><text class="g-plabel" x="${W - 8}" y="${y0 + 30}" text-anchor="end">${xlab}</text>`;
+    return s.replace(`viewBox="0 0 ${W} ${H}"`, `viewBox="0 0 ${W} ${H + 18}"`) + `</svg>`;
+  }
+  FIGURES["g6-barres"] = () => diagrammeBarres([["Foot", 9], ["Basket", 5], ["Natation", 7], ["Danse", 4]], 2, "élèves");
+  FIGURES["g6-circulaire"] = () => diagrammeCirculaire([["À pied", 12], ["Bus", 6], ["Voiture", 3], ["Vélo", 3]]);
+  FIGURES["g6-courbe"] = () => courbeDonnees([[6, 24], [8, 26], [10, 29], [12, 31], [14, 31], [16, 29], [18, 27]], "heure", "°C", 1);
+
+  GEN["g6-tableau"] = function () {
+    const classes = shuffle(["6e A", "6e B", "6e C", "6e D"]).slice(0, 3).sort(), moyens = ["Bus", "À pied", "Voiture"];
+    const T = classes.map(() => moyens.map(() => rand(2, 14)));
+    const tab = { lignes: [["", ...classes.map((c) => `\\text{${c}}`)], ...moyens.map((m, j) => [`\\text{${m}}`, ...T.map((col) => col[j])])] };
+    const t = rand(0, 3), i = rand(0, 2), j = rand(0, 2);
+    if (t === 0) return { enonce: `Le tableau donne le moyen de transport des élèves de trois classes. Combien d'élèves de ${classes[i]} viennent ${["en bus", "à pied", "en voiture"][j]} ?`, tableau: tab, mode: "nombre", prefixe: "Réponse :", attendu: T[i][j],
+      erreurs: [{ valeur: T[(i + 1) % 3][j], message: "Vérifie la colonne : c'est celle de la classe demandée." }],
+      aides: ["Repère la colonne de la classe.", "Repère la ligne du moyen de transport.", "Le nombre cherché est au croisement de la ligne et de la colonne."],
+      solution: `Au croisement de la colonne « ${classes[i]} » et de la ligne « ${moyens[j]} » : $${T[i][j]}$ élèves.` };
+    if (t === 1) return { enonce: `Le tableau donne le moyen de transport des élèves de trois classes. Combien d'élèves compte la ${classes[i]} ?`, tableau: tab, mode: "nombre", prefixe: "Réponse :", attendu: T[i].reduce((s, v) => s + v, 0),
+      aides: ["Tous les élèves d'une classe sont dans sa colonne.", "Additionne les nombres de la colonne.", `$${T[i].join(" + ")}$.`],
+      solution: `$${T[i].join(" + ")} = ${T[i].reduce((s, v) => s + v, 0)}$ élèves en ${classes[i]}.` };
+    if (t === 2) return { enonce: `Le tableau donne le moyen de transport des élèves de trois classes. Combien d'élèves viennent ${["en bus", "à pied", "en voiture"][j]}, toutes classes confondues ?`, tableau: tab, mode: "nombre", prefixe: "Réponse :", attendu: T.reduce((s, col) => s + col[j], 0),
+      aides: ["Ce moyen de transport correspond à une ligne.", "Additionne les nombres de la ligne.", `$${T.map((c) => c[j]).join(" + ")}$.`],
+      solution: `$${T.map((c) => c[j]).join(" + ")} = ${T.reduce((s, col) => s + col[j], 0)}$ élèves.` };
+    // filtrer selon un critère
+    const s0 = rand(6, 10), n = T.flat().filter((v) => v > s0).length;
+    return { enonce: `Dans ce tableau, combien de cases (sans compter les titres) contiennent un nombre **strictement supérieur à $${s0}$** ?`, tableau: tab, mode: "nombre", prefixe: "Nombre de cases :", attendu: n,
+      erreurs: [{ valeur: T.flat().filter((v) => v >= s0).length, message: `« Strictement supérieur » : $${s0}$ lui-même ne compte pas.` }],
+      aides: ["Passe les cases une par une.", `Garde seulement les nombres plus grands que $${s0}$ (pas $${s0}$ lui-même).`, "Compte les cases gardées."],
+      solution: `Les nombres plus grands que $${s0}$ sont : ${T.flat().filter((v) => v > s0).map((v) => `$${v}$`).join(" ; ") || "aucun"}. Il y a $${n}$ case${n > 1 ? "s" : ""}.` };
+  };
+
+  GEN["g6-barres"] = function () {
+    const [sujet, cats, unite, pas] = pick([
+      ["Sport préféré des élèves de 6e B", ["Foot", "Basket", "Natation", "Danse", "Judo"], "élèves", 2],
+      ["Fruits vendus au marché de Mamoudzou (en kg)", ["Mangues", "Bananes", "Ananas", "Litchis"], "kg", 10],
+      ["Pluie tombée à Mamoudzou (en mm)", ["Nov.", "Déc.", "Janv.", "Févr.", "Mars"], "mm", 50]
+    ]);
+    const vals = cats.map(() => rand(1, unite === "élèves" ? 6 : 9) * pas + (unite === "élèves" ? rand(0, 1) : 0));
+    if (new Set(vals).size < vals.length) return GEN["g6-barres"]();
+    const data = cats.map((c, k) => [c, vals[k]]), fig = diagrammeBarres(data, pas, unite);
+    const t = rand(0, 3), i = rand(0, cats.length - 1);
+    let k = rand(0, cats.length - 1); while (k === i) k = rand(0, cats.length - 1);
+    if (t === 0) return { enonce: `${sujet}. Lis la valeur pour « ${cats[i]} ».`, figure: fig, mode: "nombre", prefixe: "Valeur :", suffixe: unite, attendu: vals[i],
+      aides: ["Repère la barre « " + cats[i] + " ».", "Va jusqu'en haut de la barre, puis regarde l'axe vertical.", `Les graduations vont de $${pas}$ en $${pas}$.`],
+      solution: `La barre « ${cats[i]} » monte jusqu'à $${vals[i]}$ ${unite}.` };
+    if (t === 1) return { enonce: `${sujet}. Quelle est la différence entre « ${cats[i]} » et « ${cats[k]} » ?`, figure: fig, mode: "nombre", prefixe: "Différence :", suffixe: unite, attendu: Math.abs(vals[i] - vals[k]),
+      aides: ["Lis les deux valeurs.", `« ${cats[i]} » : $${vals[i]}$ ; « ${cats[k]} » : $${vals[k]}$.`, "Soustrais la plus petite de la plus grande."],
+      solution: `$${Math.max(vals[i], vals[k])} - ${Math.min(vals[i], vals[k])} = ${Math.abs(vals[i] - vals[k])}$ ${unite}.` };
+    if (t === 2) { const tot = vals.reduce((s, v) => s + v, 0);
+      return { enonce: `${sujet}. Quel est le total pour toutes les catégories ?`, figure: fig, mode: "nombre", prefixe: "Total :", suffixe: unite, attendu: tot,
+        aides: ["Lis la valeur de chaque barre.", `$${vals.join(" ; ")}$.`, "Additionne-les."],
+        solution: `$${vals.join(" + ")} = ${tot}$ ${unite}.` }; }
+    const max = Math.random() < 0.5, cible = cats[vals.indexOf(max ? Math.max(...vals) : Math.min(...vals))];
+    const c = melange(cible, cats.filter((x) => x !== cible));
+    return { enonce: `${sujet}. Quelle catégorie a la valeur la plus ${max ? "grande" : "petite"} ?`, figure: fig, mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: [`Cherche la barre la plus ${max ? "haute" : "basse"}.`, "Compare les hauteurs avec les graduations.", "Lis le nom sous la barre."],
+      solution: `La barre la plus ${max ? "haute" : "basse"} est « ${cible} » ($${vals[cats.indexOf(cible)]}$ ${unite}).` };
+  };
+
+  GEN["g6-circulaire"] = function () {
+    // parts en 24e : choisies parmi des fractions simples
+    const modeles = [[12, 6, 3, 3], [12, 6, 6], [8, 8, 8], [6, 6, 6, 6], [12, 8, 4], [18, 6], [12, 12], [6, 12, 6], [16, 8], [12, 4, 4, 4]];
+    const parts = shuffle(pick(modeles)), noms = shuffle(["à pied", "en bus", "en voiture", "à vélo", "en taxi"]).slice(0, parts.length);
+    const fig = diagrammeCirculaire(noms.map((n, k) => [n[0].toUpperCase() + n.slice(1), parts[k]])), i = rand(0, parts.length - 1);
+    const FR = { 24: ["1", 100], 18: [fr(3, 4), 75], 16: [fr(2, 3), null], 12: [fr(1, 2), 50], 8: [fr(1, 3), null], 6: [fr(1, 4), 25], 4: [fr(1, 6), null], 3: [fr(1, 8), 12.5] };
+    const t = rand(0, 1), N = 24 * rand(1, 10);
+    if (t === 0) { const bon = `$${FR[parts[i]][0]}$`; const autres = Object.values(FR).map((x) => `$${x[0]}$`).filter((x) => x !== bon && x !== "$1$");
+      const c = melange(bon, shuffle(autres).slice(0, 3));
+      return { enonce: `Le diagramme circulaire montre comment les élèves viennent au collège. Quelle fraction des élèves vient ${noms[i]} ?`, figure: fig, mode: "choix", choix: c.choix, attendu: c.attendu,
+        aides: ["Le disque entier représente tous les élèves.", "Compare la part au disque : est-ce la moitié, le quart, le tiers… ?", "Deux quarts font une moitié ; trois tiers font le disque entier."],
+        solution: `La part « ${noms[i][0].toUpperCase() + noms[i].slice(1)} » occupe ${FR[parts[i]][0] === "1" ? "tout le disque" : `$${FR[parts[i]][0]}$ du disque`}.` }; }
+    return { enonce: `Le diagramme circulaire montre comment viennent les $${N}$ élèves d'un collège. Combien d'élèves viennent ${noms[i]} ?`, figure: fig, mode: "nombre", prefixe: "Élèves :", attendu: (N * parts[i]) / 24,
+      aides: ["Trouve d'abord la fraction du disque occupée par cette part.", `C'est $${FR[parts[i]][0]}$ du disque.`, `Calcule $${FR[parts[i]][0]}$ de $${N}$.`],
+      solution: `La part « ${noms[i][0].toUpperCase() + noms[i].slice(1)} » est $${FR[parts[i]][0]}$ du disque : $${FR[parts[i]][0]} \\times ${N} = ${(N * parts[i]) / 24}$ élèves.` };
+  };
+
+  GEN["g6-courbe"] = function () {
+    const debut = rand(5, 8), heures = Array.from({ length: 7 }, (_, k) => debut + 2 * k);
+    let T = rand(22, 26); const temp = heures.map((h, k) => { if (k) T += k < 3 ? rand(1, 3) : k < 4 ? rand(-1, 1) : -rand(1, 2); return T; });
+    const pts = heures.map((h, k) => [h, temp[k]]), fig = courbeDonnees(pts, "heure (h)", "°C", 1), t = rand(0, 2), i = rand(0, 6);
+    if (t === 0) return { enonce: "La courbe donne la température à Mamoudzou au cours d'une journée. Quelle température fait-il à " + `$${heures[i]}$ h ?`, figure: fig, mode: "nombre", prefixe: "Température :", suffixe: "°C", attendu: temp[i],
+      aides: [`Repère $${heures[i]}$ sur l'axe horizontal.`, "Monte jusqu'au point de la courbe.", "Lis la valeur sur l'axe vertical."],
+      solution: `À $${heures[i]}$ h, le point de la courbe est à $${temp[i]}$ °C.` };
+    if (t === 1) { const mx = Math.max(...temp), h = heures[temp.indexOf(mx)];
+      return { enonce: "La courbe donne la température à Mamoudzou au cours d'une journée. À quelle heure la température est-elle la plus élevée (première fois) ?", figure: fig, mode: "nombre", prefixe: "Heure :", suffixe: "h", attendu: h,
+        aides: ["Cherche le point le plus haut de la courbe.", "Descends jusqu'à l'axe horizontal.", "Lis l'heure."],
+        solution: `Le point le plus haut est à $${mx}$ °C, atteint pour la première fois à $${h}$ h.` }; }
+    let k = rand(0, 6); while (k === i) k = rand(0, 6); const [a, b] = [Math.min(i, k), Math.max(i, k)];
+    return { enonce: `La courbe donne la température à Mamoudzou au cours d'une journée. De combien de degrés la température a-t-elle changé entre $${heures[a]}$ h et $${heures[b]}$ h ? (Donne l'écart, sans signe.)`, figure: fig, mode: "nombre", prefixe: "Écart :", suffixe: "°C", attendu: Math.abs(temp[b] - temp[a]),
+      aides: [`Lis la température à $${heures[a]}$ h : $${temp[a]}$ °C.`, `Lis la température à $${heures[b]}$ h.`, "Calcule l'écart entre les deux."],
+      solution: `À $${heures[a]}$ h : $${temp[a]}$ °C ; à $${heures[b]}$ h : $${temp[b]}$ °C. Écart : $${Math.abs(temp[b] - temp[a])}$ °C.` };
+  };
+
+  GEN["g6-proba-vocab"] = function () {
+    const t = rand(0, 1);
+    if (t === 0) {
+      const ev = pick([
+        ["obtenir $7$ en lançant un dé à six faces", 0], ["obtenir un nombre entre $1$ et $6$ en lançant un dé à six faces", 2], ["obtenir $6$ en lançant un dé à six faces", 1],
+        ["tirer une boule rouge dans un sac qui ne contient que des boules bleues", 0], ["tirer une boule bleue dans un sac qui ne contient que des boules bleues", 2],
+        ["tirer une boule rouge dans un sac de $3$ rouges et $5$ bleues", 1], ["obtenir « pile » en lançant une pièce", 1], ["obtenir un nombre pair en lançant un dé à six faces", 1],
+        ["tirer une voyelle parmi les lettres du mot « MAYOTTE »", 1], ["tirer un multiple de $10$ parmi les nombres $1$ ; $2$ ; $3$ ; $4$", 0]
+      ]);
+      const choix = ["Impossible (probabilité $0$)", "Possible, mais pas certain", "Certain (probabilité $1$)"];
+      return { enonce: `L'événement « ${ev[0]} » est :`, mode: "choix", choix, attendu: ev[1],
+        aides: ["Un événement **impossible** ne se produit jamais : sa probabilité est $0$.", "Un événement **certain** se produit toujours : sa probabilité est $1$.", "Entre les deux, l'événement peut se produire ou non."],
+        solution: `« ${ev[0]} » : ${["cela ne peut jamais arriver, l'événement est impossible.", "cela peut arriver, mais pas à tous les coups.", "cela arrive à tous les coups, l'événement est certain."][ev[1]]}` };
+    }
+    // une probabilité impossible parmi quatre
+    const faux = pick([["1{,}2", "elle est plus grande que $1$"], [fr(7, 5), "elle est plus grande que $1$"], ["120", "elle est plus grande que $1$ (on ne dit pas $120$ %)"], ["-0{,}3", "elle est négative"]]);
+    const bons = shuffle(["0{,}5", fr(3, 8), "0", "1", "0{,}75", fr(2, 9), "0{,}05"]).slice(0, 3);
+    const c = melange(`$${faux[0]}$`, bons.map((x) => `$${x}$`));
+    return { enonce: "Lequel de ces nombres **ne peut pas** être une probabilité ?", mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: ["Une probabilité est toujours un nombre compris entre $0$ et $1$.", "$0$ : impossible ; $1$ : certain.", "Cherche un nombre en dehors de cet intervalle."],
+      solution: `$${faux[0]}$ ne peut pas être une probabilité : ${faux[1]}.` };
+  };
+
+  GEN["g6-proba-calcul"] = function () {
+    const t = rand(0, 3);
+    let enonce, f, n, expl;
+    if (t === 0) { const r = rand(1, 9), b = rand(1, 9), v = rand(0, 6), coul = pick(["rouge", "bleue", "verte"].slice(0, v ? 3 : 2)); const tot = r + b + v, nb = { rouge: r, bleue: b, verte: v }[coul];
+      enonce = `Un sac contient $${r}$ boules rouges, $${b}$ boules bleues${v ? ` et $${v}$ boules vertes` : ""}, indiscernables au toucher. On tire une boule au hasard. Quelle est la probabilité qu'elle soit ${coul} ?`; f = [nb, tot]; expl = `$${nb}$ boules ${coul}s sur $${tot}$ boules en tout`; }
+    else if (t === 1) { const [ev, k] = pick([["un nombre pair", 3], ["un nombre supérieur ou égal à $5$", 2], ["un multiple de $3$", 2], ["le nombre $6$", 1], ["un nombre inférieur à $3$", 2], ["un nombre impair", 3]]);
+      enonce = `On lance un dé équilibré à six faces. Quelle est la probabilité d'obtenir ${ev} ?`; f = [k, 6]; expl = `$${k}$ issue${k > 1 ? "s" : ""} favorable${k > 1 ? "s" : ""} sur $6$`; }
+    else if (t === 2) { const mot = pick(["MAYOTTE", "MAMOUDZOU", "MATHEMATIQUES", "DZAOUDZI", "COLLEGE"]), lettre = pick([...new Set(mot.split(""))]), k = mot.split("").filter((x) => x === lettre).length;
+      enonce = `On écrit chaque lettre du mot « ${mot} » sur une carte, puis on tire une carte au hasard. Quelle est la probabilité de tirer la lettre « ${lettre} » ?`; f = [k, mot.length]; expl = `la lettre « ${lettre} » apparaît $${k}$ fois sur $${mot.length}$ lettres`; }
+    else { const sect = pick([8, 10, 12]), j = rand(1, sect - 1);
+      enonce = `Une roue de loterie est partagée en $${sect}$ secteurs égaux, dont $${j}$ sont jaunes. On fait tourner la roue. Quelle est la probabilité qu'elle s'arrête sur un secteur jaune ?`; f = [j, sect]; expl = `$${j}$ secteurs jaunes sur $${sect}$`; }
+    const v = f[0] / f[1];
+    return { enonce: enonce + CONSIGNE_FR.replace("le résultat", "la probabilité").replace("7/6", "3/8"), mode: "nombre", prefixe: "Probabilité :", attendu: v,
+      erreurs: [{ valeur: f[0] / (f[1] - f[0] || 1), message: "On divise par le nombre **total** d'issues, pas par le nombre d'issues défavorables." }, ...(Number.isInteger(v * 1000) ? [] : FRAC_APPROX(v))],
+      aides: ["Toutes les issues ont la même chance : on compte.", "Compte les issues favorables (celles qui réalisent l'événement), puis toutes les issues.", "Probabilité $=$ nombre d'issues favorables sur nombre total d'issues."],
+      solution: `Il y a ${expl} : la probabilité est $${fr(f[0], f[1])}$${pgcd(f[0], f[1]) > 1 ? ` $= ${frNet(f[0], f[1])}$` : ""}.` };
+  };
+
+  GEN["g6-frequence"] = function () {
+    const t = rand(0, 1);
+    if (t === 0) { // estimer le contenu d'une urne à partir de fréquences
+      const comp = pick([[1, 1, 2], [1, 2, 1], [2, 1, 1], [1, 1, 1], [3, 1, 0], [1, 3, 0], [2, 2, 0]]), tot = comp.reduce((s, v) => s + v, 0), N = pick([200, 400, 500, 1000]);
+      const coul = ["rouges", "bleues", "vertes"], obs = comp.map((c) => Math.round((N * c) / tot + (Math.random() - 0.5) * N * 0.04));
+      const diff = N - obs.reduce((s, v) => s + v, 0); obs[0] += diff;
+      if (obs.some((o, k) => (comp[k] === 0 ? o !== 0 : o <= 0))) return GEN["g6-frequence"]();
+      const decrit = (cp) => cp.map((c, k) => (c ? `$${c}$ ${coul[k].replace(/s$/, c > 1 ? "s" : "")}` : null)).filter(Boolean).join(", ");
+      const vrai = decrit(comp), autres = [[1, 1, 1], [2, 1, 1], [1, 2, 1], [1, 1, 2], [3, 1, 0], [1, 3, 0], [2, 2, 0], [4, 1, 1]].map(decrit).filter((d) => d !== vrai);
+      const c = melange(vrai, shuffle(autres).slice(0, 3));
+      return { enonce: `Un sac contient ${tot} boules. On tire une boule, on note sa couleur, on la remet, et on recommence $${N}$ fois. Résultats : ${obs.map((o, k) => `$${o}$ ${coul[k]}`).join(", ")}. Quel est le contenu le plus probable du sac ?`.replace(`contient ${tot} boules`, `contient $${tot}$ boules`), mode: "choix", choix: c.choix, attendu: c.attendu,
+        aides: ["Quand on répète une expérience un grand nombre de fois, la fréquence de chaque couleur se rapproche de sa probabilité.", `Calcule la fréquence de chaque couleur : par exemple $${fr(obs[0], N)}$ pour les rouges.`, `Avec $${tot}$ boules, chaque boule correspond à environ $${fr(1, tot)}$ des tirages, soit $${Math.round(N / tot)}$ tirages sur $${N}$.`],
+        solution: `Sur $${N}$ tirages, chaque boule sort environ $${N} \\div ${tot} = ${Math.round(N / tot)}$ fois. Les résultats correspondent à : ${vrai}.` };
+    }
+    // fréquence et probabilité du dé
+    const N = pick([60, 120, 300, 600, 1200]), face = rand(1, 6), obs = Math.round(N / 6 + (Math.random() - 0.5) * N * 0.04);
+    const choix = [`La fréquence $${fr(obs, N)}$ est proche de la probabilité $${fr(1, 6)}$, c'est normal`, "Le dé est forcément truqué", `La probabilité d'obtenir $${face}$ est $${fr(obs, N)}$`, `Au prochain lancer, on a moins de chances d'obtenir $${face}$`];
+    const cc = melange(choix[0], choix.slice(1));
+    return { enonce: `On lance un dé équilibré $${N}$ fois. La face $${face}$ sort $${obs}$ fois. Que peut-on dire ?`, mode: "choix", choix: cc.choix, attendu: cc.attendu,
+      aides: [`Calcule la fréquence : $${fr(obs, N)}$.`, `La probabilité d'obtenir $${face}$ est $${fr(1, 6)}$, soit $${N / 6}$ fois sur $${N}$ en moyenne.`, "Le dé n'a pas de mémoire : chaque lancer recommence avec les mêmes chances."],
+      solution: `La fréquence $${fr(obs, N)}$ est proche de $${fr(N / 6, N)} = ${fr(1, 6)}$ : c'est ce qu'on attend d'un dé équilibré. Sur un grand nombre de lancers, la fréquence se rapproche de la probabilité, mais n'est presque jamais exactement égale.` };
+  };
+
   /* Une « erreur connue » ne doit jamais coïncider avec la bonne réponse ; propriétés internes retirées */
-  Object.keys(GEN).filter((k) => /^(n6|o6|d6|f6|p6|t6|a6)-/.test(k)).forEach((k) => {
+  Object.keys(GEN).filter((k) => /^(n6|o6|d6|f6|p6|t6|a6|g6)-/.test(k)).forEach((k) => {
     const g = GEN[k];
     GEN[k] = (i) => {
       const q = g(i);
