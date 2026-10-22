@@ -3,7 +3,7 @@
   Ce fichier se charge après assets/exercices-college.js et reprend ses outils (window.PM_EXO.college).
   Mêmes règles : chaque générateur fabrique une question avec des nombres tirés au hasard, la réponse
   attendue, trois indices progressifs et la solution rédigée.
-  Préfixes : rc5- (règles de calcul).
+  Préfixes : rc5- (règles de calcul), tr5-.
 */
 (function () {
   "use strict";
@@ -177,8 +177,168 @@
       solution: `$${a} ${X} ${tD(f)} + ${b} ${X} ${tD(f)} = (${a} + ${b}) ${X} ${tD(f)} = ${base} ${X} ${tD(f)} = ${tD(r)}$.` };
   };
 
+  /* =====================================================================
+     Chapitre 2 : triangles (tr5-) — constructions, médiatrices, hauteurs, médianes
+     ===================================================================== */
+  const { geo } = window.PM_EXO.college;
+  const NOMS3 = [["A", "B", "C"], ["D", "E", "F"], ["M", "N", "P"], ["R", "S", "T"], ["I", "J", "K"], ["E", "F", "G"], ["U", "V", "W"]];
+  const nomsTri = () => { const n = pick(NOMS3), d = rand(0, 2); return [n[d], n[(d + 1) % 3], n[(d + 2) % 3]]; };
+  const vec = (p, q) => [q[0] - p[0], q[1] - p[1]];
+  const angleEn = (P, i) => { const a = P[i], u = vec(a, P[(i + 1) % 3]), v = vec(a, P[(i + 2) % 3]); return (Math.acos((u[0] * v[0] + u[1] * v[1]) / (Math.hypot(...u) * Math.hypot(...v))) * 180) / Math.PI; };
+  function triangleHasard() {
+    for (let e = 0; e < 800; e++) {
+      const P0 = [[rand(40, 80), rand(150, 170)], [rand(230, 280), rand(150, 172)], [rand(90, 230), rand(28, 55)]];
+      const th = (rand(-30, 30) * Math.PI) / 180, cx = 160, cy = 105;
+      const P = P0.map(([x, y]) => [+(cx + (x - cx) * Math.cos(th) - (y - cy) * Math.sin(th)).toFixed(1), +(cy + (x - cx) * Math.sin(th) + (y - cy) * Math.cos(th)).toFixed(1)]);
+      const ang = [0, 1, 2].map((i) => angleEn(P, i)), L = [0, 1, 2].map((i) => Math.hypot(...vec(P[i], P[(i + 1) % 3])));
+      if (ang.some((a) => a < 38 || a > 82)) continue;
+      if (Math.abs(L[0] - L[1]) < 18 || Math.abs(L[1] - L[2]) < 18 || Math.abs(L[0] - L[2]) < 18) continue;
+      if (P.some(([x, y]) => x < 22 || x > 298 || y < 20 || y > 180)) continue;
+      return P;
+    }
+  }
+  const NOM_DROITE = { mediatrice: (A, B, C) => `la médiatrice de $[${B}${C}]$`, hauteur: (A) => `la hauteur issue de $${A}$`, mediane: (A) => `la médiane issue de $${A}$` };
+  // Triangle P (sommets noms) avec une droite remarquable relative au sommet d'indice v (côté opposé : les deux autres)
+  function figureDroite(P, noms, type, v) {
+    const A = noms[v], B = noms[(v + 1) % 3], C = noms[(v + 2) % 3], pA = P[v], pB = P[(v + 1) % 3], pC = P[(v + 2) % 3];
+    const K = noms.includes("K") ? "L" : "K", pts = { [noms[0]]: P[0], [noms[1]]: P[1], [noms[2]]: P[2] }, r1 = (p) => p.map((x) => +x.toFixed(1));
+    const M = [(pB[0] + pC[0]) / 2, (pB[1] + pC[1]) / 2], d = vec(pB, pC), Ld = Math.hypot(...d), u = [d[0] / Ld, d[1] / Ld], n = [-u[1], u[0]];
+    const o = { segs: [[A, B], [B, C], [C, A]], codes: [], droitAngle: [], droites: [], caches: [] };
+    if (type === "mediatrice") { pts[K] = r1(M); pts.Q = r1([M[0] + n[0] * 70, M[1] + n[1] * 70]); o.droites.push([K, "Q"]); o.codes.push([B, K, 2], [K, C, 2]); o.droitAngle.push([C, K, "Q"]); o.caches.push("Q"); }
+    if (type === "hauteur") { const t = (pA[0] - pB[0]) * u[0] + (pA[1] - pB[1]) * u[1]; pts[K] = r1([pB[0] + u[0] * t, pB[1] + u[1] * t]); o.droites.push([A, K]); o.droitAngle.push([C, K, A]); }
+    if (type === "mediane") { pts[K] = r1(M); o.droites.push([A, K]); o.codes.push([B, K, 2], [K, C, 2]); }
+    const g = [(P[0][0] + P[1][0] + P[2][0]) / 3, (P[0][1] + P[1][1] + P[2][1]) / 3], decal = {};
+    Object.keys(pts).forEach((k) => { const [x, y] = pts[k], dx = x - g[0], dy = y - g[1], L = Math.hypot(dx, dy) || 1; decal[k] = [Math.round((dx / L) * 13) - 3, Math.round((dy / L) * 13) + 4]; });
+    return geo(Object.assign({ W: 320, H: 200, pts, decal, aria: `Triangle ${noms.join("")} et une droite tracée en passant par le point ${K}` }, o));
+  }
+  FIGURES["tr5-hauteur"] = () => figureDroite([[50, 165], [270, 160], [120, 35]], ["B", "C", "A"], "hauteur", 2);
+  FIGURES["tr5-mediane"] = () => figureDroite([[50, 165], [270, 160], [120, 35]], ["B", "C", "A"], "mediane", 2);
+  FIGURES["tr5-mediatrice"] = () => figureDroite([[50, 165], [270, 160], [120, 35]], ["B", "C", "A"], "mediatrice", 2);
+  FIGURES["tr5-circonscrit"] = () => {
+    const P = { A: [125, 40], B: [55, 160], C: [265, 150] }, [ax, ay] = P.A, [bx, by] = P.B, [qx, qy] = P.C, D = 2 * (ax * (by - qy) + bx * (qy - ay) + qx * (ay - by));
+    const cx = +(((ax * ax + ay * ay) * (by - qy) + (bx * bx + by * by) * (qy - ay) + (qx * qx + qy * qy) * (ay - by)) / D).toFixed(1), cy = +(((ax * ax + ay * ay) * (qx - bx) + (bx * bx + by * by) * (ax - qx) + (qx * qx + qy * qy) * (bx - ax)) / D).toFixed(1), r = +Math.hypot(ax - cx, ay - cy).toFixed(1);
+    return geo({ W: 320, H: 260, pts: Object.assign({ O: [cx, cy] }, P), segs: [["A", "B"], ["B", "C"], ["C", "A"]], cercles: [["O", r]], decal: { A: [-4, -8], B: [-14, 6], C: [6, 8], O: [6, 14] }, aria: "Triangle ABC et son cercle circonscrit de centre O" }).replace('viewBox="0 0 320 260"', 'viewBox="0 14 320 242"');
+  };
+
+  GEN["tr5-droites"] = function () {
+    for (let e = 0; e < 20; e++) {
+      const P = triangleHasard(); if (!P) continue;
+      const noms = nomsTri(), v = rand(0, 2), type = pick(["mediatrice", "hauteur", "mediane"]);
+      const A = noms[v], B = noms[(v + 1) % 3], C = noms[(v + 2) % 3];
+      const bonne = NOM_DROITE[type](A, B, C);
+      const autres = ["mediatrice", "hauteur", "mediane"].filter((t) => t !== type).map((t) => NOM_DROITE[t](A, B, C));
+      const voisin = pick([NOM_DROITE[type](B, C, A), NOM_DROITE[type](C, A, B)]);
+      const { choix, attendu } = melange(bonne, [...autres, voisin]);
+      const K = noms.includes("K") ? "L" : "K";
+      const indices = { mediatrice: `${K} est le milieu de $[${B}${C}]$ (codage) et la droite est perpendiculaire à $[${B}${C}]$ (angle droit) : c'est la médiatrice de $[${B}${C}]$. Elle ne passe pas forcément par $${A}$.`, hauteur: `la droite passe par le sommet $${A}$ et elle est perpendiculaire au côté opposé $(${B}${C})$ (angle droit en ${K}) : c'est la hauteur issue de $${A}$. ${K} n'est pas le milieu de $[${B}${C}]$.`, mediane: `la droite passe par le sommet $${A}$ et par ${K}, milieu du côté opposé $[${B}${C}]$ (codage) : c'est la médiane issue de $${A}$. Il n'y a pas d'angle droit.` };
+      return { enonce: `Quelle droite est tracée sur la figure ?`, figure: figureDroite(P, noms, type, v), mode: "choix", choix, attendu,
+        aides: ["Regarde les codages : des petits traits identiques indiquent un milieu, le petit carré indique un angle droit.", "Une **médiatrice** passe par le milieu d'un côté et lui est perpendiculaire. Une **hauteur** passe par un sommet et est perpendiculaire au côté opposé. Une **médiane** passe par un sommet et le milieu du côté opposé.", "La droite passe-t-elle par un sommet ? Par un milieu ? Fait-elle un angle droit ?"],
+        solution: indices[type][0].toUpperCase() + indices[type].slice(1) };
+    }
+  };
+
+  const OPTS_C = ["Oui, on peut le construire", "Non : une longueur est plus grande que la somme des deux autres", "Non : les trois points seraient alignés", "Non : la somme des deux angles atteint ou dépasse $180^\\circ$"];
+  const cm = (x) => `${nb(x)}`;
+  GEN["tr5-constructible"] = function () {
+    const [A, B, C] = nomsTri(), t = rand(0, 5), dec = Math.random() < 0.35;
+    const L = () => (dec ? rand(15, 99) / 10 : rand(2, 12));
+    if (t <= 2) {
+      let a, b, c;
+      for (;;) { a = L(); b = L(); if (t === 0) { const s = a + b, m = Math.abs(a - b); c = dec ? rand(Math.round(m * 10) + 3, Math.round(s * 10) - 3) / 10 : rand(Math.ceil(m) + 1, Math.ceil(s) - 1); if (c > m && c < s && c > 0) break; }
+        else if (t === 1) { c = +(a + b + (dec ? rand(1, 30) / 10 : rand(1, 5))).toFixed(1); break; } else { c = +(a + b).toFixed(1); break; } }
+      const cotes = shuffle([[`${A}${B}`, a], [`${B}${C}`, b], [`${A}${C}`, c]]).map(([n, x]) => `$${n} = ${cm(x)}$ cm`);
+      const [grand, p1, p2] = [a, b, c].sort((u, w) => w - u);
+      const s = +(p1 + p2).toFixed(1);
+      const sol = t === 0 ? `La plus grande longueur, $${cm(grand)}$ cm, est plus petite que la somme des deux autres : $${cm(p1)} + ${cm(p2)} = ${cm(s)}$. On peut construire le triangle.`
+        : t === 1 ? `La plus grande longueur, $${cm(grand)}$ cm, est plus grande que la somme des deux autres, $${cm(p1)} + ${cm(p2)} = ${cm(s)}$ : les deux arcs de cercle ne se coupent pas. Impossible.`
+        : `La plus grande longueur est égale à la somme des deux autres : $${cm(p1)} + ${cm(p2)} = ${cm(s)}$. Les trois points sont alignés : on obtient un triangle « aplati », pas un vrai triangle.`;
+      return { enonce: `Peut-on construire un triangle $${A}${B}${C}$ tel que ${cotes.join(", ")} ?`, mode: "choix", choix: OPTS_C.slice(), attendu: t === 0 ? 0 : t === 1 ? 1 : 2,
+        aides: ["Avec trois longueurs, compare la **plus grande** à la somme des deux autres.", "Plus petite : constructible. Plus grande : impossible. Égale : les points sont alignés.", `La plus grande longueur est $${cm(grand)}$ cm.`], solution: sol };
+    }
+    if (t === 3) {
+      const a = L(), b = L(), ang = rand(2, 34) * 5;
+      return { enonce: `Peut-on construire un triangle $${A}${B}${C}$ tel que $${A}${B} = ${cm(a)}$ cm, $${A}${C} = ${cm(b)}$ cm et $\\widehat{${B}${A}${C}} = ${ang}^\\circ$ ?`, mode: "choix", choix: OPTS_C.slice(), attendu: 0,
+        aides: ["On connaît deux côtés et l'angle compris entre eux.", `On trace $[${A}${B}]$, puis l'angle de $${ang}^\\circ$ en $${A}$, puis on place $${C}$ sur la demi-droite.`, "Toute mesure d'angle strictement comprise entre $0^\\circ$ et $180^\\circ$ convient."],
+        solution: `Oui : on trace $[${A}${B}]$ de $${cm(a)}$ cm, l'angle de $${ang}^\\circ$ de sommet $${A}$, puis on reporte $${A}${C} = ${cm(b)}$ cm sur le côté de l'angle. Le triangle existe (et il est unique).` };
+    }
+    const a1 = rand(4, 30) * 5, ok = t === 4;
+    const a2 = ok ? rand(1, Math.floor((175 - a1) / 5)) * 5 : rand(Math.ceil((180 - a1) / 5), 34) * 5;
+    if (!ok && a1 + a2 < 180) return GEN["tr5-constructible"]();
+    const c = L();
+    return { enonce: `Peut-on construire un triangle $${A}${B}${C}$ tel que $${A}${B} = ${cm(c)}$ cm, $\\widehat{${C}${A}${B}} = ${a1}^\\circ$ et $\\widehat{${A}${B}${C}} = ${a2}^\\circ$ ?`, mode: "choix", choix: OPTS_C.slice(), attendu: ok ? 0 : 3,
+      aides: ["On connaît un côté et les deux angles qui l'encadrent.", "On trace $[" + A + B + "]$ puis un angle à chaque extrémité : les deux côtés doivent se couper.", `Calcule la somme des deux angles : $${a1} + ${a2}$.`],
+      solution: ok ? `$${a1}^\\circ + ${a2}^\\circ = ${a1 + a2}^\\circ$, moins de $180^\\circ$ : les deux côtés tracés se coupent en $${C}$. On peut construire le triangle.` : `$${a1}^\\circ + ${a2}^\\circ = ${a1 + a2}^\\circ$ : comme la somme des angles d'un triangle vaut $180^\\circ$, c'est impossible. Les deux côtés tracés ne se coupent pas${a1 + a2 === 180 ? " (ils sont parallèles)" : ""}.` };
+  };
+
+  GEN["tr5-proprietes"] = function () {
+    const [A, B, C] = nomsTri(), t = rand(0, 8);
+    const Q = [
+      [`On cherche les points situés à égale distance de $${A}$ et de $${B}$. Ils sont tous sur :`, `la médiatrice de $[${A}${B}]$`, [`la médiane issue de $${C}$`, `la hauteur issue de $${C}$`, `la médiatrice de $[${B}${C}]$`], `Tout point de la médiatrice de $[${A}${B}]$ est à égale distance de $${A}$ et de $${B}$ (et seulement ceux-là).`],
+      [`Le centre du cercle circonscrit au triangle $${A}${B}${C}$ est le point de concours :`, "des trois médiatrices", ["des trois hauteurs", "des trois médianes", "des trois côtés prolongés"], "Le centre est à égale distance des trois sommets : il est sur les trois médiatrices, qui sont concourantes."],
+      [`Pour partager le triangle $${A}${B}${C}$ en deux triangles de même aire, avec une droite passant par $${A}$, on trace :`, `la médiane issue de $${A}$`, [`la hauteur issue de $${A}$`, `la médiatrice de $[${B}${C}]$`, `la parallèle à $(${B}${C})$ passant par $${A}$`], `Une médiane partage un triangle en deux triangles d'aires égales : même hauteur issue de $${A}$, et deux bases égales.`],
+      [`La distance du point $${A}$ à la droite $(${B}${C})$ se mesure le long de :`, `la hauteur issue de $${A}$`, [`la médiane issue de $${A}$`, `la médiatrice de $[${B}${C}]$`, `le côté $[${A}${B}]$`], `La distance d'un point à une droite se mesure perpendiculairement : c'est la hauteur issue de $${A}$.`],
+      [`$${A}${B}${C}$ est rectangle en $${A}$. Le centre de son cercle circonscrit est :`, `le milieu de $[${B}${C}]$`, [`le point $${A}$`, `le milieu de $[${A}${B}]$`, `à l'extérieur du triangle`], `Dans un triangle rectangle, le centre du cercle circonscrit est le milieu de l'hypoténuse $[${B}${C}]$.`],
+      [`$${A}${B}${C}$ est rectangle en $${A}$. Ses trois hauteurs se coupent :`, `en $${A}$`, [`au milieu de $[${B}${C}]$`, `en $${B}$`, `à l'extérieur du triangle`], `Les côtés $[${A}${B}]$ et $[${A}${C}]$ sont perpendiculaires : chacun est la hauteur relative à l'autre. Les hauteurs se coupent donc en $${A}$.`],
+      [`$${A}${B}${C}$ est isocèle en $${A}$ et $I$ est le milieu de $[${B}${C}]$. La droite $(${A}I)$ est :`, `à la fois médiane, hauteur et médiatrice de $[${B}${C}]$`, [`seulement la médiane issue de $${A}$`, `seulement la hauteur issue de $${A}$`, `la médiatrice de $[${A}${B}]$`], `$${A}$ est à égale distance de $${B}$ et $${C}$, donc il est sur la médiatrice de $[${B}${C}]$, qui passe aussi par $I$ : $(${A}I)$ est cette médiatrice, donc aussi la hauteur et la médiane issues de $${A}$.`],
+      [`Trois villages $${A}$, $${B}$ et $${C}$ veulent construire un château d'eau à la même distance des trois. Où faut-il le placer ?`, "au point de concours des médiatrices du triangle", ["au point de concours des hauteurs du triangle", "au point de concours des médianes du triangle", `au milieu de $[${A}${B}]$`], "Être à la même distance des trois villages, c'est être sur les trois médiatrices : c'est le centre du cercle circonscrit."],
+      [`Dans un triangle $${A}${B}${C}$, combien de hauteurs peut-on tracer ?`, "$3$, et elles sont concourantes", ["$1$ seule", "$3$, et elles sont toujours parallèles", "$6$"], "Une hauteur par sommet : $3$ hauteurs, qui se coupent en un même point."]
+    ];
+    const [q, bonne, faux, expl] = Q[t];
+    const { choix, attendu } = melange(bonne, faux);
+    return { enonce: q, mode: "choix", choix, attendu,
+      aides: ["**Médiatrice** : perpendiculaire à un côté en son milieu. **Hauteur** : issue d'un sommet, perpendiculaire au côté opposé. **Médiane** : issue d'un sommet, passe par le milieu du côté opposé.", "Les médiatrices se coupent au centre du cercle circonscrit ; les hauteurs sont concourantes ; une médiane partage le triangle en deux triangles de même aire.", "Fais un schéma à main levée pour vérifier."],
+      solution: `Réponse : ${bonne}. ${expl}` };
+  };
+
+  GEN["tr5-mediatrice"] = function () {
+    const [A, B, C] = nomsTri(), t = rand(0, 5), x = Dc(rand(15, 95), 1), y = Dc(rand(15, 95), 1), X = tD(x);
+    if (t === 0) return { enonce: `Le point $M$ est sur la médiatrice du segment $[${A}${B}]$ et $M${A} = ${X}$ cm. Combien mesure $M${B}$ ?`, mode: "nombre", prefixe: `$M${B} =$`, suffixe: "cm", attendu: x.m / 10,
+      aides: ["Quelle propriété ont les points de la médiatrice d'un segment ?", `Tout point de la médiatrice de $[${A}${B}]$ est à égale distance de $${A}$ et de $${B}$.`, `Donc $M${A} = M${B}$.`], solution: `$M$ est sur la médiatrice de $[${A}${B}]$, donc $M${B} = M${A} = ${X}$ cm.` };
+    if (t === 1) { const p = addD(addD(x, x), y);
+      return { enonce: `Le point $M$ est sur la médiatrice de $[${A}${B}]$, avec $M${A} = ${X}$ cm et $${A}${B} = ${tD(y)}$ cm. Quel est le périmètre du triangle $M${A}${B}$ ?`, mode: "nombre", prefixe: "Périmètre :", suffixe: "cm", attendu: p.m / 10 ** p.d,
+        erreurs: [{ valeur: (x.m + y.m) / 10, message: `Il manque le côté $[M${B}]$ : il mesure aussi $${X}$ cm.` }],
+        aides: [`$M$ est à égale distance de $${A}$ et de $${B}$.`, `Donc $M${B} = ${X}$ cm : le triangle est isocèle en $M$.`, "Additionne les trois côtés."], solution: `$M${B} = M${A} = ${X}$ cm, donc le périmètre vaut $${X} + ${X} + ${tD(y)} = ${tD(p)}$ cm.` }; }
+    if (t === 2) { const d = mulD(x, Dc(2));
+      return { enonce: `Le cercle circonscrit au triangle $${A}${B}${C}$ a pour centre $O$, et $O${A} = ${X}$ cm. Combien mesure son diamètre ?`, mode: "nombre", prefixe: "Diamètre :", suffixe: "cm", attendu: d.m / 10 ** d.d,
+        erreurs: [{ valeur: x.m / 10, message: "Ça, c'est le rayon. Le diamètre est deux fois plus long." }],
+        aides: [`Le cercle passe par $${A}$, $${B}$ et $${C}$ : $O${A}$ est un rayon.`, "Le diamètre vaut deux rayons.", `$2 \\times ${X}$.`], solution: `$O${A}$ est un rayon : le diamètre mesure $2 \\times ${X} = ${tD(d)}$ cm.` }; }
+    if (t === 3) { const h = Dc(rand(20, 160), 1), r = h.m % 2 === 0 ? Dc(h.m / 2, 1) : Dc(h.m * 5, 2);
+      return { enonce: `Le triangle $${A}${B}${C}$ est rectangle en $${A}$ et $${B}${C} = ${tD(h)}$ cm. Quel est le rayon de son cercle circonscrit ?`, mode: "nombre", prefixe: "Rayon :", suffixe: "cm", attendu: h.m / 20,
+        erreurs: [{ valeur: h.m / 10, message: "L'hypoténuse est un **diamètre** du cercle circonscrit : le rayon en est la moitié." }],
+        aides: ["Dans un triangle rectangle, où est le centre du cercle circonscrit ?", `C'est le milieu de l'hypoténuse $[${B}${C}]$.`, `$[${B}${C}]$ est donc un diamètre : le rayon vaut $${tD(h)} \\div 2$.`], solution: `Le centre est le milieu de l'hypoténuse $[${B}${C}]$, qui est un diamètre. Rayon : $${tD(h)} \\div 2 = ${tD(r)}$ cm.` }; }
+    if (t === 4) { const d = mulD(x, Dc(2));
+      return { enonce: `Le triangle $${A}${B}${C}$ est rectangle en $${A}$. Son cercle circonscrit a un rayon de $${X}$ cm. Combien mesure l'hypoténuse $[${B}${C}]$ ?`, mode: "nombre", prefixe: `$${B}${C} =$`, suffixe: "cm", attendu: d.m / 10 ** d.d,
+        erreurs: [{ valeur: x.m / 10, message: "L'hypoténuse est un diamètre, pas un rayon." }],
+        aides: ["Le centre du cercle circonscrit d'un triangle rectangle est le milieu de l'hypoténuse.", "L'hypoténuse est donc un diamètre.", "Diamètre $= 2 \\times$ rayon."], solution: `L'hypoténuse est un diamètre : $${B}${C} = 2 \\times ${X} = ${tD(d)}$ cm.` }; }
+    const p = addD(addD(x, x), y);
+    return { enonce: `$O$ est le centre du cercle circonscrit au triangle $${A}${B}${C}$, avec $O${A} = ${X}$ cm et $${B}${C} = ${tD(y)}$ cm. Quel est le périmètre du triangle $O${B}${C}$ ?`, mode: "nombre", prefixe: "Périmètre :", suffixe: "cm", attendu: p.m / 10 ** p.d,
+      erreurs: [{ valeur: (x.m + y.m) / 10, message: "Il manque un côté : $OB$ et $OC$ mesurent tous les deux un rayon." }],
+      aides: [`$O$ est à égale distance des trois sommets : $O${A} = O${B} = O${C}$.`, `Donc $O${B} = O${C} = ${X}$ cm.`, "Additionne les trois côtés du triangle."],
+      solution: `$O${B} = O${C} = O${A} = ${X}$ cm (rayons du cercle). Périmètre : $${X} + ${X} + ${tD(y)} = ${tD(p)}$ cm.` };
+  };
+
+  GEN["tr5-mediane"] = function () {
+    const [A, B, C] = nomsTri(), t = rand(0, 4), S = Dc(rand(10, 200) * 2, 1), s = Dc(S.m / 2, 1), v = (D) => D.m / 10 ** D.d;
+    if (t === 0) return { enonce: `Le triangle $${A}${B}${C}$ a une aire de $${tD(S)}$ cm². $M$ est le milieu de $[${B}${C}]$. Quelle est l'aire du triangle $${A}${B}M$ ?`, mode: "nombre", prefixe: "Aire :", suffixe: "cm²", attendu: v(s),
+      erreurs: [{ valeur: v(S), message: "Le triangle $" + A + B + "M$ n'est qu'une partie du triangle $" + A + B + C + "$." }],
+      aides: [`$[${A}M]$ est la médiane issue de $${A}$.`, "Une médiane partage un triangle en deux triangles de même aire.", `Aire de $${A}${B}M$ $=$ aire de $${A}${B}${C}$ $\\div 2$.`], solution: `$[${A}M]$ est une médiane : elle partage le triangle en deux triangles de même aire. Aire de $${A}${B}M$ : $${tD(S)} \\div 2 = ${tD(s)}$ cm².` };
+    if (t === 1) return { enonce: `$M$ est le milieu de $[${B}${C}]$ et le triangle $${A}${B}M$ a une aire de $${tD(s)}$ cm². Quelle est l'aire du triangle $${A}${B}${C}$ ?`, mode: "nombre", prefixe: "Aire :", suffixe: "cm²", attendu: v(S),
+      erreurs: [{ valeur: v(s), message: `Le triangle $${A}${B}${C}$ est formé de $${A}${B}M$ et de $${A}M${C}$.` }],
+      aides: [`$[${A}M]$ est une médiane du triangle $${A}${B}${C}$.`, `Les triangles $${A}${B}M$ et $${A}M${C}$ ont la même aire.`, "L'aire totale est le double."], solution: `Les triangles $${A}${B}M$ et $${A}M${C}$ ont la même aire, donc l'aire de $${A}${B}${C}$ vaut $2 \\times ${tD(s)} = ${tD(S)}$ cm².` };
+    if (t === 2) return { enonce: `$M$ est le milieu de $[${B}${C}]$ et le triangle $${A}M${C}$ a une aire de $${tD(s)}$ cm². Quelle est l'aire du triangle $${A}${B}M$ ?`, mode: "nombre", prefixe: "Aire :", suffixe: "cm²", attendu: v(s),
+      erreurs: [{ valeur: v(S), message: "Ça, c'est l'aire du grand triangle." }],
+      aides: [`$[${A}M]$ est la médiane issue de $${A}$.`, "Elle partage le triangle en deux triangles de même aire.", "Les deux petits triangles ont donc la même aire."], solution: `$[${A}M]$ est une médiane, donc $${A}${B}M$ et $${A}M${C}$ ont la même aire : $${tD(s)}$ cm².` };
+    if (t === 3) { const Q = Dc(rand(10, 200) * 4, 1), q = Dc(Q.m / 4, 1);
+      return { enonce: `Le triangle $${A}${B}${C}$ a une aire de $${tD(Q)}$ cm². $I$ est le milieu de $[${B}${C}]$ et $J$ le milieu de $[${B}I]$. Quelle est l'aire du triangle $${A}${B}J$ ?`, mode: "nombre", prefixe: "Aire :", suffixe: "cm²", attendu: v(q),
+        erreurs: [{ valeur: v(Q) / 2, message: `Ça, c'est l'aire de $${A}${B}I$. Il faut encore partager avec la médiane $[${A}J]$.` }],
+        aides: [`$[${A}I]$ est une médiane de $${A}${B}${C}$ : aire de $${A}${B}I$ $= ${tD(Q)} \\div 2$.`, `$[${A}J]$ est une médiane du triangle $${A}${B}I$.`, "Elle partage encore cette aire en deux."], solution: `Aire de $${A}${B}I$ : $${tD(Q)} \\div 2 = ${tD(Dc(Q.m / 2, 1))}$ cm². Puis $[${A}J]$ est une médiane de $${A}${B}I$ : aire de $${A}${B}J$ $= ${tD(Dc(Q.m / 2, 1))} \\div 2 = ${tD(q)}$ cm².` }; }
+    const Lg = Dc(rand(20, 180) * 2, 1), h = Dc(Lg.m / 2, 1);
+    return { enonce: `Dans le triangle $${A}${B}${C}$, $[${A}M]$ est la médiane issue de $${A}$ et $${B}${C} = ${tD(Lg)}$ cm. Combien mesure $${B}M$ ?`, mode: "nombre", prefixe: `$${B}M =$`, suffixe: "cm", attendu: v(h),
+      aides: ["Une médiane passe par un sommet et par le milieu du côté opposé.", `$M$ est donc le milieu de $[${B}${C}]$.`, `$${B}M = ${B}${C} \\div 2$.`], solution: `$M$ est le milieu de $[${B}${C}]$ : $${B}M = ${tD(Lg)} \\div 2 = ${tD(h)}$ cm.` };
+  };
+
   /* Une « erreur connue » ne doit jamais coïncider avec la bonne réponse */
-  Object.keys(GEN).filter((k) => /^(rc5)-/.test(k)).forEach((k) => {
+  Object.keys(GEN).filter((k) => /^(rc5|tr5)-/.test(k)).forEach((k) => {
     const g = GEN[k];
     GEN[k] = (i) => {
       const q = g(i);

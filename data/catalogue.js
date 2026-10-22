@@ -144,7 +144,7 @@ window.CATALOGUE = {
           id: "cinquieme-triangles",
           numero: 2,
           titre: "Triangles",
-          statut: "bientot",
+          statut: "disponible",
           drive: ""
         },
         {
