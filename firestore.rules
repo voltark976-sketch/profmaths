@@ -24,6 +24,11 @@ service cloud.firestore {
         && request.resource.data.get('temps', {}) is map
         && profilDuCompte(request.resource.data);
     }
+    // Liste des élèves de chaque classe (identifiant, prénom, nom), écrite seulement par outils/comptes (--classes) :
+    // permet d'afficher dans le suivi les élèves jamais connectés. Un professeur lit celles de ses classes (document par document).
+    match /classes/{groupe} {
+      allow read: if prof() && (!('groupes' in request.auth.token) || groupe in request.auth.token.groupes);
+    }
     // Progression personnelle d'un professeur (exercices faits avec son propre compte, ou compte prof approuvé)
     match /profs/{uid} {
       allow read: if (prof() || profApprouve()) && request.auth.uid == uid;

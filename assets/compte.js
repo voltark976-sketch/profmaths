@@ -361,13 +361,22 @@
     },
     pointsJeux,
 
-    // Professeur : fiches de tous les élèves (progression et dates des derniers essais)
+    // Professeur : fiches de tous les élèves déjà connectés (progression et dates des derniers essais)
+    // et listes de classes écrites par outils/comptes (classes : { groupe: { classe, eleves: { uid: { identifiant, prenom, nom } } } }),
+    // pour afficher aussi les élèves jamais connectés
     async suivi() {
       if (!fb || !eleve || !eleve.prof || eleve.externe) return null;
       const col = fb.db.collection("eleves"), g = eleve.groupes;
       // Professeur rattaché à certaines classes : on ne demande que celles-là (les règles refusent le reste)
       const snaps = !g ? [await col.get()] : await Promise.all(Array.from({ length: Math.ceil(g.length / 30) }, (_, i) => col.where("groupe", "in", g.slice(i * 30, i * 30 + 30)).get()));
-      return snaps.flatMap((snap) => snap.docs.map((d) => Object.assign({ uid: d.id }, d.data())));
+      const eleves = snaps.flatMap((snap) => snap.docs.map((d) => Object.assign({ uid: d.id }, d.data())));
+      const classes = {};
+      try {
+        const cl = fb.db.collection("classes");
+        const docs = !g ? (await cl.get()).docs : await Promise.all(g.map((x) => cl.doc(x).get()));
+        docs.forEach((d) => { if (d.exists) classes[d.id] = d.data(); });
+      } catch (x) { /* listes absentes ou non autorisées : le suivi se limite aux élèves déjà connectés */ }
+      return { eleves, classes };
     },
 
     // Compte une visite (page = identifiant du chapitre, « jeu » ou rien ; onglet du chapitre)

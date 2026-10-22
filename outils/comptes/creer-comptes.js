@@ -21,6 +21,11 @@
         Désactive les comptes élèves présents dans Firebase mais absents de comptes.json.
     node outils/comptes/creer-comptes.js --resynchroniser
         Renvoie à Firebase tous les comptes de comptes.json (mots de passe et classes de la liste).
+    node outils/comptes/creer-comptes.js --classes
+        Réécrit dans Firestore (collection « classes ») la liste des élèves de chaque classe : identifiant,
+        prénom, nom, jamais de mot de passe. Le site s'en sert pour afficher aussi, dans « Suivi des élèves »,
+        les élèves qui ne se sont jamais connectés. Fait automatiquement après une création, une
+        resynchronisation ou une désactivation de comptes ; à relancer si ces listes semblent périmées.
   Option --essai : affiche les comptes qui seraient créés, sans rien créer.
 
   Les identifiants et mots de passe sont écrits dans Documents\Gestion site lycée (hors du dépôt public) :
@@ -121,6 +126,58 @@ function comptesFirebase() {
     return JSON.parse(fs.readFileSync(tmp, "utf8")).users || [];
   } finally { fs.rmSync(tmp, { force: true }); }
 }
+/* ---------- Liste des élèves de chaque classe, dans Firestore (collection « classes ») ---------- */
+// Jeton d'accès du compte connecté avec « firebase login » (mêmes droits que la console Firebase)
+async function jetonFirebase() {
+  const racine = execFileSync(process.platform === "win32" ? "npm.cmd" : "npm", ["root", "-g"], { encoding: "utf8", shell: process.platform === "win32" }).trim();
+  const auth = require(path.join(racine, "firebase-tools", "lib", "auth"));
+  const compte = auth.getGlobalDefaultAccount();
+  if (!compte || !compte.tokens) throw new Error("Aucun compte Firebase connecté : lancer « firebase login »");
+  const t = await auth.getAccessToken(compte.tokens.refresh_token, []);
+  return t.access_token;
+}
+const FIRESTORE = `https://firestore.googleapis.com/v1/projects/${PROJET}/databases/(default)/documents`;
+// Valeur JavaScript -> valeur Firestore (API REST)
+function valeurFs(v) {
+  if (v === null || v === undefined) return { nullValue: null };
+  if (typeof v === "boolean") return { booleanValue: v };
+  if (typeof v === "number") return Number.isInteger(v) ? { integerValue: String(v) } : { doubleValue: v };
+  if (v instanceof Date) return { timestampValue: v.toISOString() };
+  if (Array.isArray(v)) return { arrayValue: { values: v.map(valeurFs) } };
+  if (typeof v === "object") return { mapValue: { fields: Object.fromEntries(Object.entries(v).map(([k, x]) => [k, valeurFs(x)])) } };
+  return { stringValue: String(v) };
+}
+async function appelFs(jeton, methode, chemin, corps) {
+  const r = await fetch(FIRESTORE + chemin, { method: methode, headers: { Authorization: "Bearer " + jeton, "Content-Type": "application/json" }, body: corps ? JSON.stringify(corps) : undefined });
+  if (!r.ok) throw new Error(`Firestore ${methode} ${chemin} : ${r.status} ${(await r.text()).slice(0, 200)}`);
+  return r.json();
+}
+// Élèves actifs de Firebase, regroupés par classe (groupe) : { groupe: { classe, eleves: { uid: { identifiant, prenom, nom } } } }
+function classesFirebase() {
+  const classes = {};
+  for (const u of comptesFirebase()) {
+    if (u.disabled || !u.localId.startsWith("eleve-")) continue;
+    let c; try { c = JSON.parse(u.customAttributes || "{}"); } catch (e) { continue; }
+    if (c.eleve !== true || !c.groupe) continue;
+    const g = classes[c.groupe] || (classes[c.groupe] = { classe: c.classe || "", eleves: {} });
+    g.eleves[u.localId] = { identifiant: (u.email || "").split("@")[0], prenom: c.prenom || "", nom: c.nom || "" };
+  }
+  return classes;
+}
+// Réécrit la collection « classes » : un document par groupe, remplacé entièrement ; les groupes disparus sont supprimés
+async function publierClasses(essai) {
+  const classes = classesFirebase(), noms = Object.keys(classes).sort();
+  noms.forEach((g) => console.log(`${g.padEnd(22)} ${classes[g].classe.padEnd(32)} ${Object.keys(classes[g].eleves).length} élèves`));
+  if (essai) { console.log(`${noms.length} classes (essai : rien n'est envoyé)`); return; }
+  const jeton = await jetonFirebase();
+  const existants = ((await appelFs(jeton, "GET", "/classes?pageSize=300&mask.fieldPaths=classe")).documents || []).map((d) => decodeURIComponent(d.name.split("/documents/classes/")[1]));
+  for (const g of noms) await appelFs(jeton, "PATCH", "/classes/" + encodeURIComponent(g), { fields: valeurFs(Object.assign({ majLe: new Date() }, classes[g])).mapValue.fields });
+  const perimes = existants.filter((x) => !classes[x]);
+  for (const g of perimes) await appelFs(jeton, "DELETE", "/classes/" + encodeURIComponent(g));
+  console.log(`Listes de ${noms.length} classes envoyées à Firestore${perimes.length ? ` (${perimes.join(", ")} supprimée(s))` : ""}.`);
+}
+const publierClassesSansBloquer = () => publierClasses().catch((e) => console.warn("Listes de classes non mises à jour (relancer avec --classes) : " + e.message));
+
 // Classe affichée sur le site, d'après le nom de la feuille (ex. « 204 », « 1SPE G2 », « Terminale SPE »)
 function classeDeFeuille(nom) {
   const n = norm(nom.replace(/\s+/g, ""));
@@ -170,6 +227,7 @@ const essai = args.includes("--essai") && args.splice(args.indexOf("--essai"), 1
 const desactiver = args.includes("--desactiver-inconnus") && args.splice(args.indexOf("--desactiver-inconnus"), 1);
 const listes = args.includes("--listes") && args.splice(args.indexOf("--listes"), 1);
 const resync = args.includes("--resynchroniser") && args.splice(args.indexOf("--resynchroniser"), 1);
+const optClasses = args.includes("--classes") && args.splice(args.indexOf("--classes"), 1);
 const feuilles = (opt("--feuilles") || "").split(",").map((x) => x.trim()).filter(Boolean);
 const classe = opt("--classe"), reinit = opt("--nouveau-mdp"), prof = opt("--prof");
 const rattacher = opt("--rattacher"), parDefaut = args.includes("--defaut") && args.splice(args.indexOf("--defaut"), 1);
@@ -263,6 +321,9 @@ if (prof) {
   sauver();
   console.log(`\n${crees.length} comptes créés. Identifiants dans ${DOSSIER}`);
   if (rates.length) console.log(`${rates.length} comptes NON créés (relancer la même commande) : ${rates.map((c) => c.identifiant).join(", ")}`);
+  publierClassesSansBloquer();
+} else if (optClasses) {
+  publierClasses(!!essai).catch((e) => { console.error(e.message); process.exit(1); });
 } else if (listes) {
   ecrireListes(reg);
   console.log("Listes et PDF régénérés dans " + DOSSIER);
@@ -274,6 +335,7 @@ if (prof) {
     if (importer(lot.map((c) => compteImport(c, c.mdp, claimsEleve(c))))) ok += lot.length;
   }
   console.log(`${ok}/${reg.eleves.length} comptes renvoyés à Firebase.`);
+  publierClassesSansBloquer();
 } else if (desactiver) {
   // Comptes élèves présents dans Firebase mais absents du registre : désactivés, sans accès au site
   const connus = new Set(reg.eleves.map((c) => c.uid));
@@ -281,6 +343,7 @@ if (prof) {
   if (!inconnus.length) { console.log("Aucun compte élève inconnu."); process.exit(0); }
   importer(inconnus.map((u) => ({ localId: u.localId, email: u.email, disabled: true, customAttributes: "{}" })));
   console.log(`${inconnus.length} comptes désactivés : ${inconnus.map((u) => u.email.split("@")[0]).join(", ")}`);
+  publierClassesSansBloquer();
 } else {
   console.log(fs.readFileSync(__filename, "utf8").split("*/")[0]);
 }

@@ -682,6 +682,18 @@ table.suivi { border-collapse: collapse; background: var(--surface); font-varian
 .lien-eleve { font: inherit; color: var(--ac); background: none; border: 0; padding: 0; cursor: pointer; text-align: left; text-decoration: underline; text-underline-offset: 3px; }
 .lien-eleve[aria-expanded="true"] { font-weight: 700; }
 .suivi tr.inactif td, .suivi tr.inactif th { color: var(--doux); }
+/* Élève présent dans la liste de classe mais jamais connecté au site */
+.suivi tr.jamais td, .suivi tr.jamais th { color: var(--doux); font-style: italic; }
+.jamais-co { font-size: 0.82rem; border: 1px dashed var(--doux); border-radius: 999px; padding: 1px 7px; white-space: nowrap; }
+/* Tri (touche un titre) et filtres (ligne sous les titres) */
+.suivi thead th:first-child { position: sticky; left: 0; z-index: 1; }
+.suivi button.tri { font: inherit; font-weight: 700; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; display: inline-flex; align-items: center; gap: 3px; }
+.suivi .fleche { font-size: 0.72rem; color: var(--doux); }
+.suivi th[aria-sort="ascending"] .fleche, .suivi th[aria-sort="descending"] .fleche { color: var(--ac); }
+.suivi tr.suivi-filtres th { padding: 4px; background: var(--fond); }
+.suivi tr.suivi-filtres input, .suivi tr.suivi-filtres select { font: 0.85rem var(--f-texte); width: 100%; min-width: 5.5em; max-width: 11em; padding: 4px 6px; border-radius: 8px; border: 1px solid var(--trait); background: var(--surface); color: var(--encre); }
+.suivi tr.suivi-filtres select.actif { border-color: var(--ac); font-weight: 700; }
+.suivi-compte { margin: 10px 0 0; }
 .suivi-detail td { text-align: left; white-space: normal; background: var(--fond); }
 /* La liste reste dans l'écran même quand le tableau défile de côté */
 .suivi-detail ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; position: sticky; left: 8px; max-width: min(36em, calc(100vw - 80px)); max-width: min(36em, calc(100cqw - 26px)); }
