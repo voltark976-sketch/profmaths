@@ -165,7 +165,7 @@ window.CATALOGUE = {
           id: "cinquieme-angles",
           numero: 5,
           titre: "Angles et parallélisme",
-          statut: "bientot",
+          statut: "disponible",
           drive: ""
         },
         {

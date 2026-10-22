@@ -3,7 +3,7 @@
   Ce fichier se charge après assets/exercices-college.js et reprend ses outils (window.PM_EXO.college).
   Mêmes règles : chaque générateur fabrique une question avec des nombres tirés au hasard, la réponse
   attendue, trois indices progressifs et la solution rédigée.
-  Préfixes : rc5- (règles de calcul), tr5-, fr5-, pp5-.
+  Préfixes : rc5- (règles de calcul), tr5-, fr5-, pp5-, an5-.
 */
 (function () {
   "use strict";
@@ -630,8 +630,149 @@
       solution: `$${dec(v)}$ ${u} $= ${dec(reel)}$ cm. $${dec(reel)} \\div ${c} = ${nb(E)}$ : $1$ cm représente $${nb(E)}$ cm, l'échelle est $\\dfrac{1}{${nb(E)}}$.` };
   };
 
+  /* =====================================================================
+     Chapitre 5 : angles et parallélisme (an5-)
+     Figure : deux droites (d) et (d') coupées par une sécante ; angles numérotés 1 à 4 au point du haut,
+     5 à 8 au point du bas (1 et 5 : en haut à droite, puis dans le sens inverse des aiguilles d'une montre).
+     ===================================================================== */
+  const DEG = Math.PI / 180;
+  function figParalleles(o) {
+    const th = o.theta, ph = o.phi || 0, W = 320, H = o.une ? 170 : 236;
+    const L = [Math.cos(ph * DEG), -Math.sin(ph * DEG)], T = [Math.cos((ph + th) * DEG), -Math.sin((ph + th) * DEG)];
+    const k = 110 / -T[1], P = o.une ? [[160, 85]] : [[160 + (T[0] * k) / 2, 63]];
+    if (!o.une) P.push([P[0][0] - T[0] * k, P[0][1] - T[1] * k]);
+    const ligne = (p, u, k1, k2) => `<line class="g-droite" x1="${(p[0] - u[0] * k1).toFixed(1)}" y1="${(p[1] - u[1] * k1).toFixed(1)}" x2="${(p[0] + u[0] * k2).toFixed(1)}" y2="${(p[1] + u[1] * k2).toFixed(1)}"/>`;
+    let s = `<svg class="graph" viewBox="0 0 ${W} ${H}" role="img" aria-label="${o.aria}">`;
+    P.forEach((p) => { s += ligne(p, L, 280, 280); });
+    s += o.une ? ligne(P[0], T, 80, 80) : ligne(P[0], T, k + 55, 55);
+    // demi-droites de chaque angle : 1 (T+, L+), 2 (L-, T+), 3 (T-, L-), 4 (L+, T-)
+    const rayons = [[L, T], [T, [-L[0], -L[1]]], [[-L[0], -L[1]], [-T[0], -T[1]]], [[-T[0], -T[1]], L]];
+    (o.marques || []).forEach(([k, txt, plein]) => {
+      const p = P[k > 4 ? 1 : 0], [u, v] = rayons[(k - 1) % 4], r = 15;
+      const a1 = Math.atan2(-u[1], u[0]), a2 = Math.atan2(-v[1], v[0]);
+      const x1 = p[0] + r * Math.cos(a1), y1 = p[1] - r * Math.sin(a1), x2 = p[0] + r * Math.cos(a2), y2 = p[1] - r * Math.sin(a2);
+      s += `<path class="${plein ? "g-arc g-arc-fort" : "g-arc"}" d="M${x1.toFixed(1)} ${y1.toFixed(1)} A${r} ${r} 0 0 0 ${x2.toFixed(1)} ${y2.toFixed(1)}"/>`;
+      let b = [u[0] + v[0], u[1] + v[1]]; const nb2 = Math.hypot(...b); b = [b[0] / nb2, b[1] / nb2];
+      const dist = txt.length > 2 ? 34 : 27;
+      s += `<text class="g-num-angle" x="${(p[0] + b[0] * dist).toFixed(1)}" y="${(p[1] + b[1] * dist + 4).toFixed(1)}" text-anchor="middle">${txt}</text>`;
+    });
+    const yEn = (p, x) => p[1] + ((x - p[0]) * L[1]) / L[0];
+    if (o.noms !== false) P.forEach((p, n) => { s += `<text class="g-plabel" x="${W - 6}" y="${(yEn(p, W - 20) - 7).toFixed(1)}" text-anchor="end">${n ? "(d')" : "(d)"}</text>`; });
+    return s + `</svg>`;
+  }
+  // Mesure de l'angle numéro k quand (d) // (d') : th pour 1, 3, 5, 7 ; 180 - th pour 2, 4, 6, 8
+  const mesure = (k, th) => (k % 2 ? th : 180 - th);
+  const PAIRES = { correspondants: [[1, 5], [2, 6], [3, 7], [4, 8]], "alternes-internes": [[3, 5], [4, 6]], "opposés par le sommet": [[1, 3], [2, 4], [5, 7], [6, 8]], "adjacents supplémentaires": [[1, 2], [2, 3], [3, 4], [1, 4], [5, 6], [6, 7], [7, 8], [5, 8]] };
+  const natureDe = (a, b) => { const [x, y] = [Math.min(a, b), Math.max(a, b)]; return Object.keys(PAIRES).find((n) => PAIRES[n].some(([p, q]) => p === x && q === y)); };
+  const thetaHasard = () => pick([rand(40, 75), rand(105, 140)]);
+  FIGURES["an5-paralleles"] = () => figParalleles({ theta: 60, phi: 0, marques: [[1, "1"], [2, "2"], [3, "3"], [4, "4"], [5, "5"], [6, "6"], [7, "7"], [8, "8"]], aria: "Deux droites (d) et (d') coupées par une sécante ; huit angles numérotés de 1 à 8" });
+  FIGURES["an5-secantes"] = () => figParalleles({ une: true, theta: 55, marques: [[1, "55°"], [2, "?"], [3, "?"]], noms: false, aria: "Deux droites sécantes : un angle de 55 degrés et deux angles inconnus" });
+
+  GEN["an5-vocabulaire"] = function () {
+    const t = rand(0, 3), th = thetaHasard(), ph = rand(-12, 12);
+    if (t <= 1) {
+      let a, b, nat;
+      for (;;) { a = rand(1, 8); b = rand(1, 8); if (a === b) continue; nat = natureDe(a, b); if (nat) break; }
+      const fig = figParalleles({ theta: th, phi: ph, marques: [[a, String(a)], [b, String(b)]], aria: `Deux droites (d) et (d') coupées par une sécante ; les angles ${a} et ${b} sont marqués` });
+      const noms = ["correspondants", "alternes-internes", "opposés par le sommet", "adjacents supplémentaires"];
+      const { choix, attendu } = melange(nat, noms.filter((n) => n !== nat));
+      const expl = { correspondants: "ils sont du même côté de la sécante et occupent la même position aux deux points d'intersection (l'un au-dessus de $(d)$, l'autre au-dessus de $(d')$, ou les deux en dessous)", "alternes-internes": "ils sont de part et d'autre de la sécante, et tous les deux entre les droites $(d)$ et $(d')$", "opposés par le sommet": "ils ont le même sommet et leurs côtés sont dans le prolongement l'un de l'autre", "adjacents supplémentaires": "ils ont le même sommet et un côté commun, et ensemble ils forment un angle plat" }[nat];
+      return { enonce: `Sur la figure, les angles ${a} et ${b} sont :`, figure: fig, mode: "choix", choix, attendu,
+        aides: ["Regarde d'abord si les deux angles ont le même sommet.", "Même sommet : opposés par le sommet (côtés prolongés) ou adjacents (un côté commun). Sommets différents : correspondants ou alternes-internes.", "**Alternes-internes** : de part et d'autre de la sécante, entre les deux droites. **Correspondants** : du même côté de la sécante, à la même place."],
+        solution: `Les angles ${a} et ${b} sont ${nat} : ${expl}.` };
+    }
+    if (t === 2) {
+      const a = rand(25, 155), q = rand(0, 1);
+      const fig = figParalleles({ une: true, theta: a, phi: ph, noms: false, marques: [[1, `${a}°`], [q ? 3 : 2, "?"]], aria: `Deux droites sécantes ; un angle de ${a} degrés et un angle inconnu` });
+      const rep = q ? a : 180 - a;
+      return { enonce: `Deux droites sont sécantes. Quelle est la mesure de l'angle marqué « ? » ?`, figure: fig, mode: "nombre", prefixe: "Mesure :", suffixe: "°", attendu: rep,
+        erreurs: [{ valeur: q ? 180 - a : a, message: q ? "Ces angles sont opposés par le sommet : ils ont la même mesure." : "Ces angles sont adjacents et forment un angle plat : ils sont supplémentaires." }],
+        aides: ["Deux angles opposés par le sommet ont la même mesure.", "Deux angles adjacents qui forment un angle plat sont supplémentaires : leur somme vaut $180^\\circ$.", q ? "Les deux angles ont le même sommet et leurs côtés sont prolongés." : "Les deux angles ont un côté commun."],
+        solution: q ? `Les deux angles sont opposés par le sommet : ils mesurent tous les deux $${a}^\\circ$.` : `Les deux angles sont supplémentaires : $180^\\circ - ${a}^\\circ = ${180 - a}^\\circ$.` };
+    }
+    const a = rand(10, 85) * 2, s2 = rand(0, 2);
+    if (s2 === 0) return { enonce: `La bissectrice d'un angle de $${a}^\\circ$ le partage en deux angles. Combien mesure chacun d'eux ?`, mode: "nombre", prefixe: "Mesure :", suffixe: "°", attendu: a / 2,
+      aides: ["La bissectrice d'un angle le partage en deux angles de même mesure.", "Il faut donc diviser par $2$.", `$${a} \\div 2$.`], solution: `$${a}^\\circ \\div 2 = ${a / 2}^\\circ$.` };
+    const b = rand(5, 85);
+    if (s2 === 1) return { enonce: `Deux angles adjacents forment un angle droit. L'un mesure $${b}^\\circ$. Combien mesure l'autre ?`, mode: "nombre", prefixe: "Mesure :", suffixe: "°", attendu: 90 - b,
+      erreurs: [{ valeur: 180 - b, message: "Un angle droit mesure $90^\\circ$, pas $180^\\circ$." }],
+      aides: ["Un angle droit mesure $90^\\circ$.", "Les deux angles se partagent cet angle droit.", `$90 - ${b}$.`], solution: `$90^\\circ - ${b}^\\circ = ${90 - b}^\\circ$ (les deux angles sont complémentaires).` };
+    const c = rand(100, 175);
+    const nat = pick([[c, "obtus"], [b, "aigu"], [90, "droit"], [180, "plat"]]);
+    const { choix, attendu } = melange(`un angle ${nat[1]}`, ["un angle aigu", "un angle obtus", "un angle droit", "un angle plat"].filter((x) => x !== `un angle ${nat[1]}`));
+    return { enonce: `Un angle de $${nat[0]}^\\circ$ est :`, mode: "choix", choix, attendu,
+      aides: ["Aigu : moins de $90^\\circ$. Droit : $90^\\circ$.", "Obtus : entre $90^\\circ$ et $180^\\circ$.", "Plat : $180^\\circ$."], solution: `$${nat[0]}^\\circ$ : c'est un angle ${nat[1]}.` };
+  };
+
+  GEN["an5-calculer"] = function () {
+    const th = thetaHasard(), ph = rand(-12, 12);
+    for (;;) {
+      const a = rand(1, 8), b = rand(1, 8); if (a === b) continue;
+      const nat = natureDe(a, b); if (!nat || nat === "adjacents supplémentaires" && Math.random() < 0.5) continue;
+      const ma = mesure(a, th), mb = mesure(b, th);
+      const fig = figParalleles({ theta: th, phi: ph, marques: [[a, `${ma}°`], [b, "?"]], aria: `Deux droites parallèles (d) et (d') coupées par une sécante ; un angle de ${ma} degrés et un angle inconnu` });
+      const egal = ma === mb;
+      const just = nat === "correspondants" || nat === "alternes-internes" ? `Les deux angles sont ${nat} et les droites $(d)$ et $(d')$ sont parallèles : ils ont la même mesure.`
+        : nat === "opposés par le sommet" ? "Les deux angles sont opposés par le sommet : ils ont la même mesure."
+        : "Les deux angles sont adjacents et forment un angle plat : ils sont supplémentaires.";
+      const sol = egal ? `${just} L'angle mesure $${mb}^\\circ$.` : nat === "adjacents supplémentaires" ? `${just} $180^\\circ - ${ma}^\\circ = ${mb}^\\circ$.` : `Les deux angles ne sont ni correspondants, ni alternes-internes : on passe par un angle intermédiaire. L'angle adjacent à l'angle connu mesure $180^\\circ - ${ma}^\\circ = ${mb}^\\circ$, et on retrouve cette mesure en ${b} par angles correspondants ou opposés par le sommet. L'angle mesure $${mb}^\\circ$.`;
+      return { enonce: `Les droites $(d)$ et $(d')$ sont parallèles. Quelle est la mesure de l'angle marqué « ? » ?`, figure: fig, mode: "nombre", prefixe: "Mesure :", suffixe: "°", attendu: mb,
+        erreurs: egal ? [{ valeur: 180 - ma, message: "Ces deux angles ont la même mesure : vérifie leur position." }] : [{ valeur: ma, message: "Ces deux angles ne sont pas égaux : l'un est aigu, l'autre obtus. Ils sont supplémentaires." }],
+        aides: ["Avec deux droites parallèles, les angles correspondants et les angles alternes-internes ont la même mesure.", "Les angles opposés par le sommet sont égaux ; deux angles adjacents qui forment un angle plat sont supplémentaires.", `Sur cette figure, il n'y a que deux mesures : $${th}^\\circ$ et $${180 - th}^\\circ$. L'angle cherché est-il ${mb < 90 ? "aigu" : "obtus"} ?`],
+        solution: sol };
+    }
+  };
+
+  GEN["an5-paralleles"] = function () {
+    const th = thetaHasard(), ph = rand(-12, 12), nat = pick(["correspondants", "alternes-internes"]), [a, b] = pick(PAIRES[nat]);
+    const ma = mesure(a, th), par = Math.random() < 0.5, mb = par ? ma : ma + pick([-1, 1]) * rand(2, 6);
+    const fig = figParalleles({ theta: th, phi: ph, marques: [[a, `${ma}°`], [b, `${mb}°`]], aria: `Deux droites (d) et (d') coupées par une sécante ; deux angles ${nat} de ${ma} et ${mb} degrés` });
+    const bonne = par ? `Oui, car les angles ${nat} sont égaux` : `Non, car les angles ${nat} ne sont pas égaux`;
+    const fausses = par ? [`Non, car les angles ${nat} sont égaux`, "On ne peut pas savoir sans mesurer les droites", `Oui, car les angles ${nat} sont supplémentaires`] : [`Oui, car les angles ${nat} sont presque égaux`, "On ne peut pas savoir sans mesurer les droites", `Oui, car les droites semblent parallèles sur le dessin`];
+    const { choix, attendu } = melange(bonne, fausses);
+    return { enonce: `Le dessin n'est pas forcément exact : on ne se fie qu'aux mesures indiquées. Les droites $(d)$ et $(d')$ sont-elles parallèles ?`, figure: fig, mode: "choix", choix, attendu,
+      aides: [`Les deux angles marqués sont ${nat}.`, `Propriété : si deux droites coupées par une sécante forment des angles ${nat} **égaux**, alors elles sont parallèles.`, "Et si ces angles ne sont pas égaux, les droites ne sont pas parallèles."],
+      solution: par ? `Les angles ${nat} mesurent tous les deux $${ma}^\\circ$ : ils sont égaux, donc $(d)$ et $(d')$ sont parallèles.` : `Les angles ${nat} mesurent $${ma}^\\circ$ et $${mb}^\\circ$ : ils ne sont pas égaux, donc $(d)$ et $(d')$ ne sont pas parallèles (même si le dessin donne l'impression contraire).` };
+  };
+
+  GEN["an5-triangles"] = function () {
+    const t = rand(0, 4), N = nomsTri(), [A, B, C] = N;
+    if (t === 0) {
+      const a = rand(20, 110), b = rand(15, 160 - a);
+      return { enonce: `Dans le triangle $${A}${B}${C}$, $\\widehat{${A}} = ${a}^\\circ$ et $\\widehat{${B}} = ${b}^\\circ$. Combien mesure $\\widehat{${C}}$ ?`, mode: "nombre", prefixe: `$\\widehat{${C}} =$`, suffixe: "°", attendu: 180 - a - b,
+        erreurs: [{ valeur: a + b, message: "Ça, c'est la somme des deux angles connus. Il faut la retirer de $180^\\circ$." }, { valeur: 360 - a - b, message: "La somme des angles d'un triangle vaut $180^\\circ$, pas $360^\\circ$." }],
+        aides: ["La somme des angles d'un triangle vaut $180^\\circ$.", `$${a} + ${b} = ${a + b}$.`, `$180 - ${a + b}$.`], solution: `$\\widehat{${C}} = 180^\\circ - (${a}^\\circ + ${b}^\\circ) = 180^\\circ - ${a + b}^\\circ = ${180 - a - b}^\\circ$.` };
+    }
+    if (t === 1) {
+      const s = rand(10, 140) * (Math.random() < 0.5 ? 1 : 1); if (s % 2) return GEN["an5-triangles"]();
+      return { enonce: `Le triangle $${A}${B}${C}$ est isocèle en $${A}$ et $\\widehat{${A}} = ${s}^\\circ$. Combien mesure $\\widehat{${B}}$ ?`, mode: "nombre", prefixe: `$\\widehat{${B}} =$`, suffixe: "°", attendu: (180 - s) / 2,
+        erreurs: [{ valeur: 180 - s, message: `Les angles $\\widehat{${B}}$ et $\\widehat{${C}}$ se partagent ces $${180 - s}^\\circ$ : divise par $2$.` }, { valeur: s, message: `Dans un triangle isocèle en $${A}$, ce sont les angles à la base, $\\widehat{${B}}$ et $\\widehat{${C}}$, qui sont égaux.` }],
+        aides: [`Dans un triangle isocèle en $${A}$, les angles à la base $\\widehat{${B}}$ et $\\widehat{${C}}$ sont égaux.`, `Ensemble, ils mesurent $180^\\circ - ${s}^\\circ = ${180 - s}^\\circ$.`, `$${180 - s} \\div 2$.`],
+        solution: `$\\widehat{${B}} + \\widehat{${C}} = 180^\\circ - ${s}^\\circ = ${180 - s}^\\circ$ et ces deux angles sont égaux : $\\widehat{${B}} = ${180 - s}^\\circ \\div 2 = ${(180 - s) / 2}^\\circ$.` };
+    }
+    if (t === 2) {
+      const b = rand(15, 80);
+      return { enonce: `Le triangle $${A}${B}${C}$ est isocèle en $${A}$ et $\\widehat{${B}} = ${b}^\\circ$. Combien mesure $\\widehat{${A}}$ ?`, mode: "nombre", prefixe: `$\\widehat{${A}} =$`, suffixe: "°", attendu: 180 - 2 * b,
+        erreurs: [{ valeur: 180 - b, message: `$\\widehat{${C}}$ mesure aussi $${b}^\\circ$ : il faut retirer les deux angles à la base.` }],
+        aides: [`$\\widehat{${C}} = \\widehat{${B}} = ${b}^\\circ$ (angles à la base).`, `$${b} + ${b} = ${2 * b}$.`, `$180 - ${2 * b}$.`], solution: `$\\widehat{${C}} = \\widehat{${B}} = ${b}^\\circ$, donc $\\widehat{${A}} = 180^\\circ - 2 \\times ${b}^\\circ = ${180 - 2 * b}^\\circ$.` };
+    }
+    if (t === 3) {
+      const b = rand(12, 78);
+      return { enonce: `Le triangle $${A}${B}${C}$ est rectangle en $${A}$ et $\\widehat{${B}} = ${b}^\\circ$. Combien mesure $\\widehat{${C}}$ ?`, mode: "nombre", prefixe: `$\\widehat{${C}} =$`, suffixe: "°", attendu: 90 - b,
+        erreurs: [{ valeur: 180 - b, message: `N'oublie pas l'angle droit en $${A}$ : il mesure $90^\\circ$.` }],
+        aides: [`L'angle droit $\\widehat{${A}}$ mesure $90^\\circ$.`, "Dans un triangle rectangle, les deux angles aigus ont une somme de $90^\\circ$.", `$90 - ${b}$.`], solution: `$\\widehat{${C}} = 180^\\circ - 90^\\circ - ${b}^\\circ = ${90 - b}^\\circ$.` };
+    }
+    const q = rand(0, 1);
+    return q ? { enonce: `Le triangle $${A}${B}${C}$ est équilatéral. Combien mesure $\\widehat{${A}}$ ?`, mode: "nombre", prefixe: `$\\widehat{${A}} =$`, suffixe: "°", attendu: 60,
+      aides: ["Dans un triangle équilatéral, les trois angles sont égaux.", "Leur somme vaut $180^\\circ$.", "$180 \\div 3$."], solution: "Les trois angles sont égaux et leur somme vaut $180^\\circ$ : chacun mesure $180^\\circ \\div 3 = 60^\\circ$." }
+      : (() => { const a = rand(30, 120), b = rand(20, 150 - a), c = 180 - a - b, ext = 180 - c; return { enonce: `Dans le triangle $${A}${B}${C}$, $\\widehat{${A}} = ${a}^\\circ$ et $\\widehat{${B}} = ${b}^\\circ$. On prolonge le côté $[${A}${C}]$ au-delà de $${C}$. Combien mesure l'angle formé à l'extérieur du triangle, en $${C}$, entre ce prolongement et $[${C}${B}]$ ?`, mode: "nombre", prefixe: "Mesure :", suffixe: "°", attendu: ext,
+        erreurs: [{ valeur: c, message: "Ça, c'est l'angle intérieur en $" + C + "$. L'angle extérieur est son supplémentaire." }],
+        aides: [`Calcule d'abord $\\widehat{${C}} = 180^\\circ - ${a}^\\circ - ${b}^\\circ$.`, "L'angle extérieur et l'angle intérieur en $" + C + "$ forment un angle plat.", `Angle extérieur $= 180^\\circ - \\widehat{${C}}$.`],
+        solution: `$\\widehat{${C}} = 180^\\circ - ${a}^\\circ - ${b}^\\circ = ${c}^\\circ$, puis l'angle extérieur vaut $180^\\circ - ${c}^\\circ = ${ext}^\\circ$ (c'est aussi $${a}^\\circ + ${b}^\\circ$).` }; })();
+  };
+
   /* Une « erreur connue » ne doit jamais coïncider avec la bonne réponse */
-  Object.keys(GEN).filter((k) => /^(rc5|tr5|fr5|pp5)-/.test(k)).forEach((k) => {
+  Object.keys(GEN).filter((k) => /^(rc5|tr5|fr5|pp5|an5)-/.test(k)).forEach((k) => {
     const g = GEN[k];
     GEN[k] = (i) => {
       const q = g(i);
