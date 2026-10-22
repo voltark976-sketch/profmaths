@@ -2769,8 +2769,112 @@
       solution: `Carré : $P = ${pd}$ cm et $\\mathscr{A} = ${pc}$ cm². Rectangle : $P = ${2 * (2 * c)}$ cm et $\\mathscr{A} = ${(c + d) * (c - d)}$ cm². Même périmètre, mais l'aire du rectangle est plus petite : périmètre et aire ne varient pas ensemble.` };
   };
 
+  /* =====================================================================
+     6e, chapitre 14 : solides, vision dans l'espace et volumes (préfixe so6-)
+     Programme : reconnaître pyramides, boules, cubes, cylindres, pavés, cônes, prismes droits (automatisme) ;
+     voir dans l'espace des assemblages de cubes (passer du 3D aux vues 2D, dénombrer) ;
+     unité cm³, comparer et déterminer des volumes.
+     ===================================================================== */
+  // Assemblage de cubes en perspective : h[i][j] = nombre de cubes empilés sur la case (i, j), i vers la droite, j vers l'avant
+  function assemblage(h) {
+    const a = 22, cx = Math.cos(Math.PI / 6) * a, sy = Math.sin(Math.PI / 6) * a, n = h.length, m = h[0].length;
+    const hmax = Math.max(...h.flat());
+    const W = 320, H = Math.round((n + m) * sy + hmax * a + 30), ox = 160 + ((m - n) * cx) / 2, oy = 14 + hmax * a;
+    const P = (i, j, k) => [+(ox + (i - j) * cx).toFixed(1), +(oy + (i + j) * sy - k * a).toFixed(1)];
+    let s = `<svg class="graph cubes" viewBox="0 0 ${W} ${H}" role="img" aria-label="Assemblage de cubes en perspective">`;
+    const cases = []; for (let i = 0; i < n; i++) for (let j = 0; j < m; j++) for (let k = 0; k < h[i][j]; k++) cases.push([i, j, k]);
+    cases.sort((p, q) => (p[0] + p[1]) - (q[0] + q[1]) || p[2] - q[2] || p[0] - q[0]);
+    const poly = (pts, c) => `<polygon class="${c}" points="${pts.map((p) => p.join(",")).join(" ")}"/>`;
+    cases.forEach(([i, j, k]) => {
+      s += poly([P(i, j, k + 1), P(i + 1, j, k + 1), P(i + 1, j + 1, k + 1), P(i, j + 1, k + 1)], "g-cube-haut");
+      s += poly([P(i, j + 1, k), P(i + 1, j + 1, k), P(i + 1, j + 1, k + 1), P(i, j + 1, k + 1)], "g-cube-g");
+      s += poly([P(i + 1, j, k), P(i + 1, j + 1, k), P(i + 1, j + 1, k + 1), P(i + 1, j, k + 1)], "g-cube-d");
+    });
+    return s + `</svg>`;
+  }
+  // Solides usuels dessinés simplement (traits cachés en pointillés)
+  function dessinSolide(nom) {
+    const W = 320, H = 170, L = (x1, y1, x2, y2, cache) => `<line class="${cache ? "g-cache" : "g-segment"}" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}"/>`;
+    const E = (cx, cy, rx, ry, moitie) => moitie === "haut" ? `<path class="g-cache-arc" d="M${cx - rx} ${cy} A${rx} ${ry} 0 0 1 ${cx + rx} ${cy}"/>` : moitie === "bas" ? `<path class="g-arc-plein" d="M${cx - rx} ${cy} A${rx} ${ry} 0 0 0 ${cx + rx} ${cy}"/>` : `<ellipse class="g-arc-plein" cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}"/>`;
+    let s = `<svg class="graph geo" viewBox="0 0 ${W} ${H}" role="img" aria-label="Solide : ${nom}">`;
+    if (nom === "un cube" || nom === "un pavé droit") {
+      const w = nom === "un cube" ? 90 : 140, h = 90, dx = 40, dy = 30, x = 80, y = 55;
+      s += L(x, y, x + w, y) + L(x, y + h, x + w, y + h) + L(x, y, x, y + h) + L(x + w, y, x + w, y + h) + L(x + dx, y - dy, x + w + dx, y - dy) + L(x, y, x + dx, y - dy) + L(x + w, y, x + w + dx, y - dy) + L(x + w + dx, y - dy, x + w + dx, y + h - dy) + L(x + w, y + h, x + w + dx, y + h - dy);
+      s += L(x + dx, y - dy, x + dx, y + h - dy, true) + L(x + dx, y + h - dy, x + w + dx, y + h - dy, true) + L(x, y + h, x + dx, y + h - dy, true);
+    } else if (nom === "un cylindre") s += E(160, 35, 60, 16) + E(160, 140, 60, 16, "bas") + E(160, 140, 60, 16, "haut") + L(100, 35, 100, 140) + L(220, 35, 220, 140);
+    else if (nom === "un cône") s += E(160, 135, 70, 18, "bas") + E(160, 135, 70, 18, "haut") + L(90, 135, 160, 15) + L(230, 135, 160, 15);
+    else if (nom === "une boule") s += `<circle class="g-arc-plein" cx="160" cy="85" r="70"/>` + E(160, 85, 70, 18, "bas") + E(160, 85, 70, 18, "haut");
+    else if (nom === "une pyramide à base carrée") { const A = [90, 140], B = [200, 140], C = [240, 110], D = [130, 110], S = [165, 15]; s += L(...A, ...B) + L(...B, ...C) + L(...A, ...S) + L(...B, ...S) + L(...C, ...S) + L(...D, ...S, true) + L(...A, ...D, true) + L(...D, ...C, true); }
+    else if (nom === "un prisme droit à base triangulaire") { const A = [80, 140], B = [170, 140], C = [125, 70], dx = 70, dy = -25; s += L(...A, ...B) + L(...B, ...C) + L(...C, ...A) + L(B[0], B[1], B[0] + dx, B[1] + dy) + L(C[0], C[1], C[0] + dx, C[1] + dy) + L(C[0] + dx, C[1] + dy, B[0] + dx, B[1] + dy) + L(A[0], A[1], A[0] + dx, A[1] + dy, true) + L(A[0] + dx, A[1] + dy, B[0] + dx, B[1] + dy, true) + L(A[0] + dx, A[1] + dy, C[0] + dx, C[1] + dy, true); }
+    return s + `</svg>`;
+  }
+  const SOLIDES = ["un cube", "un pavé droit", "un cylindre", "un cône", "une boule", "une pyramide à base carrée", "un prisme droit à base triangulaire"];
+  FIGURES["so6-assemblage"] = () => assemblage([[2, 1, 1], [1, 1, 0]]);
+  FIGURES["so6-pave"] = () => dessinSolide("un pavé droit");
+
+  GEN["so6-reconnaitre"] = function () {
+    const nom = pick(SOLIDES), t = Math.random() < 0.65;
+    const maj = (x) => x[0].toUpperCase() + x.slice(1);
+    const c = melange(maj(nom), shuffle(SOLIDES.filter((x) => x !== nom)).slice(0, 3).map(maj));
+    const desc = { "un cube": "Il a $6$ faces, toutes des carrés identiques.", "un pavé droit": "Il a $6$ faces rectangulaires ; les faces opposées sont identiques.", "un cylindre": "Il a deux bases qui sont des disques identiques et parallèles, reliées par une face courbe.", "un cône": "Il a une base en forme de disque et une face courbe qui se termine en pointe.", "une boule": "Tous ses points de surface sont à la même distance de son centre ; il roule dans toutes les directions.", "une pyramide à base carrée": "Il a une base carrée et quatre faces triangulaires qui se rejoignent en un sommet.", "un prisme droit à base triangulaire": "Il a deux bases triangulaires identiques et parallèles, et trois faces rectangulaires." }[nom];
+    return { enonce: t ? "Quel est ce solide ?" : `Quel solide est décrit ? « ${desc} »`, figure: t ? dessinSolide(nom) : undefined, mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: ["Regarde la forme des faces : carrés, rectangles, triangles, disques ?", "Une face courbe ? Une pointe ?", "Les pointillés montrent les arêtes cachées."], solution: `C'est ${nom} : ${desc[0].toLowerCase() + desc.slice(1)}` };
+  };
+
+  const POLY = { 3: "triangle", 4: "quadrilatère", 5: "pentagone", 6: "hexagone", 7: "heptagone", 8: "octogone" };
+  GEN["so6-elements"] = function () {
+    let nom, F, S, A, expl;
+    if (Math.random() < 0.5) { [nom, F, S, A] = pick([["un cube", 6, 8, 12], ["un pavé droit", 6, 8, 12], ["une pyramide à base carrée", 5, 5, 8], ["un prisme droit à base triangulaire", 5, 6, 9]]); expl = ""; }
+    else { const n = rand(3, 8), prisme = Math.random() < 0.5;
+      nom = prisme ? `un prisme droit dont les bases sont des ${POLY[n]}s` : `une pyramide dont la base est un ${POLY[n]}`;
+      [F, S, A] = prisme ? [n + 2, 2 * n, 3 * n] : [n + 1, n + 1, 2 * n];
+      expl = prisme ? ` Chaque base a $${n}$ côtés : $2$ bases et $${n}$ faces latérales, $${n}$ sommets par base, $${n}$ arêtes par base et $${n}$ arêtes latérales.` : ` La base a $${n}$ côtés : $1$ base et $${n}$ faces triangulaires, $${n}$ sommets de base et le sommet, $${n}$ arêtes de base et $${n}$ arêtes qui montent au sommet.`; }
+    const [mot, rep] = pick([["faces", F], ["sommets", S], ["arêtes", A]]);
+    const fig = SOLIDES.includes(nom) ? dessinSolide(nom) : undefined;
+    return { enonce: `Combien de ${mot} a ${nom} ?`, figure: fig, mode: "nombre", prefixe: `Nombre de ${mot} :`, attendu: rep,
+      aides: ["Une **face** est une surface plane ; une **arête** est un segment où deux faces se rejoignent ; un **sommet** est un point où des arêtes se rejoignent.", "N'oublie pas les éléments cachés.", "Compte méthodiquement : la ou les bases d'abord, puis les côtés."],
+      solution: `${nom[0].toUpperCase() + nom.slice(1)} a $${F}$ faces, $${S}$ sommets et $${A}$ arêtes : la réponse est $${rep}$.${expl}` };
+  };
+
+  function hasardAssemblage() {
+    const n = rand(2, 3), m = rand(2, 3), h = Array.from({ length: n }, () => Array.from({ length: m }, () => rand(0, 3)));
+    if (h.flat().filter((x) => x > 0).length < 3) return hasardAssemblage();
+    return h;
+  }
+  GEN["so6-compter"] = function () {
+    const h = hasardAssemblage(), N = h.flat().reduce((s, x) => s + x, 0), cm = Math.random() < 0.4;
+    return { enonce: `Combien de petits cubes forment cet assemblage ? (Tous les cubes sont posés sur d'autres cubes ou sur le sol : il n'y a pas de cube en l'air.)${cm ? " Chaque cube a un volume de $1$ cm³ : donne le volume de l'assemblage." : ""}`, figure: assemblage(h), mode: "nombre", prefixe: cm ? "Volume :" : "Nombre de cubes :", suffixe: cm ? "cm³" : "cubes", attendu: N,
+      aides: ["Compte colonne par colonne : combien de cubes empilés à chaque endroit ?", "Une colonne de hauteur $3$ compte $3$ cubes, même si on ne voit que celui du dessus.", "Additionne les hauteurs de toutes les colonnes."],
+      solution: `Hauteurs des colonnes : ${h.flat().filter((x) => x > 0).map((x) => `$${x}$`).join(" ; ")}. Total : $${N}$ cubes${cm ? `, soit un volume de $${N}$ cm³` : ""}.` };
+  };
+
+  GEN["so6-vues"] = function () {
+    const h = hasardAssemblage(), n = h.length, m = h[0].length, t = rand(0, 2);
+    const dessus = h.flat().filter((x) => x > 0).length;
+    const droite = Array.from({ length: m }, (_, j) => Math.max(...h.map((l) => l[j]))).reduce((s, x) => s + x, 0);
+    const gauche = h.map((l) => Math.max(...l)).reduce((s, x) => s + x, 0);
+    const [quoi, rep, expl] = [["de dessus", dessus, "on voit un carré pour chaque colonne de cubes, quelle que soit sa hauteur"], ["bien en face de la face foncée (à droite)", droite, "pour chaque rangée vue de ce côté, seule la colonne la plus haute compte"], ["bien en face de la face claire (à gauche)", gauche, "pour chaque rangée vue de ce côté, seule la colonne la plus haute compte"]][t];
+    return { enonce: `On regarde cet assemblage ${quoi}. Combien de carrés voit-on ? (Aucun cube n'est en l'air.)`, figure: assemblage(h), mode: "nombre", prefixe: "Nombre de carrés :", attendu: rep,
+      erreurs: [{ valeur: h.flat().reduce((s, x) => s + x, 0), message: "Ça, c'est le nombre total de cubes : depuis un seul côté, on ne voit pas les cubes cachés." }],
+      aides: ["Imagine-toi à la place de l'observateur : les cubes cachés derrière (ou dessous) ne se voient pas.", t === 0 ? "De dessus, chaque colonne de cubes se voit comme un seul carré." : "De côté, chaque rangée se voit comme une colonne de carrés : sa hauteur est celle de la colonne la plus haute de la rangée.", "Compte les carrés de la vue obtenue."],
+      solution: `${quoi[0].toUpperCase() + quoi.slice(1)}, ${expl} : on voit $${rep}$ carrés.` };
+  };
+
+  GEN["so6-volume"] = function () {
+    const t = rand(0, 1);
+    if (t === 0) { const L = rand(2, 8), l = rand(2, 6), c = rand(1, 5);
+      return { enonce: `Un pavé est construit avec des cubes de $1$ cm³ : $${L}$ cubes en longueur, $${l}$ en largeur et $${c}$ couche${c > 1 ? "s" : ""}. Quel est son volume ?`, mode: "nombre", prefixe: "Volume :", suffixe: "cm³", attendu: L * l * c,
+        erreurs: [{ valeur: L + l + c, message: "On n'additionne pas : chaque couche contient plusieurs rangées de cubes." }, { valeur: L * l, message: `C'est une seule couche. Il y en a $${c}$.` }],
+        aides: [`Une couche contient $${L}$ rangées de $${l}$ cubes.`, `Une couche : $${L} \\times ${l} = ${L * l}$ cubes.`, `Il y a $${c}$ couche${c > 1 ? "s" : ""}.`], solution: `Une couche : $${L} \\times ${l} = ${L * l}$ cubes ; $${c}$ couche${c > 1 ? "s" : ""} : $${L * l} \\times ${c} = ${L * l * c}$ cubes, soit $${L * l * c}$ cm³.` }; }
+    const h1 = hasardAssemblage(), h2 = hasardAssemblage(), n1 = h1.flat().reduce((s, x) => s + x, 0), n2 = h2.flat().reduce((s, x) => s + x, 0);
+    const choix = ["Le solide A a le plus grand volume", "Le solide B a le plus grand volume", "Ils ont le même volume"], rep = n1 === n2 ? 2 : n1 > n2 ? 0 : 1;
+    return { enonce: "Les deux assemblages sont faits de cubes identiques (aucun cube en l'air). Lequel a le plus grand volume ? Solide A : le premier ; solide B : le second.", figure: assemblage(h1).replace("</svg>", `<text class="g-plabel" x="10" y="16">A</text></svg>`) + assemblage(h2).replace("</svg>", `<text class="g-plabel" x="10" y="16">B</text></svg>`), mode: "choix", choix, attendu: rep,
+      aides: ["Le volume se mesure en nombre de cubes.", "Compte les cubes de chaque assemblage, colonne par colonne.", "Compare les deux nombres."],
+      solution: `A : $${n1}$ cubes ; B : $${n2}$ cubes. ${choix[rep]}.` };
+  };
+
   /* Une « erreur connue » ne doit jamais coïncider avec la bonne réponse ; propriétés internes retirées */
-  Object.keys(GEN).filter((k) => /^(n6|o6|d6|f6|p6|t6|a6|g6|c6|an6|tg6|sx6|pa6)-/.test(k)).forEach((k) => {
+  Object.keys(GEN).filter((k) => /^(n6|o6|d6|f6|p6|t6|a6|g6|c6|an6|tg6|sx6|pa6|so6)-/.test(k)).forEach((k) => {
     const g = GEN[k];
     GEN[k] = (i) => {
       const q = g(i);

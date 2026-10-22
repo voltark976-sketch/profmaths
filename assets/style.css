@@ -180,6 +180,12 @@ pre.code code { font: inherit; }
 .g-axe-nom { fill: var(--faux); }
 .g-poly { fill: var(--lagon); fill-opacity: 0.2; stroke: var(--encre); stroke-width: 1.8; }
 .g-poly-image { fill: var(--ylang); fill-opacity: 0.25; }
+.g-cube-haut { fill: var(--lagon-pale); stroke: var(--encre); stroke-width: 1; }
+.g-cube-g { fill: var(--lagon); fill-opacity: 0.45; stroke: var(--encre); stroke-width: 1; }
+.g-cube-d { fill: var(--lagon); fill-opacity: 0.85; stroke: var(--encre); stroke-width: 1; }
+.g-cache { stroke: var(--encre); stroke-width: 1.3; stroke-dasharray: 4 4; }
+.g-cache-arc { fill: none; stroke: var(--encre); stroke-width: 1.3; stroke-dasharray: 4 4; }
+.g-arc-plein { fill: none; stroke: var(--encre); stroke-width: 2; }
 .quadrillage .g-colorie { fill: var(--lagon); fill-opacity: 0.45; }
 
 /* Vidéos */

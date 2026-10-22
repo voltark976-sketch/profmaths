@@ -115,7 +115,7 @@ window.CATALOGUE = {
           id: "sixieme-espace-volumes",
           numero: 14,
           titre: "Solides, vision dans l'espace et volumes",
-          statut: "bientot",
+          statut: "disponible",
           drive: ""
         },
         {
