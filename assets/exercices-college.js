@@ -2873,8 +2873,338 @@
       solution: `A : $${n1}$ cubes ; B : $${n2}$ cubes. ${choix[rep]}.` };
   };
 
+  /* =====================================================================
+     6e, chapitre 15 : initiation à la pensée informatique (pi6-)
+     Programmes en blocs façon Scratch, robot sur un quadrillage (colonnes A à H, lignes 1 à 6)
+     ===================================================================== */
+  const NX = 8, NY = 6, COLS = "ABCDEFGH";
+  const nomCase = ([i, j]) => COLS[i] + (j + 1);
+  const dansG = ([i, j]) => i >= 0 && i < NX && j >= 0 && j < NY;
+  const FL = { "↑": [0, 1], "→": [1, 0], "↓": [0, -1], "←": [-1, 0] };
+  const FLECHES = ["↑", "→", "↓", "←"], VECT = [[0, 1], [1, 0], [0, -1], [-1, 0]];
+  const VERS = ["vers le haut", "vers la droite", "vers le bas", "vers la gauche"];
+  const plus = (p, v, k) => [p[0] + v[0] * (k || 1), p[1] + v[1] * (k || 1)];
+  const suivre = (dep, code) => { const pts = [dep]; code.forEach((f) => pts.push(plus(pts[pts.length - 1], FL[f]))); return pts; };
+  const codeTxt = (code) => code.join(" ");
+  const runs = (code) => { const r = []; code.forEach((f) => { if (r.length && r[r.length - 1][0] === f) r[r.length - 1][1]++; else r.push([f, 1]); }); return r; };
+  const casesTxt = (n) => `$${n}$ case${n > 1 ? "s" : ""}`;
+  const parcours = (dep, code) => { let p = dep; return runs(code).map(([f, n]) => { p = plus(p, FL[f], n); return `${casesTxt(n)} ${VERS[FLECHES.indexOf(f)]} : **${nomCase(p)}**`; }).join(" ; "); };
+  const autour = (p) => [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [-1, -1], [1, -1], [-1, 1], [2, 0], [0, 2]].map((v) => plus(p, v)).filter(dansG).map(nomCase);
+  function choixCases(bonne, pos, fausses) {
+    const f = [...new Set(fausses.filter(dansG).map(nomCase))].filter((x) => x !== bonne);
+    autour(pos).forEach((v) => { if (f.length < 3 && v !== bonne && !f.includes(v)) f.push(v); });
+    return melange(bonne, f);
+  }
+
+  // Programme en blocs : [{ c: catégorie, t: "texte avec [valeurs]" } | { rep: n, corps: [...] }]
+  const CAT_PI = { evt: "pi-evt", ent: "pi-ent", op: "pi-op", dire: "pi-dire", mvt: "pi-mvt", stylo: "pi-stylo", ctrl: "pi-ctrl" };
+  function blocs(prog) {
+    const W = 320, H = 26, CW = 6.6; let y = 6, s = "";
+    const ecrire = (t, x, yc) => {
+      let out = "", cx = x;
+      t.split(/(\[[^\]]*\])/).filter((seg) => seg.trim()).forEach((seg) => {
+        if (seg[0] === "[") { const v = seg.slice(1, -1), w = Math.max(24, v.length * CW + 12);
+          out += `<rect class="pi-champ" x="${cx}" y="${yc - 9}" width="${w}" height="18" rx="9"/><text class="pi-val" x="${cx + w / 2}" y="${yc + 4}" text-anchor="middle">${v}</text>`; cx += w + 5; }
+        else { const m = seg.trim(); out += `<text class="pi-txt" x="${cx}" y="${yc + 4}" textLength="${(m.length * CW).toFixed(1)}" lengthAdjust="spacingAndGlyphs">${m}</text>`; cx += m.length * CW + 5; }
+      });
+      return [out, cx - x];
+    };
+    const poser = (b, x) => {
+      if (b.rep != null) {
+        const y0 = y, [txt, w] = ecrire(`répéter [${b.rep}] fois`, x + 8, y0 + H / 2), Wt = Math.max(w + 14, 130);
+        y += H; const yIn = y; b.corps.forEach((c) => poser(c, x + 14)); const hIn = Math.max(y - yIn, H);
+        s += `<path class="pi-ctrl" d="M${x} ${y0}h${Wt}v${H}h${-(Wt - 14)}v${hIn}h${Wt - 14}v14h${-Wt}z"/>` + txt;
+        y = yIn + hIn + 16; return;
+      }
+      if (b.vide) { s += `<rect class="pi-vide" x="${x}" y="${y}" width="120" height="${H}" rx="5"/><text class="pi-vide-txt" x="${x + 60}" y="${y + H / 2 + 5}" text-anchor="middle">?</text>`; y += H + 2; return; }
+      const [txt, w] = ecrire(b.t, x + 8, y + H / 2);
+      s += `<rect class="${CAT_PI[b.c]}" x="${x}" y="${y}" width="${w + 11}" height="${H}" rx="${b.c === "evt" ? 12 : 5}"/>` + txt; y += H + 2;
+    };
+    prog.forEach((b) => poser(b, 6));
+    const aria = (p) => p.map((b) => (b.rep != null ? `répéter ${b.rep} fois : ${aria(b.corps)} ; fin de la répétition` : b.vide ? "bloc vide" : b.t.replace(/[[\]]/g, ""))).join(" ; ");
+    return `<svg class="graph pi-prog" viewBox="0 0 ${W} ${y + 4}" role="img" aria-label="Programme : ${aria(prog)}">${s}</svg>`;
+  }
+
+  // Quadrillage du robot
+  function grille(o) {
+    const c = 32, mx = 22, my = 20, W = mx + NX * c + 8, H = my + NY * c + 8;
+    const X = (i) => mx + i * c + c / 2, Y = (j) => my + (NY - 1 - j) * c + c / 2;
+    let s = `<svg class="graph pi-grille" viewBox="0 0 ${W} ${H}" role="img" aria-label="${o.aria}"><g class="g-grid">`;
+    for (let i = 0; i <= NX; i++) s += `<line x1="${mx + i * c}" y1="${my}" x2="${mx + i * c}" y2="${my + NY * c}"/>`;
+    for (let j = 0; j <= NY; j++) s += `<line x1="${mx}" y1="${my + j * c}" x2="${mx + NX * c}" y2="${my + j * c}"/>`;
+    s += `</g>`;
+    for (let i = 0; i < NX; i++) s += `<text class="pi-case" x="${X(i)}" y="${my - 6}" text-anchor="middle">${COLS[i]}</text>`;
+    for (let j = 0; j < NY; j++) s += `<text class="pi-case" x="${mx - 9}" y="${Y(j) + 4}" text-anchor="middle">${j + 1}</text>`;
+    if (o.chemin) s += `<polyline class="pi-chemin" points="${o.chemin.map(([i, j]) => `${X(i)},${Y(j)}`).join(" ")}"/>`;
+    if (o.arrivee) { const [i, j] = o.arrivee; s += `<rect class="pi-arrivee" x="${X(i) - 7}" y="${Y(j) - 7}" width="14" height="14" rx="2"/>`; }
+    if (o.pion) { const [i, j] = o.pion; s += `<circle class="pi-pion" cx="${X(i)}" cy="${Y(j)}" r="10"/>`; }
+    if (o.robot) { const { p: [i, j], d } = o.robot, cx = X(i), cy = Y(j);
+      s += `<polygon class="pi-robot" points="${cx},${cy - 12} ${cx + 10},${cy + 9} ${cx - 10},${cy + 9}" transform="rotate(${d * 90} ${cx} ${cy})"/>`; }
+    return s + `</svg>`;
+  }
+
+  /* --- Programmes de calcul --- */
+  const OPS_PI = { "+": (x, k) => x + k, "-": (x, k) => x - k, "×": (x, k) => x * k, "÷": (x, k) => x / k };
+  const SIGNE_PI = { "+": "+", "-": "-", "×": "\\times", "÷": "\\div" };
+  const opBloc = ([o, k]) => ({ "+": `ajouter [${k}]`, "-": `soustraire [${k}]`, "×": `multiplier par [${k}]`, "÷": `diviser par [${k}]` })[o];
+  const opTex = ([o, k]) => ({ "+": `ajouter $${k}$`, "-": `soustraire $${k}$`, "×": `multiplier par $${k}$`, "÷": `diviser par $${k}$` })[o];
+  const appliquer = (x, ops) => ops.reduce((v, [o, k]) => OPS_PI[o](v, k), x);
+  const etapes = (x, ops) => { let v = x; return ops.map(([o, k]) => { const w = OPS_PI[o](v, k), t = `$${nb(v)} ${SIGNE_PI[o]} ${k} = ${nb(w)}$`; v = w; return t; }).join(" ; "); };
+  const ENTREES = ["demander un nombre", "demander un nombre entier", "demander le nombre de départ"];
+  const progCalcBlocs = (ops, cache, entree) => blocs([{ c: "evt", t: "quand le drapeau est cliqué" }, { c: "ent", t: entree || ENTREES[0] }, ...ops.map((o, i) => (i === cache ? { vide: true } : { c: "op", t: opBloc(o) })), { c: "dire", t: "dire le résultat" }]);
+  function progCalc(n) {
+    for (let e = 0; e < 500; e++) {
+      const x = rand(2, 20), ops = []; let v = x, ok = true;
+      for (let i = 0; i < n; i++) {
+        const possibles = [["+", rand(2, 15)], ["×", rand(2, 6)]];
+        if (v > 3) possibles.push(["-", rand(1, Math.min(v - 1, 15))]);
+        const ds = [2, 3, 4, 5, 10].filter((k) => v % k === 0 && v > k); if (ds.length) possibles.push(["÷", pick(ds)]);
+        const permis = possibles.filter((p) => !ops.length || p[0] !== ops[ops.length - 1][0]), op = pick(permis);
+        v = OPS_PI[op[0]](v, op[1]); ops.push(op); if (v > 400) ok = false;
+      }
+      if (ok) return { x, ops, y: v };
+    }
+  }
+  FIGURES["pi6-programme"] = () => progCalcBlocs([["×", 3], ["+", 5]]);
+
+  GEN["pi6-executer"] = function () {
+    if (Math.random() < 0.72) {
+      const { x, ops, y } = progCalc(rand(2, 4)), entree = pick(ENTREES), inv = appliquer(x, ops.slice().reverse());
+      const erreurs = [{ valeur: appliquer(x, ops.slice(0, -1)), message: "Tu as oublié la dernière instruction avant « dire le résultat »." }];
+      if (Number.isInteger(inv) && inv >= 0) erreurs.push({ valeur: inv, message: "Les instructions s'exécutent **dans l'ordre**, de haut en bas." });
+      return { enonce: `On clique sur le drapeau et on donne le nombre $${x}$. Quel nombre le programme affiche-t-il ?`, figure: progCalcBlocs(ops, -1, entree), mode: "nombre", prefixe: "Le programme affiche :", attendu: y, erreurs,
+        aides: ["Le nombre donné est l'**entrée** ; le nombre affiché est la **sortie**.", "Exécute les blocs un par un, de haut en bas : chaque instruction s'applique au résultat de la précédente.", `Première instruction : ${etapes(x, ops.slice(0, 1))}.`],
+        solution: `On part de $${x}$ : ${etapes(x, ops)}. Le programme affiche $${y}$.` };
+    }
+    const { x, ops, y } = progCalc(2);
+    const inverses = ops.slice().reverse().map(([o, k]) => [{ "+": "-", "-": "+", "×": "÷", "÷": "×" }[o], k]);
+    const avant = appliquer(y, ops);
+    const erreurs = Number.isInteger(avant) ? [{ valeur: avant, message: "Tu as appliqué le programme au résultat. Il faut le **remonter** avec les opérations contraires." }] : [];
+    return { enonce: `On a lancé ce programme et il a affiché $${y}$. Quel nombre avait-on donné au départ ?`, figure: progCalcBlocs(ops), mode: "nombre", prefixe: "Nombre de départ :", attendu: x, erreurs,
+      aides: ["Remonte le programme en partant de la fin, du bas vers le haut.", "À chaque étape, fais l'opération contraire : $+$ et $-$ sont contraires, $\\times$ et $\\div$ aussi.", `Dernière instruction : ${opTex(ops[1])}. Son contraire : ${opTex(inverses[0])}.`],
+      solution: `On remonte avec les opérations contraires : ${etapes(y, inverses)}. Vérification : ${etapes(x, ops)}.` };
+  };
+
+  GEN["pi6-identifier"] = function () {
+    const t = rand(0, 3);
+    if (t === 0) {
+      const { ops } = progCalc(rand(2, 3)), entree = pick(ENTREES), q = rand(0, 2);
+      if (new Set(ops.map(opTex)).size < ops.length) return GEN["pi6-identifier"]();
+      if (q < 2) {
+        const bonne = q === 0 ? entree : "dire le résultat", autre = q === 0 ? "dire le résultat" : entree;
+        const { choix, attendu } = melange(bonne, [autre, opTex(ops[0]), opTex(ops[1]), "quand le drapeau est cliqué"]);
+        return { enonce: q === 0 ? "Dans ce programme, quelle instruction permet de donner un nombre au programme (l'**entrée**) ?" : "Dans ce programme, quelle instruction montre le résultat (la **sortie**) ?", figure: progCalcBlocs(ops, -1, entree), mode: "choix", choix, attendu,
+          aides: ["L'**entrée** est ce qu'on donne au programme ; la **sortie** est ce que le programme nous rend.", "Les blocs verts sont des calculs : ils transforment le nombre, ils ne le donnent pas et ne l'affichent pas.", q === 0 ? "Cherche l'instruction qui demande quelque chose." : "Cherche l'instruction qui affiche quelque chose."],
+          solution: q === 0 ? `L'entrée est l'instruction « ${entree} » : c'est là qu'on donne le nombre de départ.` : "La sortie est l'instruction « dire le résultat » : c'est là que le programme affiche le nombre obtenu." };
+      }
+      const i = rand(0, ops.length - 1), suite = i === ops.length - 1 ? "dire le résultat" : opTex(ops[i + 1]);
+      const { choix, attendu } = melange(suite, [...ops.filter((_, j) => j !== i + 1).map(opTex), entree, "dire le résultat", "quand le drapeau est cliqué"].filter((c) => c !== opTex(ops[i])));
+      return { enonce: `Dans ce programme, quelle instruction est exécutée juste après « ${opTex(ops[i])} » ?`, figure: progCalcBlocs(ops, -1, entree), mode: "choix", choix, attendu,
+        aides: ["Un programme est une **séquence d'instructions** : elles s'exécutent l'une après l'autre.", "L'ordre d'exécution est l'ordre des blocs, de haut en bas.", `Repère le bloc « ${opTex(ops[i]).replace(/\$/g, "")} » et regarde le bloc juste en dessous.`],
+        solution: `Juste en dessous de « ${opTex(ops[i])} », il y a « ${suite} » : c'est l'instruction suivante.` };
+    }
+    if (t === 1) {
+      for (let e = 0; e < 200; e++) {
+        const { x, ops, y } = progCalc(3), h = rand(0, 2), [o, k] = ops[h];
+        const cands = [["+", k], ["-", k], ["×", k], ["÷", k], [o, k + 1], [o, Math.max(1, k - 1)], [o, k + 2], ["+", k * 2]];
+        const fausses = []; cands.forEach((c) => { const ops2 = ops.slice(); ops2[h] = c; const r = appliquer(x, ops2); if (Math.abs(r - y) > 1e-9 && !(c[0] === o && c[1] === k) && !(c[0] === "÷" && c[1] === 1)) fausses.push(opTex(c)); });
+        if (new Set(fausses).size < 3) continue;
+        const { choix, attendu } = melange(opTex(ops[h]), shuffle(fausses));
+        return { enonce: `On donne $${x}$ à ce programme et il affiche $${y}$. Quelle instruction manque à la place du bloc vide ?`, figure: progCalcBlocs(ops, h), mode: "choix", choix, attendu,
+          aides: ["Exécute le programme depuis le début jusqu'au bloc vide.", h < 2 ? "Remonte aussi depuis la fin avec les opérations contraires, jusqu'au bloc vide." : "Compare le nombre obtenu juste avant le bloc vide avec le résultat affiché.", "Teste chaque proposition : une seule donne le bon résultat."],
+          solution: `Avec « ${opTex(ops[h])} » : ${etapes(x, ops)}. On retrouve bien $${y}$.` };
+      }
+    }
+    if (t === 2 || t === 3) {
+      for (let e = 0; e < 200; e++) {
+        const x = rand(2, 12), a = rand(2, 9), b = rand(2, 5), moins = Math.random() < 0.3 && x > 9;
+        if (a === b) continue;
+        const A = (v) => (moins ? ["-", v] : ["+", v]), progs = [[A(a), ["×", b]], [["×", b], A(a)], [A(b), ["×", a]], [["×", a], A(b)]];
+        if (progs.some((p) => appliquer(x, p) < 0)) continue;
+        const bon = pick([0, 1]), y = appliquer(x, progs[bon]);
+        const txt = (p) => `${opTex(p[0])}, puis ${opTex(p[1])}`;
+        const fausses = progs.filter((p) => appliquer(x, p) !== y).map(txt);
+        if (fausses.length < 3) continue;
+        const { choix, attendu } = melange(txt(progs[bon]), fausses), autre = progs[1 - bon];
+        return { enonce: `On veut un programme qui, avec le nombre $${x}$, affiche $${y}$. Quelle séquence d'instructions convient ?`, mode: "choix", choix, attendu,
+          aides: ["Teste chaque séquence avec le nombre $" + x + "$.", "Attention : l'ordre des instructions change le résultat.", `Par exemple : ${txt(progs[0]).replace(/\$/g, "")} donne ${etapes(x, progs[0])}.`],
+          solution: `${txt(progs[bon])} : ${etapes(x, progs[bon])}. Dans l'autre ordre (${txt(autre)}), on obtiendrait ${etapes(x, autre)} : l'ordre compte.` };
+      }
+    }
+    return GEN["pi6-identifier"]();
+  };
+
+  /* --- Codes de déplacement (flèches) --- */
+  function codeHasard(nRuns, maxL) {
+    for (let e = 0; e < 400; e++) {
+      const dep = [rand(0, NX - 1), rand(0, NY - 1)], code = []; let der = -1;
+      for (let r = 0; r < nRuns; r++) { let d; do d = rand(0, 3); while (d === der || (der >= 0 && d === (der + 2) % 4)); der = d; const L = rand(1, maxL); for (let k = 0; k < L; k++) code.push(FLECHES[d]); }
+      const pts = suivre(dep, code);
+      if (pts.every(dansG) && new Set(pts.map(nomCase)).size === pts.length) return { dep, code, pts, arr: pts[pts.length - 1] };
+    }
+  }
+  const echange = (code, a, b) => code.map((f) => (f === a ? b : f === b ? a : f));
+  FIGURES["pi6-fleches"] = () => { const dep = [1, 1], code = ["→", "→", "→", "↑", "↑", "←"]; return grille({ pion: dep, chemin: suivre(dep, code), arrivee: [3, 3], aria: "Quadrillage : le robot part de B2 et suit le chemin → → → ↑ ↑ ← jusqu'à D4" }); };
+
+  GEN["pi6-fleches"] = function () {
+    const { dep, code, pts, arr } = codeHasard(rand(2, 4), 3), bonne = nomCase(arr);
+    if (Math.random() < 0.55) {
+      const R = runs(code), moins = R[0][1] > 1 ? [...code.slice(1)] : [...code, code[code.length - 1]];
+      const fausses = [echange(code, "↑", "↓"), echange(code, "←", "→"), code.slice(0, -1), moins].map((c) => suivre(dep, c).pop());
+      const { choix, attendu } = choixCases(bonne, arr, fausses);
+      return { enonce: `Le robot (le rond) est sur la case **${nomCase(dep)}**. Chaque flèche le fait avancer d'**une** case dans sa direction. Sur quelle case arrive-t-il avec le code **${codeTxt(code)}** ?`, figure: grille({ pion: dep, aria: `Quadrillage de A1 à H6, le robot est sur la case ${nomCase(dep)}` }), mode: "choix", choix, attendu,
+        aides: ["Une case se nomme par sa colonne (une lettre) puis sa ligne (un nombre) : B3 est dans la colonne B, à la ligne 3.", "Exécute les flèches une par une, dans l'ordre, en déplaçant ton doigt sur le quadrillage.", `Regroupe les flèches identiques qui se suivent : ${runs(code).map(([f, n]) => `${n} × ${f}`).join(", ")}.`],
+        solution: `Depuis **${nomCase(dep)}** : ${parcours(dep, code)}. Le robot arrive sur **${bonne}**.` };
+    }
+    const R = runs(code), inverse = [].concat(...R.slice().reverse().map(([f, n]) => Array(n).fill(f)));
+    const plusUn = [].concat(...R.map(([f, n], i) => Array(i === R.length - 1 ? n + 1 : n).fill(f)));
+    const fausses = [echange(code, "↑", "↓"), echange(code, "←", "→"), inverse, plusUn, code.slice(0, -1)].map(codeTxt);
+    const { choix, attendu } = melange(codeTxt(code), fausses.filter((f) => f !== codeTxt(code)));
+    return { enonce: `Quel code fait suivre au robot le chemin dessiné, de la case **${nomCase(dep)}** (le rond) à la case **${bonne}** (le carré) ?`, figure: grille({ pion: dep, chemin: pts, arrivee: arr, aria: `Quadrillage : chemin de ${nomCase(dep)} à ${bonne}` }), mode: "choix", choix, attendu,
+      aides: ["Pars du rond et suis le chemin jusqu'au carré.", "Compte les cases dans chaque direction, dans l'ordre du chemin.", "Plusieurs codes arrivent peut-être au même endroit : il faut celui qui suit **exactement** le chemin."],
+      solution: `Le chemin fait ${runs(code).map(([f, n]) => `${casesTxt(n)} ${VERS[FLECHES.indexOf(f)]}`).join(", puis ")}. Le code est **${codeTxt(code)}**.` };
+  };
+
+  /* --- Robot qui avance et tourne (déplacements relatifs) --- */
+  function executer(dep, d, prog, abs) {
+    let p = dep, dir = d; const pts = [dep];
+    prog.forEach(([o, n]) => {
+      if (o === "a") for (let k = 0; k < n; k++) { p = plus(p, VECT[dir]); pts.push(p); }
+      else dir = abs ? (o === "d" ? 1 : 3) : (dir + (o === "d" ? 1 : 3)) % 4;
+    });
+    return { pts, p, dir };
+  }
+  const instrTex = ([o, n]) => (o === "a" ? `avancer de $${n}$` : o === "d" ? "tourner à droite" : "tourner à gauche");
+  const progTex = (prog) => prog.map(instrTex).join(" ; ");
+  const robotBlocs = (prog) => blocs([{ c: "evt", t: "quand le drapeau est cliqué" }, ...prog.map(([o, n]) => ({ c: "mvt", t: o === "a" ? `avancer de [${n}]` : o === "d" ? "tourner à droite ↻" : "tourner à gauche ↺" }))]);
+  function progHasard() {
+    for (let e = 0; e < 500; e++) {
+      const dep = [rand(0, NX - 1), rand(0, NY - 1)], d = rand(0, 3), prog = [], nA = rand(2, 4);
+      if (Math.random() < 0.3) prog.push([pick(["d", "g"])]);
+      for (let k = 0; k < nA; k++) { if (k > 0) prog.push([pick(["d", "g"])]); prog.push(["a", rand(1, 3)]); }
+      const r = executer(dep, d, prog);
+      if (r.pts.every(dansG) && new Set(r.pts.map(nomCase)).size === r.pts.length) return { dep, d, prog, ...r };
+    }
+  }
+  const inverseDG = (prog) => prog.map(([o, n]) => (o === "d" ? ["g"] : o === "g" ? ["d"] : [o, n]));
+  const AIDE_TOURNER = "« Tourner à droite » : le robot fait un quart de tour sur place, vers **sa** droite (celle du robot, pas celle de la feuille). Il ne change pas de case.";
+  FIGURES["pi6-robot"] = () => robotBlocs([["a", 2], ["d"], ["a", 3]]) + grille({ robot: { p: [1, 1], d: 0 }, aria: "Quadrillage : le robot est sur la case B2 et regarde vers le haut" });
+  FIGURES["pi6-chemin"] = () => { const dep = [1, 1]; return grille({ robot: { p: dep, d: 1 }, chemin: suivre(dep, ["→", "→", "→", "↑", "↑", "←"]), arrivee: [3, 3], aria: "Quadrillage : le robot part de B2 en regardant vers la droite et suit le chemin jusqu'à D4" }); };
+
+  GEN["pi6-robot"] = function () {
+    const { dep, d, prog, pts, p, dir } = progHasard(), t = rand(0, 4), bonne = nomCase(p);
+    const fig = robotBlocs(prog) + grille({ robot: { p: dep, d }, aria: `Quadrillage : le robot est sur la case ${nomCase(dep)} et regarde ${VERS[d]}` });
+    const suivi = () => { let q = dep, di = d; return prog.map(([o, n]) => { if (o === "a") { q = plus(q, VECT[di], n); return `il avance de ${casesTxt(n)} ${VERS[di]} : **${nomCase(q)}**`; } di = (di + (o === "d" ? 1 : 3)) % 4; return `il tourne et regarde ${VERS[di]}`; }).join(" ; "); };
+    if (t <= 1) {
+      const premier = prog.findIndex(([o]) => o === "a"), compte = prog.map((x, i) => (i === premier && x[1] > 1 ? ["a", x[1] - 1] : x));
+      const fausses = [executer(dep, d, inverseDG(prog)).p, executer(dep, d, prog, true).p, executer(dep, d, prog.slice(0, -1)).p, executer(dep, d, compte).p];
+      const { choix, attendu } = choixCases(bonne, p, fausses);
+      return { enonce: `Le robot (le triangle) regarde dans la direction de sa pointe. On lance le programme. Sur quelle case arrive-t-il ?`, figure: fig, mode: "choix", choix, attendu,
+        aides: [AIDE_TOURNER, "« Avancer de 2 » : le robot avance de 2 cases tout droit, dans la direction où il regarde. La case de départ ne compte pas.", "Exécute les blocs un par un et note après chacun la case et la direction du robot."],
+        solution: `Au départ, le robot est en **${nomCase(dep)}** et regarde ${VERS[d]}. Puis ${suivi()}. Il arrive sur **${bonne}**.` };
+    }
+    if (t === 2) {
+      return { enonce: `Le robot (le triangle) regarde dans la direction de sa pointe. On lance le programme. À la fin, dans quelle direction regarde-t-il ?`, figure: fig, mode: "choix", choix: VERS.slice(), attendu: dir,
+        aides: [AIDE_TOURNER, "Seuls les blocs « tourner » changent la direction ; « avancer » ne la change pas.", "Pour un quart de tour à droite : haut → droite → bas → gauche → haut."],
+        solution: `Au départ, le robot regarde ${VERS[d]}. Puis ${suivi()}. À la fin, il regarde **${VERS[dir]}**.` };
+    }
+    const As = prog.filter(([o]) => o === "a").map(([, n]) => n);
+    let k = -1; const distInv = prog.map(([o, n]) => (o === "a" ? ["a", As[As.length - 1 - ++k]] : [o]));
+    const sansTour = prog[0][0] === "a" ? [[pick(["d", "g"])], ...prog] : prog.slice(1);
+    const plusUn = prog.map((x, i) => (i === prog.length - 1 ? ["a", x[1] + 1] : x));
+    const fausses = [inverseDG(prog), distInv, sansTour, plusUn].map(progTex).filter((s) => s !== progTex(prog));
+    const { choix, attendu } = melange(progTex(prog), fausses);
+    return { enonce: `Le robot (le triangle) part de la case **${nomCase(dep)}** en regardant ${VERS[d]}. Quel programme lui fait suivre le chemin dessiné jusqu'au carré ?`, figure: grille({ robot: { p: dep, d }, chemin: pts, arrivee: p, aria: `Quadrillage : chemin de ${nomCase(dep)} à ${bonne}, le robot regarde ${VERS[d]} au départ` }), mode: "choix", choix, attendu,
+      aides: [AIDE_TOURNER, "Mets-toi à la place du robot : à chaque virage, demande-toi s'il tourne vers sa droite ou vers sa gauche.", "Vérifie aussi le nombre de cases de chaque ligne droite, et le tout premier déplacement : le robot doit-il d'abord tourner ?"],
+      solution: `Le programme est : ${progTex(prog)}. En effet, au départ le robot regarde ${VERS[d]}, puis ${suivi()}.` };
+  };
+
+  /* --- Boucles « répéter » --- */
+  function boucleGrille() {
+    for (let e = 0; e < 500; e++) {
+      const L = rand(2, 3), corps = []; let der = -1;
+      for (let k = 0; k < L; k++) { let dd; do dd = rand(0, 3); while (der >= 0 && dd === (der + 2) % 4); der = dd; corps.push(FLECHES[dd]); }
+      const n = rand(2, 4), dep = [rand(0, NX - 1), rand(0, NY - 1)], code = [].concat(...Array(n).fill(corps)), pts = suivre(dep, code);
+      if (corps.every((f) => f === corps[0]) || FLECHES.indexOf(corps[0]) === (FLECHES.indexOf(corps[L - 1]) + 2) % 4) continue;
+      if (pts.every(dansG) && nomCase(pts[pts.length - 1]) !== nomCase(dep)) return { dep, corps, n, code, pts, arr: pts[pts.length - 1] };
+    }
+  }
+  const FORMES = { 3: "un triangle équilatéral", 4: "un carré", 5: "un pentagone régulier", 6: "un hexagone régulier", 8: "un octogone régulier" };
+  const lutinBlocs = (corps, n) => blocs([{ c: "evt", t: "quand le drapeau est cliqué" }, { c: "stylo", t: "stylo en position d'écriture" }, { rep: n, corps }]);
+  FIGURES["pi6-boucle"] = () => lutinBlocs([{ c: "mvt", t: "avancer de [80] pas" }, { c: "mvt", t: "tourner ↻ de [90] degrés" }], 4);
+
+  GEN["pi6-repeter"] = function () {
+    const t = rand(0, 5);
+    if (t === 0) {
+      const x = rand(1, 20), s = rand(0, 3);
+      let ops, n;
+      if (s === 0) { n = rand(3, 9); ops = [["+", rand(2, 9)]]; }
+      else if (s === 1) { n = rand(2, 5); ops = [["×", 2]]; }
+      else if (s === 2) { n = rand(2, 3); ops = [["+", rand(1, 5)], ["×", 2]]; }
+      else { n = rand(3, 6); const k = rand(2, 5); ops = [["-", k]]; if (x <= n * k) return GEN["pi6-repeter"](); }
+      const y = appliquer(x, [].concat(...Array(n).fill(ops)));
+      const prog = blocs([{ c: "evt", t: "quand le drapeau est cliqué" }, { c: "ent", t: "demander un nombre" }, { rep: n, corps: ops.map((o) => ({ c: "op", t: opBloc(o) })) }, { c: "dire", t: "dire le résultat" }]);
+      const une = appliquer(x, ops), erreurs = [{ valeur: une, message: `Ça, c'est après **un seul** passage dans la boucle. Elle se répète $${n}$ fois.` }];
+      if (s === 1) erreurs.push({ valeur: x * 2 * n, message: `Multiplier $${n}$ fois par $2$, ce n'est pas multiplier par $2 \\times ${n}$ : double, puis double encore…` });
+      if (s === 0) erreurs.push({ valeur: x + ops[0][1] + n, message: `On ajoute $${ops[0][1]}$, et on le fait $${n}$ fois.` });
+      let v = x; const tours = []; for (let i = 0; i < n; i++) { v = appliquer(v, ops); tours.push(`$${nb(v)}$`); }
+      return { enonce: `On lance ce programme et on donne le nombre $${x}$. Quel nombre affiche-t-il ?`, figure: prog, mode: "nombre", prefixe: "Le programme affiche :", attendu: y, erreurs,
+        aides: [`Les instructions à l'intérieur du bloc « répéter » sont exécutées $${n}$ fois de suite.`, "Note le nombre obtenu après chaque passage dans la boucle.", `Après le premier passage, on a ${tours[0]}.`],
+        solution: `Après chaque passage dans la boucle, on obtient : ${tours.join(", ")}. Le programme affiche $${y}$.` };
+    }
+    if (t === 1) {
+      const { dep, corps, n, code, arr } = boucleGrille(), bonne = nomCase(arr);
+      const fausses = [suivre(dep, corps).pop(), suivre(dep, [].concat(...Array(n - 1).fill(corps))).pop(), suivre(dep, [].concat(...Array(n + 1).fill(corps))).pop(), suivre(dep, [...Array(n).fill(corps[0]), ...corps.slice(1)]).pop()];
+      const { choix, attendu } = choixCases(bonne, arr, fausses);
+      const fig = blocs([{ c: "evt", t: "quand le drapeau est cliqué" }, { rep: n, corps: corps.map((f) => ({ c: "mvt", t: `aller ${f}` })) }]) + grille({ pion: dep, aria: `Quadrillage de A1 à H6, le robot est sur la case ${nomCase(dep)}` });
+      return { enonce: `Le robot (le rond) est sur la case **${nomCase(dep)}**. Chaque bloc « aller » le déplace d'une case dans la direction de la flèche. Sur quelle case arrive-t-il ?`, figure: fig, mode: "choix", choix, attendu,
+        aides: [`La séquence ${codeTxt(corps)} est répétée $${n}$ fois.`, `Écris le code en entier : ${codeTxt(corps)}, puis encore ${codeTxt(corps)}…`, `En tout : ${codeTxt(code)}.`],
+        solution: `Le code complet est ${codeTxt(code)}. Depuis **${nomCase(dep)}** : ${parcours(dep, code)}. Le robot arrive sur **${bonne}**.` };
+    }
+    if (t === 2) {
+      const L = rand(2, 3), corps = []; for (let k = 0; k < L; k++) corps.push(pick(FLECHES));
+      if (corps.every((f) => f === corps[0])) return GEN["pi6-repeter"]();
+      const n = rand(3, 6), code = [].concat(...Array(n).fill(corps));
+      return { enonce: `Un robot doit exécuter le code **${codeTxt(code)}**. Pour l'écrire plus court, on utilise une boucle : répéter $\\ldots$ fois **( ${codeTxt(corps)} )**. Combien de fois faut-il répéter ?`, mode: "nombre", prefixe: "Nombre de répétitions :", attendu: n,
+        erreurs: [{ valeur: code.length, message: "Ça, c'est le nombre de flèches. On compte combien de fois le **groupe** de flèches revient." }],
+        aides: [`Repère le groupe ${codeTxt(corps)} au début du code.`, "Découpe le code en groupes identiques.", "Compte les groupes."],
+        solution: `Le code est formé du groupe ${codeTxt(corps)} écrit $${n}$ fois ($${code.length}$ flèches, soit $${n} \\times ${L}$) : on répète $${n}$ fois.` };
+    }
+    if (t === 3) {
+      const n = pick([3, 4, 5, 6, 8]), Lp = rand(2, 10) * 10, A = 360 / n;
+      const corps = [{ c: "mvt", t: `avancer de [${Lp}] pas` }, { c: "mvt", t: `tourner ↻ de [${A}] degrés` }];
+      const autres = Object.keys(FORMES).filter((k) => +k !== n).map((k) => FORMES[k]);
+      const { choix, attendu } = melange(FORMES[n], shuffle(autres));
+      return { enonce: "Le lutin trace un trait quand il avance. Quelle figure ce programme trace-t-il ?", figure: lutinBlocs(corps, n), mode: "choix", choix, attendu,
+        aides: ["À chaque passage dans la boucle, le lutin trace un côté, puis tourne.", `Combien de côtés en tout ? Autant que de répétitions : $${n}$.`, `Tous les côtés mesurent $${Lp}$ pas et le lutin tourne toujours du même angle.`],
+        solution: `La boucle est répétée $${n}$ fois : le lutin trace $${n}$ côtés de $${Lp}$ pas, en tournant chaque fois de $${A}^\\circ$ (en tout $${n} \\times ${A}^\\circ = 360^\\circ$, un tour complet). C'est ${FORMES[n]}.` };
+    }
+    if (t === 4) {
+      const rect = Math.random() < 0.4;
+      if (rect) {
+        const a = rand(3, 12) * 10; let b; do b = rand(2, 8) * 10; while (b === a);
+        const corps = [{ c: "mvt", t: `avancer de [${a}] pas` }, { c: "mvt", t: "tourner ↻ de [90] degrés" }, { c: "mvt", t: `avancer de [${b}] pas` }, { c: "mvt", t: "tourner ↻ de [90] degrés" }];
+        return { enonce: "Le lutin trace un trait quand il avance. Quelle est la longueur totale du tracé, en pas ?", figure: lutinBlocs(corps, 2), mode: "nombre", prefixe: "Longueur :", suffixe: "pas", attendu: 2 * (a + b),
+          erreurs: [{ valeur: a + b, message: "Ça, c'est un seul passage dans la boucle. Elle se répète $2$ fois." }, { valeur: a * b, message: "On additionne les longueurs des traits, on ne les multiplie pas." }],
+          aides: ["Un passage dans la boucle trace deux traits.", `Un passage : $${a} + ${b} = ${a + b}$ pas.`, "La boucle est répétée $2$ fois."],
+          solution: `Chaque passage trace $${a} + ${b} = ${a + b}$ pas ; deux passages : $2 \\times ${a + b} = ${2 * (a + b)}$ pas. Le lutin a tracé un rectangle de $${a}$ pas sur $${b}$ pas.` };
+      }
+      const A = pick([90, 120, 60, 45, 72]), n = 360 / A, Lp = rand(2, 12) * 10;
+      const corps = [{ c: "mvt", t: `avancer de [${Lp}] pas` }, { c: "mvt", t: `tourner ↻ de [${A}] degrés` }];
+      return { enonce: "Le lutin trace un trait quand il avance. Quelle est la longueur totale du tracé, en pas ?", figure: lutinBlocs(corps, n), mode: "nombre", prefixe: "Longueur :", suffixe: "pas", attendu: n * Lp,
+        erreurs: [{ valeur: Lp, message: `C'est un seul trait. La boucle est répétée $${n}$ fois.` }, { valeur: n + Lp, message: "On ne fait pas une addition : le même trait est tracé plusieurs fois." }],
+        aides: ["Seul le bloc « avancer » trace un trait ; « tourner » ne trace rien.", `Chaque passage trace un trait de $${Lp}$ pas.`, `Il y a $${n}$ passages.`],
+        solution: `$${n}$ traits de $${Lp}$ pas : $${n} \\times ${Lp} = ${n * Lp}$ pas.` };
+    }
+    const n = pick([3, 4, 5, 6, 8]), Lp = rand(2, 10) * 10, A = 360 / n;
+    return { enonce: `Pour que le lutin trace ${FORMES[n]} de côté $${Lp}$ pas, on répète la séquence « avancer de $${Lp}$ pas ; tourner ↻ de $${A}$ degrés ». Combien de fois faut-il la répéter ?`, mode: "nombre", prefixe: "Nombre de répétitions :", attendu: n,
+      erreurs: [{ valeur: A, message: "Ça, c'est l'angle dont tourne le lutin. On cherche le nombre de passages dans la boucle." }],
+      aides: ["Chaque passage dans la boucle trace un côté de la figure.", `Combien de côtés a ${FORMES[n].replace(/ (équilatéral|régulier)$/, "")} ?`, `Vérifie : après tous les passages, le lutin a tourné de $360^\\circ$ (un tour complet) : $\\ldots \\times ${A}^\\circ = 360^\\circ$.`],
+      solution: `${FORMES[n][0].toUpperCase() + FORMES[n].slice(1)} a $${n}$ côtés : on répète $${n}$ fois. Vérification : $${n} \\times ${A}^\\circ = 360^\\circ$, le lutin revient à son point de départ.` };
+  };
+
   /* Une « erreur connue » ne doit jamais coïncider avec la bonne réponse ; propriétés internes retirées */
-  Object.keys(GEN).filter((k) => /^(n6|o6|d6|f6|p6|t6|a6|g6|c6|an6|tg6|sx6|pa6|so6)-/.test(k)).forEach((k) => {
+  Object.keys(GEN).filter((k) => /^(n6|o6|d6|f6|p6|t6|a6|g6|c6|an6|tg6|sx6|pa6|so6|pi6)-/.test(k)).forEach((k) => {
     const g = GEN[k];
     GEN[k] = (i) => {
       const q = g(i);

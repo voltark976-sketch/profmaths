@@ -21,6 +21,7 @@ Site statique : aucune base de données, aucun compte élève. Ouvrir `index.htm
   - `data/sixieme/symetrie.js` : 6e, chapitre 12 (symétrique d'un point sur quadrillage, définition par la médiatrice, propriétés de conservation, axes de symétrie des figures usuelles). Générateurs `sx6-` ; figures `grilleSym()`, `figureForme()`.
   - `data/sixieme/perimetres-aires.js` : 6e, chapitre 13 (conversions de longueurs et d'aires, périmètres du carré, du rectangle et du cercle, aires du carré et du rectangle, figures composées, périmètre ou aire). Générateurs `pa6-` ; figures `figureRectangle()`, `figureL()`, `figureCercleDiam()`, `grilleAire()`.
   - `data/sixieme/espace-volumes.js` : 6e, chapitre 14 (solides usuels, faces, arêtes, sommets, assemblages de cubes en perspective, vues, volume en cm³). Générateurs `so6-` ; figures `assemblage()` et `dessinSolide()`.
+  - data/sixieme/informatique.js : 6e, chapitre 15, initiation à la pensée informatique (générateurs pi6- dans assets/exercices-college.js)
 - `data/seconde/ensembles.js` : chapitre 1 de Seconde (ensembles de nombres, intervalles, valeur absolue). Les générateurs d'exercices correspondants commencent par `ens-`, `int-` et `abs-` dans `assets/exercices.js`.
 - `data/seconde/information-chiffree.js` : chapitre 3 de Seconde.
 - `data/seconde/arithmetique.js` : chapitre 4 de Seconde (multiples, diviseurs, parité, nombres premiers, fractions irréductibles). Générateurs `ar-` dans `assets/exercices.js`.

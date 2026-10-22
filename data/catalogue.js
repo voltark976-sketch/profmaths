@@ -122,7 +122,7 @@ window.CATALOGUE = {
           id: "sixieme-informatique",
           numero: 15,
           titre: "Initiation à la pensée informatique",
-          statut: "bientot",
+          statut: "disponible",
           drive: ""
         }
       ]
