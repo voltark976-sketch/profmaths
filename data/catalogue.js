@@ -87,7 +87,7 @@ window.CATALOGUE = {
           id: "sixieme-angles",
           numero: 10,
           titre: "Angles et bissectrice",
-          statut: "bientot",
+          statut: "disponible",
           drive: ""
         },
         {

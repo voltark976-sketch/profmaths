@@ -170,6 +170,11 @@ pre.code code { font: inherit; }
 .g-segment { stroke: var(--encre); stroke-width: 2; stroke-linecap: round; }
 .g-droite { stroke: var(--encre); stroke-width: 1.4; }
 .g-code { fill: none; stroke: var(--ylang); stroke-width: 1.8; }
+.g-rapporteur { fill: var(--ylang); fill-opacity: 0.12; stroke: var(--doux); stroke-width: 1.2; }
+.g-grad-ext { font: 700 9px var(--f-texte); fill: var(--encre); }
+.g-grad-int { font: 8px var(--f-texte); fill: var(--doux); }
+.g-arc { fill: none; stroke: var(--ylang); stroke-width: 2; }
+.g-num-angle { font-size: 13px; fill: var(--lagon); }
 .quadrillage .g-colorie { fill: var(--lagon); fill-opacity: 0.45; }
 
 /* Vidéos */

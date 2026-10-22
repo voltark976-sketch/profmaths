@@ -2266,8 +2266,140 @@
       solution: `La chèvre broute dans un disque de rayon $${r}$ m. Deux points les plus éloignés sont aux extrémités d'un diamètre : $2 \\times ${r} = ${2 * r}$ m.` };
   };
 
+  /* =====================================================================
+     6e, chapitre 10 : angles et bissectrice (préfixe an6-)
+     Programme : lexique et notations (angle droit, plat, plein, nul, aigu, obtus, opposés par le sommet, adjacents,
+     supplémentaires) ; mesurer un angle ; construire un angle de mesure donnée ; bissectrice d'un angle saillant.
+     ===================================================================== */
+  const ang = (a, s, b) => `\\widehat{${a}${s}${b}}`;
+  // Rapporteur : sommet en bas au centre, un côté sur le 0 (à droite ou à gauche), l'autre à `mes` degrés
+  function rapporteur(mes, aGauche, noms) {
+    const W = 320, H = 190, cx = 160, cy = 160, R = 120, rad = (d) => (d * Math.PI) / 180;
+    const [A, O, B] = noms || ["A", "O", "B"];
+    const pt = (deg, r) => [+(cx + r * Math.cos(rad(deg))).toFixed(1), +(cy - r * Math.sin(rad(deg))).toFixed(1)];
+    let s = `<svg class="graph rapporteur" viewBox="0 0 ${W} ${H}" role="img" aria-label="Rapporteur posé sur un angle ; les deux graduations vont de 0 à 180 en sens contraires">`;
+    s += `<path class="g-rapporteur" d="M${cx - R} ${cy} A${R} ${R} 0 0 1 ${cx + R} ${cy} Z"/>`;
+    for (let d = 0; d <= 180; d += 5) {
+      const lg = d % 10 === 0 ? 10 : 5, [x1, y1] = pt(d, R), [x2, y2] = pt(d, R - lg);
+      s += `<line class="g-graduation" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}"/>`;
+      if (d % 20 === 0) { const [tx, ty] = pt(d, R - 20), [ux, uy] = pt(d, R - 34); s += `<text class="g-grad-ext" x="${tx}" y="${ty + 3}" text-anchor="middle">${d}</text><text class="g-grad-int" x="${ux}" y="${uy + 3}" text-anchor="middle">${180 - d}</text>`; }
+    }
+    // côtés de l'angle (le côté de départ sur le 0 de la graduation utilisée)
+    const d0 = aGauche ? 180 : 0, d1 = aGauche ? 180 - mes : mes;
+    const [ax, ay] = pt(d0, R + 26), [bx, by] = pt(d1, R + 26);
+    s += `<line class="g-segment" x1="${cx}" y1="${cy}" x2="${ax}" y2="${ay}"/><line class="g-segment" x1="${cx}" y1="${cy}" x2="${bx}" y2="${by}"/>`;
+    s += `<circle class="g-point" cx="${cx}" cy="${cy}" r="3"/><text class="g-plabel" x="${cx}" y="${cy + 16}" text-anchor="middle">${O}</text>`;
+    s += `<text class="g-plabel" x="${aGauche ? ax + 4 : ax - 4}" y="${ay - 6}" text-anchor="${aGauche ? "start" : "end"}">${A}</text>`;
+    const [lx, ly] = pt(d1, R + 34); s += `<text class="g-plabel" x="${lx}" y="${Math.max(12, ly)}" text-anchor="middle">${B}</text>`;
+    return s.replace(`viewBox="0 0 ${W} ${H}"`, `viewBox="0 -14 ${W} ${H + 14}"`) + `</svg>`;
+  }
+  // Un angle seul, avec son arc : côtés à d0 et d1 degrés
+  function figureAngle(d0, d1, noms, droit) {
+    const W = 320, H = 170, c = [150, 120], r = 110, rad = (d) => (d * Math.PI) / 180;
+    const pt = (deg, rr) => [+(c[0] + rr * Math.cos(rad(deg))).toFixed(1), +(c[1] - rr * Math.sin(rad(deg))).toFixed(1)];
+    const [A, S, B] = noms, [ax, ay] = pt(d0, r), [bx, by] = pt(d1, r);
+    let s = `<svg class="graph geo" viewBox="0 -10 ${W} ${H + 10}" role="img" aria-label="Angle de sommet ${S}">`;
+    s += `<line class="g-segment" x1="${c[0]}" y1="${c[1]}" x2="${ax}" y2="${ay}"/><line class="g-segment" x1="${c[0]}" y1="${c[1]}" x2="${bx}" y2="${by}"/>`;
+    if (droit) { const u = (d) => [Math.cos(rad(d)) * 12, -Math.sin(rad(d)) * 12], [p, q] = [u(d0), u(d1)]; s += `<path class="g-code" d="M${c[0] + p[0]} ${c[1] + p[1]} L${c[0] + p[0] + q[0]} ${c[1] + p[1] + q[1]} L${c[0] + q[0]} ${c[1] + q[1]}"/>`; }
+    else { const [p0, p1] = [pt(d0, 26), pt(d1, 26)], large = (d1 - d0 + 360) % 360 > 180 ? 1 : 0; s += `<path class="g-arc" d="M${p0[0]} ${p0[1]} A26 26 0 ${large} 0 ${p1[0]} ${p1[1]}"/>`; }
+    [[A, ax, ay, d0], [B, bx, by, d1]].forEach(([n, x, y, d]) => { const [lx, ly] = pt(d, r + 14); s += `<circle class="g-point" cx="${x}" cy="${y}" r="3"/><text class="g-plabel" x="${lx}" y="${ly + 4}" text-anchor="middle">${n}</text>`; });
+    s += `<circle class="g-point" cx="${c[0]}" cy="${c[1]}" r="3"/><text class="g-plabel" x="${c[0]}" y="${c[1] + 18}" text-anchor="middle">${S}</text>`;
+    return s + `</svg>`;
+  }
+  // Deux droites sécantes en O, quatre angles numérotés 1 à 4
+  function figureSecantes(a) {
+    const W = 320, H = 180, c = [160, 92], r = 120, rad = (d) => (d * Math.PI) / 180, pt = (deg, rr) => [+(c[0] + rr * Math.cos(rad(deg))).toFixed(1), +(c[1] - rr * Math.sin(rad(deg))).toFixed(1)];
+    const dirs = [0, a, 180, 180 + a];
+    let s = `<svg class="graph geo" viewBox="0 0 ${W} ${H}" role="img" aria-label="Deux droites sécantes en O, quatre angles numérotés de 1 à 4">`;
+    [[0, 180], [a, 180 + a]].forEach(([d1, d2]) => { const [x1, y1] = pt(d1, r), [x2, y2] = pt(d2, r); s += `<line class="g-droite" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}"/>`; });
+    dirs.forEach((d, k) => { const m = d + ((k % 2 === 0 ? a : 180 - a) / 2), [x, y] = pt(m, 34); s += `<text class="g-plabel g-num-angle" x="${x}" y="${y + 4}" text-anchor="middle">${k + 1}</text>`; });
+    s += `<circle class="g-point" cx="${c[0]}" cy="${c[1]}" r="3"/><text class="g-plabel" x="${c[0] + 4}" y="${c[1] + 16}">O</text>`;
+    return s + `</svg>`;
+  }
+  FIGURES["an6-rapporteur"] = () => rapporteur(50, false, ["A", "O", "B"]);
+  FIGURES["an6-angle"] = () => figureAngle(10, 75, ["A", "B", "C"]);
+  FIGURES["an6-secantes"] = () => figureSecantes(55);
+
+  const NATURES = [["nul", (m) => m === 0], ["aigu", (m) => m > 0 && m < 90], ["droit", (m) => m === 90], ["obtus", (m) => m > 90 && m < 180], ["plat", (m) => m === 180], ["plein", (m) => m === 360]];
+  GEN["an6-nature"] = function () {
+    const m = pick([rand(1, 89), rand(1, 89), rand(91, 179), rand(91, 179), 90, 180, 0, 360]), nat = NATURES.find((n) => n[1](m))[0];
+    const fig = Math.random() < 0.5 && m > 0 && m < 360 && m !== 180;
+    const noms = shuffle(["A", "B", "C", "D", "E", "F"]).slice(0, 3), d0 = rand(-10, 30);
+    const c = melange(`Un angle ${nat}`, ["Un angle aigu", "Un angle droit", "Un angle obtus", "Un angle plat", "Un angle nul"].filter((x) => x !== `Un angle ${nat}`).sort(() => Math.random() - 0.5));
+    return { enonce: fig ? `L'angle $${ang(noms[0], noms[1], noms[2])}$ mesure $${m}$°. C'est :` : `Un angle qui mesure $${m}$° est :`, figure: fig ? figureAngle(d0, d0 + m, noms, m === 90) : undefined, mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: ["Aigu : entre $0$° et $90$° ; droit : $90$° ; obtus : entre $90$° et $180$°.", "Plat : $180$° (les deux côtés sont dans le prolongement l'un de l'autre).", "Nul : $0$° ; plein : $360$° (un tour complet)."],
+      solution: `$${m}$° : ${{ nul: "c'est $0$°, un angle **nul**", aigu: "plus petit qu'un angle droit, c'est un angle **aigu**", droit: "c'est un angle **droit**", obtus: "entre $90$° et $180$°, c'est un angle **obtus**", plat: "c'est un angle **plat**", plein: "un tour complet, c'est un angle **plein**" }[nat]}.` };
+  };
+
+  GEN["an6-nommer"] = function () {
+    const noms = shuffle(["A", "B", "C", "D", "E", "F", "M", "N", "P", "R"]).slice(0, 3), [A, S, B] = noms, d0 = rand(0, 40), d1 = d0 + rand(30, 140);
+    const fig = figureAngle(d0, d1, noms), t = rand(0, 1);
+    if (t === 0) { const c = melange(`$${ang(A, S, B)}$`, [`$${ang(S, A, B)}$`, `$${ang(A, B, S)}$`, `$${S}${A}${B}$`, `$[${S}${A})$`]);
+      return { enonce: "Comment se note l'angle marqué sur la figure ?", figure: fig, mode: "choix", choix: c.choix, attendu: c.attendu,
+        aides: ["Repère le sommet de l'angle : le point où partent les deux côtés.", "Dans la notation, le sommet s'écrit **au milieu**, sous le chapeau.", `On peut aussi l'écrire $${ang(B, S, A)}$.`],
+        solution: `Le sommet est $${S}$ et les côtés sont $[${S}${A})$ et $[${S}${B})$ : l'angle se note $${ang(A, S, B)}$ (ou $${ang(B, S, A)}$).` }; }
+    const c = melange(`$[${S}${A})$ et $[${S}${B})$`, [`$[${A}${S})$ et $[${A}${B})$`, `$[${A}${B}]$ et $[${S}${B}]$`, `$(${S}${A})$ et $(${A}${B})$`]);
+    return { enonce: `Quels sont les côtés de l'angle $${ang(A, S, B)}$ ?`, figure: fig, mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: ["Les côtés d'un angle sont deux **demi-droites** de même origine.", "Leur origine est le sommet de l'angle.", `Le sommet de $${ang(A, S, B)}$ est la lettre du milieu.`],
+      solution: `Le sommet est $${S}$ ; les côtés sont les demi-droites $[${S}${A})$ et $[${S}${B})$.` };
+  };
+
+  GEN["an6-mesurer"] = function () {
+    const m = rand(1, 35) * 5, g = Math.random() < 0.5, noms = shuffle(["A", "B", "C", "D", "E", "F", "M", "N"]).slice(0, 2), S = pick(["O", "S", "K"]);
+    return { enonce: `Le rapporteur est posé sur l'angle $${ang(noms[0], S, noms[1])}$, son centre sur le sommet $${S}$. Quelle est la mesure de cet angle ?`, figure: rapporteur(m, g, [noms[0], S, noms[1]]), mode: "nombre", prefixe: "Mesure :", suffixe: "°", attendu: m,
+      erreurs: m !== 90 ? [{ valeur: 180 - m, message: `Tu as lu la mauvaise graduation : utilise celle qui vaut $0$ sur le côté $[${S}${noms[0]})$.` }] : [],
+      aides: [`Le côté $[${S}${noms[0]})$ passe par le $0$ d'une des deux graduations : c'est celle-là qu'il faut lire.`, `Ici, c'est la graduation ${g ? "intérieure" : "extérieure"}. Suis-la jusqu'au côté $[${S}${noms[1]})$.`, `L'angle est ${m < 90 ? "aigu : sa mesure est plus petite que $90$°" : m > 90 ? "obtus : sa mesure est plus grande que $90$°" : "droit"}.`],
+      solution: `On part du $0$ situé sur le côté $[${S}${noms[0]})$ (graduation ${g ? "intérieure" : "extérieure"}) et on lit la graduation sous le côté $[${S}${noms[1]})$ : $${m}$°. Contrôle : l'angle est ${m < 90 ? "aigu" : m > 90 ? "obtus" : "droit"}.` };
+  };
+
+  GEN["an6-calcul"] = function () {
+    const t = rand(0, 3), [x, O, y, z] = ["x", pick(["O", "S"]), "y", "z"];
+    if (t === 0) { const a = rand(10, 80), b = rand(10, 90);
+      return { enonce: `Les angles $${ang(x, O, z)}$ et $${ang(z, O, y)}$ sont adjacents : $${ang(x, O, z)} = ${a}$° et $${ang(z, O, y)} = ${b}$°. Combien mesure $${ang(x, O, y)}$ ?`, mode: "nombre", prefixe: "Mesure :", suffixe: "°", attendu: a + b,
+        aides: ["Deux angles **adjacents** ont le même sommet, un côté commun, et sont de part et d'autre de ce côté.", `L'angle $${ang(x, O, y)}$ est formé des deux angles mis côte à côte.`, `Calcule $${a} + ${b}$.`], solution: `$${ang(x, O, y)} = ${a} + ${b} = ${a + b}$°.` }; }
+    if (t === 1) { const a = rand(5, 175);
+      return { enonce: `Les angles $${ang(x, O, z)}$ et $${ang(z, O, y)}$ sont supplémentaires et $${ang(x, O, z)} = ${a}$°. Combien mesure $${ang(z, O, y)}$ ?`, mode: "nombre", prefixe: "Mesure :", suffixe: "°", attendu: 180 - a,
+        erreurs: [{ valeur: 90 - a, message: "Supplémentaires : la somme fait $180$°, pas $90$°." }, { valeur: 360 - a, message: "Supplémentaires : la somme fait $180$° (un angle plat)." }],
+        aides: ["Deux angles **supplémentaires** ont une somme de $180$°.", `Il manque donc $180 - ${a}$.`, "Ensemble, ils forment un angle plat."], solution: `$180 - ${a} = ${180 - a}$°.` }; }
+    if (t === 2) { const a = rand(20, 160), k = pick([1, 2, 3, 4]), fig = figureSecantes(a);
+      const val = [a, 180 - a, a, 180 - a], bon = val[k - 1];
+      return { enonce: `Deux droites se coupent en $O$. L'angle n° $1$ mesure $${a}$°. Combien mesure l'angle n° $${k === 1 ? 3 : k}$ ?`, figure: fig, mode: "nombre", prefixe: "Mesure :", suffixe: "°", attendu: k === 1 ? a : bon,
+        aides: ["Les angles n° $1$ et n° $3$ sont **opposés par le sommet** : ils ont la même mesure.", "Les angles n° $1$ et n° $2$ forment un angle plat : ils sont supplémentaires.", "$180$° pour un demi-tour."],
+        solution: (k === 1 || k === 3) ? `Les angles n° $1$ et n° $3$ sont opposés par le sommet : ils mesurent tous les deux $${a}$°.` : `Les angles n° $1$ et n° $${k}$ forment un angle plat : $180 - ${a} = ${180 - a}$°.` }; }
+    const a = rand(5, 100), b = rand(5, 360 - a - 30);
+    return { enonce: `Autour du point $${O}$, trois angles adjacents font un tour complet. Deux d'entre eux mesurent $${a}$° et $${b}$°. Combien mesure le troisième ?`, mode: "nombre", prefixe: "Mesure :", suffixe: "°", attendu: 360 - a - b,
+      erreurs: [{ valeur: 180 - a - b, message: "Un tour complet, c'est $360$°, pas $180$°." }],
+      aides: ["Un tour complet est un angle plein : $360$°.", "Les trois angles ensemble font $360$°.", `Calcule $360 - ${a} - ${b}$.`], solution: `$360 - ${a} - ${b} = ${360 - a - b}$°.` };
+  };
+
+  GEN["an6-bissectrice"] = function () {
+    const t = rand(0, 2), O = pick(["O", "S"]);
+    if (t === 0) { const a = rand(10, 89) * 2;
+      return { enonce: `La demi-droite $[${O}z)$ est la bissectrice de l'angle $${ang("x", O, "y")}$, qui mesure $${a}$°. Combien mesure $${ang("x", O, "z")}$ ?`, mode: "nombre", prefixe: "Mesure :", suffixe: "°", attendu: a / 2,
+        aides: ["La bissectrice partage l'angle en **deux angles égaux**.", "Chacun des deux angles mesure la moitié de l'angle de départ.", `Calcule $${a} \\div 2$.`], solution: `$${ang("x", O, "z")} = ${a} \\div 2 = ${a / 2}$°.` }; }
+    if (t === 1) { const b = rand(5, 89);
+      return { enonce: `$[${O}z)$ est la bissectrice de $${ang("x", O, "y")}$ et $${ang("x", O, "z")} = ${b}$°. Combien mesure $${ang("x", O, "y")}$ ?`, mode: "nombre", prefixe: "Mesure :", suffixe: "°", attendu: 2 * b,
+        erreurs: [{ valeur: b / 2, message: "L'angle entier est le **double** de chaque moitié." }],
+        aides: ["La bissectrice partage l'angle en deux angles égaux.", `$${ang("x", O, "z")} = ${ang("z", O, "y")} = ${b}$°.`, `Calcule $2 \\times ${b}$.`], solution: `$${ang("x", O, "y")} = 2 \\times ${b} = ${2 * b}$°.` }; }
+    const c = melange("la demi-droite qui partage l'angle en deux angles de même mesure", ["la droite perpendiculaire à un côté", "la demi-droite qui partage l'angle en un angle droit et un autre", "le segment qui relie les extrémités des deux côtés"]);
+    return { enonce: "La bissectrice d'un angle est :", mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: ["« Bi » : deux ; « sectrice » : qui coupe.", "Elle passe par le sommet de l'angle.", "Elle coupe l'angle en deux parties égales."],
+      solution: "La bissectrice d'un angle est la demi-droite, issue du sommet, qui partage l'angle en deux angles de même mesure." };
+  };
+
+  GEN["an6-vocab"] = function () {
+    const a = rand(30, 150);
+    if (a === 90) return GEN["an6-vocab"]();
+    const fig = figureSecantes(a), paires = [[1, 3, "opposés par le sommet"], [2, 4, "opposés par le sommet"], [1, 2, "adjacents et supplémentaires"], [2, 3, "adjacents et supplémentaires"], [3, 4, "adjacents et supplémentaires"], [4, 1, "adjacents et supplémentaires"]];
+    const [p, q, nat] = pick(paires);
+    const c = melange(`Ils sont ${nat}`, ["Ils sont opposés par le sommet", "Ils sont adjacents et supplémentaires", "Ils sont tous les deux droits", "Ils n'ont aucun lien"].filter((x) => x !== `Ils sont ${nat}`));
+    return { enonce: `Deux droites se coupent en $O$. Que peut-on dire des angles n° $${p}$ et n° $${q}$ ?`, figure: fig, mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: ["**Adjacents** : même sommet, un côté commun, de part et d'autre de ce côté.", "**Opposés par le sommet** : même sommet, côtés dans le prolongement l'un de l'autre ; ils ont la même mesure.", "**Supplémentaires** : leur somme fait $180$°."],
+      solution: nat.startsWith("opposés") ? `Les angles n° $${p}$ et n° $${q}$ ont le même sommet et leurs côtés se prolongent : ils sont **opposés par le sommet**, donc de même mesure.` : `Les angles n° $${p}$ et n° $${q}$ ont un côté commun et forment ensemble un angle plat : ils sont **adjacents et supplémentaires** (somme $180$°).` };
+  };
+
   /* Une « erreur connue » ne doit jamais coïncider avec la bonne réponse ; propriétés internes retirées */
-  Object.keys(GEN).filter((k) => /^(n6|o6|d6|f6|p6|t6|a6|g6|c6)-/.test(k)).forEach((k) => {
+  Object.keys(GEN).filter((k) => /^(n6|o6|d6|f6|p6|t6|a6|g6|c6|an6)-/.test(k)).forEach((k) => {
     const g = GEN[k];
     GEN[k] = (i) => {
       const q = g(i);
