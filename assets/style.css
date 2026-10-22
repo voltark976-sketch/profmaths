@@ -154,6 +154,11 @@ pre.code code { font: inherit; }
 .g-unite { fill: none; stroke: var(--encre); stroke-width: 2; }
 .g-vide { fill: none; }
 .bandes .g-grid line { stroke: var(--encre); stroke-width: 1.4; }
+.g-carreau { fill: var(--lagon); fill-opacity: 0.45; stroke: var(--encre); stroke-width: 1.2; }
+.g-allumette { stroke: var(--ylang); stroke-width: 3; stroke-linecap: round; }
+.g-barre-plus { fill: var(--ylang); fill-opacity: 0.35; stroke: var(--encre); stroke-width: 1.2; }
+.barres .g-barre { stroke: var(--encre); stroke-width: 1.2; }
+.g-accolade { fill: none; stroke: var(--encre); stroke-width: 1.4; }
 .quadrillage .g-colorie { fill: var(--lagon); fill-opacity: 0.45; }
 
 /* Vidéos */

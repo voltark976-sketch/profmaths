@@ -1698,8 +1698,190 @@
       solution: `$${100 - p}$ % de $${N}$ : $${nb((100 - p) / 100)} \\times ${N} = ${N - (p * N) / 100}$ élèves courent $1$ km.` };
   };
 
+  /* =====================================================================
+     6e, chapitre 7 : pensée algébrique (préfixe a6-)
+     Programme : égalités à trous (le signe « = » entre deux expressions), programmes de calcul, suites de nombres,
+     motifs évolutifs (règle, nombre d'éléments à une étape donnée), problèmes avec des nombres inconnus
+     modélisés par des schémas en barre. Les lettres ne sont pas un objectif en 6e : les règles sont dites en mots.
+     ===================================================================== */
+  // Motifs évolutifs : chaque famille donne le nombre d'éléments à l'étape n (a × n + b) et un dessin de l'étape n
+  const MOTIFS = [
+    { nom: "carreaux en L", obj: "carreaux", a: 2, b: 1, regle: "on commence avec $3$ carreaux, puis on ajoute $2$ carreaux à chaque étape", forme: "un carreau dans le coin, et deux branches qui grandissent d'un carreau à chaque étape",
+      dessin: (n, u) => { const r = []; for (let i = 0; i <= n; i++) r.push([0, i]); for (let i = 1; i <= n; i++) r.push([i, 0]); return { carreaux: r, l: n + 1, h: n + 1 }; } },
+    { nom: "croix de carreaux", obj: "carreaux", a: 4, b: 1, regle: "on commence avec $5$ carreaux, puis on ajoute $4$ carreaux à chaque étape", forme: "un carreau au centre, et quatre branches qui grandissent d'un carreau à chaque étape",
+      dessin: (n) => { const r = [[n, n]]; for (let i = 1; i <= n; i++) r.push([n + i, n], [n - i, n], [n, n + i], [n, n - i]); return { carreaux: r, l: 2 * n + 1, h: 2 * n + 1 }; } },
+    { nom: "rectangle de carreaux", obj: "carreaux", a: 2, b: 2, regle: "on commence avec $4$ carreaux, puis on ajoute $2$ carreaux à chaque étape", forme: "deux lignes de carreaux qui s'allongent d'un carreau à chaque étape",
+      dessin: (n) => { const r = []; for (let i = 0; i <= n; i++) r.push([i, 0], [i, 1]); return { carreaux: r, l: n + 1, h: 2 }; } },
+    { nom: "rangée de carrés en allumettes", obj: "allumettes", a: 3, b: 1, regle: "on commence avec $4$ allumettes, puis on ajoute $3$ allumettes à chaque étape", forme: "une rangée de carrés : le premier carré a $4$ allumettes, chaque carré ajouté en prend $3$",
+      dessin: (n) => { const s = []; for (let i = 0; i <= n; i++) s.push([i, 0, i, 1]); for (let i = 0; i < n; i++) s.push([i, 0, i + 1, 0], [i, 1, i + 1, 1]); return { segments: s, l: n, h: 1 }; } },
+    { nom: "maisons en allumettes", obj: "allumettes", a: 4, b: 1, regle: "on commence avec $5$ allumettes, puis on ajoute $4$ allumettes à chaque étape", forme: "une rangée de maisons : la première a $5$ allumettes, chaque maison ajoutée en prend $4$ (le mur de gauche est partagé)",
+      dessin: (n) => { const s = []; for (let i = 0; i <= n; i++) s.push([i, 0, i, 1]); for (let i = 0; i < n; i++) s.push([i, 0, i + 1, 0], [i, 1, i + 0.5, 1.8], [i + 0.5, 1.8, i + 1, 1]); return { segments: s, l: n, h: 1.8 }; } },
+    { nom: "rangée de triangles en allumettes", obj: "allumettes", a: 2, b: 1, regle: "on commence avec $3$ allumettes, puis on ajoute $2$ allumettes à chaque étape", forme: "une rangée de triangles, un à l'endroit, un à l'envers : le premier a $3$ allumettes, chaque triangle ajouté en prend $2$",
+      dessin: (n) => { const h = 0.87, E = new Map(), arete = (p, q) => E.set([p, q].map((x) => x.join(",")).sort().join("|"), [p[0], p[1], q[0], q[1]]); for (let i = 0; i < n; i++) { const x = Math.floor(i / 2); if (i % 2 === 0) { const P = [x, 0], Q = [x + 1, 0], R = [x + 0.5, h]; arete(P, Q); arete(Q, R); arete(R, P); } else { const P = [x + 0.5, h], Q = [x + 1.5, h], R = [x + 1, 0]; arete(P, Q); arete(Q, R); arete(R, P); } } return { segments: [...E.values()], l: (n + 1) / 2, h }; } }
+  ];
+  // Dessin des étapes 1, 2 et 3 d'un motif, côte à côte
+  function dessinMotif(M, etapes) {
+    etapes = etapes || [1, 2, 3];
+    const W = 320, gap = 18, bas = 20, haut = 8;
+    const formes = etapes.map((n) => M.dessin(n));
+    const largeurs = formes.map((f) => f.l + (f.carreaux ? 0 : 0));
+    const totalL = largeurs.reduce((s, l) => s + l, 0), hMax = Math.max(...formes.map((f) => f.h));
+    const u = Math.min(24, (W - gap * (etapes.length + 1)) / totalL, 110 / hMax);
+    const H = Math.round(hMax * u + bas + haut + 6);
+    let x = gap, s = `<svg class="graph motif" viewBox="0 0 ${W} ${H}" role="img" aria-label="Motif évolutif : ${M.nom}, étapes ${etapes.join(", ")}">`;
+    formes.forEach((f, k) => {
+      const w = f.l * u, y0 = haut + hMax * u; // bas du dessin
+      if (f.carreaux) f.carreaux.forEach(([i, j]) => { s += `<rect class="g-carreau" x="${+(x + i * u).toFixed(1)}" y="${+(y0 - (j + 1) * u).toFixed(1)}" width="${+u.toFixed(1)}" height="${+u.toFixed(1)}"/>`; });
+      else f.segments.forEach(([x1, y1, x2, y2]) => { s += `<line class="g-allumette" x1="${+(x + x1 * u).toFixed(1)}" y1="${+(y0 - y1 * u).toFixed(1)}" x2="${+(x + x2 * u).toFixed(1)}" y2="${+(y0 - y2 * u).toFixed(1)}"/>`; });
+      s += `<text class="g-plabel" x="${+(x + w / 2).toFixed(1)}" y="${H - 5}" text-anchor="middle">Étape ${etapes[k]}</text>`;
+      x += w + gap;
+    });
+    return s + `</svg>`;
+  }
+  FIGURES["a6-motif"] = () => dessinMotif(MOTIFS[0]);
+  FIGURES["a6-allumettes"] = () => dessinMotif(MOTIFS[3]);
+
+  // Schéma en barre : lignes de barres ; chaque barre = { u: nombre d'unités égales, plus: morceau en plus (texte), lab: étiquette }
+  function schemaBarres(lignes, total) {
+    const W = 320, x0 = 74, wMax = W - x0 - 30, hb = 26, gap = 14;
+    const unites = Math.max(...lignes.map((l) => l.u + (l.plus ? 1 : 0)));
+    const uw = wMax / unites, H = lignes.length * (hb + gap) + (total ? 22 : 4) + 4;
+    let s = `<svg class="graph barres" viewBox="0 0 ${W} ${H}" role="img" aria-label="Schéma en barre">`;
+    lignes.forEach((l, k) => {
+      const y = 6 + k * (hb + gap);
+      s += `<text class="g-plabel" x="${x0 - 8}" y="${y + hb / 2 + 4}" text-anchor="end">${l.nom}</text>`;
+      for (let i = 0; i < l.u; i++) s += `<rect class="g-aire g-colorie g-barre" x="${+(x0 + i * uw).toFixed(1)}" y="${y}" width="${+uw.toFixed(1)}" height="${hb}"/><text class="g-plabel" x="${+(x0 + (i + 0.5) * uw).toFixed(1)}" y="${y + hb / 2 + 4}" text-anchor="middle">${l.lab || "?"}</text>`;
+      if (l.plus) s += `<rect class="g-barre-plus" x="${+(x0 + l.u * uw).toFixed(1)}" y="${y}" width="${+uw.toFixed(1)}" height="${hb}"/><text class="g-plabel" x="${+(x0 + (l.u + 0.5) * uw).toFixed(1)}" y="${y + hb / 2 + 4}" text-anchor="middle">${l.plus}</text>`;
+    });
+    if (total) {
+      const yb = lignes.length * (hb + gap) + 2, xe = x0 + Math.max(...lignes.map((l) => (l.u + (l.plus ? 1 : 0)) * uw));
+      s += `<path class="g-accolade" d="M${x0 + 2} ${yb - 8} V${yb} H${xe - 2} V${yb - 8}"/><text class="g-plabel" x="${+((x0 + xe) / 2).toFixed(1)}" y="${yb + 14}" text-anchor="middle">${total}</text>`;
+    }
+    return s + `</svg>`;
+  }
+  FIGURES["a6-barres"] = () => schemaBarres([{ nom: "Louis", u: 1 }, { nom: "Sarah", u: 1, plus: "6" }], "40 billes en tout");
+
+  GEN["a6-trous"] = function () {
+    const t = rand(0, 3);
+    let gauche, rep, droite, val;
+    const a = rand(3, 12), b = rand(3, 12); val = a * b;
+    if (t === 0) { const x = rand(val + 10, val + 200); rep = x - val; gauche = `${x} - \\ldots`; droite = `${a} \\times ${b}`; }
+    else if (t === 1) { const y = rand(5, val - 1 > 5 ? val - 1 : 30); rep = val - y; if (rep <= 0) return GEN["a6-trous"](); gauche = `\\ldots + ${y}`; droite = `${a} \\times ${b}`; }
+    else if (t === 2) { const k = rand(2, 9), r = rand(2, 15), s2 = k * r; const y = rand(1, 40); rep = r; gauche = `${k} \\times \\ldots`; droite = `${s2 + y} - ${y}`; val = s2; }
+    else { const k = rand(2, 9), q = rand(3, 20), y = rand(5, 60); rep = k * q; gauche = `\\ldots \\div ${k}`; droite = `${q + y} - ${y}`; val = q; }
+    const faux = t === 0 ? (gauche.split(" ")[0] - 0) + val : null;
+    return { enonce: `Complète l'égalité : $${gauche} = ${droite}$.`, mode: "nombre", prefixe: "Le nombre manquant est", attendu: rep,
+      erreurs: [{ valeur: val, message: "Ça, c'est le résultat du membre de droite. Le signe $=$ dit que les deux côtés valent la même chose : il faut encore trouver le nombre manquant." }],
+      aides: ["Le signe $=$ veut dire : « les deux côtés valent le même nombre ».", `Calcule d'abord le côté que tu connais : $${droite} = ${val}$.`, `Cherche le nombre qui rend le côté gauche égal à $${val}$.`],
+      solution: `$${droite} = ${val}$. ${t === 0 ? `$${gauche.split(" ")[0]} - ${rep} = ${val}$` : t === 1 ? `$${rep} + ${gauche.split(" + ")[1]} = ${val}$` : t === 2 ? `$${gauche.split(" ")[0]} \\times ${rep} = ${val}$` : `$${rep} \\div ${gauche.split("\\div ")[1]} = ${val}$`}, donc le nombre manquant est $${rep}$.` };
+  };
+
+  GEN["a6-programme"] = function () {
+    const t = rand(0, 2), m = rand(2, 9), p = rand(1, 20), avant = Math.random() < 0.5;
+    // programme : soit (x × m) + p, soit (x + p) × m
+    const etapes = avant ? [`Multiplie-le par $${m}$.`, `Ajoute $${p}$.`] : [`Ajoute $${p}$.`, `Multiplie le résultat par $${m}$.`];
+    const f = (x) => (avant ? x * m + p : (x + p) * m), prog = `« Choisis un nombre. ${etapes.join(" ")} »`;
+    if (t === 0) { const x = Math.random() < 0.3 ? Dc(rand(11, 99), 1) : Dc(rand(1, 30)); const r = avant ? addD(mulD(x, Dc(m)), Dc(p)) : mulD(addD(x, Dc(p)), Dc(m));
+      return { enonce: `Voici un programme de calcul : ${prog} Quel résultat obtient-on avec $${tD(x)}$ ?`, mode: "nombre", prefixe: "Résultat :", attendu: vD(r),
+        erreurs: [{ valeur: avant ? (vD(x) + p) * m : vD(x) * m + p, message: "Respecte l'ordre des étapes du programme." }],
+        aides: ["Applique les étapes **dans l'ordre**.", avant ? `$${tD(x)} \\times ${m} = ${tD(mulD(x, Dc(m)))}$.` : `$${tD(x)} + ${p} = ${tD(addD(x, Dc(p)))}$.`, "Fais ensuite la deuxième étape."],
+        solution: avant ? `$${tD(x)} \\times ${m} = ${tD(mulD(x, Dc(m)))}$, puis $${tD(mulD(x, Dc(m)))} + ${p} = ${tD(r)}$.` : `$${tD(x)} + ${p} = ${tD(addD(x, Dc(p)))}$, puis $${tD(addD(x, Dc(p)))} \\times ${m} = ${tD(r)}$.` }; }
+    if (t === 1) { const x = rand(1, 30), r = f(x);
+      return { enonce: `Voici un programme de calcul : ${prog} On a obtenu $${r}$. Quel nombre avait-on choisi ?`, mode: "nombre", prefixe: "Nombre choisi :", attendu: x,
+        aides: ["Remonte le programme à l'envers, avec les opérations contraires.", avant ? `Le contraire de « ajouter $${p}$ », c'est « soustraire $${p}$ » : $${r} - ${p} = ${r - p}$.` : `Le contraire de « multiplier par $${m}$ », c'est « diviser par $${m}$ » : $${r} \\div ${m} = ${r / m}$.`, avant ? `Puis divise par $${m}$.` : `Puis soustrais $${p}$.`],
+        solution: avant ? `$${r} - ${p} = ${r - p}$, puis $${r - p} \\div ${m} = ${x}$. Vérification : $${x} \\times ${m} + ${p} = ${r}$.` : `$${r} \\div ${m} = ${r / m}$, puis $${r / m} - ${p} = ${x}$. Vérification : $(${x} + ${p}) \\times ${m} = ${r}$.` }; }
+    // expression générale : prix de N objets + livraison
+    const [obj, prix, frais] = pick([["tee-shirts", rand(8, 15), rand(3, 8)], ["livres", rand(5, 12), rand(2, 6)], ["places de cinéma", rand(6, 9), rand(1, 3)]]), N = rand(2, 9);
+    const bon = `$(N \\times ${prix}) + ${frais}$`;
+    const c = melange(bon, [`$(N + ${prix}) \\times ${frais}$`, `$N \\times (${prix} + ${frais})$`, `$(N \\times ${frais}) + ${prix}$`, `$N + ${prix} + ${frais}$`]);
+    return { enonce: `Sur un site, des ${obj} coûtent $${prix}$ € pièce, et la livraison coûte $${frais}$ € quelle que soit la commande. $N$ désigne le nombre de ${obj} achetés. Quelle écriture donne le prix à payer, en euros ?`, mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: ["Essaie avec un nombre : par exemple $N = 2$. Combien paie-t-on ?", `$2$ ${obj} : $2 \\times ${prix} = ${2 * prix}$ €, plus la livraison.`, "La livraison n'est payée qu'une fois."],
+      solution: `On paie $N$ fois $${prix}$ €, plus une seule fois $${frais}$ € : ${bon}. Par exemple, pour $${N}$ ${obj} : $(${N} \\times ${prix}) + ${frais} = ${N * prix + frais}$ €.` };
+  };
+
+  GEN["a6-suite"] = function () {
+    const t = rand(0, 2), d = rand(2, 12), u0 = rand(1, 30), mult = Math.random() < 0.25;
+    const terme = (k) => (mult ? u0 * 2 ** k : u0 + d * k), vus = [0, 1, 2, 3].map(terme);
+    if (mult && u0 > 12) return GEN["a6-suite"]();
+    const liste = vus.map(String).join(" ; ");
+    if (t === 0) return { enonce: `Voici le début d'une suite de nombres : $${liste}$ ; … Quel est le nombre suivant ?`, mode: "nombre", prefixe: "Nombre suivant :", attendu: terme(4),
+      aides: ["Compare deux nombres qui se suivent : que fait-on pour passer de l'un à l'autre ?", mult ? "On ne fait pas toujours la même addition : regarde plutôt les multiplications." : `$${vus[1]} - ${vus[0]} = ${d}$ et $${vus[2]} - ${vus[1]} = ${d}$.`, mult ? "Chaque nombre est le double du précédent." : `On ajoute $${d}$ à chaque fois.`],
+      solution: mult ? `Chaque nombre est le double du précédent : $${vus[3]} \\times 2 = ${terme(4)}$.` : `On ajoute $${d}$ à chaque fois : $${vus[3]} + ${d} = ${terme(4)}$.` };
+    if (t === 1) {
+      const bon = mult ? "On multiplie par $2$" : `On ajoute $${d}$`;
+      const c = melange(bon, mult ? [`On ajoute $${vus[1] - vus[0]}$`, "On multiplie par $3$", `On ajoute $${u0}$ puis on multiplie par $2$`] : [`On multiplie par $${d}$`, `On ajoute $${d + 1}$`, `On ajoute $${vus[0]}$`].filter((x) => x !== bon));
+      return { enonce: `Quelle règle permet de passer d'un nombre au suivant dans la suite $${liste}$ ; … ?`, mode: "choix", choix: c.choix, attendu: c.attendu,
+        aides: ["Teste chaque règle sur les deux premiers nombres, puis sur les deux suivants.", "Une bonne règle doit marcher **à chaque fois**.", `De $${vus[0]}$ à $${vus[1]}$, puis de $${vus[1]}$ à $${vus[2]}$ : que se passe-t-il ?`],
+        solution: `${bon} : ${vus.slice(0, 3).map((v, k) => `$${v} \\rightarrow ${vus[k + 1]}$`).join(" ; ")}.` };
+    }
+    if (mult) return GEN["a6-suite"]();
+    const k = rand(8, 30);
+    return { enonce: `La suite $${liste}$ ; … continue en ajoutant toujours $${d}$. Quel est le ${k}e nombre de la suite ?`, mode: "nombre", prefixe: `${k}e nombre :`, attendu: u0 + d * (k - 1),
+      erreurs: [{ valeur: u0 + d * k, message: `Pour arriver au ${k}e nombre, on ajoute $${d}$ seulement $${k - 1}$ fois (le 1er nombre est déjà là).` }, { valeur: d * k, message: `N'oublie pas le premier nombre, $${u0}$.` }],
+      aides: [`Du 1er au 2e nombre, on ajoute $${d}$ une fois ; du 1er au 3e, deux fois.`, `Du 1er au ${k}e, on ajoute $${d}$ en tout $${k - 1}$ fois.`, `Calcule $${u0} + ${k - 1} \\times ${d}$.`],
+      solution: `$${u0} + ${k - 1} \\times ${d} = ${u0} + ${(k - 1) * d} = ${u0 + d * (k - 1)}$.` };
+  };
+
+  GEN["a6-motif"] = function () {
+    const M = pick(MOTIFS), t = rand(0, 3), nb2 = (n) => M.a * n + M.b;
+    const fig = dessinMotif(M);
+    if (t === 0) { const n = rand(4, 6);
+      return { enonce: `Voici les trois premières étapes d'un motif (${M.nom}). Combien de ${M.obj} faut-il pour l'étape $${n}$ ?`, figure: fig, mode: "nombre", prefixe: "Réponse :", suffixe: M.obj, attendu: nb2(n),
+        aides: [`Compte les ${M.obj} des étapes $1$, $2$ et $3$ : $${nb2(1)}$ ; $${nb2(2)}$ ; $${nb2(3)}$.`, `À chaque étape, on ajoute $${M.a}$ ${M.obj}.`, `Continue jusqu'à l'étape $${n}$.`],
+        solution: `$${[1, 2, 3, 4, 5, 6].slice(0, n).map(nb2).join(" ; ")}$ : on ajoute $${M.a}$ ${M.obj} à chaque étape, donc l'étape $${n}$ compte $${nb2(n)}$ ${M.obj}.` }; }
+    if (t === 1) { const n = pick([10, 12, 15, 20, 25, 30, 50, 100]);
+      return { enonce: `Voici les trois premières étapes d'un motif (${M.nom}). Combien de ${M.obj} faut-il pour l'étape $${n}$ ?`, figure: fig, mode: "nombre", prefixe: "Réponse :", suffixe: M.obj, attendu: nb2(n),
+        erreurs: [{ valeur: M.a * n, message: `Tu as oublié ${M.b === 1 ? `le ${M.obj === "carreaux" ? "carreau" : "l'allumette"} de départ` : `les $${M.b}$ ${M.obj} de départ`}.` }, { valeur: nb2(1) * n, message: "Les éléments ne sont pas tous multipliés : certains sont partagés ou fixes. Regarde ce qu'on ajoute à chaque étape." }],
+        aides: [`Structure du motif : ${M.forme}.`, `À l'étape $n$, il y a $${M.a} \\times n + ${M.b}$ ${M.obj} (vérifie avec les étapes $1$, $2$, $3$).`, `Calcule $${M.a} \\times ${n} + ${M.b}$.`],
+        solution: `À chaque étape, on ajoute $${M.a}$ ${M.obj} ; à l'étape $n$, il y en a $${M.a} \\times n + ${M.b}$. Étape $${n}$ : $${M.a} \\times ${n} + ${M.b} = ${nb2(n)}$ ${M.obj}.` }; }
+    if (t === 2) { const n = rand(6, 40), N = nb2(n);
+      return { enonce: `Voici les trois premières étapes d'un motif (${M.nom}). Quelle étape utilise exactement $${N}$ ${M.obj} ?`, figure: fig, mode: "nombre", prefixe: "Étape", attendu: n,
+        aides: [`À l'étape $n$, il y a $${M.a} \\times n + ${M.b}$ ${M.obj}.`, `On cherche $n$ tel que $${M.a} \\times n + ${M.b} = ${N}$.`, `Retire $${M.b}$, puis divise par $${M.a}$.`],
+        solution: `$${N} - ${M.b} = ${N - M.b}$ et $${N - M.b} \\div ${M.a} = ${n}$ : c'est l'étape $${n}$.` }; }
+    const bon = M.regle[0].toUpperCase() + M.regle.slice(1);
+    const autres = MOTIFS.filter((x) => x !== M && x.regle !== M.regle).map((x) => x.regle[0].toUpperCase() + x.regle.slice(1));
+    const c = melange(bon, shuffle([...new Set(autres)]).slice(0, 3));
+    return { enonce: `Voici les trois premières étapes d'un motif (${M.nom}). Quelle phrase décrit ce motif ?`, figure: fig, mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: ["Compte les éléments de l'étape $1$.", "Compte ce qui change entre l'étape $1$ et l'étape $2$, puis entre l'étape $2$ et l'étape $3$.", "Vérifie que la règle marche pour les trois étapes."],
+      solution: `Étapes $1$, $2$, $3$ : $${nb2(1)}$ ; $${nb2(2)}$ ; $${nb2(3)}$ ${M.obj}. ${bon}.` };
+  };
+
+  const que = (nom) => (/^[AEIOUYÀÉ]/.test(nom) ? `qu'${nom}` : `que ${nom}`);
+  GEN["a6-barres"] = function () {
+    const t = rand(0, 3), [A, B] = shuffle(["Louis", "Sarah", "Anli", "Fatima", "Nassim", "Zaïna", "Ali", "Mia"]).slice(0, 2);
+    if (t === 0) { // A a d de plus que B, total T
+      const b = rand(5, 40), d = rand(2, 15), T = 2 * b + d, obj = pick(["billes", "cartes", "mangues", "€"]);
+      const qui = Math.random() < 0.5;
+      return { enonce: `${B} a $${d}$ ${obj} de plus ${que(A)}. Les deux ensemble ont $${T}$ ${obj}. ${obj === "€" ? "Combien d'euros" : `Combien de ${obj}`} a ${qui ? A : B} ?`, figure: schemaBarres([{ nom: A, u: 1 }, { nom: B, u: 1, plus: String(d) }], `${T} en tout`),
+        mode: "nombre", prefixe: "Réponse :", attendu: qui ? b : b + d,
+        erreurs: [{ valeur: T / 2, message: "Les deux parts ne sont pas égales : retire d'abord ce que l'un a en plus." }, { valeur: qui ? b + d : b, message: `Ça, c'est ce qu'a ${qui ? B : A}.` }],
+        aides: ["Sur le schéma, les deux barres « ? » sont égales.", `Retire les $${d}$ en plus : $${T} - ${d} = ${T - d}$ pour les deux barres « ? ».`, `Une barre « ? » vaut $${T - d} \\div 2$.`],
+        solution: `$${T} - ${d} = ${T - d}$, puis $${T - d} \\div 2 = ${b}$ : ${A} a $${b}$, et ${B} a $${b} + ${d} = ${b + d}$.` }; }
+    if (t === 1) { // k fois plus, total T
+      const k = rand(2, 5), b = rand(3, 30), T = (k + 1) * b, qui = Math.random() < 0.5;
+      return { enonce: `Dans un club de sport, il y a $${k}$ fois plus de filles que de garçons. Il y a $${T}$ membres en tout. Combien y a-t-il de ${qui ? "garçons" : "filles"} ?`, figure: schemaBarres([{ nom: "Garçons", u: 1 }, { nom: "Filles", u: k }], `${T} en tout`),
+        mode: "nombre", prefixe: "Réponse :", attendu: qui ? b : k * b,
+        erreurs: [{ valeur: T / k, message: `Compte toutes les barres « ? » : il y en a $${k} + 1 = ${k + 1}$.` }, { valeur: qui ? k * b : b, message: `Ça, c'est le nombre de ${qui ? "filles" : "garçons"}.` }],
+        aides: ["Sur le schéma, toutes les petites barres « ? » sont égales.", `Il y a $1 + ${k} = ${k + 1}$ barres pour $${T}$ membres.`, `Une barre vaut $${T} \\div ${k + 1}$.`],
+        solution: `$${T} \\div ${k + 1} = ${b}$ : il y a $${b}$ garçons et $${k} \\times ${b} = ${k * b}$ filles.` }; }
+    if (t === 2) { // k fois plus, différence D
+      const k = rand(2, 6), b = rand(3, 25), D = (k - 1) * b;
+      return { enonce: `${A} a $${k}$ fois plus de cartes ${que(B)}. ${A} a $${D}$ cartes de plus ${que(B)}. Combien de cartes a ${B} ?`, figure: schemaBarres([{ nom: B, u: 1 }, { nom: A, u: k }], null),
+        mode: "nombre", prefixe: "Réponse :", attendu: b,
+        erreurs: [{ valeur: D / k, message: `La différence correspond à $${k} - 1 = ${k - 1}$ barres, pas $${k}$.` }],
+        aides: ["Compare les deux lignes du schéma : ce qui dépasse, c'est la différence.", `La différence correspond à $${k} - 1 = ${k - 1}$ barres.`, `Une barre vaut $${D} \\div ${k - 1}$.`],
+        solution: `La différence, $${D}$ cartes, correspond à $${k - 1}$ barres : une barre vaut $${D} \\div ${k - 1} = ${b}$. ${B} a $${b}$ cartes (et ${A} en a $${k * b}$).` }; }
+    // n objets identiques + un autre prix connu = total
+    const n = rand(2, 6), x = rand(2, 15), y = rand(2, 9), T = n * x + y, [o, o2, un] = pick([["cahiers", "une trousse", "un cahier"], ["stylos", "une règle", "un stylo"], ["mangues", "un ananas", "une mangue"], ["tickets", "une boisson", "un ticket"]]);
+    return { enonce: `${A} achète $${n}$ ${o} au même prix et ${o2} à $${y}$ €. Le total à payer est de $${T}$ €. Combien coûte ${un} ?`, figure: schemaBarres([{ nom: "Achats", u: n, plus: `${y} €` }], `${T} € en tout`),
+      mode: "nombre", prefixe: "Prix :", suffixe: "€", attendu: x,
+      erreurs: [{ valeur: T / n, message: `Retire d'abord le prix de ${o2}.` }, { valeur: T - y, message: `Ça, c'est le prix des $${n}$ ${o}. On demande le prix d'un seul.` }],
+      aides: ["Sur le schéma, les barres « ? » sont les objets de même prix.", `Retire le prix de ${o2} : $${T} - ${y} = ${T - y}$.`, `Partage en $${n}$ : $${T - y} \\div ${n}$.`],
+      solution: `$${T} - ${y} = ${T - y}$ € pour les $${n}$ ${o}, donc ${un} coûte $${T - y} \\div ${n} = ${x}$ €.` };
+  };
+
   /* Une « erreur connue » ne doit jamais coïncider avec la bonne réponse ; propriétés internes retirées */
-  Object.keys(GEN).filter((k) => /^(n6|o6|d6|f6|p6|t6)-/.test(k)).forEach((k) => {
+  Object.keys(GEN).filter((k) => /^(n6|o6|d6|f6|p6|t6|a6)-/.test(k)).forEach((k) => {
     const g = GEN[k];
     GEN[k] = (i) => {
       const q = g(i);

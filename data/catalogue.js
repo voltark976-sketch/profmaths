@@ -65,8 +65,8 @@ window.CATALOGUE = {
         {
           id: "sixieme-algebre",
           numero: 7,
-          titre: "Pensée algébrique : motifs et schémas en barre",
-          statut: "bientot",
+          titre: "Pensée algébrique\u00a0: motifs et schémas en barre",
+          statut: "disponible",
           drive: ""
         },
         {
