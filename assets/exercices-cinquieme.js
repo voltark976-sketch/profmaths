@@ -3,7 +3,7 @@
   Ce fichier se charge après assets/exercices-college.js et reprend ses outils (window.PM_EXO.college).
   Mêmes règles : chaque générateur fabrique une question avec des nombres tirés au hasard, la réponse
   attendue, trois indices progressifs et la solution rédigée.
-  Préfixes : rc5- (règles de calcul), tr5-.
+  Préfixes : rc5- (règles de calcul), tr5-, fr5-.
 */
 (function () {
   "use strict";
@@ -337,8 +337,166 @@
       aides: ["Une médiane passe par un sommet et par le milieu du côté opposé.", `$M$ est donc le milieu de $[${B}${C}]$.`, `$${B}M = ${B}${C} \\div 2$.`], solution: `$M$ est le milieu de $[${B}${C}]$ : $${B}M = ${tD(Lg)} \\div 2 = ${tD(h)}$ cm.` };
   };
 
+  /* =====================================================================
+     Chapitre 3 : fractions (fr5-) — fractions égales, comparer, additionner et soustraire
+     ===================================================================== */
+  const { fr, frNet, pgcd, CONSIGNE_FR, FRAC_APPROX } = window.PM_EXO.college;
+  const ppcm = (a, b) => (a * b) / pgcd(a, b);
+  const frT = (a, b) => (b === 1 ? `${a}` : fr(a, b));
+  const approx = (v) => (Number.isInteger(v * 1000) ? [] : FRAC_APPROX(v));
+  // Deux fractions a/b et c/d au même dénominateur L : texte de l'étape
+  const memeDen = (a, b, c, d) => { const L = ppcm(b, d); return { L, na: a * (L / b), nc: c * (L / d), txt: `${b === L ? fr(a, b) : `${fr(a, b)} = ${fr(a * (L / b), L)}`} \\text{ et } ${d === L ? fr(c, d) : `${fr(c, d)} = ${fr(c * (L / d), L)}`}` }; };
+  function deuxFractions(propre) {
+    for (;;) {
+      const b = rand(2, 12), d = rand(2, 12); if (b === d) continue;
+      const a = rand(1, propre ? b - 1 : 2 * b), c = rand(1, propre ? d - 1 : 2 * d);
+      if (pgcd(a, b) > 1 && Math.random() < 0.6) continue;
+      if (pgcd(c, d) > 1 && Math.random() < 0.6) continue;
+      if (ppcm(b, d) > 72) continue;
+      return [a, b, c, d];
+    }
+  }
+
+  GEN["fr5-egales"] = function () {
+    const t = rand(0, 3);
+    if (t === 0) {
+      const b = rand(2, 12), a = rand(1, 2 * b), k = rand(2, 9), haut = Math.random() < 0.5;
+      if (pgcd(a, b) > 1) return GEN["fr5-egales"]();
+      return { enonce: haut ? `Complète : $${fr(a, b)} = \\dfrac{\\ldots}{${b * k}}$` : `Complète : $${fr(a, b)} = \\dfrac{${a * k}}{\\ldots}$`, mode: "nombre", prefixe: "Nombre manquant :", attendu: haut ? a * k : b * k,
+        erreurs: haut ? [{ valeur: a + (b * k - b), message: "On ne peut pas ajouter le même nombre en haut et en bas : il faut **multiplier** par le même nombre." }] : [{ valeur: b + (a * k - a), message: "On ne peut pas ajouter le même nombre en haut et en bas : il faut **multiplier** par le même nombre." }],
+        aides: ["Une fraction ne change pas si on multiplie son numérateur et son dénominateur par un même nombre.", haut ? `Par combien a-t-on multiplié le dénominateur $${b}$ pour obtenir $${b * k}$ ?` : `Par combien a-t-on multiplié le numérateur $${a}$ pour obtenir $${a * k}$ ?`, `On a multiplié par $${k}$.`],
+        solution: `$${fr(a, b)} = \\dfrac{${a} \\times ${k}}{${b} \\times ${k}} = ${fr(a * k, b * k)}$ : le nombre manquant est $${haut ? a * k : b * k}$.` };
+    }
+    if (t === 1) {
+      const b = rand(2, 9), a = rand(1, 2 * b), k = rand(2, 8);
+      if (pgcd(a, b) > 1 || a === b) return GEN["fr5-egales"]();
+      const haut = Math.random() < 0.5;
+      return { enonce: haut ? `Complète : $${fr(a * k, b * k)} = \\dfrac{\\ldots}{${b}}$` : `Complète : $${fr(a * k, b * k)} = \\dfrac{${a}}{\\ldots}$`, mode: "nombre", prefixe: "Nombre manquant :", attendu: haut ? a : b,
+        aides: ["On peut aussi **diviser** le numérateur et le dénominateur par un même nombre.", haut ? `$${b * k}$ divisé par combien donne $${b}$ ?` : `$${a * k}$ divisé par combien donne $${a}$ ?`, `On divise par $${k}$.`],
+        solution: `$${fr(a * k, b * k)} = \\dfrac{${a * k} \\div ${k}}{${b * k} \\div ${k}} = ${fr(a, b)}$ : le nombre manquant est $${haut ? a : b}$.` };
+    }
+    if (t === 2) {
+      const b = rand(2, 9), e = rand(1, 6), r = rand(1, b - 1), a = e * b + r;
+      return { enonce: `Complète : $${fr(a, b)} = ${e} + \\dfrac{\\ldots}{${b}}$`, mode: "nombre", prefixe: "Nombre manquant :", attendu: r,
+        erreurs: [{ valeur: a - e, message: `On enlève $${e}$ unités, c'est-à-dire $${fr(e * b, b)}$, pas $${e}$ au numérateur.` }],
+        aides: [`$${e} = ${fr(e * b, b)}$.`, `$${fr(a, b)} = ${fr(e * b, b)} + \\dfrac{\\ldots}{${b}}$.`, `$${a} - ${e * b} = ?$`],
+        solution: `$${fr(a, b)} = ${fr(e * b, b)} + ${fr(r, b)} = ${e} + ${fr(r, b)}$ : le nombre manquant est $${r}$ (c'est le reste de la division de $${a}$ par $${b}$).` };
+    }
+    const b = rand(2, 9), a = rand(2, 20);
+    if (a % b === 0) return GEN["fr5-egales"]();
+    return { enonce: `Quel nombre faut-il multiplier par $${b}$ pour obtenir $${a}$ ? $${b} \\times \\ldots = ${a}$.${CONSIGNE_FR}`, mode: "nombre", prefixe: "Nombre :", attendu: a / b,
+      erreurs: [{ valeur: b / a, message: "C'est l'inverse : le nombre cherché est le quotient de $" + a + "$ par $" + b + "$." }, ...approx(a / b)],
+      aides: ["Le nombre qui, multiplié par $b$, donne $a$ est le quotient $\\dfrac{a}{b}$.", `Ici, c'est le quotient de $${a}$ par $${b}$.`, `On l'écrit $\\dfrac{${a}}{${b}}$.`],
+      solution: `$${b} \\times ${fr(a, b)} = ${a}$ : le nombre cherché est $${fr(a, b)}$${pgcd(a, b) > 1 ? ` $= ${frNet(a, b)}$` : ""}.` };
+  };
+
+  const SIGNES = ["$<$", "$>$", "$=$"];
+  GEN["fr5-comparer"] = function () {
+    const t = rand(0, 4);
+    if (t <= 2) {
+      let a, b, c, d;
+      if (t === 0) { [a, b, c, d] = deuxFractions(Math.random() < 0.6); }
+      else if (t === 1) { const n = rand(1, 9); b = rand(2, 12); d = rand(2, 12); if (b === d) return GEN["fr5-comparer"](); a = n; c = n; }
+      else { const L = rand(2, 6), k = rand(2, 4); b = rand(2, 9); a = rand(1, 2 * b); c = a * k; d = b * k; if (Math.random() < 0.5) { c += pick([-1, 1]); if (c <= 0) c = 2; } }
+      if (Math.random() < 0.5) [a, b, c, d] = [c, d, a, b];
+      const v = a / b - c / d, rep = Math.abs(v) < 1e-12 ? 2 : v < 0 ? 0 : 1;
+      const M = memeDen(a, b, c, d);
+      const sol = t === 1 ? `Les deux fractions ont le même numérateur $${a}$ : la plus grande est celle qui a le plus petit dénominateur (on partage en moins de parts, elles sont plus grandes). Donc $${fr(a, b)} ${["<", ">", "="][rep]} ${fr(c, d)}$.`
+        : `On les écrit avec le même dénominateur $${M.L}$ : $${M.txt}$. On compare les numérateurs $${M.na}$ et $${M.nc}$ : $${fr(a, b)} ${["<", ">", "="][rep]} ${fr(c, d)}$.`;
+      return { enonce: `Compare : $${fr(a, b)} \\; \\ldots \\; ${fr(c, d)}$`, mode: "choix", choix: SIGNES.slice(), attendu: rep,
+        aides: ["Pour comparer deux fractions, on les écrit avec le **même dénominateur**.", `Cherche un multiple commun à $${b}$ et à $${d}$ : $${M.L}$ convient.`, `$${M.txt}$.`], solution: sol };
+    }
+    if (t === 3) {
+      const b = rand(2, 12), a = rand(1, 3 * b); if (a === b) return GEN["fr5-comparer"]();
+      const rep = a < b ? 0 : 1;
+      return { enonce: `Compare : $${fr(a, b)} \\; \\ldots \\; 1$`, mode: "choix", choix: SIGNES.slice(), attendu: rep,
+        aides: [`$1 = ${fr(b, b)}$.`, "Une fraction est plus petite que $1$ quand son numérateur est plus petit que son dénominateur.", `Compare $${a}$ et $${b}$.`],
+        solution: `$1 = ${fr(b, b)}$ et $${a} ${a < b ? "<" : ">"} ${b}$, donc $${fr(a, b)} ${a < b ? "<" : ">"} 1$.` };
+    }
+    // ranger trois fractions
+    for (;;) {
+      const L = pick([6, 8, 10, 12, 15, 18, 20, 24]), ds = [2, 3, 4, 5, 6, 8, 10, 12].filter((x) => L % x === 0);
+      if (ds.length < 3) continue;
+      const F = shuffle(ds.slice()).slice(0, 3).map((d) => [rand(1, 2 * d), d]);
+      const vals = F.map(([n, d]) => n / d); if (new Set(vals.map((x) => x.toFixed(6))).size < 3) continue;
+      const tri = F.slice().sort((p, q) => p[0] / p[1] - q[0] / q[1]), txt = (G) => "$" + G.map(([n, d]) => fr(n, d)).join(" < ") + "$";
+      const bonne = txt(tri), autres = [txt([tri[1], tri[0], tri[2]]), txt([tri[0], tri[2], tri[1]]), txt([tri[2], tri[1], tri[0]]), txt(F.slice().sort((p, q) => p[1] - q[1]))].filter((x) => x !== bonne);
+      const { choix, attendu } = melange(bonne, autres);
+      return { enonce: `Range dans l'ordre croissant : $${F.map(([n, d]) => fr(n, d)).join(" \\; ; \\; ")}$`, mode: "choix", choix, attendu,
+        aides: ["Écris les trois fractions avec le même dénominateur.", `$${L}$ est un multiple commun des trois dénominateurs.`, "Range ensuite les numérateurs."],
+        solution: `Avec le dénominateur $${L}$ : $${F.map(([n, d]) => `${fr(n, d)} = ${fr(n * (L / d), L)}`).join(" \\; ; \\; ")}$. Donc ${bonne}.` };
+    }
+  };
+
+  GEN["fr5-addsous"] = function () {
+    const plus = Math.random() < 0.55;
+    let [a, b, c, d] = deuxFractions(Math.random() < 0.5);
+    if (!plus && a / b < c / d) [a, b, c, d] = [c, d, a, b];
+    if (!plus && a / b === c / d) return GEN["fr5-addsous"]();
+    const M = memeDen(a, b, c, d), N = plus ? M.na + M.nc : M.na - M.nc, v = N / M.L, s = plus ? "+" : "-";
+    const naif = plus ? (a + c) / (b + d) : (a - c) / (b - d || 1);
+    return { enonce: `Calcule $${fr(a, b)} ${s} ${fr(c, d)}$.${CONSIGNE_FR}`, mode: "nombre", prefixe: "Résultat :", attendu: v,
+      erreurs: [...(isFinite(naif) && Math.abs(naif - v) > 1e-9 ? [{ valeur: naif, message: "On n'additionne (ou ne soustrait) jamais les dénominateurs : on met d'abord les fractions au même dénominateur." }] : []),
+        ...(Math.abs((plus ? a + c : a - c) / (b * d) - v) > 1e-9 ? [{ valeur: (plus ? a + c : a - c) / (b * d), message: "Quand on change le dénominateur, il faut aussi multiplier le numérateur par le même nombre." }] : []), ...approx(v)],
+      aides: ["On ne peut additionner ou soustraire que des fractions de **même dénominateur**.", `Cherche un multiple commun à $${b}$ et à $${d}$ : $${M.L}$ convient.`, `$${M.txt}$.`],
+      solution: `$${fr(a, b)} ${s} ${fr(c, d)} = ${fr(M.na, M.L)} ${s} ${fr(M.nc, M.L)} = ${fr(N, M.L)}$${pgcd(N, M.L) > 1 ? ` $= ${frNet(N, M.L)}$` : ""}.` };
+  };
+
+  GEN["fr5-calculs"] = function () {
+    const t = rand(0, 2);
+    if (t === 0) {
+      const d = rand(2, 9), n = rand(1, d - 1), q = rand(2, 15), N = d * q;
+      return { enonce: `Calcule $${fr(n, d)}$ de $${N}$.`, mode: "nombre", prefixe: "Résultat :", attendu: n * q,
+        erreurs: [{ valeur: q, message: `Ça, c'est $${fr(1, d)}$ de $${N}$. Il en faut $${n}$ fois plus.` }],
+        aides: [`Prendre $${fr(n, d)}$ d'un nombre, c'est le partager en $${d}$ parts égales et en prendre $${n}$.`, `$${N} \\div ${d} = ${q}$.`, `$${n} \\times ${q}$.`],
+        solution: `$${N} \\div ${d} = ${q}$ puis $${n} \\times ${q} = ${n * q}$ : $${fr(n, d)}$ de $${N}$ vaut $${n * q}$.` };
+    }
+    if (t === 1) {
+      const e = rand(1, 5), [a, b] = [rand(1, 9), rand(2, 9)], [c, d] = [rand(1, 9), rand(2, 9)];
+      if (b === d || ppcm(b, d) > 60 || pgcd(a, b) > 1 || pgcd(c, d) > 1) return GEN["fr5-calculs"]();
+      const L = ppcm(b, d), N = e * L + a * (L / b) - c * (L / d); if (N <= 0) return GEN["fr5-calculs"]();
+      const v = N / L;
+      return { enonce: `Calcule $${e} + ${fr(a, b)} - ${fr(c, d)}$.${CONSIGNE_FR}`, mode: "nombre", prefixe: "Résultat :", attendu: v, erreurs: approx(v),
+        aides: [`Écris $${e}$ sous forme de fraction : $${e} = ${fr(e * L, L)}$.`, `Mets tout au dénominateur $${L}$.`, "Calcule de gauche à droite avec les numérateurs."],
+        solution: `$${e} + ${fr(a, b)} - ${fr(c, d)} = ${fr(e * L, L)} + ${fr(a * (L / b), L)} - ${fr(c * (L / d), L)} = ${fr(N, L)}$${pgcd(N, L) > 1 ? ` $= ${frNet(N, L)}$` : ""}.` };
+    }
+    const ds = shuffle([2, 3, 4, 5, 6].slice()).slice(0, 2), L = ppcm(ds[0], ds[1]), a = rand(1, ds[0] - 1), c = rand(1, ds[1] - 1);
+    if (a / ds[0] + c / ds[1] >= 1) return GEN["fr5-calculs"]();
+    const N = L - a * (L / ds[0]) - c * (L / ds[1]), v = N / L;
+    return { enonce: `Calcule $1 - ${fr(a, ds[0])} - ${fr(c, ds[1])}$.${CONSIGNE_FR}`, mode: "nombre", prefixe: "Résultat :", attendu: v, erreurs: approx(v),
+      aides: [`$1 = ${fr(L, L)}$.`, `Mets les fractions au dénominateur $${L}$.`, "Soustrais les numérateurs, de gauche à droite."],
+      solution: `$1 - ${fr(a, ds[0])} - ${fr(c, ds[1])} = ${fr(L, L)} - ${fr(a * (L / ds[0]), L)} - ${fr(c * (L / ds[1]), L)} = ${fr(N, L)}$${pgcd(N, L) > 1 ? ` $= ${frNet(N, L)}$` : ""}.` };
+  };
+
+  GEN["fr5-problemes"] = function () {
+    const t = rand(0, 3), ds = shuffle([2, 3, 4, 5, 6, 8, 10].slice()).slice(0, 2), L = ppcm(ds[0], ds[1]);
+    const a = rand(1, ds[0] - 1), c = rand(1, ds[1] - 1);
+    if (a / ds[0] + c / ds[1] >= 1 || pgcd(a, ds[0]) > 1 || pgcd(c, ds[1]) > 1) return GEN["fr5-problemes"]();
+    const N = L - a * (L / ds[0]) - c * (L / ds[1]), v = N / L, f1 = fr(a, ds[0]), f2 = fr(c, ds[1]);
+    const CTX = [
+      [`Dans un collège de Mamoudzou, $${f1}$ des élèves viennent en bus et $${f2}$ viennent à pied. Les autres viennent en taxi ou en scooter.`, "Quelle fraction des élèves vient en taxi ou en scooter ?", "élèves"],
+      [`Un agriculteur de Combani plante des bananiers sur $${f1}$ de son terrain et du manioc sur $${f2}$. Le reste est en jachère.`, "Quelle fraction du terrain est en jachère ?", "terrain"],
+      [`Nasma dépense $${f1}$ de son argent de poche pour un livre et $${f2}$ pour une place de cinéma.`, "Quelle fraction de son argent de poche lui reste-t-il ?", "argent"],
+      [`Lors d'une sortie à la plage de N'Gouja, $${f1}$ du temps est consacré au snorkeling et $${f2}$ au pique-nique. Le reste du temps est libre.`, "Quelle fraction du temps est libre ?", "temps"]
+    ];
+    const [ctx, q] = CTX[t];
+    if (Math.random() < 0.6) {
+      return { enonce: `${ctx} ${q}${CONSIGNE_FR}`, mode: "nombre", prefixe: "Fraction :", attendu: v,
+        erreurs: [{ valeur: a / ds[0] + c / ds[1], message: "Ça, c'est la fraction des deux parts réunies. On demande ce qui **reste**." }, ...approx(v)],
+        aides: ["Le tout correspond à $1$.", `Additionne d'abord les deux parts : $${f1} + ${f2}$.`, `Retire le résultat de $1 = ${fr(L, L)}$.`],
+        solution: `$${f1} + ${f2} = ${fr(a * (L / ds[0]), L)} + ${fr(c * (L / ds[1]), L)} = ${fr(L - N, L)}$. Il reste $1 - ${fr(L - N, L)} = ${fr(N, L)}$${pgcd(N, L) > 1 ? ` $= ${frNet(N, L)}$` : ""}.` };
+    }
+    const k = rand(1, 4) * (t === 0 ? 2 : 1), total = L * k * (t === 0 ? rand(1, 3) : rand(1, 4)), reste = (total * N) / L;
+    const unite = [["élèves", `Le collège compte $${total * 10}$ élèves.`, 10], ["m²", `Le terrain mesure $${total * 100}$ m².`, 100], ["€", `Elle a $${total}$ € d'argent de poche.`, 1], ["minutes", `La sortie dure $${total * 5}$ minutes.`, 5]][t];
+    const R = reste * unite[2], T = total * unite[2];
+    return { enonce: `${ctx} ${unite[1]} ${["Combien d'élèves viennent en taxi ou en scooter ?", "Quelle surface est en jachère, en m² ?", "Combien d'euros lui reste-t-il ?", "Combien de minutes sont libres ?"][t]}`, mode: "nombre", prefixe: "Réponse :", suffixe: unite[0], attendu: R,
+      erreurs: [{ valeur: T - R, message: "Ça, c'est la quantité des deux parts réunies. On demande ce qui **reste**." }],
+      aides: [`Calcule d'abord la fraction qui reste : $1 - ${f1} - ${f2}$.`, `Il reste $${frNet(N, L)}$ du total.`, `Calcule $${frNet(N, L)}$ de $${T}$.`],
+      solution: `Il reste $1 - ${f1} - ${f2} = ${fr(N, L)}$ du total. $${fr(N, L)}$ de $${T}$ : $${T} \\div ${L} \\times ${N} = ${R}$ ${unite[0]}.` };
+  };
+
   /* Une « erreur connue » ne doit jamais coïncider avec la bonne réponse */
-  Object.keys(GEN).filter((k) => /^(rc5|tr5)-/.test(k)).forEach((k) => {
+  Object.keys(GEN).filter((k) => /^(rc5|tr5|fr5)-/.test(k)).forEach((k) => {
     const g = GEN[k];
     GEN[k] = (i) => {
       const q = g(i);

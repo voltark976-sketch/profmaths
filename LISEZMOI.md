@@ -24,6 +24,7 @@ Site statique : aucune base de données, aucun compte élève. Ouvrir `index.htm
   - `data/sixieme/informatique.js` : 6e, chapitre 15 (instructions, entrée et sortie, codes de déplacement, robot qui avance et tourne, boucle « répéter »). Générateurs `pi6-` ; figures `blocs()` (programmes façon Scratch) et `grille()` (quadrillage du robot).
   - `data/cinquieme/calcul.js` : 5e, chapitre 1 (priorités, parenthèses, trait de fraction, vocabulaire, traduction, distributivité numérique). Générateurs `rc5-` dans `assets/exercices-cinquieme.js`, chargé après `assets/exercices-college.js` dont il reprend les outils (`window.PM_EXO.college`).
   - `data/cinquieme/triangles.js` : 5e, chapitre 2 (triangles constructibles, médiatrices et cercle circonscrit, hauteurs, médianes et aires, triangles particuliers). Générateurs `tr5-` ; figure `figureDroite()`.
+  - `data/cinquieme/fractions.js` : 5e, chapitre 3 (fractions égales, entier + fraction, comparer et ranger, additionner et soustraire avec dénominateurs quelconques, problèmes). Générateurs `fr5-`.
 - `data/seconde/ensembles.js` : chapitre 1 de Seconde (ensembles de nombres, intervalles, valeur absolue). Les générateurs d'exercices correspondants commencent par `ens-`, `int-` et `abs-` dans `assets/exercices.js`.
 - `data/seconde/information-chiffree.js` : chapitre 3 de Seconde.
 - `data/seconde/arithmetique.js` : chapitre 4 de Seconde (multiples, diviseurs, parité, nombres premiers, fractions irréductibles). Générateurs `ar-` dans `assets/exercices.js`.
