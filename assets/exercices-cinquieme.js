@@ -3,7 +3,7 @@
   Ce fichier se charge après assets/exercices-college.js et reprend ses outils (window.PM_EXO.college).
   Mêmes règles : chaque générateur fabrique une question avec des nombres tirés au hasard, la réponse
   attendue, trois indices progressifs et la solution rédigée.
-  Préfixes : rc5- (règles de calcul), tr5-, fr5-.
+  Préfixes : rc5- (règles de calcul), tr5-, fr5-, pp5-.
 */
 (function () {
   "use strict";
@@ -495,8 +495,143 @@
       solution: `Il reste $1 - ${f1} - ${f2} = ${fr(N, L)}$ du total. $${fr(N, L)}$ de $${T}$ : $${T} \\div ${L} \\times ${N} = ${R}$ ${unite[0]}.` };
   };
 
+  /* =====================================================================
+     Chapitre 4 : proportionnalité et pourcentages (pp5-)
+     ===================================================================== */
+  const { tabP } = window.PM_EXO.college;
+  const r2 = (x) => Math.round(x * 1e6) / 1e6;
+  const SIT_P = [
+    { n1: "Masse (kg)", n2: "Prix (€)", k: () => pick([1.5, 2, 2.5, 3, 3.2, 4, 4.5, 6]), x: () => [1, 2, 3, 4, 5, 6, 8, 10] },
+    { n1: "Durée (h)", n2: "Distance (km)", k: () => pick([12, 15, 40, 50, 60, 80, 90]), x: () => [1, 2, 3, 4, 5, 6] },
+    { n1: "Nombre de cahiers", n2: "Prix (€)", k: () => pick([1.2, 1.5, 2, 2.4, 3.5]), x: () => [2, 3, 4, 5, 6, 10, 12] },
+    { n1: "Essence (L)", n2: "Prix (€)", k: () => pick([1.8, 1.9, 2]), x: () => [5, 10, 15, 20, 30, 40] },
+    { n1: "Farine (g)", n2: "Nombre de mkatra", k: () => pick([0.01, 0.02]), x: () => [100, 200, 300, 400, 500, 600] }
+  ];
+  const dec = (x) => nb(r2(x));
+
+  GEN["pp5-reconnaitre"] = function () {
+    const S = pick(SIT_P), k = S.k(), xs = shuffle(S.x().slice()).slice(0, 3).sort((a, b) => a - b), propor = Math.random() < 0.5;
+    let ys = xs.map((x) => r2(x * k));
+    if (!propor) { const i = rand(1, 2); ys[i] = r2(ys[i] + pick([-1, 1]) * (k >= 1 ? pick([1, 2, 0.5]) : 1)); if (ys[i] <= 0) return GEN["pp5-reconnaitre"](); }
+    const q = ys.map((y, i) => r2(y / xs[i])), K = `Oui, le coefficient est $${dec(k)}$`;
+    const bonne = propor ? K : "Non, ce n'est pas un tableau de proportionnalité";
+    const fausses = propor ? ["Non, ce n'est pas un tableau de proportionnalité", `Oui, le coefficient est $${dec(r2(k * 2))}$`, `Oui, le coefficient est $${dec(r2(k + 1))}$`] : [`Oui, le coefficient est $${dec(q[0])}$`, `Oui, le coefficient est $${dec(q[2])}$`, `Oui, le coefficient est $${dec(q[1])}$`];
+    const { choix, attendu } = melange(bonne, fausses.filter((f) => f !== bonne));
+    return { enonce: "Ce tableau est-il un tableau de proportionnalité ?", tableau: tabP(S.n1, S.n2, xs.map(dec), ys.map(dec)), mode: "choix", choix, attendu,
+      aides: ["Dans un tableau de proportionnalité, on passe de la première ligne à la deuxième en multipliant toujours par le même nombre.", "Calcule chaque quotient : nombre du bas $\\div$ nombre du haut.", `Premier quotient : $${dec(ys[0])} \\div ${dec(xs[0])} = ${dec(q[0])}$.`],
+      solution: `Quotients : ${q.map((v, i) => `$${dec(ys[i])} \\div ${dec(xs[i])} = ${dec(v)}$`).join(" ; ")}. ${propor ? `Ils sont tous égaux : c'est un tableau de proportionnalité de coefficient $${dec(k)}$.` : "Ils ne sont pas tous égaux : ce n'est pas un tableau de proportionnalité."}` };
+  };
+
+  GEN["pp5-completer"] = function () {
+    const S = pick(SIT_P), k = S.k(), t = rand(0, 2);
+    let xs = shuffle(S.x().slice()).slice(0, 3);
+    if (t === 1) { const a = pick(S.x().filter((x) => x <= 5)), b = pick([2, 3, 4, 5].filter((m) => S.x().includes(a * m))); if (!b) return GEN["pp5-completer"](); xs = [a, a * b, rand(0, 1) ? a + a * b : xs[2]]; }
+    if (new Set(xs).size < 3) return GEN["pp5-completer"]();
+    const ys = xs.map((x) => r2(x * k)), cache = t === 1 ? 1 : rand(1, 2), haut = Math.random() < 0.25;
+    const Lx = xs.map((x, i) => (haut && i === cache ? "\\ldots" : dec(x))), Ly = ys.map((y, i) => (!haut && i === cache ? "\\ldots" : dec(y)));
+    const rep = haut ? xs[cache] : ys[cache];
+    const m = r2(xs[cache] / xs[0]);
+    const meth = haut ? `On divise par le coefficient $${dec(k)}$ : $${dec(ys[cache])} \\div ${dec(k)} = ${dec(xs[cache])}$.`
+      : Number.isInteger(m) && m > 1 ? `$${dec(xs[cache])} = ${m} \\times ${dec(xs[0])}$, donc on multiplie $${dec(ys[0])}$ par $${m}$ : $${dec(rep)}$. (On peut aussi multiplier par le coefficient $${dec(k)}$.)`
+      : xs.length === 3 && xs[2] === xs[0] + xs[1] && cache === 2 ? `$${dec(xs[2])} = ${dec(xs[0])} + ${dec(xs[1])}$, donc $${dec(ys[0])} + ${dec(ys[1])} = ${dec(rep)}$.`
+      : `Le coefficient est $${dec(ys[0])} \\div ${dec(xs[0])} = ${dec(k)}$, donc $${dec(xs[cache])} \\times ${dec(k)} = ${dec(rep)}$.`;
+    return { enonce: `Ce tableau est un tableau de proportionnalité. Complète la case manquante.`, tableau: tabP(S.n1, S.n2, Lx, Ly), mode: "nombre", prefixe: "Nombre manquant :", attendu: rep,
+      aides: ["Plusieurs méthodes : le coefficient de proportionnalité, la multiplication d'une colonne, l'addition de deux colonnes, ou le retour à l'unité.", `Coefficient : $${dec(ys[0])} \\div ${dec(xs[0])} = ${dec(k)}$.`, haut ? "Pour remonter de la deuxième ligne à la première, on divise par le coefficient." : "Pour descendre de la première ligne à la deuxième, on multiplie par le coefficient."],
+      solution: meth };
+  };
+
+  GEN["pp5-coefficient"] = function () {
+    const t = rand(0, 3), nom = pick(["Awa", "Moussa", "Nasma", "Ibrahim", "Faïza", "Tom", "Zaïd", "Inès"]);
+    if (t === 0) {
+      const p = Dc(rand(15, 60) * 10, 2), q = rand(2, 6), tot = mulD(p, Dc(q)), n = rand(2, 9);
+      return { enonce: `${nom} paie $${tD(tot)}$ € pour $${q}$ kg de tomates. Combien paierait-on pour $${n}$ kg ?`, mode: "nombre", prefixe: "Prix :", suffixe: "€", attendu: (p.m / 100) * n,
+        aides: ["Le prix est proportionnel à la masse.", `Retour à l'unité : prix d'un kilogramme $= ${tD(tot)} \\div ${q}$.`, `Un kilogramme coûte $${tD(p)}$ €.`],
+        solution: `Prix d'un kilogramme : $${tD(tot)} \\div ${q} = ${tD(p)}$ €. Pour $${n}$ kg : $${n} \\times ${tD(p)} = ${tD(mulD(p, Dc(n)))}$ €.` };
+    }
+    if (t === 1) {
+      const v = pick([30, 40, 45, 50, 60, 70, 80, 90, 100]), h = pick([[2, "2 h"], [3, "3 h"], [0.5, "30 min"], [1.5, "1 h 30 min"], [2.5, "2 h 30 min"], [4, "4 h"]]), d = v * h[0];
+      return { enonce: `Un véhicule roule à vitesse constante et parcourt $${dec(d)}$ km en ${h[1].replace(/(\d+)/g, "$$$1$$")}. Quelle est sa vitesse moyenne, en km/h ?`, mode: "nombre", prefixe: "Vitesse :", suffixe: "km/h", attendu: v,
+        erreurs: h[0] % 1 && h[0] > 1 ? [{ valeur: d / Math.floor(h[0]), message: "Attention : $30$ min, c'est $0{,}5$ h." }] : [],
+        aides: ["La vitesse moyenne en km/h est la distance parcourue en $1$ heure.", h[0] % 1 ? "$30$ min $= 0{,}5$ h." : "La distance est proportionnelle à la durée.", `Vitesse $=$ distance $\\div$ durée $= ${dec(d)} \\div ${dec(h[0])}$.`],
+        solution: `En $1$ h, le véhicule parcourt $${dec(d)} \\div ${dec(h[0])} = ${v}$ km : sa vitesse moyenne est $${v}$ km/h.` };
+    }
+    if (t === 2) {
+      const p = pick([4, 6, 8]), f = rand(2, 6) * 50, q = pick([2, 3, 6, 10, 12].filter((x) => x !== p)), rep = (f / p) * q;
+      if (!Number.isInteger(rep)) return GEN["pp5-coefficient"]();
+      return { enonce: `Une recette de bouchées à la noix de coco pour $${p}$ personnes demande $${f}$ g de coco râpée. Quelle masse faut-il pour $${q}$ personnes ?`, mode: "nombre", prefixe: "Masse :", suffixe: "g", attendu: rep,
+        erreurs: [{ valeur: f + (q - p), message: "Les quantités sont proportionnelles au nombre de personnes : on ne fait pas une addition." }],
+        aides: ["La masse de coco est proportionnelle au nombre de personnes.", `Pour une personne : $${f} \\div ${p} = ${dec(f / p)}$ g.`, `Pour $${q}$ personnes : $${q} \\times ${dec(f / p)}$.`],
+        solution: `Pour une personne : $${f} \\div ${p} = ${dec(f / p)}$ g. Pour $${q}$ personnes : $${q} \\times ${dec(f / p)} = ${dec(rep)}$ g.` };
+    }
+    const v = pick([4, 5, 6, 12, 15, 20]), d = v * rand(2, 9) / 2;
+    if (!Number.isInteger(d * 2)) return GEN["pp5-coefficient"]();
+    const tps = d / v;
+    return { enonce: `${nom} marche à la vitesse constante de $${v}$ km/h. Combien de temps lui faut-il pour parcourir $${dec(d)}$ km ? (Réponse en heures, par exemple $1{,}5$ pour $1$ h $30$ min.)`, mode: "nombre", prefixe: "Durée :", suffixe: "h", attendu: tps,
+      aides: [`En $1$ h, ${nom} parcourt $${v}$ km.`, "La distance est proportionnelle à la durée.", `Durée $= ${dec(d)} \\div ${v}$.`],
+      solution: `Durée $= ${dec(d)} \\div ${v} = ${dec(tps)}$ h${tps % 1 ? `, soit $${Math.floor(tps)}$ h $${Math.round((tps % 1) * 60)}$ min` : ""}.` };
+  };
+
+  GEN["pp5-pourcentages"] = function () {
+    const t = rand(0, 3);
+    if (t === 0) {
+      const p = pick([5, 10, 15, 20, 25, 30, 40, 50, 60, 75]), N = pick([20, 40, 60, 80, 120, 150, 200, 240, 300, 500, 1200]), v = (p * N) / 100;
+      if (!Number.isInteger(v * 10)) return GEN["pp5-pourcentages"]();
+      return { enonce: `Calcule $${p}\\,\\%$ de $${N}$.`, mode: "nombre", prefixe: "Résultat :", attendu: v,
+        erreurs: [{ valeur: N - v, message: `Ça, c'est ce qui reste quand on retire $${p}\\,\\%$.` }],
+        aides: [`$${p}\\,\\%$ de $${N}$, c'est $\\dfrac{${p}}{100} \\times ${N}$.`, `$1\\,\\%$ de $${N}$ vaut $${dec(N / 100)}$.`, `Multiplie par $${p}$.`],
+        solution: `$${p}\\,\\%$ de $${N}$ : $${N} \\times ${p} \\div 100 = ${dec(v)}$.` };
+    }
+    if (t === 1) {
+      const T = pick([20, 25, 40, 50, 200, 400, 500]), part = rand(1, T - 1), p = (part / T) * 100;
+      if (!Number.isInteger(p)) return GEN["pp5-pourcentages"]();
+      const ctx = pick([[`Dans un collège de $${T}$ élèves, $${part}$ sont demi-pensionnaires.`, "Quel pourcentage des élèves est demi-pensionnaire ?"], [`Sur $${T}$ tortues observées à Moya, $${part}$ sont des tortues vertes.`, "Quel pourcentage des tortues sont des tortues vertes ?"], [`Un club de $${T}$ adhérents compte $${part}$ filles.`, "Quel est le pourcentage de filles ?"]]);
+      return { enonce: `${ctx[0]} ${ctx[1]}`, mode: "nombre", prefixe: "Pourcentage :", suffixe: "%", attendu: p,
+        erreurs: [{ valeur: part, message: "Un pourcentage se calcule sur $100$ : il faut ramener l'effectif total à $100$." }],
+        aides: ["Le pourcentage est la proportion ramenée à $100$.", `Proportion : $\\dfrac{${part}}{${T}}$.`, `$\\dfrac{${part}}{${T}} = \\dfrac{\\ldots}{100}$.`],
+        solution: `$\\dfrac{${part}}{${T}} = ${dec(part / T)} = \\dfrac{${dec(p)}}{100}$ : cela représente $${dec(p)}\\,\\%$.` };
+    }
+    if (t === 2) {
+      const noms = shuffle(["Alexis", "Chloé", "Salma", "Djibril", "Anli", "Mariama"].slice()).slice(0, 4), T = pick([20, 25, 40, 50]);
+      let v; for (;;) { v = [rand(1, T / 2), rand(1, T / 2), rand(1, T / 2)]; const r = T - v[0] - v[1] - v[2]; if (r >= 1) { v.push(r); break; } }
+      const i = rand(0, 3), p = (v[i] / T) * 100;
+      return { enonce: `À l'élection des délégués, chaque élève a voté pour un seul candidat. Quel pourcentage des voix a obtenu ${noms[i]} ?`, tableau: { lignes: [["\\text{Candidat}", "\\text{Voix}"], ...noms.map((n, j) => [`\\text{${n}}`, v[j]]), ["\\text{Total}", T]] }, mode: "nombre", prefixe: "Pourcentage :", suffixe: "%", attendu: p,
+        erreurs: [{ valeur: v[i], message: "Ça, c'est le nombre de voix, pas le pourcentage." }],
+        aides: [`${noms[i]} a $${v[i]}$ voix sur $${T}$.`, `Pourcentage $= \\dfrac{${v[i]}}{${T}} \\times 100$.`, `$100 \\div ${T} = ${100 / T}$.`],
+        solution: `$\\dfrac{${v[i]}}{${T}} \\times 100 = ${v[i]} \\times ${100 / T} = ${dec(p)}$ : ${noms[i]} a obtenu $${dec(p)}\\,\\%$ des voix.` };
+    }
+    const p = pick([10, 20, 25, 30, 40, 50]), P = rand(2, 40) * 10, r = (P * p) / 100;
+    const hausse = Math.random() < 0.4, fin = hausse ? P + r : P - r;
+    return { enonce: `Un article coûte $${P}$ €. Son prix ${hausse ? "augmente" : "baisse"} de $${p}\\,\\%$. Quel est son nouveau prix ?`, mode: "nombre", prefixe: "Nouveau prix :", suffixe: "€", attendu: fin,
+      erreurs: [{ valeur: r, message: `Ça, c'est le montant de ${hausse ? "l'augmentation" : "la réduction"}. Il faut encore ${hausse ? "l'ajouter au" : "le retirer du"} prix de départ.` }, { valeur: hausse ? P + p : P - p, message: `$${p}\\,\\%$, ce n'est pas $${p}$ € : c'est $${p}$ € pour $100$ €.` }],
+      aides: [`Calcule d'abord $${p}\\,\\%$ de $${P}$ €.`, `$${p}\\,\\%$ de $${P}$ $= ${dec(r)}$ €.`, `${hausse ? "Ajoute-le au" : "Retire-le du"} prix de départ.`],
+      solution: `$${p}\\,\\%$ de $${P}$ € : $${P} \\times ${p} \\div 100 = ${dec(r)}$ €. Nouveau prix : $${P} ${hausse ? "+" : "-"} ${dec(r)} = ${dec(fin)}$ €.` };
+  };
+
+  GEN["pp5-echelles"] = function () {
+    const t = rand(0, 2), E = pick([100, 200, 250, 500, 1000, 2000, 5000, 10000, 25000, 50000, 100000]);
+    const unite = (cm) => (cm >= 100000 ? [cm / 100000, "km"] : cm >= 100 ? [cm / 100, "m"] : [cm, "cm"]);
+    if (t === 0) {
+      const c = rand(2, 30) / 2, reel = c * E, [v, u] = unite(reel);
+      return { enonce: `Sur un plan à l'échelle $\\dfrac{1}{${nb(E)}}$, deux points sont distants de $${dec(c)}$ cm. Quelle est la distance réelle, en ${u} ?`, mode: "nombre", prefixe: "Distance réelle :", suffixe: u, attendu: r2(v),
+        erreurs: u !== "cm" ? [{ valeur: reel, message: `Ça, c'est la distance en centimètres. Convertis en ${u}.` }] : [],
+        aides: [`L'échelle $\\dfrac{1}{${nb(E)}}$ signifie que $1$ cm sur le plan représente $${nb(E)}$ cm en réalité.`, `Distance réelle $= ${dec(c)} \\times ${nb(E)}$ cm.`, `Convertis en ${u}.`],
+        solution: `$${dec(c)} \\times ${nb(E)} = ${dec(reel)}$ cm, soit $${dec(v)}$ ${u}.` };
+    }
+    if (t === 1) {
+      const c = rand(2, 24) / 2, reel = c * E, [v, u] = unite(reel);
+      return { enonce: `Sur un plan à l'échelle $\\dfrac{1}{${nb(E)}}$, quelle longueur représente une distance réelle de $${dec(v)}$ ${u} ? (Réponse en cm.)`, mode: "nombre", prefixe: "Sur le plan :", suffixe: "cm", attendu: c,
+        aides: [`Convertis d'abord la distance réelle en cm : $${dec(reel)}$ cm.`, `Sur le plan, les longueurs sont divisées par $${nb(E)}$.`, `$${dec(reel)} \\div ${nb(E)}$.`],
+        solution: `$${dec(v)}$ ${u} $= ${dec(reel)}$ cm et $${dec(reel)} \\div ${nb(E)} = ${dec(c)}$ cm.` };
+    }
+    const c = rand(2, 12), reel = c * E, [v, u] = unite(reel);
+    return { enonce: `Sur une carte, $${c}$ cm représentent $${dec(v)}$ ${u} en réalité. Quelle est l'échelle de la carte ? Donne le nombre $n$ tel que l'échelle soit $\\dfrac{1}{n}$.`, mode: "nombre", prefixe: "$n =$", attendu: E,
+      erreurs: u !== "cm" ? [{ valeur: v / c, message: "Il faut exprimer les deux distances dans la même unité (en cm) avant de diviser." }] : [],
+      aides: ["Exprime les deux longueurs dans la même unité.", `$${dec(v)}$ ${u} $= ${dec(reel)}$ cm.`, `$1$ cm sur la carte représente $${dec(reel)} \\div ${c}$ cm.`],
+      solution: `$${dec(v)}$ ${u} $= ${dec(reel)}$ cm. $${dec(reel)} \\div ${c} = ${nb(E)}$ : $1$ cm représente $${nb(E)}$ cm, l'échelle est $\\dfrac{1}{${nb(E)}}$.` };
+  };
+
   /* Une « erreur connue » ne doit jamais coïncider avec la bonne réponse */
-  Object.keys(GEN).filter((k) => /^(rc5|tr5|fr5)-/.test(k)).forEach((k) => {
+  Object.keys(GEN).filter((k) => /^(rc5|tr5|fr5|pp5)-/.test(k)).forEach((k) => {
     const g = GEN[k];
     GEN[k] = (i) => {
       const q = g(i);

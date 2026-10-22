@@ -158,7 +158,7 @@ window.CATALOGUE = {
           id: "cinquieme-proportionnalite",
           numero: 4,
           titre: "Proportionnalité et pourcentages",
-          statut: "bientot",
+          statut: "disponible",
           drive: ""
         },
         {
