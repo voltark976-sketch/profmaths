@@ -94,7 +94,7 @@ window.CATALOGUE = {
           id: "sixieme-triangles",
           numero: 11,
           titre: "Triangles",
-          statut: "bientot",
+          statut: "disponible",
           drive: ""
         },
         {

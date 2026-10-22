@@ -175,6 +175,7 @@ pre.code code { font: inherit; }
 .g-grad-int { font: 8px var(--f-texte); fill: var(--doux); }
 .g-arc { fill: none; stroke: var(--ylang); stroke-width: 2; }
 .g-num-angle { font-size: 13px; fill: var(--lagon); }
+.g-mesure { font: 700 11px var(--f-texte); fill: var(--lagon); }
 .quadrillage .g-colorie { fill: var(--lagon); fill-opacity: 0.45; }
 
 /* Vidéos */

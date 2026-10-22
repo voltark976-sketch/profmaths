@@ -17,6 +17,7 @@ Site statique : aucune base de données, aucun compte élève. Ouvrir `index.htm
   - `data/sixieme/donnees-probabilites.js` : 6e, chapitre 8 (tableaux, diagrammes en barres et circulaires, courbes, probabilités en équiprobabilité, fréquences). Générateurs `g6-` ; figures `diagrammeBarres()`, `diagrammeCirculaire()`, `courbeDonnees()`.
   - `data/sixieme/distances-cercles.js` : 6e, chapitre 9 (notations, milieu, cercle et disque, distance à un point, médiatrice). Générateurs `c6-` ; figures `geo()` (points, segments, droites, cercles, codage).
   - `data/sixieme/angles.js` : 6e, chapitre 10 (notation, nature, mesure au rapporteur, angles adjacents, supplémentaires, opposés par le sommet, bissectrice). Générateurs `an6-` ; figures `rapporteur()`, `figureAngle()`, `figureSecantes()`.
+  - `data/sixieme/triangles.js` : 6e, chapitre 11 (construction et inégalité des longueurs, triangles particuliers et codage, somme des angles, cercle circonscrit). Générateurs `tg6-` ; figure `figureTriangle()`.
 - `data/seconde/ensembles.js` : chapitre 1 de Seconde (ensembles de nombres, intervalles, valeur absolue). Les générateurs d'exercices correspondants commencent par `ens-`, `int-` et `abs-` dans `assets/exercices.js`.
 - `data/seconde/information-chiffree.js` : chapitre 3 de Seconde.
 - `data/seconde/arithmetique.js` : chapitre 4 de Seconde (multiples, diviseurs, parité, nombres premiers, fractions irréductibles). Générateurs `ar-` dans `assets/exercices.js`.

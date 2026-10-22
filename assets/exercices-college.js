@@ -2398,8 +2398,110 @@
       solution: nat.startsWith("opposés") ? `Les angles n° $${p}$ et n° $${q}$ ont le même sommet et leurs côtés se prolongent : ils sont **opposés par le sommet**, donc de même mesure.` : `Les angles n° $${p}$ et n° $${q}$ ont un côté commun et forment ensemble un angle plat : ils sont **adjacents et supplémentaires** (somme $180$°).` };
   };
 
+  /* =====================================================================
+     6e, chapitre 11 : triangles (préfixe tg6-)
+     Programme : construire des triangles (trois longueurs ne permettent pas toujours de construire un triangle) ;
+     propriétés angulaires des triangles rectangle, isocèle, équilatéral ; somme des angles égale à 180° ;
+     médiatrices concourantes et cercle circonscrit.
+     ===================================================================== */
+  // Triangle ABC (sommets en pixels), avec codage et textes (mesures) placés près des sommets
+  function figureTriangle(P, noms, o) {
+    o = o || {};
+    const [A, B, C] = noms, pts = { [A]: P[0], [B]: P[1], [C]: P[2] };
+    const g = [P[0][0] + P[1][0] + P[2][0], P[0][1] + P[1][1] + P[2][1]].map((v) => v / 3);
+    const decal = {}; [A, B, C].forEach((n, k) => { const dx = P[k][0] - g[0], dy = P[k][1] - g[1], L = Math.hypot(dx, dy); decal[n] = [Math.round((dx / L) * 12) - 3, Math.round((dy / L) * 12) + 4]; });
+    let s = geo({ W: 320, H: o.H || 190, pts, segs: [[A, B], [B, C], [C, A]], codes: o.codes, droitAngle: o.droit, decal, aria: o.aria || `Triangle ${A}${B}${C}` });
+    (o.angles || []).forEach(([k, txt]) => { const dx = g[0] - P[k][0], dy = g[1] - P[k][1], L = Math.hypot(dx, dy); s = s.replace("</svg>", `<text class="g-mesure" x="${+(P[k][0] + (dx / L) * 30).toFixed(1)}" y="${+(P[k][1] + (dy / L) * 30 + 4).toFixed(1)}" text-anchor="middle">${txt}</text></svg>`); });
+    return s;
+  }
+  const NOMS_TRI = () => shuffle([["A", "B", "C"], ["D", "E", "F"], ["M", "N", "P"], ["R", "S", "T"], ["I", "J", "K"], ["E", "F", "G"]].slice())[0];
+  FIGURES["tg6-somme"] = () => figureTriangle([[40, 160], [280, 160], [110, 30]], ["A", "B", "C"], { angles: [[0, "62°"], [1, "37°"], [2, "?"]] });
+  FIGURES["tg6-isocele"] = () => figureTriangle([[60, 165], [260, 165], [160, 25]], ["B", "C", "A"], { codes: [["A", "B", 2], ["A", "C", 2]], angles: [[0, "55°"], [1, "55°"], [2, "70°"]], aria: "Triangle ABC isocèle en A : AB = AC, angles à la base de 55°" });
+
+  GEN["tg6-nature"] = function () {
+    const n = NOMS_TRI(), [A, B, C] = n, t = rand(0, 4);
+    const formes = [
+      { nom: "Un triangle isocèle", P: [[60, 165], [260, 165], [160 + rand(-20, 20), 30]], codes: [[C, A, 2], [C, B, 2]], txt: `il a deux côtés de même longueur : $${C}${A} = ${C}${B}$. Il est isocèle en $${C}$` },
+      { nom: "Un triangle équilatéral", P: [[80, 172], [240, 172], [160, 33.4]], codes: [[A, B, 1], [B, C, 1], [C, A, 1]], txt: "ses trois côtés ont la même longueur" },
+      { nom: "Un triangle rectangle", P: [[60, 165], [60, 40], [260 - rand(0, 40), 165]], droit: [[B, A, C]], txt: `il a un angle droit, en $${A}$` },
+      { nom: "Un triangle rectangle isocèle", P: [[70, 170], [70, 40], [200, 170]], droit: [[B, A, C]], codes: [[A, B, 1], [A, C, 1]], txt: `il a un angle droit en $${A}$ et deux côtés de même longueur, $${A}${B} = ${A}${C}$` },
+      { nom: "Un triangle quelconque", P: [[40, 165], [270, 150], [120 + rand(0, 40), 30]], txt: "il n'a ni côtés de même longueur codés, ni angle droit" }
+    ];
+    const F = formes[t];
+    // une réponse plus précise rend vraies les réponses plus générales : on retire ces dernières des choix
+    const aussiVrai = { "Un triangle équilatéral": ["Un triangle isocèle"], "Un triangle rectangle isocèle": ["Un triangle isocèle", "Un triangle rectangle"] }[F.nom] || [];
+    const c = melange(F.nom, formes.map((f) => f.nom).filter((x) => x !== F.nom && !aussiVrai.includes(x)).sort(() => Math.random() - 0.5).slice(0, 3));
+    return { enonce: `D'après le codage de la figure, quelle est la nature du triangle $${A}${B}${C}$ ?`, figure: figureTriangle(F.P, n, { codes: F.codes, droit: F.droit }), mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: ["Les petits traits identiques indiquent des côtés de même longueur.", "Le petit carré indique un angle droit.", "On ne se fie qu'au codage, pas à l'impression visuelle."],
+      solution: `${F.nom} : ${F.txt}.` };
+  };
+
+  GEN["tg6-somme"] = function () {
+    const n = NOMS_TRI(), [A, B, C] = n, t = rand(0, 4), h = (x, y, z) => `\\widehat{${x}${y}${z}}`;
+    if (t === 0) { const a = rand(20, 110), b = rand(15, 160 - a), c = 180 - a - b;
+      const P = [[40, 160], [280, 160], [rand(90, 200), 30]];
+      return { enonce: `Dans le triangle $${A}${B}${C}$, $${h(C, A, B)} = ${a}$° et $${h(A, B, C)} = ${b}$°. Combien mesure $${h(A, C, B)}$ ? (La figure n'est pas en vraie grandeur.)`, figure: figureTriangle(P, n, { angles: [[0, a + "°"], [1, b + "°"], [2, "?"]] }), mode: "nombre", prefixe: "Mesure :", suffixe: "°", attendu: c,
+        erreurs: [{ valeur: 360 - a - b, message: "La somme des angles d'un triangle fait $180$°, pas $360$°." }, { valeur: a + b, message: "Il faut retirer les deux angles connus de $180$°." }],
+        aides: ["La somme des trois angles d'un triangle est toujours $180$°.", `$${a} + ${b} = ${a + b}$.`, `Calcule $180 - ${a + b}$.`], solution: `$180 - ${a} - ${b} = ${c}$° : $${h(A, C, B)} = ${c}$°.` }; }
+    if (t === 1) { const b = rand(20, 85), sommet = 180 - 2 * b;
+      return { enonce: `Le triangle $${A}${B}${C}$ est isocèle en $${A}$, et $${h(A, B, C)} = ${b}$°. Combien mesure $${h(B, A, C)}$ ?`, mode: "nombre", prefixe: "Mesure :", suffixe: "°", attendu: sommet,
+        erreurs: [{ valeur: 180 - b, message: `Les deux angles à la base, en $${B}$ et en $${C}$, mesurent tous les deux $${b}$°.` }],
+        aides: [`Isocèle en $${A}$ : les angles à la base, $${h(A, B, C)}$ et $${h(A, C, B)}$, ont la même mesure.`, `Donc $${h(A, C, B)} = ${b}$°.`, `$180 - ${b} - ${b}$.`], solution: `$${h(A, C, B)} = ${h(A, B, C)} = ${b}$°, donc $${h(B, A, C)} = 180 - 2 \\times ${b} = ${sommet}$°.` }; }
+    if (t === 2) { const s0 = rand(10, 80) * 2, base = (180 - s0) / 2;
+      return { enonce: `Le triangle $${A}${B}${C}$ est isocèle en $${A}$, et $${h(B, A, C)} = ${s0}$°. Combien mesure $${h(A, B, C)}$ ?`, mode: "nombre", prefixe: "Mesure :", suffixe: "°", attendu: base,
+        erreurs: [{ valeur: 180 - s0, message: "Il reste $" + (180 - s0) + "$° à partager entre les deux angles à la base." }],
+        aides: [`Il reste $180 - ${s0} = ${180 - s0}$° pour les deux angles à la base.`, "Les deux angles à la base sont égaux.", `Calcule $${180 - s0} \\div 2$.`], solution: `$(180 - ${s0}) \\div 2 = ${base}$° : $${h(A, B, C)} = ${base}$°.` }; }
+    if (t === 3) { const a = rand(10, 80);
+      return { enonce: `Le triangle $${A}${B}${C}$ est rectangle en $${A}$, et $${h(A, B, C)} = ${a}$°. Combien mesure $${h(A, C, B)}$ ?`, mode: "nombre", prefixe: "Mesure :", suffixe: "°", attendu: 90 - a,
+        erreurs: [{ valeur: 180 - a, message: `N'oublie pas l'angle droit en $${A}$ : $90$°.` }],
+        aides: [`L'angle en $${A}$ est droit : $90$°.`, "Il reste $180 - 90 = 90$° pour les deux autres angles.", `Calcule $90 - ${a}$.`], solution: `$180 - 90 - ${a} = ${90 - a}$° : $${h(A, C, B)} = ${90 - a}$°.` }; }
+    const c = melange("$60$°", ["$90$°", "$45$°", "$180$°", "$30$°"]);
+    return { enonce: `Le triangle $${A}${B}${C}$ est équilatéral. Combien mesure chacun de ses angles ?`, mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: ["Dans un triangle équilatéral, les trois angles sont égaux.", "Leur somme fait $180$°.", "$180 \\div 3$."], solution: "Trois angles égaux de somme $180$° : chacun mesure $180 \\div 3 = 60$°." };
+  };
+
+  GEN["tg6-construire"] = function () {
+    const t = rand(0, 2), n = NOMS_TRI(), [A, B, C] = n;
+    let a, b, c;
+    if (t === 0) { a = rand(3, 9); b = rand(3, 9); c = rand(Math.abs(a - b) + 1, a + b - 1); }
+    else if (t === 1) { a = rand(2, 7); b = rand(2, 7); c = a + b + rand(1, 5); }
+    else { a = rand(2, 7); b = rand(2, 7); c = a + b; }
+    const cotes = shuffle([a, b, c]), plus = Math.max(a, b, c), autres = a + b + c - plus;
+    const choix = ["Oui, on peut construire ce triangle", "Non : le plus grand côté est trop long, les arcs ne se coupent pas", "Non : les trois points sont alignés (triangle « aplati »)"];
+    const rep = t;
+    return { enonce: `Peut-on construire un triangle $${A}${B}${C}$ avec $${A}${B} = ${cotes[0]}$ cm, $${B}${C} = ${cotes[1]}$ cm et $${A}${C} = ${cotes[2]}$ cm ?`, mode: "choix", choix, attendu: rep,
+      aides: ["Compare le plus grand côté à la somme des deux autres.", `Ici, le plus grand côté mesure $${plus}$ cm et les deux autres font ensemble $${autres}$ cm.`, "Plus petit : on peut construire. Égal : points alignés. Plus grand : impossible."],
+      solution: `Plus grand côté : $${plus}$ cm ; somme des deux autres : $${autres}$ cm. ${[`$${plus} < ${autres}$ : les deux arcs de cercle se coupent, le triangle existe.`, `$${plus} > ${autres}$ : les deux autres côtés sont trop courts pour se rejoindre, le triangle n'existe pas.`, `$${plus} = ${autres}$ : les trois points sont alignés, on n'obtient pas un vrai triangle.`][rep]}` };
+  };
+
+  GEN["tg6-angles-possibles"] = function () {
+    const ok = Math.random() < 0.5, a = rand(20, 100), b = rand(15, 150 - a), c = ok ? 180 - a - b : 180 - a - b + pick([-20, -10, 10, 20, 30]);
+    if (c <= 0) return GEN["tg6-angles-possibles"]();
+    const n = NOMS_TRI();
+    const choix = ["Oui, la somme fait bien $180$°", "Non, la somme ne fait pas $180$°"];
+    const cc = melange(choix[ok ? 0 : 1], [choix[ok ? 1 : 0], "Oui, tout triangle peut avoir ces angles", "On ne peut pas savoir sans mesurer les côtés"]);
+    return { enonce: `Un triangle $${n.join("")}$ peut-il avoir des angles de $${a}$°, $${b}$° et $${c}$° ?`, mode: "choix", choix: cc.choix, attendu: cc.attendu,
+      aides: ["Additionne les trois mesures.", "Dans tout triangle, la somme des angles est $180$°.", `$${a} + ${b} + ${c} = ${a + b + c}$.`],
+      solution: `$${a} + ${b} + ${c} = ${a + b + c}$ : ${ok ? "c'est $180$°, un tel triangle est possible." : "ce n'est pas $180$°, un tel triangle est impossible."}` };
+  };
+
+  GEN["tg6-circonscrit"] = function () {
+    const t = rand(0, 2), n = NOMS_TRI(), [A, B, C] = n, O = pick(["O", "K", "L"]);
+    if (t === 0) { const r = Dc(rand(15, 80), 1);
+      return { enonce: `$${O}$ est le centre du cercle circonscrit au triangle $${A}${B}${C}$, et $${O}${A} = ${tD(r)}$ cm. Combien mesure $${O}${C}$ ?`, mode: "nombre", prefixe: `$${O}${C} =$`, suffixe: "cm", attendu: vD(r),
+        aides: ["Le cercle circonscrit passe par les trois sommets du triangle.", `$${A}$, $${B}$ et $${C}$ sont sur un même cercle de centre $${O}$.`, `$${O}${A}$, $${O}${B}$ et $${O}${C}$ sont trois rayons.`], solution: `$${O}${C}$ est un rayon du cercle circonscrit, comme $${O}${A}$ : $${O}${C} = ${tD(r)}$ cm.` }; }
+    if (t === 1) { const c = melange("des médiatrices des côtés", ["des bissectrices des angles", "des côtés du triangle", "des milieux des côtés"]);
+      return { enonce: `Le centre du cercle circonscrit à un triangle est le point de rencontre :`, mode: "choix", choix: c.choix, attendu: c.attendu,
+        aides: ["Le centre doit être à la même distance des trois sommets.", "Quels points sont à la même distance de deux points ?", "Ce sont les points de la médiatrice."],
+        solution: "Le centre est à égale distance des trois sommets : il est sur les trois médiatrices des côtés, qui se coupent en un même point (elles sont concourantes)." }; }
+    const c = melange(`Le cercle qui passe par $${A}$, $${B}$ et $${C}$`, [`Le cercle de diamètre $[${A}${B}]$ seulement`, `Le cercle de centre $${A}$ qui passe par $${B}$`, "Le cercle tracé à l'intérieur du triangle"]);
+    return { enonce: `Le cercle circonscrit au triangle $${A}${B}${C}$ est :`, mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: ["« Circonscrit » : qui entoure, qui est autour.", "Il passe par les trois sommets.", "Son centre est le point de rencontre des médiatrices."],
+      solution: `Le cercle circonscrit au triangle $${A}${B}${C}$ est le cercle qui passe par ses trois sommets $${A}$, $${B}$ et $${C}$.` };
+  };
+
   /* Une « erreur connue » ne doit jamais coïncider avec la bonne réponse ; propriétés internes retirées */
-  Object.keys(GEN).filter((k) => /^(n6|o6|d6|f6|p6|t6|a6|g6|c6|an6)-/.test(k)).forEach((k) => {
+  Object.keys(GEN).filter((k) => /^(n6|o6|d6|f6|p6|t6|a6|g6|c6|an6|tg6)-/.test(k)).forEach((k) => {
     const g = GEN[k];
     GEN[k] = (i) => {
       const q = g(i);
