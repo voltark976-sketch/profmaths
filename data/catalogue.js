@@ -59,7 +59,7 @@ window.CATALOGUE = {
           id: "sixieme-pourcentages",
           numero: 6,
           titre: "Pourcentages",
-          statut: "bientot",
+          statut: "disponible",
           drive: ""
         },
         {

@@ -1585,8 +1585,121 @@
       solution: `En $1$ heure : $${pH * h} \\div ${h} = ${pH}$ €. En $${h2}$ heures : $${pH} \\times ${h2} = ${pH * h2}$ €.` };
   };
 
+  /* =====================================================================
+     6e, chapitre 6 : pourcentages (préfixe t6-)
+     Programme : sens d'un pourcentage (« pour 100 »), écritures (fraction, décimal, pourcentage),
+     calculer une proportion et l'exprimer en pourcentage dans des cas simples, appliquer un pourcentage.
+     ===================================================================== */
+  FIGURES["t6-quadrillage"] = () => quadrillage(10, 3).replace(/rectangle colorié de 10 dixièmes sur 3 dixièmes/, "30 petits carrés coloriés sur 100");
+
+  GEN["t6-ecritures"] = function () {
+    const t = rand(0, 3);
+    if (t === 0) { // quadrillage de 100 carrés
+      const L = rand(1, 10), l = rand(1, 9), p = L * l;
+      return { enonce: "Le grand carré est partagé en $100$ petits carrés. Quel pourcentage du grand carré est colorié ?", figure: quadrillage(L, l), mode: "nombre", prefixe: "Pourcentage :", suffixe: "%", attendu: p,
+        aides: ["« Pour cent », c'est « sur $100$ ».", `Compte les petits carrés coloriés : $${L} \\times ${l}$.`, "Le nombre de carrés coloriés sur $100$ donne le pourcentage."],
+        solution: `$${L} \\times ${l} = ${p}$ petits carrés sur $100$ sont coloriés : c'est $${p}$ %.` };
+    }
+    if (t === 1) { // pourcentage vers décimal
+      const p = rand(1, 150);
+      return { enonce: `Écris $${p}$ % sous forme d'un nombre décimal.`, mode: "nombre", prefixe: "Écriture décimale :", attendu: p / 100,
+        erreurs: [{ valeur: p / 10, message: `$${p}$ %, c'est $${p}$ **centièmes**, pas $${p}$ dixièmes.` }, { valeur: p, message: "Il faut diviser par $100$." }],
+        aides: [`$${p}$ % $= ${fr(p, 100)}$.`, "Diviser par $100$, c'est décaler les chiffres de deux rangs vers la droite.", `$${p} \\div 100$.`],
+        solution: `$${p}$ % $= ${fr(p, 100)} = ${nb(p / 100)}$.` };
+    }
+    if (t === 2) { // décimal vers pourcentage
+      const p = rand(1, 120), x = p / 100;
+      return { enonce: `Écris $${nb(x)}$ sous forme d'un pourcentage.`, mode: "nombre", prefixe: "Pourcentage :", suffixe: "%", attendu: p,
+        erreurs: [{ valeur: p / 10, message: "Multiplie par $100$ : $" + nb(x) + "$, ce sont des centièmes." }],
+        aides: [`$${nb(x)} = ${fr(p, 100)}$.`, "Un pourcentage, c'est un nombre de centièmes.", `$${nb(x)} \\times 100 = ${p}$.`],
+        solution: `$${nb(x)} = ${fr(p, 100)} = ${p}$ %.` };
+    }
+    // pourcentages usuels et fractions
+    const [p, f, mot] = pick([[50, fr(1, 2), "la moitié"], [25, fr(1, 4), "le quart"], [75, fr(3, 4), "les trois quarts"], [10, fr(1, 10), "le dixième"], [20, fr(1, 5), "le cinquième"], [100, "1", "le tout"], [200, "2", "le double"]]);
+    const autres = [[50, fr(1, 2)], [25, fr(1, 4)], [75, fr(3, 4)], [10, fr(1, 10)], [20, fr(1, 5)], [100, "1"]].filter((x) => x[0] !== p);
+    if (Math.random() < 0.5) {
+      const c = melange(`$${f}$`, shuffle(autres).slice(0, 3).map((x) => `$${x[1]}$`).concat(p > 10 && p < 100 ? [`$${fr(p, 10)}$`] : []));
+      return { enonce: `Prendre $${p}$ %, c'est prendre :`, mode: "choix", choix: c.choix, attendu: c.attendu,
+        aides: ["$p$ %, c'est $\\dfrac{p}{100}$.", `$${fr(p, 100)}$ : simplifie la fraction.`, `Prendre $${p}$ %, c'est prendre ${mot}.`],
+        solution: `$${p}$ % $= ${fr(p, 100)} = ${f}$ : c'est ${mot}.` };
+    }
+    const c = melange(`$${p}$ %`, shuffle(autres).slice(0, 3).map((x) => `$${x[0]}$ %`));
+    return { enonce: `Prendre ${mot}, c'est prendre :`, mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: ["Écris la fraction avec le dénominateur $100$.", `${mot[0].toUpperCase() + mot.slice(1)}, c'est $${f}$.`, "Le numérateur sur $100$ donne le pourcentage."],
+      solution: `${mot[0].toUpperCase() + mot.slice(1)}, c'est $${f} = ${fr(p, 100)}$, soit $${p}$ %.` };
+  };
+
+  GEN["t6-mental"] = function () {
+    const [p, regle, div] = pick([[50, "la moitié", 2], [25, "le quart", 4], [10, "le dixième", 10], [75, "les trois quarts", 4], [100, "le tout", 1], [200, "le double", 0.5], [20, "le cinquième", 5], [5, "la moitié de $10$ %", 20]]);
+    const N = p === 75 || p === 25 ? rand(2, 60) * 4 : p === 5 ? rand(1, 40) * 20 : p === 20 ? rand(2, 50) * 5 : p === 10 ? rand(2, 99) * 10 : rand(3, 120) * 2;
+    const [u, objet] = pick([["€", ""], ["km", ""], ["kg", ""], ["L", ""], ["", " élèves"], ["", " mangues"]]);
+    const rep = (p * N) / 100;
+    return { enonce: `Calcule mentalement $${p}$ % de $${ecrit(N)}$${u ? " " + u : objet}.`, mode: "nombre", prefixe: "Résultat :", suffixe: u || objet.trim(), attendu: rep,
+      erreurs: [{ valeur: N - rep, message: `Ça, c'est ce qui reste. On demande $${p}$ % de $${N}$.` }],
+      aides: [`$${p}$ %, c'est ${regle}.`, p === 75 ? `Le quart de $${N}$ est $${N / 4}$ ; les trois quarts, c'est $3$ fois plus.` : p === 5 ? `$10$ % de $${N}$, c'est $${N / 10}$.` : `Calcule ${regle} de $${N}$.`, "Vérifie : le résultat est-il plus petit que le nombre de départ (si le pourcentage est inférieur à $100$ %) ?"],
+      solution: `$${p}$ % de $${ecrit(N)}$, c'est ${regle} de $${ecrit(N)}$ : $${nb(rep)}$${u ? " " + u : objet}.` };
+  };
+
+  GEN["t6-appliquer"] = function () {
+    const p = pick([12, 15, 18, 30, 35, 40, 45, 60, 65, 80, 85, 90, 8, 6, 3]), base = 100 / pgcd(p, 100), N = base * rand(1, Math.max(2, Math.floor(600 / base)));
+    const [ctx, u] = pick([
+      [`Dans un collège de $${N}$ élèves, $${p}$ % viennent en bus. Combien d'élèves viennent en bus ?`, "élèves"],
+      [`Un jus de fruits de $${N}$ cL contient $${p}$ % de jus de mangue. Combien de cL de jus de mangue contient-il ?`, "cL"],
+      [`Une parcelle de $${N}$ m² est plantée à $${p}$ % de manioc. Quelle aire est plantée de manioc ?`, "m²"],
+      [`Un sondage interroge $${N}$ personnes : $${p}$ % répondent « oui ». Combien de personnes répondent « oui » ?`, "personnes"]
+    ]);
+    const rep = (p * N) / 100;
+    return { enonce: ctx, mode: "nombre", prefixe: "Réponse :", suffixe: u, attendu: rep,
+      erreurs: [{ valeur: p * N, message: "Il faut aussi diviser par $100$." }, { valeur: N - rep, message: "Ça, c'est le reste du total." }],
+      aides: [`Prendre $${p}$ %, c'est multiplier par $${fr(p, 100)}$.`, `Calcule $${fr(p, 100)} \\times ${N}$, ou $${nb(p / 100)} \\times ${N}$.`, `Tu peux commencer par $${N} \\div 100 = ${nb(N / 100)}$, puis multiplier par $${p}$.`],
+      solution: `$${p}$ % de $${ecrit(N)}$ : $${fr(p, 100)} \\times ${ecrit(N)} = ${nb(p / 100)} \\times ${ecrit(N)} = ${nb(rep)}$ ${u}.` };
+  };
+
+  GEN["t6-proportion"] = function () {
+    const tot = pick([10, 20, 25, 50, 200, 500, 1000, 4, 5]), k = 100 / tot, part = rand(1, tot - 1);
+    const p = part * k;
+    if (!Number.isInteger(p)) return GEN["t6-proportion"]();
+    const [ctx, u] = pick([
+      [`Dans une classe de $${tot}$ élèves, $${part}$ font de la natation. Quel pourcentage des élèves fait de la natation ?`, "élèves"],
+      [`Sur $${tot}$ tirs au but, Nassim en réussit $${part}$. Quel est son pourcentage de réussite ?`, "tirs"],
+      [`Sur $${tot}$ mangues d'un cageot, $${part}$ sont mûres. Quel est le pourcentage de mangues mûres ?`, "mangues"],
+      [`Un questionnaire compte $${tot}$ questions. Ali en réussit $${part}$. Quel pourcentage des questions a-t-il réussi ?`, "questions"]
+    ]);
+    return { enonce: ctx, mode: "nombre", prefixe: "Pourcentage :", suffixe: "%", attendu: p,
+      erreurs: [{ valeur: part, message: `$${part}$ sur $${tot}$, ce n'est pas $${part}$ sur $100$ : ramène-toi à $100$.` }, { valeur: 100 - p, message: "Ça, c'est le pourcentage de ceux qui restent." }],
+      aides: ["Un pourcentage, c'est une proportion « sur $100$ ».", tot < 100 ? `Si l'on avait $100$ ${u} au lieu de $${tot}$, on aurait $${k}$ fois plus.` : `Si l'on avait $100$ ${u} au lieu de $${tot}$, on aurait $${tot / 100}$ fois moins.`, `$${fr(part, tot)} = ${fr(p, 100)}$.`],
+      solution: `$${fr(part, tot)} = ${fr(`${part} ${tot < 100 ? "\\times" : "\\div"} ${tot < 100 ? k : tot / 100}`, `${tot} ${tot < 100 ? "\\times" : "\\div"} ${tot < 100 ? k : tot / 100}`)} = ${fr(p, 100)}$ : c'est $${p}$ %.` };
+  };
+
+  GEN["t6-probleme"] = function () {
+    const t = rand(0, 2);
+    if (t === 0) { // remise
+      const p = pick([10, 20, 25, 30, 50]), P = rand(4, 40) * (p === 25 ? 4 : p === 30 ? 10 : 5), r = (p * P) / 100, fin = Math.random() < 0.5;
+      return { enonce: `Pendant les soldes, un tee-shirt à $${P}$ € est vendu avec une remise de $${p}$ %. ${fin ? "Combien paie-t-on ?" : "De combien est la remise, en euros ?"}`, mode: "nombre", prefixe: fin ? "Prix payé :" : "Remise :", suffixe: "€", attendu: fin ? P - r : r,
+        erreurs: fin ? [{ valeur: r, message: "Ça, c'est la remise : il faut la retirer du prix de départ." }, { valeur: P - p, message: `On ne retire pas $${p}$ €, mais $${p}$ % du prix.` }] : [{ valeur: P - r, message: "Ça, c'est le prix payé. On demande la remise." }],
+        aides: [`Calcule d'abord $${p}$ % de $${P}$ €.`, `$${p}$ % de $${P}$ $= ${nb(r)}$ €.`, fin ? `Le prix payé est $${P} - ${nb(r)}$.` : "C'est la réponse."],
+        solution: `Remise : $${p}$ % de $${P}$ $= ${nb(r)}$ €.${fin ? ` Prix payé : $${P} - ${nb(r)} = ${nb(P - r)}$ €.` : ""}` };
+    }
+    if (t === 1) { // comparer deux proportions
+      const a = pick([10, 20, 25, 50]), b = pick([10, 20, 25, 50]);
+      let pa = rand(1, a - 1), pb = rand(1, b - 1);
+      const qa = (pa * 100) / a, qb = (pb * 100) / b;
+      if (!Number.isInteger(qa) || !Number.isInteger(qb)) return GEN["t6-probleme"]();
+      const rep = qa === qb ? 2 : qa > qb ? 0 : 1;
+      return { enonce: `En 6e A, $${pa}$ élèves sur $${a}$ viennent à pied. En 6e B, $${pb}$ élèves sur $${b}$. Dans quelle classe la proportion d'élèves venant à pied est-elle la plus grande ?`, mode: "choix", choix: ["En 6e A", "En 6e B", "C'est la même proportion"], attendu: rep,
+        aides: ["Pour comparer, exprime chaque proportion en pourcentage.", `6e A : $${fr(pa, a)} = ${fr(qa, 100)}$.`, `6e B : $${fr(pb, b)} = ${fr(qb, 100)}$.`],
+        solution: `6e A : $${qa}$ % ; 6e B : $${qb}$ %. ${["La proportion est plus grande en 6e A.", "La proportion est plus grande en 6e B.", "C'est la même proportion."][rep]}` };
+    }
+    // reste après pourcentage
+    const p = pick([10, 20, 25, 40, 50, 60, 75, 80]), N = rand(2, 30) * (p === 25 || p === 75 ? 4 : 10);
+    return { enonce: `Au collège, $${N}$ élèves de 6e participent au cross. $${p}$ % courent $2$ km, les autres courent $1$ km. Combien d'élèves courent $1$ km ?`, mode: "nombre", prefixe: "Élèves :", attendu: N - (p * N) / 100,
+      erreurs: [{ valeur: (p * N) / 100, message: "Ça, ce sont les élèves qui courent $2$ km." }],
+      aides: [`Les autres représentent $100 - ${p} = ${100 - p}$ %.`, `Calcule $${100 - p}$ % de $${N}$.`, `Ou bien : calcule $${p}$ % de $${N}$, puis retire-le de $${N}$.`],
+      solution: `$${100 - p}$ % de $${N}$ : $${nb((100 - p) / 100)} \\times ${N} = ${N - (p * N) / 100}$ élèves courent $1$ km.` };
+  };
+
   /* Une « erreur connue » ne doit jamais coïncider avec la bonne réponse ; propriétés internes retirées */
-  Object.keys(GEN).filter((k) => /^(n6|o6|d6|f6|p6)-/.test(k)).forEach((k) => {
+  Object.keys(GEN).filter((k) => /^(n6|o6|d6|f6|p6|t6)-/.test(k)).forEach((k) => {
     const g = GEN[k];
     GEN[k] = (i) => {
       const q = g(i);
