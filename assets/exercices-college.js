@@ -3213,5 +3213,6 @@
     };
   });
 
-  window.PM_EXO.college = { enLettres, ecrit, demiDroite };
+  // Outils partagés avec les fichiers des autres classes (assets/exercices-cinquieme.js…)
+  window.PM_EXO.college = { rand, pick, melange, P10, ecrit, ecritNet, nb, nbTexte, enLettres, entier, Dc, vD, tD, addD, subD, mulD, decimal, pgcd, fr, frNet, CONSIGNE_FR, FRAC_APPROX, diviseurs, eurC, tabP, hTex, minTex, que, demiDroite, quadrillage, bandes, droiteFractions, schemaBarres, diagrammeBarres, diagrammeCirculaire, courbeDonnees, geo, surCercle, decalDe, figureTriangle, figureAngle, rapporteur, grilleSym, grilleAire, assemblage, dessinSolide, blocs, grille };
 })();

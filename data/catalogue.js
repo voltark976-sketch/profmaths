@@ -18,7 +18,7 @@ window.CATALOGUE = {
       id: "sixieme",
       nom: "6e",
       groupe: "college",
-      intro: "Programme de 6e en vigueur depuis la rentrée 2025 (cycle 3). Les chapitres arrivent un par un ; en attendant, les vidéos sont celles d'Yvan Monka.",
+      intro: "Programme de 6e en vigueur depuis la rentrée 2025 (cycle 3) : les 15 chapitres, avec cours, vidéos, exercices corrigés, QCM et fiches méthode.",
       chapitres: [
         {
           id: "sixieme-nombres",
@@ -131,8 +131,135 @@ window.CATALOGUE = {
       id: "cinquieme",
       nom: "5e",
       groupe: "college",
-      intro: "Nouveau programme de 5e, en vigueur à la rentrée 2026 (BO du 5 mars 2026). Les chapitres sont en préparation.",
-      chapitres: []
+      intro: "Nouveau programme de 5e, en vigueur à la rentrée 2026 (BO n° 10 du 5 mars 2026). Les chapitres arrivent un par un ; les vidéos et les cours PDF sont ceux d'Yvan Monka.",
+      chapitres: [
+        {
+          id: "cinquieme-calcul",
+          numero: 1,
+          titre: "Règles de calcul",
+          statut: "disponible",
+          drive: ""
+        },
+        {
+          id: "cinquieme-triangles",
+          numero: 2,
+          titre: "Triangles",
+          statut: "bientot",
+          drive: ""
+        },
+        {
+          id: "cinquieme-fractions",
+          numero: 3,
+          titre: "Fractions",
+          statut: "bientot",
+          drive: ""
+        },
+        {
+          id: "cinquieme-proportionnalite",
+          numero: 4,
+          titre: "Proportionnalité et pourcentages",
+          statut: "bientot",
+          drive: ""
+        },
+        {
+          id: "cinquieme-angles",
+          numero: 5,
+          titre: "Angles et parallélisme",
+          statut: "bientot",
+          drive: ""
+        },
+        {
+          id: "cinquieme-divisibilite",
+          numero: 6,
+          titre: "Divisibilité",
+          statut: "bientot",
+          drive: ""
+        },
+        {
+          id: "cinquieme-symetries",
+          numero: 7,
+          titre: "Symétries",
+          statut: "bientot",
+          drive: ""
+        },
+        {
+          id: "cinquieme-relatifs",
+          numero: 8,
+          titre: "Nombres relatifs et repérage",
+          statut: "bientot",
+          drive: ""
+        },
+        {
+          id: "cinquieme-calculs-relatifs",
+          numero: 9,
+          titre: "Additionner et soustraire des relatifs",
+          statut: "bientot",
+          drive: ""
+        },
+        {
+          id: "cinquieme-graphiques",
+          numero: 10,
+          titre: "Graphiques et grandeurs en fonction d'une autre",
+          statut: "bientot",
+          drive: ""
+        },
+        {
+          id: "cinquieme-calcul-litteral",
+          numero: 11,
+          titre: "Calcul littéral",
+          statut: "bientot",
+          drive: ""
+        },
+        {
+          id: "cinquieme-parallelogrammes",
+          numero: 12,
+          titre: "Parallélogrammes",
+          statut: "bientot",
+          drive: ""
+        },
+        {
+          id: "cinquieme-statistiques",
+          numero: 13,
+          titre: "Statistiques",
+          statut: "bientot",
+          drive: ""
+        },
+        {
+          id: "cinquieme-equations",
+          numero: 14,
+          titre: "Équations",
+          statut: "bientot",
+          drive: ""
+        },
+        {
+          id: "cinquieme-aires",
+          numero: 15,
+          titre: "Aires",
+          statut: "bientot",
+          drive: ""
+        },
+        {
+          id: "cinquieme-probabilites",
+          numero: 16,
+          titre: "Probabilités",
+          statut: "bientot",
+          drive: ""
+        },
+        {
+          id: "cinquieme-solides-volumes",
+          numero: 17,
+          titre: "Solides et volumes",
+          statut: "bientot",
+          drive: ""
+        },
+        {
+          id: "cinquieme-informatique",
+          numero: 18,
+          titre: "Programmation par blocs",
+          statut: "bientot",
+          drive: ""
+        }
+      ]
     },
     {
       id: "quatrieme",
