@@ -228,7 +228,7 @@ window.CATALOGUE = {
           id: "cinquieme-equations",
           numero: 14,
           titre: "Équations",
-          statut: "bientot",
+          statut: "disponible",
           drive: ""
         },
         {

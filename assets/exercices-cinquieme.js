@@ -3,7 +3,7 @@
   Ce fichier se charge après assets/exercices-college.js et reprend ses outils (window.PM_EXO.college).
   Mêmes règles : chaque générateur fabrique une question avec des nombres tirés au hasard, la réponse
   attendue, trois indices progressifs et la solution rédigée.
-  Préfixes : rc5- (règles de calcul), tr5-, fr5-, pp5-, an5-, dv5-, sc5-, nr5-, cr5-, gf5-, cl5-, pg5-, st5-.
+  Préfixes : rc5- (règles de calcul), tr5-, fr5-, pp5-, an5-, dv5-, sc5-, nr5-, cr5-, gf5-, cl5-, pg5-, st5-, eq5-.
 */
 (function () {
   "use strict";
@@ -1579,8 +1579,81 @@
       aides: ["Diagramme en barres : comparer des effectifs de catégories.", "Diagramme circulaire : montrer la part de chaque catégorie dans un tout.", "Graphique cartésien : montrer une évolution (en fonction du temps)."], solution: `Il s'agit de ${["comparer des effectifs de catégories", "montrer les parts d'un tout", "montrer une évolution dans le temps"][C[1]]} : on choisit ${choix[C[1]]}.` };
   };
 
+  /* =====================================================================
+     Chapitre 14 : équations (eq5-) — tester une égalité, x + b = c, ax = c
+     ===================================================================== */
+  GEN["eq5-tester"] = function () {
+    for (let e = 0; e < 200; e++) {
+      const x = pick(LET), a = rand(2, 6), b = rand(1, 12), c = rand(1, a - 1), s = rand(0, 9);
+      // a x - b = c x + d avec solution s
+      const d = a * s - b - c * s; if (d <= 0 || d > 30) continue;
+      const cand = shuffle([s, s + 1, s + 2, Math.max(0, s - 1), s + 3, b].filter((v, i, T) => T.indexOf(v) === i)).slice(0, 4);
+      if (!cand.includes(s)) cand[0] = s;
+      const C = shuffle(cand.slice());
+      const cx = c === 1 ? x : `${c}${x}`;
+      return { enonce: `Lequel de ces nombres est solution de l'équation $${a}${x} - ${b} = ${cx} + ${d}$ ?`, mode: "choix", choix: C.map((v) => `$${v}$`), attendu: C.indexOf(s),
+        aides: [`Un nombre est solution si, en remplaçant $${x}$ par ce nombre, les deux membres sont égaux.`, "Teste chaque nombre : calcule le membre de gauche, puis celui de droite.", `Pour $${x} = ${C[0]}$ : à gauche $${a} \\times ${C[0]} - ${b} = ${a * C[0] - b}$, à droite $${c} \\times ${C[0]} + ${d} = ${c * C[0] + d}$.`],
+        solution: `Pour $${x} = ${s}$ : $${a} \\times ${s} - ${b} = ${a * s - b}$ et $${c} \\times ${s} + ${d} = ${c * s + d}$. Les deux membres sont égaux : $${s}$ est solution. ${C.filter((v) => v !== s).map((v) => `Pour $${v}$ : $${a * v - b} \\neq ${c * v + d}$`).join(" ; ")}.` };
+    }
+  };
+
+  GEN["eq5-plus"] = function () {
+    const x = pick(LET), dec = Math.random() < 0.3, b = dec ? rand(11, 99) / 10 : rand(2, 40), s = dec ? rand(11, 99) / 10 : rand(1, 60), moins = Math.random() < 0.35;
+    const c = +(moins ? s - b : s + b).toFixed(2); if (c < 0) return GEN["eq5-plus"]();
+    const op = moins ? "-" : "+";
+    return { enonce: `Résous l'équation $${x} ${op} ${nb(b)} = ${nb(c)}$.`, mode: "nombre", prefixe: `$${x} =$`, attendu: s,
+      erreurs: [{ valeur: +(moins ? c - b : c + b).toFixed(2), message: `Il faut faire l'opération **contraire** : pour enlever « $${op} ${nb(b)}$ », on ${moins ? "ajoute" : "soustrait"} $${nb(b)}$.` }],
+      aides: [`On cherche le nombre $${x}$ qui, ${moins ? "diminué" : "augmenté"} de $${nb(b)}$, donne $${nb(c)}$.`, `L'opération contraire de « $${op} ${nb(b)}$ » est « $${moins ? "+" : "-"} ${nb(b)}$ ».`, `$${x} = ${nb(c)} ${moins ? "+" : "-"} ${nb(b)}$.`],
+      solution: `$${x} = ${nb(c)} ${moins ? "+" : "-"} ${nb(b)} = ${nb(s)}$. Vérification : $${nb(s)} ${op} ${nb(b)} = ${nb(c)}$.` };
+  };
+
+  GEN["eq5-fois"] = function () {
+    const x = pick(LET), a = rand(2, 12), dec = Math.random() < 0.3, s = dec ? rand(11, 99) / 10 : rand(2, 30), c = +(a * s).toFixed(2), t = rand(0, 3);
+    if (t === 0) {
+      const q = rand(2, 9), r = rand(2, 15);
+      return { enonce: `Résous l'équation $\\dfrac{${x}}{${q}} = ${r}$.`, mode: "nombre", prefixe: `$${x} =$`, attendu: q * r,
+        erreurs: [{ valeur: r / q, message: "L'opération contraire de « diviser par » est « multiplier par »." }],
+        aides: [`On cherche le nombre qui, divisé par $${q}$, donne $${r}$.`, "L'opération contraire de la division est la multiplication.", `$${x} = ${r} \\times ${q}$.`], solution: `$${x} = ${r} \\times ${q} = ${q * r}$. Vérification : $${q * r} \\div ${q} = ${r}$.` };
+    }
+    return { enonce: `Résous l'équation $${a}${x} = ${nb(c)}$.`, mode: "nombre", prefixe: `$${x} =$`, attendu: s,
+      erreurs: [{ valeur: +(c - a).toFixed(2), message: `$${a}${x}$ signifie $${a} \\times ${x}$ : on divise par $${a}$, on ne soustrait pas.` }, { valeur: c * a, message: `On divise par $${a}$, on ne multiplie pas.` }],
+      aides: [`$${a}${x}$ signifie $${a} \\times ${x}$.`, `On cherche le nombre qui, multiplié par $${a}$, donne $${nb(c)}$.`, `$${x} = ${nb(c)} \\div ${a}$.`],
+      solution: `$${x} = ${nb(c)} \\div ${a} = ${nb(s)}$. Vérification : $${a} \\times ${nb(s)} = ${nb(c)}$.` };
+  };
+
+  GEN["eq5-modeliser"] = function () {
+    const t = rand(0, 5), a = rand(2, 9), b = rand(3, 40), n = pick(["Awa", "Moussa", "Nasma", "Ibrahim", "Faïza", "Zaïd"]);
+    const P = [
+      [`Le triple d'un nombre $x$ est égal à $${3 * b}$.`, `3x = ${3 * b}`, [`x + 3 = ${3 * b}`, `x = 3 \\times ${3 * b}`, `\\dfrac{3}{x} = ${3 * b}`]],
+      [`Dans $${a}$ ans, ${n} aura $${b + a}$ ans. On note $x$ son âge actuel.`, `x + ${a} = ${b + a}`, [`${a}x = ${b + a}`, `x - ${a} = ${b + a}`, `x = ${b + a} + ${a}`]],
+      [`${n} achète $${a}$ cahiers identiques et paie $${a * b}$ €. On note $x$ le prix d'un cahier.`, `${a}x = ${a * b}`, [`x + ${a} = ${a * b}`, `x = ${a} \\times ${a * b}`, `\\dfrac{x}{${a}} = ${a * b}`]],
+      [`Un bus transporte des élèves. Après le départ de $${a}$ élèves, il en reste $${b}$. On note $x$ le nombre d'élèves au départ.`, `x - ${a} = ${b}`, [`x + ${a} = ${b}`, `${a}x = ${b}`, `${a} - x = ${b}`]],
+      [`On partage équitablement une somme $x$ entre $${a}$ personnes : chacune reçoit $${b}$ €.`, `\\dfrac{x}{${a}} = ${b}`, [`${a}x = ${b}`, `x - ${a} = ${b}`, `\\dfrac{${a}}{x} = ${b}`]],
+      [`Le périmètre d'un carré de côté $x$ (en cm) est égal à $${4 * b}$ cm.`, `4x = ${4 * b}`, [`x^2 = ${4 * b}`, `x + 4 = ${4 * b}`, `2x = ${4 * b}`]]
+    ][t];
+    const { choix, attendu } = melange(`$${P[1]}$`, P[2].map((z) => `$${z}$`));
+    return { enonce: `${P[0]} Quelle équation traduit la situation ?`, mode: "choix", choix, attendu,
+      aides: ["La lettre $x$ représente le nombre inconnu.", "Traduis la phrase mot à mot : « triple » $\\to 3x$, « dans $5$ ans » $\\to x + 5$, « partager » $\\to$ diviser.", "Vérifie avec la réponse attendue : l'égalité doit être vraie."], solution: `La situation se traduit par $${P[1]}$.` };
+  };
+
+  GEN["eq5-problemes"] = function () {
+    const t = rand(0, 3), n = pick(["Awa", "Moussa", "Nasma", "Ibrahim", "Faïza", "Zaïd"]), a = rand(3, 9), b = rand(4, 30);
+    if (t === 0) return { enonce: `${n} pense à un nombre. En le multipliant par $${a}$, on obtient $${a * b}$. Quel est ce nombre ?`, mode: "nombre", prefixe: "Nombre :", attendu: b,
+      aides: ["Appelle $x$ le nombre cherché.", `L'équation est $${a}x = ${a * b}$.`, `$x = ${a * b} \\div ${a}$.`], solution: `$${a}x = ${a * b}$ donc $x = ${a * b} \\div ${a} = ${b}$.` };
+    if (t === 1) { const p = rand(2, 9) * 50, pt = rand(2, 9);
+      return { enonce: `Un colis pèse $${p * pt}$ g. Il contient $${pt}$ boîtes de même masse. Quelle est la masse d'une boîte ? (On néglige l'emballage.)`, mode: "nombre", prefixe: "Masse :", suffixe: "g", attendu: p,
+        aides: ["Appelle $x$ la masse d'une boîte.", `L'équation est $${pt}x = ${p * pt}$.`, `$x = ${p * pt} \\div ${pt}$.`], solution: `$${pt}x = ${p * pt}$ donc $x = ${p * pt} \\div ${pt} = ${p}$ g.` }; }
+    if (t === 2) return { enonce: `Après avoir reçu $${a}$ €, ${n} a $${b + a}$ € dans sa tirelire. Combien avait-${["Awa", "Nasma", "Faïza"].includes(n) ? "elle" : "il"} avant ?`, mode: "nombre", prefixe: "Somme :", suffixe: "€", attendu: b,
+      erreurs: [{ valeur: b + 2 * a, message: "Il faut retirer ce qu'on a reçu, pas l'ajouter." }],
+      aides: ["Appelle $x$ la somme de départ.", `L'équation est $x + ${a} = ${b + a}$.`, `$x = ${b + a} - ${a}$.`], solution: `$x + ${a} = ${b + a}$ donc $x = ${b + a} - ${a} = ${b}$ €.` };
+    const k = rand(2, 5), tot = (k + 1) * b;
+    return { enonce: `${n} et son frère ont ensemble $${tot}$ billes. Le frère en a $${k}$ fois plus que ${n}. Combien de billes a ${n} ?`, mode: "nombre", prefixe: "Billes :", attendu: b,
+      erreurs: [{ valeur: tot / k, message: `${n} a $x$ billes et son frère $${k}x$ : ensemble, ils en ont $${k + 1}x$.` }],
+      aides: [`Appelle $x$ le nombre de billes de ${n}. Son frère en a $${k}x$.`, `Ensemble : $x + ${k}x = ${k + 1}x$.`, `L'équation est $${k + 1}x = ${tot}$.`], solution: `$x + ${k}x = ${tot}$, soit $${k + 1}x = ${tot}$, donc $x = ${tot} \\div ${k + 1} = ${b}$ billes.` };
+  };
+
   /* Une « erreur connue » ne doit jamais coïncider avec la bonne réponse */
-  Object.keys(GEN).filter((k) => /^(rc5|tr5|fr5|pp5|an5|dv5|sc5|nr5|cr5|gf5|cl5|pg5|st5)-/.test(k)).forEach((k) => {
+  Object.keys(GEN).filter((k) => /^(rc5|tr5|fr5|pp5|an5|dv5|sc5|nr5|cr5|gf5|cl5|pg5|st5|eq5)-/.test(k)).forEach((k) => {
     const g = GEN[k];
     GEN[k] = (i) => {
       const q = g(i);

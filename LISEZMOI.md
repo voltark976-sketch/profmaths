@@ -35,6 +35,7 @@ Site statique : aucune base de données, aucun compte élève. Ouvrir `index.htm
   - `data/cinquieme/calcul-litteral.js` : 5e, chapitre 11 (carrés et cubes, simplifications d'écriture, substitution, développer, factoriser, réduire, preuves et contre-exemples). Générateurs `cl5-`.
   - `data/cinquieme/parallelogrammes.js` : 5e, chapitre 12 (définition et propriétés, propriétés caractéristiques, rectangle, losange, carré, construction du quatrième sommet). Générateurs `pg5-` ; figure `figureQuad()`.
   - `data/cinquieme/statistiques.js` : 5e, chapitre 13 (effectifs, fréquences, moyenne, diagrammes en barres et circulaires, choix d'une représentation). Générateurs `st5-`.
+  - `data/cinquieme/equations.js` : 5e, chapitre 14 (tester une égalité, x + b = c, ax = c, mise en équation de problèmes). Générateurs `eq5-`.
 - `data/seconde/ensembles.js` : chapitre 1 de Seconde (ensembles de nombres, intervalles, valeur absolue). Les générateurs d'exercices correspondants commencent par `ens-`, `int-` et `abs-` dans `assets/exercices.js`.
 - `data/seconde/information-chiffree.js` : chapitre 3 de Seconde.
 - `data/seconde/arithmetique.js` : chapitre 4 de Seconde (multiples, diviseurs, parité, nombres premiers, fractions irréductibles). Générateurs `ar-` dans `assets/exercices.js`.
