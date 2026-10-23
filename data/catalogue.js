@@ -131,7 +131,7 @@ window.CATALOGUE = {
       id: "cinquieme",
       nom: "5e",
       groupe: "college",
-      intro: "Nouveau programme de 5e, en vigueur à la rentrée 2026 (BO n° 10 du 5 mars 2026). Les chapitres arrivent un par un ; les vidéos et les cours PDF sont ceux d'Yvan Monka.",
+      intro: "Nouveau programme de 5e, en vigueur à la rentrée 2026 (BO n° 10 du 5 mars 2026). Les 18 chapitres, avec cours, vidéos et PDF d'Yvan Monka, exercices corrigés, QCM et fiches méthode.",
       chapitres: [
         {
           id: "cinquieme-calcul",
@@ -265,8 +265,114 @@ window.CATALOGUE = {
       id: "quatrieme",
       nom: "4e",
       groupe: "college",
-      intro: "Programme de 4e en vigueur en 2026-2027 (cycle 4, programme de 2020). Les chapitres sont en préparation.",
-      chapitres: []
+      intro: "Programme de 4e en vigueur en 2026-2027 (cycle 4, programme de 2020). Les chapitres arrivent un par un ; les vidéos et les cours PDF sont ceux d'Yvan Monka.",
+      chapitres: [
+        {
+          id: "quatrieme-divisibilite",
+          numero: 1,
+          titre: "Divisibilité et nombres premiers",
+          statut: "disponible",
+          drive: ""
+        },
+        {
+          id: "quatrieme-relatifs",
+          numero: 2,
+          titre: "Multiplier et diviser des relatifs",
+          statut: "bientot",
+          drive: ""
+        },
+        {
+          id: "quatrieme-pythagore",
+          numero: 3,
+          titre: "Théorème de Pythagore",
+          statut: "bientot",
+          drive: ""
+        },
+        {
+          id: "quatrieme-fractions",
+          numero: 4,
+          titre: "Calculer avec des fractions",
+          statut: "bientot",
+          drive: ""
+        },
+        {
+          id: "quatrieme-proportionnalite",
+          numero: 5,
+          titre: "Proportionnalité",
+          statut: "bientot",
+          drive: ""
+        },
+        {
+          id: "quatrieme-espace",
+          numero: 6,
+          titre: "Pyramides, cônes et repérage dans l'espace",
+          statut: "bientot",
+          drive: ""
+        },
+        {
+          id: "quatrieme-puissances",
+          numero: 7,
+          titre: "Puissances",
+          statut: "bientot",
+          drive: ""
+        },
+        {
+          id: "quatrieme-thales",
+          numero: 8,
+          titre: "Théorème de Thalès",
+          statut: "bientot",
+          drive: ""
+        },
+        {
+          id: "quatrieme-calcul-litteral",
+          numero: 9,
+          titre: "Calcul littéral",
+          statut: "bientot",
+          drive: ""
+        },
+        {
+          id: "quatrieme-probabilites",
+          numero: 10,
+          titre: "Probabilités",
+          statut: "bientot",
+          drive: ""
+        },
+        {
+          id: "quatrieme-cosinus",
+          numero: 11,
+          titre: "Cosinus d'un angle",
+          statut: "bientot",
+          drive: ""
+        },
+        {
+          id: "quatrieme-translation",
+          numero: 12,
+          titre: "Translations",
+          statut: "bientot",
+          drive: ""
+        },
+        {
+          id: "quatrieme-equations",
+          numero: 13,
+          titre: "Équations",
+          statut: "bientot",
+          drive: ""
+        },
+        {
+          id: "quatrieme-statistiques",
+          numero: 14,
+          titre: "Statistiques",
+          statut: "bientot",
+          drive: ""
+        },
+        {
+          id: "quatrieme-informatique",
+          numero: 15,
+          titre: "Programmation",
+          statut: "bientot",
+          drive: ""
+        }
+      ]
     },
     {
       id: "troisieme",
