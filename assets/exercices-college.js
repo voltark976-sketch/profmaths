@@ -2897,7 +2897,7 @@
   }
 
   // Programme en blocs : [{ c: catégorie, t: "texte avec [valeurs]" } | { rep: n, corps: [...] }]
-  const CAT_PI = { evt: "pi-evt", ent: "pi-ent", op: "pi-op", dire: "pi-dire", mvt: "pi-mvt", stylo: "pi-stylo", ctrl: "pi-ctrl" };
+  const CAT_PI = { evt: "pi-evt", ent: "pi-ent", op: "pi-op", dire: "pi-dire", mvt: "pi-mvt", stylo: "pi-stylo", ctrl: "pi-ctrl", var: "pi-var" };
   function blocs(prog) {
     const W = 320, H = 26, CW = 6.6; let y = 6, s = "";
     const ecrire = (t, x, yc) => {

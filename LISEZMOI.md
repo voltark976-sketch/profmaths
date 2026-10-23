@@ -38,6 +38,8 @@ Site statique : aucune base de données, aucun compte élève. Ouvrir `index.htm
   - `data/cinquieme/equations.js` : 5e, chapitre 14 (tester une égalité, x + b = c, ax = c, mise en équation de problèmes). Générateurs `eq5-`.
   - `data/cinquieme/aires.js` : 5e, chapitre 15 (unités d'aire, triangle, parallélogramme, disque, figures composées). Générateurs `ai5-` ; figure `figureAireTri()`.
   - `data/cinquieme/probabilites.js` : 5e, chapitre 16 (expérience aléatoire, issues, évènements, échelle, calcul en équiprobabilité, fréquences). Générateurs `pb5-`.
+  - `data/cinquieme/solides-volumes.js` : 5e, chapitre 17 (perspective cavalière, patrons, volumes du cube, du pavé, du prisme et du cylindre, unités de volume et de capacité). Générateurs `sv5-`.
+  - `data/cinquieme/informatique.js` : 5e, chapitre 18 (entrées et sorties, variable réponse, expressions informatiques, boucles, paramètres d'un programme). Générateurs `pr5-` ; figures `blocs()`.
 - `data/seconde/ensembles.js` : chapitre 1 de Seconde (ensembles de nombres, intervalles, valeur absolue). Les générateurs d'exercices correspondants commencent par `ens-`, `int-` et `abs-` dans `assets/exercices.js`.
 - `data/seconde/information-chiffree.js` : chapitre 3 de Seconde.
 - `data/seconde/arithmetique.js` : chapitre 4 de Seconde (multiples, diviseurs, parité, nombres premiers, fractions irréductibles). Générateurs `ar-` dans `assets/exercices.js`.

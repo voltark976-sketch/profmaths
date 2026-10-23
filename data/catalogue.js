@@ -249,14 +249,14 @@ window.CATALOGUE = {
           id: "cinquieme-solides-volumes",
           numero: 17,
           titre: "Solides et volumes",
-          statut: "bientot",
+          statut: "disponible",
           drive: ""
         },
         {
           id: "cinquieme-informatique",
           numero: 18,
           titre: "Programmation par blocs",
-          statut: "bientot",
+          statut: "disponible",
           drive: ""
         }
       ]

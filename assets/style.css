@@ -192,7 +192,7 @@ pre.code code { font: inherit; }
 .pi-val { font: 700 13px var(--f-texte); fill: #13282c; }
 .pi-champ { fill: #fff; }
 .pi-evt { fill: #9a6700; } .pi-ent { fill: #22789c; } .pi-op { fill: #237a3a; } .pi-dire { fill: #6a42c0; }
-.pi-mvt { fill: #2f62c0; } .pi-stylo { fill: #0a7a5a; } .pi-ctrl { fill: #a85d00; }
+.pi-mvt { fill: #2f62c0; } .pi-stylo { fill: #0a7a5a; } .pi-ctrl { fill: #a85d00; } .pi-var { fill: #b4470e; }
 .pi-vide { fill: none; stroke: var(--doux); stroke-width: 1.6; stroke-dasharray: 5 4; }
 .pi-vide-txt { font: 700 15px var(--f-texte); fill: var(--encre); }
 .pi-grille .g-grid line { stroke: var(--doux); stroke-opacity: 0.55; }

@@ -3,7 +3,7 @@
   Ce fichier se charge après assets/exercices-college.js et reprend ses outils (window.PM_EXO.college).
   Mêmes règles : chaque générateur fabrique une question avec des nombres tirés au hasard, la réponse
   attendue, trois indices progressifs et la solution rédigée.
-  Préfixes : rc5- (règles de calcul), tr5-, fr5-, pp5-, an5-, dv5-, sc5-, nr5-, cr5-, gf5-, cl5-, pg5-, st5-, eq5-, ai5-, pb5-.
+  Préfixes : rc5- (règles de calcul), tr5-, fr5-, pp5-, an5-, dv5-, sc5-, nr5-, cr5-, gf5-, cl5-, pg5-, st5-, eq5-, ai5-, pb5-, sv5-, pr5-.
 */
 (function () {
   "use strict";
@@ -1799,8 +1799,174 @@
     return { enonce: Q[0], mode: "choix", choix, attendu, aides: ["La probabilité est une valeur théorique ; la fréquence est observée lors d'expériences.", "Sur un petit nombre d'essais, la fréquence peut être loin de la probabilité.", "Sur un très grand nombre d'essais, elle s'en rapproche. Le dé n'a pas de mémoire."], solution: `Réponse : ${Q[1]}` };
   };
 
+  /* =====================================================================
+     Chapitre 17 : solides et volumes (sv5-)
+     ===================================================================== */
+  const UNV = [["mm³", -2], ["cm³", -1], ["dm³", 0], ["m³", 1]];
+  const UNC = [["mL", -3], ["cL", -2], ["dL", -1], ["L", 0], ["hL", 2]];
+
+  GEN["sv5-volumes"] = function () {
+    const t = rand(0, 4);
+    if (t === 0) { const a = rand(2, 12); return { enonce: `Calcule le volume d'un cube d'arête $${a}$ cm.`, mode: "nombre", prefixe: "Volume :", suffixe: "cm³", attendu: a ** 3,
+      erreurs: [{ valeur: a * a, message: "Ça, c'est l'aire d'une face. Le volume est $a \\times a \\times a$." }, { valeur: 3 * a, message: "$a^3$ n'est pas $3 \\times a$." }],
+      aides: ["Volume d'un cube $= a \\times a \\times a = a^3$.", `$${a} \\times ${a} = ${a * a}$.`, `$${a * a} \\times ${a}$.`], solution: `$V = ${a}^3 = ${a ** 3}$ cm³.` }; }
+    if (t === 1) { const L = rand(3, 15), l = rand(2, 10), h = Math.random() < 0.3 ? rand(11, 99) / 10 : rand(2, 12), v = arr(L * l * h, 4);
+      return { enonce: `Calcule le volume d'un pavé droit de longueur $${L}$ cm, de largeur $${l}$ cm et de hauteur $${nb(h)}$ cm.`, mode: "nombre", prefixe: "Volume :", suffixe: "cm³", attendu: v,
+        erreurs: [{ valeur: arr(L + l + h, 4), message: "On multiplie les trois dimensions." }],
+        aides: ["Volume d'un pavé droit $=$ longueur $\\times$ largeur $\\times$ hauteur.", `Aire de la base : $${L} \\times ${l} = ${L * l}$ cm².`, `Multiplie par la hauteur $${nb(h)}$.`], solution: `$V = ${L} \\times ${l} \\times ${nb(h)} = ${nb(v)}$ cm³.` }; }
+    if (t === 2) { const a = rand(2, 10), b = rand(2, 10), h = rand(3, 20), v = (a * b * h) / 2;
+      return { enonce: `Un prisme droit a pour base un triangle rectangle dont les côtés de l'angle droit mesurent $${a}$ cm et $${b}$ cm. Sa hauteur mesure $${h}$ cm. Quel est son volume ?`, mode: "nombre", prefixe: "Volume :", suffixe: "cm³", attendu: v,
+        erreurs: [{ valeur: a * b * h, message: "L'aire de la base triangulaire est $\\dfrac{" + a + " \\times " + b + "}{2}$." }],
+        aides: ["Volume d'un prisme droit $=$ aire de la base $\\times$ hauteur.", `Aire de la base : $\\dfrac{${a} \\times ${b}}{2} = ${nb((a * b) / 2)}$ cm².`, `Multiplie par $${h}$.`], solution: `$V = \\dfrac{${a} \\times ${b}}{2} \\times ${h} = ${nb((a * b) / 2)} \\times ${h} = ${nb(v)}$ cm³.` }; }
+    if (t === 3) { const B = rand(5, 60), h = rand(2, 15);
+      return { enonce: `Un prisme droit a une base d'aire $${B}$ cm² et une hauteur de $${h}$ cm. Quel est son volume ?`, mode: "nombre", prefixe: "Volume :", suffixe: "cm³", attendu: B * h,
+        aides: ["Volume d'un prisme droit $=$ aire de la base $\\times$ hauteur.", "Ici l'aire de la base est donnée.", `$${B} \\times ${h}$.`], solution: `$V = ${B} \\times ${h} = ${B * h}$ cm³.` }; }
+    const r = rand(2, 10), h = rand(3, 20), v = arr(Math.PI * r * r * h, 1);
+    return { enonce: `Calcule le volume d'un cylindre de rayon $${r}$ cm et de hauteur $${h}$ cm. Donne la valeur arrondie au dixième de cm³.`, mode: "nombre", prefixe: "Volume :", suffixe: "cm³", attendu: v,
+      erreurs: [{ valeur: arr(2 * Math.PI * r * h, 1), message: "Ça, c'est l'aire latérale. Le volume est l'aire du disque de base multipliée par la hauteur." }, ...(arr(3.14 * r * r * h, 1) !== v ? [{ valeur: arr(3.14 * r * r * h, 1), message: "Utilise la touche $\\pi$ de la calculatrice." }] : [])],
+      aides: ["Volume d'un cylindre $=$ aire du disque de base $\\times$ hauteur $= \\pi r^2 \\times h$.", `Aire de la base : $\\pi \\times ${r}^2 = ${r * r}\\pi$ cm².`, `$${r * r}\\pi \\times ${h} = ${r * r * h}\\pi$.`], solution: `$V = \\pi \\times ${r}^2 \\times ${h} = ${r * r * h}\\pi \\approx ${nb(v)}$ cm³.` };
+  };
+
+  GEN["sv5-conversions"] = function () {
+    if (Math.random() < 0.5) {
+      const i = rand(0, 3), j = rand(0, 3); if (i === j) return GEN["sv5-conversions"]();
+      const v = pick([rand(1, 99), rand(11, 999) / 10, rand(1, 999) / 100]), r = arr(v * 1000 ** (UNV[i][1] - UNV[j][1]), 9);
+      if (r < 0.0001 || r > 1e8) return GEN["sv5-conversions"]();
+      return { enonce: `Convertis : $${nb(v)}$ ${UNV[i][0]} $= \\ldots$ ${UNV[j][0]}`, mode: "nombre", prefixe: "Résultat :", suffixe: UNV[j][0], attendu: r,
+        erreurs: [{ valeur: arr(v * 100 ** (UNV[i][1] - UNV[j][1]), 9), message: "Pour les volumes, le facteur entre deux unités voisines est $1\\,000$, pas $100$." }],
+        aides: ["$1$ dm³ $= 1\\,000$ cm³ : un cube de $1$ dm d'arête contient $10 \\times 10 \\times 10$ cubes de $1$ cm.", `De ${UNV[i][0]} à ${UNV[j][0]}, on ${UNV[i][1] > UNV[j][1] ? "multiplie" : "divise"} par $${nb(1000 ** Math.abs(UNV[i][1] - UNV[j][1]))}$.`, "Chaque unité de volume occupe trois colonnes dans le tableau de conversion."],
+        solution: `$${nb(v)}$ ${UNV[i][0]} $= ${nb(r)}$ ${UNV[j][0]}.` };
+    }
+    const t = rand(0, 2);
+    if (t === 0) { const v = pick([rand(1, 50), rand(11, 99) / 10]), q = Math.random() < 0.5;
+      return q ? { enonce: `Convertis : $${nb(v)}$ dm³ $= \\ldots$ L`, mode: "nombre", prefixe: "Résultat :", suffixe: "L", attendu: v, aides: ["$1$ dm³ $= 1$ L.", "Un litre est le volume d'un cube de $1$ dm d'arête.", "Le nombre ne change pas."], solution: `$1$ dm³ $= 1$ L, donc $${nb(v)}$ dm³ $= ${nb(v)}$ L.` }
+        : { enonce: `Convertis : $${nb(v)}$ m³ $= \\ldots$ L`, mode: "nombre", prefixe: "Résultat :", suffixe: "L", attendu: arr(v * 1000, 6), erreurs: [{ valeur: arr(v * 100, 6), message: "$1$ m³ $= 1\\,000$ dm³ $= 1\\,000$ L." }], aides: ["$1$ m³ $= 1\\,000$ dm³.", "$1$ dm³ $= 1$ L.", `$${nb(v)} \\times 1\\,000$.`], solution: `$${nb(v)}$ m³ $= ${nb(arr(v * 1000, 6))}$ dm³ $= ${nb(arr(v * 1000, 6))}$ L.` }; }
+    if (t === 1) { const v = rand(50, 2000), q = Math.random() < 0.5;
+      return q ? { enonce: `Convertis : $${nb(v)}$ cm³ $= \\ldots$ mL`, mode: "nombre", prefixe: "Résultat :", suffixe: "mL", attendu: v, aides: ["$1$ cm³ $= 1$ mL.", "$1$ L $= 1$ dm³ $= 1\\,000$ cm³ $= 1\\,000$ mL.", "Le nombre ne change pas."], solution: `$1$ cm³ $= 1$ mL : $${nb(v)}$ cm³ $= ${nb(v)}$ mL.` }
+        : { enonce: `Convertis : $${nb(v)}$ cm³ $= \\ldots$ L`, mode: "nombre", prefixe: "Résultat :", suffixe: "L", attendu: v / 1000, erreurs: [{ valeur: v / 100, message: "$1$ L $= 1\\,000$ cm³." }], aides: ["$1$ L $= 1$ dm³ $= 1\\,000$ cm³.", "On divise par $1\\,000$.", `$${nb(v)} \\div 1\\,000$.`], solution: `$${nb(v)}$ cm³ $= ${nb(v / 1000)}$ L.` }; }
+    const i = rand(0, 4), j = rand(0, 4); if (i === j) return GEN["sv5-conversions"]();
+    const v = pick([rand(1, 99), rand(11, 999) / 10]), r = arr(v * 10 ** (UNC[i][1] - UNC[j][1]), 8);
+    return { enonce: `Convertis : $${nb(v)}$ ${UNC[i][0]} $= \\ldots$ ${UNC[j][0]}`, mode: "nombre", prefixe: "Résultat :", suffixe: UNC[j][0], attendu: r,
+      aides: ["Pour les capacités, on passe d'une unité à la suivante en multipliant ou en divisant par $10$.", "Ordre : hL, (daL), L, dL, cL, mL.", `De ${UNC[i][0]} à ${UNC[j][0]}, on ${UNC[i][1] > UNC[j][1] ? "multiplie" : "divise"} par $${nb(10 ** Math.abs(UNC[i][1] - UNC[j][1]))}$.`], solution: `$${nb(v)}$ ${UNC[i][0]} $= ${nb(r)}$ ${UNC[j][0]}.` };
+  };
+
+  GEN["sv5-patrons"] = function () {
+    const t = rand(0, 3);
+    if (t === 0) { const n = rand(3, 8), P = { 3: "triangle", 4: "quadrilatère", 5: "pentagone", 6: "hexagone", 7: "heptagone", 8: "octogone" }, q = rand(0, 1);
+      return { enonce: `Le patron d'un prisme droit dont les bases sont des ${P[n]}s comporte combien de ${q ? "faces en tout" : "rectangles (faces latérales)"} ?`, mode: "nombre", prefixe: "Nombre :", attendu: q ? n + 2 : n,
+        aides: ["Un prisme droit a deux bases superposables et des faces latérales rectangulaires.", `Il y a une face latérale par côté de la base : $${n}$.`, q ? "N'oublie pas les deux bases." : "Ne compte pas les bases."], solution: q ? `$${n}$ faces latérales et $2$ bases : $${n + 2}$ faces.` : `Un rectangle par côté de la base : $${n}$ rectangles.` }; }
+    if (t === 1) { const r = rand(2, 10), h = rand(3, 15), v = arr(2 * Math.PI * r, 1);
+      return { enonce: `Le patron d'un cylindre de rayon $${r}$ cm et de hauteur $${h}$ cm est formé de deux disques et d'un rectangle. Quelle est la longueur du côté du rectangle qui s'enroule autour des disques ? (Arrondie au dixième de cm.)`, mode: "nombre", prefixe: "Longueur :", suffixe: "cm", attendu: v,
+        erreurs: [{ valeur: arr(Math.PI * r * r, 1), message: "Ça, c'est l'aire d'un disque. On cherche le périmètre du cercle." }, { valeur: h, message: "Ça, c'est l'autre côté du rectangle (la hauteur)." }],
+        aides: ["Le rectangle s'enroule exactement autour du disque de base.", "Sa longueur est donc le périmètre du cercle : $2 \\times \\pi \\times r$.", `$2 \\times \\pi \\times ${r}$.`], solution: `$2 \\times \\pi \\times ${r} = ${2 * r}\\pi \\approx ${nb(v)}$ cm.` }; }
+    if (t === 2) { const L = rand(4, 12), l = rand(2, L - 1), h = rand(2, 9), q = rand(0, 1), A = 2 * (L * l + L * h + l * h);
+      return q ? { enonce: `Combien de faces rectangulaires comporte le patron d'un pavé droit de dimensions $${L}$ cm, $${l}$ cm et $${h}$ cm ?`, mode: "nombre", prefixe: "Faces :", attendu: 6, aides: ["Un pavé droit a $6$ faces.", "Elles sont toutes rectangulaires.", "Elles sont identiques deux à deux."], solution: "Le patron d'un pavé droit comporte $6$ rectangles, identiques deux à deux." }
+        : { enonce: `Quelle est l'aire totale du patron d'un pavé droit de dimensions $${L}$ cm, $${l}$ cm et $${h}$ cm ?`, mode: "nombre", prefixe: "Aire :", suffixe: "cm²", attendu: A, erreurs: [{ valeur: L * l * h, message: "Ça, c'est le volume. On demande l'aire des $6$ faces." }, { valeur: A / 2, message: "Les faces sont identiques deux à deux : il y en a $6$, pas $3$." }],
+          aides: ["Le patron est formé de $6$ rectangles identiques deux à deux.", `Aires : $${L} \\times ${l}$, $${L} \\times ${h}$ et $${l} \\times ${h}$, chacune deux fois.`, "Additionne les six aires."], solution: `$2 \\times (${L * l} + ${L * h} + ${l * h}) = ${A}$ cm².` }; }
+    const Q = pick([
+      ["Le patron d'un cylindre est formé de :", "deux disques et un rectangle", ["un disque et un triangle", "deux rectangles et un disque", "trois disques"]],
+      ["Le patron d'un prisme droit à base triangulaire est formé de :", "deux triangles et trois rectangles", ["trois triangles et deux rectangles", "un triangle et trois rectangles", "deux triangles et quatre rectangles"]],
+      ["Le patron d'un cube est formé de :", "six carrés", ["quatre carrés", "six rectangles quelconques", "huit carrés"]],
+      ["En perspective cavalière, les arêtes cachées sont dessinées :", "en pointillés", ["en gras", "en couleur", "elles ne sont pas dessinées"]],
+      ["En perspective cavalière, les faces avant et arrière d'un pavé sont dessinées :", "en vraie grandeur", ["plus petites que dans la réalité", "en pointillés", "en losanges"]],
+      ["En perspective cavalière, des arêtes parallèles dans la réalité sont dessinées :", "parallèles", ["perpendiculaires", "de même longueur toujours", "en pointillés"]]
+    ]);
+    const { choix, attendu } = melange(Q[1], Q[2]);
+    return { enonce: Q[0], mode: "choix", choix, attendu, aides: ["Imagine le solide déplié, ou dessiné sur une feuille.", "Compte les bases et les faces latérales.", "En perspective cavalière, la face de devant est en vraie grandeur et le parallélisme est conservé."], solution: `Réponse : ${Q[1]}.` };
+  };
+
+  GEN["sv5-problemes"] = function () {
+    const t = rand(0, 2);
+    if (t === 0) { const L = rand(4, 10) * 10, l = rand(2, 5) * 10, h = rand(3, 6) * 10, v = (L * l * h) / 1000;
+      return { enonce: `Un aquarium en forme de pavé droit mesure $${L}$ cm de long, $${l}$ cm de large et $${h}$ cm de haut. Combien de litres d'eau contient-il quand il est plein ?`, mode: "nombre", prefixe: "Contenance :", suffixe: "L", attendu: v,
+        erreurs: [{ valeur: L * l * h, message: "Ça, c'est le volume en cm³. Convertis en litres ($1$ L $= 1\\,000$ cm³)." }],
+        aides: [`Volume : $${L} \\times ${l} \\times ${h}$ cm³.`, `$= ${nb(L * l * h)}$ cm³.`, "$1$ L $= 1\\,000$ cm³ : divise par $1\\,000$."], solution: `$V = ${L} \\times ${l} \\times ${h} = ${nb(L * l * h)}$ cm³ $= ${nb(v)}$ L.` }; }
+    if (t === 1) { const L = rand(5, 12), l = rand(3, 6), p = rand(10, 20) / 10, v = arr(L * l * p, 3);
+      return { enonce: `Une piscine en forme de pavé droit mesure $${L}$ m sur $${l}$ m et a une profondeur de $${nb(p)}$ m. Combien de m³ d'eau faut-il pour la remplir ?`, mode: "nombre", prefixe: "Volume :", suffixe: "m³", attendu: v,
+        aides: ["Volume d'un pavé : longueur $\\times$ largeur $\\times$ hauteur.", "Toutes les longueurs sont en mètres : le volume est en m³.", `$${L} \\times ${l} \\times ${nb(p)}$.`], solution: `$V = ${L} \\times ${l} \\times ${nb(p)} = ${nb(v)}$ m³ (soit $${nb(v * 1000)}$ L).` }; }
+    const r = rand(3, 5), h = rand(8, 15), V = Math.PI * r * r * h, n = Math.floor(V / 200);
+    return { enonce: `Une bouteille cylindrique a un rayon intérieur de $${r}$ cm et une hauteur de $${h}$ cm. Combien de verres de $20$ cL peut-on remplir entièrement avec son contenu ?`, mode: "nombre", prefixe: "Verres :", attendu: n,
+      aides: [`Volume : $\\pi \\times ${r}^2 \\times ${h} \\approx ${nb(arr(V, 1))}$ cm³.`, "$20$ cL $= 200$ mL $= 200$ cm³.", `$${nb(arr(V, 1))} \\div 200 \\approx ${nb(arr(V / 200, 2))}$ : seuls les verres pleins comptent.`], solution: `$V \\approx ${nb(arr(V, 1))}$ cm³ et $${nb(arr(V, 1))} \\div 200 \\approx ${nb(arr(V / 200, 2))}$ : on remplit $${n}$ verres entièrement.` };
+  };
+
+  /* =====================================================================
+     Chapitre 18 : programmation par blocs (pr5-)
+     ===================================================================== */
+  const { blocs } = window.PM_EXO.college;
+  const DRAPEAU = { c: "evt", t: "quand le drapeau est cliqué" };
+  const POLYG = { 3: "un triangle équilatéral", 4: "un carré", 5: "un pentagone régulier", 6: "un hexagone régulier", 8: "un octogone régulier", 9: "un ennéagone régulier", 10: "un décagone régulier", 12: "un dodécagone régulier" };
+  // Expressions « Scratch » : [écriture dans le bloc, calcul en KaTeX avec n, fonction]
+  const EXPR = [
+    (a, b) => [`réponse * ${a} + ${b}`, `${"n"} \\times ${a} + ${b}`, (n) => n * a + b, (n) => n * (a + b)],
+    (a, b) => [`(réponse + ${b}) * ${a}`, `(n + ${b}) \\times ${a}`, (n) => (n + b) * a, (n) => n + b * a],
+    (a, b) => [`réponse * réponse + ${b}`, `n \\times n + ${b}`, (n) => n * n + b, (n) => 2 * n + b],
+    (a, b) => [`${a} * réponse - ${b}`, `${a} \\times n - ${b}`, (n) => a * n - b, (n) => a * (n - b)],
+    (a, b) => [`(réponse - ${b}) * (réponse + ${b})`, `(n - ${b}) \\times (n + ${b})`, (n) => (n - b) * (n + b), (n) => n - b * n + b]
+  ];
+
+  GEN["pr5-executer"] = function () {
+    const a = rand(2, 9), b = rand(1, 12), k = rand(0, 4), [blk, tex, f, faux] = EXPR[k](a, b), n = rand(k === 4 ? b + 1 : 1, 15);
+    const prog = blocs([DRAPEAU, { c: "ent", t: "demander [Choisis un nombre] et attendre" }, { c: "dire", t: `dire [${blk}]` }]);
+    const r = f(n), fx = faux(n);
+    return { enonce: `On lance ce programme et on répond $${n}$. Quel nombre le lutin dit-il ? (Dans Scratch, $*$ est le signe de la multiplication.)`, figure: prog, mode: "nombre", prefixe: "Le lutin dit :", attendu: r,
+      erreurs: fx !== r ? [{ valeur: fx, message: "Respecte les priorités opératoires et les parenthèses, comme en mathématiques." }] : [],
+      aides: ["La variable « réponse » contient le nombre saisi (l'entrée).", `Remplace « réponse » par $${n}$ : on calcule $${tex.split("n").join(String(n))}$.`, "Multiplications d'abord, sauf s'il y a des parenthèses."],
+      solution: `Avec $n = ${n}$ : $${tex.split("n").join(String(n))} = ${r}$. Le lutin dit $${r}$.` };
+  };
+
+  GEN["pr5-expression"] = function () {
+    const t = rand(0, 4), a = rand(2, 9), b = rand(2, 12);
+    const Q = [
+      [`le périmètre $P = 2 \\times (L + \\ell)$ d'un rectangle de longueur $L$ et de largeur $\\ell$`, "(L + l) * 2", ["L + l * 2", "L * l * 2", "L + l + 2"]],
+      [`l'aire $\\mathcal{A} = c \\times c$ d'un carré de côté $c$`, "c * c", ["c + c", "c * 2", "4 * c"]],
+      [`le prix $P = ${a} \\times n + ${b}$ ($${b}$ € de frais et $${a}$ € par article)`, `n * ${a} + ${b}`, [`(n + ${b}) * ${a}`, `n + ${a} * ${b}`, `${a} + ${b} * n`]],
+      [`le résultat $R = (x + ${b}) \\times ${a}$ du programme « ajouter $${b}$ puis multiplier par $${a}$ »`, `(x + ${b}) * ${a}`, [`x + ${b} * ${a}`, `x * ${a} + ${b}`, `(x * ${a}) + ${b}`]],
+      [`la moyenne $M$ de deux notes $a$ et $b$`, "(a + b) / 2", ["a + b / 2", "a / 2 + b", "(a * b) / 2"]]
+    ][t];
+    const { choix, attendu } = melange(`« ${Q[1]} »`, Q[2].map((z) => `« ${z} »`));
+    return { enonce: `Dans un programme Scratch, quelle expression permet de calculer ${Q[0]} ? ($*$ : multiplier ; $/$ : diviser.)`, mode: "choix", choix, attendu,
+      aides: ["L'ordinateur respecte les priorités opératoires, comme en mathématiques.", "Quand une addition doit être faite avant une multiplication ou une division, il faut des parenthèses.", "Teste chaque expression avec des valeurs simples."], solution: `C'est « ${Q[1]} ». Les parenthèses imposent de faire l'addition en premier quand c'est nécessaire.` };
+  };
+
+  GEN["pr5-boucle"] = function () {
+    const t = rand(0, 2);
+    if (t === 0) {
+      const x = rand(1, 20), n = rand(2, 6), op = pick([["ajouter", (v, k) => v + k, rand(2, 9)], ["multiplier par", (v, k) => v * k, 2]]);
+      let v = x; const vals = []; for (let i = 0; i < n; i++) { v = op[1](v, op[2]); vals.push(v); }
+      const prog = blocs([DRAPEAU, { c: "ent", t: "demander [Nombre ?] et attendre" }, { c: "var", t: "mettre [N] à [réponse]" }, { rep: n, corps: [{ c: "var", t: op[0] === "ajouter" ? `ajouter [${op[2]}] à [N]` : "mettre [N] à [N * 2]" }] }, { c: "dire", t: "dire [N]" }]);
+      return { enonce: `On lance ce programme et on répond $${x}$. Que dit le lutin à la fin ?`, figure: prog, mode: "nombre", prefixe: "Le lutin dit :", attendu: v,
+        erreurs: [{ valeur: op[1](x, op[2]), message: `La boucle est répétée $${n}$ fois, pas une seule.` }],
+        aides: ["La variable $N$ prend d'abord la valeur saisie.", `Chaque passage dans la boucle ${op[0] === "ajouter" ? `ajoute $${op[2]}$ à $N$` : "double $N$"}.`, `Note la valeur de $N$ après chaque passage : $${vals[0]}$, …`], solution: `$N$ vaut successivement $${[x, ...vals].join(" ; ")}$. Le lutin dit $${v}$.` };
+    }
+    if (t === 1) {
+      const n = pick([3, 4, 5, 6, 8, 9, 10, 12]), L = rand(3, 10) * 10;
+      return { enonce: `On veut que le lutin trace ${POLYG[n]} de côté $${L}$ pas avec : stylo en position d'écriture ; répéter $${n}$ fois (avancer de $${L}$ pas ; tourner de $\\ldots$ degrés). Quel angle faut-il mettre ?`, mode: "nombre", prefixe: "Angle :", suffixe: "°", attendu: 360 / n,
+        erreurs: [{ valeur: 180 - 360 / n, message: "Le lutin tourne de l'angle **extérieur** : après les $" + n + "$ virages, il a fait un tour complet ($360^\\circ$)." }],
+        aides: ["Après avoir tracé tous les côtés, le lutin a fait un tour complet sur lui-même.", `Il tourne $${n}$ fois du même angle.`, `$360 \\div ${n}$.`], solution: `$360^\\circ \\div ${n} = ${nb(360 / n)}^\\circ$.` };
+    }
+    const n = pick([3, 4, 5, 6, 8]), L = rand(3, 10) * 10, A = 360 / n;
+    const prog = blocs([DRAPEAU, { c: "stylo", t: "stylo en position d'écriture" }, { rep: n, corps: [{ c: "mvt", t: `avancer de [${L}] pas` }, { c: "mvt", t: `tourner ↻ de [${nb(A).replace("{,}", ",")}] degrés` }] }]);
+    const q = rand(0, 1);
+    return q ? { enonce: "Quel est le périmètre de la figure tracée par ce programme, en pas ?", figure: prog, mode: "nombre", prefixe: "Périmètre :", suffixe: "pas", attendu: n * L, erreurs: [{ valeur: L, message: "C'est un seul côté." }],
+      aides: ["Chaque passage dans la boucle trace un côté.", `Il y a $${n}$ passages.`, `$${n} \\times ${L}$.`], solution: `$${n} \\times ${L} = ${n * L}$ pas.` }
+      : { enonce: "Combien de côtés a la figure tracée par ce programme ?", figure: prog, mode: "nombre", prefixe: "Côtés :", attendu: n, erreurs: [{ valeur: A, message: "Ça, c'est l'angle dont tourne le lutin." }],
+        aides: ["Chaque passage dans la boucle trace un côté.", "Compte le nombre de répétitions.", "Vérifie : nombre de côtés $\\times$ angle $= 360^\\circ$."], solution: `La boucle est répétée $${n}$ fois : $${n}$ côtés (c'est ${POLYG[n]}).` };
+  };
+
+  GEN["pr5-parametres"] = function () {
+    const t = rand(0, 3), L = rand(3, 10) * 10, n = pick([3, 4, 5, 6]), L2 = L + rand(1, 5) * 10;
+    const Q = [
+      [`Un programme trace ${POLYG[n]} de côté $${L}$ pas avec « répéter $${n}$ fois (avancer de $${L}$ ; tourner de $${nb(360 / n)}$ degrés) ». Pour obtenir ${POLYG[n]} de côté $${L2}$ pas, que faut-il modifier ?`, `remplacer $${L}$ par $${L2}$ dans « avancer »`, [`remplacer $${n}$ par $${L2}$ dans « répéter »`, `remplacer $${nb(360 / n)}$ par $${L2}$ dans « tourner »`, "ajouter un bloc « avancer » après la boucle"]],
+      [`Un programme trace un carré avec « répéter $4$ fois (avancer de $${L}$ ; tourner de $90$ degrés) ». Pour tracer un hexagone régulier, que faut-il écrire ?`, "répéter $6$ fois (avancer ; tourner de $60$ degrés)", ["répéter $6$ fois (avancer ; tourner de $90$ degrés)", "répéter $4$ fois (avancer ; tourner de $60$ degrés)", "répéter $6$ fois (avancer ; tourner de $120$ degrés)"]],
+      ["Dans un programme, l'instruction « demander [Quel est ton âge ?] et attendre » correspond :", "à une entrée", ["à une sortie", "à une boucle", "à un déplacement"]],
+      ["Dans un programme, l'instruction « dire [réponse * 2] » correspond :", "à une sortie", ["à une entrée", "à une boucle", "à une variable qu'on modifie"]]
+    ][t];
+    const { choix, attendu } = melange(Q[1], Q[2]);
+    return { enonce: Q[0], mode: "choix", choix, attendu, aides: ["Repère le rôle de chaque nombre : le nombre de répétitions, la longueur, l'angle.", "Une entrée donne une information au programme ; une sortie affiche un résultat.", "Pour un polygone régulier à $n$ côtés : répéter $n$ fois, tourner de $360 \\div n$ degrés."], solution: `Réponse : ${Q[1]}.` };
+  };
+
   /* Une « erreur connue » ne doit jamais coïncider avec la bonne réponse */
-  Object.keys(GEN).filter((k) => /^(rc5|tr5|fr5|pp5|an5|dv5|sc5|nr5|cr5|gf5|cl5|pg5|st5|eq5|ai5|pb5)-/.test(k)).forEach((k) => {
+  Object.keys(GEN).filter((k) => /^(rc5|tr5|fr5|pp5|an5|dv5|sc5|nr5|cr5|gf5|cl5|pg5|st5|eq5|ai5|pb5|sv5|pr5)-/.test(k)).forEach((k) => {
     const g = GEN[k];
     GEN[k] = (i) => {
       const q = g(i);
