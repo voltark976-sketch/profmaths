@@ -729,6 +729,7 @@ table.suivi { border-collapse: collapse; background: var(--surface); font-varian
 .lien-eleve { font: inherit; color: var(--ac); background: none; border: 0; padding: 0; cursor: pointer; text-align: left; text-decoration: underline; text-underline-offset: 3px; }
 .lien-eleve[aria-expanded="true"] { font-weight: 700; }
 .page-comptes .ident { display: block; font-size: 0.78rem; color: var(--doux); font-weight: 400; }
+.page-comptes .alerte { background: var(--ylang-pale); border-left: 4px solid var(--ylang); border-radius: var(--r); padding: 10px 14px; }
 .page-comptes .freq-tuile small { font-size: 0.9rem; font-weight: 700; color: var(--doux); }
 .suivi tr.inactif td, .suivi tr.inactif th { color: var(--doux); }
 /* Élève présent dans la liste de classe mais jamais connecté au site */

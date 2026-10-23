@@ -412,11 +412,18 @@
     // demandes de professeurs, professeurs), avec leur temps actif ; les fiches s'appellent par le uid du compte
     async tous() {
       if (!fb || !this.chef()) return null;
-      const lire = async (c) => (await fb.db.collection(c).get()).docs.map((x) => Object.assign({ uid: x.id }, x.data()));
-      const [eleves, classes, inscrits, demandes, profs] = await Promise.all(["eleves", "classes", "inscrits", "demandesProf", "profs"].map(lire));
+      // Une liste refusée (règles Firestore pas à jour) n'empêche pas d'afficher les autres : elle est signalée dans « manquants »
+      const manquants = [];
+      const lire = async (c) => {
+        try { return (await fb.db.collection(c).get()).docs.map((x) => Object.assign({ uid: x.id }, x.data())); }
+        catch (e) { manquants.push(c); return []; }
+      };
+      const noms = ["eleves", "classes", "inscrits", "demandesProf", "profs"];
+      const [eleves, classes, inscrits, demandes, profs] = await Promise.all(noms.map(lire));
+      if (manquants.length === noms.length) throw new Error("Lecture impossible");
       const listes = {};
       classes.forEach((c) => { listes[c.uid] = c; });
-      return { eleves, classes: listes, inscrits, demandes, profs };
+      return { eleves, classes: listes, inscrits, demandes, profs, manquants };
     },
     // statut : "approuve", "refuse" ou "attente"
     async decider(uid, statut) {
