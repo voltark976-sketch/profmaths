@@ -3,7 +3,7 @@
   Ce fichier se charge après assets/exercices-college.js et reprend ses outils (window.PM_EXO.college).
   Mêmes règles : chaque générateur fabrique une question avec des nombres tirés au hasard, la réponse
   attendue, trois indices progressifs et la solution rédigée.
-  Préfixes : cn3-, dv3-, fc3-, eq3-, ar3-, fn3-, fa3-, pp3-, pr3-, st3-, th3-, ts3-, tg3-, tf3-, ep3-.
+  Préfixes : cn3-, dv3-, fc3-, eq3-, ar3-, fn3-, fa3-, pp3-, pr3-, st3-, th3-, ts3-, tg3-, tf3-, ep3-, pg3-.
 */
 (function () {
   "use strict";
@@ -1346,8 +1346,96 @@
     return { enonce: Q[0], mode: "choix", choix, attendu, aides: ["La latitude mesure l'angle au nord ou au sud de l'équateur.", "La longitude mesure l'angle à l'est ou à l'ouest du méridien de Greenwich.", "Mayotte : environ $13^\\circ$ Sud et $45^\\circ$ Est."], solution: `Réponse : ${Q[1]}.` };
   };
 
+  /* =====================================================================
+     Chapitre 16 : programmation (pg3-) — programmes de calcul, tracés, boucles et conditions, blocs personnalisés
+     ===================================================================== */
+  const B3 = (prog) => window.PM_EXO.blocs4(prog); // dessin des blocs (défini dans assets/exercices-quatrieme.js)
+  const DRAP3 = { c: "evt", t: "quand le drapeau est cliqué" };
+  const POLY3 = { 3: "triangle équilatéral", 4: "carré", 5: "pentagone régulier", 6: "hexagone régulier", 8: "octogone régulier", 10: "décagone régulier", 12: "dodécagone régulier" };
+
+  GEN["pg3-calcul"] = function () {
+    const a = rand(2, 6), b = nz(1, 9, true), t = rand(0, 1);
+    // x → y = a x + b → z = y × x  (soit a x² + b x)
+    const prog = B3([DRAP3, { c: "ent", t: "demander [Choisis un nombre] et attendre" }, { c: "var", t: "mettre [x] à [réponse]" }, { c: "var", t: `mettre [y] à [x * ${a}]` }, { c: "var", t: `ajouter [${b}] à [y]` }, { c: "var", t: "mettre [z] à [y * x]" }, { c: "dire", t: "dire [z]" }]);
+    if (t === 0) { const x = nz(1, 9, true), r = (a * x + b) * x;
+      return { enonce: `On lance ce programme et on répond $${rel(x)}$. Que dit le lutin ?`, figure: prog, mode: "nombre", prefixe: "Le lutin dit :", attendu: r,
+        erreurs: [{ valeur: a * x + b, message: "N'oublie pas la dernière étape : $z = y \\times x$." }],
+        aides: [`$x = ${rel(x)}$.`, `$y = ${rel(x)} \\times ${a} + ${relP(b)} = ${rel(a * x + b)}$.`, `$z = y \\times x$.`], solution: `$y = ${rel(a * x + b)}$ puis $z = ${rel(a * x + b)} \\times ${relP(x)} = ${rel(r)}$.` }; }
+    const bonne = `$${poly(a, b, 0, "x")}$`, faux = uniq3(bonne, [`$${poly(0, a, b, "x")}$`, `$${poly(a, 0, b, "x")}$`, `$${poly(0, a + b, 0, "x")}$`, `$${poly(a, b * a, 0, "x")}$`]);
+    const { choix, attendu } = melange(bonne, faux);
+    return { enonce: "Si on répond $x$, quelle expression développée donne le nombre dit par le lutin ?", figure: prog, mode: "choix", choix, attendu,
+      aides: ["Suis les variables avec la lettre $x$.", `$y = ${poly(0, a, b, "x")}$.`, `$z = (${poly(0, a, b, "x")}) \\times x$ ; développe.`], solution: `$z = (${poly(0, a, b, "x")}) \\times x = ${poly(a, b, 0, "x")}$.` };
+  };
+
+  GEN["pg3-dessin"] = function () {
+    const t = rand(0, 2);
+    if (t === 0) { const n = pick([3, 4, 5, 6, 8, 10, 12]), L = rand(3, 12) * 10;
+      return { enonce: `On veut tracer un ${POLY3[n]} de côté $${L}$ avec « répéter $${n}$ fois : avancer de $${L}$ ; tourner de $\\ldots$ degrés ». Quel angle faut-il mettre ?`, mode: "nombre", prefixe: "Angle :", suffixe: "°", attendu: 360 / n,
+        erreurs: [{ valeur: 180 - 360 / n, message: "Le lutin tourne de l'angle extérieur : en tout, il fait un tour complet de $360^\\circ$." }],
+        aides: ["Après tous les côtés, le lutin a fait un tour complet.", `Il tourne $${n}$ fois du même angle.`, `$360 \\div ${n}$.`], solution: `$360 \\div ${n} = ${nb(360 / n)}^\\circ$.` }; }
+    if (t === 1) { const n = pick([3, 4, 5, 6]), m = pick([2, 3, 4, 5, 6, 8, 9, 10, 12]), L = rand(2, 9) * 10, A = 360 / n;
+      const prog = B3([DRAP3, { c: "stylo", t: "stylo en position d'écriture" }, { rep: m, corps: [{ rep: n, corps: [{ c: "mvt", t: `avancer de [${L}] pas` }, { c: "mvt", t: `tourner ↻ de [${nb(A).replace("{,}", ",")}] degrés` }] }, { c: "mvt", t: `tourner ↻ de [${360 / m}] degrés` }] }]);
+      return { enonce: "Quelle distance totale (en pas) le lutin parcourt-il avec ce programme ?", figure: prog, mode: "nombre", prefixe: "Distance :", suffixe: "pas", attendu: m * n * L,
+        erreurs: [{ valeur: n * L, message: "La boucle intérieure est elle-même répétée : multiplie aussi par le nombre de répétitions extérieures." }],
+        aides: [`La boucle intérieure trace un ${POLY3[n]} : $${n} \\times ${L}$ pas.`, `Elle est répétée $${m}$ fois.`, `$${m} \\times ${n} \\times ${L}$.`], solution: `$${m} \\times ${n} \\times ${L} = ${m * n * L}$ pas (${m} ${POLY3[n]}s tournés autour d'un point).` }; }
+    const n = pick([3, 4, 5, 6, 8]), L = rand(3, 12) * 10, c = rand(2, 5);
+    const prog = B3([{ c: "ctrl", t: "définir [polygone] (côté)" }, { rep: n, corps: [{ c: "mvt", t: "avancer de [côté] pas" }, { c: "mvt", t: `tourner ↻ de [${nb(360 / n).replace("{,}", ",")}] degrés` }] }, DRAP3, { c: "ctrl", t: `polygone [${L}]` }, { c: "ctrl", t: `polygone [${L * c}]` }]);
+    return { enonce: "Le bloc personnalisé « polygone » est défini en haut. Quelle est la longueur totale tracée (en pas) quand on clique sur le drapeau ?", figure: prog, mode: "nombre", prefixe: "Longueur :", suffixe: "pas", attendu: n * L * (1 + c),
+      erreurs: [{ valeur: n * L, message: "Le bloc est appelé deux fois, avec deux valeurs différentes du paramètre « côté »." }],
+      aides: [`Le bloc trace un ${POLY3[n]} dont le côté est le paramètre.`, `Premier appel : $${n} \\times ${L}$ ; second : $${n} \\times ${L * c}$.`, "Additionne."], solution: `$${n} \\times ${L} + ${n} \\times ${L * c} = ${n * L * (1 + c)}$ pas.` };
+  };
+
+  GEN["pg3-boucles"] = function () {
+    const t = rand(0, 2);
+    if (t === 0) { // Syracuse : nombre de passages
+      const x = rand(3, 20); let n = x, k = 0; while (n !== 1) { n = n % 2 ? 3 * n + 1 : n / 2; k++; }
+      if (k > 20) return GEN["pg3-boucles"]();
+      const prog = B3([DRAP3, { c: "var", t: `mettre [n] à [${x}]` }, { c: "var", t: "mettre [compteur] à [0]" }, { jusqua: "n = 1", corps: [{ si: "n modulo 2 = 0", alors: [{ c: "var", t: "mettre [n] à [n / 2]" }], sinon: [{ c: "var", t: "mettre [n] à [3 * n + 1]" }] }, { c: "var", t: "ajouter [1] à [compteur]" }] }, { c: "dire", t: "dire [compteur]" }]);
+      return { enonce: "Que dit le lutin à la fin de ce programme ? (« n modulo 2 = 0 » signifie « n est pair ».)", figure: prog, mode: "nombre", prefixe: "Le lutin dit :", attendu: k,
+        erreurs: [{ valeur: k + 1, message: "On s'arrête dès que $n = 1$ : ce dernier passage n'est pas compté." }],
+        aides: ["Si $n$ est pair, on le divise par $2$ ; sinon on calcule $3n + 1$.", `Départ : $n = ${x}$.`, "Note la suite des valeurs de $n$ et compte les passages."],
+        solution: (() => { const L = [x]; let m = x; while (m !== 1) { m = m % 2 ? 3 * m + 1 : m / 2; L.push(m); } return `$n$ prend les valeurs $${L.join(" ; ")}$ : il y a $${k}$ passages.`; })() };
+    }
+    if (t === 1) { // somme des multiples
+      const k = rand(2, 7), N = rand(15, 60), S = Array.from({ length: Math.floor(N / k) }, (_, i) => (i + 1) * k).reduce((a, b) => a + b, 0);
+      const prog = B3([DRAP3, { c: "var", t: "mettre [S] à [0]" }, { c: "var", t: "mettre [i] à [0]" }, { rep: N, corps: [{ c: "var", t: "ajouter [1] à [i]" }, { si: `i modulo ${k} = 0`, alors: [{ c: "var", t: "ajouter [i] à [S]" }] }] }, { c: "dire", t: "dire [S]" }]);
+      return { enonce: `Que dit le lutin à la fin de ce programme ? (« i modulo ${k} = 0 » signifie « i est un multiple de ${k} ».)`, figure: prog, mode: "nombre", prefixe: "Le lutin dit :", attendu: S,
+        erreurs: [{ valeur: Math.floor(N / k), message: "On ajoute la valeur de $i$, pas $1$ : c'est une somme, pas un comptage." }],
+        aides: [`$i$ prend les valeurs $1$, $2$, …, $${N}$.`, `On ajoute $i$ à $S$ seulement si $i$ est un multiple de $${k}$.`, `Additionne les multiples de $${k}$ jusqu'à $${N}$.`], solution: `$S = ${Array.from({ length: Math.floor(N / k) }, (_, i) => (i + 1) * k).join(" + ")} = ${S}$.` };
+    }
+    // compte à rebours avec condition
+    const x = rand(20, 60), b = rand(3, 9); let n = x, c = 0; while (n > 0) { n -= b; c++; }
+    const prog = B3([DRAP3, { c: "var", t: `mettre [n] à [${x}]` }, { c: "var", t: "mettre [tours] à [0]" }, { jusqua: "n < 1", corps: [{ c: "var", t: `ajouter [-${b}] à [n]` }, { c: "var", t: "ajouter [1] à [tours]" }] }, { si: "n = 0", alors: [{ c: "dire", t: "dire [tours]" }], sinon: [{ c: "dire", t: "dire [n]" }] }]);
+    const r = n === 0 ? c : n;
+    return { enonce: "Que dit le lutin à la fin de ce programme ?", figure: prog, mode: "nombre", prefixe: "Le lutin dit :", attendu: r,
+      erreurs: [{ valeur: n === 0 ? n : c, message: `À la fin, regarde si $n$ vaut $0$ : le lutin dit ${n === 0 ? "« tours »" : "« n »"}.` }],
+      aides: [`À chaque passage, $n$ diminue de $${b}$.`, "La boucle s'arrête dès que $n < 1$.", `Après la boucle, $n$ vaut $${rel(n)}$ ${n === 0 ? "(égal à $0$)" : "(différent de $0$)"}.`],
+      solution: `Après $${c}$ passages, $n = ${rel(n)}$. ${n === 0 ? `La condition « n = 0 » est vraie : le lutin dit $${c}$.` : `La condition « n = 0 » est fausse : le lutin dit $${rel(n)}$.`}` };
+  };
+
+  GEN["pg3-evenements"] = function () {
+    if (Math.random() < 0.5) {
+      const s0 = rand(0, 5), k = rand(2, 6), p = rand(2, 6), q = rand(1, 4), m = rand(1, 3);
+      const prog = B3([DRAP3, { c: "var", t: `mettre [points] à [${s0}]` }, { c: "evt", t: "quand ce lutin est cliqué" }, { c: "var", t: `ajouter [${k}] à [points]` }, { c: "ctrl", t: "envoyer à tous [bonus]" }, { c: "evt", t: "quand je reçois [bonus]" }, { c: "var", t: `ajouter [${m}] à [points]` }, { c: "evt", t: "quand la touche espace est pressée" }, { c: "var", t: "mettre [points] à [points * 2]" }]);
+      const r = (s0 + p * (k + m)) * 2 ** q;
+      return { enonce: `Ces scripts sont ceux d'un même lutin. On clique sur le drapeau, puis $${p}$ fois sur le lutin, puis on appuie $${q}$ fois sur espace. Que vaut « points » ?`, figure: prog, mode: "nombre", prefixe: "points =", attendu: r,
+        erreurs: [{ valeur: (s0 + p * k) * 2 ** q, message: "Chaque clic envoie aussi le message « bonus », qui ajoute des points." }, { valeur: s0 + p * (k + m) + 2 * q, message: "La touche espace double les points (multiplication), elle n'ajoute pas $2$." }],
+        aides: [`Chaque clic : $+${k}$, puis le message « bonus » : $+${m}$.`, `Après les clics : $${s0} + ${p} \\times ${k + m} = ${s0 + p * (k + m)}$.`, `Puis on double $${q}$ fois.`], solution: `$(${s0} + ${p} \\times ${k + m}) \\times 2^{${q}} = ${r}$.` };
+    }
+    const Q = pick([
+      ["Le bloc « envoyer à tous [message] » sert à :", "déclencher les scripts « quand je reçois [message] »", ["afficher un texte", "arrêter le programme", "créer une variable"]],
+      ["Un bloc personnalisé (« définir … ») sert à :", "regrouper des instructions réutilisables, avec des paramètres", ["dessiner un lutin", "remplacer les variables", "accélérer l'ordinateur"]],
+      ["Dans « définir carré (côté) », « côté » est :", "un paramètre qui prend une valeur à chaque appel", ["une constante égale à $10$", "une boucle", "un message"]],
+      ["Pour répéter des instructions tant qu'une condition n'est pas réalisée, on utilise :", "« répéter jusqu'à »", ["« si … alors »", "« répéter 10 fois »", "« envoyer à tous »"]],
+      ["« n modulo 3 » donne :", "le reste de la division de $n$ par $3$", ["le quotient de $n$ par $3$", "$n \\times 3$", "$n - 3$"]],
+      ["Pour tester qu'un nombre $n$ est pair, on écrit :", "« n modulo 2 = 0 »", ["« n / 2 = 0 »", "« n * 2 = 0 »", "« n - 2 = 0 »"]]
+    ]);
+    const { choix, attendu } = melange(Q[1], Q[2]);
+    return { enonce: Q[0], mode: "choix", choix, attendu, aides: ["Un événement ou un message déclenche un script.", "Un bloc personnalisé est un sous-programme qu'on peut appeler plusieurs fois.", "« modulo » donne le reste d'une division euclidienne."], solution: `Réponse : ${Q[1]}.` };
+  };
+
   /* Une « erreur connue » ne doit jamais coïncider avec la bonne réponse */
-  Object.keys(GEN).filter((k) => /^(cn3|dv3|fc3|eq3|ar3|fn3|fa3|pp3|pr3|st3|th3|ts3|tg3|tf3|ep3)-/.test(k)).forEach((k) => {
+  Object.keys(GEN).filter((k) => /^(cn3|dv3|fc3|eq3|ar3|fn3|fa3|pp3|pr3|st3|th3|ts3|tg3|tf3|ep3|pg3)-/.test(k)).forEach((k) => {
     const g = GEN[k];
     GEN[k] = (i) => {
       const q = g(i);

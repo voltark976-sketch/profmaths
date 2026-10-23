@@ -997,6 +997,7 @@
     W = Math.max(W, 150);
     return `<svg class="graph pi-prog" viewBox="0 0 ${Math.ceil(W)} ${y + 4}" style="max-width:${Math.ceil(W)}px" role="img" aria-label="Programme : ${aria(prog).replace(/"/g, "'")}">${s}</svg>`;
   }
+  window.PM_EXO.blocs4 = blocs4;
   const DRAP4 = { c: "evt", t: "quand le drapeau est cliqué" };
   const signeSc = (t) => t.replace(/\*/g, "\\times ");
 

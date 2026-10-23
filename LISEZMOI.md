@@ -53,6 +53,7 @@ Site statique : aucune base de données, aucun compte élève. Ouvrir `index.htm
   - `data/quatrieme/cosinus.js` : 4e, chapitre 11 (cosinus d'un angle aigu, calcul de longueurs et d'angles, problèmes). Générateurs `cs4-` ; figure `figCos()`.
   - `data/quatrieme/translation.js` : 4e, chapitre 12 (translation sur quadrillage, image d'un point, reconnaître une transformation, propriétés). Générateurs `tl4-` ; figure `grilleT()`.
   - `data/quatrieme/equations.js` : 4e, chapitre 13 (équations du premier degré, inconnue dans les deux membres, parenthèses, mise en équation). Générateurs `eq4-`.
+  -   - `data/troisieme/informatique.js` : 3e, chapitre 16 (programmes de calcul, boucles imbriquées, blocs personnalisés, conditions, modulo, messages ; blocs dessinés par blocs4 exporté depuis la 4e). Générateurs `pg3-`.
   -   - `data/troisieme/espace.js` : 3e, chapitre 15 (sphère et boule, cône, pyramide, volumes et k³, sections planes, repérage dans un pavé et sur la Terre). Générateurs `ep3-`.
   -   - `data/troisieme/transformations.js` : 3e, chapitre 14 (translations, rotations et homothéties dans un repère, effets sur longueurs, aires et angles). Générateurs `tf3-`.
   -   - `data/troisieme/trigonometrie.js` : 3e, chapitre 13 (cos, sin, tan : formules, longueurs, angles, problèmes ; figure figTrig3). Générateurs `tg3-`.

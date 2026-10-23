@@ -265,7 +265,7 @@ window.CATALOGUE = {
       id: "quatrieme",
       nom: "4e",
       groupe: "college",
-      intro: "Programme de 4e en vigueur en 2026-2027 (cycle 4, programme de 2020). Les chapitres arrivent un par un ; les vidéos et les cours PDF sont ceux d'Yvan Monka.",
+      intro: "Programme de 4e en vigueur en 2026-2027 (cycle 4, programme de 2020), en 15 chapitres ; les vidéos et les cours PDF sont ceux d'Yvan Monka.",
       chapitres: [
         {
           id: "quatrieme-divisibilite",
@@ -378,7 +378,7 @@ window.CATALOGUE = {
       id: "troisieme",
       nom: "3e",
       groupe: "college",
-      intro: "Programme de 3e en vigueur en 2026-2027 (cycle 4, programme de 2020), celui du brevet 2027. Les chapitres arrivent un par un ; les vidéos et les cours PDF sont ceux d'Yvan Monka.",
+      intro: "Programme de 3e en vigueur en 2026-2027 (cycle 4, programme de 2020), celui du brevet 2027, en 16 chapitres ; les vidéos et les cours PDF sont ceux d'Yvan Monka.",
       chapitres: [
         {
           id: "troisieme-calcul-numerique",
@@ -489,7 +489,7 @@ window.CATALOGUE = {
           id: "troisieme-informatique",
           numero: 16,
           titre: "Programmation",
-          statut: "bientot",
+          statut: "disponible",
           drive: ""
         }
       ]
