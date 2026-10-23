@@ -278,14 +278,14 @@ window.CATALOGUE = {
           id: "quatrieme-relatifs",
           numero: 2,
           titre: "Multiplier et diviser des relatifs",
-          statut: "bientot",
+          statut: "disponible",
           drive: ""
         },
         {
           id: "quatrieme-pythagore",
           numero: 3,
           titre: "Théorème de Pythagore",
-          statut: "bientot",
+          statut: "disponible",
           drive: ""
         },
         {

@@ -3,7 +3,7 @@
   Ce fichier se charge après assets/exercices-college.js et reprend ses outils (window.PM_EXO.college).
   Mêmes règles : chaque générateur fabrique une question avec des nombres tirés au hasard, la réponse
   attendue, trois indices progressifs et la solution rédigée.
-  Préfixes : dp4-.
+  Préfixes : dp4-, rx4-, py4-.
 */
 (function () {
   "use strict";
@@ -97,8 +97,130 @@
       aides: ["Cherche les diviseurs par paires : $1 \\times " + n + "$, $2 \\times " + n / 2 + "$…", `La décomposition $${n} = ${decompoTex(n)}$ aide à les trouver tous.`, "N'oublie pas $1$ et le nombre lui-même."], solution: `Les diviseurs de $${n}$ sont $${D.join(" \\; ; \\; ")}$ : il y en a $${D.length}$.` };
   };
 
+  /* =====================================================================
+     Chapitre 2 : multiplier et diviser des relatifs (rx4-)
+     ===================================================================== */
+  const X4 = "\\times";
+  const tire4 = (dec) => (dec ? rand(2, 30) / 10 : rand(2, 15)) * (Math.random() < 0.55 ? -1 : 1);
+
+  GEN["rx4-produit"] = function () {
+    const dec = Math.random() < 0.3, a = tire4(dec), b = tire4(false), p = arr(a * b, 4);
+    return { enonce: `Calcule : $${relP(a)} ${X4} ${relP(b)}$`, mode: "nombre", prefixe: "Résultat :", attendu: p,
+      erreurs: [{ valeur: -p, message: "Attention au signe : deux nombres de même signe donnent un produit positif, de signes contraires un produit négatif." }],
+      aides: ["On multiplie les distances à zéro.", "Règle des signes : même signe → positif ; signes contraires → négatif.", `$${nb(Math.abs(a))} ${X4} ${nb(Math.abs(b))} = ${nb(Math.abs(p))}$.`],
+      solution: `$${nb(Math.abs(a))} ${X4} ${nb(Math.abs(b))} = ${nb(Math.abs(p))}$ ; ${(a < 0) === (b < 0) ? "même signe : le produit est positif" : "signes contraires : le produit est négatif"}. Résultat : $${rel(p)}$.` };
+  };
+
+  GEN["rx4-quotient"] = function () {
+    const q = tire4(Math.random() < 0.25), b = tire4(false), a = arr(q * b, 4);
+    return { enonce: `Calcule : $${relP(a)} \\div ${relP(b)}$`, mode: "nombre", prefixe: "Résultat :", attendu: q,
+      erreurs: [{ valeur: -q, message: "Même règle des signes que pour la multiplication." }],
+      aides: ["On divise les distances à zéro.", "Même signe → positif ; signes contraires → négatif.", `$${nb(Math.abs(a))} \\div ${nb(Math.abs(b))} = ${nb(Math.abs(q))}$.`],
+      solution: `$${nb(Math.abs(a))} \\div ${nb(Math.abs(b))} = ${nb(Math.abs(q))}$ ; ${(a < 0) === (b < 0) ? "même signe : positif" : "signes contraires : négatif"}. Résultat : $${rel(q)}$.` };
+  };
+
+  GEN["rx4-signe"] = function () {
+    const n = rand(3, 7), F = Array.from({ length: n }, () => tire4(Math.random() < 0.3)), nul = Math.random() < 0.12;
+    if (nul) F[rand(0, n - 1)] = 0;
+    const neg = F.filter((x) => x < 0).length, rep = nul ? 2 : neg % 2 ? 1 : 0;
+    return { enonce: `Sans calculer, donne le signe du produit $${F.map(relP).join(` ${X4} `)}$.`, mode: "choix", choix: ["positif", "négatif", "nul"], attendu: rep,
+      aides: ["Si un facteur est nul, le produit est nul.", "Sinon, compte les facteurs négatifs.", "Nombre pair de facteurs négatifs : positif ; nombre impair : négatif."],
+      solution: nul ? "Un des facteurs est $0$ : le produit est nul." : `Il y a $${neg}$ facteur${neg > 1 ? "s" : ""} négatif${neg > 1 ? "s" : ""} : c'est un nombre ${neg % 2 ? "impair" : "pair"}, donc le produit est ${neg % 2 ? "négatif" : "positif"}.` };
+  };
+
+  GEN["rx4-priorites"] = function () {
+    for (let e = 0; e < 100; e++) {
+      const a = rand(-15, 15), b = rand(-9, 9), c = rand(-9, 9), d = rand(2, 6), t = rand(0, 5);
+      if (!a || !b || !c) continue;
+      let tex, v, etapes, faux = null;
+      if (t === 0) { tex = `${rel(a)} + ${relP(b)} ${X4} ${relP(c)}`; v = a + b * c; etapes = `${rel(a)} + ${relP(b * c)}`; faux = (a + b) * c; }
+      if (t === 1) { tex = `(${rel(a)} - ${relP(b)}) ${X4} ${relP(c)}`; v = (a - b) * c; etapes = `${relP(a - b)} ${X4} ${relP(c)}`; faux = a - b * c; }
+      if (t === 2) { tex = `${rel(a)} - ${relP(b)} ${X4} ${relP(c)}`; v = a - b * c; etapes = `${rel(a)} - ${relP(b * c)}`; faux = (a - b) * c; }
+      if (t === 3) { const k = b * d; tex = `${relP(k)} \\div ${relP(b)} - ${relP(c)}`; v = d - c; etapes = `${rel(d)} - ${relP(c)}`; faux = -d - c; }
+      if (t === 4) { tex = `${relP(b)} ${X4} ${relP(c)} ${X4} ${relP(-d)}`; v = -b * c * d; etapes = `${relP(b * c)} ${X4} ${relP(-d)}`; faux = b * c * d; }
+      if (t === 5) { tex = `${relP(b)}^2 - ${d} ${X4} ${relP(c)}`; v = b * b - d * c; etapes = `${b * b} - ${relP(d * c)}`; faux = -(b * b) - d * c; }
+      if (faux === v) faux = null;
+      return { enonce: `Calcule : $${tex}$`, mode: "nombre", prefixe: "Résultat :", attendu: v,
+        erreurs: faux != null ? [{ valeur: faux, message: t === 5 ? "$(-a)^2$ est positif : c'est $(-a) \\times (-a)$." : "Respecte les priorités et la règle des signes à chaque étape." }] : [],
+        aides: ["Mêmes priorités qu'avec les nombres positifs : parenthèses, puissances, multiplications et divisions, puis additions et soustractions.", "À chaque multiplication ou division, applique la règle des signes.", `Première étape : $${tex} = ${etapes}$.`],
+        solution: `$${tex} = ${etapes} = ${rel(v)}$.` };
+    }
+  };
+
+  /* =====================================================================
+     Chapitre 3 : théorème de Pythagore (py4-)
+     ===================================================================== */
+  const NOMS3_4 = [["A", "B", "C"], ["E", "F", "G"], ["M", "N", "P"], ["R", "S", "T"], ["I", "J", "K"], ["D", "E", "F"]];
+  // Triangle rectangle en R (sommet de l'angle droit), côtés étiquetés : [lab RP1, lab RP2, lab hypoténuse]
+  function figureRectangle4(noms, labs) {
+    const [R, P1, P2] = noms, pts = { [R]: [70, 165], [P1]: [270, 165], [P2]: [70, 40] };
+    let s = geo({ W: 320, H: 195, pts, segs: [[R, P1], [P1, P2], [P2, R]], droitAngle: [[P1, R, P2]], decal: { [R]: [-14, 6], [P1]: [6, 6], [P2]: [-14, 0] }, aria: `Triangle ${noms.join("")} rectangle en ${R}` });
+    const t = (x, y, txt) => `<text class="g-mesure" x="${x}" y="${y}" text-anchor="middle">${txt}</text>`;
+    s = s.replace("</svg>", t(170, 185, labs[0]) + t(48, 106, labs[1]) + t(186, 96, labs[2]) + "</svg>");
+    return s;
+  }
+  const TRIPLES = [[3, 4, 5], [6, 8, 10], [5, 12, 13], [8, 15, 17], [9, 12, 15], [7, 24, 25], [12, 16, 20], [20, 21, 29], [9, 40, 41], [15, 20, 25], [10, 24, 26], [12, 35, 37], [1.5, 2, 2.5], [2.4, 3.2, 4], [0.9, 1.2, 1.5], [4.5, 6, 7.5]];
+  const lab = (x) => String(x).replace(".", ",") + " cm";
+  FIGURES["py4-triangle"] = () => figureRectangle4(["A", "B", "C"], ["4 cm", "3 cm", "?"]);
+
+  GEN["py4-hypotenuse"] = function () {
+    const N = pick(NOMS3_4), [R, P1, P2] = N, exact = Math.random() < 0.5;
+    let a, b, c, v;
+    if (exact) { [a, b, c] = pick(TRIPLES); if (Math.random() < 0.5) [a, b] = [b, a]; v = c; } else { a = rand(2, 15); b = rand(2, 15); c = Math.sqrt(a * a + b * b); v = arr(c, 1); if (Number.isInteger(c)) return GEN["py4-hypotenuse"](); }
+    return { enonce: `Le triangle $${R}${P1}${P2}$ est rectangle en $${R}$ avec $${R}${P1} = ${nb(a)}$ cm et $${R}${P2} = ${nb(b)}$ cm. Calcule $${P1}${P2}$${exact ? "" : ", arrondi au dixième"}.`, figure: figureRectangle4(N, [lab(a), lab(b), "?"]), mode: "nombre", prefixe: `$${P1}${P2} ${exact ? "=" : "\\approx"}$`, suffixe: "cm", attendu: v,
+      erreurs: [{ valeur: arr(a + b, 4), message: "On n'additionne pas les longueurs : on additionne leurs **carrés**." }, { valeur: arr(a * a + b * b, 4), message: `Ça, c'est $${P1}${P2}^2$. Il faut encore prendre la racine carrée.` }],
+      aides: [`$[${P1}${P2}]$ est l'hypoténuse (le côté opposé à l'angle droit).`, `Théorème de Pythagore : $${P1}${P2}^2 = ${R}${P1}^2 + ${R}${P2}^2$.`, `$${P1}${P2}^2 = ${nb(a)}^2 + ${nb(b)}^2 = ${nb(arr(a * a + b * b, 4))}$.`],
+      solution: `Le triangle est rectangle en $${R}$, donc d'après le théorème de Pythagore : $${P1}${P2}^2 = ${nb(a)}^2 + ${nb(b)}^2 = ${nb(arr(a * a, 4))} + ${nb(arr(b * b, 4))} = ${nb(arr(a * a + b * b, 4))}$. Donc $${P1}${P2} = \\sqrt{${nb(arr(a * a + b * b, 4))}} ${exact ? "=" : "\\approx"} ${nb(v)}$ cm.` };
+  };
+
+  GEN["py4-cote"] = function () {
+    const N = pick(NOMS3_4), [R, P1, P2] = N, exact = Math.random() < 0.5;
+    let a, b, c, v;
+    if (exact) { [a, b, c] = pick(TRIPLES); if (Math.random() < 0.5) [a, b] = [b, a]; v = b; } else { a = rand(2, 12); c = a + rand(1, 10); b = Math.sqrt(c * c - a * a); v = arr(b, 1); if (Number.isInteger(b)) return GEN["py4-cote"](); }
+    return { enonce: `Le triangle $${R}${P1}${P2}$ est rectangle en $${R}$ avec $${R}${P1} = ${nb(a)}$ cm et $${P1}${P2} = ${nb(c)}$ cm. Calcule $${R}${P2}$${exact ? "" : ", arrondi au dixième"}.`, figure: figureRectangle4(N, [lab(a), "?", lab(c)]), mode: "nombre", prefixe: `$${R}${P2} ${exact ? "=" : "\\approx"}$`, suffixe: "cm", attendu: v,
+      erreurs: [{ valeur: arr(Math.sqrt(a * a + c * c), 1), message: `$[${P1}${P2}]$ est l'hypoténuse : il faut **soustraire** $${R}${P1}^2$ de $${P1}${P2}^2$.` }, { valeur: arr(c * c - a * a, 4), message: `Ça, c'est $${R}${P2}^2$. Prends la racine carrée.` }],
+      aides: [`L'hypoténuse est $[${P1}${P2}]$ : $${P1}${P2}^2 = ${R}${P1}^2 + ${R}${P2}^2$.`, `Donc $${R}${P2}^2 = ${P1}${P2}^2 - ${R}${P1}^2$.`, `$${R}${P2}^2 = ${nb(c)}^2 - ${nb(a)}^2 = ${nb(arr(c * c - a * a, 4))}$.`],
+      solution: `D'après le théorème de Pythagore, $${P1}${P2}^2 = ${R}${P1}^2 + ${R}${P2}^2$, donc $${R}${P2}^2 = ${nb(c)}^2 - ${nb(a)}^2 = ${nb(arr(c * c, 4))} - ${nb(arr(a * a, 4))} = ${nb(arr(c * c - a * a, 4))}$ et $${R}${P2} = \\sqrt{${nb(arr(c * c - a * a, 4))}} ${exact ? "=" : "\\approx"} ${nb(v)}$ cm.` };
+  };
+
+  GEN["py4-reciproque"] = function () {
+    const N = pick(NOMS3_4), droit = Math.random() < 0.55;
+    let [a, b, c] = pick(TRIPLES); if (!droit) c = arr(c + pick([-1, 1]) * (c > 5 ? 1 : 0.1), 4);
+    // côtés : [R P1] = a, [R P2] = b, [P1 P2] = c, présentés dans le désordre
+    const [R, P1, P2] = shuffle(N.slice()), cotes = shuffle([[`${R}${P1}`, a], [`${R}${P2}`, b], [`${P1}${P2}`, c]]);
+    const choix = [`Oui, il est rectangle en $${R}$`, "Non, il n'est pas rectangle", `Oui, il est rectangle en $${P1}$`];
+    return { enonce: `Le triangle $${N.join("")}$ a pour côtés ${cotes.map(([n, v]) => `$${n} = ${nb(v)}$ cm`).join(", ")}. Est-il rectangle ?`, mode: "choix", choix, attendu: droit ? 0 : 1,
+      aides: ["Repère le plus grand côté.", "Compare le carré du plus grand côté avec la somme des carrés des deux autres.", "Égalité : rectangle (l'angle droit est en face du plus grand côté). Sinon : pas rectangle."],
+      solution: `Le plus grand côté est $[${P1}${P2}]$ : $${P1}${P2}^2 = ${nb(arr(c * c, 4))}$ et $${R}${P1}^2 + ${R}${P2}^2 = ${nb(arr(a * a, 4))} + ${nb(arr(b * b, 4))} = ${nb(arr(a * a + b * b, 4))}$. ${droit ? `Les deux résultats sont égaux : d'après la réciproque du théorème de Pythagore, le triangle est rectangle en $${R}$.` : "Les résultats sont différents : le triangle n'est pas rectangle (sinon l'égalité de Pythagore serait vraie)."}` };
+  };
+
+  GEN["py4-racine"] = function () {
+    const t = rand(0, 2);
+    if (t === 0) { const a = rand(1, 15); return { enonce: `Calcule $\\sqrt{${a * a}}$.`, mode: "nombre", prefixe: "Résultat :", attendu: a, erreurs: [{ valeur: (a * a) / 2, message: "La racine carrée n'est pas la moitié : c'est le nombre positif dont le carré vaut " + a * a + "." }],
+      aides: ["$\\sqrt{a}$ est le nombre positif dont le carré est $a$.", "Cherche un nombre qui, multiplié par lui-même, donne ce résultat.", `$${a - 1}^2 = ${(a - 1) ** 2}$.`], solution: `$${a}^2 = ${a * a}$, donc $\\sqrt{${a * a}} = ${a}$.` }; }
+    if (t === 1) { const n = rand(2, 200); if (Number.isInteger(Math.sqrt(n))) return GEN["py4-racine"]();
+      return { enonce: `Donne la valeur de $\\sqrt{${n}}$ arrondie au dixième.`, mode: "nombre", prefixe: "Valeur :", attendu: arr(Math.sqrt(n), 1),
+        aides: ["Utilise la touche $\\sqrt{\\;}$ de la calculatrice.", `$\\sqrt{${n}} \\approx ${nb(arr(Math.sqrt(n), 4))}$.`, "Arrondis au dixième : regarde le chiffre des centièmes."], solution: `$\\sqrt{${n}} \\approx ${nb(arr(Math.sqrt(n), 4))}$, donc environ $${nb(arr(Math.sqrt(n), 1))}$.` }; }
+    const c = rand(2, 20), A = c * c;
+    return { enonce: `Un carré a une aire de $${A}$ cm². Quelle est la longueur de son côté ?`, mode: "nombre", prefixe: "Côté :", suffixe: "cm", attendu: c, erreurs: [{ valeur: A / 4, message: "L'aire d'un carré est côté × côté, pas 4 × côté." }],
+      aides: ["Aire $= c \\times c = c^2$.", `$c^2 = ${A}$.`, `$c = \\sqrt{${A}}$.`], solution: `$c^2 = ${A}$ donc $c = \\sqrt{${A}} = ${c}$ cm.` };
+  };
+
+  GEN["py4-problemes"] = function () {
+    const t = rand(0, 2);
+    if (t === 0) { const h = rand(30, 60) / 10, d = rand(8, 20) / 10, L = Math.sqrt(h * h + d * d);
+      return { enonce: `Une échelle est posée contre un mur vertical. Son pied est à $${nb(d)}$ m du mur et elle touche le mur à $${nb(h)}$ m de hauteur. Quelle est la longueur de l'échelle, arrondie au centimètre ?`, mode: "nombre", prefixe: "Longueur :", suffixe: "m", attendu: arr(L, 2),
+        aides: ["Le mur et le sol forment un angle droit : l'échelle est l'hypoténuse.", `$L^2 = ${nb(h)}^2 + ${nb(d)}^2$.`, `$L^2 = ${nb(arr(h * h + d * d, 4))}$.`], solution: `$L^2 = ${nb(h)}^2 + ${nb(d)}^2 = ${nb(arr(h * h + d * d, 4))}$, donc $L \\approx ${nb(arr(L, 2))}$ m.` }; }
+    if (t === 1) { const L = rand(5, 30), l = rand(3, L - 1), D = Math.sqrt(L * L + l * l);
+      return { enonce: `Un terrain de football à cinq a la forme d'un rectangle de $${L}$ m sur $${l}$ m. Quelle est la longueur de sa diagonale, arrondie au dixième de mètre ?`, mode: "nombre", prefixe: "Diagonale :", suffixe: "m", attendu: arr(D, 1),
+        aides: ["La diagonale partage le rectangle en deux triangles rectangles.", `Diagonale$^2 = ${L}^2 + ${l}^2$.`, `$= ${L * L + l * l}$.`], solution: `$D^2 = ${L}^2 + ${l}^2 = ${L * L + l * l}$, donc $D \\approx ${nb(arr(D, 1))}$ m.` }; }
+    const [a, b, c] = pick(TRIPLES.filter((x) => Number.isInteger(x[0]))), k = rand(1, 3);
+    return { enonce: `Un menuisier veut vérifier qu'un angle est droit. Il mesure $${a * k * 10}$ cm sur un côté, $${b * k * 10}$ cm sur l'autre, et $${c * k * 10}$ cm entre les deux marques. Quelle est la valeur de $${a * k * 10}^2 + ${b * k * 10}^2$ ?`, mode: "nombre", prefixe: "Résultat :", attendu: (a * k * 10) ** 2 + (b * k * 10) ** 2,
+      aides: ["Calcule chaque carré.", `$${a * k * 10}^2 = ${(a * k * 10) ** 2}$.`, `Compare ensuite avec $${c * k * 10}^2 = ${(c * k * 10) ** 2}$.`], solution: `$${(a * k * 10) ** 2} + ${(b * k * 10) ** 2} = ${(a * k * 10) ** 2 + (b * k * 10) ** 2} = ${c * k * 10}^2$ : d'après la réciproque du théorème de Pythagore, l'angle est droit.` };
+  };
+
   /* Une « erreur connue » ne doit jamais coïncider avec la bonne réponse */
-  Object.keys(GEN).filter((k) => /^(dp4)-/.test(k)).forEach((k) => {
+  Object.keys(GEN).filter((k) => /^(dp4|rx4|py4)-/.test(k)).forEach((k) => {
     const g = GEN[k];
     GEN[k] = (i) => {
       const q = g(i);
