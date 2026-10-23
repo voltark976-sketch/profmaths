@@ -3,7 +3,7 @@
   Ce fichier se charge après assets/exercices-college.js et reprend ses outils (window.PM_EXO.college).
   Mêmes règles : chaque générateur fabrique une question avec des nombres tirés au hasard, la réponse
   attendue, trois indices progressifs et la solution rédigée.
-  Préfixes : cn3-, dv3-, fc3-, eq3-, ar3-, fn3-, fa3-, pp3-, pr3-, st3-, th3-, ts3-, tg3-.
+  Préfixes : cn3-, dv3-, fc3-, eq3-, ar3-, fn3-, fa3-, pp3-, pr3-, st3-, th3-, ts3-, tg3-, tf3-.
 */
 (function () {
   "use strict";
@@ -1191,8 +1191,81 @@
       aides: ["Hauteur : côté opposé ; distance horizontale : côté adjacent.", `$\\tan \\alpha = \\dfrac{${nb(h)}}{${nb(l)}}$.`, "Utilise la touche tan⁻¹ de la calculatrice."], solution: `$\\tan \\alpha = \\dfrac{${nb(h)}}{${nb(l)}}$, donc $\\alpha \\approx ${a}^\\circ$.` };
   };
 
+  /* =====================================================================
+     Chapitre 14 : transformations (tf3-) — translation, rotation, homothétie
+     ===================================================================== */
+  const pt = (x, y) => `(${rel(x)} ; ${rel(y)})`;
+  const choixPts = (bonne, L) => melange(`$${bonne}$`, uniq3(`$${bonne}$`, L.map((z) => `$${z}$`)));
+
+  GEN["tf3-rotation"] = function () {
+    const x = nz(1, 6, true), y = nz(1, 6, true), t = rand(0, 2);
+    if (x === y || x === -y) return GEN["tf3-rotation"]();
+    const L = [[-y, x], [y, -x], [-x, -y], [x, -y], [-x, y], [y, x]];
+    const [img, txt] = [[[-y, x], "de $90^\\circ$ dans le sens inverse des aiguilles d'une montre"], [[y, -x], "de $90^\\circ$ dans le sens des aiguilles d'une montre"], [[-x, -y], "de $180^\\circ$"]][t];
+    const { choix, attendu } = choixPts(pt(...img), L.map((p) => pt(...p)));
+    return { enonce: `Dans un repère d'origine $O$, on applique au point $A${pt(x, y)}$ la rotation de centre $O$ ${txt}. Quelles sont les coordonnées de l'image $A'$ ?`, mode: "choix", choix, attendu,
+      aides: ["Une rotation conserve les distances au centre : $OA' = OA$.", t === 2 ? "La rotation de $180^\\circ$ est la symétrie de centre $O$ : on change les signes des deux coordonnées." : "Dessine un quadrillage : un quart de tour échange les rôles des coordonnées.", t === 0 ? "Quart de tour direct : $(x ; y)$ devient $(-y ; x)$." : t === 1 ? "Quart de tour indirect : $(x ; y)$ devient $(y ; -x)$." : "$(x ; y)$ devient $(-x ; -y)$."],
+      solution: `L'image de $A${pt(x, y)}$ est $A'${pt(...img)}$.` };
+  };
+
+  GEN["tf3-homothetie"] = function () {
+    const k = pick([2, 3, -1, -2, 0.5, -0.5, 1.5]), t = rand(0, 1);
+    if (t === 0) {
+      let x, y; do { x = nz(1, 6, true); y = nz(1, 6, true); } while (!Number.isInteger(k * x) || !Number.isInteger(k * y));
+      const img = [k * x, k * y], { choix, attendu } = choixPts(pt(...img), [pt(-k * x, -k * y), pt(x + k, y + k), pt(k * x, y), pt(x / k, y / k), pt(k * y, k * x)].filter((z) => !z.includes("NaN")));
+      return { enonce: `Dans un repère d'origine $O$, quelles sont les coordonnées de l'image du point $A${pt(x, y)}$ par l'homothétie de centre $O$ et de rapport $${nb(k)}$ ?`, mode: "choix", choix, attendu,
+        aides: ["L'homothétie de centre $O$ et de rapport $k$ envoie $A$ sur $A'$ tel que $\\overrightarrow{OA'} = k\\,\\overrightarrow{OA}$.", "Avec le centre à l'origine, on multiplie chaque coordonnée par $k$.", k < 0 ? "$k$ est négatif : $A'$ est de l'autre côté de $O$." : `$A'$ est du même côté que $A$ par rapport à $O$.`],
+        solution: `$A' = (${nb(k)} \\times ${relP(x)} ; ${nb(k)} \\times ${relP(y)}) = ${pt(...img)}$.` };
+    }
+    // centre quelconque, sur une droite graduée
+    const c = rand(-5, 5), a = c + nz(1, 4, true), img = c + k * (a - c);
+    if (!Number.isInteger(img)) return GEN["tf3-homothetie"]();
+    return { enonce: `Sur une droite graduée, $C$ a pour abscisse $${rel(c)}$ et $A$ pour abscisse $${rel(a)}$. Quelle est l'abscisse de l'image $A'$ de $A$ par l'homothétie de centre $C$ et de rapport $${nb(k)}$ ?`, mode: "nombre", prefixe: "Abscisse de $A'$ :", attendu: img,
+      erreurs: [{ valeur: k * a, message: "Le centre n'est pas l'origine : on part de $C$, $CA' = " + nb(Math.abs(k)) + " \\times CA$." }, { valeur: c - k * (a - c), message: "Attention au sens : " + (k > 0 ? "$k > 0$, $A'$ est du même côté que $A$." : "$k < 0$, $A'$ est de l'autre côté de $C$.") }],
+      aides: [`De $C$ à $A$, on avance de $${rel(a - c)}$.`, `De $C$ à $A'$, on avance de $${nb(k)} \\times ${relP(a - c)} = ${rel(k * (a - c))}$.`, `Abscisse de $A'$ : $${rel(c)} + ${relP(k * (a - c))}$.`],
+      solution: `$${rel(c)} + ${nb(k)} \\times ${relP(a - c)} = ${rel(img)}$.` };
+  };
+
+  GEN["tf3-effets"] = function () {
+    const k = pick([2, 3, -2, -3, 0.5, -0.5, 1.5, 4]), t = rand(0, 2), K = Math.abs(k);
+    if (t === 0) { const L = rand(2, 20), r = arr(L * K, 2);
+      return { enonce: `Une homothétie de rapport $${nb(k)}$ transforme un segment de $${L}$ cm. Quelle est la longueur de son image ?`, mode: "nombre", prefixe: "Longueur :", suffixe: "cm", attendu: r,
+        erreurs: [{ valeur: arr(L * k, 2), message: "Une longueur est positive : on multiplie par $|k|$, ici $" + nb(K) + "$." }, { valeur: arr(L * k * k, 2), message: "$k^2$, c'est pour les aires." }],
+        aides: ["Une homothétie de rapport $k$ multiplie les longueurs par $|k|$ (la distance à zéro de $k$).", `$|${nb(k)}| = ${nb(K)}$.`, `$${L} \\times ${nb(K)}$.`], solution: `$${L} \\times ${nb(K)} = ${nb(r)}$ cm.` }; }
+    if (t === 1) { const A = rand(2, 30) * 4, r = arr(A * k * k, 2);
+      return { enonce: `Une homothétie de rapport $${nb(k)}$ transforme une figure d'aire $${A}$ cm². Quelle est l'aire de l'image ?`, mode: "nombre", prefixe: "Aire :", suffixe: "cm²", attendu: r,
+        erreurs: [{ valeur: arr(A * K, 2), message: "Les aires sont multipliées par $k^2$." }],
+        aides: ["Les aires sont multipliées par $k^2$.", `$(${nb(k)})^2 = ${nb(arr(k * k, 4))}$.`, `$${A} \\times ${nb(arr(k * k, 4))}$.`], solution: `$${A} \\times ${nb(arr(k * k, 4))} = ${nb(r)}$ cm².` }; }
+    const ang = rand(20, 150);
+    const bonne = `$${ang}^\\circ$`, faux = uniq3(bonne, [`$${nb(arr(ang * K, 2))}^\\circ$`, `$${nb(arr(ang * k * k, 2))}^\\circ$`, `$${180 - ang}^\\circ$`, `$${nb(arr(ang / K, 2))}^\\circ$`]);
+    const { choix, attendu } = melange(bonne, faux);
+    return { enonce: `Une homothétie de rapport $${nb(k)}$ transforme un angle de $${ang}^\\circ$. Quelle est la mesure de l'angle image ?`, mode: "choix", choix, attendu,
+      aides: ["Une homothétie est un agrandissement ou une réduction.", "Elle conserve les angles (et le parallélisme).", "Seules les longueurs et les aires changent."], solution: `Les angles sont conservés : l'image mesure $${ang}^\\circ$.` };
+  };
+
+  GEN["tf3-reconnaitre"] = function () {
+    if (Math.random() < 0.4) { // translation dans un repère
+      const x = rand(-6, 6), y = rand(-6, 6), u = nz(1, 5, true), v = nz(1, 5, true), img = [x + u, y + v];
+      const { choix, attendu } = choixPts(pt(...img), [pt(x - u, y - v), pt(x + v, y + u), pt(u, v), pt(x * u, y * v)]);
+      return { enonce: `La translation qui transforme $O(0 ; 0)$ en $B${pt(u, v)}$ transforme $A${pt(x, y)}$ en $A'$. Quelles sont les coordonnées de $A'$ ?`, mode: "choix", choix, attendu,
+        aides: ["Une translation fait glisser tous les points de la même façon.", `De $O$ à $B$ : $${rel(u)}$ horizontalement et $${rel(v)}$ verticalement.`, `Ajoute ces déplacements aux coordonnées de $A$.`], solution: `$A' = (${rel(x)} + ${relP(u)} ; ${rel(y)} + ${relP(v)}) = ${pt(...img)}$.` };
+    }
+    const Q = pick([
+      ["La symétrie de centre $O$ est aussi :", "la rotation de centre $O$ et d'angle $180^\\circ$", ["la rotation de centre $O$ et d'angle $90^\\circ$", "une translation", "l'homothétie de rapport $2$"]],
+      ["L'homothétie de centre $O$ et de rapport $-1$ est :", "la symétrie de centre $O$", ["la symétrie axiale d'axe $(O x)$", "une translation", "un agrandissement de rapport $2$"]],
+      ["Quelle transformation conserve les longueurs et ne fait pas tourner les figures ?", "la translation", ["l'homothétie de rapport $3$", "la rotation de $90^\\circ$", "l'homothétie de rapport $0{,}5$"]],
+      ["Une homothétie de rapport $k$ avec $0 < k < 1$ est :", "une réduction", ["un agrandissement", "une rotation", "une translation"]],
+      ["Une homothétie de rapport $k > 1$ est :", "un agrandissement", ["une réduction", "une symétrie", "une translation"]],
+      ["Une rotation conserve :", "les longueurs, les angles et les aires", ["seulement les longueurs", "seulement les angles", "rien"]],
+      ["Par une homothétie de centre $O$, le centre $O$ :", "est sa propre image", ["a pour image un point plus loin", "n'a pas d'image", "devient l'origine d'une translation"]],
+      ["Pour construire l'image d'un point $M$ par la rotation de centre $O$ et d'angle $60^\\circ$, on utilise :", "un compas et un rapporteur", ["seulement une règle", "une équerre seulement", "un tableau de proportionnalité"]]
+    ]);
+    const { choix, attendu } = melange(Q[1], Q[2]);
+    return { enonce: Q[0], mode: "choix", choix, attendu, aides: ["Translation : glissement ; rotation : on tourne autour d'un point ; homothétie : agrandissement ou réduction depuis un centre.", "Les translations et rotations conservent longueurs, angles et aires.", "Une homothétie conserve les angles, multiplie les longueurs par $|k|$ et les aires par $k^2$."], solution: `Réponse : ${Q[1]}.` };
+  };
+
   /* Une « erreur connue » ne doit jamais coïncider avec la bonne réponse */
-  Object.keys(GEN).filter((k) => /^(cn3|dv3|fc3|eq3|ar3|fn3|fa3|pp3|pr3|st3|th3|ts3|tg3)-/.test(k)).forEach((k) => {
+  Object.keys(GEN).filter((k) => /^(cn3|dv3|fc3|eq3|ar3|fn3|fa3|pp3|pr3|st3|th3|ts3|tg3|tf3)-/.test(k)).forEach((k) => {
     const g = GEN[k];
     GEN[k] = (i) => {
       const q = g(i);
