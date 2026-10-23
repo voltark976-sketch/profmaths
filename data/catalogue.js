@@ -440,7 +440,7 @@ window.CATALOGUE = {
           id: "troisieme-probabilites",
           numero: 9,
           titre: "Probabilités",
-          statut: "bientot",
+          statut: "disponible",
           drive: ""
         },
         {

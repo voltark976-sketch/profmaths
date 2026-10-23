@@ -3,7 +3,7 @@
   Ce fichier se charge après assets/exercices-college.js et reprend ses outils (window.PM_EXO.college).
   Mêmes règles : chaque générateur fabrique une question avec des nombres tirés au hasard, la réponse
   attendue, trois indices progressifs et la solution rédigée.
-  Préfixes : cn3-, dv3-, fc3-, eq3-, ar3-, fn3-, fa3-, pp3-.
+  Préfixes : cn3-, dv3-, fc3-, eq3-, ar3-, fn3-, fa3-, pp3-, pr3-.
 */
 (function () {
   "use strict";
@@ -780,8 +780,89 @@
       aides: [`Calcule d'abord le prix d'une unité : $${nb(pa)} \\div ${a}$.`, `Prix unitaire : $${nb(pu)}$ ${obj[1]}.`, `Multiplie par $${b}$.`], solution: `$${nb(pa)} \\div ${a} \\times ${b} = ${nb(pu)} \\times ${b} = ${nb(pb)}$ ${obj[1]}.` };
   };
 
+  /* =====================================================================
+     Chapitre 9 : probabilités (pr3-) — contraire, deux épreuves, arbres, fréquences
+     ===================================================================== */
+  const urne3 = () => { const r = rand(1, 8), v = rand(1, 8), j = rand(0, 6); return { r, v, j, n: r + v + j, txt: `Une urne contient $${r}$ boule${r > 1 ? "s" : ""} rouge${r > 1 ? "s" : ""}, $${v}$ verte${v > 1 ? "s" : ""}${j ? ` et $${j}$ jaune${j > 1 ? "s" : ""}` : ""}, indiscernables au toucher.` }; };
+
+  GEN["pr3-simple"] = function () {
+    const U = urne3(), t = rand(0, 2);
+    if (t === 0) { const v = U.r / U.n;
+      return { enonce: `${U.txt} On tire une boule au hasard. Quelle est la probabilité qu'elle soit rouge ?${CONSIGNE_FR}`, mode: "nombre", prefixe: "$P(R) =$", attendu: v,
+        erreurs: [{ valeur: U.r / (U.n - U.r), message: "On divise par le nombre **total** de boules." }, ...approx(v)],
+        aides: ["Les tirages sont équiprobables.", `Il y a $${U.n}$ boules en tout, dont $${U.r}$ rouges.`, `$P(R) = \\dfrac{${U.r}}{${U.n}}$.`], solution: `$P(R) = ${fr(U.r, U.n)}${pgcd(U.r, U.n) > 1 ? ` = ${frS(U.r, U.n)}` : ""}$.` }; }
+    if (t === 1) { const v = 1 - U.v / U.n;
+      return { enonce: `${U.txt} On tire une boule au hasard. Quelle est la probabilité qu'elle ne soit pas verte ?${CONSIGNE_FR}`, mode: "nombre", prefixe: "Probabilité :", attendu: v,
+        erreurs: [{ valeur: U.v / U.n, message: "Ça, c'est la probabilité qu'elle soit verte." }, ...approx(v)],
+        aides: ["« Ne pas être verte » est l'événement contraire de « être verte ».", `$P(V) = ${fr(U.v, U.n)}$.`, "$P(\\overline{V}) = 1 - P(V)$."], solution: `$1 - ${fr(U.v, U.n)} = ${frS(U.n - U.v, U.n)}$.` }; }
+    // non équiprobable : roue
+    const a = pick([0.1, 0.15, 0.2, 0.25, 0.3, 0.35]), b = pick([0.1, 0.2, 0.25, 0.3, 0.4]), c = arr(1 - a - b, 2);
+    if (c <= 0) return GEN["pr3-simple"]();
+    return { enonce: `Une roue a trois secteurs : bleu (probabilité $${nb(a)}$), rouge (probabilité $${nb(b)}$) et vert. Quelle est la probabilité d'obtenir le vert ?`, mode: "nombre", prefixe: "$P(\\text{vert}) =$", attendu: c,
+      erreurs: [{ valeur: arr(1 / 3, 4), message: "Les secteurs n'ont pas la même probabilité : on utilise que la somme vaut $1$." }],
+      aides: ["La somme des probabilités de toutes les issues vaut $1$.", `$P(\\text{vert}) = 1 - ${nb(a)} - ${nb(b)}$.`, "Calcule."], solution: `$1 - ${nb(a)} - ${nb(b)} = ${nb(c)}$.` };
+  };
+
+  GEN["pr3-deux-epreuves"] = function () {
+    const t = rand(0, 2);
+    if (t === 0) { // deux dés : somme
+      const k = rand(2, 12), n = 6 - Math.abs(7 - k), v = n / 36;
+      return { enonce: `On lance deux dés équilibrés à six faces et on additionne les résultats. Quelle est la probabilité d'obtenir une somme égale à $${k}$ ?${CONSIGNE_FR}`, mode: "nombre", prefixe: "Probabilité :", attendu: v,
+        erreurs: [{ valeur: 1 / 11, message: "Les $11$ sommes possibles ne sont pas équiprobables : utilise un tableau à double entrée ($36$ cases)." }, ...approx(v)],
+        aides: ["Fais un tableau à double entrée : $6 \\times 6 = 36$ issues équiprobables.", `Compte les cases où la somme vaut $${k}$.`, `Il y en a $${n}$.`], solution: `$${n}$ cases sur $36$ : $P = ${fr(n, 36)}${pgcd(n, 36) > 1 ? ` = ${frS(n, 36)}` : ""}$.` };
+    }
+    if (t === 1) { // deux tirages avec remise
+      const U = urne3(), v = (U.r / U.n) ** 2;
+      return { enonce: `${U.txt} On tire une boule, on note sa couleur, on la remet, puis on en tire une seconde. Quelle est la probabilité d'obtenir deux boules rouges ?${CONSIGNE_FR}`, mode: "nombre", prefixe: "Probabilité :", attendu: v,
+        erreurs: [{ valeur: (2 * U.r) / U.n, message: "On multiplie les probabilités le long d'une branche de l'arbre (on n'additionne pas)." }, ...approx(v)],
+        aides: ["Dessine un arbre à deux niveaux.", `À chaque tirage, $P(R) = ${fr(U.r, U.n)}$ (on remet la boule).`, "On multiplie les probabilités sur le chemin R-R."], solution: `$${fr(U.r, U.n)} \\times ${fr(U.r, U.n)} = ${frS(U.r * U.r, U.n * U.n)}$.` };
+    }
+    // pièce + dé : tableau
+    const face = pick(["pile", "face"]), cond = pick([["un nombre pair", 3], ["un multiple de $3$", 2], ["un $6$", 1], ["un nombre supérieur à $4$", 2], ["un nombre premier", 3]]), v = (1 / 2) * (cond[1] / 6);
+    return { enonce: `On lance une pièce équilibrée puis un dé équilibré à six faces. Quelle est la probabilité d'obtenir « ${face} » et ${cond[0]} ?${CONSIGNE_FR}`, mode: "nombre", prefixe: "Probabilité :", attendu: v,
+      erreurs: [{ valeur: 1 / 2 + cond[1] / 6, message: "« Et » sur deux épreuves successives : on multiplie." }, ...approx(v)],
+      aides: ["Il y a $2 \\times 6 = 12$ issues équiprobables.", `$P(\\text{${face}}) = ${fr(1, 2)}$ et $P(\\text{dé}) = ${fr(cond[1], 6)}$.`, "Multiplie."], solution: `$${fr(1, 2)} \\times ${fr(cond[1], 6)} = ${frS(cond[1], 12)}$.` };
+  };
+
+  GEN["pr3-arbre"] = function () {
+    const r = rand(2, 7), v = rand(1, 6), n = r + v, t = rand(0, 2);
+    const txt = `Un sac contient $${r}$ jetons rouges et $${v}$ jeton${v > 1 ? "s" : ""} vert${v > 1 ? "s" : ""}. On tire un jeton, on le garde, puis on en tire un second (sans remise).`;
+    if (t === 0) { const P = (r / n) * ((r - 1) / (n - 1));
+      return { enonce: `${txt} Quelle est la probabilité de tirer deux jetons rouges ?${CONSIGNE_FR}`, mode: "nombre", prefixe: "Probabilité :", attendu: P,
+        erreurs: [{ valeur: (r / n) ** 2, message: "Sans remise, il reste un jeton de moins au second tirage." }, ...approx(P)],
+        aides: ["Dessine un arbre à deux niveaux.", `Premier tirage : $P(R) = ${fr(r, n)}$. Il reste alors $${r - 1}$ rouges sur $${n - 1}$ jetons.`, "Multiplie les probabilités le long du chemin."], solution: `$${fr(r, n)} \\times ${fr(r - 1, n - 1)} = ${frS(r * (r - 1), n * (n - 1))}$.` }; }
+    if (t === 1) { const P = 2 * (r / n) * (v / (n - 1));
+      return { enonce: `${txt} Quelle est la probabilité d'obtenir deux jetons de couleurs différentes ?${CONSIGNE_FR}`, mode: "nombre", prefixe: "Probabilité :", attendu: P,
+        erreurs: [{ valeur: (r / n) * (v / (n - 1)), message: "Il y a deux chemins : rouge puis vert, et vert puis rouge." }, ...approx(P)],
+        aides: ["Deux chemins conviennent : R puis V, et V puis R.", `$P(R \\text{ puis } V) = ${fr(r, n)} \\times ${fr(v, n - 1)}$.`, `$P(V \\text{ puis } R) = ${fr(v, n)} \\times ${fr(r, n - 1)}$ ; additionne.`], solution: `$2 \\times ${fr(r * v, n * (n - 1))} = ${frS(2 * r * v, n * (n - 1))}$.` }; }
+    const P = 1 - (v / n) * ((v - 1) / (n - 1));
+    if (v < 2) return GEN["pr3-arbre"]();
+    return { enonce: `${txt} Quelle est la probabilité d'obtenir au moins un jeton rouge ?${CONSIGNE_FR}`, mode: "nombre", prefixe: "Probabilité :", attendu: P,
+      erreurs: [{ valeur: (v / n) * ((v - 1) / (n - 1)), message: "Ça, c'est la probabilité de l'événement contraire « deux verts »." }, ...approx(P)],
+      aides: ["« Au moins un rouge » est le contraire de « deux verts ».", `$P(\\text{deux verts}) = ${fr(v, n)} \\times ${fr(v - 1, n - 1)}$.`, "$P = 1 - P(\\text{deux verts})$."], solution: `$1 - ${frS(v * (v - 1), n * (n - 1))} = ${frS(n * (n - 1) - v * (v - 1), n * (n - 1))}$.` };
+  };
+
+  GEN["pr3-frequences"] = function () {
+    if (Math.random() < 0.55) {
+      const N = pick([50, 100, 200, 250, 500, 1000]), p = pick([1 / 6, 1 / 2, 1 / 4, 1 / 3]), k = Math.round(N * p) + rand(-Math.round(N / 25), Math.round(N / 25)), f = arr(k / N, 3);
+      return { enonce: `On lance $${N}$ fois ${p === 1 / 2 ? "une pièce" : p === 1 / 4 ? "un dé à quatre faces" : p === 1 / 3 ? "une roue à trois secteurs égaux" : "un dé à six faces"} et on obtient $${k}$ fois ${p === 1 / 2 ? "pile" : "le résultat « 1 »"}. Quelle est la fréquence d'apparition (en écriture décimale) ?`, mode: "nombre", prefixe: "Fréquence :", attendu: f,
+        erreurs: [{ valeur: arr(p, 3), message: "Ça, c'est la probabilité théorique ; on demande la fréquence observée." }],
+        aides: ["Fréquence $= \\dfrac{\\text{nombre de fois où l'issue apparaît}}{\\text{nombre total d'essais}}$.", `$\\dfrac{${k}}{${N}}$.`, "Fais la division."], solution: `$\\dfrac{${k}}{${N}} = ${nb(f)}$, proche de la probabilité $${nb(arr(p, 3))}$.` };
+    }
+    const Q = pick([
+      ["Quand on répète une expérience un très grand nombre de fois, la fréquence d'une issue :", "se rapproche de sa probabilité", ["devient égale à $0{,}5$", "s'éloigne de sa probabilité", "vaut toujours $1$"]],
+      ["On a obtenu $5$ fois « pile » de suite avec une pièce équilibrée. Au lancer suivant :", "la probabilité de « pile » vaut toujours $\\dfrac{1}{2}$", ["« face » est plus probable", "« pile » est plus probable", "la probabilité de « pile » est $\\dfrac{1}{6}$"]],
+      ["Une probabilité est toujours :", "comprise entre $0$ et $1$", ["supérieure à $1$", "un nombre entier", "égale à $\\dfrac{1}{2}$"]],
+      ["Un événement impossible a pour probabilité :", "$0$", ["$1$", "$\\dfrac{1}{2}$", "$-1$"]],
+      ["Si $P(A) = 0{,}35$, alors $P(\\overline{A})$ vaut :", "$0{,}65$", ["$0{,}35$", "$-0{,}35$", "$1{,}35$"]],
+      ["Pour estimer une probabilité inconnue (une punaise qui tombe sur la pointe), on peut :", "faire un grand nombre d'essais et calculer la fréquence", ["faire un seul essai", "diviser $1$ par $2$", "compter les faces de la punaise"]]
+    ]);
+    const { choix, attendu } = melange(Q[1], Q[2]);
+    return { enonce: Q[0], mode: "choix", choix, attendu, aides: ["Une probabilité est entre $0$ et $1$.", "La fréquence observée se rapproche de la probabilité quand le nombre d'essais augmente.", "Les lancers successifs d'une pièce sont indépendants."], solution: `Réponse : ${Q[1]}.` };
+  };
+
   /* Une « erreur connue » ne doit jamais coïncider avec la bonne réponse */
-  Object.keys(GEN).filter((k) => /^(cn3|dv3|fc3|eq3|ar3|fn3|fa3|pp3)-/.test(k)).forEach((k) => {
+  Object.keys(GEN).filter((k) => /^(cn3|dv3|fc3|eq3|ar3|fn3|fa3|pp3|pr3)-/.test(k)).forEach((k) => {
     const g = GEN[k];
     GEN[k] = (i) => {
       const q = g(i);
