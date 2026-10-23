@@ -3,7 +3,7 @@
   Ce fichier se charge après assets/exercices-college.js et reprend ses outils (window.PM_EXO.college).
   Mêmes règles : chaque générateur fabrique une question avec des nombres tirés au hasard, la réponse
   attendue, trois indices progressifs et la solution rédigée.
-  Préfixes : rc5- (règles de calcul), tr5-, fr5-, pp5-, an5-, dv5-, sc5-, nr5-, cr5-, gf5-, cl5-, pg5-.
+  Préfixes : rc5- (règles de calcul), tr5-, fr5-, pp5-, an5-, dv5-, sc5-, nr5-, cr5-, gf5-, cl5-, pg5-, st5-.
 */
 (function () {
   "use strict";
@@ -1485,8 +1485,102 @@
       aides: ["Une propriété de démonstration commence par « Si » (ce qu'on sait) et se termine par « alors » (ce qu'on veut prouver).", "Rectangle : un parallélogramme dont les diagonales ont la même longueur (ou qui a un angle droit). Losange : un parallélogramme dont les diagonales sont perpendiculaires (ou qui a deux côtés consécutifs égaux).", "Carré : un rectangle qui est aussi un losange."], solution: `Réponse : ${Q[1]}` };
   };
 
+  /* =====================================================================
+     Chapitre 13 : statistiques (st5-)
+     ===================================================================== */
+  const { diagrammeBarres, diagrammeCirculaire } = window.PM_EXO.college;
+  const SERIES_ST = [
+    ["Notes sur 10 à un contrôle", () => rand(2, 10), "élèves"],
+    ["Nombre de frères et sœurs des élèves d'une classe", () => rand(0, 5), "élèves"],
+    ["Pointures des élèves d'une classe", () => rand(36, 42), "élèves"],
+    ["Nombre de buts marqués à chaque match par le club de football", () => rand(0, 4), "matchs"]
+  ];
+  const listeTex = (L) => L.join(" \\; ; \\; ");
+
+  GEN["st5-effectifs"] = function () {
+    const [titre, g, unite] = pick(SERIES_ST), n = rand(12, 20), L = Array.from({ length: n }, g), t = rand(0, 2);
+    if (t === 0) {
+      const v = pick(L), eff = L.filter((x) => x === v).length;
+      return { enonce: `${titre} : $${listeTex(L)}$. Quel est l'effectif de la valeur $${v}$ ?`, mode: "nombre", prefixe: "Effectif :", attendu: eff,
+        aides: ["L'effectif d'une valeur est le nombre de fois où elle apparaît.", "Barre chaque valeur au fur et à mesure pour ne pas l'oublier.", `Compte les $${v}$.`], solution: `La valeur $${v}$ apparaît $${eff}$ fois : son effectif est $${eff}$.` };
+    }
+    if (t === 1) return { enonce: `${titre} : $${listeTex(L)}$. Quel est l'effectif total ?`, mode: "nombre", prefixe: "Effectif total :", attendu: n,
+      aides: ["L'effectif total est le nombre de données de la série.", "Compte toutes les valeurs, même celles qui se répètent.", "Tu peux les compter par paquets de $5$."], solution: `La série contient $${n}$ valeurs : l'effectif total est $${n}$ ${unite}.` };
+    const s = rand(0, 1), seuil = pick([...new Set(L)].sort((a, b) => a - b).slice(1, -1).concat([L[0]])), eff = L.filter((x) => (s ? x >= seuil : x < seuil)).length;
+    return { enonce: `${titre} : $${listeTex(L)}$. Combien de valeurs sont ${s ? "supérieures ou égales à" : "strictement inférieures à"} $${seuil}$ ?`, mode: "nombre", prefixe: "Nombre :", attendu: eff,
+      aides: [s ? `Compte les valeurs égales à $${seuil}$ ou plus grandes.` : `Compte les valeurs plus petites que $${seuil}$, sans compter $${seuil}$.`, "Barre-les au fur et à mesure.", "Vérifie ton comptage une deuxième fois."], solution: `Il y a $${eff}$ valeurs ${s ? `supérieures ou égales à $${seuil}$` : `strictement inférieures à $${seuil}$`}.` };
+  };
+
+  GEN["st5-frequences"] = function () {
+    const T = pick([20, 25, 40, 50, 200]), cats = shuffle(["Bus", "À pied", "Voiture", "Scooter", "Taxi", "Vélo"].slice()).slice(0, 4);
+    let v; for (;;) { v = [rand(1, T / 2), rand(1, T / 2), rand(1, T / 3)]; const r = T - v.reduce((a, b) => a + b, 0); if (r >= 1) { v.push(r); break; } }
+    const i = rand(0, 3), f = v[i] / T, t = rand(0, 1), tab = { lignes: [["\\text{Transport}", "\\text{Effectif}"], ...cats.map((c, k) => [`\\text{${c}}`, v[k]]), ["\\text{Total}", T]] };
+    if (t === 0) return { enonce: `Ce tableau donne le moyen de transport des élèves interrogés. Quelle est la fréquence de la catégorie « ${cats[i]} », en pourcentage ?`, tableau: tab, mode: "nombre", prefixe: "Fréquence :", suffixe: "%", attendu: f * 100,
+      erreurs: [{ valeur: v[i], message: "Ça, c'est l'effectif. La fréquence est l'effectif divisé par l'effectif total." }],
+      aides: ["Fréquence $=$ effectif de la catégorie $\\div$ effectif total.", `$\\dfrac{${v[i]}}{${T}}$.`, "Multiplie par $100$ pour l'écrire en pourcentage."], solution: `$\\dfrac{${v[i]}}{${T}} = ${nb(f)}$, soit $${nb(f * 100)}\\,\\%$.` };
+    return { enonce: `Ce tableau donne le moyen de transport des élèves interrogés. Quelle est la fréquence de la catégorie « ${cats[i]} », en écriture décimale ?`, tableau: tab, mode: "nombre", prefixe: "Fréquence :", attendu: f,
+      erreurs: [{ valeur: f * 100, message: "Ça, c'est la fréquence en pourcentage. On la demande en écriture décimale (entre $0$ et $1$)." }, { valeur: v[i], message: "Ça, c'est l'effectif." }],
+      aides: ["Fréquence $=$ effectif de la catégorie $\\div$ effectif total.", `$${v[i]} \\div ${T}$.`, "Une fréquence est toujours comprise entre $0$ et $1$."], solution: `$${v[i]} \\div ${T} = ${nb(f)}$.` };
+  };
+
+  GEN["st5-moyenne"] = function () {
+    const t = rand(0, 2);
+    if (t <= 1) {
+      for (;;) {
+        const n = rand(4, 8), L = Array.from({ length: n }, () => (t === 0 ? rand(5, 20) : rand(20, 35))), s = L.reduce((a, b) => a + b, 0), m = s / n;
+        if (!Number.isInteger(m * 10)) continue;
+        const ctx = t === 0 ? ["Voici les notes sur $20$ de Faïza ce trimestre", "Quelle est sa moyenne ?", ""] : ["Voici les températures maximales (en °C) relevées à Mamoudzou pendant plusieurs jours", "Quelle est la température moyenne ?", "°C"];
+        return { enonce: `${ctx[0]} : $${listeTex(L)}$. ${ctx[1]}`, mode: "nombre", prefixe: "Moyenne :", suffixe: ctx[2], attendu: m,
+          erreurs: [{ valeur: s, message: "Il faut encore diviser la somme par le nombre de valeurs." }],
+          aides: ["Moyenne $=$ somme des valeurs $\\div$ nombre de valeurs.", `Somme : $${L.join(" + ")}$.`, `Il y a $${n}$ valeurs.`], solution: `Somme : $${s}$. Moyenne : $${s} \\div ${n} = ${nb(m)}$${ctx[2] ? " °C" : ""}.` };
+      }
+    }
+    const n = rand(3, 5), L = Array.from({ length: n }, () => rand(8, 16)), m = rand(11, 14), x = m * (n + 1) - L.reduce((a, b) => a + b, 0);
+    if (x < 0 || x > 20) return GEN["st5-moyenne"]();
+    return { enonce: `Tom a eu les notes $${listeTex(L)}$. Quelle note doit-il obtenir au prochain contrôle pour avoir exactement $${m}$ de moyenne sur l'ensemble des $${n + 1}$ notes ?`, mode: "nombre", prefixe: "Note :", attendu: x,
+      aides: [`Avec $${n + 1}$ notes et une moyenne de $${m}$, la somme des notes doit être $${n + 1} \\times ${m} = ${(n + 1) * m}$.`, `Somme des notes déjà obtenues : $${L.reduce((a, b) => a + b, 0)}$.`, "La note manquante est la différence."], solution: `Somme nécessaire : $${(n + 1) * m}$. Somme actuelle : $${L.reduce((a, b) => a + b, 0)}$. Note à obtenir : $${(n + 1) * m} - ${L.reduce((a, b) => a + b, 0)} = ${x}$.` };
+  };
+
+  GEN["st5-diagrammes"] = function () {
+    const t = rand(0, 3);
+    if (t === 0) {
+      const cats = shuffle(["Foot", "Basket", "Hand", "Natation", "Danse", "Judo"].slice()).slice(0, 4).map((c) => [c, rand(1, 12)]), i = rand(0, 3);
+      return { enonce: `Le diagramme donne le sport préféré des élèves d'une classe. Combien d'élèves ont choisi « ${cats[i][0]} » ?`, figure: diagrammeBarres(cats, 2, "élèves"), mode: "nombre", prefixe: "Effectif :", suffixe: "élèves", attendu: cats[i][1],
+        aides: ["Repère la barre de la catégorie.", "Lis sa hauteur sur l'axe vertical.", "Chaque graduation vaut $2$ élèves : attention aux valeurs impaires, entre deux graduations."], solution: `La barre « ${cats[i][0]} » monte jusqu'à $${cats[i][1]}$ : $${cats[i][1]}$ élèves.` };
+    }
+    if (t === 1) {
+      const p = pick([10, 20, 25, 30, 40, 50, 60, 75, 15, 5, 35, 45]);
+      return { enonce: `Dans un diagramme circulaire, quel angle doit avoir le secteur d'une catégorie dont la fréquence est $${p}\\,\\%$ ?`, mode: "nombre", prefixe: "Angle :", suffixe: "°", attendu: 3.6 * p,
+        erreurs: [{ valeur: p, message: "Le disque entier fait $360^\\circ$, pas $100^\\circ$." }],
+        aides: ["Le disque entier ($100\\,\\%$) correspond à $360^\\circ$.", "Les angles sont proportionnels aux fréquences.", `$1\\,\\%$ correspond à $3{,}6^\\circ$.`], solution: `$360^\\circ \\times ${p} \\div 100 = ${nb(3.6 * p)}^\\circ$.` };
+    }
+    if (t === 2) {
+      const T = pick([20, 24, 30, 36, 40, 60]), e = rand(1, T - 1), a = (e / T) * 360;
+      if (!Number.isInteger(a)) return GEN["st5-diagrammes"]();
+      return { enonce: `Sur $${T}$ élèves, $${e}$ viennent au collège en bus. Quel angle doit avoir le secteur « bus » dans un diagramme circulaire ?`, mode: "nombre", prefixe: "Angle :", suffixe: "°", attendu: a,
+        aides: [`$${T}$ élèves correspondent à $360^\\circ$.`, `Un élève correspond à $360 \\div ${T} = ${360 / T}^\\circ$.`, `Multiplie par $${e}$.`], solution: `$360 \\div ${T} \\times ${e} = ${a}^\\circ$.` };
+    }
+    const C = pick([
+      ["la répartition des élèves du collège selon leur moyen de transport, pour voir la part de chacun dans le total", 1],
+      ["l'évolution de la température à Mamoudzou heure par heure au cours d'une journée", 2],
+      ["le nombre d'élèves de chaque classe du collège, pour les comparer", 0],
+      ["la part de chaque dépense dans le budget d'une famille", 1],
+      ["l'évolution du nombre d'habitants de Mayotte année après année", 2],
+      ["le nombre de buts marqués par chaque joueur d'une équipe", 0],
+      ["la répartition des votes entre les candidats, pour voir qui a la plus grosse part", 1],
+      ["l'évolution de la hauteur d'une plante semaine après semaine", 2],
+      ["le nombre de tortues observées sur chaque plage de l'île", 0],
+      ["la part des différentes espèces de poissons dans une pêche", 1],
+      ["l'évolution du niveau de la mer pendant une marée", 2],
+      ["le nombre de livres empruntés au CDI chaque jour de la semaine, pour comparer les jours", 0]
+    ]);
+    const choix = ["un diagramme en barres", "un diagramme circulaire", "un graphique cartésien (une courbe)"];
+    return { enonce: `Quelle représentation est la plus adaptée pour montrer ${C[0]} ?`, mode: "choix", choix, attendu: C[1],
+      aides: ["Diagramme en barres : comparer des effectifs de catégories.", "Diagramme circulaire : montrer la part de chaque catégorie dans un tout.", "Graphique cartésien : montrer une évolution (en fonction du temps)."], solution: `Il s'agit de ${["comparer des effectifs de catégories", "montrer les parts d'un tout", "montrer une évolution dans le temps"][C[1]]} : on choisit ${choix[C[1]]}.` };
+  };
+
   /* Une « erreur connue » ne doit jamais coïncider avec la bonne réponse */
-  Object.keys(GEN).filter((k) => /^(rc5|tr5|fr5|pp5|an5|dv5|sc5|nr5|cr5|gf5|cl5|pg5)-/.test(k)).forEach((k) => {
+  Object.keys(GEN).filter((k) => /^(rc5|tr5|fr5|pp5|an5|dv5|sc5|nr5|cr5|gf5|cl5|pg5|st5)-/.test(k)).forEach((k) => {
     const g = GEN[k];
     GEN[k] = (i) => {
       const q = g(i);

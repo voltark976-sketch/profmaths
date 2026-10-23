@@ -221,7 +221,7 @@ window.CATALOGUE = {
           id: "cinquieme-statistiques",
           numero: 13,
           titre: "Statistiques",
-          statut: "bientot",
+          statut: "disponible",
           drive: ""
         },
         {
