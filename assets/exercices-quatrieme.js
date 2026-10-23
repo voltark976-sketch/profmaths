@@ -3,7 +3,7 @@
   Ce fichier se charge après assets/exercices-college.js et reprend ses outils (window.PM_EXO.college).
   Mêmes règles : chaque générateur fabrique une question avec des nombres tirés au hasard, la réponse
   attendue, trois indices progressifs et la solution rédigée.
-  Préfixes : dp4-, rx4-, py4-, fq4-, pq4-, es4-, pw4-, th4-, lc4-, pb4-, cs4-.
+  Préfixes : dp4-, rx4-, py4-, fq4-, pq4-, es4-, pw4-, th4-, lc4-, pb4-, cs4-, tl4-, eq4-.
 */
 (function () {
   "use strict";
@@ -775,8 +775,133 @@
       aides: ["La route est l'hypoténuse d'un triangle rectangle ; la distance horizontale est le côté adjacent à l'angle.", `$\\cos ${a}^\\circ = \\dfrac{d}{${L}}$.`, `$d = ${L} \\times \\cos ${a}^\\circ$.`], solution: `$d = ${L} \\times \\cos ${a}^\\circ \\approx ${nb(h)}$ m.` };
   };
 
+  /* =====================================================================
+     Chapitre 12 : translations (tl4-)
+     ===================================================================== */
+  function grilleT(o) {
+    const u = 24, W = 12 * u + 16, H = 8 * u + 16, X = (x) => 8 + x * u, Y = (y) => 8 + (8 - y) * u;
+    let s = `<svg class="graph grille-sym" viewBox="0 0 ${W} ${H}" role="img" aria-label="${o.aria}"><g class="g-grid">`;
+    for (let i = 0; i <= 12; i++) s += `<line x1="${X(i)}" y1="${Y(0)}" x2="${X(i)}" y2="${Y(8)}"/>`;
+    for (let j = 0; j <= 8; j++) s += `<line x1="${X(0)}" y1="${Y(j)}" x2="${X(12)}" y2="${Y(j)}"/>`;
+    s += `</g>`;
+    (o.polys || []).forEach((p) => {
+      s += `<polygon class="${p.classe || "g-poly"}" points="${p.pts.map(([x, y]) => `${X(x)},${Y(y)}`).join(" ")}"/>`;
+      if (p.num) { const g = p.pts.reduce((a, [x, y]) => [a[0] + x / p.pts.length, a[1] + y / p.pts.length], [0, 0]); s += `<text class="g-num-angle" x="${X(g[0])}" y="${Y(g[1]) + 5}" text-anchor="middle">${p.num}</text>`; }
+    });
+    if (o.fleche) { const [[x1, y1], [x2, y2]] = o.fleche; s += `<line class="g-segment" x1="${X(x1)}" y1="${Y(y1)}" x2="${X(x2)}" y2="${Y(y2)}"/>`; const ang = Math.atan2(Y(y2) - Y(y1), X(x2) - X(x1)), hx = X(x2), hy = Y(y2); s += `<path class="g-end" d="M${hx} ${hy} L${(hx - 10 * Math.cos(ang - 0.4)).toFixed(1)} ${(hy - 10 * Math.sin(ang - 0.4)).toFixed(1)} L${(hx - 10 * Math.cos(ang + 0.4)).toFixed(1)} ${(hy - 10 * Math.sin(ang + 0.4)).toFixed(1)} Z"/>`; }
+    (o.points || []).forEach(([n, [x, y]]) => { s += `<circle class="g-point" cx="${X(x)}" cy="${Y(y)}" r="3.5"/><text class="g-plabel" x="${X(x) + 6}" y="${Y(y) - 6}">${n}</text>`; });
+    return s + `</svg>`;
+  }
+  const dansT = ([x, y]) => x >= 0 && x <= 11 && y >= 0 && y <= 7;
+  FIGURES["tl4-translation"] = () => grilleT({ fleche: [[1, 1], [5, 3]], points: [["A", [1, 1]], ["B", [5, 3]]], polys: [{ pts: [[2, 4], [4, 4], [3, 6]] }, { pts: [[6, 6], [8, 6], [7, 8]], classe: "g-poly g-poly-image" }], aria: "Quadrillage : la translation qui transforme A en B déplace le triangle de 4 carreaux vers la droite et 2 vers le haut" });
+
+  GEN["tl4-point"] = function () {
+    for (let e = 0; e < 2000; e++) {
+      const A = [rand(0, 5), rand(0, 7)], v = [rand(-4, 5), rand(-4, 4)]; if (Math.abs(v[0]) + Math.abs(v[1]) < 3) continue; const B = [A[0] + v[0], A[1] + v[1]]; if (!dansT(B)) continue;
+      const M = [rand(0, 11), rand(0, 7)], img = [M[0] + v[0], M[1] + v[1]]; if (!dansT(img)) continue;
+      const cand = [img, [M[0] - v[0], M[1] - v[1]], [M[0] + v[1], M[1] + v[0]], [M[0] + v[0], M[1] - v[1]], [M[0] - v[0], M[1] + v[1]]].filter(dansT);
+      const uniq = []; cand.forEach((p) => { if (!uniq.some((q) => Math.abs(q[0] - p[0]) + Math.abs(q[1] - p[1]) < 2) && ![A, B, M].some((q) => Math.abs(q[0] - p[0]) + Math.abs(q[1] - p[1]) < 2)) uniq.push(p); });
+      if (uniq.length < 4 || uniq[0] !== cand[0] || cand[0] !== img) continue;
+      const L = shuffle(uniq.slice(0, 4).map((p, i) => ({ p, ok: i === 0 }))), noms = ["E", "F", "G", "H"], bon = L.findIndex((z) => z.ok);
+      return { enonce: "Quel point est l'image de $M$ par la translation qui transforme $A$ en $B$ ?", figure: grilleT({ fleche: [A, B], points: [["A", A], ["B", B], ["M", M], ...L.map((z, i) => [noms[i], z.p])], aria: "Quadrillage avec A, B, M et quatre points E, F, G, H" }), mode: "choix", choix: noms.map((n) => `$${n}$`), attendu: bon,
+        aides: ["Une translation fait glisser tous les points de la même façon : même direction, même sens, même longueur.", `Pour aller de $A$ à $B$ : $${v[0]}$ carreau(x) horizontalement et $${v[1]}$ verticalement.`, "Fais le même déplacement à partir de $M$."],
+        solution: `De $A$ à $B$, on se déplace de $${v[0] > 0 ? "+" : ""}${v[0]}$ horizontalement et $${v[1] > 0 ? "+" : ""}${v[1]}$ verticalement. Le même glissement à partir de $M$ mène en $${noms[bon]}$ : $AB${noms[bon]}M$ est un parallélogramme.` };
+    }
+  };
+
+  const FORMES4 = [[[0, 0], [3, 0], [3, 2]], [[0, 0], [2, 0], [2, 1], [1, 3]], [[0, 0], [3, 0], [1, 2]], [[0, 0], [1, 0], [1, 2], [2, 2], [2, 3], [0, 3]]];
+  GEN["tl4-identifier"] = function () {
+    for (let e = 0; e < 3000; e++) {
+      const F = pick(FORMES4), d = [rand(0, 3), rand(0, 4)], P = F.map(([x, y]) => [x + d[0], y + d[1]]), t = rand(0, 2);
+      let Q, nom;
+      if (t === 0) { const v = [rand(4, 7), rand(-3, 3)]; Q = P.map(([x, y]) => [x + v[0], y + v[1]]); nom = "une translation"; }
+      if (t === 1) { const a = rand(5, 7); Q = P.map(([x, y]) => [2 * a - x, y]); nom = "une symétrie axiale"; }
+      if (t === 2) { const O = [rand(5, 6), rand(3, 4)]; Q = P.map(([x, y]) => [2 * O[0] - x, 2 * O[1] - y]); nom = "une symétrie centrale"; }
+      if (!Q.every(dansT) && !Q.every(([x, y]) => x >= 0 && x <= 12 && y >= 0 && y <= 8)) continue;
+      const k = (L) => L.map((p) => p.join(",")).sort().join(";"); if (k(P) === k(Q)) continue;
+      const bb = (L) => [Math.min(...L.map((p) => p[0])), Math.max(...L.map((p) => p[0])), Math.min(...L.map((p) => p[1])), Math.max(...L.map((p) => p[1]))], b1 = bb(P), b2 = bb(Q);
+      if (b1[0] <= b2[1] && b2[0] <= b1[1] && b1[2] <= b2[3] && b2[2] <= b1[3]) continue;
+      const choix = ["une translation", "une symétrie axiale", "une symétrie centrale"];
+      return { enonce: "Quelle transformation permet de passer de la figure bleue à la figure jaune ?", figure: grilleT({ polys: [{ pts: P }, { pts: Q, classe: "g-poly g-poly-image" }], aria: "Quadrillage avec une figure et son image" }), mode: "choix", choix, attendu: t,
+        aides: ["Translation : la figure glisse, sans tourner ni se retourner.", "Symétrie axiale : la figure est retournée « en miroir ».", "Symétrie centrale : la figure fait un demi-tour (« la tête en bas »)."],
+        solution: `La figure ${t === 0 ? "a glissé sans tourner ni se retourner" : t === 1 ? "est retournée comme dans un miroir" : "a fait un demi-tour"} : c'est ${nom}.` };
+    }
+  };
+
+  GEN["tl4-proprietes"] = function () {
+    const t = rand(0, 1), [A, B, C] = pick([["A", "B", "C"], ["E", "F", "G"], ["M", "N", "P"], ["R", "S", "T"]]);
+    if (t === 0) { const x = Dc(rand(15, 95), 1), a = rand(20, 160), q = rand(0, 1);
+      return q ? { enonce: `Par une translation, le segment $[${A}${B}]$ a pour image $[${A}'${B}']$ et $${A}${B} = ${tD(x)}$ cm. Combien mesure $${A}'${B}'$ ?`, mode: "nombre", prefixe: `$${A}'${B}' =$`, suffixe: "cm", attendu: x.m / 10,
+        aides: ["Une translation conserve les longueurs.", "Le segment image a la même longueur.", "Aucun calcul."], solution: `$${A}'${B}' = ${A}${B} = ${tD(x)}$ cm.` }
+        : { enonce: `Par une translation, l'angle $\\widehat{${A}${B}${C}}$ de $${a}^\\circ$ a pour image $\\widehat{${A}'${B}'${C}'}$. Combien mesure-t-il ?`, mode: "nombre", prefixe: "Mesure :", suffixe: "°", attendu: a,
+          aides: ["Une translation conserve les angles.", "L'angle image a la même mesure.", "Aucun calcul."], solution: `$\\widehat{${A}'${B}'${C}'} = ${a}^\\circ$.` }; }
+    const Q = pick([
+      [`La translation qui transforme $${A}$ en $${B}$ transforme $${C}$ en $D$. Alors $${A}${B}D${C}$ est :`, "un parallélogramme", ["un triangle", "un trapèze quelconque", "un cerf-volant"]],
+      ["Par une translation, l'image d'une droite est :", "une droite parallèle", ["une droite perpendiculaire", "un cercle", "un segment de longueur double"]],
+      ["Une translation est définie par :", "une direction, un sens et une longueur", ["un centre", "un axe", "un angle seulement"]],
+      ["Par une translation, une figure :", "glisse sans tourner ni se retourner", ["fait un demi-tour", "est retournée en miroir", "est agrandie"]],
+      ["Par une translation, l'aire d'une figure est :", "conservée", ["doublée", "divisée par deux", "multipliée par la longueur du déplacement"]]
+    ]);
+    const { choix, attendu } = melange(Q[1], Q[2]);
+    return { enonce: Q[0], mode: "choix", choix, attendu, aides: ["Une translation fait glisser une figure.", "Elle conserve les longueurs, les angles, les aires et le parallélisme.", "Si $B$ est l'image de $A$ et $D$ celle de $C$, alors $ABDC$ est un parallélogramme."], solution: `Réponse : ${Q[1]}.` };
+  };
+
+  /* =====================================================================
+     Chapitre 13 : équations (eq4-)
+     ===================================================================== */
+  const lin = (a, b, x) => poly4(0, a, b, x);
+  const solRel = (v) => (Number.isInteger(v) ? rel(v) : frS(Math.round(v * 1000), 1000));
+
+  GEN["eq4-etapes"] = function () {
+    const x = pick(VAR4), a = rand(2, 9) * (Math.random() < 0.3 ? -1 : 1), s = rand(-10, 12), b = rand(-15, 15); if (!b) return GEN["eq4-etapes"]();
+    const c = a * s + b;
+    return { enonce: `Résous l'équation $${lin(a, b, x)} = ${rel(c)}$.`, mode: "nombre", prefixe: `$${x} =$`, attendu: s,
+      erreurs: [{ valeur: (c + b) / a, message: `Pour enlever $${rel(b)}$, on ${b > 0 ? "soustrait" : "ajoute"} $${Math.abs(b)}$ aux deux membres.` }, { valeur: c / a - b, message: "Commence par éliminer le terme constant, puis divise." }],
+      aides: [`On isole d'abord le terme en $${x}$ : ${b > 0 ? "soustrais" : "ajoute"} $${Math.abs(b)}$ aux deux membres.`, `$${a}${x} = ${rel(c - b)}$.`, `Divise les deux membres par $${rel(a)}$.`],
+      solution: `$${lin(a, b, x)} = ${rel(c)}$ ; $${rel(a)}${x} = ${rel(c)} ${b > 0 ? "-" : "+"} ${Math.abs(b)} = ${rel(c - b)}$ ; $${x} = \\dfrac{${rel(c - b)}}{${rel(a)}} = ${rel(s)}$.` };
+  };
+
+  GEN["eq4-deux-membres"] = function () {
+    for (;;) {
+      const x = pick(VAR4), a = rand(-6, 9), c = rand(-6, 9), s = rand(-8, 10), b = rand(-15, 15); if (a === c || !a || !c) continue;
+      const d = (a - c) * s + b;
+      return { enonce: `Résous l'équation $${lin(a, b, x)} = ${lin(c, d, x)}$.`, mode: "nombre", prefixe: `$${x} =$`, attendu: s,
+        erreurs: [{ valeur: (d - b) / (a + c), message: `En passant $${rel(c)}${x}$ dans l'autre membre, on le soustrait : $${rel(a)}${x} - ${relP(c)}${x}$.` }],
+        aides: [`Regroupe les termes en $${x}$ dans un membre : soustrais $${c === 1 ? "" : c === -1 ? "-" : c}${x}$ aux deux membres.`, `Regroupe les nombres dans l'autre membre : soustrais $${rel(b)}$.`, `$${rel(a - c)}${x} = ${rel(d - b)}$.`],
+        solution: `$${lin(a, b, x)} = ${lin(c, d, x)}$ ; $${rel(a)}${x} - ${relP(c)}${x} = ${rel(d)} - ${relP(b)}$ ; $${rel(a - c)}${x} = ${rel(d - b)}$ ; $${x} = ${rel(s)}$. Vérification : $${rel(a * s + b)} = ${rel(c * s + d)}$.` };
+    }
+  };
+
+  GEN["eq4-parentheses"] = function () {
+    for (;;) {
+      const x = pick(VAR4), k = rand(2, 6) * (Math.random() < 0.3 ? -1 : 1), b = rand(-9, 9), c = rand(-5, 5), s = rand(-8, 8); if (!b || c === k) continue;
+      const d = k * (s + b) - c * s;
+      return { enonce: `Résous l'équation $${rel(k)}(${lin(1, b, x)}) = ${lin(c, d, x)}$.`, mode: "nombre", prefixe: `$${x} =$`, attendu: s,
+        aides: ["Commence par développer le membre de gauche.", `$${rel(k)}(${lin(1, b, x)}) = ${lin(k, k * b, x)}$.`, `Résous ensuite $${lin(k, k * b, x)} = ${lin(c, d, x)}$.`],
+        solution: `$${lin(k, k * b, x)} = ${lin(c, d, x)}$, donc $${rel(k - c)}${x} = ${rel(d - k * b)}$ et $${x} = ${rel(s)}$.` };
+    }
+  };
+
+  GEN["eq4-problemes"] = function () {
+    const t = rand(0, 3), n = pick(["Awa", "Moussa", "Nasma", "Ibrahim", "Faïza", "Zaïd"]);
+    if (t === 0) { const e = rand(8, 15), k = rand(3, 5), d = rand(3, 10), p = k * e;
+      // dans d ans, le père aura (k-1)... : âge enfant x, père kx ; dans d ans : kx + d = m (x + d)
+      for (const m of [2, 3]) { const x = (d * (m - 1)) / (k - m); if (k > m && Number.isInteger(x) && x > 3 && x < 20) return { enonce: `Le père de ${n} a $${k}$ fois l'âge de ${n}. Dans $${d}$ ans, il aura seulement $${m}$ fois son âge. Quel est l'âge de ${n} aujourd'hui ?`, mode: "nombre", prefixe: "Âge :", suffixe: "ans", attendu: x,
+        aides: [`Appelle $x$ l'âge de ${n}. Son père a $${k}x$ ans.`, `Dans $${d}$ ans : $${k}x + ${d} = ${m}(x + ${d})$.`, "Développe, puis résous."], solution: `$${k}x + ${d} = ${m}x + ${m * d}$, donc $${k - m}x = ${(m - 1) * d}$ et $x = ${x}$ : ${n} a $${x}$ ans (et son père $${k * x}$ ans).` }; }
+      return GEN["eq4-problemes"](); }
+    if (t === 1) { const l = rand(3, 15), a = rand(2, 10), P = 2 * (2 * l + a);
+      return { enonce: `Un rectangle a une longueur qui dépasse sa largeur de $${a}$ cm. Son périmètre est $${P}$ cm. Quelle est sa largeur ?`, mode: "nombre", prefixe: "Largeur :", suffixe: "cm", attendu: l,
+        aides: [`Appelle $x$ la largeur ; la longueur est $x + ${a}$.`, `$2(x + x + ${a}) = ${P}$.`, `$4x + ${2 * a} = ${P}$.`], solution: `$4x + ${2 * a} = ${P}$, donc $4x = ${P - 2 * a}$ et $x = ${l}$ cm.` }; }
+    if (t === 2) { const p = rand(2, 6), x = rand(5, 30), a = rand(3, 10), tot = p * x + a;
+      return { enonce: `${n} achète $${p}$ places de concert au même prix et paie $${a}$ € de frais de réservation. Le total est de $${tot}$ €. Quel est le prix d'une place ?`, mode: "nombre", prefixe: "Prix :", suffixe: "€", attendu: x,
+        aides: ["Appelle $x$ le prix d'une place.", `$${p}x + ${a} = ${tot}$.`, `$${p}x = ${tot - a}$.`], solution: `$${p}x + ${a} = ${tot}$, donc $${p}x = ${tot - a}$ et $x = ${x}$ €.` }; }
+    const x = rand(2, 20), a = rand(2, 9), b = rand(1, 15), c = a * x + b, k = rand(1, a - 1);
+    return { enonce: `Je pense à un nombre. Je le multiplie par $${a}$ et j'ajoute $${b}$. J'obtiens le même résultat qu'en multipliant ce nombre par $${a - k}$ et en ajoutant $${b + k * x}$. Quel est ce nombre ?`, mode: "nombre", prefixe: "Nombre :", attendu: x,
+      aides: ["Appelle $x$ le nombre.", `$${a}x + ${b} = ${a - k === 1 ? "" : a - k}x + ${b + k * x}$.`, "Regroupe les $x$ d'un côté et les nombres de l'autre."], solution: `$${a}x + ${b} = ${lin(a - k, b + k * x, "x")}$ donne $${k}x = ${k * x}$, donc $x = ${x}$.` };
+  };
+
   /* Une « erreur connue » ne doit jamais coïncider avec la bonne réponse */
-  Object.keys(GEN).filter((k) => /^(dp4|rx4|py4|fq4|pq4|es4|pw4|th4|lc4|pb4|cs4)-/.test(k)).forEach((k) => {
+  Object.keys(GEN).filter((k) => /^(dp4|rx4|py4|fq4|pq4|es4|pw4|th4|lc4|pb4|cs4|tl4|eq4)-/.test(k)).forEach((k) => {
     const g = GEN[k];
     GEN[k] = (i) => {
       const q = g(i);

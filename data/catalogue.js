@@ -348,14 +348,14 @@ window.CATALOGUE = {
           id: "quatrieme-translation",
           numero: 12,
           titre: "Translations",
-          statut: "bientot",
+          statut: "disponible",
           drive: ""
         },
         {
           id: "quatrieme-equations",
           numero: 13,
           titre: "Équations",
-          statut: "bientot",
+          statut: "disponible",
           drive: ""
         },
         {
