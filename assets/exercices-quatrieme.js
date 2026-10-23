@@ -3,7 +3,7 @@
   Ce fichier se charge après assets/exercices-college.js et reprend ses outils (window.PM_EXO.college).
   Mêmes règles : chaque générateur fabrique une question avec des nombres tirés au hasard, la réponse
   attendue, trois indices progressifs et la solution rédigée.
-  Préfixes : dp4-, rx4-, py4-, fq4-, pq4-, es4-.
+  Préfixes : dp4-, rx4-, py4-, fq4-, pq4-, es4-, pw4-, th4-, lc4-.
 */
 (function () {
   "use strict";
@@ -445,8 +445,222 @@
       solution: `Pour aller de $A$ à $${n}$ : $${c[0]}$ selon $[AB)$, $${c[1]}$ selon $[AD)$ et $${c[2]}$ vers le haut : $${n}${tx(c).slice(1)}.` };
   };
 
+  /* =====================================================================
+     Chapitre 7 : puissances (pw4-)
+     ===================================================================== */
+  const exp10 = (n) => `10^{${n}}`;
+
+  GEN["pw4-calcul"] = function () {
+    const t = rand(0, 3);
+    if (t === 0) { const a = rand(2, 5), n = rand(2, a === 2 ? 8 : 4), v = a ** n;
+      return { enonce: `Calcule $${a}^{${n}}$.`, mode: "nombre", prefixe: "Résultat :", attendu: v, erreurs: [{ valeur: a * n, message: `$${a}^{${n}}$ est un produit de $${n}$ facteurs égaux à $${a}$, pas $${a} \\times ${n}$.` }],
+        aides: [`$${a}^{${n}} = ${Array(n).fill(a).join(" \\times ")}$.`, "Calcule de proche en proche.", `$${a}^2 = ${a * a}$.`], solution: `$${a}^{${n}} = ${Array(n).fill(a).join(" \\times ")} = ${v}$.` }; }
+    if (t === 1) { const a = rand(2, 5), n = rand(2, 5), par = Math.random() < 0.5, v = par ? (-a) ** n : -(a ** n);
+      return { enonce: `Calcule $${par ? `(-${a})` : `-${a}`}^{${n}}$.`, mode: "nombre", prefixe: "Résultat :", attendu: v, erreurs: [{ valeur: -v, message: par ? "Avec les parenthèses, la puissance porte sur $-" + a + "$ : compte les facteurs négatifs." : "Sans parenthèses, la puissance ne porte que sur $" + a + "$ ; le signe $-$ reste devant." }],
+        aides: [par ? `$(-${a})^{${n}}$ est le produit de $${n}$ facteurs égaux à $-${a}$.` : `$-${a}^{${n}} = -(${a}^{${n}})$.`, par ? "Un nombre pair de facteurs négatifs donne un résultat positif." : "Calcule d'abord la puissance de " + a + ".", `$${a}^{${n}} = ${a ** n}$.`], solution: `$${par ? `(-${a})` : `-${a}`}^{${n}} = ${rel(v)}$.` }; }
+    if (t === 2) { const n = rand(1, 6), v = 10 ** -n;
+      return { enonce: `Écris $10^{-${n}}$ en écriture décimale.`, mode: "nombre", prefixe: "Résultat :", attendu: v, erreurs: [{ valeur: -(10 ** n), message: "Un exposant négatif ne rend pas le nombre négatif : $10^{-n} = \\dfrac{1}{10^n}$." }],
+        aides: ["$10^{-n} = \\dfrac{1}{10^n}$.", `$10^{-${n}} = \\dfrac{1}{${nb(10 ** n)}}$.`, "Le chiffre $1$ est à la position du $" + n + "$e chiffre après la virgule."], solution: `$10^{-${n}} = \\dfrac{1}{${nb(10 ** n)}} = ${nb(v)}$.` }; }
+    const a = rand(2, 9), n = rand(1, 3), m = rand(2, 4), v = a * 10 ** n + m ** 2;
+    return { enonce: `Calcule $${a} \\times 10^{${n}} + ${m}^2$.`, mode: "nombre", prefixe: "Résultat :", attendu: v,
+      aides: ["Les puissances sont prioritaires.", `$10^{${n}} = ${nb(10 ** n)}$ et $${m}^2 = ${m * m}$.`, "Puis la multiplication, et enfin l'addition."], solution: `$${a} \\times ${nb(10 ** n)} + ${m * m} = ${nb(a * 10 ** n)} + ${m * m} = ${nb(v)}$.` };
+  };
+
+  GEN["pw4-dix"] = function () {
+    const t = rand(0, 2), a = rand(-6, 9), b = rand(-6, 9);
+    const Q = [[`${exp10(a)} \\times ${exp10(b)}`, a + b, `$10^m \\times 10^n = 10^{m + n}$ : on additionne les exposants.`, a * b], [`\\dfrac{${exp10(a)}}{${exp10(b)}}`, a - b, `$\\dfrac{10^m}{10^n} = 10^{m - n}$ : on soustrait les exposants.`, a + b], [`(${exp10(a)})^{${Math.abs(b) % 4 + 2}}`, a * (Math.abs(b) % 4 + 2), "$(10^m)^p = 10^{m \\times p}$ : on multiplie les exposants.", a + (Math.abs(b) % 4 + 2)]][t];
+    return { enonce: `Écris sous la forme $10^n$ : $${Q[0]}$. Quel est l'exposant $n$ ?`, mode: "nombre", prefixe: "$n =$", attendu: Q[1],
+      erreurs: Q[3] !== Q[1] ? [{ valeur: Q[3], message: "Revois la règle sur les exposants." }] : [],
+      aides: [Q[2], "Attention aux exposants négatifs : applique les règles des relatifs.", "Vérifie avec de petits exposants : $10^2 \\times 10^3 = 100 \\times 1\\,000 = 10^5$."], solution: `${Q[2]} $${Q[0]} = 10^{${Q[1]}}$.` };
+  };
+
+  GEN["pw4-scientifique"] = function () {
+    const m = Dc(rand(11, 99), 1), e = rand(-5, 9), v = (m.m / 10) * 10 ** e, t = rand(0, 1);
+    if (Math.abs(e) <= 2 && Math.random() < 0.6) return GEN["pw4-scientifique"]();
+    const ecr = nb(+v.toPrecision(2));
+    if (t === 0) {
+      const bonne = `$${tD(m)} \\times 10^{${e}}$`, faux = [`$${m.m} \\times 10^{${e - 1}}$`, `$${tD(m)} \\times 10^{${e + 1}}$`, `$${tD(m)} \\times 10^{${-e}}$`, `$${nb(m.m / 100)} \\times 10^{${e + 1}}$`].filter((z) => z !== bonne);
+      const { choix, attendu } = melange(bonne, faux);
+      return { enonce: `Quelle est l'écriture scientifique de $${ecr}$ ?`, mode: "choix", choix, attendu,
+        aides: ["L'écriture scientifique est $a \\times 10^n$ avec $1 \\leq a < 10$ (un seul chiffre non nul avant la virgule).", "Déplace la virgule pour obtenir un nombre entre $1$ et $10$.", "Compte de combien de rangs tu l'as déplacée : c'est l'exposant (négatif si le nombre est plus petit que $1$)."],
+        solution: `$${ecr} = ${tD(m)} \\times 10^{${e}}$ : $${tD(m)}$ est bien compris entre $1$ et $10$.` };
+    }
+    return { enonce: `On écrit $${ecr} = ${tD(m)} \\times 10^{n}$. Quelle est la valeur de $n$ ?`, mode: "nombre", prefixe: "$n =$", attendu: e,
+      erreurs: [{ valeur: -e, message: e > 0 ? "Le nombre est plus grand que $10$ : l'exposant est positif." : "Le nombre est plus petit que $1$ : l'exposant est négatif." }],
+      aides: ["Pour passer de " + tD(m).replace(/\{,\}/, ",") + " au nombre, on multiplie par une puissance de $10$.", "Compte de combien de rangs la virgule se déplace.", e > 0 ? "Vers la droite : exposant positif." : "Vers la gauche : exposant négatif."], solution: `$${ecr} = ${tD(m)} \\times 10^{${e}}$, donc $n = ${e}$.` };
+  };
+
+  const PREF = [["giga", "G", 9], ["méga", "M", 6], ["kilo", "k", 3], ["milli", "m", -3], ["micro", "µ", -6], ["nano", "n", -9]];
+  GEN["pw4-prefixes"] = function () {
+    const t = rand(0, 2), [nom, sym, e] = pick(PREF);
+    if (t === 0) return { enonce: `Le préfixe « ${nom} » (${sym}) correspond à quelle puissance de $10$ ? Donne l'exposant.`, mode: "nombre", prefixe: "Exposant :", attendu: e,
+      erreurs: [{ valeur: -e, message: "Attention au signe : les préfixes des grandes unités ont des exposants positifs, ceux des petites des exposants négatifs." }],
+      aides: ["kilo $= 10^3$, méga $= 10^6$, giga $= 10^9$.", "milli $= 10^{-3}$, micro $= 10^{-6}$, nano $= 10^{-9}$.", "Les préfixes vont de $3$ en $3$."], solution: `« ${nom} » signifie $10^{${e}}$.` };
+    const u = pick([["m", "mètres"], ["o", "octets"], ["g", "grammes"], ["W", "watts"]]), x = rand(2, 900);
+    if (t === 1) return { enonce: `Combien de ${u[1]} représentent $${x}$ ${sym}${u[0]} ? Écris le résultat sous la forme $${x} \\times 10^n$ et donne $n$.`, mode: "nombre", prefixe: "$n =$", attendu: e,
+      aides: [`Le préfixe ${nom} vaut $10^{${e}}$.`, `$${x}$ ${sym}${u[0]} $= ${x} \\times 10^{${e}}$ ${u[0]}.`, "L'exposant est celui du préfixe."], solution: `$${x}$ ${sym}${u[0]} $= ${x} \\times 10^{${e}}$ ${u[0]}.` };
+    const [n2, s2, e2] = pick(PREF.filter((p) => p[2] !== e && Math.abs(p[2] - e) <= 9)), d = e - e2;
+    return { enonce: `Convertis : $1$ ${sym}${u[0]} $= 10^n$ ${s2}${u[0]}. Quelle est la valeur de $n$ ?`, mode: "nombre", prefixe: "$n =$", attendu: d,
+      erreurs: [{ valeur: -d, message: "Vérifie le sens : l'unité la plus grande contient beaucoup d'unités plus petites." }],
+      aides: [`$1$ ${sym}${u[0]} $= 10^{${e}}$ ${u[0]} et $1$ ${s2}${u[0]} $= 10^{${e2}}$ ${u[0]}.`, `$\\dfrac{10^{${e}}}{10^{${e2}}} = 10^{${e} - (${e2})}$.`, "Soustrais les exposants."], solution: `$1$ ${sym}${u[0]} $= \\dfrac{10^{${e}}}{10^{${e2}}}$ ${s2}${u[0]} $= 10^{${d}}$ ${s2}${u[0]}.` };
+  };
+
+  /* =====================================================================
+     Chapitre 8 : théorème de Thalès dans le triangle (th4-)
+     ===================================================================== */
+  const NOMS_TH = [["A", "M", "N", "B", "C"], ["E", "F", "G", "H", "K"], ["O", "R", "S", "T", "U"], ["S", "I", "J", "K", "L"]];
+  // Triangle A B C, M sur [AB], N sur [AC], (MN) // (BC) ; labs : textes sur AM, AB, AN, AC, MN, BC (ou "")
+  function figureThales(noms, k, labs) {
+    const [A, M, N, B, C] = noms, pA = [150, 22], pB = [40, 180], pC = [290, 175];
+    const pM = [pA[0] + k * (pB[0] - pA[0]), pA[1] + k * (pB[1] - pA[1])].map((v) => +v.toFixed(1)), pN = [pA[0] + k * (pC[0] - pA[0]), pA[1] + k * (pC[1] - pA[1])].map((v) => +v.toFixed(1));
+    let s = geo({ W: 320, H: 200, pts: { [A]: pA, [B]: pB, [C]: pC, [M]: pM, [N]: pN }, segs: [[A, B], [A, C], [B, C], [M, N]], decal: { [A]: [-4, -6], [B]: [-12, 6], [C]: [6, 6], [M]: [-14, 0], [N]: [6, 0] }, aria: `Triangle ${A}${B}${C} ; ${M} sur [${A}${B}], ${N} sur [${A}${C}] et (${M}${N}) parallèle à (${B}${C})` });
+    const t = (p, q, txt, dx, dy) => (txt ? `<text class="g-mesure" x="${((p[0] + q[0]) / 2 + dx).toFixed(1)}" y="${((p[1] + q[1]) / 2 + dy).toFixed(1)}" text-anchor="middle">${txt}</text>` : "");
+    s = s.replace("</svg>", t(pA, pM, labs[0], -22, 0) + t(pM, pB, labs[1], -24, 4) + t(pA, pN, labs[2], 24, 0) + t(pN, pC, labs[3], 26, 4) + t(pM, pN, labs[4], 0, -6) + t(pB, pC, labs[5], 0, 16) + "</svg>");
+    return s;
+  }
+  FIGURES["th4-figure"] = () => figureThales(["A", "M", "N", "B", "C"], 0.4, ["2", "3", "", "", "", ""]);
+
+  GEN["th4-longueur"] = function () {
+    for (let e = 0; e < 200; e++) {
+      const N = pick(NOMS_TH), [A, M, Np, B, C] = N, num = rand(1, 4), den = rand(num + 1, 6), k = num / den;
+      const AB = rand(2, 9) * den / pgcd(num, den) * (Math.random() < 0.5 ? 1 : 0.5), AC = rand(2, 9) * den / pgcd(num, den), BC = rand(2, 9) * den / pgcd(num, den);
+      const AM = AB * k, AN = AC * k, MN = BC * k;
+      if (![AM, AN, MN, AB].every((x) => Number.isInteger(x * 10))) continue;
+      const t = rand(0, 2);
+      const vals = { AM, AB, AN, AC, MN, BC }, nomsL = { AM: A + M, AB: A + B, AN: A + Np, AC: A + C, MN: M + Np, BC: B + C };
+      const [cherche, donnes] = [["AN", ["AM", "AB", "AC"]], ["MN", ["AM", "AB", "BC"]], ["AC", ["AM", "AB", "AN"]]][t];
+      const labs = { AM: "", MB: "", AN: "", NC: "", MN: "", BC: "" };
+      const L = (x) => `${nb(x)}`;
+      const figLabs = ["", "", "", "", "", ""];
+      const texte = donnes.map((d) => `$${nomsL[d]} = ${L(vals[d])}$ cm`).join(", ");
+      const rep = vals[cherche];
+      const r1 = `\\dfrac{${nomsL.AM}}{${nomsL.AB}}`, r2 = `\\dfrac{${nomsL.AN}}{${nomsL.AC}}`, r3 = `\\dfrac{${nomsL.MN}}{${nomsL.BC}}`;
+      return { enonce: `Dans le triangle $${A}${B}${C}$, $${M} \\in [${A}${B}]$, $${Np} \\in [${A}${C}]$ et $(${M}${Np}) \\parallel (${B}${C})$. On sait que ${texte}. Calcule $${nomsL[cherche]}$.`, figure: figureThales(N, k, figLabs), mode: "nombre", prefixe: `$${nomsL[cherche]} =$`, suffixe: "cm", attendu: rep,
+        aides: ["Les droites sont parallèles : on peut appliquer le théorème de Thalès.", `$${r1} = ${r2} = ${r3}$.`, `Utilise l'égalité qui contient $${nomsL[cherche]}$ et trois longueurs connues, puis le produit en croix.`],
+        solution: `D'après le théorème de Thalès, $${r1} = ${r2} = ${r3}$, soit $\\dfrac{${L(AM)}}{${L(AB)}} = ${t === 0 ? `\\dfrac{${nomsL.AN}}{${L(AC)}}` : t === 1 ? `\\dfrac{${nomsL.MN}}{${L(BC)}}` : `\\dfrac{${L(AN)}}{${nomsL.AC}}`}$. Donc $${nomsL[cherche]} = ${t === 2 ? `\\dfrac{${L(AN)} \\times ${L(AB)}}{${L(AM)}}` : `\\dfrac{${L(t === 0 ? AC : BC)} \\times ${L(AM)}}{${L(AB)}}`} = ${nb(rep)}$ cm.` };
+    }
+  };
+
+  GEN["th4-egalite"] = function () {
+    const N = pick(NOMS_TH), [A, M, Np, B, C] = N;
+    if (Math.random() < 0.6) {
+      const AB = rand(4, 15), AM = rand(1, AB - 1), AC = rand(4, 15), par = Math.random() < 0.5, AN0 = (AM * AC) / AB;
+      if (!Number.isInteger(AN0 * 10)) return GEN["th4-egalite"]();
+      const AN = par ? AN0 : arr(AN0 + pick([-0.5, 0.5, 1]), 2); if (AN <= 0 || AN >= AC) return GEN["th4-egalite"]();
+      const choix = [`Oui, car $\\dfrac{${A}${M}}{${A}${B}} = \\dfrac{${A}${Np}}{${A}${C}}$`, `Non, car $\\dfrac{${A}${M}}{${A}${B}} \\neq \\dfrac{${A}${Np}}{${A}${C}}$`, "On ne peut pas savoir sans mesurer les angles"];
+      return { enonce: `$${M} \\in [${A}${B}]$ et $${Np} \\in [${A}${C}]$ avec $${A}${M} = ${AM}$ cm, $${A}${B} = ${AB}$ cm, $${A}${Np} = ${nb(AN)}$ cm et $${A}${C} = ${AC}$ cm. Les droites $(${M}${Np})$ et $(${B}${C})$ sont-elles parallèles ?`, mode: "choix", choix, attendu: par ? 0 : 1,
+        aides: ["Réciproque du théorème de Thalès : si les points sont dans le même ordre et si les rapports sont égaux, les droites sont parallèles.", `Calcule $\\dfrac{${A}${M}}{${A}${B}}$ et $\\dfrac{${A}${Np}}{${A}${C}}$, ou compare les produits en croix.`, `$${AM} \\times ${AC} = ${AM * AC}$ et $${AB} \\times ${nb(AN)} = ${nb(arr(AB * AN, 4))}$.`],
+        solution: `$${AM} \\times ${AC} = ${AM * AC}$ et $${AB} \\times ${nb(AN)} = ${nb(arr(AB * AN, 4))}$. ${par ? "Les produits en croix sont égaux : les rapports sont égaux et, d'après la réciproque du théorème de Thalès, les droites sont parallèles." : "Les produits sont différents : les rapports ne sont pas égaux, donc les droites ne sont pas parallèles (sinon le théorème de Thalès donnerait l'égalité)."}` };
+    }
+    const bonne = `$\\dfrac{${A}${M}}{${A}${B}} = \\dfrac{${A}${Np}}{${A}${C}} = \\dfrac{${M}${Np}}{${B}${C}}$`;
+    const faux = [`$\\dfrac{${A}${M}}{${M}${B}} = \\dfrac{${A}${Np}}{${Np}${C}} = \\dfrac{${M}${Np}}{${B}${C}}$`, `$\\dfrac{${A}${M}}{${A}${B}} = \\dfrac{${A}${C}}{${A}${Np}} = \\dfrac{${M}${Np}}{${B}${C}}$`, `$\\dfrac{${A}${M}}{${A}${Np}} = \\dfrac{${A}${B}}{${B}${C}} = \\dfrac{${M}${Np}}{${A}${C}}$`];
+    const { choix, attendu } = melange(bonne, faux);
+    return { enonce: `$${M} \\in [${A}${B}]$, $${Np} \\in [${A}${C}]$ et $(${M}${Np}) \\parallel (${B}${C})$. Quelle égalité donne le théorème de Thalès ?`, figure: figureThales(N, rand(3, 6) / 10, ["", "", "", "", "", ""]), mode: "choix", choix, attendu,
+      aides: ["Le petit triangle $" + A + M + Np + "$ est une réduction du grand triangle $" + A + B + C + "$.", "Chaque rapport est : côté du petit triangle sur côté correspondant du grand.", "Les côtés correspondants sont sur la même droite (ou parallèles)."],
+      solution: `Le triangle $${A}${M}${Np}$ est une réduction de $${A}${B}${C}$ : ${bonne}.` };
+  };
+
+  GEN["th4-coefficient"] = function () {
+    const N = pick(NOMS_TH), [A, M, Np, B, C] = N, AB = rand(4, 15), AM = rand(1, AB - 1), k = AM / AB, t = rand(0, 1);
+    if (t === 0) return { enonce: `$${M} \\in [${A}${B}]$, $${Np} \\in [${A}${C}]$, $(${M}${Np}) \\parallel (${B}${C})$, $${A}${M} = ${AM}$ cm et $${A}${B} = ${AB}$ cm. Le triangle $${A}${M}${Np}$ est une réduction de $${A}${B}${C}$. Quel est le coefficient de réduction ?${CONSIGNE_FR}`, mode: "nombre", prefixe: "$k =$", attendu: k,
+      erreurs: [{ valeur: AB / AM, message: "C'est l'inverse : le coefficient de réduction est plus petit que $1$." }, ...approx(k)],
+      aides: ["Le coefficient de réduction est le rapport « petit côté / grand côté correspondant ».", `$k = \\dfrac{${A}${M}}{${A}${B}}$.`, "Simplifie la fraction."], solution: `$k = \\dfrac{${AM}}{${AB}} = ${frS(AM, AB)}$.` };
+    const BC = rand(4, 20), MN = arr(BC * k, 4);
+    if (!Number.isInteger(MN * 100)) return GEN["th4-coefficient"]();
+    return { enonce: `Dans la même configuration ($(${M}${Np}) \\parallel (${B}${C})$), $${A}${M} = ${AM}$ cm, $${A}${B} = ${AB}$ cm et $${M}${Np} = ${nb(MN)}$ cm. Calcule $${B}${C}$.`, mode: "nombre", prefixe: `$${B}${C} =$`, suffixe: "cm", attendu: BC,
+      erreurs: [{ valeur: arr(MN * k, 4), message: "On cherche une longueur du grand triangle : elle est plus grande que $" + M + Np + "$." }],
+      aides: [`$\\dfrac{${A}${M}}{${A}${B}} = \\dfrac{${M}${Np}}{${B}${C}}$.`, `$\\dfrac{${AM}}{${AB}} = \\dfrac{${nb(MN)}}{${B}${C}}$.`, `$${B}${C} = \\dfrac{${nb(MN)} \\times ${AB}}{${AM}}$.`], solution: `$${B}${C} = \\dfrac{${nb(MN)} \\times ${AB}}{${AM}} = ${BC}$ cm.` };
+  };
+
+  GEN["th4-problemes"] = function () {
+    const t = rand(0, 1);
+    if (t === 0) { const b = rand(10, 20) / 10, o = rand(15, 40) / 10, O = rand(10, 30), H = arr((b * O) / o, 2);
+      if (!Number.isInteger(H * 100)) return GEN["th4-problemes"]();
+      return { enonce: `Au même moment, un bâton vertical de $${nb(b)}$ m a une ombre de $${nb(o)}$ m, et un cocotier a une ombre de $${O}$ m. Les rayons du soleil sont parallèles. Quelle est la hauteur du cocotier ?`, mode: "nombre", prefixe: "Hauteur :", suffixe: "m", attendu: H,
+        aides: ["Les rayons du soleil étant parallèles, on a une configuration de Thalès (triangles semblables).", `$\\dfrac{\\text{hauteur du cocotier}}{${nb(b)}} = \\dfrac{${O}}{${nb(o)}}$.`, `Hauteur $= \\dfrac{${nb(b)} \\times ${O}}{${nb(o)}}$.`], solution: `$h = \\dfrac{${nb(b)} \\times ${O}}{${nb(o)}} = ${nb(H)}$ m.` }; }
+    const d = rand(2, 6), D = d + rand(2, 12), h = rand(2, 9) / 10, H = arr((h * D) / d, 3);
+    if (!Number.isInteger(H * 100)) return GEN["th4-problemes"]();
+    return { enonce: `Une rampe d'accès monte régulièrement. À $${d}$ m de son point de départ (mesurés à l'horizontale), elle est à $${nb(h)}$ m de hauteur. À quelle hauteur est-elle à $${D}$ m du départ ? (Les poteaux verticaux sont parallèles.)`, mode: "nombre", prefixe: "Hauteur :", suffixe: "m", attendu: H,
+      aides: ["Les poteaux verticaux sont parallèles : on a une configuration de Thalès.", `$\dfrac{h}{${nb(h)}} = \dfrac{${D}}{${d}}$.`, `$h = \dfrac{${nb(h)} \times ${D}}{${d}}$.`], solution: `$h = \dfrac{${nb(h)} \times ${D}}{${d}} = ${nb(H)}$ m.` };
+  };
+
+  /* =====================================================================
+     Chapitre 9 : calcul littéral (lc4-)
+     ===================================================================== */
+  // Polynôme a x² + b x + c écrit proprement
+  const poly4 = (a, b, c, x) => {
+    const T = [[a, `${x}^2`], [b, x], [c, ""]].filter(([k]) => k !== 0);
+    if (!T.length) return "0";
+    return T.map(([k, v], i) => { const s = k < 0 ? "-" : "+", m = Math.abs(k), coef = v && m === 1 ? "" : String(m); return (i === 0 ? (k < 0 ? "-" : "") : ` ${s} `) + coef + v; }).join("");
+  };
+  const VAR4 = ["x", "a", "y", "t", "n"];
+
+  GEN["lc4-developper"] = function () {
+    const x = pick(VAR4), k = rand(2, 9) * (Math.random() < 0.4 ? -1 : 1), a = rand(1, 9) * (Math.random() < 0.3 ? -1 : 1), b = rand(1, 12) * (Math.random() < 0.5 ? -1 : 1);
+    const bonne = `$${poly4(0, k * a, k * b, x)}$`;
+    const faux = [`$${poly4(0, k * a, b, x)}$`, `$${poly4(0, k * a, -k * b, x)}$`, `$${poly4(0, k + a, k * b, x)}$`, `$${poly4(0, -k * a, k * b, x)}$`].filter((z) => z !== bonne);
+    const { choix, attendu } = melange(bonne, faux);
+    return { enonce: `Développe $${rel(k)}(${poly4(0, a, b, x)})$.`, mode: "choix", choix, attendu,
+      aides: ["$k(a + b) = ka + kb$ : le facteur multiplie chaque terme.", "Attention aux signes : applique la règle des signes à chaque produit.", `$${relP(k)} \\times ${relP(b)} = ${rel(k * b)}$.`],
+      solution: `$${rel(k)}(${poly4(0, a, b, x)}) = ${relP(k)} \\times ${a === 1 ? x : a === -1 ? `(-${x})` : `${relP(a)}${x}`} + ${relP(k)} \\times ${relP(b)} = ${poly4(0, k * a, k * b, x)}$.` };
+  };
+
+  GEN["lc4-reduire"] = function () {
+    const x = pick(VAR4), r = () => rand(1, 9) * (Math.random() < 0.4 ? -1 : 1);
+    const a1 = r(), a2 = r(), b1 = r(), b2 = r(), c1 = r(), c2 = Math.random() < 0.5 ? r() : 0;
+    const termes = shuffle([[a1, 2], [b1, 1], [c1, 0], [a2, 2], [b2, 1], ...(c2 ? [[c2, 0]] : [])]);
+    const tx = termes.map(([k, d], i) => { const v = d === 2 ? `${x}^2` : d === 1 ? x : ""; const m = Math.abs(k), coef = v && m === 1 ? "" : String(m); return (i === 0 ? (k < 0 ? "-" : "") : k < 0 ? " - " : " + ") + coef + v; }).join("");
+    const A = a1 + a2, B = b1 + b2, C = c1 + c2, bonne = `$${poly4(A, B, C, x)}$`;
+    const faux = [`$${poly4(0, A + B, C, x)}$`, `$${poly4(A, B, C + A, x)}$`, `$${poly4(a1 - a2, b1 - b2, C, x)}$`, `$${poly4(A, B, -C, x)}$`].filter((z) => z !== bonne);
+    const { choix, attendu } = melange(bonne, faux);
+    return { enonce: `Réduis $${tx}$.`, mode: "choix", choix, attendu,
+      aides: [`Regroupe les termes en $${x}^2$, puis les termes en $${x}$, puis les nombres.`, `On n'additionne pas des termes en $${x}^2$ avec des termes en $${x}$.`, `Termes en $${x}^2$ : $${rel(a1)} + ${relP(a2)} = ${rel(A)}$.`],
+      solution: `Termes en $${x}^2$ : $${rel(A)}$ ; termes en $${x}$ : $${rel(B)}$ ; nombres : $${rel(C)}$. Donc $${tx} = ${poly4(A, B, C, x)}$.` };
+  };
+
+  GEN["lc4-factoriser"] = function () {
+    const x = pick(VAR4), t = rand(0, 1);
+    if (t === 0) { const k = rand(2, 9), a = rand(1, 7), b = rand(1, 12) * (Math.random() < 0.5 ? -1 : 1); if (pgcd(a, Math.abs(b)) > 1) return GEN["lc4-factoriser"]();
+      const bonne = `$${k}(${poly4(0, a, b, x)})$`, faux = [`$${k}(${poly4(0, a * k, b, x)})$`, `$${k}${x}(${poly4(0, 0, a, x)} ${b < 0 ? "-" : "+"} ${Math.abs(b)})$`, `$${x}(${poly4(0, 0, k * a, x)} ${b < 0 ? "-" : "+"} ${Math.abs(k * b)})$`, `$${k}(${poly4(0, a, -b, x)})$`].filter((z) => z !== bonne);
+      const { choix, attendu } = melange(bonne, faux);
+      return { enonce: `Factorise $${poly4(0, k * a, k * b, x)}$.`, mode: "choix", choix, attendu,
+        aides: ["Cherche un facteur commun aux deux termes.", `$${k * a}${x} = ${k} \\times ${a === 1 ? "" : a}${x}$ et $${rel(k * b)} = ${k} \\times ${relP(b)}$.`, `Le facteur commun est $${k}$.`], solution: `$${poly4(0, k * a, k * b, x)} = ${k} \\times ${a === 1 ? "" : a}${x} + ${k} \\times ${relP(b)} = ${k}(${poly4(0, a, b, x)})$.` }; }
+    const a = rand(1, 9), b = rand(1, 12) * (Math.random() < 0.5 ? -1 : 1);
+    const bonne = `$${x}(${poly4(0, a, b, x)})$`, faux = [`$${x}^2(${a} ${b < 0 ? "-" : "+"} ${Math.abs(b)})$`, `$${x}(${poly4(0, a, b * 1, x).replace(x, `${x}^2`)})$`, `$${a}(${x}^2 ${b < 0 ? "-" : "+"} ${Math.abs(b)}${x})$`, `$${x}(${poly4(0, a, -b, x)})$`].filter((z) => z !== bonne);
+    const { choix, attendu } = melange(bonne, faux);
+    return { enonce: `Factorise $${poly4(a, b, 0, x)}$.`, mode: "choix", choix, attendu,
+      aides: [`$${x}^2 = ${x} \\times ${x}$ : la lettre $${x}$ est un facteur commun.`, `$${a === 1 ? "" : a}${x}^2 = ${x} \\times ${a === 1 ? "" : a}${x}$ et $${rel(b)}${x} = ${x} \\times ${relP(b)}$.`, `On met $${x}$ en facteur.`], solution: `$${poly4(a, b, 0, x)} = ${x} \\times ${a === 1 ? "" : a}${x} + ${x} \\times ${relP(b)} = ${x}(${poly4(0, a, b, x)})$.` };
+  };
+
+  GEN["lc4-dev-reduire"] = function () {
+    const x = pick(VAR4), k1 = rand(2, 7), k2 = rand(1, 6) * (Math.random() < 0.6 ? -1 : 1), a = rand(1, 6), b = rand(1, 9) * (Math.random() < 0.5 ? -1 : 1), c = rand(1, 6), d = rand(1, 9) * (Math.random() < 0.5 ? -1 : 1);
+    const A = k1 * a + k2 * c, B = k1 * b + k2 * d;
+    const s2 = poly4(0, k2 * c, k2 * d, x), dev = poly4(0, k1 * a, k1 * b, x) + (s2.startsWith("-") ? " - " + s2.slice(1) : " + " + s2);
+    const tx = `${k1}(${poly4(0, a, b, x)}) ${k2 < 0 ? "-" : "+"} ${Math.abs(k2) === 1 ? "" : Math.abs(k2)}(${poly4(0, c, d, x)})`;
+    if (Math.random() < 0.5) {
+      const bonne = `$${poly4(0, A, B, x)}$`, faux = [`$${poly4(0, k1 * a - k2 * c, B, x)}$`, `$${poly4(0, A, k1 * b + Math.abs(k2) * d * Math.sign(k2) * -1, x)}$`, `$${poly4(0, A, k1 * b + d, x)}$`, `$${poly4(0, A + B, 0, x)}$`].filter((z) => z !== bonne);
+      const { choix, attendu } = melange(bonne, faux);
+      return { enonce: `Développe et réduis $${tx}$.`, mode: "choix", choix, attendu,
+        aides: ["Développe chaque produit séparément.", k2 < 0 ? "Attention : le signe $-$ devant la deuxième parenthèse change le signe de chaque terme." : "Le facteur multiplie chaque terme de sa parenthèse.", `On obtient $${dev}$.`],
+        solution: `$${tx} = ${dev} = ${poly4(0, A, B, x)}$.` };
+    }
+    return { enonce: `On développe et on réduit $${tx}$ sous la forme $a${x} + b$. Quelle est la valeur de $b$ ?`, mode: "nombre", prefixe: "$b =$", attendu: B,
+      erreurs: [{ valeur: k1 * b + Math.abs(k2) * d, message: "Le signe devant la deuxième parenthèse multiplie aussi son terme constant." }],
+      aides: ["Développe chaque produit.", `Termes constants : $${k1} \\times ${relP(b)}$ et $${relP(k2)} \\times ${relP(d)}$.`, "Additionne-les."], solution: `$b = ${k1} \\times ${relP(b)} + ${relP(k2)} \\times ${relP(d)} = ${rel(k1 * b)} + ${relP(k2 * d)} = ${rel(B)}$.` };
+  };
+
+  GEN["lc4-substitution"] = function () {
+    const x = pick(VAR4), v = rand(-6, 6), a = rand(1, 5) * (Math.random() < 0.3 ? -1 : 1), b = rand(-9, 9), c = rand(-12, 12);
+    if (v === 0 || b === 0 || c === 0) return GEN["lc4-substitution"]();
+    const r = a * v * v + b * v + c, e = poly4(a, b, c, x);
+    return { enonce: `Calcule $${e}$ pour $${x} = ${rel(v)}$.`, mode: "nombre", prefixe: "Résultat :", attendu: r,
+      erreurs: [{ valeur: -a * v * v + b * v + c, message: `$${relP(v)}^2$ est positif : c'est $${relP(v)} \\times ${relP(v)}$.` }, { valeur: a * 2 * v + b * v + c, message: "Le carré n'est pas le double." }],
+      aides: [`Remplace $${x}$ par $${relP(v)}$ (avec des parenthèses).`, `$${relP(v)}^2 = ${v * v}$.`, "Applique les priorités et la règle des signes."],
+      solution: `$${a === 1 ? "" : a === -1 ? "-" : `${a} \\times `}${relP(v)}^2 ${b < 0 ? "-" : "+"} ${Math.abs(b)} \\times ${relP(v)} ${c < 0 ? "-" : "+"} ${Math.abs(c)} = ${rel(a * v * v)} ${b * v < 0 ? "-" : "+"} ${Math.abs(b * v)} ${c < 0 ? "-" : "+"} ${Math.abs(c)} = ${rel(r)}$.` };
+  };
+
   /* Une « erreur connue » ne doit jamais coïncider avec la bonne réponse */
-  Object.keys(GEN).filter((k) => /^(dp4|rx4|py4|fq4|pq4|es4)-/.test(k)).forEach((k) => {
+  Object.keys(GEN).filter((k) => /^(dp4|rx4|py4|fq4|pq4|es4|pw4|th4|lc4)-/.test(k)).forEach((k) => {
     const g = GEN[k];
     GEN[k] = (i) => {
       const q = g(i);

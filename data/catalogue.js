@@ -313,21 +313,21 @@ window.CATALOGUE = {
           id: "quatrieme-puissances",
           numero: 7,
           titre: "Puissances",
-          statut: "bientot",
+          statut: "disponible",
           drive: ""
         },
         {
           id: "quatrieme-thales",
           numero: 8,
           titre: "Théorème de Thalès",
-          statut: "bientot",
+          statut: "disponible",
           drive: ""
         },
         {
           id: "quatrieme-calcul-litteral",
           numero: 9,
           titre: "Calcul littéral",
-          statut: "bientot",
+          statut: "disponible",
           drive: ""
         },
         {
