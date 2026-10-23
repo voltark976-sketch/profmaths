@@ -207,7 +207,7 @@ window.CATALOGUE = {
           id: "cinquieme-calcul-litteral",
           numero: 11,
           titre: "Calcul littéral",
-          statut: "bientot",
+          statut: "disponible",
           drive: ""
         },
         {

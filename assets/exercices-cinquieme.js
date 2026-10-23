@@ -3,7 +3,7 @@
   Ce fichier se charge après assets/exercices-college.js et reprend ses outils (window.PM_EXO.college).
   Mêmes règles : chaque générateur fabrique une question avec des nombres tirés au hasard, la réponse
   attendue, trois indices progressifs et la solution rédigée.
-  Préfixes : rc5- (règles de calcul), tr5-, fr5-, pp5-, an5-, dv5-, sc5-, nr5-, cr5-, gf5-.
+  Préfixes : rc5- (règles de calcul), tr5-, fr5-, pp5-, an5-, dv5-, sc5-, nr5-, cr5-, gf5-, cl5-.
 */
 (function () {
   "use strict";
@@ -1260,8 +1260,129 @@
       solution: [`Les points sont alignés sur une droite qui passe par l'origine : c'est une situation de proportionnalité (coefficient $${nb(k)}$).`, "Les points sont alignés, mais la droite ne passe pas par l'origine : ce n'est pas une situation de proportionnalité.", "Les points ne sont pas alignés : ce n'est pas une situation de proportionnalité."][nature] };
   };
 
+  /* =====================================================================
+     Chapitre 11 : calcul littéral, carrés et cubes (cl5-)
+     ===================================================================== */
+  const LET = ["x", "a", "n", "y", "t"];
+  // ax + b écrit proprement (a, b entiers, a non nul)
+  const affine = (a, b, x) => `${a === 1 ? "" : a === -1 ? "-" : a}${x}${b === 0 ? "" : b > 0 ? ` + ${b}` : ` - ${-b}`}`;
+
+  GEN["cl5-puissances"] = function () {
+    const t = rand(0, 4);
+    if (t === 0) { const a = rand(2, 12), q = Math.random() < 0.75 ? 2 : 3, b = q === 3 ? rand(2, 5) : a, v = b ** q;
+      return { enonce: `Calcule $${b}^${q}$.`, mode: "nombre", prefixe: "Résultat :", attendu: v, erreurs: [{ valeur: b * q, message: `$${b}^${q}$ n'est pas $${b} \\times ${q}$ : c'est $${Array(q).fill(b).join(" \\times ")}$.` }],
+        aides: [`$${b}^${q}$ se lit « ${b} ${q === 2 ? "au carré" : "au cube"} ».`, `$${b}^${q} = ${Array(q).fill(b).join(" \\times ")}$.`, "Calcule ce produit."], solution: `$${b}^${q} = ${Array(q).fill(b).join(" \\times ")} = ${v}$.` }; }
+    if (t === 1) { const a = rand(2, 12), v = a * a;
+      return { enonce: `De quel nombre entier positif $${v}$ est-il le carré ?`, mode: "nombre", prefixe: "Nombre :", attendu: a, erreurs: [{ valeur: v / 2, message: "Le carré n'est pas le double : cherche le nombre qui, multiplié par lui-même, donne $" + v + "$." }],
+        aides: ["Connais tes carrés de $1$ à $12$.", "Cherche $\\ldots \\times \\ldots = " + v + "$ avec deux fois le même nombre.", `$${a - 1}^2 = ${(a - 1) ** 2}$.`], solution: `$${a} \\times ${a} = ${v}$, donc $${v} = ${a}^2$.` }; }
+    if (t === 2) { const a = rand(1, 9), b = rand(2, 6), c = rand(2, 5), v = a + b ** 2 * c;
+      return { enonce: `Calcule $${a} + ${b}^2 \\times ${c}$.`, mode: "nombre", prefixe: "Résultat :", attendu: v, erreurs: [{ valeur: (a + b) ** 2 * c, message: "Le carré ne porte que sur le nombre juste avant." }, { valeur: a + (b * c) ** 2, message: "On calcule d'abord la puissance, puis la multiplication." }],
+        aides: ["Priorités : d'abord les puissances, puis les multiplications, puis les additions.", `$${b}^2 = ${b * b}$.`, `$${a} + ${b * b} \\times ${c}$.`], solution: `$${a} + ${b}^2 \\times ${c} = ${a} + ${b * b} \\times ${c} = ${a} + ${b * b * c} = ${v}$.` }; }
+    if (t === 3) { const a = rand(2, 9), b = rand(1, 5), v = (a - b) ** 2; if (a <= b) return GEN["cl5-puissances"]();
+      return { enonce: `Calcule $(${a} - ${b})^2$.`, mode: "nombre", prefixe: "Résultat :", attendu: v, erreurs: [{ valeur: a * a - b * b, message: "On calcule d'abord la parenthèse, puis le carré." }, { valeur: 2 * (a - b), message: "Le carré n'est pas le double." }],
+        aides: ["Les parenthèses sont prioritaires.", `$${a} - ${b} = ${a - b}$.`, `$${a - b}^2 = ${a - b} \\times ${a - b}$.`], solution: `$(${a} - ${b})^2 = ${a - b}^2 = ${v}$.` }; }
+    const s = rand(2, 9), q = rand(0, 1);
+    return q ? { enonce: `Un carré a un côté de $${s}$ cm. Quelle est son aire, en cm² ?`, mode: "nombre", prefixe: "Aire :", suffixe: "cm²", attendu: s * s, erreurs: [{ valeur: 4 * s, message: "Ça, c'est le périmètre." }],
+      aides: ["Aire d'un carré : côté $\\times$ côté.", `C'est $${s}^2$.`, `$${s} \\times ${s}$.`], solution: `$\\mathcal{A} = ${s}^2 = ${s * s}$ cm².` }
+      : { enonce: `Un cube a une arête de $${s}$ cm. Quel est son volume, en cm³ ?`, mode: "nombre", prefixe: "Volume :", suffixe: "cm³", attendu: s ** 3, erreurs: [{ valeur: s * s, message: "Un volume se calcule avec trois longueurs : $a \\times a \\times a$." }],
+        aides: ["Volume d'un cube : arête $\\times$ arête $\\times$ arête.", `C'est $${s}^3$.`, `$${s} \\times ${s} \\times ${s}$.`], solution: `$V = ${s}^3 = ${s * s * s}$ cm³.` };
+  };
+
+  GEN["cl5-ecriture"] = function () {
+    const x = pick(LET), y = pick(LET.filter((l) => l !== x)), a = rand(2, 9), b = rand(2, 9), t = rand(0, 4);
+    const Q = [
+      [`${a} \\times ${x}`, `${a}${x}`, [`${a} + ${x}`, `${x}^{${a}}`, `${a}${x}^2`]],
+      [`${x} \\times ${x}`, `${x}^2`, [`2${x}`, `${x}${x}`, `${x} + ${x}`]],
+      [`${x} \\times ${x} \\times ${x}`, `${x}^3`, [`3${x}`, `${x}^2`, `3${x}^3`]],
+      [`${a} \\times ${x} \\times ${b}`, `${a * b}${x}`, [`${a}${x}${b}`, `${a + b}${x}`, `${a}${b}${x}`]],
+      [`${x} \\times ${a} \\times ${y}`, `${a}${x}${y}`, [`${x}${a}${y}`, `${a} + ${x}${y}`, `${a}${x} + ${y}`]]
+    ];
+    const [e, bonne, faux] = Q[t];
+    const { choix, attendu } = melange(`$${bonne}$`, faux.filter((f) => f !== bonne).map((f) => `$${f}$`));
+    return { enonce: `Écris plus simplement : $${e}$`, mode: "choix", choix, attendu,
+      aides: ["On peut supprimer le signe $\\times$ devant une lettre ou une parenthèse : $3 \\times x = 3x$.", `$${x} \\times ${x} = ${x}^2$ et $${x} \\times ${x} \\times ${x} = ${x}^3$.`, "Le nombre s'écrit en premier ; on multiplie les nombres entre eux."],
+      solution: `$${e} = ${bonne}$.` };
+  };
+
+  GEN["cl5-substitution"] = function () {
+    const x = pick(LET), v = rand(1, 9) * (Math.random() < 0.2 ? 1 : 1), t = rand(0, 4), a = rand(2, 9), b = rand(1, 12);
+    const E = [
+      [`${a}${x} + ${b}`, a * v + b, `${a} \\times ${v} + ${b} = ${a * v} + ${b}`, a * 10 + v + b],
+      [`${a}(${x} + ${b})`, a * (v + b), `${a} \\times (${v} + ${b}) = ${a} \\times ${v + b}`, a * v + b],
+      [`${x}^2 + ${b}`, v * v + b, `${v}^2 + ${b} = ${v * v} + ${b}`, 2 * v + b],
+      [`${a}${x}^2`, a * v * v, `${a} \\times ${v}^2 = ${a} \\times ${v * v}`, (a * v) ** 2],
+      [`${x}^2 - ${x}`, v * v - v, `${v}^2 - ${v} = ${v * v} - ${v}`, 0]
+    ];
+    const [e, r, etape, faux] = E[t];
+    return { enonce: `Calcule $${e}$ pour $${x} = ${v}$.`, mode: "nombre", prefixe: "Résultat :", attendu: r,
+      erreurs: faux !== r ? [{ valeur: faux, message: t === 0 ? `$${a}${x}$ signifie $${a} \\times ${x}$ : on n'écrit pas $${a}$ à côté de $${v}$.` : t === 1 ? "La parenthèse se calcule en premier." : t === 3 ? "Le carré ne porte que sur la lettre." : "Le carré n'est pas le double." }] : [],
+      aides: [`Remplace $${x}$ par $${v}$ en rétablissant le signe $\\times$.`, "Respecte les priorités : parenthèses, puissances, multiplications, additions.", `$${etape}$.`], solution: `$${etape} = ${r}$.` };
+  };
+
+  GEN["cl5-developper"] = function () {
+    const x = pick(LET), t = rand(0, 3), k = rand(2, 9), a = rand(1, 9), b = rand(1, 12), m = pick(["+", "-"]);
+    if (t === 0) {
+      const bonne = `${k}${x} ${m} ${k * b}`;
+      const { choix, attendu } = melange(`$${bonne}$`, [`$${k}${x} ${m} ${b}$`, `$${k + b}${x}$`, `$${x} ${m} ${k * b}$`, `$${k}${x} ${m === "+" ? "-" : "+"} ${k * b}$`]);
+      return { enonce: `Développe $${k}(${x} ${m} ${b})$.`, mode: "choix", choix, attendu,
+        aides: ["Distributivité : $k(a + b) = ka + kb$ et $k(a - b) = ka - kb$.", `Le facteur $${k}$ multiplie **chaque** terme de la parenthèse.`, `$${k} \\times ${x} = ${k}${x}$ et $${k} \\times ${b} = ${k * b}$.`], solution: `$${k}(${x} ${m} ${b}) = ${k} \\times ${x} ${m} ${k} \\times ${b} = ${bonne}$.` };
+    }
+    if (t === 1) {
+      const bonne = `${k}(${x} ${m} ${b})`;
+      const { choix, attendu } = melange(`$${bonne}$`, [`$${k}(${x} ${m} ${k * b})$`, `$${b}(${k}${x} ${m} 1)$`.replace(`${b}(`, `${k * b}(`), `$${x}(${k} ${m} ${k * b})$`, `$${k}${x}(${m === "+" ? "" : "-"}${b})$`]);
+      return { enonce: `Factorise $${k}${x} ${m} ${k * b}$.`, mode: "choix", choix, attendu,
+        aides: ["Factoriser, c'est transformer une somme en produit : $ka + kb = k(a + b)$.", `Cherche un facteur commun aux deux termes : $${k}${x} = ${k} \\times ${x}$ et $${k * b} = ${k} \\times ${b}$.`, `Le facteur commun est $${k}$.`], solution: `$${k}${x} ${m} ${k * b} = ${k} \\times ${x} ${m} ${k} \\times ${b} = ${bonne}$.` };
+    }
+    const c = rand(2, 9), d = rand(2, 9), e = rand(1, 15), f2 = rand(1, 9);
+    if (t === 2) {
+      const A = c + d, bonne = affine(A, e, x);
+      const { choix, attendu } = melange(`$${bonne}$`, [`$${A + e}${x}$`, `$${c * d}${x} + ${e}$`, `$${affine(A, 0, x)}$`, `$${A}${x}^2 + ${e}$`]);
+      return { enonce: `Réduis $${c}${x} + ${d}${x} + ${e}$.`, mode: "choix", choix, attendu,
+        aides: [`On ne peut additionner que les termes « en $${x}$ » entre eux, et les nombres entre eux.`, `$${c}${x} + ${d}${x} = (${c} + ${d})${x} = ${A}${x}$.`, `Le nombre $${e}$ reste seul.`], solution: `$${c}${x} + ${d}${x} + ${e} = ${A}${x} + ${e}$. On ne peut pas aller plus loin : $${A}${x}$ et $${e}$ ne sont pas « du même type ».` };
+    }
+    const A = c + d, B = e - f2, bonne = affine(A, B, x);
+    const { choix, attendu } = melange(`$${bonne}$`, [`$${affine(A, e + f2, x)}$`, `$${affine(c - d || 1, B, x)}$`, `$${A + B}${x}$`, `$${affine(A, -B, x)}$`].filter((z) => z !== `$${bonne}$`));
+    return { enonce: `Réduis $${c}${x} + ${e} + ${d}${x} - ${f2}$.`, mode: "choix", choix, attendu,
+      aides: [`Regroupe les termes en $${x}$ : $${c}${x} + ${d}${x}$.`, `Regroupe les nombres : $${e} - ${f2}$.`, `$${c}${x} + ${d}${x} = ${A}${x}$ et $${e} - ${f2} = ${B}$.`], solution: `$${c}${x} + ${e} + ${d}${x} - ${f2} = ${c}${x} + ${d}${x} + ${e} - ${f2} = ${bonne}$.` };
+  };
+
+  GEN["cl5-raisonner"] = function () {
+    const t = rand(0, 4), x = pick(["n", "x", "a"]);
+    if (t === 0) {
+      const E = pick([[`3${x} + 5`, "une somme"], [`3(${x} + 5)`, "un produit"], [`${x}^2 + 1`, "une somme"], [`2${x} - 7`, "une différence"], [`(${x} + 1)(${x} - 1)`, "un produit"], [`4 + 2${x}`, "une somme"], [`5(2${x} - 3)`, "un produit"], [`${x}^2 - 9`, "une différence"]]);
+      const { choix, attendu } = melange(E[1], ["une somme", "un produit", "une différence", "un quotient"].filter((z) => z !== E[1]));
+      return { enonce: `L'expression $${E[0]}$ est :`, mode: "choix", choix, attendu,
+        aides: ["Comme pour les nombres, la nature est donnée par la **dernière** opération effectuée.", "Imagine que tu remplaces la lettre par un nombre : quelle opération ferais-tu en dernier ?", "$3(x + 5)$ : on calcule la parenthèse puis on multiplie."], solution: `$${E[0]}$ est ${E[1]} : c'est la dernière opération effectuée.` };
+    }
+    if (t === 1) {
+      const P = pick([["le double de $n$", "2n", ["n^2", "n + 2", "n \\div 2"]], ["le carré de $n$", "n^2", ["2n", "n + 2", "2 \\times n^2"]], ["le successeur de $n$ (le nombre entier qui suit)", "n + 1", ["n - 1", "2n", "1n"]], ["le prédécesseur de $n$", "n - 1", ["n + 1", "1 - n", "n \\div 1"]], ["le triple de $n$ augmenté de $4$", "3n + 4", ["3(n + 4)", "3 + 4n", "4n + 3"]], ["un nombre pair (on note $n$ un nombre entier)", "2n", ["n + 2", "2n + 1", "n^2"]], ["un nombre impair (on note $n$ un nombre entier)", "2n + 1", ["2n", "n + 1", "n + 2"]], ["la moitié de $n$", "\\dfrac{n}{2}", ["2n", "n - 2", "n^2"]], ["le cube de $n$", "n^3", ["3n", "n \\times 3", "n^2"]]]);
+      const { choix, attendu } = melange(`$${P[1]}$`, P[2].map((z) => `$${z}$`));
+      return { enonce: `Quelle expression représente ${P[0]} ?`, mode: "choix", choix, attendu,
+        aides: ["Teste avec un nombre, par exemple $n = 5$.", "Double : $\\times 2$ ; carré : $n \\times n$ ; triple : $\\times 3$.", "Successeur : $+1$ ; prédécesseur : $-1$."], solution: `${P[0][0].toUpperCase() + P[0].slice(1)} s'écrit $${P[1]}$.` };
+    }
+    if (t === 2) {
+      const C = pick([["« Pour tout nombre $x$, $x^2$ est plus grand que $x$. »", 0.5, [2, 3, 10], "$0{,}5^2 = 0{,}25$, plus petit que $0{,}5$"], ["« Pour tout nombre $x$, $2x$ est plus grand que $x + 1$. »", 1, [2, 5, 10], "$2 \\times 1 = 2$ et $1 + 1 = 2$ : ce n'est pas « plus grand »"], ["« Pour tout nombre $x$, $x^2 + 1$ est plus grand que $2x$. »", 1, [0, 2, 3], "$1^2 + 1 = 2$ et $2 \\times 1 = 2$ : ce n'est pas « plus grand »"], ["« Pour tout nombre entier $n$, $n^2 + 1$ est un nombre pair. »", 2, [1, 3, 5], "$2^2 + 1 = 5$ est impair"], ["« Pour tout nombre $x$, $x^2 = 2x$. »", 3, [0, 2], "$3^2 = 9$ et $2 \\times 3 = 6$"]]);
+      const faux = C[2], bonne = C[1], autres = faux.filter((v) => v !== bonne).slice(0, 3);
+      const { choix, attendu } = melange(`$${nb(bonne)}$`, autres.map((v) => `$${nb(v)}$`));
+      return { enonce: `Kassim affirme : ${C[0]} Quel nombre est un contre-exemple qui prouve qu'il a tort ?`, mode: "choix", choix, attendu,
+        aides: ["Un contre-exemple est **un seul** cas où l'affirmation est fausse.", "Teste l'affirmation avec chacun des nombres proposés.", "Un seul nombre suffit à prouver que l'affirmation est fausse."], solution: `Avec $${nb(bonne)}$ : ${C[3]}. Ce contre-exemple suffit : l'affirmation est fausse.` };
+    }
+    if (t === 3) {
+      const a = rand(2, 9), b = rand(1, 9), v = rand(1, 9), ok = Math.random() < 0.5, c = ok ? a * v + b : a * v + b + pick([-2, -1, 1, 2]);
+      const choix = [`Oui, car $${a} \\times ${v} + ${b} = ${c}$`, `Non, car $${a} \\times ${v} + ${b} = ${a * v + b}$`, `Oui, car $${a}${v} + ${b} = ${a * 10 + v + b}$`];
+      if (!ok) choix[0] = `Oui, car $${c}$ est proche de $${a * v + b}$`; else choix[1] = "Non, car on ne peut pas calculer avec une lettre";
+      return { enonce: `L'égalité $${a}${x} + ${b} = ${c}$ est-elle vraie pour $${x} = ${v}$ ?`, mode: "choix", choix, attendu: ok ? 0 : 1,
+        aides: [`Remplace $${x}$ par $${v}$ dans le membre de gauche.`, `$${a} \\times ${v} + ${b}$.`, `Compare le résultat avec $${c}$.`], solution: `Pour $${x} = ${v}$ : $${a} \\times ${v} + ${b} = ${a * v + b}$. ${ok ? "L'égalité est vraie." : `$${a * v + b} \\neq ${c}$ : l'égalité est fausse.`}` };
+    }
+    const k = rand(2, 5);
+    const P = pick([[`la somme de deux nombres entiers consécutifs $n$ et $n + 1$`, "2n + 1", "un nombre impair", ["2n", "n + 1", "2(n + 1)"]], [`la somme de trois nombres entiers consécutifs $n$, $n + 1$ et $n + 2$`, "3n + 3", "un multiple de $3$, car $3n + 3 = 3(n + 1)$", ["3n", "n + 3", "3n + 2"]], [`la somme d'un nombre $n$ et de son double`, "3n", "un multiple de $3$", ["2n", "n^2 + n", "n + 2"]], [`le double de $n$ plus $${k * 2}$`, `2n + ${2 * k}`, `un nombre pair, car $2n + ${2 * k} = 2(n + ${k})$`, [`2(n + ${2 * k})`, `n + ${2 * k}`, `2n + ${k}`]]]);
+    const { choix, attendu } = melange(`$${P[1]}$`, P[3].map((z) => `$${z}$`));
+    return { enonce: `Quelle expression réduite est égale à ${P[0]} ?`, mode: "choix", choix, attendu,
+      aides: ["Écris la somme avec les lettres, puis réduis-la.", "Regroupe les termes en $n$ et les nombres.", "Vérifie avec $n = 1$."], solution: `On obtient $${P[1]}$ : c'est toujours ${P[2]}. Le calcul littéral permet de le **démontrer** pour tous les nombres $n$.` };
+  };
+
   /* Une « erreur connue » ne doit jamais coïncider avec la bonne réponse */
-  Object.keys(GEN).filter((k) => /^(rc5|tr5|fr5|pp5|an5|dv5|sc5|nr5|cr5|gf5)-/.test(k)).forEach((k) => {
+  Object.keys(GEN).filter((k) => /^(rc5|tr5|fr5|pp5|an5|dv5|sc5|nr5|cr5|gf5|cl5)-/.test(k)).forEach((k) => {
     const g = GEN[k];
     GEN[k] = (i) => {
       const q = g(i);
