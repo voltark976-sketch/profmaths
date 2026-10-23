@@ -242,7 +242,7 @@ window.CATALOGUE = {
           id: "cinquieme-probabilites",
           numero: 16,
           titre: "Probabilités",
-          statut: "bientot",
+          statut: "disponible",
           drive: ""
         },
         {

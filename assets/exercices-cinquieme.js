@@ -3,7 +3,7 @@
   Ce fichier se charge après assets/exercices-college.js et reprend ses outils (window.PM_EXO.college).
   Mêmes règles : chaque générateur fabrique une question avec des nombres tirés au hasard, la réponse
   attendue, trois indices progressifs et la solution rédigée.
-  Préfixes : rc5- (règles de calcul), tr5-, fr5-, pp5-, an5-, dv5-, sc5-, nr5-, cr5-, gf5-, cl5-, pg5-, st5-, eq5-, ai5-.
+  Préfixes : rc5- (règles de calcul), tr5-, fr5-, pp5-, an5-, dv5-, sc5-, nr5-, cr5-, gf5-, cl5-, pg5-, st5-, eq5-, ai5-, pb5-.
 */
 (function () {
   "use strict";
@@ -1736,8 +1736,71 @@
       aides: [`Aire du rectangle : $${L} \\times ${d}$.`, `Le demi-disque a pour rayon $${d / 2}$ dm : son aire est $\\dfrac{\\pi \\times ${d / 2} \\times ${d / 2}}{2}$.`, "Additionne les deux aires, puis arrondis."], solution: `$${L * d} + \\dfrac{\\pi \\times ${d / 2}^2}{2} \\approx ${L * d} + ${nb(arr((Math.PI * (d / 2) ** 2) / 2, 2))} \\approx ${nb(v)}$ dm².` };
   };
 
+  /* =====================================================================
+     Chapitre 16 : probabilités (pb5-)
+     ===================================================================== */
+  const EXPERIENCES = [
+    () => { const ev = pick([["obtenir un nombre pair", [2, 4, 6]], ["obtenir un multiple de 3", [3, 6]], ["obtenir un nombre supérieur ou égal à 5", [5, 6]], ["obtenir un nombre premier", [2, 3, 5]], ["obtenir un nombre inférieur à 3", [1, 2]], ["obtenir 6", [6]], ["obtenir un nombre impair", [1, 3, 5]], ["obtenir un diviseur de 6", [1, 2, 3, 6]]]);
+      return { ctx: "On lance un dé équilibré à six faces numérotées de 1 à 6.", n: 6, ev: ev[0], fav: ev[1].length, detail: `issues favorables : $${ev[1].join(" \\; ; \\; ")}$` }; },
+    () => { const r = rand(1, 8), v = rand(1, 8), j = rand(0, 6), c = pick([["rouge", r], ["verte", v], ["jaune", j]]); if (c[1] === 0) return null;
+      return { ctx: `Une urne contient $${r}$ boules rouges, $${v}$ boules vertes${j ? ` et $${j}$ boules jaunes` : ""}, indiscernables au toucher. On tire une boule au hasard.`, n: r + v + j, ev: `tirer une boule ${c[0]}`, fav: c[1], detail: `$${c[1]}$ boules ${c[0]}s sur $${r + v + j}$` }; },
+    () => { const mot = pick(["MAYOTTE", "MAMOUDZOU", "LAGON", "MATHEMATIQUES", "COMORES", "BANANIER", "MANGROVE"]), l = pick([...new Set(mot.split(""))]), f = mot.split("").filter((c) => c === l).length;
+      return { ctx: `On écrit chaque lettre du mot ${mot} sur un carton, puis on tire un carton au hasard.`, n: mot.length, ev: `tirer la lettre ${l}`, fav: f, detail: `$${f}$ carton${f > 1 ? "s" : ""} « ${l} » sur $${mot.length}$` }; },
+    () => { const n = pick([4, 5, 8, 10, 12]), k = rand(1, n - 1);
+      return { ctx: `Une roue de loterie est partagée en $${n}$ secteurs identiques ; $${k}$ d'entre eux sont gagnants.`, n, ev: "tomber sur un secteur gagnant", fav: k, detail: `$${k}$ secteurs gagnants sur $${n}$` }; }
+  ];
+  const experience = () => { for (;;) { const e = pick(EXPERIENCES)(); if (e) return e; } };
+
+  GEN["pb5-calcul"] = function () {
+    const e = experience(), p = e.fav / e.n;
+    return { enonce: `${e.ctx} Quelle est la probabilité de l'évènement « ${e.ev} » ?${CONSIGNE_FR}`, mode: "nombre", prefixe: "Probabilité :", attendu: p,
+      erreurs: [{ valeur: e.fav, message: "Ça, c'est le nombre d'issues favorables : il faut le diviser par le nombre total d'issues." }, ...(e.n - e.fav ? [{ valeur: e.fav / (e.n - e.fav), message: "On divise par le nombre **total** d'issues, pas par le nombre d'issues défavorables." }] : []), ...approx(p)],
+      aides: ["Dans une situation d'équiprobabilité, probabilité $= \\dfrac{\\text{nombre d'issues favorables}}{\\text{nombre total d'issues}}$.", `Nombre total d'issues : $${e.n}$.`, `Compte les issues qui réalisent l'évènement (${e.detail.replace(/\$/g, "")}).`],
+      solution: `Il y a $${e.n}$ issues équiprobables et ${e.detail} : la probabilité est $${fr(e.fav, e.n)}$${pgcd(e.fav, e.n) > 1 ? ` $= ${frNet(e.fav, e.n)}$` : ""}.` };
+  };
+
+  GEN["pb5-vocab"] = function () {
+    const t = rand(0, 2);
+    if (t === 0) {
+      const E = pick([["obtenir 7 en lançant un dé à six faces", 0], ["obtenir un nombre entre 1 et 6 en lançant un dé à six faces", 4], ["obtenir pile en lançant une pièce équilibrée", 2], ["obtenir 6 en lançant un dé équilibré", 1], ["ne pas obtenir 6 en lançant un dé équilibré", 3], ["obtenir 10 fois de suite le chiffre 1 en lançant un dé", 1], ["tirer une boule rouge dans une urne qui ne contient que des boules rouges", 4], ["tirer une boule bleue dans une urne qui ne contient que des boules rouges", 0], ["ne pas gagner le gros lot au loto", 3], ["obtenir un nombre pair avec un dé équilibré", 2], ["tirer une carte rouge dans un jeu de 32 cartes (16 rouges, 16 noires)", 2], ["tirer une boule verte dans une urne de 9 boules vertes et 1 rouge", 3]]);
+      const choix = ["impossible", "peu probable", "une chance sur deux", "très probable", "certain"];
+      return { enonce: `Où placer l'évènement « ${E[0]} » sur l'échelle des probabilités ?`, mode: "choix", choix, attendu: E[1],
+        aides: ["Une probabilité est comprise entre $0$ (impossible) et $1$ (certain).", "« Une chance sur deux » correspond à $\\dfrac{1}{2}$.", "Compte les issues favorables et toutes les issues possibles."], solution: `L'évènement « ${E[0]} » est ${choix[E[1]]}.` };
+    }
+    if (t === 1) {
+      const e = experience();
+      return { enonce: `${e.ctx} Combien y a-t-il d'issues possibles (en distinguant chaque objet) ?`, mode: "nombre", prefixe: "Issues :", attendu: e.n,
+        aides: ["Une issue est un résultat possible de l'expérience.", "Chaque face, chaque boule, chaque carton ou chaque secteur est une issue.", "Compte-les tous."], solution: `Il y a $${e.n}$ issues possibles.` };
+    }
+    const p = pick([[1, 2], [1, 4], [3, 4], [1, 5], [1, 10], [2, 5], [3, 10], [1, 3]]), pct = (100 * p[0]) / p[1];
+    if (!Number.isInteger(pct)) return { enonce: `« ${p[0] === 1 ? "Une" : p[0]} chance${p[0] > 1 ? "s" : ""} sur ${p[1]} » : quelle est cette probabilité ?${CONSIGNE_FR}`, mode: "nombre", prefixe: "Probabilité :", attendu: p[0] / p[1], erreurs: approx(p[0] / p[1]),
+      aides: ["« $a$ chances sur $b$ » correspond à la fraction $\\dfrac{a}{b}$.", "Le numérateur est le nombre de chances.", "Le dénominateur est le nombre total de cas."], solution: `« ${p[0] === 1 ? "Une chance" : p[0] + " chances"} sur ${p[1]} » correspond à $${fr(p[0], p[1])}$.` };
+    return { enonce: `Une probabilité vaut $${fr(...p)}$. Écris-la en pourcentage.`, mode: "nombre", prefixe: "Probabilité :", suffixe: "%", attendu: pct,
+      erreurs: [{ valeur: p[0] / p[1], message: "Ça, c'est l'écriture décimale. Multiplie par $100$ pour obtenir le pourcentage." }],
+      aides: [`$${fr(...p)} = ${nb(p[0] / p[1])}$.`, "Un pourcentage est une fraction de dénominateur $100$.", `$${nb(p[0] / p[1])} = \\dfrac{\\ldots}{100}$.`], solution: `$${fr(...p)} = ${nb(p[0] / p[1])} = \\dfrac{${pct}}{100} = ${pct}\\,\\%$.` };
+  };
+
+  GEN["pb5-frequences"] = function () {
+    const t = rand(0, 2), N = pick([20, 25, 40, 50, 100, 200]);
+    if (t <= 1) {
+      const faces = [1, 2, 3, 4, 5, 6]; let eff; for (;;) { eff = faces.map(() => rand(Math.floor(N / 10), Math.ceil(N / 4))); const s = eff.reduce((a, b) => a + b, 0); const d = N - s; if (eff[5] + d > 0) { eff[5] += d; break; } }
+      const k = rand(0, 5), f = eff[k] / N;
+      return { enonce: `On a lancé un dé $${N}$ fois et noté les résultats. Quelle est la fréquence d'apparition du $${k + 1}$ (en écriture décimale) ?`, tableau: { lignes: [["\\text{Face}", "\\text{Effectif}"], ...faces.map((x, i) => [String(x), eff[i]]), ["\\text{Total}", N]] }, mode: "nombre", prefixe: "Fréquence :", attendu: f,
+        erreurs: [{ valeur: eff[k], message: "Ça, c'est l'effectif. La fréquence est l'effectif divisé par le nombre de lancers." }, { valeur: arr(1 / 6, 2), message: "Ça, c'est (environ) la probabilité théorique. On demande la fréquence observée." }],
+        aides: ["Fréquence $=$ effectif $\\div$ effectif total.", `Le $${k + 1}$ est sorti $${eff[k]}$ fois sur $${N}$.`, `$${eff[k]} \\div ${N}$.`], solution: `$${eff[k]} \\div ${N} = ${nb(f)}$.` };
+    }
+    const Q = pick([
+      ["On lance une pièce équilibrée $10$ fois et on obtient $7$ fois pile. Que peut-on dire ?", "C'est possible : sur peu de lancers, la fréquence peut s'éloigner de la probabilité $0{,}5$.", ["La pièce est forcément truquée.", "La probabilité d'obtenir pile est $0{,}7$.", "Au prochain lancer, on obtiendra forcément face."]],
+      ["On lance un dé équilibré $6\\,000$ fois. Combien de fois environ obtiendra-t-on le $4$ ?", "environ $1\\,000$ fois", ["exactement $1\\,000$ fois", "environ $4\\,000$ fois", "environ $600$ fois"]],
+      ["Quand on répète un très grand nombre de fois une expérience aléatoire, la fréquence d'un évènement :", "se rapproche de sa probabilité", ["devient égale à $1$", "reste toujours très différente de sa probabilité", "devient égale à $0$"]],
+      ["Un dé équilibré vient de donner $6$ trois fois de suite. La probabilité d'obtenir $6$ au lancer suivant est :", "$\\dfrac{1}{6}$", ["$0$", "plus petite que $\\dfrac{1}{6}$", "plus grande que $\\dfrac{1}{6}$"]]
+    ]);
+    const { choix, attendu } = melange(Q[1], Q[2]);
+    return { enonce: Q[0], mode: "choix", choix, attendu, aides: ["La probabilité est une valeur théorique ; la fréquence est observée lors d'expériences.", "Sur un petit nombre d'essais, la fréquence peut être loin de la probabilité.", "Sur un très grand nombre d'essais, elle s'en rapproche. Le dé n'a pas de mémoire."], solution: `Réponse : ${Q[1]}` };
+  };
+
   /* Une « erreur connue » ne doit jamais coïncider avec la bonne réponse */
-  Object.keys(GEN).filter((k) => /^(rc5|tr5|fr5|pp5|an5|dv5|sc5|nr5|cr5|gf5|cl5|pg5|st5|eq5|ai5)-/.test(k)).forEach((k) => {
+  Object.keys(GEN).filter((k) => /^(rc5|tr5|fr5|pp5|an5|dv5|sc5|nr5|cr5|gf5|cl5|pg5|st5|eq5|ai5|pb5)-/.test(k)).forEach((k) => {
     const g = GEN[k];
     GEN[k] = (i) => {
       const q = g(i);
