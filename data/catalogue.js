@@ -461,7 +461,7 @@ window.CATALOGUE = {
           id: "troisieme-triangles-semblables",
           numero: 12,
           titre: "Triangles semblables",
-          statut: "bientot",
+          statut: "disponible",
           drive: ""
         },
         {

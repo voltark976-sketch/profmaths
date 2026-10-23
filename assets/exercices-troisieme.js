@@ -3,7 +3,7 @@
   Ce fichier se charge après assets/exercices-college.js et reprend ses outils (window.PM_EXO.college).
   Mêmes règles : chaque générateur fabrique une question avec des nombres tirés au hasard, la réponse
   attendue, trois indices progressifs et la solution rédigée.
-  Préfixes : cn3-, dv3-, fc3-, eq3-, ar3-, fn3-, fa3-, pp3-, pr3-, st3-, th3-.
+  Préfixes : cn3-, dv3-, fc3-, eq3-, ar3-, fn3-, fa3-, pp3-, pr3-, st3-, th3-, ts3-.
 */
 (function () {
   "use strict";
@@ -1026,8 +1026,83 @@
       aides: [`Échelle $${fr(1, e)}$ : $1$ cm sur la maquette représente $${e}$ cm en réalité.`, `$${l} \\times ${e} = ${r}$ cm.`, "$100$ cm $= 1$ m."], solution: `$${l} \\times ${e} = ${r}$ cm $= ${nb(r / 100)}$ m.` };
   };
 
+  /* =====================================================================
+     Chapitre 12 : triangles semblables (ts3-) — angles, côtés proportionnels, calculs, triangles égaux
+     ===================================================================== */
+  const TRI3 = [["ABC", "DEF"], ["IJK", "LMN"], ["RST", "UVW"], ["EFG", "PQR"]];
+
+  GEN["ts3-angles"] = function () {
+    const [T1, T2] = pick(TRI3), a = rand(25, 85), b = rand(25, 95 - Math.floor(a / 3)), c = 180 - a - b;
+    if (c < 15 || a === b || b === c || a === c) return GEN["ts3-angles"]();
+    const t = rand(0, 1);
+    if (t === 0) {
+      const sem = Math.random() < 0.5, d = sem ? b : b + pick([-6, -4, 4, 6, 8]), e = 180 - a - d;
+      if (e < 10) return GEN["ts3-angles"]();
+      const choix = [`Oui : leurs angles sont deux à deux de même mesure`, `Non : leurs angles ne sont pas deux à deux égaux`, `Oui : ils ont un angle de $${a}^\\circ$ en commun, cela suffit`, `On ne peut pas savoir sans les longueurs`];
+      return { enonce: `Le triangle $${T1}$ a des angles de $${a}^\\circ$ et $${b}^\\circ$. Le triangle $${T2}$ a des angles de $${a}^\\circ$ et $${e}^\\circ$. Sont-ils semblables ?`, mode: "choix", choix, attendu: sem ? 0 : 1,
+        aides: ["Deux triangles sont semblables si leurs angles sont deux à deux de même mesure.", "Calcule le troisième angle de chaque triangle : la somme des angles vaut $180^\\circ$.", `Troisième angle de $${T1}$ : $180 - ${a} - ${b} = ${c}^\\circ$ ; de $${T2}$ : $180 - ${a} - ${e} = ${180 - a - e}^\\circ$.`],
+        solution: `Angles de $${T1}$ : $${a}^\\circ$, $${b}^\\circ$, $${c}^\\circ$ ; angles de $${T2}$ : $${a}^\\circ$, $${e}^\\circ$, $${180 - a - e}^\\circ$. ${sem ? "Ce sont les mêmes : les triangles sont semblables." : "Ils ne sont pas les mêmes : les triangles ne sont pas semblables."}` };
+    }
+    return { enonce: `Les triangles $${T1}$ et $${T2}$ sont semblables. $${T1}$ a des angles de $${a}^\\circ$ et $${b}^\\circ$. $${T2}$ a un angle de $${a}^\\circ$. Quelle est la mesure du plus petit des deux autres angles de $${T2}$ ?`, mode: "nombre", prefixe: "Angle :", suffixe: "°", attendu: Math.min(b, c),
+      erreurs: [{ valeur: Math.max(b, c), message: "On demande le plus petit des deux autres angles." }],
+      aides: ["Des triangles semblables ont les mêmes angles.", `Le troisième angle de $${T1}$ vaut $180 - ${a} - ${b} = ${c}^\\circ$.`, `Les angles de $${T2}$ sont donc $${a}^\\circ$, $${b}^\\circ$ et $${c}^\\circ$.`],
+      solution: `Les angles de $${T2}$ sont $${a}^\\circ$, $${b}^\\circ$ et $${c}^\\circ$ : le plus petit des deux autres est $${Math.min(b, c)}^\\circ$.` };
+  };
+
+  GEN["ts3-cotes"] = function () {
+    const [T1, T2] = pick(TRI3), base = shuffle([[3, 4, 5], [4, 5, 6], [5, 6, 8], [2, 3, 4], [5, 7, 9], [6, 7, 10], [4, 6, 7], [3, 5, 7]])[0], k = pick([1.5, 2, 2.5, 3, 0.5, 4]);
+    const sem = Math.random() < 0.5, c2 = base.map((x) => arr(x * k, 2)); if (!sem) c2[rand(0, 2)] = arr(c2[0] + pick([-1, 1, 0.5]), 2);
+    const tri = c2.slice().sort((p, q) => p - q);
+    if (new Set(c2).size < 3 || tri[0] + tri[1] <= tri[2]) return GEN["ts3-cotes"]();
+    const t = rand(0, 1);
+    if (t === 0) {
+      const choix = ["Oui : les longueurs des côtés sont proportionnelles", "Non : les longueurs des côtés ne sont pas proportionnelles", "Oui : ils ont tous les deux trois côtés", "On ne peut pas savoir sans les angles"];
+      const melange2 = shuffle(c2.slice());
+      return { enonce: `Les côtés de $${T1}$ mesurent $${base.join("$ cm, $")}$ cm ; ceux de $${T2}$ mesurent $${melange2.map(nb).join("$ cm, $")}$ cm. Ces triangles sont-ils semblables ?`, mode: "choix", choix, attendu: sem ? 0 : 1,
+        aides: ["Range les côtés de chaque triangle dans l'ordre croissant.", "Calcule les quotients « grand triangle / petit triangle » des côtés correspondants.", "S'ils sont tous égaux, les côtés sont proportionnels et les triangles sont semblables."],
+        solution: `Rangés : $${base.join(" ; ")}$ et $${c2.slice().sort((p, q) => p - q).map(nb).join(" ; ")}$. Quotients : ${base.map((x, i) => `$${nb(arr(c2.slice().sort((p, q) => p - q)[i] / x, 4))}$`).join(", ")}. ${sem ? "Ils sont égaux : les triangles sont semblables." : "Ils ne sont pas tous égaux : les triangles ne sont pas semblables."}` };
+    }
+    if (!sem) return GEN["ts3-cotes"]();
+    return { enonce: `Le triangle $${T2}$ est un agrandissement ou une réduction de $${T1}$. Les côtés de $${T1}$ mesurent $${base.join("$ cm, $")}$ cm et le plus grand côté de $${T2}$ mesure $${nb(c2[2])}$ cm. Quel est le coefficient $k$ ?`, mode: "nombre", prefixe: "$k =$", attendu: k,
+      erreurs: [{ valeur: arr(1 / k, 4), message: "$k = \\dfrac{\\text{côté de " + T2 + "}}{\\text{côté correspondant de " + T1 + "}}$." }],
+      aides: ["Le plus grand côté de l'un correspond au plus grand côté de l'autre.", `$k = \\dfrac{${nb(c2[2])}}{${base[2]}}$.`, "Calcule le quotient."], solution: `$k = \\dfrac{${nb(c2[2])}}{${base[2]}} = ${nb(k)}$.` };
+  };
+
+  GEN["ts3-longueur"] = function () {
+    const [T1, T2] = pick(TRI3), base = pick([[3, 4, 5], [4, 5, 6], [5, 6, 8], [6, 8, 9], [5, 7, 9], [6, 7, 10], [4, 6, 7]]), k = pick([1.5, 2, 2.5, 3, 4, 0.5]);
+    const c2 = base.map((x) => arr(x * k, 2)), i = rand(0, 2), j = (i + 1 + rand(0, 1)) % 3;
+    const n1 = [T1[0] + T1[1], T1[1] + T1[2], T1[0] + T1[2]], n2 = [T2[0] + T2[1], T2[1] + T2[2], T2[0] + T2[2]];
+    return { enonce: `Les triangles $${T1}$ et $${T2}$ sont semblables, les sommets $${T1[0]}$, $${T1[1]}$, $${T1[2]}$ correspondant à $${T2[0]}$, $${T2[1]}$, $${T2[2]}$. On a $${n1[i]} = ${base[i]}$ cm, $${n1[j]} = ${base[j]}$ cm et $${n2[i]} = ${nb(c2[i])}$ cm. Calcule $${n2[j]}$.`, mode: "nombre", prefixe: `$${n2[j]} =$`, suffixe: "cm", attendu: c2[j],
+      erreurs: [{ valeur: arr((base[j] * base[i]) / c2[i], 4), message: "Le coefficient est $\\dfrac{" + n2[i] + "}{" + n1[i] + "}$ (du premier triangle vers le second)." }],
+      aides: ["Dans des triangles semblables, les longueurs des côtés correspondants sont proportionnelles.", `Coefficient : $k = \\dfrac{${n2[i]}}{${n1[i]}} = \\dfrac{${nb(c2[i])}}{${base[i]}} = ${nb(k)}$.`, `$${n2[j]} = ${nb(k)} \\times ${n1[j]}$.`],
+      solution: `$k = \\dfrac{${nb(c2[i])}}{${base[i]}} = ${nb(k)}$, donc $${n2[j]} = ${nb(k)} \\times ${base[j]} = ${nb(c2[j])}$ cm.` };
+  };
+
+  GEN["ts3-egaux"] = function () {
+    const Q = pick([
+      ["Deux triangles qui ont leurs trois côtés deux à deux de même longueur sont :", "égaux (superposables)", ["seulement semblables, sans être égaux", "rectangles", "isocèles"]],
+      ["Deux triangles égaux sont toujours :", "semblables", ["rectangles", "isocèles", "équilatéraux"]],
+      ["Deux triangles semblables avec un coefficient $k = 1$ sont :", "égaux", ["différents", "isocèles", "rectangles"]],
+      ["Deux triangles ont un angle de même mesure compris entre deux côtés deux à deux de même longueur. Ils sont :", "égaux", ["seulement semblables", "rectangles", "on ne peut pas savoir"]],
+      ["Deux triangles ont un côté de même longueur compris entre deux angles deux à deux de même mesure. Ils sont :", "égaux", ["seulement semblables", "isocèles", "on ne peut pas savoir"]],
+      ["Deux triangles qui ont seulement leurs trois angles deux à deux égaux sont :", "semblables, mais pas forcément égaux", ["toujours égaux", "jamais semblables", "forcément rectangles"]],
+      ["Si un triangle est un agrandissement de rapport $3$ d'un autre, ses angles sont :", "les mêmes", ["multipliés par $3$", "multipliés par $9$", "divisés par $3$"]],
+      ["Si un triangle est un agrandissement de rapport $2$ d'un autre, son aire est multipliée par :", "$4$", ["$2$", "$8$", "$1$"]],
+      ["Deux triangles équilatéraux sont toujours :", "semblables", ["égaux", "rectangles", "de même aire"]],
+      ["Deux triangles rectangles isocèles sont toujours :", "semblables", ["égaux", "de même périmètre", "équilatéraux"]]
+    ]);
+    if (Math.random() < 0.4) { // aire d'un agrandissement
+      const k = pick([2, 3, 1.5, 0.5, 4]), A = rand(2, 30) * 4, r = arr(A * k * k, 2);
+      return { enonce: `Un triangle a une aire de $${A}$ cm². On l'agrandit (ou le réduit) en multipliant ses longueurs par $${nb(k)}$. Quelle est l'aire du nouveau triangle ?`, mode: "nombre", prefixe: "Aire :", suffixe: "cm²", attendu: r,
+        erreurs: [{ valeur: arr(A * k, 2), message: "Les aires sont multipliées par $k^2$, pas par $k$." }],
+        aides: ["Quand les longueurs sont multipliées par $k$, les aires sont multipliées par $k^2$.", `$k^2 = ${nb(arr(k * k, 4))}$.`, `$${A} \\times ${nb(arr(k * k, 4))}$.`], solution: `$${A} \\times ${nb(k)}^2 = ${A} \\times ${nb(arr(k * k, 4))} = ${nb(r)}$ cm².` };
+    }
+    const { choix, attendu } = melange(Q[1], Q[2]);
+    return { enonce: Q[0], mode: "choix", choix, attendu, aides: ["Semblables : mêmes angles (et côtés proportionnels).", "Égaux : superposables, mêmes côtés et mêmes angles.", "Des triangles égaux sont semblables avec $k = 1$."], solution: `Réponse : ${Q[1]}.` };
+  };
+
   /* Une « erreur connue » ne doit jamais coïncider avec la bonne réponse */
-  Object.keys(GEN).filter((k) => /^(cn3|dv3|fc3|eq3|ar3|fn3|fa3|pp3|pr3|st3|th3)-/.test(k)).forEach((k) => {
+  Object.keys(GEN).filter((k) => /^(cn3|dv3|fc3|eq3|ar3|fn3|fa3|pp3|pr3|st3|th3|ts3)-/.test(k)).forEach((k) => {
     const g = GEN[k];
     GEN[k] = (i) => {
       const q = g(i);
