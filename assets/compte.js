@@ -7,6 +7,8 @@
   (« custom claims ») : les règles Firestore refusent tout compte qui n'a pas été créé ainsi.
   Le compte du professeur (claim prof) lit la progression de tous les élèves (page #suivi) ;
   sa propre progression est rangée à part (collection « profs »), hors du suivi et du classement.
+  Le temps actif est compté pour tout compte connecté (élève, inscrit, professeur) dans sa propre fiche ;
+  seul prof.maths lit toutes les fiches (page #comptes : tous les comptes et leur temps total).
   Comptes créés sur le site (adresse technique @inscrits…, sans marque) :
   - un élève hors des classes du professeur : fiche dans « inscrits » (classe « Autres élèves »),
     hors du suivi et du classement ;
@@ -77,11 +79,12 @@
     try { c = (await u.getIdTokenResult()).claims; }
     catch (e) { c = null; }
     if (c && c.prof) {
-      const p = { uid: u.uid, identifiant: idTech, prenom: c.prenom || "Professeur", classe: "", prof: true, groupes: Array.isArray(c.groupes) ? c.groupes : null };
+      const p = { uid: u.uid, identifiant: idTech, prenom: c.prenom || "Professeur", nom: c.nom || "", classe: "", prof: true, groupes: Array.isArray(c.groupes) ? c.groupes : null };
       try {
         const snap = await fiche(p).get();
         eleve = p;
         ecouteur(eleve, lireProg(snap.exists ? snap.data() : {}));
+        setTimeout(envoyerTemps, 5000);
       } catch (e) {
         // Lecture impossible : on n'écrase pas la fiche avec la copie de l'appareil, on relira plus tard
         eleve = Object.assign(p, { lectureEchouee: true });
@@ -126,6 +129,7 @@
           const snap = await fiche(p).get();
           eleve = p;
           ecouteur(eleve, lireProg(snap.exists ? snap.data() : {}));
+          setTimeout(envoyerTemps, 5000);
         } else {
           // En attente (ou refusée) : rien n'est enregistré
           eleve = { uid: u.uid, identifiant: idTech, prenom: d.prenom, nom: d.nom, classe: "", inscrit: true, attente: d.statut || "attente", demande: d };
@@ -137,6 +141,7 @@
       if (!d) { d = { identifiant: idTech, prenom: idTech, nom: "", niveau: "", xp: 0, exo: {}, qcm: {} }; await iRef.set(Object.assign({ creeLe: firebase.firestore.FieldValue.serverTimestamp() }, d)); }
       eleve = { uid: u.uid, identifiant: idTech, prenom: d.prenom || idTech, nom: d.nom || "", classe: AUTRES, niveau: d.niveau || "", inscrit: true };
       ecouteur(eleve, lireProg(d));
+      setTimeout(envoyerTemps, 5000);
     } catch (e) {
       eleve = { uid: u.uid, identifiant: idTech, prenom: idTech, classe: AUTRES, inscrit: true, lectureEchouee: true };
       ecouteur(eleve, null);
@@ -177,9 +182,10 @@
     envois.forEach((p) => p.catch(() => {})); // hors ligne ou refusé : tant pis, ce n'est qu'un compteur
   }
 
-  /* ---------- Temps passé sur le site (élève connecté seulement, visible par son professeur) ----------
+  /* ---------- Temps passé sur le site (compte connecté seulement : élève, inscrit ou professeur) ----------
     On compte le temps actif : onglet visible et élève qui touche, tape ou fait défiler la page
-    depuis moins de 3 minutes (ou qui regarde une vidéo). Le temps s'ajoute dans la fiche de l'élève :
+    depuis moins de 3 minutes (ou qui regarde une vidéo). Le temps s'ajoute dans la fiche du compte
+    (eleves, inscrits ou profs ; celui d'un élève est visible par son professeur, tous par prof.maths) :
     temps.j[jour] (total du jour) et temps.ch[chapitre] (total par chapitre, « jeu » pour Les Salles),
     temps.der[chapitre] (dernier jour où l'élève y a passé du temps).
     Envoi groupé toutes les 5 minutes et quand on quitte la page ; en attendant, il est gardé sur l'appareil. */
@@ -188,7 +194,9 @@
   let pageTemps = "", derniereAction = Date.now();
   const actif = () => { derniereAction = Date.now(); };
   ["pointerdown", "pointermove", "keydown", "scroll", "touchstart", "input"].forEach((t) => window.addEventListener(t, actif, { passive: true, capture: true }));
-  const compteTemps = () => fb && eleve && !eleve.prof && !eleve.inscrit && !eleve.lectureEchouee && !ESSAI_LOCAL;
+  const compteTemps = () => fb && eleve && !eleve.attente && !eleve.lectureEchouee && !ESSAI_LOCAL;
+  // Fiche d'un professeur : son identifiant et son nom y sont recopiés (la liste « Tous les comptes » les affiche)
+  const identite = () => (eleve && eleve.prof ? { identifiant: eleve.identifiant, prenom: eleve.prenom || "", nom: eleve.nom || "" } : {});
   function attenteTemps() {
     const a = lireJSON(CLE_TEMPS, null);
     return a && eleve && a.uid === eleve.uid && a.j && a.ch && a.der ? a : { uid: eleve.uid, n: 0, j: {}, ch: {}, der: {} };
@@ -212,8 +220,8 @@
     const plus = (v) => firebase.firestore.FieldValue.increment(v), j = {}, ch = {};
     for (const k in a.j) j[k] = plus(a.j[k]);
     for (const k in a.ch) ch[k] = plus(a.ch[k]);
-    fb.db.collection("eleves").doc(eleve.uid)
-      .set({ temps: { j, ch, der: a.der }, vuLe: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true })
+    fiche(eleve)
+      .set(Object.assign({ temps: { j, ch, der: a.der }, vuLe: firebase.firestore.FieldValue.serverTimestamp() }, identite()), { merge: true })
       .catch(() => {}); // refusé : ces quelques minutes sont perdues, sans gêner l'élève
   }
   document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden") envoyerTemps(); });
@@ -400,6 +408,16 @@
       const liste = (s) => s.docs.map((x) => Object.assign({ uid: x.id }, x.data()));
       return { profs: liste(d), eleves: liste(i) };
     },
+    // prof.maths : tous les comptes qui ont une fiche (élèves des classes, listes de classes, élèves inscrits sur le site,
+    // demandes de professeurs, professeurs), avec leur temps actif ; les fiches s'appellent par le uid du compte
+    async tous() {
+      if (!fb || !this.chef()) return null;
+      const lire = async (c) => (await fb.db.collection(c).get()).docs.map((x) => Object.assign({ uid: x.id }, x.data()));
+      const [eleves, classes, inscrits, demandes, profs] = await Promise.all(["eleves", "classes", "inscrits", "demandesProf", "profs"].map(lire));
+      const listes = {};
+      classes.forEach((c) => { listes[c.uid] = c; });
+      return { eleves, classes: listes, inscrits, demandes, profs };
+    },
     // statut : "approuve", "refuse" ou "attente"
     async decider(uid, statut) {
       if (!fb || !this.chef()) throw new Error("Réservé au compte prof.maths");
@@ -416,7 +434,7 @@
         if (fb && eleve.lectureEchouee) { relire(); return; }
         if (fb) {
           fiche(eleve)
-            .set(Object.assign(copie, { majLe: firebase.firestore.FieldValue.serverTimestamp() }), { merge: true })
+            .set(Object.assign(copie, identite(), { majLe: firebase.firestore.FieldValue.serverTimestamp() }), { merge: true })
             .catch(() => {}); // hors ligne : la copie locale reste, elle repartira au prochain enregistrement
           // Classement : seulement le prénom, la classe et les points (lisible par les élèves connectés)
           const pts = pointsJeux(copie.jeux), sig = [eleve.uid, eleve.prenom, eleve.classe, pts].join("|");

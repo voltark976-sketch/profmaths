@@ -271,6 +271,7 @@
     if (chap === "compte") pageCompte();
     else if (chap === "suivi") pageSuivi();
     else if (chap === "demandes") pageDemandes();
+    else if (chap === "comptes") pageComptes();
     else if (chap === "frequentation") pageFrequentation();
     else if (chap === "avatar") pageAvatar();
     else if (chap === "jeu") pageJeu(onglet);
@@ -505,7 +506,7 @@
     if (e && e.prof) {
       $app.innerHTML = `<section class="page-compte"><p class="eyebrow">Compte professeur</p><h1>Bonjour !</h1>
         <p class="lead">Identifiant : <strong>${esc(e.identifiant)}</strong></p>
-        <p class="btns-prof"><a class="btn" href="#suivi">Suivi des élèves</a> <a class="btn" href="#frequentation">Fréquentation du site</a>${Compte.chef() ? ` <a class="btn" href="#demandes">Demandes de comptes</a>` : ""}</p>
+        <p class="btns-prof"><a class="btn" href="#suivi">Suivi des élèves</a> <a class="btn" href="#frequentation">Fréquentation du site</a>${Compte.chef() ? ` <a class="btn" href="#demandes">Demandes de comptes</a> <a class="btn" href="#comptes">Tous les comptes</a>` : ""}</p>
         <button class="btn-sec" id="deco">Se déconnecter</button></section>`;
       return deco();
     }
@@ -685,9 +686,10 @@
   const choixNombre = (val, seuils) => [["0", "0", (l) => !val(l)]].concat(seuils.map((n) => [String(n), `${n} ou plus`, (l) => val(l) >= n]));
   // Tableau triable (touche un titre) et filtrable (ligne sous les titres).
   // cols : [{ id, titre, val(l) = valeur de tri, html(l, i), classe(l), choix = "texte" | [[valeur, libellé, test(l)]], desc = premier tri décroissant }]
-  function tableauSuivi(cols, lignes, classeTable, detail) {
+  function tableauSuivi(cols, lignes, classeTable, detail, opts) {
     suiviCols = cols;
-    const f = suiviChoix.filtres, t = suiviChoix.tri;
+    const choix = (opts && opts.choix) || suiviChoix, mots = Object.assign({ pl: "élèves", vide: "Aucun élève pour l'instant.", filtre: "Aucun élève ne correspond aux filtres." }, opts && opts.mots);
+    const f = choix.filtres, t = choix.tri;
     const visibles = lignes.filter((l) => cols.every((c) => {
       const v = f[c.id]; if (!v) return true;
       if (c.choix === "texte") return sansAccent(c.val(l)).includes(sansAccent(v));
@@ -702,8 +704,8 @@
       ? `<input type="search" data-filtre="${c.id}" value="${esc(f[c.id] || "")}" placeholder="Filtrer" aria-label="Filtrer : ${esc(c.aide || c.titre)}" autocomplete="off">`
       : `<select data-filtre="${c.id}" aria-label="Filtrer : ${esc(c.aide || c.titre)}"${f[c.id] ? ` class="actif"` : ""}><option value="">Tous</option>${c.choix.map((o) => `<option value="${o[0]}"${f[c.id] === o[0] ? " selected" : ""}>${o[1]}</option>`).join("")}</select>`}</th>`).join("");
     const corps = visibles.map((l, i) => `<tr${l.cls ? ` class="${l.cls}"` : ""}>${cols.map((c, j) => j === 0 ? `<th scope="row">${c.html(l, i)}</th>` : `<td${c.classe && c.classe(l) ? ` class="${c.classe(l)}"` : ""}>${c.html(l, i)}</td>`).join("")}</tr>${detail ? detail(l, i) : ""}`).join("");
-    const vide = lignes.length ? "Aucun élève ne correspond aux filtres." : "Aucun élève pour l'instant.";
-    return `<p class="suivi-compte muted">${nbFiltres ? `<strong>${visibles.length}</strong> élèves affichés sur ${lignes.length} · <button type="button" class="lien" id="s-effacer">Effacer les filtres</button>` : `${lignes.length} élèves · touche un titre de colonne pour trier, la ligne du dessous pour filtrer.`}</p>
+    const vide = lignes.length ? mots.filtre : mots.vide;
+    return `<p class="suivi-compte muted">${nbFiltres ? `<strong>${visibles.length}</strong> ${mots.pl} affichés sur ${lignes.length} · <button type="button" class="lien" id="s-effacer">Effacer les filtres</button>` : `${lignes.length} ${mots.pl} · touche un titre de colonne pour trier, la ligne du dessous pour filtrer.`}</p>
       <div class="scroll-x"><table class="suivi ${classeTable}"><thead><tr>${entete}</tr><tr class="suivi-filtres">${filtres}</tr></thead><tbody>${corps || `<tr><td colspan="${cols.length}">${vide}</td></tr>`}</tbody></table></div>`;
   }
   function afficherSuivi() {
@@ -733,22 +735,7 @@
       maj("chap", document.getElementById("s-chap"));
       maj("depuis", document.getElementById("s-depuis"));
       document.getElementById("s-maj").addEventListener("click", pageSuivi);
-      // Tri : un titre de colonne ; même colonne = sens inverse
-      $app.querySelectorAll("[data-tri]").forEach((b) => b.addEventListener("click", () => {
-        const id = b.dataset.tri, t = suiviChoix.tri, c = suiviCols.find((x) => x.id === id) || {};
-        if (t.col === id) t.sens = -t.sens; else { t.col = id; t.sens = c.desc ? -1 : 1; }
-        afficherSuivi();
-      }));
-      // Filtres : la ligne sous les titres (le champ texte garde le curseur après le réaffichage)
-      $app.querySelectorAll("[data-filtre]").forEach((el) => el.addEventListener(el.tagName === "SELECT" ? "change" : "input", () => {
-        const id = el.dataset.filtre, pos = el.selectionStart;
-        suiviChoix.filtres[id] = el.value;
-        afficherSuivi();
-        const n = $app.querySelector(`[data-filtre="${id}"]`);
-        if (n && n.tagName === "INPUT") { n.focus(); try { n.setSelectionRange(pos, pos); } catch (x) { /* rien */ } }
-      }));
-      const eff = document.getElementById("s-effacer");
-      if (eff) eff.addEventListener("click", () => { suiviChoix.filtres = {}; afficherSuivi(); });
+      brancherTableau(suiviChoix, afficherSuivi);
     };
     if (suiviChoix.chap === "*") { suiviSite(liste, choix, infos); brancher(); return; }
     const c = CHAPITRES[suiviChoix.chap];
@@ -794,6 +781,25 @@
       <p class="muted">${c.exercices.map((ex, i) => `S${i + 1} : ${inline(ex.titre)}`).join(" · ")}. Étoiles = meilleur résultat (0 à 3), « · » = pas fait. Temps = temps actif passé dans ce chapitre (au total). ${infos.avecListe ? `Les élèves jamais connectés au site sont en grisé${infos.jamais ? ` (${infos.jamais})` : ""}.` : "Un élève n'apparaît qu'après sa première connexion (lance « creer-comptes.js --classes » pour voir aussi les autres)."}</p>
       ${tableauSuivi(cols, lignes, "suivi-chap")}</section>`;
     brancher();
+  }
+  // Tri (un titre de colonne ; même colonne = sens inverse) et filtres (la ligne sous les titres) d'un tableauSuivi ;
+  // choix = { tri, filtres } modifié sur place, redessiner() réaffiche la page
+  function brancherTableau(choix, redessiner) {
+    $app.querySelectorAll("[data-tri]").forEach((b) => b.addEventListener("click", () => {
+      const id = b.dataset.tri, t = choix.tri, c = suiviCols.find((x) => x.id === id) || {};
+      if (t.col === id) t.sens = -t.sens; else { t.col = id; t.sens = c.desc ? -1 : 1; }
+      redessiner();
+    }));
+    // Le champ texte garde le curseur après le réaffichage
+    $app.querySelectorAll("[data-filtre]").forEach((el) => el.addEventListener(el.tagName === "SELECT" ? "change" : "input", () => {
+      const id = el.dataset.filtre, pos = el.selectionStart;
+      choix.filtres[id] = el.value;
+      redessiner();
+      const n = $app.querySelector(`[data-filtre="${id}"]`);
+      if (n && n.tagName === "INPUT") { n.focus(); try { n.setSelectionRange(pos, pos); } catch (x) { /* rien */ } }
+    }));
+    const eff = document.getElementById("s-effacer");
+    if (eff) eff.addEventListener("click", () => { choix.filtres = {}; redessiner(); });
   }
   // Durée en secondes -> « 8 min », « 1 h 05 »
   function duree(s) {
@@ -864,6 +870,89 @@
       const tr = document.getElementById("sd-" + b.dataset.detail), ouvrir = tr.hidden;
       tr.hidden = !ouvrir; b.setAttribute("aria-expanded", ouvrir);
     });
+  }
+
+  /* ---------- Page prof.maths : tous les comptes du site et leur temps actif ---------- */
+  let comptesCache = null; // { eleves, classes, inscrits, demandes, profs } (voir Compte.tous)
+  const comptesChoix = { tri: { col: "ttot", sens: -1 }, filtres: {} };
+  async function pageComptes() {
+    document.title = "Tous les comptes · ProfMaths";
+    if (!Compte.chef()) {
+      $app.innerHTML = `<section class="page-compte"><p class="eyebrow">Tous les comptes</p><h1>Page réservée au compte prof.maths</h1><p><a class="btn" href="#compte">Mon compte</a></p></section>`;
+      return;
+    }
+    $app.innerHTML = `<section class="page-suivi"><p class="eyebrow">Compte professeur</p><h1>Tous les comptes</h1><p class="muted" id="comptes-etat">Chargement…</p></section>`;
+    try { comptesCache = await Compte.tous(); }
+    catch (x) { document.getElementById("comptes-etat").textContent = "Lecture impossible. Vérifie la connexion internet puis recharge la page."; return; }
+    if (location.hash !== "#comptes") return;
+    afficherComptes();
+  }
+  function afficherComptes() {
+    const d = comptesCache || {}, auj = jourISO(new Date());
+    const d7 = new Date(); d7.setDate(d7.getDate() - 6);
+    const debutJ = jourISO(d7), debut = new Date(debutJ + "T00:00").getTime();
+    const ms = (t) => (t && typeof t.toMillis === "function" ? t.toMillis() : +t || 0);
+    const dateCourte = (t) => new Date(t).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "2-digit" });
+    const quand = (t) => {
+      const j = jourISO(new Date(t)), hier = new Date(); hier.setDate(hier.getDate() - 1);
+      return j === auj ? "aujourd'hui" : j === jourISO(hier) ? "hier" : dateCourte(t);
+    };
+    const TYPES = { eleve: "Élève", autre: "Autre élève", prof: "Professeur", demande: "Demande prof" }, PLURIELS = { eleve: "Élèves des classes", autre: "Autres élèves", prof: "Professeurs", demande: "Demandes prof" };
+    const ETAT = { attente: "en attente", refuse: "refusée", approuve: "approuvée" };
+    // Une ligne par compte : type, classe, niveau, dernière activité, temps (7 jours et total), XP, date de création
+    const ligne = (x, type, extra) => {
+      const q = x.quand || {}, tj = (x.temps || {}).j || {};
+      const tPeriode = Object.keys(tj).filter((j) => j >= debutJ).reduce((s, j) => s + (+tj[j] || 0), 0);
+      const tTotal = Object.values(tj).reduce((s, v) => s + (+v || 0), 0);
+      const dernier = x.jamais ? 0 : Math.max(ms(x.vuLe), ms(x.majLe), ms(x.decideLe), ms(x.creeLe), ...Object.values(q).map((t) => +t || 0));
+      return Object.assign({ x, type, classe: "", niveau: "", etat: "", tPeriode, tTotal, dernier, xp: +x.xp || 0, cree: ms(x.creeLe), cls: x.jamais ? "jamais" : "" }, extra);
+    };
+    const lignes = [];
+    // Élèves des classes : fiches des élèves déjà connectés, complétées par les listes de classes (jamais connectés)
+    const vus = new Set();
+    (d.eleves || []).forEach((x) => { vus.add(x.uid); lignes.push(ligne(x, "eleve", { classe: x.groupe || x.classe || "?", niveau: x.classe || "" })); });
+    Object.entries(d.classes || {}).forEach(([groupe, c]) => Object.entries(c.eleves || {}).forEach(([uid, e]) => {
+      if (!vus.has(uid)) lignes.push(ligne(Object.assign({ uid, jamais: true }, e), "eleve", { classe: groupe, niveau: c.classe || "" }));
+    }));
+    (d.inscrits || []).forEach((x) => lignes.push(ligne(x, "autre", { classe: "Autres élèves", niveau: x.niveau || "" })));
+    // Professeurs : fiche « profs » (progression, temps) complétée par la demande de compte (professeur extérieur approuvé)
+    const demandes = new Map((d.demandes || []).map((x) => [x.uid, x]));
+    (d.profs || []).forEach((p) => {
+      const dem = demandes.get(p.uid);
+      if (dem) demandes.delete(p.uid);
+      const x = Object.assign({}, dem || {}, p, { creeLe: p.creeLe || (dem && dem.creeLe) });
+      if (!x.identifiant && !x.prenom) x.prenom = "Professeur (avant la mise à jour)";
+      lignes.push(ligne(x, "prof", { classe: dem ? dem.etablissement || "Extérieur" : "", niveau: dem ? (dem.niveaux || []).join(", ") : "", etat: dem ? ETAT[dem.statut] || dem.statut : "" }));
+    });
+    // Demandes sans fiche « profs » : en attente, refusées, ou approuvées mais jamais reconnectées
+    demandes.forEach((dem) => lignes.push(ligne(dem, "demande", { classe: dem.etablissement || "Extérieur", niveau: (dem.niveaux || []).join(", "), etat: ETAT[dem.statut] || dem.statut, cls: dem.statut === "refuse" ? "inactif" : "" })));
+    const nom = (x) => `${esc(x.nom || "")} ${esc(x.prenom || x.identifiant || "")}`.trim() || "?";
+    const cols = [
+      { id: "nom", titre: "Compte", aide: "Nom, prénom et identifiant", val: (l) => `${l.x.nom || ""} ${l.x.prenom || l.x.identifiant || ""} ${l.x.identifiant || ""}`.toLowerCase(), choix: "texte",
+        html: (l) => `${nom(l.x)}${l.x.identifiant ? ` <span class="ident">${esc(l.x.identifiant)}</span>` : ""}` },
+      { id: "type", titre: "Type", aide: "Élève d'une classe, élève inscrit sur le site, professeur ou demande de compte professeur", val: (l) => TYPES[l.type] + (l.etat ? " " + l.etat : ""),
+        html: (l) => `${TYPES[l.type]}${l.etat ? ` <span class="muted">(${esc(l.etat)})</span>` : ""}`,
+        choix: Object.keys(TYPES).map((t) => [t, PLURIELS[t], (l) => l.type === t]).concat([["attente", "Demandes en attente", (l) => l.etat === "en attente"]]) },
+      { id: "classe", titre: "Classe", aide: "Classe de l'élève, « Autres élèves » pour un compte créé sur le site, établissement d'un professeur extérieur", val: (l) => l.classe.toLowerCase(), html: (l) => esc(l.classe) || "–", choix: "texte" },
+      { id: "niveau", titre: "Niveau", aide: "Niveau indiqué dans le compte", val: (l) => l.niveau.toLowerCase(), html: (l) => esc(l.niveau) || "–", choix: "texte" },
+      { id: "dernier", titre: "Dernière activité", aide: "Dernière fois que le compte est venu connecté", desc: true, val: (l) => l.dernier,
+        html: (l) => (l.x.jamais ? `<span class="jamais-co">jamais connecté</span>` : l.dernier ? quand(l.dernier) : "–"), choix: choixDate((l) => l.dernier, "Jamais connecté") },
+      { id: "tper", titre: "Temps 7 j", aide: "Temps actif ces 7 derniers jours", desc: true, val: (l) => l.tPeriode, html: (l) => (l.tPeriode ? duree(l.tPeriode) : "–"), choix: choixDuree((l) => l.tPeriode) },
+      { id: "ttot", titre: "Temps total", aide: "Temps actif depuis le début", desc: true, val: (l) => l.tTotal, html: (l) => (l.tTotal ? duree(l.tTotal) : "–"), choix: choixDuree((l) => l.tTotal) },
+      { id: "xp", titre: "XP", aide: "Points d'expérience", desc: true, val: (l) => l.xp, html: (l) => l.xp || "–", choix: choixNombre((l) => l.xp, [50, 100, 200, 500]) },
+      { id: "cree", titre: "Créé le", aide: "Date de création de la fiche (première connexion)", desc: true, val: (l) => l.cree, html: (l) => (l.cree ? dateCourte(l.cree) : "–"), choix: choixDate((l) => l.cree, "Inconnue") }
+    ];
+    const nb = (t) => lignes.filter((l) => l.type === t).length, attente = lignes.filter((l) => l.etat === "en attente").length;
+    const tempsTotal = lignes.reduce((s, l) => s + l.tTotal, 0), temps7 = lignes.reduce((s, l) => s + l.tPeriode, 0);
+    const actifs7 = lignes.filter((l) => l.tPeriode > 0 || l.dernier >= debut).length;
+    $app.innerHTML = `<section class="page-suivi page-comptes"><p class="eyebrow">Compte professeur · <a href="#suivi">Suivi des élèves</a> · <a href="#demandes">Demandes de comptes</a></p><h1>Tous les comptes</h1>
+      <div class="freq-tuiles"><div class="freq-tuile"><b>${lignes.length}</b><span>comptes au total</span></div><div class="freq-tuile"><b>${nb("eleve")}</b><span>élèves de tes classes</span></div><div class="freq-tuile"><b>${nb("autre")}</b><span>autres élèves</span></div><div class="freq-tuile"><b>${nb("prof")}${attente ? ` <small>+${attente}</small>` : ""}</b><span>professeurs${attente ? ` (${attente} demande${attente > 1 ? "s" : ""} en attente)` : ""}</span></div><div class="freq-tuile"><b>${actifs7}</b><span>actifs ces 7 jours</span></div><div class="freq-tuile"><b>${tempsTotal ? duree(tempsTotal) : "0 min"}</b><span>temps passé au total${temps7 ? `, dont ${duree(temps7)} ces 7 jours` : ""}</span></div></div>
+      <p class="muted">Tous les comptes connus du site : les élèves de tes classes (y compris jamais connectés, en grisé), les élèves inscrits eux-mêmes, les professeurs et les demandes de compte professeur. Temps = temps actif sur le site connecté (page ouverte et utilisée, vidéos comprises).</p>
+      ${tableauSuivi(cols, lignes, "suivi-site", null, { choix: comptesChoix, mots: { pl: "comptes", vide: "Aucun compte pour l'instant.", filtre: "Aucun compte ne correspond aux filtres." } })}
+      <p class="btns-prof"><button class="btn-sec" id="c-maj" type="button">Actualiser</button></p>
+      <p class="muted">Le temps est mesuré depuis la mise à jour du site d'octobre 2026 pour les élèves des classes, et depuis celle de fin octobre 2026 pour les autres élèves et les professeurs. Un professeur créé avec outils/comptes n'apparaît qu'après sa première connexion suivant cette mise à jour. Les élèves ne voient pas ces durées.</p></section>`;
+    document.getElementById("c-maj").addEventListener("click", pageComptes);
+    brancherTableau(comptesChoix, afficherComptes);
   }
 
   /* ---------- Page professeur : fréquentation du site (compteurs anonymes, voir compte.js) ---------- */
