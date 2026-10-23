@@ -433,7 +433,7 @@ window.CATALOGUE = {
           id: "troisieme-proportionnalite",
           numero: 8,
           titre: "Proportionnalité et pourcentages",
-          statut: "bientot",
+          statut: "disponible",
           drive: ""
         },
         {

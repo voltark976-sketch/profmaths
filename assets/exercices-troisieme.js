@@ -3,7 +3,7 @@
   Ce fichier se charge après assets/exercices-college.js et reprend ses outils (window.PM_EXO.college).
   Mêmes règles : chaque générateur fabrique une question avec des nombres tirés au hasard, la réponse
   attendue, trois indices progressifs et la solution rédigée.
-  Préfixes : cn3-, dv3-, fc3-, eq3-, ar3-, fn3-, fa3-.
+  Préfixes : cn3-, dv3-, fc3-, eq3-, ar3-, fn3-, fa3-, pp3-.
 */
 (function () {
   "use strict";
@@ -691,8 +691,97 @@
       aides: [`Résous $${nb(pk)}x + ${pc} = ${nb(C)}$.`, `$${nb(pk)}x = ${nb(arr(C - pc, 2))}$.`, `Divise par $${nb(pk)}$.`], solution: `$x = \\dfrac{${nb(arr(C - pc, 2))}}{${nb(pk)}} = ${d}$ km.` };
   };
 
+  /* =====================================================================
+     Chapitre 8 : proportionnalité et pourcentages (pp3-) — évolutions, grandeurs composées
+     ===================================================================== */
+  const pct = (p) => `${nb(p)}\\,\\%`;
+
+  GEN["pp3-pourcentage"] = function () {
+    const t = rand(0, 2);
+    if (t === 0) { // appliquer un pourcentage
+      const p = pick([5, 12, 15, 20, 25, 30, 35, 40, 45, 60, 75, 80]), N = rand(2, 60) * 20, r = arr((p * N) / 100, 2);
+      if (!Number.isInteger(r)) return GEN["pp3-pourcentage"]();
+      const ctx = pick([["élèves d'un collège", "font du sport"], ["habitants d'une commune", "ont moins de 20 ans"], ["spectateurs d'un concert", "sont venus en bus"]]);
+      return { enonce: `Parmi les $${nb(N)}$ ${ctx[0]}, $${pct(p)}$ ${ctx[1]}. Combien cela représente-t-il de personnes ?`, mode: "nombre", prefixe: "Nombre :", attendu: r,
+        erreurs: [{ valeur: arr(N / p, 2), message: `$${pct(p)}$ de $N$ se calcule $\\dfrac{${p}}{100} \\times N$.` }],
+        aides: [`Prendre $${pct(p)}$ d'un nombre, c'est le multiplier par $\\dfrac{${p}}{100}$.`, `$\\dfrac{${p}}{100} \\times ${nb(N)}$.`, `$${nb(N)} \\div 100 = ${nb(N / 100)}$.`], solution: `$\\dfrac{${p}}{100} \\times ${nb(N)} = ${nb(r)}$.` };
+    }
+    if (t === 1) { // trouver un taux d'évolution
+      const p = pick([4, 5, 8, 10, 12, 15, 20, 25, 30, 40, 50]) * (Math.random() < 0.5 ? -1 : 1), V0 = rand(2, 30) * 20, V1 = arr(V0 * (1 + p / 100), 2);
+      return { enonce: `Un prix passe de $${nb(V0)}$ € à $${nb(V1)}$ €. Quel est le pourcentage d'évolution ? (Réponds par un nombre négatif s'il s'agit d'une baisse.)`, mode: "nombre", prefixe: "Évolution :", suffixe: "%", attendu: p,
+        erreurs: [{ valeur: arr(V1 - V0, 2), message: "Ça, c'est la variation en euros ; divise-la par le prix de départ." }, { valeur: arr(((V1 - V0) / V1) * 100, 2), message: "On divise par la valeur de **départ**." }],
+        aides: ["Taux d'évolution $= \\dfrac{\\text{valeur finale} - \\text{valeur initiale}}{\\text{valeur initiale}} \\times 100$.", `Variation : $${nb(V1)} - ${nb(V0)} = ${rel(arr(V1 - V0, 2))}$.`, `$\\dfrac{${rel(arr(V1 - V0, 2))}}{${nb(V0)}} \\times 100$.`],
+        solution: `$\\dfrac{${rel(arr(V1 - V0, 2))}}{${nb(V0)}} \\times 100 = ${rel(p)}$ : ${p > 0 ? "hausse" : "baisse"} de $${pct(Math.abs(p))}$.` };
+    }
+    // retrouver la valeur initiale
+    const p = pick([10, 20, 25, 50, 5, 30, 40]), up = Math.random() < 0.5, k = up ? 1 + p / 100 : 1 - p / 100, V0 = rand(2, 40) * 10, V1 = arr(V0 * k, 2);
+    return { enonce: `Après une ${up ? "hausse" : "baisse"} de $${pct(p)}$, un article coûte $${nb(V1)}$ €. Quel était son prix avant ${up ? "la hausse" : "la baisse"} ?`, mode: "nombre", prefixe: "Prix initial :", suffixe: "€", attendu: V0,
+      erreurs: [{ valeur: arr(up ? V1 * (1 - p / 100) : V1 * (1 + p / 100), 2), message: `On ne ${up ? "retire" : "rajoute"} pas $${pct(p)}$ du nouveau prix : on divise par le coefficient $${nb(k)}$.` }],
+      aides: [`Le nouveau prix est l'ancien multiplié par $${nb(k)}$.`, `Donc ancien prix $\\times ${nb(k)} = ${nb(V1)}$.`, `Divise $${nb(V1)}$ par $${nb(k)}$.`], solution: `$${nb(V1)} \\div ${nb(k)} = ${nb(V0)}$ €.` };
+  };
+
+  GEN["pp3-evolutions"] = function () {
+    const a = pick([10, 20, 25, 30, 40, 50]), b = pick([10, 20, 25, 30, 40, 50]), s1 = Math.random() < 0.6 ? 1 : -1, s2 = Math.random() < 0.6 ? -1 : 1;
+    const k1 = 1 + (s1 * a) / 100, k2 = 1 + (s2 * b) / 100, K = arr(k1 * k2, 4), T = arr((K - 1) * 100, 2);
+    const mot = (s, p) => `${s > 0 ? "une hausse" : "une baisse"} de $${pct(p)}$`;
+    return { enonce: `Un prix subit ${mot(s1, a)}, puis ${mot(s2, b)}. Quel est le pourcentage d'évolution global ? (Négatif pour une baisse.)`, mode: "nombre", prefixe: "Évolution globale :", suffixe: "%", attendu: T,
+      erreurs: [{ valeur: s1 * a + s2 * b, message: "Les pourcentages ne s'additionnent pas : on multiplie les coefficients." }],
+      aides: [`Coefficients : $${nb(k1)}$ puis $${nb(k2)}$.`, `Coefficient global : $${nb(k1)} \\times ${nb(k2)} = ${nb(K)}$.`, `Taux : $(${nb(K)} - 1) \\times 100$.`],
+      solution: `$${nb(k1)} \\times ${nb(k2)} = ${nb(K)}$ : évolution globale de $${rel(T)}\\,\\%$.` };
+  };
+
+  GEN["pp3-conversions"] = function () {
+    const t = rand(0, 3);
+    if (t === 0) { const v = pick([18, 36, 54, 72, 90, 108, 126, 144, 9, 27, 45, 63, 81, 99, 117, 135]), r = v / 3.6;
+      return { enonce: `Convertis $${v}$ km/h en m/s.`, mode: "nombre", prefixe: "Vitesse :", suffixe: "m/s", attendu: r,
+        erreurs: [{ valeur: arr(v * 3.6, 2), message: "Il faut diviser par $3{,}6$ (et non multiplier)." }],
+        aides: ["$1$ km $= 1\\,000$ m et $1$ h $= 3\\,600$ s.", `$${v}$ km/h $= \\dfrac{${v} \\times 1\\,000 \\text{ m}}{3\\,600 \\text{ s}}$.`, "Diviser par $3{,}6$ revient au même."], solution: `$\\dfrac{${nb(v * 1000)}}{3\\,600} = ${nb(r)}$ m/s.` }; }
+    if (t === 1) { const v = rand(2, 40), r = arr(v * 3.6, 2);
+      return { enonce: `Convertis $${v}$ m/s en km/h.`, mode: "nombre", prefixe: "Vitesse :", suffixe: "km/h", attendu: r,
+        erreurs: [{ valeur: arr(v / 3.6, 4), message: "Pour passer des m/s aux km/h, on multiplie par $3{,}6$." }],
+        aides: ["En $1$ h $= 3\\,600$ s, on parcourt $3\\,600$ fois plus.", `$${v} \\times 3\\,600 = ${nb(v * 3600)}$ m par heure.`, "Convertis les mètres en kilomètres."], solution: `$${v} \\times 3{,}6 = ${nb(r)}$ km/h.` }; }
+    if (t === 2) { const d = rand(2, 30), r = d * 60;
+      return { enonce: `Un robinet a un débit de $${d}$ L/min. Quel est son débit en L/h ?`, mode: "nombre", prefixe: "Débit :", suffixe: "L/h", attendu: r,
+        erreurs: [{ valeur: arr(d / 60, 4), message: "En une heure, il coule $60$ fois plus d'eau qu'en une minute." }],
+        aides: ["$1$ h $= 60$ min.", `En $60$ minutes : $${d} \\times 60$.`, "Calcule."], solution: `$${d} \\times 60 = ${nb(r)}$ L/h.` }; }
+    const rho = pick([0.8, 1.2, 2.7, 7.8, 0.9, 1.5, 2.5, 11.3]), r = rho * 1000;
+    return { enonce: `La masse volumique d'un matériau est $${nb(rho)}$ g/cm³. Exprime-la en kg/m³.`, mode: "nombre", prefixe: "Masse volumique :", suffixe: "kg/m³", attendu: r,
+      erreurs: [{ valeur: rho / 1000, message: "$1$ m³ $= 1\\,000\\,000$ cm³ et $1$ kg $= 1\\,000$ g : on multiplie par $1\\,000$." }],
+      aides: ["$1$ m³ $= 1\\,000\\,000$ cm³.", `$${nb(rho)}$ g/cm³ $= ${nb(rho)} \\times 1\\,000\\,000$ g/m³.`, "Puis divise par $1\\,000$ pour avoir des kg."], solution: `$${nb(rho)} \\times 1\\,000\\,000 \\div 1\\,000 = ${nb(r)}$ kg/m³.` };
+  };
+
+  GEN["pp3-grandeurs"] = function () {
+    const t = rand(0, 2);
+    if (t === 0) { // vitesse moyenne avec durée en h et min
+      const h = rand(0, 3), m = pick([15, 30, 45, 20, 40]), D = h * 60 + m, v = pick([40, 50, 60, 72, 80, 90, 120]), d = arr((v * D) / 60, 2);
+      if (!Number.isInteger(d * 10)) return GEN["pp3-grandeurs"]();
+      const q = rand(0, 1);
+      if (q === 0) return { enonce: `Une voiture roule à la vitesse moyenne de $${v}$ km/h pendant ${h ? `$${h}$ h ` : ""}$${m}$ min. Quelle distance parcourt-elle ?`, mode: "nombre", prefixe: "Distance :", suffixe: "km", attendu: d,
+        erreurs: [{ valeur: arr(v * (h + m / 100), 2), message: `$${m}$ min ne font pas $0{,}${m}$ h : $${m}$ min $= \\dfrac{${m}}{60}$ h.` }],
+        aides: ["distance $=$ vitesse $\\times$ durée, avec la durée en heures.", `$${h ? `${h}$ h ` : ""}$${m}$ min $= ${nb(arr(D / 60, 4))}$ h.`.replace("$$", "$"), `$${v} \\times ${nb(arr(D / 60, 4))}$.`],
+        solution: `$${v} \\times \\dfrac{${D}}{60} = ${nb(d)}$ km.` };
+      return { enonce: `Un véhicule parcourt $${nb(d)}$ km en ${h ? `$${h}$ h ` : ""}$${m}$ min. Quelle est sa vitesse moyenne en km/h ?`, mode: "nombre", prefixe: "Vitesse :", suffixe: "km/h", attendu: v,
+        erreurs: [{ valeur: arr(d / (h + m / 100), 2), message: `$${m}$ min $= \\dfrac{${m}}{60}$ h, pas $0{,}${m}$ h.` }],
+        aides: ["vitesse $= \\dfrac{\\text{distance}}{\\text{durée}}$, avec la durée en heures.", `Durée : $\\dfrac{${D}}{60}$ h.`, `$${nb(d)} \\div \\dfrac{${D}}{60} = ${nb(d)} \\times \\dfrac{60}{${D}}$.`],
+        solution: `$${nb(d)} \\times \\dfrac{60}{${D}} = ${v}$ km/h.` };
+    }
+    if (t === 1) { // masse volumique
+      const rho = pick([0.8, 1, 2.7, 7.8, 0.9, 1.2]), V = rand(2, 50) * 10, q = rand(0, 1), M = arr(rho * V, 2);
+      return q === 0 ? { enonce: `Un objet a une masse volumique de $${nb(rho)}$ g/cm³ et un volume de $${V}$ cm³. Quelle est sa masse ?`, mode: "nombre", prefixe: "Masse :", suffixe: "g", attendu: M,
+        erreurs: [{ valeur: arr(V / rho, 2), message: "masse $=$ masse volumique $\\times$ volume." }], aides: ["La masse volumique est la masse d'un cm³.", `Pour $${V}$ cm³ : $${nb(rho)} \\times ${V}$.`, "Calcule."], solution: `$${nb(rho)} \\times ${V} = ${nb(M)}$ g.` }
+        : { enonce: `Un objet de $${V}$ cm³ a une masse de $${nb(M)}$ g. Quelle est sa masse volumique en g/cm³ ?`, mode: "nombre", prefixe: "Masse volumique :", suffixe: "g/cm³", attendu: rho,
+        erreurs: [{ valeur: arr(V / M, 4), message: "masse volumique $= \\dfrac{\\text{masse}}{\\text{volume}}$." }], aides: ["masse volumique $= \\dfrac{\\text{masse}}{\\text{volume}}$.", `$\\dfrac{${nb(M)}}{${V}}$.`, "Calcule."], solution: `$${nb(M)} \\div ${V} = ${nb(rho)}$ g/cm³.` };
+    }
+    // proportionnalité : quatrième proportionnelle
+    const a = rand(2, 12), pu = pick([0.5, 1.2, 1.5, 2.4, 3, 4.5, 2.5, 0.8]), b = rand(2, 20), pa = arr(a * pu, 2), pb = arr(b * pu, 2);
+    const obj = pick([["kg de mangues", "€"], ["litres de jus", "€"], ["mètres de tissu", "€"]]);
+    return { enonce: `$${a}$ ${obj[0]} coûtent $${nb(pa)}$ ${obj[1]}. Combien coûtent $${b}$ ${obj[0]} (le prix est proportionnel à la quantité) ?`, mode: "nombre", prefixe: "Prix :", suffixe: obj[1], attendu: pb,
+      erreurs: [{ valeur: arr(pa + b - a, 2), message: "Ce n'est pas un écart constant : c'est une situation de proportionnalité." }],
+      aides: [`Calcule d'abord le prix d'une unité : $${nb(pa)} \\div ${a}$.`, `Prix unitaire : $${nb(pu)}$ ${obj[1]}.`, `Multiplie par $${b}$.`], solution: `$${nb(pa)} \\div ${a} \\times ${b} = ${nb(pu)} \\times ${b} = ${nb(pb)}$ ${obj[1]}.` };
+  };
+
   /* Une « erreur connue » ne doit jamais coïncider avec la bonne réponse */
-  Object.keys(GEN).filter((k) => /^(cn3|dv3|fc3|eq3|ar3|fn3|fa3)-/.test(k)).forEach((k) => {
+  Object.keys(GEN).filter((k) => /^(cn3|dv3|fc3|eq3|ar3|fn3|fa3|pp3)-/.test(k)).forEach((k) => {
     const g = GEN[k];
     GEN[k] = (i) => {
       const q = g(i);
