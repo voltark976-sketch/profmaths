@@ -3,7 +3,7 @@
   Ce fichier se charge après assets/exercices-college.js et reprend ses outils (window.PM_EXO.college).
   Mêmes règles : chaque générateur fabrique une question avec des nombres tirés au hasard, la réponse
   attendue, trois indices progressifs et la solution rédigée.
-  Préfixes : dp4-, rx4-, py4-, fq4-, pq4-, es4-, pw4-, th4-, lc4-, pb4-, cs4-, tl4-, eq4-.
+  Préfixes : dp4-, rx4-, py4-, fq4-, pq4-, es4-, pw4-, th4-, lc4-, pb4-, cs4-, tl4-, eq4-, sx4-.
 */
 (function () {
   "use strict";
@@ -900,8 +900,65 @@
       aides: ["Appelle $x$ le nombre.", `$${a}x + ${b} = ${a - k === 1 ? "" : a - k}x + ${b + k * x}$.`, "Regroupe les $x$ d'un côté et les nombres de l'autre."], solution: `$${a}x + ${b} = ${lin(a - k, b + k * x, "x")}$ donne $${k}x = ${k * x}$, donc $x = ${x}$.` };
   };
 
+  /* =====================================================================
+     Chapitre 14 : statistiques (sx4-) — moyenne pondérée, médiane, étendue
+     ===================================================================== */
+  const listeT = (L) => L.map((v) => nb(v)).join(" \\; ; \\; ");
+  const mediane = (L) => { const T = L.slice().sort((a, b) => a - b), n = T.length; return n % 2 ? T[(n - 1) / 2] : (T[n / 2 - 1] + T[n / 2]) / 2; };
+
+  GEN["sx4-moyenne"] = function () {
+    for (;;) {
+      const vals = shuffle([8, 9, 10, 11, 12, 13, 14, 15, 16].slice()).slice(0, rand(3, 5)).sort((a, b) => a - b), eff = vals.map(() => rand(1, 8)), N = eff.reduce((a, b) => a + b, 0), S = vals.reduce((s, v, i) => s + v * eff[i], 0), m = S / N;
+      if (!Number.isInteger(m * 100)) continue;
+      return { enonce: "Le tableau donne les notes obtenues par les élèves d'une classe. Calcule la note moyenne.", tableau: { lignes: [["\\text{Note}", ...vals.map(String)], ["\\text{Effectif}", ...eff.map(String)]] }, mode: "nombre", prefixe: "Moyenne :", attendu: m,
+        erreurs: [{ valeur: arr(vals.reduce((a, b) => a + b, 0) / vals.length, 4), message: "Il faut tenir compte des effectifs : c'est une moyenne pondérée." }],
+        aides: ["Moyenne pondérée $= \\dfrac{\\text{somme des (valeur} \\times \\text{effectif)}}{\\text{effectif total}}$.", `Somme : $${vals.map((v, i) => `${v} \\times ${eff[i]}`).join(" + ")} = ${S}$.`, `Effectif total : $${N}$.`],
+        solution: `$\\dfrac{${S}}{${N}} = ${nb(m)}$.` };
+    }
+  };
+
+  GEN["sx4-mediane"] = function () {
+    const n = rand(5, 12), L = Array.from({ length: n }, () => rand(1, 30)), M = mediane(L), T = L.slice().sort((a, b) => a - b);
+    return { enonce: `Détermine la médiane de la série : $${listeT(L)}$.`, mode: "nombre", prefixe: "Médiane :", attendu: M,
+      erreurs: [{ valeur: arr(L.reduce((a, b) => a + b, 0) / n, 4), message: "Ça, c'est la moyenne. La médiane partage la série rangée en deux groupes de même effectif." }, { valeur: L[Math.floor(n / 2)], message: "Il faut d'abord ranger les valeurs dans l'ordre croissant." }],
+      aides: ["Range les valeurs dans l'ordre croissant.", `Il y a $${n}$ valeurs : ${n % 2 ? `la médiane est la $${(n + 1) / 2}$e valeur` : `la médiane est la moyenne des $${n / 2}$e et $${n / 2 + 1}$e valeurs`}.`, `Série rangée : $${listeT(T)}$.`],
+      solution: `Série rangée : $${listeT(T)}$. ${n % 2 ? `La médiane est la $${(n + 1) / 2}$e valeur : $${M}$.` : `La médiane est la moyenne des $${n / 2}$e et $${n / 2 + 1}$e valeurs : $\\dfrac{${T[n / 2 - 1]} + ${T[n / 2]}}{2} = ${nb(M)}$.`}` };
+  };
+
+  GEN["sx4-etendue"] = function () {
+    const t = rand(0, 1), n = rand(6, 10);
+    if (t === 0) { const L = Array.from({ length: n }, () => rand(-5, 32)), e = Math.max(...L) - Math.min(...L);
+      return { enonce: `Voici des températures relevées (en °C) : $${L.map(rel).join(" \\; ; \\; ")}$. Quelle est l'étendue de cette série ?`, mode: "nombre", prefixe: "Étendue :", suffixe: "°C", attendu: e,
+        aides: ["L'étendue est la différence entre la plus grande et la plus petite valeur.", `Plus grande valeur : $${rel(Math.max(...L))}$ ; plus petite : $${rel(Math.min(...L))}$.`, "Attention si la plus petite est négative."], solution: `$${rel(Math.max(...L))} - ${relP(Math.min(...L))} = ${e}$ °C.` }; }
+    const vals = [10, 11, 12, 13, 14, 15], eff = vals.map(() => rand(1, 7)), N = eff.reduce((a, b) => a + b, 0), T = []; vals.forEach((v, i) => { for (let k = 0; k < eff[i]; k++) T.push(v); }); const M = mediane(T);
+    return { enonce: "Le tableau donne l'âge des adhérents d'un club de football. Quelle est la médiane de ces âges ?", tableau: { lignes: [["\\text{Âge}", ...vals.map(String)], ["\\text{Effectif}", ...eff.map(String)]] }, mode: "nombre", prefixe: "Médiane :", suffixe: "ans", attendu: M,
+      aides: [`Effectif total : $${N}$.`, N % 2 ? `La médiane est la $${(N + 1) / 2}$e valeur.` : `La médiane est la moyenne des $${N / 2}$e et $${N / 2 + 1}$e valeurs.`, "Cumule les effectifs pour trouver dans quelle colonne elle se trouve."],
+      solution: `Effectif total $${N}$ ; ${N % 2 ? `la $${(N + 1) / 2}$e valeur` : `les $${N / 2}$e et $${N / 2 + 1}$e valeurs`} ${N % 2 ? "est" : "donnent"} $${nb(M)}$ : la médiane est $${nb(M)}$ ans.` };
+  };
+
+  GEN["sx4-interpreter"] = function () {
+    if (Math.random() < 0.5) {
+      const n = rand(9, 45), m = rand(8, 16);
+      const bonne = n % 2 ? `la $${(n + 1) / 2}$e valeur` : `la moyenne des $${n / 2}$e et $${n / 2 + 1}$e valeurs`;
+      const faux = [`la $${Math.floor(n / 2)}$e valeur`, `la $${n}$e valeur`, n % 2 ? `la moyenne des $${(n - 1) / 2}$e et $${(n + 1) / 2}$e valeurs` : `la $${n / 2 + 1}$e valeur`, "la moyenne de toutes les valeurs"].filter((z) => z !== bonne);
+      const { choix, attendu } = melange(bonne, faux);
+      return { enonce: `Une série de $${n}$ valeurs est rangée dans l'ordre croissant. Sa médiane est :`, mode: "choix", choix, attendu,
+        aides: ["La médiane partage la série rangée en deux groupes de même effectif.", n % 2 ? "Avec un nombre impair de valeurs, c'est la valeur du milieu." : "Avec un nombre pair de valeurs, c'est la moyenne des deux valeurs du milieu.", `$${n} \\div 2 = ${nb(n / 2)}$.`], solution: `Avec $${n}$ valeurs, la médiane est ${bonne}.` };
+    }
+    const Q = pick([
+      ["La médiane d'une série de notes est $12$. Cela signifie que :", "au moins la moitié des notes sont inférieures ou égales à $12$", ["la moyenne vaut $12$", "toutes les notes valent $12$", "la note la plus fréquente est $12$"]],
+      ["L'étendue d'une série mesure :", "la dispersion des valeurs", ["la valeur centrale", "la valeur la plus fréquente", "le nombre de valeurs"]],
+      ["Dans une série, une valeur très grande (extrême) modifie surtout :", "la moyenne", ["la médiane", "l'effectif total", "le nombre de valeurs"]],
+      ["Pour une série de $20$ valeurs rangées, la médiane est :", "la moyenne des $10$e et $11$e valeurs", ["la $10$e valeur", "la $20$e valeur", "la moyenne de toutes les valeurs"]],
+      ["Pour une série de $15$ valeurs rangées, la médiane est :", "la $8$e valeur", ["la $7$e valeur", "la moyenne des $7$e et $8$e valeurs", "la $15$e valeur"]],
+      ["Deux classes ont la même moyenne, $11$. L'étendue est $4$ dans la classe A et $15$ dans la classe B. On peut dire :", "les notes de la classe B sont plus dispersées", ["la classe A a de meilleures notes", "la classe B a une meilleure médiane", "les deux classes ont les mêmes notes"]]
+    ]);
+    const { choix, attendu } = melange(Q[1], Q[2]);
+    return { enonce: Q[0], mode: "choix", choix, attendu, aides: ["La moyenne tient compte de toutes les valeurs.", "La médiane partage la série rangée en deux moitiés.", "L'étendue mesure l'écart entre la plus grande et la plus petite valeur."], solution: `Réponse : ${Q[1]}.` };
+  };
+
   /* Une « erreur connue » ne doit jamais coïncider avec la bonne réponse */
-  Object.keys(GEN).filter((k) => /^(dp4|rx4|py4|fq4|pq4|es4|pw4|th4|lc4|pb4|cs4|tl4|eq4)-/.test(k)).forEach((k) => {
+  Object.keys(GEN).filter((k) => /^(dp4|rx4|py4|fq4|pq4|es4|pw4|th4|lc4|pb4|cs4|tl4|eq4|sx4)-/.test(k)).forEach((k) => {
     const g = GEN[k];
     GEN[k] = (i) => {
       const q = g(i);
