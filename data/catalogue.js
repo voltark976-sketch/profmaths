@@ -235,7 +235,7 @@ window.CATALOGUE = {
           id: "cinquieme-aires",
           numero: 15,
           titre: "Aires",
-          statut: "bientot",
+          statut: "disponible",
           drive: ""
         },
         {

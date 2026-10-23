@@ -3,7 +3,7 @@
   Ce fichier se charge après assets/exercices-college.js et reprend ses outils (window.PM_EXO.college).
   Mêmes règles : chaque générateur fabrique une question avec des nombres tirés au hasard, la réponse
   attendue, trois indices progressifs et la solution rédigée.
-  Préfixes : rc5- (règles de calcul), tr5-, fr5-, pp5-, an5-, dv5-, sc5-, nr5-, cr5-, gf5-, cl5-, pg5-, st5-, eq5-.
+  Préfixes : rc5- (règles de calcul), tr5-, fr5-, pp5-, an5-, dv5-, sc5-, nr5-, cr5-, gf5-, cl5-, pg5-, st5-, eq5-, ai5-.
 */
 (function () {
   "use strict";
@@ -1652,8 +1652,92 @@
       aides: [`Appelle $x$ le nombre de billes de ${n}. Son frère en a $${k}x$.`, `Ensemble : $x + ${k}x = ${k + 1}x$.`, `L'équation est $${k + 1}x = ${tot}$.`], solution: `$x + ${k}x = ${tot}$, soit $${k + 1}x = ${tot}$, donc $x = ${tot} \\div ${k + 1} = ${b}$ billes.` };
   };
 
+  /* =====================================================================
+     Chapitre 15 : aires (ai5-)
+     ===================================================================== */
+  const arr = (x, k) => Math.round(x * 10 ** k) / 10 ** k;
+  const UNA = [["mm²", -2], ["cm²", -1], ["dm²", 0], ["m²", 1], ["dam²", 2], ["hm²", 3], ["km²", 4]];
+  // Triangle avec une hauteur tracée (base horizontale), longueurs écrites
+  function figureAireTri(b, h, obtus) {
+    const W = 320, H = 190, x0 = 50, y0 = 160, L = 210, hp = 120, hx = obtus ? x0 + L + 40 : x0 + rand(50, 160);
+    const A = [x0, y0], B = [x0 + L, y0], C = [hx, y0 - hp], K = [hx, y0];
+    let s = `<svg class="graph" viewBox="0 0 ${W} ${H}" role="img" aria-label="Triangle ABC, base [AB] de ${b} cm, hauteur CK de ${h} cm">`;
+    if (obtus) s += `<line class="g-droite" x1="${B[0]}" y1="${y0}" x2="${K[0] + 12}" y2="${y0}" stroke-dasharray="4 4"/>`;
+    s += `<polygon class="g-poly" points="${[A, B, C].map((p) => p.join(",")).join(" ")}"/><line class="g-cache" x1="${C[0]}" y1="${C[1]}" x2="${K[0]}" y2="${K[1]}"/>`;
+    s += `<path class="g-code" d="M${K[0] - 9} ${y0}v-9h9"/>`;
+    s += `<text class="g-mesure" x="${(A[0] + B[0]) / 2}" y="${y0 + 18}" text-anchor="middle">${String(b).replace(".", ",")} cm</text><text class="g-mesure" x="${K[0] + 6}" y="${y0 - hp / 2}">${String(h).replace(".", ",")} cm</text>`;
+    [["A", A, [-14, 4]], ["B", B, [6, 4]], ["C", C, [-4, -8]], ["K", K, [4, 16]]].forEach(([n, p, d]) => { s += `<text class="g-plabel" x="${p[0] + d[0]}" y="${p[1] + d[1]}">${n}</text>`; });
+    return s + `</svg>`;
+  }
+  FIGURES["ai5-triangle"] = () => figureAireTri(8, 5, false);
+
+  GEN["ai5-conversions"] = function () {
+    const i = rand(0, 5), d = pick([1, -1]) * rand(1, 2), j = i + d; if (j < 0 || j > 6) return GEN["ai5-conversions"]();
+    const v = pick([rand(1, 99), rand(11, 999) / 10, rand(1, 9) / 100 * 100, rand(101, 9999) / 100]), r = arr(v * 100 ** (UNA[i][1] - UNA[j][1]), 8);
+    if (r < 0.0001 || r > 1e7) return GEN["ai5-conversions"]();
+    return { enonce: `Convertis : $${nb(v)}$ ${UNA[i][0]} $= \\ldots$ ${UNA[j][0]}`, mode: "nombre", prefixe: "Résultat :", suffixe: UNA[j][0], attendu: r,
+      erreurs: [{ valeur: arr(v * 10 ** (UNA[i][1] - UNA[j][1]), 8), message: "Pour les aires, on passe d'une unité à la suivante en multipliant ou en divisant par $100$, pas par $10$." }],
+      aides: ["$1$ m² $= 100$ dm² : entre deux unités d'aire voisines, il y a un facteur $100$.", `De ${UNA[i][0]} à ${UNA[j][0]}, on ${UNA[i][1] > UNA[j][1] ? "multiplie" : "divise"} par $${nb(100 ** Math.abs(d))}$.`, "Dans un tableau de conversion, chaque unité d'aire occupe deux colonnes."],
+      solution: `$${nb(v)}$ ${UNA[i][0]} $= ${nb(r)}$ ${UNA[j][0]} (on ${UNA[i][1] > UNA[j][1] ? "multiplie" : "divise"} par $${nb(100 ** Math.abs(d))}$).` };
+  };
+
+  GEN["ai5-triangle"] = function () {
+    const t = rand(0, 2), b = rand(3, 15), h = rand(2, 12);
+    if (t === 0) { const obtus = Math.random() < 0.3;
+      return { enonce: `Calcule l'aire du triangle $ABC$ (la hauteur $[CK]$ est perpendiculaire à $(AB)$).`, figure: figureAireTri(b, h, obtus), mode: "nombre", prefixe: "Aire :", suffixe: "cm²", attendu: (b * h) / 2,
+        erreurs: [{ valeur: b * h, message: "N'oublie pas de diviser par $2$ : un triangle est la moitié d'un rectangle." }],
+        aides: ["Aire d'un triangle $= \\dfrac{\\text{base} \\times \\text{hauteur}}{2}$.", `Ici la base est $[AB]$ ($${b}$ cm) et la hauteur relative est $CK$ ($${h}$ cm).`, `$\\dfrac{${b} \\times ${h}}{2}$.`], solution: `$\\mathcal{A} = \\dfrac{${b} \\times ${h}}{2} = \\dfrac{${b * h}}{2} = ${nb((b * h) / 2)}$ cm².` }; }
+    if (t === 1) { const a = rand(3, 12), c = rand(3, 12);
+      return { enonce: `Un triangle est rectangle ; les deux côtés de l'angle droit mesurent $${a}$ cm et $${c}$ cm. Quelle est son aire ?`, mode: "nombre", prefixe: "Aire :", suffixe: "cm²", attendu: (a * c) / 2,
+        erreurs: [{ valeur: a * c, message: "Divise par $2$ : le triangle est la moitié d'un rectangle." }],
+        aides: ["Dans un triangle rectangle, un côté de l'angle droit est la hauteur relative à l'autre.", "Aire $= \\dfrac{\\text{base} \\times \\text{hauteur}}{2}$.", `$\\dfrac{${a} \\times ${c}}{2}$.`], solution: `$\\mathcal{A} = \\dfrac{${a} \\times ${c}}{2} = ${nb((a * c) / 2)}$ cm².` }; }
+    const A = (b * h) / 2;
+    return { enonce: `Un triangle a une aire de $${nb(A)}$ cm² et une base de $${b}$ cm. Quelle est la hauteur relative à cette base ?`, mode: "nombre", prefixe: "Hauteur :", suffixe: "cm", attendu: h,
+      erreurs: [{ valeur: A / b, message: "Attention : $\\dfrac{b \\times h}{2} = \\mathcal{A}$, donc $b \\times h = 2 \\times \\mathcal{A}$." }],
+      aides: ["$\\dfrac{\\text{base} \\times \\text{hauteur}}{2} = \\text{aire}$.", `Donc $${b} \\times h = 2 \\times ${nb(A)} = ${nb(2 * A)}$.`, `$h = ${nb(2 * A)} \\div ${b}$.`], solution: `$${b} \\times h = ${nb(2 * A)}$ donc $h = ${nb(2 * A)} \\div ${b} = ${h}$ cm.` };
+  };
+
+  GEN["ai5-parallelogramme"] = function () {
+    const b = rand(3, 15), h = rand(2, 12), c = h + rand(1, 5), t = rand(0, 1);
+    if (t === 0) return { enonce: `Un parallélogramme a un côté de $${b}$ cm. La hauteur relative à ce côté mesure $${h}$ cm, et l'autre côté mesure $${c}$ cm. Quelle est son aire ?`, mode: "nombre", prefixe: "Aire :", suffixe: "cm²", attendu: b * h,
+      erreurs: [{ valeur: b * c, message: "On utilise la hauteur (perpendiculaire à la base), pas le côté penché." }, { valeur: (b * h) / 2, message: "C'est l'aire d'un triangle : pour un parallélogramme, on ne divise pas par $2$." }],
+      aides: ["Aire d'un parallélogramme $=$ base $\\times$ hauteur.", "La hauteur est perpendiculaire à la base ; le côté penché ne sert pas.", `$${b} \\times ${h}$.`], solution: `$\\mathcal{A} = ${b} \\times ${h} = ${b * h}$ cm² (le côté de $${c}$ cm ne sert pas).` };
+    const d1 = rand(2, 12) * 2, d2 = rand(2, 12);
+    return { enonce: `Un losange a des diagonales de $${d1}$ cm et $${d2}$ cm. Il est formé de deux triangles de base $${d1}$ cm et de hauteur $${nb(d2 / 2)}$ cm. Quelle est son aire ?`, mode: "nombre", prefixe: "Aire :", suffixe: "cm²", attendu: (d1 * d2) / 2,
+      erreurs: [{ valeur: d1 * d2, message: "Chaque triangle a pour aire $\\dfrac{\\text{base} \\times \\text{hauteur}}{2}$." }],
+      aides: ["La diagonale de $" + d1 + "$ cm partage le losange en deux triangles identiques.", `Aire d'un triangle : $\\dfrac{${d1} \\times ${nb(d2 / 2)}}{2}$.`, "Multiplie par $2$."], solution: `Un triangle : $\\dfrac{${d1} \\times ${nb(d2 / 2)}}{2} = ${nb((d1 * d2) / 4)}$ cm². Le losange : $2 \\times ${nb((d1 * d2) / 4)} = ${nb((d1 * d2) / 2)}$ cm².` };
+  };
+
+  GEN["ai5-disque"] = function () {
+    const t = rand(0, 2), r = Math.random() < 0.4 ? rand(11, 99) / 10 : rand(2, 20), dia = Math.random() < 0.4;
+    if (t <= 1) { const v = arr(Math.PI * r * r, 1), v314 = arr(3.14 * r * r, 1);
+      return { enonce: `Calcule l'aire d'un disque de ${dia ? `diamètre $${nb(2 * r)}$ cm` : `rayon $${nb(r)}$ cm`}. Donne la valeur arrondie au dixième de cm², avec la touche $\\pi$ de la calculatrice.`, mode: "nombre", prefixe: "Aire :", suffixe: "cm²", attendu: v,
+        erreurs: [{ valeur: arr(2 * Math.PI * r, 1), message: "Ça, c'est le périmètre du cercle. L'aire du disque est $\\pi \\times r \\times r$." }, ...(dia ? [{ valeur: arr(Math.PI * 4 * r * r, 1), message: "Le diamètre n'est pas le rayon : le rayon est la moitié du diamètre." }] : []), ...(v314 !== v ? [{ valeur: v314, message: "Utilise la touche $\\pi$ de la calculatrice, pas $3{,}14$." }] : [])],
+        aides: ["Aire d'un disque $= \\pi \\times r \\times r$, où $r$ est le rayon.", dia ? `Le rayon est la moitié du diamètre : $r = ${nb(r)}$ cm.` : `Ici, $r = ${nb(r)}$ cm.`, `$\\pi \\times ${nb(r)} \\times ${nb(r)} \\approx ${nb(arr(Math.PI * r * r, 3))}$.`],
+        solution: `$\\mathcal{A} = \\pi \\times ${nb(r)} \\times ${nb(r)} = ${nb(arr(r * r, 4))}\\pi \\approx ${nb(v)}$ cm².` }; }
+    const a = rand(4, 12) * 2, v = arr(a * a - Math.PI * (a / 2) ** 2, 1);
+    return { enonce: `On découpe le plus grand disque possible dans un carré de côté $${a}$ cm. Quelle est l'aire des chutes ? Donne la valeur arrondie au dixième de cm².`, mode: "nombre", prefixe: "Aire :", suffixe: "cm²", attendu: v,
+      aides: [`Le disque a pour diamètre $${a}$ cm, donc pour rayon $${a / 2}$ cm.`, `Aire du carré : $${a * a}$ cm². Aire du disque : $\\pi \\times ${a / 2} \\times ${a / 2}$.`, "Chutes $=$ carré $-$ disque."],
+      solution: `$${a * a} - \\pi \\times ${a / 2}^2 \\approx ${a * a} - ${nb(arr(Math.PI * (a / 2) ** 2, 2))} \\approx ${nb(v)}$ cm².` };
+  };
+
+  GEN["ai5-composees"] = function () {
+    const t = rand(0, 2), L = rand(6, 15), l = rand(4, 10);
+    if (t === 0) { const a = rand(2, L - 2), b = rand(2, l - 2);
+      return { enonce: `Une pièce a la forme d'un rectangle de $${L}$ m sur $${l}$ m auquel on a retiré, dans un coin, un rectangle de $${a}$ m sur $${b}$ m. Quelle est son aire ?`, mode: "nombre", prefixe: "Aire :", suffixe: "m²", attendu: L * l - a * b,
+        erreurs: [{ valeur: L * l + a * b, message: "Le petit rectangle est retiré : on soustrait son aire." }],
+        aides: ["Calcule l'aire du grand rectangle.", "Calcule l'aire du rectangle retiré.", "Soustrais."], solution: `$${L} \\times ${l} - ${a} \\times ${b} = ${L * l} - ${a * b} = ${L * l - a * b}$ m².` }; }
+    if (t === 1) { const h = rand(2, 8);
+      return { enonce: `Un panneau est formé d'un rectangle de $${L}$ dm sur $${l}$ dm, surmonté d'un triangle de base $${L}$ dm et de hauteur $${h}$ dm. Quelle est son aire ?`, mode: "nombre", prefixe: "Aire :", suffixe: "dm²", attendu: L * l + (L * h) / 2,
+        erreurs: [{ valeur: L * l + L * h, message: "L'aire du triangle est divisée par $2$." }],
+        aides: [`Aire du rectangle : $${L} \\times ${l}$.`, `Aire du triangle : $\\dfrac{${L} \\times ${h}}{2}$.`, "Additionne les deux aires."], solution: `$${L} \\times ${l} + \\dfrac{${L} \\times ${h}}{2} = ${L * l} + ${nb((L * h) / 2)} = ${nb(L * l + (L * h) / 2)}$ dm².` }; }
+    const d = rand(2, 6) * 2, v = arr(L * d + (Math.PI * (d / 2) ** 2) / 2, 1);
+    return { enonce: `Une table a la forme d'un rectangle de $${L}$ dm sur $${d}$ dm, avec un demi-disque de diamètre $${d}$ dm accolé à une extrémité. Quelle est son aire ? Donne la valeur arrondie au dixième de dm².`, mode: "nombre", prefixe: "Aire :", suffixe: "dm²", attendu: v,
+      aides: [`Aire du rectangle : $${L} \\times ${d}$.`, `Le demi-disque a pour rayon $${d / 2}$ dm : son aire est $\\dfrac{\\pi \\times ${d / 2} \\times ${d / 2}}{2}$.`, "Additionne les deux aires, puis arrondis."], solution: `$${L * d} + \\dfrac{\\pi \\times ${d / 2}^2}{2} \\approx ${L * d} + ${nb(arr((Math.PI * (d / 2) ** 2) / 2, 2))} \\approx ${nb(v)}$ dm².` };
+  };
+
   /* Une « erreur connue » ne doit jamais coïncider avec la bonne réponse */
-  Object.keys(GEN).filter((k) => /^(rc5|tr5|fr5|pp5|an5|dv5|sc5|nr5|cr5|gf5|cl5|pg5|st5|eq5)-/.test(k)).forEach((k) => {
+  Object.keys(GEN).filter((k) => /^(rc5|tr5|fr5|pp5|an5|dv5|sc5|nr5|cr5|gf5|cl5|pg5|st5|eq5|ai5)-/.test(k)).forEach((k) => {
     const g = GEN[k];
     GEN[k] = (i) => {
       const q = g(i);
