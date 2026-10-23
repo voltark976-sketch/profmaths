@@ -405,7 +405,7 @@ window.CATALOGUE = {
           id: "troisieme-equations",
           numero: 4,
           titre: "Équations",
-          statut: "bientot",
+          statut: "disponible",
           drive: ""
         },
         {

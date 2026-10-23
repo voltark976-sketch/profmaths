@@ -3,7 +3,7 @@
   Ce fichier se charge après assets/exercices-college.js et reprend ses outils (window.PM_EXO.college).
   Mêmes règles : chaque générateur fabrique une question avec des nombres tirés au hasard, la réponse
   attendue, trois indices progressifs et la solution rédigée.
-  Préfixes : cn3-, dv3-, fc3-.
+  Préfixes : cn3-, dv3-, fc3-, eq3-.
 */
 (function () {
   "use strict";
@@ -303,8 +303,110 @@
       aides: ["Cherche la dernière opération à effectuer si on calculait l'expression pour une valeur de $" + x + "$.", "Si c'est une multiplication, l'expression est un produit (forme factorisée).", "Si c'est une addition ou une soustraction, c'est une somme."], solution: `L'expression est ${nature}.` };
   };
 
+  /* =====================================================================
+     Chapitre 4 : équations (eq3-) — premier degré, équation produit, x² = a, problèmes
+     ===================================================================== */
+  const solTex = (L) => { const T = [...new Set(L.map((v) => v.toFixed(6)))].map(Number).sort((a, b) => a - b); return T; };
+  const racTex = (n, d) => frS(n, d);
+  const ensemble = (S, x) => (S.length === 0 ? "aucune solution" : S.length === 1 ? `une seule solution : $${x} = ${S[0]}$` : `deux solutions : $${x} = ${S[0]}$ et $${x} = ${S[1]}$`);
+
+  GEN["eq3-premier"] = function () {
+    const x = pick(VAR3), t = rand(0, 2), s = rand(-9, 12);
+    if (t === 0) { // a(x + b) = cx + d
+      const a = nz(2, 6, true), b = nz(1, 7, true), c = nz(1, 6, true); if (a === c) return GEN["eq3-premier"]();
+      const d = a * (s + b) - c * s;
+      return { enonce: `Résous l'équation $${a}(${poly(0, 1, b, x)}) = ${poly(0, c, d, x)}$.`, mode: "nombre", prefixe: `$${x} =$`, attendu: s,
+        erreurs: [{ valeur: (d - b) / (a - c), message: "Développe d'abord : le facteur multiplie aussi le nombre dans la parenthèse." }],
+        aides: [`Développe : $${a}(${poly(0, 1, b, x)}) = ${poly(0, a, a * b, x)}$.`, `Regroupe les termes en $${x}$ d'un côté : $${poly(0, a - c, 0, x)} = ${rel(d - a * b)}$.`, `Divise par $${rel(a - c)}$.`],
+        solution: `$${poly(0, a, a * b, x)} = ${poly(0, c, d, x)}$, donc $${poly(0, a - c, 0, x)} = ${rel(d - a * b)}$ et $${x} = ${rel(s)}$.` };
+    }
+    if (t === 1) { // x/a + b = c
+      const a = rand(2, 9), q = rand(-6, 9), b = nz(1, 12, true), c = q + b, v = a * q;
+      return { enonce: `Résous l'équation $\\dfrac{${x}}{${a}} ${b < 0 ? "-" : "+"} ${Math.abs(b)} = ${rel(c)}$.`, mode: "nombre", prefixe: `$${x} =$`, attendu: v,
+        erreurs: [{ valeur: arr((c - b) / a, 4), message: `On multiplie par $${a}$ (on ne divise pas) pour se débarrasser du dénominateur.` }],
+        aides: [`Isole d'abord $\\dfrac{${x}}{${a}}$ : $\\dfrac{${x}}{${a}} = ${rel(c)} ${b < 0 ? "+" : "-"} ${Math.abs(b)} = ${rel(q)}$.`, `Multiplie les deux membres par $${a}$.`, `$${x} = ${rel(q)} \\times ${a}$.`],
+        solution: `$\\dfrac{${x}}{${a}} = ${rel(q)}$, donc $${x} = ${rel(q)} \\times ${a} = ${rel(v)}$.` };
+    }
+    // (ax + b)/c = (dx + e)/f par produit en croix
+    const c = rand(2, 5), f = rand(2, 5), a = nz(1, 4, false), dd = nz(1, 4, false); if (a * f === dd * c || c === f) return GEN["eq3-premier"]();
+    const b = nz(1, 9, true), e = ((a * s + b) * f) / c - dd * s; if (!Number.isInteger(e) || e === 0) return GEN["eq3-premier"]();
+    return { enonce: `Résous l'équation $\\dfrac{${poly(0, a, b, x)}}{${c}} = \\dfrac{${poly(0, dd, e, x)}}{${f}}$.`, mode: "nombre", prefixe: `$${x} =$`, attendu: s,
+      aides: ["Utilise les produits en croix : $\\dfrac{A}{c} = \\dfrac{B}{f}$ équivaut à $f \\times A = c \\times B$.", `$${f}(${poly(0, a, b, x)}) = ${c}(${poly(0, dd, e, x)})$, soit $${poly(0, f * a, f * b, x)} = ${poly(0, c * dd, c * e, x)}$.`, `Regroupe : $${poly(0, f * a - c * dd, 0, x)} = ${rel(c * e - f * b)}$.`],
+      solution: `$${poly(0, f * a, f * b, x)} = ${poly(0, c * dd, c * e, x)}$, donc $${poly(0, f * a - c * dd, 0, x)} = ${rel(c * e - f * b)}$ et $${x} = ${rel(s)}$.` };
+  };
+
+  GEN["eq3-produit"] = function () {
+    const x = pick(VAR3), a = nz(1, 5, false), b = nz(1, 9, true), c = nz(1, 5, false), d = nz(1, 9, true), t = rand(0, 1);
+    if (t === 0) {
+      const s1 = [-b, a], s2 = [-d, c]; if ((-b) * c === (-d) * a) return GEN["eq3-produit"]();
+      const v1 = -b / a, v2 = -d / c, L = v1 < v2 ? [s1, s2] : [s2, s1];
+      const bonne = `$${x} = ${racTex(...L[0])}$ ou $${x} = ${racTex(...L[1])}$`;
+      const faux = uniq3(bonne, [`$${x} = ${racTex(b, a)}$ ou $${x} = ${racTex(d, c)}$`, `$${x} = ${racTex(-b * a, 1)}$ ou $${x} = ${racTex(-d * c, 1)}$`, `$${x} = ${racTex(a, -b)}$ ou $${x} = ${racTex(c, -d)}$`, `$${x} = ${racTex(...L[0])}$ seulement`]);
+      const { choix, attendu } = melange(bonne, faux);
+      return { enonce: `Résous l'équation produit $${facteur(a, b, x)}${facteur(c, d, x)} = 0$.`, mode: "choix", choix, attendu,
+        aides: ["Un produit est nul si et seulement si l'un au moins de ses facteurs est nul.", `Donc $${poly(0, a, b, x)} = 0$ ou $${poly(0, c, d, x)} = 0$.`, `Résous chacune : $${poly(0, a, 0, x)} = ${rel(-b)}$ et $${poly(0, c, 0, x)} = ${rel(-d)}$.`],
+        solution: `$${poly(0, a, b, x)} = 0$ donne $${x} = ${racTex(-b, a)}$ ; $${poly(0, c, d, x)} = 0$ donne $${x} = ${racTex(-d, c)}$. Les solutions sont $${racTex(...L[0])}$ et $${racTex(...L[1])}$.` };
+    }
+    // factoriser d'abord : x² + kx = 0 ou x² − m² = 0
+    const u = rand(0, 1), k = nz(1, 9, true), m = rand(1, 9);
+    const ex = u ? poly(1, k, 0, x) : poly(1, 0, -m * m, x), S = u ? solTex([0, -k]) : [-m, m];
+    const bonne = `$${x} = ${rel(S[0])}$ ou $${x} = ${rel(S[1])}$`;
+    const faux = uniq3(bonne, u ? [`$${x} = ${rel(-k)}$ seulement`, `$${x} = 0$ ou $${x} = ${rel(k)}$`, `$${x} = ${rel(k)}$ ou $${x} = ${rel(-k)}$`, `$${x} = 0$ seulement`] : [`$${x} = ${m}$ seulement`, `$${x} = ${rel(-m * m)}$ ou $${x} = ${m * m}$`, "aucune solution", `$${x} = ${m * m}$`]);
+    const { choix, attendu } = melange(bonne, faux);
+    return { enonce: `Résous l'équation $${ex} = 0$ (factorise d'abord le membre de gauche).`, mode: "choix", choix, attendu,
+      aides: [u ? `Mets $${x}$ en facteur : $${ex} = ${x}(${poly(0, 1, k, x)})$.` : `$${ex} = (${x} - ${m})(${x} + ${m})$.`, "Un produit est nul si l'un de ses facteurs est nul.", u ? `$${x} = 0$ ou $${poly(0, 1, k, x)} = 0$.` : `$${x} - ${m} = 0$ ou $${x} + ${m} = 0$.`],
+      solution: u ? `$${x}(${poly(0, 1, k, x)}) = 0$ : $${x} = 0$ ou $${x} = ${rel(-k)}$.` : `$(${x} - ${m})(${x} + ${m}) = 0$ : $${x} = ${m}$ ou $${x} = -${m}$.` };
+  };
+
+  GEN["eq3-carre"] = function () {
+    const x = pick(VAR3), t = rand(0, 3);
+    if (t === 3) { // nombre positif solution, problème
+      const c = rand(2, 30), A = c * c;
+      return { enonce: `Un carré a une aire de $${A}$ cm². On note $c$ la longueur de son côté. Résous $c^2 = ${A}$ pour trouver $c$.`, mode: "nombre", prefixe: "$c =$", suffixe: "cm", attendu: c,
+        erreurs: [{ valeur: A / 2, message: "Le carré n'est pas le double : on cherche le nombre qui, multiplié par lui-même, donne l'aire." }, { valeur: -c, message: "Une longueur est positive : on garde la solution positive." }],
+        aides: [`$c^2 = ${A}$ a deux solutions, $\\sqrt{${A}}$ et $-\\sqrt{${A}}$.`, "Une longueur est positive.", `$\\sqrt{${A}} = ${c}$.`], solution: `$c = \\sqrt{${A}} = ${c}$ cm (on écarte $-${c}$, car une longueur est positive).` };
+    }
+    const a = t === 0 ? rand(1, 12) ** 2 : t === 1 ? -rand(1, 50) : pick([2, 3, 5, 6, 7, 10, 11, 13, 15, 17]);
+    const S = a > 0 ? (Number.isInteger(Math.sqrt(a)) ? [`-${Math.sqrt(a)}`, `${Math.sqrt(a)}`] : [`-\\sqrt{${a}}`, `\\sqrt{${a}}`]) : [];
+    const bonne = ensemble(S, x);
+    const faux = uniq3(bonne, a > 0 ? [ensemble([S[1]], x), ensemble([`${a / 2}`.replace(".", "{,}")], x), "aucune solution", ensemble([`-${a}`, `${a}`], x)] : [ensemble([`-\\sqrt{${-a}}`, `\\sqrt{${-a}}`], x), ensemble([`-\\sqrt{${-a}}`], x), ensemble([`${a}`], x), ensemble(["0"], x)]);
+    const { choix, attendu } = melange(bonne, faux);
+    return { enonce: `L'équation $${x}^2 = ${rel(a)}$ a :`, mode: "choix", choix, attendu,
+      aides: ["Un carré est toujours positif ou nul.", "Si $a > 0$, $x^2 = a$ a deux solutions : $\\sqrt{a}$ et $-\\sqrt{a}$.", "Si $a < 0$, $x^2 = a$ n'a pas de solution ; si $a = 0$, une seule : $0$."],
+      solution: a > 0 ? `$${rel(a)} > 0$ : deux solutions, $${S[0]}$ et $${S[1]}$.` : `$${rel(a)} < 0$ et un carré n'est jamais négatif : aucune solution.` };
+  };
+
+  GEN["eq3-problemes"] = function () {
+    const t = rand(0, 3);
+    if (t === 0) { // rectangle : longueur = largeur + k, périmètre P
+      const l = rand(3, 25), k = rand(2, 12), P = 2 * (2 * l + k);
+      return { enonce: `La longueur d'un rectangle dépasse sa largeur de $${k}$ cm. Son périmètre est $${P}$ cm. Quelle est sa largeur ?`, mode: "nombre", prefixe: "Largeur :", suffixe: "cm", attendu: l,
+        erreurs: [{ valeur: l + k, message: "Ça, c'est la longueur." }, { valeur: (P - k) / 2, message: "Le périmètre compte deux largeurs et deux longueurs." }],
+        aides: [`Soit $x$ la largeur ; la longueur est $x + ${k}$.`, `$2(x + x + ${k}) = ${P}$.`, `$4x + ${2 * k} = ${P}$.`], solution: `$4x + ${2 * k} = ${P}$, donc $4x = ${P - 2 * k}$ et $x = ${l}$ cm.` };
+    }
+    if (t === 1) { // âges
+      const f = rand(5, 15), r = rand(3, 5), n = rand(2, 12), p = r * f;
+      return { enonce: `Un père a $${r}$ fois l'âge de son fils. Dans $${n}$ ans, la somme de leurs âges sera $${p + f + 2 * n}$ ans. Quel est l'âge actuel du fils ?`, mode: "nombre", prefixe: "Âge du fils :", suffixe: "ans", attendu: f,
+        erreurs: [{ valeur: p, message: "Ça, c'est l'âge du père." }, { valeur: (p + f + 2 * n - n) / (r + 1), message: `Dans $${n}$ ans, chacun aura vieilli de $${n}$ ans : on ajoute $${2 * n}$ en tout.` }],
+        aides: [`Soit $x$ l'âge du fils ; le père a $${r}x$ ans.`, `Dans $${n}$ ans : $(x + ${n}) + (${r}x + ${n}) = ${p + f + 2 * n}$.`, `$${r + 1}x + ${2 * n} = ${p + f + 2 * n}$.`], solution: `$${r + 1}x = ${p + f}$, donc $x = ${f}$ : le fils a $${f}$ ans.` };
+    }
+    if (t === 2) { // deux tarifs
+      const a = rand(4, 9), b = rand(1, a - 1), fixe = rand(2, 8) * 5, n = Math.ceil(fixe / (a - b));
+      if (fixe % (a - b)) return GEN["eq3-problemes"]();
+      const N = fixe / (a - b);
+      return { enonce: `Une piscine propose deux tarifs : A, $${a}$ € l'entrée ; B, un abonnement de $${fixe}$ € puis $${b}$ € l'entrée. Pour combien d'entrées les deux tarifs coûtent-ils le même prix ?`, mode: "nombre", prefixe: "Nombre d'entrées :", attendu: N,
+        erreurs: [{ valeur: arr(fixe / a, 2), message: `Le tarif B coûte aussi $${b}$ € par entrée.` }],
+        aides: ["Soit $x$ le nombre d'entrées.", `Tarif A : $${a}x$ ; tarif B : $${fixe} + ${b}x$.`, `Résous $${a}x = ${fixe} + ${b}x$.`], solution: `$${a}x = ${fixe} + ${b}x$ donne $${coefX(a - b, "x")} = ${fixe}$, donc $x = ${N}$ entrées.` };
+    }
+    const c = rand(3, 12), k = rand(1, 6), s = c + k; // carré agrandi : (c + k)² − c² = d
+    const d = s * s - c * c;
+    return { enonce: `Si on augmente de $${k}$ cm le côté d'un carré, son aire augmente de $${d}$ cm². Quel est le côté du carré de départ ?`, mode: "nombre", prefixe: "Côté :", suffixe: "cm", attendu: c,
+      erreurs: [{ valeur: s, message: "Ça, c'est le côté du carré agrandi." }],
+      aides: [`Soit $x$ le côté : $(x + ${k})^2 - x^2 = ${d}$.`, `Développe : $x^2 + ${2 * k}x + ${k * k} - x^2 = ${d}$.`, `$${2 * k}x + ${k * k} = ${d}$.`], solution: `$${2 * k}x = ${d - k * k}$, donc $x = ${c}$ cm.` };
+  };
+
   /* Une « erreur connue » ne doit jamais coïncider avec la bonne réponse */
-  Object.keys(GEN).filter((k) => /^(cn3|dv3|fc3)-/.test(k)).forEach((k) => {
+  Object.keys(GEN).filter((k) => /^(cn3|dv3|fc3|eq3)-/.test(k)).forEach((k) => {
     const g = GEN[k];
     GEN[k] = (i) => {
       const q = g(i);
