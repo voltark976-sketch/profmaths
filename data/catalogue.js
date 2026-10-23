@@ -306,7 +306,7 @@ window.CATALOGUE = {
           id: "quatrieme-espace",
           numero: 6,
           titre: "Pyramides, cônes et repérage dans l'espace",
-          statut: "bientot",
+          statut: "disponible",
           drive: ""
         },
         {

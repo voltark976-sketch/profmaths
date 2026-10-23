@@ -45,6 +45,7 @@ Site statique : aucune base de données, aucun compte élève. Ouvrir `index.htm
   - `data/quatrieme/pythagore.js` : 4e, chapitre 3 (racine carrée, théorème de Pythagore et réciproque, problèmes). Générateurs `py4-` ; figure `figureRectangle4()`.
   - `data/quatrieme/fractions.js` : 4e, chapitre 4 (addition et soustraction avec relatifs, multiplication, inverse et division, priorités, problèmes). Générateurs `fq4-`.
   - `data/quatrieme/proportionnalite.js` : 4e, chapitre 5 (produits en croix, quatrième proportionnelle, pourcentages d'évolution, vitesses et conversions). Générateurs `pq4-`.
+  - `data/quatrieme/espace.js` : 4e, chapitre 6 (pyramides et cônes, volumes, agrandissement et réduction, repérage dans un pavé). Générateurs `es4-`.
 - `data/seconde/ensembles.js` : chapitre 1 de Seconde (ensembles de nombres, intervalles, valeur absolue). Les générateurs d'exercices correspondants commencent par `ens-`, `int-` et `abs-` dans `assets/exercices.js`.
 - `data/seconde/information-chiffree.js` : chapitre 3 de Seconde.
 - `data/seconde/arithmetique.js` : chapitre 4 de Seconde (multiples, diviseurs, parité, nombres premiers, fractions irréductibles). Générateurs `ar-` dans `assets/exercices.js`.

@@ -3,7 +3,7 @@
   Ce fichier se charge après assets/exercices-college.js et reprend ses outils (window.PM_EXO.college).
   Mêmes règles : chaque générateur fabrique une question avec des nombres tirés au hasard, la réponse
   attendue, trois indices progressifs et la solution rédigée.
-  Préfixes : dp4-, rx4-, py4-, fq4-, pq4-.
+  Préfixes : dp4-, rx4-, py4-, fq4-, pq4-, es4-.
 */
 (function () {
   "use strict";
@@ -378,8 +378,75 @@
         aides: ["En $1$ h, il y a $3\\,600$ s.", `En $1$ h, on parcourt $${nb(v / 3.6)} \\times 3\\,600$ m.`, "Convertis en km : divise par $1\\,000$ (au total, multiplie par $3{,}6$)."], solution: `$${nb(v / 3.6)} \\times 3{,}6 = ${v}$ km/h.` };
   };
 
+  /* =====================================================================
+     Chapitre 6 : pyramides, cônes et repérage dans l'espace (es4-)
+     ===================================================================== */
+  const POLY4 = { 3: "triangle", 4: "quadrilatère", 5: "pentagone", 6: "hexagone", 8: "octogone" };
+
+  GEN["es4-vocab"] = function () {
+    const t = rand(0, 3);
+    if (t === 3) { const n = rand(3, 12), q = rand(0, 2), donne = [["arêtes", 2 * n], ["faces", n + 1], ["sommets", n + 1]][q], dem = pick([["côtés à sa base", n], ["faces", n + 1], ["arêtes", 2 * n], ["sommets", n + 1]].filter((z) => z[0] !== donne[0]));
+      return { enonce: `Une pyramide a $${donne[1]}$ ${donne[0]}. Combien a-t-elle de ${dem[0]} ?`, mode: "nombre", prefixe: "Nombre :", attendu: dem[1],
+        aides: ["Si la base a $n$ côtés : $n + 1$ faces, $2n$ arêtes et $n + 1$ sommets.", `Retrouve d'abord le nombre $n$ de côtés de la base à partir des ${donne[0]}.`, `Ici $n = ${n}$.`], solution: `La base a $n = ${n}$ côtés, donc la pyramide a $${n + 1}$ faces, $${2 * n}$ arêtes et $${n + 1}$ sommets. Réponse : $${dem[1]}$.` }; }
+    if (t === 0) { const n = pick([3, 4, 5, 6, 8]), [mot, rep] = pick([["faces", n + 1], ["arêtes", 2 * n], ["sommets", n + 1]]);
+      return { enonce: `Combien de ${mot} a une pyramide dont la base est un ${POLY4[n]} ?`, mode: "nombre", prefixe: `Nombre de ${mot} :`, attendu: rep,
+        aides: ["Une pyramide a une base (un polygone) et des faces latérales triangulaires qui se rejoignent au sommet.", `La base a $${n}$ côtés et $${n}$ sommets.`, mot === "faces" ? "Faces : la base et une face latérale par côté." : mot === "arêtes" ? "Arêtes : celles de la base et celles qui montent au sommet." : "Sommets : ceux de la base et le sommet principal."],
+        solution: `Base à $${n}$ côtés : $${n + 1}$ faces ($1$ base et $${n}$ triangles), $${2 * n}$ arêtes ($${n}$ + $${n}$) et $${n + 1}$ sommets. Réponse : $${rep}$.` }; }
+    const Q = pick([
+      ["Une pyramide dont toutes les faces sont des triangles s'appelle :", "un tétraèdre", ["un cube", "un cône", "un prisme"]],
+      ["Le patron d'un cône de révolution est formé :", "d'un disque et d'un secteur de disque", ["de deux disques et d'un rectangle", "d'un disque et d'un triangle", "de trois triangles"]],
+      ["Dans une pyramide régulière, la hauteur est le segment qui joint le sommet :", "au centre de la base, perpendiculairement à la base", ["au milieu d'une arête de la base", "à un sommet de la base", "au milieu d'une face latérale"]],
+      ["Les faces latérales d'une pyramide sont :", "des triangles", ["des rectangles", "des carrés", "des disques"]],
+      ["Un cône de révolution est obtenu en faisant tourner autour d'un côté de l'angle droit :", "un triangle rectangle", ["un rectangle", "un demi-disque", "un carré"]],
+      ["La base d'un cône de révolution est :", "un disque", ["un triangle", "un carré", "un rectangle"]]
+    ]);
+    const { choix, attendu } = melange(Q[1], Q[2]);
+    return { enonce: Q[0], mode: "choix", choix, attendu, aides: ["Une pyramide : une base polygonale et des faces triangulaires.", "Un cône : une base en disque et un sommet.", "Imagine le solide déplié pour penser au patron."], solution: `Réponse : ${Q[1]}.` };
+  };
+
+  GEN["es4-volume"] = function () {
+    const t = rand(0, 3);
+    if (t === 0) { const c = rand(2, 12), h = rand(3, 15) * 3 / (Math.random() < 0.5 ? 1 : 3), v = (c * c * h) / 3;
+      if (!Number.isInteger(v * 10)) return GEN["es4-volume"]();
+      return { enonce: `Calcule le volume d'une pyramide à base carrée de côté $${c}$ cm et de hauteur $${nb(h)}$ cm.`, mode: "nombre", prefixe: "Volume :", suffixe: "cm³", attendu: v,
+        erreurs: [{ valeur: c * c * h, message: "N'oublie pas de diviser par $3$ : une pyramide a le tiers du volume du prisme de même base et même hauteur." }],
+        aides: ["Volume d'une pyramide $= \\dfrac{\\text{aire de la base} \\times \\text{hauteur}}{3}$.", `Aire de la base : $${c}^2 = ${c * c}$ cm².`, `$\\dfrac{${c * c} \\times ${nb(h)}}{3}$.`], solution: `$V = \\dfrac{${c * c} \\times ${nb(h)}}{3} = ${nb(v)}$ cm³.` }; }
+    if (t === 1) { const L = rand(3, 12), l = rand(2, 9), h = rand(2, 10) * 3, v = (L * l * h) / 3;
+      return { enonce: `Une pyramide a pour base un rectangle de $${L}$ cm sur $${l}$ cm et une hauteur de $${h}$ cm. Quel est son volume ?`, mode: "nombre", prefixe: "Volume :", suffixe: "cm³", attendu: v,
+        erreurs: [{ valeur: L * l * h, message: "Divise par $3$." }],
+        aides: ["$V = \\dfrac{B \\times h}{3}$.", `$B = ${L} \\times ${l} = ${L * l}$ cm².`, `$\\dfrac{${L * l} \\times ${h}}{3}$.`], solution: `$V = \\dfrac{${L * l} \\times ${h}}{3} = ${v}$ cm³.` }; }
+    if (t === 2) { const r = rand(2, 10), h = rand(3, 15), v = arr((Math.PI * r * r * h) / 3, 1);
+      return { enonce: `Calcule le volume d'un cône de révolution de rayon $${r}$ cm et de hauteur $${h}$ cm, arrondi au dixième de cm³.`, mode: "nombre", prefixe: "Volume :", suffixe: "cm³", attendu: v,
+        erreurs: [{ valeur: arr(Math.PI * r * r * h, 1), message: "C'est le volume du cylindre : celui du cône est trois fois plus petit." }],
+        aides: ["Volume d'un cône $= \\dfrac{\\pi r^2 \\times h}{3}$.", `Aire de la base : $\\pi \\times ${r}^2 = ${r * r}\\pi$ cm².`, `$\\dfrac{${r * r}\\pi \\times ${h}}{3}$.`], solution: `$V = \\dfrac{\\pi \\times ${r}^2 \\times ${h}}{3} = ${nb(arr((r * r * h) / 3, 4))}\\pi \\approx ${nb(v)}$ cm³.` }; }
+    const a = rand(2, 8), b = rand(2, 8), h = rand(2, 10) * 3, v = (a * b * h) / 6;
+    if (!Number.isInteger(v * 10)) return GEN["es4-volume"]();
+    return { enonce: `Une pyramide a pour base un triangle rectangle dont les côtés de l'angle droit mesurent $${a}$ cm et $${b}$ cm. Sa hauteur mesure $${h}$ cm. Quel est son volume ?`, mode: "nombre", prefixe: "Volume :", suffixe: "cm³", attendu: v,
+      erreurs: [{ valeur: (a * b * h) / 2, message: "L'aire de la base est bien $\\dfrac{a \\times b}{2}$, mais il faut aussi diviser le volume par $3$." }],
+      aides: ["Calcule d'abord l'aire de la base triangulaire.", `$B = \\dfrac{${a} \\times ${b}}{2} = ${nb((a * b) / 2)}$ cm².`, `$V = \\dfrac{${nb((a * b) / 2)} \\times ${h}}{3}$.`], solution: `$B = ${nb((a * b) / 2)}$ cm² et $V = \\dfrac{${nb((a * b) / 2)} \\times ${h}}{3} = ${nb(v)}$ cm³.` };
+  };
+
+  GEN["es4-agrandir"] = function () {
+    const k = pick([2, 3, 4, 5, 0.5, 1.5, 2.5, 10]), t = rand(0, 2), x = rand(2, 30), q = ["longueurs", "aires", "volumes"][t], p = t + 1, v = arr(x * k ** p, 4), u = ["cm", "cm²", "cm³"][t];
+    return { enonce: `On ${k > 1 ? "agrandit" : "réduit"} un solide à l'échelle $${nb(k)}$. Une ${["arête", "face", "partie du solide"][t]} ${t === 0 ? "mesure" : t === 1 ? "a une aire de" : "a un volume de"} $${x}$ ${u}. Que devient cette mesure ?`, mode: "nombre", prefixe: "Nouvelle mesure :", suffixe: u, attendu: v,
+      erreurs: t ? [{ valeur: arr(x * k, 4), message: `Les ${q} ne sont pas multipliées par $k$ mais par $k^${p}$.` }] : [],
+      aides: ["Dans un agrandissement ou une réduction de rapport $k$ : les longueurs sont multipliées par $k$.", "Les aires par $k^2$, les volumes par $k^3$.", `Ici, on multiplie par $${nb(k)}^${p} = ${nb(arr(k ** p, 4))}$.`], solution: `Les ${q} sont multipliées par $${nb(k)}^${p} = ${nb(arr(k ** p, 4))}$ : $${x} \\times ${nb(arr(k ** p, 4))} = ${nb(v)}$ ${u}.` };
+  };
+
+  GEN["es4-reperage"] = function () {
+    const L = rand(2, 8), l = rand(2, 6), h = rand(2, 6);
+    if (L === l || l === h || L === h) return GEN["es4-reperage"]();
+    const S = { A: [0, 0, 0], B: [L, 0, 0], C: [L, l, 0], D: [0, l, 0], E: [0, 0, h], F: [L, 0, h], G: [L, l, h], H: [0, l, h] };
+    const n = pick(["B", "C", "D", "E", "F", "G", "H"]), c = S[n], tx = (p) => `$(${p[0]} \\, ; \\, ${p[1]} \\, ; \\, ${p[2]})$`;
+    const fausses = [[c[1], c[0], c[2]], [c[0], c[2], c[1]], [c[2], c[1], c[0]], [L, l, h]].map(tx).filter((z) => z !== tx(c));
+    const { choix, attendu } = melange(tx(c), [...new Set(fausses)]);
+    return { enonce: `$ABCDEFGH$ est un pavé droit : $ABCD$ est la face du bas et $E$, $F$, $G$, $H$ sont au-dessus de $A$, $B$, $C$, $D$. On a $AB = ${L}$, $AD = ${l}$ et $AE = ${h}$. Dans le repère d'origine $A$ (abscisse sur $[AB)$, ordonnée sur $[AD)$, altitude sur $[AE)$), quelles sont les coordonnées de $${n}$ ?`, mode: "choix", choix, attendu,
+      aides: ["Un point de l'espace est repéré par trois nombres : (abscisse ; ordonnée ; altitude).", "Abscisse : déplacement le long de $[AB)$ ; ordonnée : le long de $[AD)$ ; altitude : vers le haut, le long de $[AE)$.", `Pour aller de $A$ à $${n}$, combien avance-t-on dans chaque direction ?`],
+      solution: `Pour aller de $A$ à $${n}$ : $${c[0]}$ selon $[AB)$, $${c[1]}$ selon $[AD)$ et $${c[2]}$ vers le haut : $${n}${tx(c).slice(1)}.` };
+  };
+
   /* Une « erreur connue » ne doit jamais coïncider avec la bonne réponse */
-  Object.keys(GEN).filter((k) => /^(dp4|rx4|py4|fq4|pq4)-/.test(k)).forEach((k) => {
+  Object.keys(GEN).filter((k) => /^(dp4|rx4|py4|fq4|pq4|es4)-/.test(k)).forEach((k) => {
     const g = GEN[k];
     GEN[k] = (i) => {
       const q = g(i);
