@@ -468,7 +468,7 @@ window.CATALOGUE = {
           id: "troisieme-trigonometrie",
           numero: 13,
           titre: "Trigonométrie",
-          statut: "bientot",
+          statut: "disponible",
           drive: ""
         },
         {

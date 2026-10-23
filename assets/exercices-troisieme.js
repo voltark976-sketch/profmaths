@@ -3,7 +3,7 @@
   Ce fichier se charge après assets/exercices-college.js et reprend ses outils (window.PM_EXO.college).
   Mêmes règles : chaque générateur fabrique une question avec des nombres tirés au hasard, la réponse
   attendue, trois indices progressifs et la solution rédigée.
-  Préfixes : cn3-, dv3-, fc3-, eq3-, ar3-, fn3-, fa3-, pp3-, pr3-, st3-, th3-, ts3-.
+  Préfixes : cn3-, dv3-, fc3-, eq3-, ar3-, fn3-, fa3-, pp3-, pr3-, st3-, th3-, ts3-, tg3-.
 */
 (function () {
   "use strict";
@@ -1101,8 +1101,98 @@
     return { enonce: Q[0], mode: "choix", choix, attendu, aides: ["Semblables : mêmes angles (et côtés proportionnels).", "Égaux : superposables, mêmes côtés et mêmes angles.", "Des triangles égaux sont semblables avec $k = 1$."], solution: `Réponse : ${Q[1]}.` };
   };
 
+  /* =====================================================================
+     Chapitre 13 : trigonométrie (tg3-) — cosinus, sinus, tangente
+     ===================================================================== */
+  const NOMS_TG = [["A", "B", "C"], ["E", "F", "G"], ["R", "S", "T"], ["K", "L", "M"], ["H", "I", "J"]];
+  // Triangle rectangle en R ; angle marqué en P1 ; labs = [R P1 (adjacent), R P2 (opposé), P1 P2 (hypoténuse), angle]
+  function figTrig3(N, labs) {
+    const [R, P1, P2] = N, pR = [62, 168], p1 = [282, 168], p2 = [62, 34];
+    let s = geo({ W: 320, H: 196, pts: { [R]: pR, [P1]: p1, [P2]: p2 }, segs: [[R, P1], [R, P2], [P1, P2]], droitAngle: [[P1, R, P2]], decal: { [R]: [-12, 12], [P1]: [6, 12], [P2]: [-12, -2] }, aria: `Triangle ${R}${P1}${P2} rectangle en ${R}, angle marqué en ${P1}` });
+    const t = (x, y, txt, a) => (txt ? `<text class="g-mesure" x="${x}" y="${y}" text-anchor="${a || "middle"}">${txt}</text>` : "");
+    s = s.replace("</svg>", `<path class="g-arc" d="M252 168 A30 30 0 0 0 256.8 152.4"/>` + t(172, 186, labs[0]) + t(54, 104, labs[1], "end") + t(182, 92, labs[2], "start") + t(238, 160, labs[3], "end") + "</svg>");
+    return s;
+  }
+  const decS = (x) => String(x).replace(".", ","), RAD = Math.PI / 180, TRIG = { cos: Math.cos, sin: Math.sin, tan: Math.tan };
+  const degTex = (a) => `${a}^\\circ`;
+
+  GEN["tg3-formule"] = function () {
+    const N = pick(NOMS_TG), [R, P1, P2] = N, f = pick(["cos", "sin", "tan"]);
+    const adj = `${R}${P1}`, opp = `${R}${P2}`, hyp = `${P1}${P2}`;
+    const exprs = { cos: `\\dfrac{${adj}}{${hyp}}`, sin: `\\dfrac{${opp}}{${hyp}}`, tan: `\\dfrac{${opp}}{${adj}}` };
+    const u = Math.random();
+    if (u < 0.35) { // valeur d'un rapport à partir des longueurs (triangle pythagoricien)
+      const [p, q, h] = pick([[3, 4, 5], [6, 8, 10], [5, 12, 13], [8, 15, 17], [9, 12, 15], [7, 24, 25], [12, 16, 20], [20, 21, 29]]), sw = Math.random() < 0.5, A = sw ? q : p, O = sw ? p : q;
+      const v = { cos: A / h, sin: O / h, tan: O / A }[f], [n, d] = { cos: [A, h], sin: [O, h], tan: [O, A] }[f];
+      return { enonce: `$${R}${P1}${P2}$ est rectangle en $${R}$ avec $${adj} = ${A}$ cm, $${opp} = ${O}$ cm et $${hyp} = ${h}$ cm. Calcule $\\${f} \\widehat{${R}${P1}${P2}}$.${CONSIGNE_FR}`, figure: figTrig3(N, [`${A} cm`, `${O} cm`, `${h} cm`, ""]), mode: "nombre", prefixe: `$\\${f} \\widehat{${R}${P1}${P2}} =$`, attendu: v,
+        erreurs: [{ valeur: d / n, message: "C'est l'inverse : vérifie quel côté va au numérateur." }, ...approx(v)],
+        aides: ["SOH CAH TOA.", `$\\${f} \\widehat{${R}${P1}${P2}} = ${exprs[f]}$.`, `$= \\dfrac{${n}}{${d}}$ ; simplifie.`],
+        solution: `$\\${f} \\widehat{${R}${P1}${P2}} = ${exprs[f]} = \\dfrac{${n}}{${d}} = ${frS(n, d)}$.` };
+    }
+    if (u < 0.7) {
+      const bonne = `$${exprs[f]}$`, faux = uniq3(bonne, [`$${exprs.cos}$`, `$${exprs.sin}$`, `$${exprs.tan}$`, `$\\dfrac{${hyp}}{${adj}}$`, `$\\dfrac{${adj}}{${opp}}$`]);
+      const { choix, attendu } = melange(bonne, faux);
+      return { enonce: `Le triangle $${R}${P1}${P2}$ est rectangle en $${R}$. Quelle est l'expression de $\\${f} \\widehat{${R}${P1}${P2}}$ ?`, figure: figTrig3(N, ["", "", "", ""]), mode: "choix", choix, attendu,
+        aides: ["« SOH CAH TOA » : Sinus = Opposé / Hypoténuse, Cosinus = Adjacent / Hypoténuse, Tangente = Opposé / Adjacent.", `L'hypoténuse est $[${hyp}]$, en face de l'angle droit.`, `Pour l'angle en $${P1}$ : côté adjacent $[${adj}]$, côté opposé $[${opp}]$.`],
+        solution: `$\\${f} \\widehat{${R}${P1}${P2}} = ${exprs[f]}$.` };
+    }
+    const q = pick([["opposé", opp], ["adjacent", adj]]);
+    const bonne = `$[${q[1]}]$`, faux = [`$[${opp}]$`, `$[${adj}]$`, `$[${hyp}]$`].filter((z) => z !== bonne);
+    const { choix, attendu } = melange(bonne, [...faux, "aucun : il n'y en a pas pour un angle aigu"]);
+    return { enonce: `Dans le triangle $${R}${P1}${P2}$ rectangle en $${R}$, quel est le côté ${q[0]} à l'angle $\\widehat{${R}${P1}${P2}}$ ?`, figure: figTrig3(N, ["", "", "", ""]), mode: "choix", choix, attendu,
+      aides: ["L'hypoténuse est le côté en face de l'angle droit.", `Le côté adjacent touche l'angle en $${P1}$ (sans être l'hypoténuse).`, `Le côté opposé est en face de l'angle en $${P1}$.`],
+      solution: `Pour l'angle en $${P1}$, le côté ${q[0]} est $[${q[1]}]$.` };
+  };
+
+  GEN["tg3-longueur"] = function () {
+    const N = pick(NOMS_TG), [R, P1, P2] = N, a = rand(15, 75), cas = rand(0, 5), L = rand(20, 150) / 10;
+    const adj = `${R}${P1}`, opp = `${R}${P2}`, hyp = `${P1}${P2}`;
+    // [fonction, côté connu, côté cherché, valeur]
+    const C = [["cos", hyp, adj, L * Math.cos(a * RAD)], ["cos", adj, hyp, L / Math.cos(a * RAD)], ["sin", hyp, opp, L * Math.sin(a * RAD)], ["sin", opp, hyp, L / Math.sin(a * RAD)], ["tan", adj, opp, L * Math.tan(a * RAD)], ["tan", opp, adj, L / Math.tan(a * RAD)]][cas];
+    const [f, connu, cherche, v] = C, r = arr(v, 1);
+    const formule = { cos: `\\dfrac{${adj}}{${hyp}}`, sin: `\\dfrac{${opp}}{${hyp}}`, tan: `\\dfrac{${opp}}{${adj}}` }[f];
+    const multiplie = (f === "cos" && cherche === adj) || (f === "sin" && cherche === opp) || (f === "tan" && cherche === opp);
+    const labs = [connu === adj ? `${decS(L)} cm` : cherche === adj ? "?" : "", connu === opp ? `${decS(L)} cm` : cherche === opp ? "?" : "", connu === hyp ? `${decS(L)} cm` : cherche === hyp ? "?" : "", `${a}°`];
+    const faux = multiplie ? L / TRIG[f](a * RAD) : L * TRIG[f](a * RAD);
+    return { enonce: `$${R}${P1}${P2}$ est rectangle en $${R}$, $\\widehat{${R}${P1}${P2}} = ${degTex(a)}$ et $${connu} = ${nb(L)}$ cm. Calcule $${cherche}$, arrondi au dixième.`, figure: figTrig3(N, labs), mode: "nombre", prefixe: `$${cherche} \\approx$`, suffixe: "cm", attendu: r,
+      erreurs: [{ valeur: arr(faux, 1), message: "Vérifie le produit en croix : multiplier ou diviser par le " + f + " ?" }, ...(arr(v, 1) !== Math.trunc(v * 10) / 10 ? [{ valeur: Math.trunc(v * 10) / 10, message: "Arrondis au dixième le plus proche (ne tronque pas)." }] : [])],
+      aides: [`On connaît l'angle, $[${connu}]$ et on cherche $[${cherche}]$ : on utilise le ${f === "cos" ? "cosinus" : f === "sin" ? "sinus" : "tangente"}.`, `$\\${f} \\widehat{${R}${P1}${P2}} = ${formule}$, soit $\\${f}(${degTex(a)}) = ${formule.replace(connu, nb(L))}$.`, multiplie ? `$${cherche} = ${nb(L)} \\times \\${f}(${degTex(a)})$.` : `$${cherche} = \\dfrac{${nb(L)}}{\\${f}(${degTex(a)})}$.`],
+      solution: `$${cherche} = ${multiplie ? `${nb(L)} \\times \\${f}(${degTex(a)})` : `\\dfrac{${nb(L)}}{\\${f}(${degTex(a)})}`} \\approx ${nb(r)}$ cm.` };
+  };
+
+  GEN["tg3-angle"] = function () {
+    const N = pick(NOMS_TG), [R, P1, P2] = N, f = pick(["cos", "sin", "tan"]);
+    const adj = `${R}${P1}`, opp = `${R}${P2}`, hyp = `${P1}${P2}`;
+    let x, y; do { x = rand(20, 120) / 10; y = rand(20, 150) / 10; } while (f !== "tan" && y <= x + 0.5);
+    const [num, den, nn, nd] = { cos: [x, y, adj, hyp], sin: [x, y, opp, hyp], tan: [x, y, opp, adj] }[f];
+    const ang = { cos: Math.acos, sin: Math.asin, tan: Math.atan }[f](num / den) / RAD, r = Math.round(ang);
+    const labs = [nn === adj ? `${decS(num)} cm` : nd === adj ? `${decS(den)} cm` : "", nn === opp ? `${decS(num)} cm` : "", nd === hyp ? `${decS(den)} cm` : "", "?"];
+    const autre = Math.round(90 - ang);
+    return { enonce: `$${R}${P1}${P2}$ est rectangle en $${R}$ avec $${nn} = ${nb(num)}$ cm et $${nd} = ${nb(den)}$ cm. Calcule $\\widehat{${R}${P1}${P2}}$, arrondi au degré.`, figure: figTrig3(N, labs), mode: "nombre", prefixe: `$\\widehat{${R}${P1}${P2}} \\approx$`, suffixe: "°", attendu: r,
+      erreurs: [{ valeur: autre, message: `Ça, c'est l'autre angle aigu, en $${P2}$.` }],
+      aides: [`$[${nn}]$ et $[${nd}]$ sont ${f === "cos" ? "l'adjacent et l'hypoténuse : cosinus" : f === "sin" ? "l'opposé et l'hypoténuse : sinus" : "l'opposé et l'adjacent : tangente"}.`, `$\\${f} \\widehat{${R}${P1}${P2}} = \\dfrac{${nb(num)}}{${nb(den)}}$.`, `À la calculatrice : $\\text{${f === "cos" ? "arccos" : f === "sin" ? "arcsin" : "arctan"}}\\left(\\dfrac{${nb(num)}}{${nb(den)}}\\right)$ (touche ${f}⁻¹).`],
+      solution: `$\\${f} \\widehat{${R}${P1}${P2}} = \\dfrac{${nb(num)}}{${nb(den)}}$, donc $\\widehat{${R}${P1}${P2}} \\approx ${nb(arr(ang, 2))}^\\circ$, soit $${r}^\\circ$ arrondi au degré.` };
+  };
+
+  GEN["tg3-problemes"] = function () {
+    const t = rand(0, 2);
+    if (t === 0) { const L = rand(30, 80) / 10, a = rand(60, 80), h = arr(L * Math.sin(a * RAD), 2), r = arr(h, 1);
+      return { enonce: `Une échelle de $${nb(L)}$ m est appuyée contre un mur vertical. Elle fait un angle de $${degTex(a)}$ avec le sol horizontal. À quelle hauteur touche-t-elle le mur ? (Arrondi au dixième.)`, mode: "nombre", prefixe: "Hauteur :", suffixe: "m", attendu: r,
+        erreurs: [{ valeur: arr(L * Math.cos(a * RAD), 1), message: "La hauteur est le côté opposé à l'angle au sol : c'est le sinus." }],
+        aides: ["L'échelle est l'hypoténuse ; la hauteur sur le mur est opposée à l'angle avec le sol.", `$\\sin(${degTex(a)}) = \\dfrac{h}{${nb(L)}}$.`, `$h = ${nb(L)} \\times \\sin(${degTex(a)})$.`], solution: `$h = ${nb(L)} \\times \\sin(${degTex(a)}) \\approx ${nb(r)}$ m.` }; }
+    if (t === 1) { const d = rand(10, 50), a = rand(20, 60), H = arr(d * Math.tan(a * RAD), 1);
+      return { enonce: `À $${d}$ m du pied d'un arbre, on voit son sommet sous un angle de $${degTex(a)}$ par rapport à l'horizontale (on néglige la taille de l'observateur). Quelle est la hauteur de l'arbre ? (Arrondi au dixième.)`, mode: "nombre", prefixe: "Hauteur :", suffixe: "m", attendu: H,
+        erreurs: [{ valeur: arr(d * Math.sin(a * RAD), 1), message: "On connaît le côté adjacent ($" + d + "$ m) : c'est la tangente." }],
+        aides: ["Le triangle est rectangle au pied de l'arbre.", `Côté adjacent : $${d}$ m ; côté opposé : la hauteur. $\\tan(${degTex(a)}) = \\dfrac{h}{${d}}$.`, `$h = ${d} \\times \\tan(${degTex(a)})$.`], solution: `$h = ${d} \\times \\tan(${degTex(a)}) \\approx ${nb(H)}$ m.` }; }
+    const l = rand(20, 120) / 10, h = rand(3, 15) / 10, a = Math.round(Math.atan(h / l) / RAD);
+    if (a < 2) return GEN["tg3-problemes"]();
+    return { enonce: `Une rampe monte de $${nb(h)}$ m sur une distance horizontale de $${nb(l)}$ m. Quel angle fait-elle avec l'horizontale, arrondi au degré ?`, mode: "nombre", prefixe: "Angle :", suffixe: "°", attendu: a,
+      erreurs: [{ valeur: Math.round(Math.asin(Math.min(1, h / l)) / RAD), message: "La distance horizontale est le côté adjacent, pas l'hypoténuse : c'est la tangente." }],
+      aides: ["Hauteur : côté opposé ; distance horizontale : côté adjacent.", `$\\tan \\alpha = \\dfrac{${nb(h)}}{${nb(l)}}$.`, "Utilise la touche tan⁻¹ de la calculatrice."], solution: `$\\tan \\alpha = \\dfrac{${nb(h)}}{${nb(l)}}$, donc $\\alpha \\approx ${a}^\\circ$.` };
+  };
+
   /* Une « erreur connue » ne doit jamais coïncider avec la bonne réponse */
-  Object.keys(GEN).filter((k) => /^(cn3|dv3|fc3|eq3|ar3|fn3|fa3|pp3|pr3|st3|th3|ts3)-/.test(k)).forEach((k) => {
+  Object.keys(GEN).filter((k) => /^(cn3|dv3|fc3|eq3|ar3|fn3|fa3|pp3|pr3|st3|th3|ts3|tg3)-/.test(k)).forEach((k) => {
     const g = GEN[k];
     GEN[k] = (i) => {
       const q = g(i);
