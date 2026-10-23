@@ -369,7 +369,7 @@ window.CATALOGUE = {
           id: "quatrieme-informatique",
           numero: 15,
           titre: "Programmation",
-          statut: "bientot",
+          statut: "disponible",
           drive: ""
         }
       ]

@@ -53,6 +53,7 @@ Site statique : aucune base de données, aucun compte élève. Ouvrir `index.htm
   - `data/quatrieme/cosinus.js` : 4e, chapitre 11 (cosinus d'un angle aigu, calcul de longueurs et d'angles, problèmes). Générateurs `cs4-` ; figure `figCos()`.
   - `data/quatrieme/translation.js` : 4e, chapitre 12 (translation sur quadrillage, image d'un point, reconnaître une transformation, propriétés). Générateurs `tl4-` ; figure `grilleT()`.
   - `data/quatrieme/equations.js` : 4e, chapitre 13 (équations du premier degré, inconnue dans les deux membres, parenthèses, mise en équation). Générateurs `eq4-`.
+  -   - `data/quatrieme/informatique.js` : 4e, chapitre 15 (variables, si … alors … sinon, boucles « répéter jusqu'à », événements ; blocs dessinés par blocs4). Générateurs `in4-`.
   -   - `data/quatrieme/statistiques.js` : 4e, chapitre 14 (moyenne pondérée, médiane d'une liste ou d'un tableau, étendue, interprétation). Générateurs `sx4-`.
 - `data/seconde/ensembles.js` : chapitre 1 de Seconde (ensembles de nombres, intervalles, valeur absolue). Les générateurs d'exercices correspondants commencent par `ens-`, `int-` et `abs-` dans `assets/exercices.js`.
 - `data/seconde/information-chiffree.js` : chapitre 3 de Seconde.

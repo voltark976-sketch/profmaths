@@ -3,7 +3,7 @@
   Ce fichier se charge après assets/exercices-college.js et reprend ses outils (window.PM_EXO.college).
   Mêmes règles : chaque générateur fabrique une question avec des nombres tirés au hasard, la réponse
   attendue, trois indices progressifs et la solution rédigée.
-  Préfixes : dp4-, rx4-, py4-, fq4-, pq4-, es4-, pw4-, th4-, lc4-, pb4-, cs4-, tl4-, eq4-, sx4-.
+  Préfixes : dp4-, rx4-, py4-, fq4-, pq4-, es4-, pw4-, th4-, lc4-, pb4-, cs4-, tl4-, eq4-, sx4-, in4-.
 */
 (function () {
   "use strict";
@@ -957,8 +957,139 @@
     return { enonce: Q[0], mode: "choix", choix, attendu, aides: ["La moyenne tient compte de toutes les valeurs.", "La médiane partage la série rangée en deux moitiés.", "L'étendue mesure l'écart entre la plus grande et la plus petite valeur."], solution: `Réponse : ${Q[1]}.` };
   };
 
+  /* =====================================================================
+     Chapitre 15 : programmation (in4-) — variables, conditions, boucles « jusqu'à », événements
+     ===================================================================== */
+  // Programme en blocs façon Scratch, avec en plus { si, alors, sinon } et { jusqua, corps } (mêmes classes CSS que blocs())
+  const CAT4 = { evt: "pi-evt", ent: "pi-ent", op: "pi-op", dire: "pi-dire", mvt: "pi-mvt", stylo: "pi-stylo", ctrl: "pi-ctrl", var: "pi-var" };
+  function blocs4(prog) {
+    const H = 26, CW = 6.6; let y = 6, s = "", W = 0;
+    const ecrire = (t, x, yc) => {
+      let out = "", cx = x;
+      t.split(/(\[[^\]]*\])/).filter((seg) => seg.trim()).forEach((seg) => {
+        if (seg[0] === "[") { const v = seg.slice(1, -1), w = Math.max(24, v.length * CW + 12);
+          out += `<rect class="pi-champ" x="${cx}" y="${yc - 9}" width="${w}" height="18" rx="9"/><text class="pi-val" x="${cx + w / 2}" y="${yc + 4}" text-anchor="middle">${v}</text>`; cx += w + 5; }
+        else { const m = seg.trim(); out += `<text class="pi-txt" x="${cx}" y="${yc + 4}" textLength="${(m.length * CW).toFixed(1)}" lengthAdjust="spacingAndGlyphs">${m}</text>`; cx += m.length * CW + 5; }
+      });
+      W = Math.max(W, cx + 4); return [out, cx - x];
+    };
+    const enveloppe = (x, entete, branches) => {
+      // entete : texte du haut ; branches : [{ corps, etiquette }] (étiquette « sinon » entre deux branches)
+      const y0 = y, [txt, w] = ecrire(entete, x + 8, y0 + H / 2); let Wt = Math.max(w + 14, 130), d = `M${x} ${y0}h${Wt}v${H}`, t = txt;
+      y += H;
+      branches.forEach((br, i) => {
+        const yIn = y; br.corps.forEach((c) => poser(c, x + 14)); const hIn = Math.max(y - yIn, H);
+        d += `h${-(Wt - 14)}v${hIn}h${Wt - 14}`;
+        if (i < branches.length - 1) { const [t2] = ecrire(branches[i + 1].etiquette, x + 8, yIn + hIn + H / 2); t += t2; d += `v${H}`; y = yIn + hIn + H; }
+        else y = yIn + hIn;
+      });
+      d += `v14h${-Wt}z`; s += `<path class="pi-ctrl" d="${d}"/>` + t; y += 16;
+    };
+    const poser = (b, x) => {
+      if (b.rep != null) return enveloppe(x, `répéter [${b.rep}] fois`, [{ corps: b.corps }]);
+      if (b.jusqua != null) return enveloppe(x, `répéter jusqu'à [${b.jusqua}]`, [{ corps: b.corps }]);
+      if (b.si != null) return enveloppe(x, `si [${b.si}] alors`, b.sinon ? [{ corps: b.alors }, { corps: b.sinon, etiquette: "sinon" }] : [{ corps: b.alors }]);
+      const [txt, w] = ecrire(b.t, x + 8, y + H / 2);
+      s += `<rect class="${CAT4[b.c]}" x="${x}" y="${y}" width="${w + 11}" height="${H}" rx="${b.c === "evt" ? 12 : 5}"/>` + txt; y += H + 2;
+    };
+    prog.forEach((b) => poser(b, 6));
+    const aria = (p) => p.map((b) => (b.rep != null ? `répéter ${b.rep} fois : ${aria(b.corps)} ; fin` : b.jusqua != null ? `répéter jusqu'à ${b.jusqua} : ${aria(b.corps)} ; fin` : b.si != null ? `si ${b.si} alors ${aria(b.alors)}${b.sinon ? ` sinon ${aria(b.sinon)}` : ""} ; fin du si` : b.t.replace(/[[\]]/g, ""))).join(" ; ");
+    W = Math.max(W, 150);
+    return `<svg class="graph pi-prog" viewBox="0 0 ${Math.ceil(W)} ${y + 4}" style="max-width:${Math.ceil(W)}px" role="img" aria-label="Programme : ${aria(prog).replace(/"/g, "'")}">${s}</svg>`;
+  }
+  const DRAP4 = { c: "evt", t: "quand le drapeau est cliqué" };
+  const signeSc = (t) => t.replace(/\*/g, "\\times ");
+
+  GEN["in4-variable"] = function () {
+    for (;;) {
+      const a = rand(2, 12), b = rand(2, 12), v = { A: a, B: b }, lignes = [{ c: "var", t: `mettre [A] à [${a}]` }, { c: "var", t: `mettre [B] à [${b}]` }], trace = [`$A = ${a}$, $B = ${b}$`];
+      const OPS = [
+        () => { const k = rand(2, 9); v.A += k; return [`ajouter [${k}] à [A]`, `$A = ${v.A}$`]; },
+        () => { v.B = v.A + v.B; return ["mettre [B] à [A + B]", `$B = ${v.B}$`]; },
+        () => { const k = rand(2, 4); v.A = v.A * k; return [`mettre [A] à [A * ${k}]`, `$A = ${v.A}$`]; },
+        () => { v.A = v.B - v.A; return ["mettre [A] à [B - A]", `$A = ${v.A}$`]; },
+        () => { const k = rand(2, 3); v.B = v.B * k - v.A; return [`mettre [B] à [B * ${k} - A]`, `$B = ${v.B}$`]; },
+        () => { v.A = v.B; return ["mettre [A] à [B]", `$A = ${v.A}$`]; }
+      ];
+      const n = rand(2, 4), choisis = shuffle(OPS.map((f, i) => i)).slice(0, n);
+      choisis.forEach((i) => { const [t, tr] = OPS[i](); lignes.push({ c: "var", t }); trace.push(tr); });
+      const X = pick(["A", "B"]), r = v[X];
+      if (Math.abs(r) > 300 || (X === "A" && r === a) || (X === "B" && r === b)) continue;
+      const prog = blocs4([DRAP4, ...lignes, { c: "dire", t: `dire [${X}]` }]);
+      return { enonce: "Que dit le lutin à la fin de ce programme ?", figure: prog, mode: "nombre", prefixe: "Le lutin dit :", attendu: r,
+        erreurs: [{ valeur: X === "A" ? a : b, message: `La variable $${X}$ a changé de valeur pendant le programme : suis-la ligne par ligne.` }],
+        aides: ["Une variable est une « boîte » qui contient un nombre ; « mettre … à » remplace son contenu.", "Exécute les instructions dans l'ordre, en notant à chaque ligne les valeurs de $A$ et de $B$.", `Au début : $A = ${a}$ et $B = ${b}$.`],
+        solution: `Valeurs successives : ${trace.join(" ; ")}. Le lutin dit $${r}$.` };
+    }
+  };
+
+  GEN["in4-condition"] = function () {
+    const k = rand(5, 20), a = rand(2, 5), b = rand(3, 15), t = rand(0, 2);
+    const x = pick([k, k - rand(1, 4), k + rand(1, 6), rand(1, 30)]);
+    const [cond, vrai] = [[`réponse > ${k}`, x > k], [`réponse < ${k}`, x < k], [`réponse = ${k}`, x === k]][t];
+    const alors = x * a, sinon = x + b;
+    const r = vrai ? alors : sinon, autre = vrai ? sinon : alors;
+    const prog = blocs4([DRAP4, { c: "ent", t: "demander [Choisis un nombre] et attendre" }, { si: cond, alors: [{ c: "dire", t: `dire [réponse * ${a}]` }], sinon: [{ c: "dire", t: `dire [réponse + ${b}]` }] }]);
+    const symb = [">", "<", "="][t];
+    return { enonce: `On lance ce programme et on répond $${x}$. Que dit le lutin ?`, figure: prog, mode: "nombre", prefixe: "Le lutin dit :", attendu: r,
+      erreurs: autre !== r ? [{ valeur: autre, message: `La condition « réponse $${symb}$ $${k}$ » est ${vrai ? "vraie" : "fausse"} pour $${x}$ : c'est donc l'autre branche qui s'exécute.` }] : [],
+      aides: ["« si … alors … sinon » : si la condition est vraie, on exécute le premier bloc ; sinon, le second.", `Teste la condition avec $${x}$ : est-ce que $${x} ${symb} ${k}$ ?`, t === 0 && x === k ? `Attention : $${k} > ${k}$ est faux (l'inégalité est stricte).` : t === 1 && x === k ? `Attention : $${k} < ${k}$ est faux (l'inégalité est stricte).` : "Puis fais le calcul de la branche choisie."],
+      solution: `$${x} ${symb} ${k}$ est ${vrai ? "vrai" : "faux"}, donc le lutin dit ${vrai ? `$${x} \\times ${a} = ${r}$` : `$${x} + ${b} = ${r}$`}.` };
+  };
+
+  GEN["in4-boucle"] = function () {
+    const t = rand(0, 2);
+    if (t === 0) {
+      const x = rand(1, 9), L = rand(20, 400), k = pick([2, 3]); let N = x; const vals = [x];
+      while (!(N > L)) { N *= k; vals.push(N); }
+      if (vals.length < 3) return GEN["in4-boucle"]();
+      const prog = blocs4([DRAP4, { c: "var", t: `mettre [N] à [${x}]` }, { jusqua: `N > ${L}`, corps: [{ c: "var", t: `mettre [N] à [N * ${k}]` }] }, { c: "dire", t: "dire [N]" }]);
+      return { enonce: "Que dit le lutin à la fin de ce programme ?", figure: prog, mode: "nombre", prefixe: "Le lutin dit :", attendu: N,
+        erreurs: [{ valeur: vals[vals.length - 2], message: `On s'arrête seulement quand la condition « $N > ${L}$ » devient vraie.` }],
+        aides: ["« répéter jusqu'à » répète le bloc tant que la condition est fausse ; on teste la condition avant chaque passage.", `$N$ vaut d'abord $${x}$, puis est multiplié par $${k}$ à chaque passage.`, `Valeurs : $${vals.slice(0, 3).join(" ; ")}$ ; …`],
+        solution: `$N$ prend les valeurs $${vals.join(" ; ")}$. La boucle s'arrête dès que $N > ${L}$ : le lutin dit $${N}$.` };
+    }
+    if (t === 1) {
+      const n = rand(3, 12), k = rand(2, 15), s0 = rand(0, 20), r = s0 + n * k;
+      const prog = blocs4([DRAP4, { c: "var", t: `mettre [S] à [${s0}]` }, { c: "var", t: "mettre [i] à [0]" }, { jusqua: `i = ${n}`, corps: [{ c: "var", t: "ajouter [1] à [i]" }, { c: "var", t: `ajouter [${k}] à [S]` }] }, { c: "dire", t: "dire [S]" }]);
+      return { enonce: "Que dit le lutin à la fin de ce programme ?", figure: prog, mode: "nombre", prefixe: "Le lutin dit :", attendu: r,
+        erreurs: [{ valeur: s0 + (n - 1) * k, message: `La variable $i$ compte les passages : la boucle tourne $${n}$ fois.` }, { valeur: n * k, message: `N'oublie pas la valeur de départ de $S$ : $${s0}$.` }],
+        aides: ["La variable $i$ sert de compteur : elle augmente de $1$ à chaque passage.", `La boucle s'arrête quand $i = ${n}$ : elle est donc répétée $${n}$ fois.`, `À chaque passage, $S$ augmente de $${k}$.`],
+        solution: `La boucle est répétée $${n}$ fois : $S = ${s0} + ${n} \\times ${k} = ${r}$.` };
+    }
+    const a = rand(20, 90), b = rand(3, 12), c = Math.floor(a / b) + 1;
+    const prog = blocs4([DRAP4, { c: "var", t: `mettre [N] à [${a}]` }, { c: "var", t: "mettre [compteur] à [0]" }, { jusqua: "N < 0", corps: [{ c: "var", t: `ajouter [-${b}] à [N]` }, { c: "var", t: "ajouter [1] à [compteur]" }] }, { c: "dire", t: "dire [compteur]" }]);
+    return { enonce: "Que dit le lutin à la fin de ce programme ? (C'est le nombre de passages dans la boucle.)", figure: prog, mode: "nombre", prefixe: "Le lutin dit :", attendu: c,
+      erreurs: [{ valeur: c - 1, message: `Tant que $N$ vaut $0$ ou plus, la condition « $N < 0$ » est fausse : on refait un passage.` }],
+      aides: [`À chaque passage, $N$ diminue de $${b}$ et le compteur augmente de $1$.`, "On s'arrête dès que $N$ devient négatif (strictement).", `Combien de fois peut-on retirer $${b}$ à $${a}$ avant de passer sous $0$ ?`],
+      solution: `$N$ passe par $${a}$, $${a - b}$, … ; après $${c - 1}$ passages, $N = ${a - (c - 1) * b} \\geqslant 0$, et après $${c}$ passages, $N = ${a - c * b} < 0$. Le lutin dit $${c}$.` };
+  };
+
+  GEN["in4-evenements"] = function () {
+    if (Math.random() < 0.6) {
+      const s0 = rand(0, 10), k = rand(2, 9), j = rand(1, 5), p = rand(2, 9), q = rand(1, 6), r = s0 + p * k - q * j;
+      const prog = blocs4([DRAP4, { c: "var", t: `mettre [score] à [${s0}]` }, { c: "evt", t: "quand ce lutin est cliqué" }, { c: "var", t: `ajouter [${k}] à [score]` }, { c: "evt", t: "quand la touche espace est pressée" }, { c: "var", t: `ajouter [-${j}] à [score]` }]);
+      return { enonce: `Ces trois scripts appartiennent au même lutin. On clique sur le drapeau, puis on clique $${p}$ fois sur le lutin et on appuie $${q}$ fois sur la touche espace. Que vaut la variable score ?`, figure: prog, mode: "nombre", prefixe: "score =", attendu: r,
+        erreurs: [{ valeur: s0 + p * k, message: "La touche espace déclenche aussi un script : chaque appui enlève des points." }, { valeur: p * k - q * j, message: `Au départ, le drapeau met le score à $${s0}$.` }],
+        aides: ["Chaque script démarre quand son événement se produit (drapeau, clic, touche).", `Chaque clic ajoute $${k}$ ; chaque appui sur espace enlève $${j}$.`, `$${s0} + ${p} \\times ${k} - ${q} \\times ${j}$.`],
+        solution: `score $= ${s0} + ${p} \\times ${k} - ${q} \\times ${j} = ${r}$.` };
+    }
+    const Q = pick([
+      ["Dans Scratch, le bloc « quand la touche espace est pressée » est :", "un événement qui déclenche un script", ["une boucle", "une variable", "une condition"]],
+      ["Une variable informatique sert à :", "stocker une valeur qui peut changer", ["répéter des instructions", "tester une condition", "déplacer le lutin"]],
+      ["Le bloc « répéter jusqu'à [N > 10] » répète les instructions :", "tant que $N > 10$ est faux", ["tant que $N > 10$ est vrai", "exactement $10$ fois", "une seule fois"]],
+      ["Dans « si [réponse > 5] alors … sinon … », si on répond $5$ :", "ce sont les instructions de « sinon » qui s'exécutent", ["ce sont les instructions de « alors » qui s'exécutent", "les deux parties s'exécutent", "rien ne s'exécute"]],
+      ["« mettre [A] à [A + 1] » :", "augmente de $1$ la valeur de $A$", ["met $A$ à $1$", "teste si $A$ vaut $A + 1$", "ne change rien"]],
+      ["Pour qu'un lutin envoie une information à un autre lutin, on utilise :", "« envoyer à tous [message] » et « quand je reçois [message] »", ["une boucle « répéter »", "« demander … et attendre »", "« mettre … à »"]],
+      ["Pour tester si un nombre $N$ est pair dans Scratch, on peut utiliser la condition :", "« $N$ modulo $2$ $= 0$ »", ["« $N / 2 = 0$ »", "« $N * 2 = 0$ »", "« $N - 2 = 0$ »"]],
+      ["Deux scripts commencent par « quand le drapeau est cliqué ». Quand on clique sur le drapeau :", "les deux scripts démarrent en même temps", ["seul le premier démarre", "seul le second démarre", "aucun ne démarre"]]
+    ]);
+    const { choix, attendu } = melange(Q[1], Q[2]);
+    return { enonce: Q[0], mode: "choix", choix, attendu, aides: ["Un événement (drapeau, touche, clic, message reçu) déclenche un script.", "Une variable garde une valeur ; une condition est vraie ou fausse ; une boucle répète.", "Relis le rôle de chaque type de bloc dans le cours."], solution: `Réponse : ${Q[1]}.` };
+  };
+
   /* Une « erreur connue » ne doit jamais coïncider avec la bonne réponse */
-  Object.keys(GEN).filter((k) => /^(dp4|rx4|py4|fq4|pq4|es4|pw4|th4|lc4|pb4|cs4|tl4|eq4|sx4)-/.test(k)).forEach((k) => {
+  Object.keys(GEN).filter((k) => /^(dp4|rx4|py4|fq4|pq4|es4|pw4|th4|lc4|pb4|cs4|tl4|eq4|sx4|in4)-/.test(k)).forEach((k) => {
     const g = GEN[k];
     GEN[k] = (i) => {
       const q = g(i);
