@@ -3,7 +3,7 @@
   Ce fichier se charge après assets/exercices-college.js et reprend ses outils (window.PM_EXO.college).
   Mêmes règles : chaque générateur fabrique une question avec des nombres tirés au hasard, la réponse
   attendue, trois indices progressifs et la solution rédigée.
-  Préfixes : cn3-, dv3-.
+  Préfixes : cn3-, dv3-, fc3-.
 */
 (function () {
   "use strict";
@@ -216,8 +216,95 @@
     return { enonce: Q[0], mode: "choix", choix, attendu, aides: ["Écris le nombre avec la lettre $n$, puis développe et réduis.", "Un multiple de $k$ s'écrit $k \\times$ (un entier).", "Un nombre pair s'écrit $2 \\times$ (un entier)."], solution: Q[3] };
   };
 
+  /* =====================================================================
+     Chapitre 3 : factoriser (fc3-) — facteur commun, a² − b² = (a − b)(a + b)
+     ===================================================================== */
+  const uniq3 = (bonne, L) => L.filter((z, i, T) => z !== bonne && T.indexOf(z) === i).slice(0, 3);
+  const coefX = (k, x) => (k === 1 ? x : k === -1 ? `-${x}` : `${k}${x}`);
+
+  GEN["fc3-commun"] = function () {
+    const x = pick(VAR3), t = rand(0, 2);
+    if (t === 0) { // kx² + mx avec facteur commun monôme
+      const k = rand(2, 6), p = rand(1, 5), q = nz(1, 9, true); if (pgcd(p, Math.abs(q)) > 1) return GEN["fc3-commun"]();
+      const bonne = `$${coefX(k, x)}(${poly(0, p, q, x)})$`, faux = uniq3(bonne, [`$${coefX(k, x)}(${poly(p, q, 0, x)})$`, `$${coefX(k * p, x)}(${poly(0, 1, q, x)})$`, `$${coefX(k, x)}(${poly(0, p, -q, x)})$`, `$${coefX(k, x)}(${poly(0, k * p, k * q, x)})$`]);
+      const { choix, attendu } = melange(bonne, faux);
+      return { enonce: `Factorise le plus possible $${poly(k * p, k * q, 0, x)}$.`, mode: "choix", choix, attendu,
+        aides: ["Cherche ce qui est commun aux deux termes : un nombre et une lettre.", `$${poly(k * p, 0, 0, x)} = ${coefX(k, x)} \\times ${coefX(p, x)}$ et $${poly(0, k * q, 0, x)} = ${coefX(k, x)} \\times ${relP(q)}$.`, `Le facteur commun est $${coefX(k, x)}$.`],
+        solution: `$${poly(k * p, k * q, 0, x)} = ${coefX(k, x)} \\times ${coefX(p, x)} + ${coefX(k, x)} \\times ${relP(q)} = ${coefX(k, x)}(${poly(0, p, q, x)})$.` };
+    }
+    // (x + a)(bx + c) ± (x + a)(dx + e)
+    const a = nz(1, 9, true), b = rand(1, 5), c = nz(1, 9, true), d = rand(1, 5), e = nz(1, 9, true), moins = t === 2;
+    const B = moins ? b - d : b + d, C = moins ? c - e : c + e; if (B <= 0 || C === 0 || pgcd(B, Math.abs(C)) > 1) return GEN["fc3-commun"]();
+    const F = facteur(1, a, x), ex = `${F}${facteur(b, c, x)} ${moins ? "-" : "+"} ${F}${facteur(d, e, x)}`;
+    const bonne = `$${F}(${poly(0, B, C, x)})$`;
+    const faux = uniq3(bonne, [moins ? `$${F}(${poly(0, b - d, c + e, x)})$` : `$${F}(${poly(0, b * d, c * e, x)})$`, `$${F}^2(${poly(0, B, C, x)})$`, `$${F}(${poly(0, B, -C, x)})$`, `$(${poly(0, B, C + a, x)})${F}$`]);
+    const { choix, attendu } = melange(bonne, faux);
+    return { enonce: `Factorise $${ex}$.`, mode: "choix", choix, attendu,
+      aides: [`Le facteur commun est la parenthèse $${F}$.`, `$ka ${moins ? "-" : "+"} kb = k(a ${moins ? "-" : "+"} b)$ avec $k = ${F}$.`, moins ? `Attention au signe : $${facteur(b, c, x)} - ${facteur(d, e, x)} = ${poly(0, b, c, x)} - ${d === 1 ? "" : d}${x} ${e < 0 ? "+" : "-"} ${Math.abs(e)}$.` : `Additionne $${facteur(b, c, x)}$ et $${facteur(d, e, x)}$.`],
+      solution: `$${ex} = ${F}[${facteur(b, c, x)} ${moins ? "-" : "+"} ${facteur(d, e, x)}] = ${F}(${poly(0, B, C, x)})$.` };
+  };
+
+  GEN["fc3-carres"] = function () {
+    const x = pick(VAR3), t = rand(0, 2), a = t === 0 ? 1 : rand(2, 7), b = rand(1, 9);
+    if (t < 2) {
+      if (a !== 1 && pgcd(a, b) > 1) return GEN["fc3-carres"]();
+      const A = coefX(a, x), bonne = `$(${A} - ${b})(${A} + ${b})$`;
+      const faux = uniq3(bonne, [`$(${A} - ${b})^2$`, `$(${A} - ${b * b})(${A} + ${b * b})$`, `$(${coefX(a * a, x)} - ${b})(${coefX(a * a, x)} + ${b})$`, `$(${A} + ${b})^2$`]);
+      const { choix, attendu } = melange(bonne, faux);
+      return { enonce: `Factorise $${poly(a * a, 0, -b * b, x)}$.`, mode: "choix", choix, attendu,
+        aides: ["Reconnais une différence de deux carrés : $a^2 - b^2 = (a - b)(a + b)$.", `$${poly(a * a, 0, 0, x)} = (${A})^2$ et $${b * b} = ${b}^2$.`, `Donc $a = ${A}$ et $b = ${b}$.`],
+        solution: `$${poly(a * a, 0, -b * b, x)} = (${A})^2 - ${b}^2 = (${A} - ${b})(${A} + ${b})$.` };
+    }
+    // (x + p)² − b² = (x + p − b)(x + p + b)
+    const p = nz(1, 9, true), q = b; if (Math.abs(p) === q) return GEN["fc3-carres"](); const F = facteur(1, p, x);
+    const bonne = `$(${poly(0, 1, p - q, x)})(${poly(0, 1, p + q, x)})$`;
+    const faux = uniq3(bonne, [`$(${poly(0, 1, p - q * q, x)})(${poly(0, 1, p + q * q, x)})$`, `$(${poly(0, 1, -p - q, x)})(${poly(0, 1, p + q, x)})$`, `$${F}(${poly(0, 1, p - q * q, x)})$`, `$(${poly(0, 1, p - q, x)})^2$`]);
+    const { choix, attendu } = melange(bonne, faux);
+    return { enonce: `Factorise $${F}^2 - ${q * q}$.`, mode: "choix", choix, attendu,
+      aides: ["C'est une différence de deux carrés : $a^2 - b^2 = (a - b)(a + b)$.", `Ici $a = ${F}$ et $b = ${q}$.`, `$(a - b)(a + b) = [${F} - ${q}][${F} + ${q}]$ ; réduis chaque crochet.`],
+      solution: `$${F}^2 - ${q}^2 = [${F} - ${q}][${F} + ${q}] = (${poly(0, 1, p - q, x)})(${poly(0, 1, p + q, x)})$.` };
+  };
+
+  GEN["fc3-calcul"] = function () {
+    const t = rand(0, 1);
+    if (t === 0) {
+      const a = rand(21, 99), b = rand(11, a - 2), r = a * a - b * b;
+      return { enonce: `Calcule astucieusement $${a}^2 - ${b}^2$ en factorisant.`, mode: "nombre", prefixe: "Résultat :", attendu: r,
+        erreurs: [{ valeur: (a - b) * (a - b), message: "$a^2 - b^2 \\neq (a - b)^2$ : c'est $(a - b)(a + b)$." }],
+        aides: ["$a^2 - b^2 = (a - b)(a + b)$.", `$${a}^2 - ${b}^2 = (${a} - ${b})(${a} + ${b})$.`, `$= ${a - b} \\times ${a + b}$.`],
+        solution: `$${a}^2 - ${b}^2 = (${a} - ${b})(${a} + ${b}) = ${a - b} \\times ${a + b} = ${nb(r)}$.` };
+    }
+    const k = rand(11, 99), a = rand(2, 9), b = rand(2, 9), c = pick([10, 100]) - a; // k × a + k × c = k × (a + c)
+    return { enonce: `Calcule mentalement $${k} \\times ${a} + ${k} \\times ${c}$ en factorisant.`, mode: "nombre", prefixe: "Résultat :", attendu: k * (a + c),
+      erreurs: [{ valeur: k + a + c, message: `On met $${k}$ en facteur : $${k} \\times (${a} + ${c})$.` }],
+      aides: [`$${k}$ est un facteur commun.`, `$${k} \\times ${a} + ${k} \\times ${c} = ${k} \\times (${a} + ${c})$.`, `$${a} + ${c} = ${a + c}$.`],
+      solution: `$${k} \\times (${a} + ${c}) = ${k} \\times ${a + c} = ${nb(k * (a + c))}$.` };
+  };
+
+  GEN["fc3-reconnaitre"] = function () {
+    const x = pick(VAR3), a = rand(1, 5), b = nz(1, 9, true), c = rand(1, 5), d = nz(1, 9, true), t = rand(0, 3);
+    const formes = [
+      [`${facteur(a, b, x)}${facteur(c, d, x)}`, "un produit (forme factorisée)"],
+      [`${poly(a * c, a * d + b * c, b * d, x)}`, "une somme (forme développée)"],
+      [`${facteur(a, b, x)}${facteur(c, d, x)} + ${Math.abs(b) + 1}`, "une somme (ni factorisée ni développée réduite)"],
+      [`${rand(2, 9)}${facteur(a, b, x)}^2`, "un produit (forme factorisée)"]
+    ];
+    const [ex, nature] = formes[t];
+    if (t === 2) {
+      const bonne = "une somme : ce n'est pas une forme factorisée", faux = ["un produit : c'est une forme factorisée", "un quotient", "une différence de deux carrés"];
+      const { choix, attendu } = melange(bonne, faux);
+      return { enonce: `L'expression $${ex}$ est :`, mode: "choix", choix, attendu,
+        aides: ["Cherche la **dernière** opération à effectuer si on calculait l'expression pour une valeur de $" + x + "$.", "Ici, on calcule le produit puis on ajoute un nombre.", "La dernière opération est une addition."], solution: "La dernière opération est une addition : c'est une somme, donc ce n'est pas une forme factorisée." };
+    }
+    const bonne = t === 1 ? "une somme : c'est une forme développée" : "un produit : c'est une forme factorisée";
+    const faux = uniq3(bonne, ["une somme : c'est une forme développée", "un produit : c'est une forme factorisée", "un quotient", "une différence de deux carrés"]);
+    const { choix, attendu } = melange(bonne, faux);
+    return { enonce: `L'expression $${ex}$ est :`, mode: "choix", choix, attendu,
+      aides: ["Cherche la dernière opération à effectuer si on calculait l'expression pour une valeur de $" + x + "$.", "Si c'est une multiplication, l'expression est un produit (forme factorisée).", "Si c'est une addition ou une soustraction, c'est une somme."], solution: `L'expression est ${nature}.` };
+  };
+
   /* Une « erreur connue » ne doit jamais coïncider avec la bonne réponse */
-  Object.keys(GEN).filter((k) => /^(cn3|dv3)-/.test(k)).forEach((k) => {
+  Object.keys(GEN).filter((k) => /^(cn3|dv3|fc3)-/.test(k)).forEach((k) => {
     const g = GEN[k];
     GEN[k] = (i) => {
       const q = g(i);

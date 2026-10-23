@@ -398,7 +398,7 @@ window.CATALOGUE = {
           id: "troisieme-factoriser",
           numero: 3,
           titre: "Factoriser",
-          statut: "bientot",
+          statut: "disponible",
           drive: ""
         },
         {
