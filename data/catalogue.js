@@ -454,7 +454,7 @@ window.CATALOGUE = {
           id: "troisieme-thales",
           numero: 11,
           titre: "Théorème de Thalès",
-          statut: "bientot",
+          statut: "disponible",
           drive: ""
         },
         {

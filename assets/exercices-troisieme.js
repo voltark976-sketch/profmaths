@@ -3,7 +3,7 @@
   Ce fichier se charge après assets/exercices-college.js et reprend ses outils (window.PM_EXO.college).
   Mêmes règles : chaque générateur fabrique une question avec des nombres tirés au hasard, la réponse
   attendue, trois indices progressifs et la solution rédigée.
-  Préfixes : cn3-, dv3-, fc3-, eq3-, ar3-, fn3-, fa3-, pp3-, pr3-, st3-.
+  Préfixes : cn3-, dv3-, fc3-, eq3-, ar3-, fn3-, fa3-, pp3-, pr3-, st3-, th3-.
 */
 (function () {
   "use strict";
@@ -942,8 +942,92 @@
     return { enonce: Q[0], mode: "choix", choix, attendu, aides: ["La moyenne est sensible aux valeurs extrêmes ; la médiane l'est peu.", "L'étendue mesure la dispersion.", "La médiane partage la série en deux groupes de même effectif."], solution: `Réponse : ${Q[1]}.` };
   };
 
+  /* =====================================================================
+     Chapitre 11 : théorème de Thalès (th3-) — deux configurations, réciproque, problèmes
+     ===================================================================== */
+  const NOMS3 = [["A", "M", "N", "B", "C"], ["O", "E", "F", "G", "H"], ["S", "R", "T", "U", "V"], ["K", "I", "J", "L", "P"]];
+  // k > 0 : triangle emboîté (M sur [AB]) ; k < 0 : papillon (M sur la demi-droite opposée)
+  function figureThales3(noms, k) {
+    const [A, M, N, B, C] = noms;
+    const pA = k > 0 ? [150, 20] : [150, 92], pB = k > 0 ? [36, 182] : [52, 184], pC = k > 0 ? [292, 176] : [272, 178];
+    const P = (u, v, t) => [+(u[0] + t * (v[0] - u[0])).toFixed(1), +(u[1] + t * (v[1] - u[1])).toFixed(1)];
+    const pM = P(pA, pB, k), pN = P(pA, pC, k);
+    const segs = k > 0 ? [[A, B], [A, C], [B, C], [M, N]] : [[M, B], [N, C], [B, C], [M, N]];
+    const decal = k > 0 ? { [A]: [-4, -6], [B]: [-12, 6], [C]: [6, 6], [M]: [-14, 0], [N]: [6, 0] } : { [A]: [12, 4], [B]: [-12, 6], [C]: [6, 6], [M]: [8, -4], [N]: [-14, -4] };
+    return geo({ W: 320, H: 200, pts: { [A]: pA, [B]: pB, [C]: pC, [M]: pM, [N]: pN }, segs, decal, aria: k > 0 ? `Triangle ${A}${B}${C}, ${M} sur [${A}${B}], ${N} sur [${A}${C}], (${M}${N}) parallèle à (${B}${C})` : `Configuration papillon : droites (${B}${M}) et (${C}${N}) sécantes en ${A}, (${M}${N}) parallèle à (${B}${C})` });
+  }
+  const tireThales3 = () => {
+    for (;;) {
+      const num = rand(1, 4), den = rand(num + 1, 7), k = num / den, AB = rand(2, 9) * den / pgcd(num, den), AC = rand(2, 9) * den / pgcd(num, den), BC = rand(2, 9) * den / pgcd(num, den);
+      const AM = AB * k, AN = AC * k, MN = BC * k;
+      if (AB + AC <= BC || AB + BC <= AC || AC + BC <= AB) continue;
+      if ([AM, AN, MN].every((x) => Number.isInteger(x * 10))) return { k, AB, AC, BC, AM, AN, MN };
+    }
+  };
+
+  GEN["th3-longueur"] = function () {
+    const N = pick(NOMS3), [A, M, Np, B, C] = N, pap = Math.random() < 0.6, T = tireThales3(), t = rand(0, 2);
+    const nomsL = { AM: A + M, AB: A + B, AN: A + Np, AC: A + C, MN: M + Np, BC: B + C };
+    const [cherche, donnes] = [["AN", ["AM", "AB", "AC"]], ["MN", ["AM", "AB", "BC"]], ["AB", ["AM", "AN", "AC"]]][t];
+    const vals = { AM: T.AM, AB: T.AB, AN: T.AN, AC: T.AC, MN: T.MN, BC: T.BC };
+    const hyp = pap ? `Les droites $(${B}${M})$ et $(${C}${Np})$ se coupent en $${A}$, et $(${M}${Np}) \\parallel (${B}${C})$` : `$${M} \\in [${A}${B}]$, $${Np} \\in [${A}${C}]$ et $(${M}${Np}) \\parallel (${B}${C})$`;
+    const r1 = `\\dfrac{${nomsL.AM}}{${nomsL.AB}}`, r2 = `\\dfrac{${nomsL.AN}}{${nomsL.AC}}`, r3 = `\\dfrac{${nomsL.MN}}{${nomsL.BC}}`;
+    const rep = vals[cherche], egal = { AN: [r1, r2, `${nomsL.AN} = \\dfrac{${nb(T.AC)} \\times ${nb(T.AM)}}{${nb(T.AB)}}`], MN: [r1, r3, `${nomsL.MN} = \\dfrac{${nb(T.BC)} \\times ${nb(T.AM)}}{${nb(T.AB)}}`], AB: [r1, r2, `${nomsL.AB} = \\dfrac{${nb(T.AM)} \\times ${nb(T.AC)}}{${nb(T.AN)}}`] }[cherche];
+    return { enonce: `${hyp}. On sait que ${donnes.map((d) => `$${nomsL[d]} = ${nb(vals[d])}$ cm`).join(", ")}. Calcule $${nomsL[cherche]}$.`, figure: figureThales3(N, pap ? -T.k : T.k), mode: "nombre", prefixe: `$${nomsL[cherche]} =$`, suffixe: "cm", attendu: rep,
+      erreurs: [{ valeur: arr({ AN: (T.AC * T.AB) / T.AM, MN: (T.BC * T.AB) / T.AM, AB: (T.AN * T.AC) / T.AM }[cherche], 4), message: "Vérifie le rapport : petit triangle en haut, grand triangle en bas, côtés correspondants." }],
+      aides: [pap ? "Configuration « papillon » : les deux triangles sont opposés par le sommet, le théorème de Thalès s'applique de la même façon." : "Le petit triangle est une réduction du grand.", `$${r1} = ${r2} = ${r3}$.`, `Choisis l'égalité $${egal[0]} = ${egal[1]}$ puis fais un produit en croix.`],
+      solution: `D'après le théorème de Thalès, $${r1} = ${r2} = ${r3}$. Donc $${egal[2]} = ${nb(rep)}$ cm.` };
+  };
+
+  GEN["th3-reciproque"] = function () {
+    const N = pick(NOMS3), [A, M, Np, B, C] = N, pap = Math.random() < 0.5;
+    const AB = rand(4, 15), AM = rand(1, AB - 1), AC = rand(4, 15), AN0 = (AM * AC) / AB, par = Math.random() < 0.5;
+    if (!Number.isInteger(AN0 * 10)) return GEN["th3-reciproque"]();
+    const AN = par ? AN0 : arr(AN0 + pick([-0.5, 0.5, 1, -1]), 2); if (AN <= 0) return GEN["th3-reciproque"]();
+    const pos = pap ? `Les points $${M}$, $${A}$, $${B}$ d'une part et $${Np}$, $${A}$, $${C}$ d'autre part sont alignés dans cet ordre` : `$${M} \\in [${A}${B}]$ et $${Np} \\in [${A}${C}]$`;
+    const choix = [`Oui, car $\\dfrac{${A}${M}}{${A}${B}} = \\dfrac{${A}${Np}}{${A}${C}}$ et les points sont dans le même ordre`, `Non, car $\\dfrac{${A}${M}}{${A}${B}} \\neq \\dfrac{${A}${Np}}{${A}${C}}$`, `Oui, car $${A}${M} + ${A}${B} = ${A}${Np} + ${A}${C}$`, "On ne peut pas savoir sans mesurer les angles"];
+    return { enonce: `${pos}, avec $${A}${M} = ${AM}$ cm, $${A}${B} = ${AB}$ cm, $${A}${Np} = ${nb(AN)}$ cm et $${A}${C} = ${AC}$ cm. Les droites $(${M}${Np})$ et $(${B}${C})$ sont-elles parallèles ?`, mode: "choix", choix, attendu: par ? 0 : 1,
+      aides: ["Compare les rapports $\\dfrac{" + A + M + "}{" + A + B + "}$ et $\\dfrac{" + A + Np + "}{" + A + C + "}$ (ou les produits en croix).", `$${AM} \\times ${AC} = ${AM * AC}$ et $${AB} \\times ${nb(AN)} = ${nb(arr(AB * AN, 4))}$.`, "Égaux : réciproque de Thalès (droites parallèles). Différents : contraposée (pas parallèles)."],
+      solution: par ? `$${AM} \\times ${AC} = ${AB} \\times ${nb(AN)}$ : les rapports sont égaux et les points sont dans le même ordre. D'après la réciproque du théorème de Thalès, les droites sont parallèles.` : `$${AM} \\times ${AC} = ${AM * AC}$ et $${AB} \\times ${nb(AN)} = ${nb(arr(AB * AN, 4))}$ : les rapports sont différents. D'après la contraposée du théorème de Thalès, les droites ne sont pas parallèles.` };
+  };
+
+  GEN["th3-rapport"] = function () {
+    const N = pick(NOMS3), [A, M, Np, B, C] = N, AB = rand(4, 15), AM = rand(1, AB - 1), t = rand(0, 1);
+    if (pgcd(AM, AB) === 1 && Math.random() < 0.3) return GEN["th3-rapport"]();
+    const k = AM / AB;
+    if (t === 0) { const S = rand(2, 12) * AB * AB, s = arr(S * k * k, 4);
+      return { enonce: `Le triangle $${A}${M}${Np}$ est une réduction du triangle $${A}${B}${C}$ ($(${M}${Np}) \\parallel (${B}${C})$) avec $${A}${M} = ${AM}$ cm et $${A}${B} = ${AB}$ cm. L'aire de $${A}${B}${C}$ est $${nb(S)}$ cm². Quelle est l'aire de $${A}${M}${Np}$ ?`, mode: "nombre", prefixe: "Aire :", suffixe: "cm²", attendu: s,
+        erreurs: [{ valeur: arr(S * k, 4), message: "Dans une réduction de rapport $k$, les aires sont multipliées par $k^2$." }],
+        aides: [`Rapport de réduction : $k = \\dfrac{${AM}}{${AB}}$.`, "Les aires sont multipliées par $k^2$.", `Aire $= ${nb(S)} \\times \\left(${fr(AM, AB)}\\right)^2$.`], solution: `$${nb(S)} \\times \\left(${fr(AM, AB)}\\right)^2 = ${nb(S)} \\times ${fr(AM * AM, AB * AB)} = ${nb(s)}$ cm².` }; }
+    const bonne = `$${frS(AM, AB)}$`, faux = uniq3(bonne, [`$${frS(AB, AM)}$`, `$${frS(AM, AB - AM)}$`, `$${frS(AM * AM, AB * AB)}$`, `$${frS(AB - AM, AB)}$`]);
+    const { choix, attendu } = melange(bonne, faux);
+    return { enonce: `$(${M}${Np}) \\parallel (${B}${C})$ avec $${M} \\in [${A}${B}]$, $${A}${M} = ${AM}$ cm et $${A}${B} = ${AB}$ cm. Quel est le coefficient de réduction qui transforme $${A}${B}${C}$ en $${A}${M}${Np}$ ?`, mode: "choix", choix, attendu,
+      aides: ["Coefficient de réduction $=$ longueur du petit triangle $\\div$ longueur correspondante du grand.", `$k = \\dfrac{${A}${M}}{${A}${B}}$.`, "Il est inférieur à $1$."], solution: `$k = \\dfrac{${AM}}{${AB}} = ${frS(AM, AB)}$.` };
+  };
+
+  GEN["th3-problemes"] = function () {
+    const t = rand(0, 2);
+    if (t === 0) { // largeur d'une rivière (papillon)
+      const a = rand(2, 9), b = rand(3, 12), c = rand(4, 15), L = arr((b * c) / a, 2);
+      if (!Number.isInteger(L * 10)) return GEN["th3-problemes"]();
+      return { enonce: `Pour mesurer la largeur $L$ d'une rivière, on forme deux triangles opposés par un sommet, avec deux côtés parallèles. Du côté accessible, les côtés mesurent $${a}$ m et $${b}$ m ; le côté de l'autre triangle correspondant à $${a}$ m mesure $${c}$ m. Calcule la largeur $L$ (côté correspondant à $${b}$ m).`, mode: "nombre", prefixe: "$L =$", suffixe: "m", attendu: L,
+        erreurs: [{ valeur: arr((a * c) / b, 2), message: "Les rapports se forment entre côtés correspondants : $\\dfrac{L}{" + b + "} = \\dfrac{" + c + "}{" + a + "}$." }],
+        aides: ["Configuration papillon : le théorème de Thalès s'applique.", `$\\dfrac{L}{${b}} = \\dfrac{${c}}{${a}}$.`, `$L = \\dfrac{${b} \\times ${c}}{${a}}$.`], solution: `$L = \\dfrac{${b} \\times ${c}}{${a}} = ${nb(L)}$ m.` }; }
+    if (t === 1) { // hauteur avec ombre
+      const b = rand(10, 20) / 10, o = rand(15, 40) / 10, O = rand(8, 30), H = arr((b * O) / o, 2);
+      if (!Number.isInteger(H * 100)) return GEN["th3-problemes"]();
+      return { enonce: `Au même moment, un piquet vertical de $${nb(b)}$ m a une ombre de $${nb(o)}$ m et un immeuble a une ombre de $${O}$ m. Quelle est la hauteur de l'immeuble ?`, mode: "nombre", prefixe: "Hauteur :", suffixe: "m", attendu: H,
+        erreurs: [{ valeur: arr((o * O) / b, 2), message: "Hauteur et ombre de l'immeuble sont proportionnelles à celles du piquet, dans le même sens." }],
+        aides: ["Les rayons du soleil sont parallèles : configuration de Thalès.", `$\\dfrac{h}{${nb(b)}} = \\dfrac{${O}}{${nb(o)}}$.`, `$h = \\dfrac{${nb(b)} \\times ${O}}{${nb(o)}}$.`], solution: `$h = \\dfrac{${nb(b)} \\times ${O}}{${nb(o)}} = ${nb(H)}$ m.` }; }
+    // agrandissement d'un volume / longueur sur une maquette
+    const e = pick([10, 20, 25, 50, 100]), l = rand(3, 30), r = l * e;
+    return { enonce: `Une maquette est une réduction à l'échelle $${fr(1, e)}$ d'un bateau. Sur la maquette, le mât mesure $${l}$ cm. Quelle est la hauteur réelle du mât, en mètres ?`, mode: "nombre", prefixe: "Hauteur :", suffixe: "m", attendu: r / 100,
+      erreurs: [{ valeur: r, message: "C'est la hauteur en centimètres : convertis en mètres." }, { valeur: l / e, message: "La taille réelle est plus grande : on multiplie par $" + e + "$." }],
+      aides: [`Échelle $${fr(1, e)}$ : $1$ cm sur la maquette représente $${e}$ cm en réalité.`, `$${l} \\times ${e} = ${r}$ cm.`, "$100$ cm $= 1$ m."], solution: `$${l} \\times ${e} = ${r}$ cm $= ${nb(r / 100)}$ m.` };
+  };
+
   /* Une « erreur connue » ne doit jamais coïncider avec la bonne réponse */
-  Object.keys(GEN).filter((k) => /^(cn3|dv3|fc3|eq3|ar3|fn3|fa3|pp3|pr3|st3)-/.test(k)).forEach((k) => {
+  Object.keys(GEN).filter((k) => /^(cn3|dv3|fc3|eq3|ar3|fn3|fa3|pp3|pr3|st3|th3)-/.test(k)).forEach((k) => {
     const g = GEN[k];
     GEN[k] = (i) => {
       const q = g(i);
