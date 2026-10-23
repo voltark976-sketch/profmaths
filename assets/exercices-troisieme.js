@@ -3,7 +3,7 @@
   Ce fichier se charge après assets/exercices-college.js et reprend ses outils (window.PM_EXO.college).
   Mêmes règles : chaque générateur fabrique une question avec des nombres tirés au hasard, la réponse
   attendue, trois indices progressifs et la solution rédigée.
-  Préfixes : cn3-, dv3-, fc3-, eq3-, ar3-, fn3-.
+  Préfixes : cn3-, dv3-, fc3-, eq3-, ar3-, fn3-, fa3-.
 */
 (function () {
   "use strict";
@@ -610,8 +610,89 @@
       aides: ["Applique le programme à $x$, étape par étape.", u ? `D'abord $x + ${m}$, puis on multiplie le tout par $${k}$.` : `D'abord $${k}x$, puis on ajoute $${m}$.`, "Les parenthèses sont nécessaires quand l'addition est faite en premier."], solution: `Réponse : ${bonne}.` };
   };
 
+  /* =====================================================================
+     Chapitre 7 : fonctions linéaires et affines (fa3-)
+     ===================================================================== */
+  const affTex = (a, b) => poly(0, a, b, "x");
+  const fenetre = (f) => { const ys = [-4, 4].map(f), lo = Math.floor(Math.min(...ys, 0)), hi = Math.ceil(Math.max(...ys, 0)); return { xmin: -4, xmax: 4, ymin: Math.max(lo, -8), ymax: Math.min(hi, 8) }; };
+
+  GEN["fa3-reconnaitre"] = function () {
+    const a = nz(2, 9, true), b = nz(1, 9, true), t = rand(0, 2);
+    if (t === 0) {
+      const L = [[`$f(x) = ${affTex(a, b)}$`, "affine (non linéaire)"], [`$f(x) = ${affTex(a, 0)}$`, "linéaire (donc affine)"], [`$f(x) = ${poly(a, 0, b, "x")}$`, "ni linéaire ni affine"], [`$f(x) = \\dfrac{${a}}{x}$`, "ni linéaire ni affine"], [`$f(x) = ${a}(x ${b < 0 ? "-" : "+"} ${Math.abs(b)})$`, "affine (non linéaire)"]];
+      const [ex, nature] = pick(L), opts = ["affine (non linéaire)", "linéaire (donc affine)", "ni linéaire ni affine", "on ne peut pas savoir"];
+      const { choix, attendu } = melange(nature, opts.filter((o) => o !== nature));
+      return { enonce: `La fonction ${ex} est :`, mode: "choix", choix, attendu,
+        aides: ["Une fonction affine s'écrit $f(x) = ax + b$ ; linéaire si en plus $b = 0$.", "Développe si nécessaire pour voir la forme $ax + b$.", "Un $x^2$ ou un $x$ au dénominateur : ce n'est pas affine."], solution: `${ex} est ${nature}.` };
+    }
+    if (t === 1) { const v = nz(1, 8, true), r = a * v + b;
+      return { enonce: `$f$ est la fonction affine $f(x) = ${affTex(a, b)}$. Calcule $f(${rel(v)})$.`, mode: "nombre", prefixe: `$f(${rel(v)}) =$`, attendu: r,
+        erreurs: [{ valeur: a * v - b, message: "Garde le signe de $b$." }], aides: [`Remplace $x$ par $${relP(v)}$.`, `$${a} \\times ${relP(v)} = ${rel(a * v)}$.`, `Puis ajoute $${relP(b)}$.`], solution: `$f(${rel(v)}) = ${a} \\times ${relP(v)} ${b < 0 ? "-" : "+"} ${Math.abs(b)} = ${rel(r)}$.` }; }
+    const c = rand(0, 1);
+    return { enonce: `On considère la fonction affine $f(x) = ${affTex(a, b)}$. Quel est ${c ? "son coefficient directeur $a$" : "son ordonnée à l'origine $b$"} ?`, mode: "nombre", prefixe: c ? "$a =$" : "$b =$", attendu: c ? a : b,
+      erreurs: [{ valeur: c ? b : a, message: c ? "Le coefficient directeur multiplie $x$." : "L'ordonnée à l'origine est le nombre seul, $f(0)$." }],
+      aides: ["Écris $f(x)$ sous la forme $ax + b$.", "$a$ est le nombre qui multiplie $x$.", "$b$ est le nombre seul : $b = f(0)$."], solution: `$f(x) = ${affTex(a, b)}$ : $a = ${rel(a)}$ et $b = ${rel(b)}$.` };
+  };
+
+  GEN["fa3-deux-points"] = function () {
+    const a = nz(1, 6, true), b = rand(-10, 10), x1 = rand(-5, 4), x2 = x1 + rand(1, 6), y1 = a * x1 + b, y2 = a * x2 + b, q = rand(0, 1);
+    return { enonce: `$f$ est une fonction affine telle que $f(${rel(x1)}) = ${rel(y1)}$ et $f(${rel(x2)}) = ${rel(y2)}$. Détermine ${q ? "son coefficient directeur $a$" : "son ordonnée à l'origine $b$"}.`, mode: "nombre", prefixe: q ? "$a =$" : "$b =$", attendu: q ? a : b,
+      erreurs: q ? [{ valeur: arr((x2 - x1) / (y2 - y1), 4), message: "C'est $\\dfrac{f(x_2) - f(x_1)}{x_2 - x_1}$ : les images en haut." }] : [{ valeur: a, message: "Ça, c'est $a$ ; il faut ensuite calculer $b$." }],
+      aides: ["$a = \\dfrac{f(x_2) - f(x_1)}{x_2 - x_1}$ : l'accroissement des images divisé par celui des nombres.", `$a = \\dfrac{${rel(y2)} - ${relP(y1)}}{${rel(x2)} - ${relP(x1)}} = \\dfrac{${y2 - y1}}{${x2 - x1}} = ${rel(a)}$.`, `Puis $b = f(${rel(x1)}) - a \\times ${relP(x1)}$.`],
+      solution: `$a = \\dfrac{${y2 - y1}}{${x2 - x1}} = ${rel(a)}$ ; $b = ${rel(y1)} - ${relP(a)} \\times ${relP(x1)} = ${rel(b)}$. Donc $f(x) = ${affTex(a, b)}$.` };
+  };
+
+  GEN["fa3-graphe"] = function () {
+    const a = pick([-3, -2, -1, 1, 2, 3, 0.5, -0.5]), b = rand(-3, 3), f = (x) => a * x + b, W = fenetre(f), q = rand(0, 2);
+    if (W.ymax - W.ymin < 4) return GEN["fa3-graphe"]();
+    const fig = repere3({ f, ...W, nom: "𝒟", aria: `Droite représentant une fonction affine, passant par (0 ; ${b}) avec une pente de ${a}` });
+    if (q === 0) return { enonce: "La droite représente une fonction affine $f(x) = ax + b$. Lis l'ordonnée à l'origine $b$.", figure: fig, mode: "nombre", prefixe: "$b =$", attendu: b,
+      aides: ["$b = f(0)$ : c'est l'ordonnée du point de la droite situé sur l'axe vertical.", "Repère où la droite coupe l'axe des ordonnées.", "Lis la graduation."], solution: `La droite coupe l'axe des ordonnées en $${rel(b)}$ : $b = ${rel(b)}$.` };
+    if (q === 1) return { enonce: "La droite représente une fonction affine $f(x) = ax + b$. Lis son coefficient directeur $a$.", figure: fig, mode: "nombre", prefixe: "$a =$", attendu: a,
+      erreurs: [{ valeur: -a, message: "Si la droite monte de gauche à droite, $a$ est positif ; si elle descend, $a$ est négatif." }, { valeur: b, message: "Ça, c'est l'ordonnée à l'origine." }],
+      aides: ["Quand $x$ augmente de $1$, $f(x)$ augmente de $a$.", `Pars du point $(0 ; ${rel(b)})$ et avance de ${Math.abs(a) === 0.5 ? "$2$ unités vers la droite" : "$1$ unité vers la droite"}.`, Math.abs(a) === 0.5 ? "De combien monte-t-on (ou descend-on) ? Divise par $2$." : "De combien faut-il monter (ou descendre) pour retrouver la droite ?"],
+      solution: `Quand $x$ augmente de $${Math.abs(a) === 0.5 ? 2 : 1}$, $f(x)$ ${a > 0 ? "augmente" : "diminue"} de $${nb(Math.abs(a) === 0.5 ? 1 : Math.abs(a))}$ : $a = ${rel(a)}$.` };
+    let x0; do x0 = rand(-3, 3); while (!Number.isInteger(f(x0)) || f(x0) < W.ymin || f(x0) > W.ymax || x0 === 0);
+    return { enonce: `La droite représente une fonction affine $f$. Lis $f(${rel(x0)})$.`, figure: fig, mode: "nombre", prefixe: `$f(${rel(x0)}) =$`, attendu: f(x0),
+      erreurs: [{ valeur: x0, message: "On lit l'ordonnée du point de la droite, pas son abscisse." }],
+      aides: [`Pars de $${rel(x0)}$ sur l'axe horizontal.`, "Rejoins la droite verticalement.", "Lis l'ordonnée."], solution: `Le point de la droite d'abscisse $${rel(x0)}$ a pour ordonnée $${rel(f(x0))}$.` };
+  };
+
+  GEN["fa3-problemes"] = function () {
+    const t = rand(0, 2);
+    if (t === 0) { // pourcentage : fonction linéaire
+      const p = pick([5, 10, 15, 20, 25, 30, 40, 50]), up = Math.random() < 0.5, k = arr(up ? 1 + p / 100 : 1 - p / 100, 2), x = rand(2, 40) * 10, q = rand(0, 1);
+      if (q === 0) return { enonce: `${up ? "Augmenter" : "Diminuer"} un prix de $${p}\\,\\%$ revient à appliquer une fonction linéaire $f(x) = kx$. Quel est le coefficient $k$ ?`, mode: "nombre", prefixe: "$k =$", attendu: k,
+        erreurs: [{ valeur: p / 100, message: `Il faut garder le prix de départ : $k = 1 ${up ? "+" : "-"} \\dfrac{${p}}{100}$.` }, { valeur: arr(up ? 1 - p / 100 : 1 + p / 100, 2), message: up ? "Pour une augmentation, $k > 1$." : "Pour une diminution, $k < 1$." }],
+        aides: [`${up ? "Augmenter" : "Diminuer"} de $${p}\\,\\%$, c'est ${up ? "ajouter" : "retirer"} $\\dfrac{${p}}{100}$ du prix.`, `$x ${up ? "+" : "-"} \\dfrac{${p}}{100}x = \\left(1 ${up ? "+" : "-"} \\dfrac{${p}}{100}\\right)x$.`, `$1 ${up ? "+" : "-"} ${nb(p / 100)}$.`], solution: `$k = 1 ${up ? "+" : "-"} ${nb(p / 100)} = ${nb(k)}$.` };
+      return { enonce: `Un article coûte $${x}$ €. Son prix ${up ? "augmente" : "baisse"} de $${p}\\,\\%$. Quel est le nouveau prix ?`, mode: "nombre", prefixe: "Nouveau prix :", suffixe: "€", attendu: arr(x * k, 2),
+        erreurs: [{ valeur: arr((x * p) / 100, 2), message: "Ça, c'est le montant de la variation ; ajoute-le ou retire-le au prix." }],
+        aides: [`On applique $f(x) = ${nb(k)}x$.`, `$${x} \\times ${nb(k)}$.`, "Vérifie que le prix augmente ou baisse dans le bon sens."], solution: `$${x} \\times ${nb(k)} = ${nb(arr(x * k, 2))}$ €.` };
+    }
+    if (t === 1) { // deux tarifs : comparaison
+      const a1 = rand(3, 9), b2 = rand(2, 8) * 5, a2 = rand(1, a1 - 1), n = rand(2, 30), q = rand(0, 1);
+      if (q === 0) { const c1 = a1 * n, c2 = b2 + a2 * n, best = c1 < c2 ? "A" : c1 > c2 ? "B" : "les deux";
+        const bonne = best === "les deux" ? "les deux tarifs coûtent pareil" : `le tarif ${best}`, faux = ["le tarif A", "le tarif B", "les deux tarifs coûtent pareil"].filter((z) => z !== bonne).concat(["on ne peut pas savoir"]);
+        const { choix, attendu } = melange(bonne, faux);
+        return { enonce: `Tarif A : $f(x) = ${a1}x$ ; tarif B : $g(x) = ${a2}x + ${b2}$, où $x$ est le nombre de séances. Pour $${n}$ séances, quel est le tarif le moins cher ?`, mode: "choix", choix, attendu,
+          aides: [`Calcule $f(${n})$ et $g(${n})$.`, `$f(${n}) = ${c1}$ €.`, `$g(${n}) = ${c2}$ €.`], solution: `$f(${n}) = ${c1}$ € et $g(${n}) = ${c2}$ € : ${bonne}.` }; }
+      if (b2 % (a1 - a2)) return GEN["fa3-problemes"]();
+      const s = b2 / (a1 - a2);
+      return { enonce: `Tarif A : $f(x) = ${a1}x$ ; tarif B : $g(x) = ${a2}x + ${b2}$, où $x$ est le nombre de séances. Pour combien de séances les deux tarifs sont-ils égaux ?`, mode: "nombre", prefixe: "Séances :", attendu: s,
+        aides: ["Résous $f(x) = g(x)$.", `$${a1}x = ${a2}x + ${b2}$.`, `$${poly(0, a1 - a2, 0, "x")} = ${b2}$.`], solution: `$${poly(0, a1 - a2, 0, "x")} = ${b2}$, donc $x = ${s}$ séances.` };
+    }
+    // taxi : prise en charge + prix au km
+    const pc = rand(2, 6), pk = pick([1.2, 1.5, 1.8, 2, 2.5]), d = rand(3, 25), C = arr(pc + pk * d, 2), q = rand(0, 1);
+    if (q === 0) return { enonce: `Un taxi facture $${pc}$ € de prise en charge et $${nb(pk)}$ € par kilomètre. Le prix est une fonction affine de la distance $x$. Combien coûte une course de $${d}$ km ?`, mode: "nombre", prefixe: "Prix :", suffixe: "€", attendu: C,
+      erreurs: [{ valeur: arr(pk * d, 2), message: "N'oublie pas la prise en charge." }],
+      aides: [`$f(x) = ${nb(pk)}x + ${pc}$.`, `Calcule $f(${d})$.`, `$${nb(pk)} \\times ${d} = ${nb(arr(pk * d, 2))}$.`], solution: `$f(${d}) = ${nb(pk)} \\times ${d} + ${pc} = ${nb(C)}$ €.` };
+    return { enonce: `Un taxi facture $${pc}$ € de prise en charge et $${nb(pk)}$ € par kilomètre. Une course a coûté $${nb(C)}$ €. Quelle distance a été parcourue ?`, mode: "nombre", prefixe: "Distance :", suffixe: "km", attendu: d,
+      erreurs: [{ valeur: arr(C / pk, 2), message: "Retire d'abord la prise en charge." }],
+      aides: [`Résous $${nb(pk)}x + ${pc} = ${nb(C)}$.`, `$${nb(pk)}x = ${nb(arr(C - pc, 2))}$.`, `Divise par $${nb(pk)}$.`], solution: `$x = \\dfrac{${nb(arr(C - pc, 2))}}{${nb(pk)}} = ${d}$ km.` };
+  };
+
   /* Une « erreur connue » ne doit jamais coïncider avec la bonne réponse */
-  Object.keys(GEN).filter((k) => /^(cn3|dv3|fc3|eq3|ar3|fn3)-/.test(k)).forEach((k) => {
+  Object.keys(GEN).filter((k) => /^(cn3|dv3|fc3|eq3|ar3|fn3|fa3)-/.test(k)).forEach((k) => {
     const g = GEN[k];
     GEN[k] = (i) => {
       const q = g(i);

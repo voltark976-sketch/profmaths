@@ -426,7 +426,7 @@ window.CATALOGUE = {
           id: "troisieme-fonctions-affines",
           numero: 7,
           titre: "Fonctions linéaires et affines",
-          statut: "bientot",
+          statut: "disponible",
           drive: ""
         },
         {
