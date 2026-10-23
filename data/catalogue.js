@@ -391,7 +391,7 @@ window.CATALOGUE = {
           id: "troisieme-developper",
           numero: 2,
           titre: "Développer",
-          statut: "bientot",
+          statut: "disponible",
           drive: ""
         },
         {
