@@ -39,7 +39,9 @@ window.CHAPITRES["sixieme-division"] = {
         "- par $2$ : $0$, $2$, $4$, $6$ ou $8$ (le nombre est **pair**) ;\n" +
         "- par $5$ : $0$ ou $5$ ;\n" +
         "- par $10$ : $0$.\n\n" +
-        "On ne divise jamais par $0$ : la division par $0$ n'a pas de sens.",
+        "On ne divise jamais par $0$ : la division par $0$ n'a pas de sens.\n\n" +
+        "Sur la figure, $12$ jetons forment $3$ rangées de $4$ : $12 = 3 \\times 4$, donc $3$ et $4$ sont des diviseurs de $12$.",
+      figure: "d6-cours-multiples",
       exemple: {
         enonce: "Donne les quatre premiers multiples de $5$. $134$ est-il un multiple de $12$ ? Trouve tous les diviseurs de $12$.",
         solution: "Multiples de $5$ : $0$ ; $5$ ; $10$ ; $15$.\n\n$12 \\times 11 = 132$ et $12 \\times 12 = 144$ : $134$ n'est pas dans la table de $12$, ce n'est pas un multiple de $12$.\n\n$12 = 1 \\times 12 = 2 \\times 6 = 3 \\times 4$ : les diviseurs de $12$ sont $1$ ; $2$ ; $3$ ; $4$ ; $6$ ; $12$."
@@ -54,7 +56,8 @@ window.CHAPITRES["sixieme-division"] = {
         "- $73$ est le **dividende**, $3$ le **diviseur** ;\n" +
         "- $24$ est le **quotient**, $1$ le **reste**.\n\n" +
         "**Dividende $=$ diviseur $\\times$ quotient $+$ reste**, et le reste est toujours **plus petit que le diviseur**.\n\n" +
-        "Si le reste est $0$, le dividende est un multiple du diviseur.",
+        "Si le reste est $0$, le dividende est un multiple du diviseur. La figure montre où l'on écrit chaque terme quand on pose la division.",
+      figure: "d6-cours-potence",
       exemple: {
         enonce: "Effectue la division euclidienne de $2\\,102$ par $59$.",
         solution: "$59 \\times 35 = 2\\,065$ et $59 \\times 36 = 2\\,124$ (trop grand).\n\nDonc $2\\,102 = 59 \\times 35 + 37$ : le quotient est $35$, le reste est $37$, et $37 < 59$."
@@ -67,7 +70,9 @@ window.CHAPITRES["sixieme-division"] = {
         "Une division répond à deux sortes de questions :\n\n" +
         "- **le partage** : combien chacun reçoit-il ? (on connaît le nombre de parts) ;\n" +
         "- **le groupement** : combien de parts peut-on faire ? (on connaît la taille d'une part).\n\n" +
-        "Il faut ensuite **interpréter le reste** selon la question : faut-il un car de plus pour les élèves qui restent ? Les objets en trop sont-ils perdus ?",
+        "Il faut ensuite **interpréter le reste** selon la question : faut-il un car de plus pour les élèves qui restent ? Les objets en trop sont-ils perdus ?\n\n" +
+        "Le schéma illustre l'exemple : $4$ cars pleins de $55$ élèves, et $16$ élèves en plus.",
+      figure: "d6-cours-cars",
       exemple: {
         enonce: "$236$ élèves partent en sortie dans des cars de $55$ places. Combien de cars faut-il ?",
         solution: "$236 = 55 \\times 4 + 16$ : $4$ cars pleins, et il reste $16$ élèves.\n\nIl faut un car de plus pour eux : $5$ cars."
@@ -81,6 +86,7 @@ window.CHAPITRES["sixieme-division"] = {
         "- quand on abaisse le premier chiffre après la virgule, on écrit **une virgule au quotient** ;\n" +
         "- si le reste n'est pas nul, on ajoute des **zéros** après la virgule du dividende et on continue.\n\n" +
         "On vérifie en multipliant : $8{,}03 \\times 4 = 32{,}12$.",
+      figure: "d6-cours-decimale",
       exemple: {
         enonce: "Calcule $32{,}12 \\div 4$ et $45 \\div 8$.",
         solution: "$32{,}12 \\div 4 = 8{,}03$ : dans $1$ dixième, il y a $0$ fois $4$, on écrit $0$ au quotient.\n\n$45 \\div 8$ : on écrit $45{,}000$ et on continue après la virgule : $45 \\div 8 = 5{,}625$."
@@ -93,6 +99,7 @@ window.CHAPITRES["sixieme-division"] = {
         "Certaines divisions ne s'arrêtent jamais : $23 \\div 6 = 3{,}8333\\ldots$ Le quotient n'est pas un nombre décimal.\n\n" +
         "On en donne alors une **valeur arrondie** : on calcule **un chiffre de plus** que la précision demandée, puis on arrondit.\n\n" +
         "$23 \\div 6 \\approx 3{,}8$ (au dixième) et $23 \\div 6 \\approx 3{,}83$ (au centième).",
+      figure: "d6-cours-arrondi",
       exemple: {
         enonce: "On partage $100$ € entre $3$ personnes. Combien reçoit chacune, au centime près ?",
         solution: "$100 \\div 3 = 33{,}333\\ldots$ Le chiffre des millièmes est $3$ : on garde $33{,}33$.\n\nChacune reçoit environ $33{,}33$ € (et il reste $1$ centime)."
@@ -107,7 +114,9 @@ window.CHAPITRES["sixieme-division"] = {
         "- $1$ siècle $= 100$ ans ; $1$ millénaire $= 1\\,000$ ans.\n" +
         "- Une demi-heure $= 30$ min ; un quart d'heure $= 15$ min ; trois quarts d'heure $= 45$ min.\n\n" +
         "Les durées se comptent par **soixante**, pas par dix : $1{,}5$ h $= 1$ h $30$ min, et non $1$ h $50$ min. Pour passer des heures décimales aux minutes, on multiplie par $60$.\n\n" +
+        "Sur une horloge, la **petite** aiguille indique les heures et la **grande** les minutes (chaque chiffre vaut $5$ min). La figure indique $10$ h $15$ le matin, ou $22$ h $15$ le soir.\n\n" +
         "Le savais-tu ? Compter par $60$ vient des Babyloniens, il y a environ $4\\,000$ ans.",
+      figure: "d6-cours-horloge",
       exemple: {
         enonce: "Convertis $20\\,543$ s en heures, minutes et secondes, puis $2{,}25$ h en heures et minutes.",
         solution: "$20\\,543 = 60 \\times 342 + 23$ : $342$ min et $23$ s. Puis $342 = 60 \\times 5 + 42$ : $5$ h $42$ min. Donc $20\\,543$ s $= 5$ h $42$ min $23$ s.\n\n$0{,}25 \\times 60 = 15$ : $2{,}25$ h $= 2$ h $15$ min."
@@ -115,12 +124,14 @@ window.CHAPITRES["sixieme-division"] = {
     },
     {
       titre: "Calculer avec des horaires et des durées",
-      video: { titre: "Vidéo d'Yvan Monka : convertir « s » en « h-min-s »", youtube: "https://youtu.be/5xtJtMGEQT8" },
+      video: { titre: "Vidéo d'Yvan Monka : utiliser les durées", youtube: "https://youtu.be/x6WHxJUI1kE" },
       texte:
         "Un **horaire** dit à quel moment se passe quelque chose ($14$ h $35$) ; une **durée** dit combien de temps ça dure ($1$ h $50$ min).\n\n" +
         "- **Ajouter** une durée : on ajoute les heures, puis les minutes. Si les minutes dépassent $60$, on transforme $60$ min en $1$ h.\n" +
         "- **Durée entre deux horaires** : on avance par étapes, jusqu'à l'heure pile, puis les heures entières, puis les minutes restantes.\n\n" +
-        "Attention : on ne calcule pas avec les horaires comme avec des nombres décimaux.",
+        "Attention : on ne calcule pas avec les horaires comme avec des nombres décimaux.\n\n" +
+        "Une **frise** aide à compter les étapes : celle-ci correspond à la traversée de la barge de l'exemple.",
+      figure: "d6-cours-frise",
       exemple: {
         enonce: "Calcule $2$ h $35$ min $+ 3$ h $48$ min. Puis : la barge part à $7$ h $45$ et arrive à $8$ h $05$, combien de temps dure la traversée ?",
         solution: "$2$ h $35$ min $+ 3$ h $48$ min $= 5$ h $83$ min $= 5$ h $+ 1$ h $23$ min $= 6$ h $23$ min.\n\nDe $7$ h $45$ à $8$ h $00$ : $15$ min ; de $8$ h $00$ à $8$ h $05$ : $5$ min. La traversée dure $20$ min."
@@ -133,7 +144,8 @@ window.CHAPITRES["sixieme-division"] = {
     { titre: "Vérifier si un nombre est divisible par 2", type: "Divisibilité", youtube: "https://youtu.be/tviMPAlA-JM" },
     { titre: "Résoudre un problème avec la division euclidienne (2)", type: "Problème", youtube: "https://youtu.be/9Fu2CAnMeLY" },
     { titre: "Poser une division décimale (2)", type: "Division décimale", youtube: "https://youtu.be/kagPFHfG-ZU" },
-    { titre: "Convertir les unités de temps", type: "Durées", youtube: "https://youtu.be/dgIkLTCEQww" }
+    { titre: "Convertir les unités de temps", type: "Durées", youtube: "https://youtu.be/dgIkLTCEQww" },
+    { titre: "Convertir « s » en « h-min-s »", type: "Durées", youtube: "https://youtu.be/5xtJtMGEQT8" }
   ],
 
   /* ---------- 2. EXERCICES INTERACTIFS ---------- */
@@ -175,7 +187,10 @@ window.CHAPITRES["sixieme-division"] = {
     { question: "$2$ h $35$ min $+ 3$ h $48$ min $= $", choix: ["$6$ h $23$ min", "$5$ h $83$ min", "$6$ h $83$ min", "$5$ h $23$ min"], bonne: 0, explication: "$5$ h $83$ min, et $83$ min $= 1$ h $23$ min : $6$ h $23$ min." },
     { question: "La barge part à $7$ h $45$ et arrive à $8$ h $05$. La traversée dure :", choix: ["$20$ min", "$40$ min", "$60$ min", "$1$ h $20$ min"], bonne: 0, explication: "$15$ min jusqu'à $8$ h, puis $5$ min : $20$ min. ($8{,}05 - 7{,}45 = 0{,}60$ est un piège : on ne soustrait pas des horaires comme des décimaux.)" },
     { question: "Un film commence à $20$ h $40$ et dure $1$ h $50$ min. Il se termine à :", choix: ["$22$ h $30$", "$21$ h $90$", "$22$ h $90$", "$21$ h $30$"], bonne: 0, explication: "$20$ h $40 + 1$ h $50$ min $= 21$ h $90$ min $= 22$ h $30$." },
-    { question: "Combien d'années dans $3$ siècles ?", choix: ["$300$", "$30$", "$3\\,000$", "$100$"], bonne: 0, explication: "$1$ siècle $= 100$ ans, donc $3$ siècles $= 300$ ans." }
+    { question: "Combien d'années dans $3$ siècles ?", choix: ["$300$", "$30$", "$3\\,000$", "$100$"], bonne: 0, explication: "$1$ siècle $= 100$ ans, donc $3$ siècles $= 300$ ans." },
+    { question: "Les horloges indiquent le départ et l'arrivée d'un taxi-brousse, le matin. Combien de temps dure le trajet ?", figure: "d6-qcm-horloges", choix: ["$20$ min", "$40$ min", "$1$ h $20$ min", "$60$ min"], bonne: 0, explication: "Départ $7$ h $45$, arrivée $8$ h $05$ : $15$ min jusqu'à $8$ h, puis $5$ min, soit $20$ min." },
+    { question: "Quelle heure indique cette horloge l'après-midi ?", figure: "d6-qcm-horloge", choix: ["$16$ h $40$", "$4$ h $40$", "$20$ h $20$", "$17$ h $40$"], bonne: 0, explication: "La petite aiguille est entre $4$ et $5$ : $4$ h passées ; la grande est sur le $8$ : $40$ min. L'après-midi : $4 + 12 = 16$, donc $16$ h $40$." },
+    { question: "Dans cette division posée, quel est le reste ?", figure: "d6-qcm-potence", choix: ["$4$", "$22$", "$7$", "$3$"], bonne: 0, explication: "$158 = 7 \\times 22 + 4$ : le quotient est $22$ et le reste est $4$, plus petit que $7$." }
   ],
 
   /* ---------- 4. FICHE MÉTHODE ---------- */
@@ -196,7 +211,8 @@ window.CHAPITRES["sixieme-division"] = {
         "Calcule le reste : dividende $-$ diviseur $\\times$ quotient.",
         "Vérifie que le reste est plus petit que le diviseur, et écris l'égalité."
       ],
-      exemple: "$73 = 3 \\times 24 + 1$, avec $1 < 3$."
+      exemple: "$73 = 3 \\times 24 + 1$, avec $1 < 3$.",
+      figure: "d6-cours-potence"
     },
     {
       titre: "Résoudre un problème de division",
@@ -205,7 +221,8 @@ window.CHAPITRES["sixieme-division"] = {
         "Fais la division.",
         "Lis bien la question pour interpréter le reste (un car de plus ? des objets en trop ?)."
       ],
-      exemple: "$236$ élèves, cars de $55$ : $236 = 55 \\times 4 + 16$, donc $5$ cars."
+      exemple: "$236$ élèves, cars de $55$ : $236 = 55 \\times 4 + 16$, donc $5$ cars.",
+      figure: "d6-cours-cars"
     },
     {
       titre: "Diviser un décimal par un entier",
@@ -214,7 +231,8 @@ window.CHAPITRES["sixieme-division"] = {
         "Écris la virgule au quotient quand tu franchis la virgule du dividende.",
         "Ajoute des zéros si besoin, puis vérifie en multipliant."
       ],
-      exemple: "$14{,}7 \\div 3 = 4{,}9$ car $3 \\times 4{,}9 = 14{,}7$."
+      exemple: "$14{,}7 \\div 3 = 4{,}9$ car $3 \\times 4{,}9 = 14{,}7$.",
+      figure: "d6-methode-decimale"
     },
     {
       titre: "Convertir des durées",
@@ -232,7 +250,8 @@ window.CHAPITRES["sixieme-division"] = {
         "Ajoute les heures entières.",
         "Ajoute les minutes restantes, puis additionne toutes les étapes."
       ],
-      exemple: "De $13$ h $40$ à $15$ h $10$ : $20$ min $+ 1$ h $+ 10$ min $= 1$ h $30$ min."
+      exemple: "De $13$ h $40$ à $15$ h $10$ : $20$ min $+ 1$ h $+ 10$ min $= 1$ h $30$ min.",
+      figure: "d6-methode-frise"
     }
   ],
   erreurs: [

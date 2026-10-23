@@ -35,6 +35,7 @@ window.CHAPITRES["cinquieme-informatique"] = {
         "- L'instruction « demander … et attendre » est une **entrée** : le nombre tapé est rangé dans la variable **réponse**.\n" +
         "- L'instruction « dire … » est une **sortie** : le lutin affiche un résultat.\n\n" +
         "Dans un bloc, on peut écrire une **expression** : « dire [réponse * 3 + 5] ». L'ordinateur respecte les **priorités** comme en mathématiques ; $*$ signifie « multiplier » et $/$ « diviser ».",
+      figure: "pr5-cours-entree",
       exemple: {
         enonce: "On répond $4$ au programme « demander ; dire [(réponse + 2) * 5] ». Que dit le lutin ?",
         solution: "$(4 + 2) \\times 5 = 30$ : le lutin dit $30$."
@@ -42,11 +43,13 @@ window.CHAPITRES["cinquieme-informatique"] = {
     },
     {
       titre: "Traduire une formule",
+      video: { titre: "Vidéo d'Yvan Monka : apprendre à programmer avec Scratch (3), les variables", youtube: "https://youtu.be/qPF7vTP_VBs" },
       texte:
         "Pour faire calculer une formule à l'ordinateur, on l'écrit avec les opérateurs $+$, $-$, $*$, $/$ et des **parenthèses** si besoin.\n\n" +
         "- Périmètre d'un rectangle : $P = 2 \\times (L + \\ell)$ s'écrit « $(L + l) * 2$ ».\n" +
         "- Moyenne de deux notes : « (a + b) / 2 », et non « a + b / 2 ».\n\n" +
-        "On **prévoit** le résultat en calculant à la main avant d'exécuter le programme.",
+        "On **prévoit** le résultat en calculant à la main avant d'exécuter le programme. Le programme dessiné demande la base, puis la hauteur, et dit l'aire du triangle.",
+      figure: "pr5-cours-formule",
       exemple: {
         enonce: "Quelle expression calcule l'aire d'un triangle de base $b$ et de hauteur $h$ ?",
         solution: "« b * h / 2 » (ou « (b * h) / 2 »)."
@@ -58,7 +61,8 @@ window.CHAPITRES["cinquieme-informatique"] = {
       texte:
         "La boucle **« répéter $n$ fois »** exécute $n$ fois les instructions qu'elle contient.\n\n" +
         "Pour tracer un **polygone régulier** à $n$ côtés : stylo en position d'écriture, puis répéter $n$ fois (avancer de $L$ pas ; tourner de $360 \\div n$ degrés). Après $n$ virages, le lutin a fait un tour complet.\n\n" +
-        "On **modifie les paramètres** pour changer la figure : la longueur dans « avancer », le nombre de répétitions et l'angle.",
+        "On **modifie les paramètres** pour changer la figure : la longueur dans « avancer », le nombre de répétitions et l'angle. Le programme dessiné trace un pentagone régulier de côté $60$ pas.",
+      figure: "pr5-cours-boucle",
       exemple: {
         enonce: "Que faut-il écrire pour tracer un pentagone régulier de côté $60$ pas ?",
         solution: "Répéter $5$ fois (avancer de $60$ pas ; tourner de $360 \\div 5 = 72$ degrés)."
@@ -89,7 +93,13 @@ window.CHAPITRES["cinquieme-informatique"] = {
     { question: "Pour un triangle équilatéral, le lutin tourne à chaque fois de :", choix: ["$120^\\circ$", "$60^\\circ$", "$90^\\circ$", "$180^\\circ$"], bonne: 0, explication: "$360 \\div 3$ : c'est l'angle extérieur." },
     { question: "« répéter $6$ fois (avancer de $50$ ; tourner de $60$) » trace :", choix: ["un hexagone régulier", "un carré", "un triangle", "un pentagone"], bonne: 0, explication: "$6$ côtés égaux." },
     { question: "Pour agrandir la figure tracée, on modifie :", choix: ["la longueur dans « avancer »", "le nombre de répétitions", "l'angle", "le drapeau vert"], bonne: 0, explication: "Les côtés deviennent plus longs, la forme reste la même." },
-    { question: "Le périmètre de la figure « répéter $5$ fois (avancer de $40$ ; tourner de $72$) » est :", choix: ["$200$ pas", "$40$ pas", "$360$ pas", "$45$ pas"], bonne: 0, explication: "$5 \\times 40$." }
+    { question: "Le périmètre de la figure « répéter $5$ fois (avancer de $40$ ; tourner de $72$) » est :", choix: ["$200$ pas", "$40$ pas", "$360$ pas", "$45$ pas"], bonne: 0, explication: "$5 \\times 40$." },
+    { question: "Quelle figure trace ce programme ?", figure: "pr5-qcm-carre", choix: ["un carré de côté $50$ pas", "un rectangle de $50$ sur $90$ pas", "un triangle équilatéral", "un pentagone régulier"], bonne: 0, explication: "$4$ côtés de $50$ pas et des virages de $90^\\circ$ : un carré." },
+    { question: "Quel est le périmètre de la figure tracée par ce programme ?", figure: "pr5-qcm-hexa", choix: ["$240$ pas", "$40$ pas", "$360$ pas", "$100$ pas"], bonne: 0, explication: "$6$ côtés de $40$ pas : $6 \\times 40 = 240$ pas." },
+    { question: "Pour que ce programme trace un triangle équilatéral, il faut écrire :", figure: "pr5-qcm-hexa", choix: ["répéter $3$ fois, tourner de $120$ degrés", "répéter $3$ fois, tourner de $60$ degrés", "répéter $6$ fois, tourner de $120$ degrés", "répéter $3$ fois, tourner de $180$ degrés"], bonne: 0, explication: "$3$ côtés et $360 \\div 3 = 120^\\circ$ à chaque virage." },
+    { question: "On lance ce programme et on répond $6$. Le lutin dit :", figure: "pr5-qcm-calcul", choix: ["$22$", "$42$", "$18$", "$13$"], bonne: 0, explication: "$6 \\times 3 + 4 = 22$ : la multiplication d'abord." },
+    { question: "Dans ce programme, quelle instruction est la sortie ?", figure: "pr5-qcm-calcul", choix: ["dire [réponse * 3 + 4]", "demander [Nombre ?] et attendre", "quand le drapeau est cliqué", "il n'y a pas de sortie"], bonne: 0, explication: "« dire » affiche le résultat : c'est la sortie." },
+    { question: "Que dit le lutin à la fin de ce programme ?", figure: "pr5-qcm-boucle", choix: ["$13$", "$4$", "$12$", "$7$"], bonne: 0, explication: "N vaut $1$, puis $4$, $7$, $10$ et $13$ après les quatre passages." }
   ],
 
   /* ---------- 4. FICHE MÉTHODE ---------- */
@@ -101,7 +111,8 @@ window.CHAPITRES["cinquieme-informatique"] = {
         "Remplace « réponse » par le nombre saisi.",
         "Calcule en respectant les priorités et les parenthèses."
       ],
-      exemple: "Réponse $3$ : « réponse * réponse + 1 » donne $10$."
+      exemple: "Programme dessiné, réponse $4$ : $(4 + 2) \\times 5 = 30$. Et « réponse * réponse + 1 » avec $3$ donne $10$.",
+      figure: "pr5-cours-entree"
     },
     {
       titre: "Exécuter une boucle à la main",
@@ -110,7 +121,8 @@ window.CHAPITRES["cinquieme-informatique"] = {
         "À chaque passage, applique les instructions de la boucle et note la nouvelle valeur.",
         "Arrête-toi après le nombre de répétitions indiqué."
       ],
-      exemple: "N $= 2$, répéter $3$ fois (N * 2) : $4$, $8$, $16$."
+      exemple: "Programme dessiné : N $= 1$, puis $4$, $7$, $10$, $13$ ; le lutin dit $13$.",
+      figure: "pr5-qcm-boucle"
     },
     {
       titre: "Tracer un polygone régulier",
@@ -119,7 +131,8 @@ window.CHAPITRES["cinquieme-informatique"] = {
         "Avancer de la longueur du côté.",
         "Tourner de $360 \\div n$ degrés."
       ],
-      exemple: "Octogone : répéter $8$ fois (avancer ; tourner de $45$)."
+      exemple: "Pentagone : répéter $5$ fois (avancer ; tourner de $72$). Octogone : répéter $8$ fois (avancer ; tourner de $45$).",
+      figure: "pr5-cours-trace"
     }
   ],
   erreurs: [

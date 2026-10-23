@@ -37,6 +37,7 @@ window.CHAPITRES["cinquieme-graphiques"] = {
         "- une **formule** : $P = 3 \\times n$ ;\n" +
         "- un **tableau de valeurs** ;\n" +
         "- un **graphique** dans un repère : la première grandeur sur l'axe horizontal, la seconde sur l'axe vertical.",
+      figure: "gf5-cours-taxi",
       exemple: {
         enonce: "Un taxi facture $4$ € de prise en charge, puis $2$ € par kilomètre. Écris le prix $P$ en fonction de la distance $d$ (en km).",
         solution: "$P = 4 + 2 \\times d$. Pour $d = 10$ km : $P = 4 + 20 = 24$ €."
@@ -48,6 +49,7 @@ window.CHAPITRES["cinquieme-graphiques"] = {
       texte:
         "Pour calculer avec une formule, on **remplace** la lettre par sa valeur (c'est une substitution), en remettant le signe $\\times$, puis on respecte les priorités.\n\n" +
         "Avec $M = 2 \\times n + 5$ : pour $n = 0$, $M = 5$ ; pour $n = 3$, $M = 11$ ; pour $n = 10$, $M = 25$. On peut ranger ces résultats dans un **tableau de valeurs**.",
+      figure: "gf5-cours-tableau",
       exemple: {
         enonce: "Le périmètre d'un rectangle est $P = 2 \\times (L + \\ell)$. Calcule $P$ pour $L = 7$ cm et $\\ell = 4$ cm.",
         solution: "$P = 2 \\times (7 + 4) = 2 \\times 11 = 22$ cm."
@@ -104,7 +106,13 @@ window.CHAPITRES["cinquieme-graphiques"] = {
     { question: "Sur le graphique, $4$ kg coûtent :", figure: "gf5-prop", choix: ["$12$ €", "$4$ €", "$7$ €", "$15$ €"], bonne: 0, explication: "On lit $12$ au-dessus de $4$." },
     { question: "Le prix d'un taxi ($3$ € plus $2$ € par km) est représenté par des points :", choix: ["alignés, mais pas avec l'origine", "alignés avec l'origine", "non alignés", "sur l'axe horizontal"], bonne: 0, explication: "Pour $0$ km, on paie déjà $3$ € : ce n'est pas proportionnel." },
     { question: "Avec $P = 2 \\times (L + 3)$, pour $L = 5$ :", choix: ["$16$", "$13$", "$10$", "$30$"], bonne: 0, explication: "$2 \\times 8 = 16$." },
-    { question: "Dans le tableau de $M = 4 \\times n + 1$, pour $n = 0$, on lit :", choix: ["$1$", "$0$", "$4$", "$5$"], bonne: 0, explication: "$4 \\times 0 + 1 = 1$." }
+    { question: "Dans le tableau de $M = 4 \\times n + 1$, pour $n = 0$, on lit :", choix: ["$1$", "$0$", "$4$", "$5$"], bonne: 0, explication: "$4 \\times 0 + 1 = 1$." },
+    { question: "D'après le graphique, combien coûte une course de $3$ km ?", figure: "gf5-cours-taxi", choix: ["$10$ €", "$6$ €", "$3$ €", "$12$ €"], bonne: 0, explication: "On part de $3$ sur l'axe horizontal, on monte jusqu'à la droite et on lit $10$ € sur l'axe vertical ($4 + 2 \\times 3 = 10$)." },
+    { question: "Ce graphique (taxi avec prise en charge) représente-t-il une situation de proportionnalité ?", figure: "gf5-cours-taxi", choix: ["Non : la droite ne passe pas par l'origine", "Oui : les points sont alignés", "Oui : le prix augmente avec la distance", "On ne peut pas savoir"], bonne: 0, explication: "Pour $0$ km, on paie déjà $4$ € : la droite ne passe pas par l'origine, ce n'est pas une situation de proportionnalité." },
+    { question: "Ce nuage de points représente-t-il une situation de proportionnalité ?", figure: "gf5-qcm-nuage", choix: ["Non : les points ne sont pas alignés", "Oui : les points montent", "Non : la droite ne passe pas par l'origine", "Oui : il y a cinq points"], bonne: 0, explication: "Avec une règle, on voit que les points ne sont pas alignés : ce n'est pas une situation de proportionnalité." },
+    { question: "Avec la formule $d = 15 \\times t$, pour $t = 4$ on obtient :", choix: ["$60$", "$19$", "$154$", "$11$"], bonne: 0, explication: "$15 \\times 4 = 60$." },
+    { question: "Quelle formule donne le périmètre $P$ d'un carré de côté $c$ ?", choix: ["$P = 4 \\times c$", "$P = c \\times c$", "$P = c + 4$", "$P = 2 \\times c$"], bonne: 0, explication: "Un carré a quatre côtés de même longueur $c$." },
+    { question: "Dans le tableau de valeurs de $P = 2 \\times n + 1$, pour $n = 5$, on écrit :", choix: ["$11$", "$12$", "$15$", "$8$"], bonne: 0, explication: "$2 \\times 5 + 1 = 10 + 1 = 11$." }
   ],
 
   /* ---------- 4. FICHE MÉTHODE ---------- */
@@ -116,6 +124,7 @@ window.CHAPITRES["cinquieme-graphiques"] = {
         "Applique les priorités opératoires.",
         "Écris l'unité du résultat."
       ],
+      figure: "gf5-cours-tableau",
       exemple: "$P = 4 + 2 \\times d$, $d = 6$ : $P = 4 + 12 = 16$ €."
     },
     {
@@ -125,6 +134,7 @@ window.CHAPITRES["cinquieme-graphiques"] = {
         "Écris « quantité fois prix unitaire » puis ajoute la partie fixe.",
         "Vérifie ta formule avec une valeur simple."
       ],
+      figure: "gf5-cours-taxi",
       exemple: "$10$ € plus $2$ € par film : $P = 10 + 2 \\times f$."
     },
     {
@@ -134,6 +144,7 @@ window.CHAPITRES["cinquieme-graphiques"] = {
         "Pour une valeur de l'axe horizontal, monte jusqu'à la courbe puis lis sur l'axe vertical.",
         "Pour une valeur de l'axe vertical, va horizontalement jusqu'à la courbe puis descends."
       ],
+      figure: "gf5-rando",
       exemple: "Une partie horizontale signifie que la grandeur ne change pas."
     },
     {
@@ -143,6 +154,7 @@ window.CHAPITRES["cinquieme-graphiques"] = {
         "La droite passe-t-elle par l'origine ?",
         "Oui aux deux questions : proportionnalité."
       ],
+      figure: "gf5-prop",
       exemple: "Points alignés mais pas avec l'origine : pas proportionnel."
     }
   ],

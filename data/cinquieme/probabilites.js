@@ -33,6 +33,7 @@ window.CHAPITRES["cinquieme-probabilites"] = {
         "- Chaque résultat possible est une **issue** : lancer un dé a $6$ issues.\n" +
         "- Un **évènement** est un ensemble d'issues : « obtenir un nombre pair » est réalisé par $2$, $4$ ou $6$.\n\n" +
         "Un évènement **impossible** n'est jamais réalisé ; un évènement **certain** l'est toujours.",
+      figure: "pb5-cours-urne",
       exemple: {
         enonce: "On tire une boule dans une urne de $3$ boules rouges et $2$ bleues. Combien y a-t-il d'issues ? L'évènement « tirer une boule verte » est-il possible ?",
         solution: "Il y a $5$ issues (une par boule). Il n'y a pas de boule verte : l'évènement est impossible."
@@ -44,7 +45,9 @@ window.CHAPITRES["cinquieme-probabilites"] = {
       texte:
         "Quand toutes les issues ont la même chance de se produire (**équiprobabilité** : dé équilibré, boules indiscernables…) :\n\n" +
         "$P(\\text{évènement}) = \\dfrac{\\text{nombre d'issues favorables}}{\\text{nombre total d'issues}}$.\n\n" +
-        "Une probabilité est comprise entre $0$ (impossible) et $1$ (certain). Elle peut s'écrire en fraction, en décimal ou en pourcentage : « une chance sur quatre » $= \\dfrac{1}{4} = 0{,}25 = 25\\,\\%$.",
+        "Une probabilité est comprise entre $0$ (impossible) et $1$ (certain). Elle peut s'écrire en fraction, en décimal ou en pourcentage : « une chance sur quatre » $= \\dfrac{1}{4} = 0{,}25 = 25\\,\\%$.\n\n" +
+        "Sur l'**échelle des probabilités**, on place chaque évènement entre $0$ et $1$ : obtenir $6$ avec un dé ($\\dfrac{1}{6}$), obtenir pile ($\\dfrac{1}{2}$), ne pas obtenir $6$ ($\\dfrac{5}{6}$).",
+      figure: "pb5-cours-echelle",
       exemple: {
         enonce: "On lance un dé équilibré. Quelle est la probabilité d'obtenir un multiple de $3$ ?",
         solution: "Issues favorables : $3$ et $6$, soit $2$ issues sur $6$. $P = \\dfrac{2}{6} = \\dfrac{1}{3}$."
@@ -52,10 +55,13 @@ window.CHAPITRES["cinquieme-probabilites"] = {
     },
     {
       titre: "Fréquences et probabilités",
+      video: { titre: "Vidéo d'Yvan Monka : exercice, résoudre un problème lié au hasard", youtube: "https://youtu.be/RoZKfcNpnqI" },
       texte:
         "Quand on **répète** une expérience, on note les résultats dans un tableau d'effectifs et on calcule les **fréquences**.\n\n" +
         "Sur peu d'essais, la fréquence peut être éloignée de la probabilité. Sur un très grand nombre d'essais, elle **s'en rapproche**.\n\n" +
-        "Le hasard n'a pas de mémoire : après trois « 6 », la probabilité d'obtenir encore $6$ reste $\\dfrac{1}{6}$.",
+        "Le hasard n'a pas de mémoire : après trois « 6 », la probabilité d'obtenir encore $6$ reste $\\dfrac{1}{6}$.\n\n" +
+        "Le diagramme montre $200$ lancers d'une pièce : $94$ pile et $106$ face, des fréquences $0{,}47$ et $0{,}53$ proches de $0{,}5$.",
+      figure: "pb5-cours-freq",
       exemple: {
         enonce: "Sur $200$ lancers d'une pièce, on obtient $94$ fois pile. Quelle est la fréquence de pile ? Est-ce étonnant ?",
         solution: "$94 \\div 200 = 0{,}47$. C'est proche de la probabilité $0{,}5$ : ce n'est pas étonnant."
@@ -85,7 +91,14 @@ window.CHAPITRES["cinquieme-probabilites"] = {
     { question: "Sur $50$ lancers, une pièce donne $28$ fois face. La fréquence de face est :", choix: ["$0{,}56$", "$0{,}28$", "$28$", "$0{,}5$"], bonne: 0, explication: "$28 \\div 50$." },
     { question: "Après trois « pile » de suite, la probabilité d'avoir pile au lancer suivant est :", choix: ["$\\dfrac{1}{2}$", "plus petite que $\\dfrac{1}{2}$", "plus grande que $\\dfrac{1}{2}$", "$0$"], bonne: 0, explication: "La pièce n'a pas de mémoire." },
     { question: "Avec un très grand nombre de lancers, la fréquence d'un évènement :", choix: ["se rapproche de sa probabilité", "vaut toujours $0$", "s'éloigne de la probabilité", "vaut toujours $1$"], bonne: 0, explication: "Loi des grands nombres." },
-    { question: "On tire une lettre du mot LAGON. La probabilité de tirer une voyelle est :", choix: ["$\\dfrac{2}{5}$", "$\\dfrac{3}{5}$", "$\\dfrac{1}{5}$", "$\\dfrac{2}{3}$"], bonne: 0, explication: "A et O : $2$ voyelles sur $5$ lettres." }
+    { question: "On tire une lettre du mot LAGON. La probabilité de tirer une voyelle est :", choix: ["$\\dfrac{2}{5}$", "$\\dfrac{3}{5}$", "$\\dfrac{1}{5}$", "$\\dfrac{2}{3}$"], bonne: 0, explication: "A et O : $2$ voyelles sur $5$ lettres." },
+    { question: "On tire une boule au hasard dans ce sac. La probabilité de tirer une boule bleue est :", figure: "pb5-qcm-urne", choix: ["$\\dfrac{1}{2}$", "$\\dfrac{5}{3}$", "$\\dfrac{1}{5}$", "$5$"], bonne: 0, explication: "$5$ boules bleues sur $10$ : $\\dfrac{5}{10} = \\dfrac{1}{2}$." },
+    { question: "Dans ce sac, quel évènement est le plus probable ?", figure: "pb5-qcm-urne", choix: ["tirer une boule bleue", "tirer une boule rouge", "tirer une boule verte", "ils sont tous aussi probables"], bonne: 0, explication: "Il y a plus de boules bleues ($5$) que de vertes ($3$) et de rouges ($2$)." },
+    { question: "On fait tourner la roue (J : jaune, B : bleu, R : rouge). La probabilité qu'elle s'arrête sur un secteur rouge est :", figure: "pb5-qcm-roue", choix: ["$\\dfrac{1}{4}$", "$\\dfrac{2}{6}$", "$\\dfrac{1}{3}$", "$2$"], bonne: 0, explication: "$2$ secteurs rouges sur $8$ secteurs identiques : $\\dfrac{2}{8} = \\dfrac{1}{4}$." },
+    { question: "Pour la roue dessinée, la probabilité de ne pas tomber sur le jaune est :", figure: "pb5-qcm-roue", choix: ["$\\dfrac{5}{8}$", "$\\dfrac{3}{8}$", "$\\dfrac{1}{2}$", "$\\dfrac{3}{5}$"], bonne: 0, explication: "$3$ secteurs jaunes, donc $8 - 3 = 5$ secteurs non jaunes sur $8$." },
+    { question: "On tire un carton au hasard. La probabilité de tirer une consonne est :", figure: "pb5-qcm-lagon", choix: ["$\\dfrac{3}{5}$", "$\\dfrac{2}{5}$", "$\\dfrac{3}{2}$", "$3$"], bonne: 0, explication: "L, G et N : $3$ consonnes sur $5$ cartons." },
+    { question: "Sur l'échelle des probabilités, quel point peut représenter l'évènement « obtenir pile avec une pièce équilibrée » ?", figure: "pb5-qcm-echelle", choix: ["le point C", "le point A", "le point B", "le point D"], bonne: 0, explication: "La probabilité est $\\dfrac{1}{2}$, au milieu de l'échelle." },
+    { question: "Sur l'échelle des probabilités, le point B correspond à une probabilité de :", figure: "pb5-qcm-echelle", choix: ["$\\dfrac{1}{4}$", "$\\dfrac{3}{4}$", "$\\dfrac{1}{2}$", "$1$"], bonne: 0, explication: "B est au quart de l'échelle, entre $0$ et $\\dfrac{1}{2}$." }
   ],
 
   /* ---------- 4. FICHE MÉTHODE ---------- */
@@ -97,7 +110,8 @@ window.CHAPITRES["cinquieme-probabilites"] = {
         "Compte toutes les issues, puis les issues favorables.",
         "Probabilité $=$ favorables $\\div$ total ; simplifie la fraction si possible."
       ],
-      exemple: "$4$ boules vertes sur $10$ : $\\dfrac{4}{10} = \\dfrac{2}{5}$."
+      exemple: "Sac du dessin : $3$ boules vertes sur $10$, donc $P(\\text{verte}) = \\dfrac{3}{10}$ ; $2$ rouges sur $10$, donc $P(\\text{rouge}) = \\dfrac{2}{10} = \\dfrac{1}{5}$.",
+      figure: "pb5-qcm-urne"
     },
     {
       titre: "Changer d'écriture",
@@ -106,7 +120,8 @@ window.CHAPITRES["cinquieme-probabilites"] = {
         "Décimal → pourcentage : multiplie par $100$.",
         "« $a$ chances sur $b$ » $= \\dfrac{a}{b}$."
       ],
-      exemple: "$\\dfrac{3}{4} = 0{,}75 = 75\\,\\%$."
+      exemple: "$\\dfrac{3}{4} = 0{,}75 = 75\\,\\%$ ; sur l'échelle, ce point est entre $\\dfrac{1}{2}$ et $1$.",
+      figure: "pb5-cours-echelle"
     },
     {
       titre: "Comparer fréquence et probabilité",
@@ -115,7 +130,8 @@ window.CHAPITRES["cinquieme-probabilites"] = {
         "Compare-la à la probabilité théorique.",
         "Plus il y a d'essais, plus elles doivent être proches."
       ],
-      exemple: "$510$ piles sur $1\\,000$ lancers : $0{,}51$, proche de $0{,}5$."
+      exemple: "Diagramme : $94$ piles sur $200$ lancers, soit $94 \\div 200 = 0{,}47$, proche de $0{,}5$.",
+      figure: "pb5-cours-freq"
     }
   ],
   erreurs: [

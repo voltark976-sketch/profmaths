@@ -32,7 +32,9 @@ window.CHAPITRES["cinquieme-equations"] = {
       texte:
         "Une **équation** est une égalité qui contient un nombre inconnu, noté par une lettre : $3x - 4 = 5 + 2x$.\n\n" +
         "Un nombre est **solution** de l'équation si, en remplaçant la lettre par ce nombre, les deux membres sont égaux.\n\n" +
-        "Pour $x = 9$ : à gauche $3 \\times 9 - 4 = 23$, à droite $5 + 2 \\times 9 = 23$. L'égalité est vraie : $9$ est solution.",
+        "Pour $x = 9$ : à gauche $3 \\times 9 - 4 = 23$, à droite $5 + 2 \\times 9 = 23$. L'égalité est vraie : $9$ est solution.\n\n" +
+        "Une équation, c'est comme une **balance en équilibre** : sur le dessin, chaque boîte pèse $x$, donc $3x + 4 = 2x + 13$. Pour $x = 9$ : $3 \\times 9 + 4 = 31$ et $2 \\times 9 + 13 = 31$, la balance est bien en équilibre.",
+      figure: "eq5-cours-balance",
       exemple: {
         enonce: "Le nombre $4$ est-il solution de $5x - 3 = 2x + 8$ ?",
         solution: "À gauche : $5 \\times 4 - 3 = 17$. À droite : $2 \\times 4 + 8 = 16$. $17 \\neq 16$ : $4$ n'est pas solution."
@@ -45,7 +47,8 @@ window.CHAPITRES["cinquieme-equations"] = {
         "Pour trouver $x$, on fait l'**opération contraire** :\n\n" +
         "- $x + 7 = 19$ : on cherche le nombre auquel on ajoute $7$ pour obtenir $19$, donc $x = 19 - 7 = 12$ ;\n" +
         "- $x - 4{,}5 = 10$ : $x = 10 + 4{,}5 = 14{,}5$.\n\n" +
-        "On vérifie toujours : $12 + 7 = 19$.",
+        "On vérifie toujours : $12 + 7 = 19$. Le schéma en barre le montre : la barre de $19$ est formée de $x$ et de $7$, donc $x = 19 - 7$.",
+      figure: "eq5-cours-plus",
       exemple: {
         enonce: "Résous $x + 23 = 51$ et $y - 8 = 30$.",
         solution: "$x = 51 - 23 = 28$.\n\n$y = 30 + 8 = 38$."
@@ -53,10 +56,11 @@ window.CHAPITRES["cinquieme-equations"] = {
     },
     {
       titre: "Résoudre ax = c",
-      video: { titre: "Vidéo d'Yvan Monka : résoudre une équation (avec × et ÷)", youtube: "https://youtu.be/MVMsIkgwZ4g" },
+      video: { titre: "Vidéo d'Yvan Monka : résoudre une équation (avec une multiplication ou une division)", youtube: "https://youtu.be/MVMsIkgwZ4g" },
       texte:
-        "$5x = 35$ signifie $5 \\times x = 35$ : on cherche le nombre qui, multiplié par $5$, donne $35$. On divise : $x = 35 \\div 5 = 7$.\n\n" +
+        "$5x = 35$ signifie $5 \\times x = 35$ : on cherche le nombre qui, multiplié par $5$, donne $35$. On divise : $x = 35 \\div 5 = 7$. Sur la balance, $5$ boîtes équilibrent $35$ : une boîte équilibre $35 \\div 5 = 7$.\n\n" +
         "$\\dfrac{x}{4} = 6$ : on cherche le nombre qui, divisé par $4$, donne $6$. On multiplie : $x = 6 \\times 4 = 24$.",
+      figure: "eq5-cours-fois",
       exemple: {
         enonce: "Résous $8x = 52$.",
         solution: "$x = 52 \\div 8 = 6{,}5$. Vérification : $8 \\times 6{,}5 = 52$."
@@ -64,12 +68,14 @@ window.CHAPITRES["cinquieme-equations"] = {
     },
     {
       titre: "Résoudre un problème avec une équation",
+      video: { titre: "Vidéo d'Yvan Monka : tester une égalité pour résoudre un problème", youtube: "https://youtu.be/pAJ6CBoCMGE" },
       texte:
-        "1. On choisit l'inconnue : « soit $x$ le prix d'un cahier ».\n" +
-        "2. On traduit l'énoncé par une équation.\n" +
+        "1. On choisit l'inconnue : « soit $x$ le prix d'une mangue ».\n" +
+        "2. On traduit l'énoncé par une équation. Un schéma en barre aide : $6$ mangues au prix $x$ coûtent $9$ € en tout, donc $6x = 9$.\n" +
         "3. On résout l'équation.\n" +
         "4. On vérifie et on répond par une phrase.\n\n" +
         "Le mathématicien Al Khwarizmi (IXᵉ siècle) appelait l'inconnue « la chose » ; le mot « algèbre » vient du titre de son livre (« al-jabr »).",
+      figure: "eq5-cours-probleme",
       exemple: {
         enonce: "Moussa achète $6$ mangues et paie $9$ €. Quel est le prix d'une mangue ?",
         solution: "Soit $x$ le prix d'une mangue : $6x = 9$, donc $x = 9 \\div 6 = 1{,}5$. Une mangue coûte $1{,}50$ €."
@@ -101,7 +107,14 @@ window.CHAPITRES["cinquieme-equations"] = {
     { question: "$5x$ signifie :", choix: ["$5 \\times x$", "$5 + x$", "$50 + x$", "$x \\div 5$"], bonne: 0, explication: "Le signe $\\times$ est sous-entendu." },
     { question: "$9$ boîtes identiques pèsent $4{,}5$ kg. Une boîte pèse :", choix: ["$0{,}5$ kg", "$2$ kg", "$40{,}5$ kg", "$5$ kg"], bonne: 0, explication: "$4{,}5 \\div 9 = 0{,}5$." },
     { question: "Le mot « algèbre » vient du livre de :", choix: ["Al Khwarizmi", "Pythagore", "Thalès", "Euclide"], bonne: 0, explication: "« Al-jabr » est dans le titre de son livre." },
-    { question: "Après avoir dépensé $8$ €, il me reste $27$ €. J'avais :", choix: ["$35$ €", "$19$ €", "$216$ €", "$27$ €"], bonne: 0, explication: "$x - 8 = 27$ donc $x = 35$." }
+    { question: "Après avoir dépensé $8$ €, il me reste $27$ €. J'avais :", choix: ["$35$ €", "$19$ €", "$216$ €", "$27$ €"], bonne: 0, explication: "$x - 8 = 27$ donc $x = 35$." },
+    { question: "La balance est en équilibre et chaque boîte pèse $x$. Quelle équation traduit le dessin ?", figure: "eq5-qcm-b1", choix: ["$x + 9 = 20$", "$9x = 20$", "$x = 20 + 9$", "$x - 9 = 20$"], bonne: 0, explication: "À gauche : une boîte et $9$ ; à droite : $20$." },
+    { question: "La balance est en équilibre. Combien pèse une boîte ?", figure: "eq5-qcm-b1", choix: ["$11$", "$29$", "$9$", "$20$"], bonne: 0, explication: "$x + 9 = 20$ donc $x = 20 - 9 = 11$." },
+    { question: "La balance est en équilibre et chaque boîte pèse $x$. Combien vaut $x$ ?", figure: "eq5-qcm-b2", choix: ["$7$", "$24$", "$32$", "$112$"], bonne: 0, explication: "$4x = 28$ donc $x = 28 \\div 4 = 7$." },
+    { question: "La balance est en équilibre. Si on enlève une boîte de chaque plateau, elle reste en équilibre. Que vaut alors $x$ ?", figure: "eq5-qcm-b3", choix: ["$7$", "$17$", "$12$", "$5$"], bonne: 0, explication: "Il reste $x + 5 = 12$, donc $x = 7$. Vérification : $2 \\times 7 + 5 = 19$ et $7 + 12 = 19$." },
+    { question: "Pour la balance du dessin, le nombre $4$ est-il solution de $2x + 5 = x + 12$ ?", figure: "eq5-qcm-b3", choix: ["non, car $13 \\neq 16$", "oui, car $13 = 13$", "oui, car $4 < 12$", "on ne peut pas savoir"], bonne: 0, explication: "À gauche $2 \\times 4 + 5 = 13$, à droite $4 + 12 = 16$." },
+    { question: "Awa et Zaïd ont ensemble $48$ billes ; Zaïd en a trois fois plus qu'Awa (voir le schéma). Combien de billes a Awa ?", figure: "eq5-qcm-barre", choix: ["$12$", "$16$", "$36$", "$45$"], bonne: 0, explication: "$4$ parts égales font $48$ : $x + 3x = 4x = 48$, donc $x = 12$." },
+    { question: "$\\dfrac{x}{5} = 8$ a pour solution :", choix: ["$40$", "$1{,}6$", "$13$", "$3$"], bonne: 0, explication: "On multiplie : $8 \\times 5 = 40$." }
   ],
 
   /* ---------- 4. FICHE MÉTHODE ---------- */
@@ -113,7 +126,8 @@ window.CHAPITRES["cinquieme-equations"] = {
         "Calcule le membre de gauche, puis celui de droite.",
         "S'ils sont égaux, le nombre est solution."
       ],
-      exemple: "$x = 5$ dans $2x + 3 = 13$ : $13 = 13$, solution."
+      exemple: "Balance du dessin, $3x + 4 = 2x + 13$ avec $x = 9$ : à gauche $31$, à droite $31$, donc $9$ est solution.",
+      figure: "eq5-cours-balance"
     },
     {
       titre: "Résoudre une équation simple",
@@ -122,7 +136,8 @@ window.CHAPITRES["cinquieme-equations"] = {
         "$ax = c$ : $x = c \\div a$. $\\dfrac{x}{a} = c$ : $x = c \\times a$.",
         "Vérifie en remplaçant."
       ],
-      exemple: "$6x = 21$ : $x = 3{,}5$."
+      exemple: "Balance du dessin : $5x = 35$, donc $x = 35 \\div 5 = 7$. Et $6x = 21$ donne $x = 3{,}5$.",
+      figure: "eq5-cours-fois"
     },
     {
       titre: "Résoudre un problème",
@@ -131,7 +146,8 @@ window.CHAPITRES["cinquieme-equations"] = {
         "Traduis l'énoncé par une équation, puis résous-la.",
         "Vérifie et réponds par une phrase."
       ],
-      exemple: "$4$ places coûtent $26$ € : $4x = 26$, une place coûte $6{,}50$ €."
+      exemple: "Awa et Zaïd ont $48$ billes, Zaïd trois fois plus qu'Awa : $x + 3x = 48$, soit $4x = 48$, donc Awa a $12$ billes.",
+      figure: "eq5-qcm-barre"
     }
   ],
   erreurs: [

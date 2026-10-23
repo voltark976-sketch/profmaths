@@ -57,7 +57,9 @@ window.CHAPITRES["sixieme-fractions"] = {
         "- un **entier** : $\\dfrac{12}{4} = 3$ ;\n" +
         "- un **décimal** non entier : $\\dfrac{3}{4} = 0{,}75$ ; $\\dfrac{5}{2} = 2{,}5$ ;\n" +
         "- un nombre **non décimal** : $\\dfrac{1}{3} = 0{,}333\\ldots$ (la division ne s'arrête jamais).\n\n" +
-        "À connaître par cœur : $\\dfrac{1}{4} = 0{,}25$ ; $\\dfrac{1}{2} = 0{,}5$ ; $\\dfrac{3}{4} = 0{,}75$ ; $\\dfrac{3}{2} = 1{,}5$ ; $\\dfrac{5}{2} = 2{,}5$.",
+        "À connaître par cœur : $\\dfrac{1}{4} = 0{,}25$ ; $\\dfrac{1}{2} = 0{,}5$ ; $\\dfrac{3}{4} = 0{,}75$ ; $\\dfrac{3}{2} = 1{,}5$ ; $\\dfrac{5}{2} = 2{,}5$.\n\n" +
+        "Sur la figure, un segment de $3$ unités est partagé en $4$ parts égales : chaque part mesure $\\dfrac{3}{4}$ d'unité, le quart de $3$.",
+      figure: "f6-cours-quotient",
       exemple: {
         enonce: "Complète $5 \\times \\ldots = 2$. Donne l'écriture décimale de $\\dfrac{7}{4}$.",
         solution: "$5 \\times \\dfrac{2}{5} = 2$, et $\\dfrac{2}{5} = 0{,}4$.\n\n$\\dfrac{7}{4} = 7 \\div 4 = 1{,}75$."
@@ -84,7 +86,9 @@ window.CHAPITRES["sixieme-fractions"] = {
         "On ne change pas une fraction quand on **multiplie** (ou qu'on **divise**) son numérateur **et** son dénominateur par un même nombre (non nul) :\n\n" +
         "$\\dfrac{3}{4} = \\dfrac{3 \\times 2}{4 \\times 2} = \\dfrac{6}{8}$ et $\\dfrac{20}{15} = \\dfrac{20 \\div 5}{15 \\div 5} = \\dfrac{4}{3}$.\n\n" +
         "Diviser en haut et en bas, c'est **simplifier** la fraction : les tables de multiplication et les diviseurs aident à trouver par quoi diviser.\n\n" +
-        "Attention : **ajouter** le même nombre en haut et en bas change la fraction : $\\dfrac{3}{4} = 0{,}75$ mais $\\dfrac{3 + 5}{4 + 5} = \\dfrac{8}{9} \\approx 0{,}89$.",
+        "Attention : **ajouter** le même nombre en haut et en bas change la fraction : $\\dfrac{3}{4} = 0{,}75$ mais $\\dfrac{3 + 5}{4 + 5} = \\dfrac{8}{9} \\approx 0{,}89$.\n\n" +
+        "Sur la figure, $\\dfrac{3}{4}$ et $\\dfrac{6}{8}$ de la même bande ont la même longueur.",
+      figure: "f6-cours-egales",
       exemple: {
         enonce: "Complète : $\\dfrac{5}{7} = \\dfrac{\\ldots}{42}$ et $\\dfrac{27}{21} = \\dfrac{9}{\\ldots}$.",
         solution: "De $7$ à $42$, on multiplie par $6$ : $\\dfrac{5}{7} = \\dfrac{30}{42}$.\n\nDe $27$ à $9$, on divise par $3$ : $\\dfrac{27}{21} = \\dfrac{9}{7}$."
@@ -97,7 +101,9 @@ window.CHAPITRES["sixieme-fractions"] = {
         "- Deux fractions de **même dénominateur** : la plus grande est celle qui a le plus grand numérateur.\n" +
         "- Sinon, on les met **au même dénominateur** (ici, l'un est un multiple de l'autre) : $\\dfrac{3}{7}$ et $\\dfrac{11}{21}$ : $\\dfrac{3}{7} = \\dfrac{9}{21} < \\dfrac{11}{21}$.\n" +
         "- Une fraction est plus petite que $1$ si son numérateur est plus petit que son dénominateur.\n\n" +
-        "Pour **encadrer** $\\dfrac{18}{5}$ par deux entiers consécutifs, on cherche les multiples de $5$ autour de $18$ : $15 < 18 < 20$, donc $3 < \\dfrac{18}{5} < 4$.",
+        "Pour **encadrer** $\\dfrac{18}{5}$ par deux entiers consécutifs, on cherche les multiples de $5$ autour de $18$ : $15 < 18 < 20$, donc $3 < \\dfrac{18}{5} < 4$.\n\n" +
+        "Sur une demi-droite graduée, la plus grande fraction est la plus à droite (figure : l'exemple ci-dessous).",
+      figure: "f6-cours-comparer",
       exemple: {
         enonce: "Range dans l'ordre croissant : $\\dfrac{2}{3}$ ; $\\dfrac{5}{6}$ ; $\\dfrac{1}{6}$ ; $\\dfrac{7}{6}$.",
         solution: "On écrit $\\dfrac{2}{3} = \\dfrac{4}{6}$. Avec le dénominateur $6$ : $1 < 4 < 5 < 7$.\n\nDonc $\\dfrac{1}{6} < \\dfrac{2}{3} < \\dfrac{5}{6} < \\dfrac{7}{6}$."
@@ -111,7 +117,9 @@ window.CHAPITRES["sixieme-fractions"] = {
         "- **Dénominateurs différents** : on met d'abord les fractions au même dénominateur : $\\dfrac{3}{8} + \\dfrac{3}{4} = \\dfrac{3}{8} + \\dfrac{6}{8} = \\dfrac{9}{8}$.\n" +
         "- Avec un entier : $1 + \\dfrac{2}{5} = \\dfrac{5}{5} + \\dfrac{2}{5} = \\dfrac{7}{5}$.\n\n" +
         "On n'additionne **jamais** les dénominateurs : $\\dfrac{1}{2} + \\dfrac{1}{2} = 1$, pas $\\dfrac{2}{4}$ !\n\n" +
-        "À savoir par cœur : $\\dfrac{1}{2} + \\dfrac{1}{2} = 1$ ; $\\dfrac{1}{4} + \\dfrac{1}{4} = \\dfrac{1}{2}$ ; $\\dfrac{1}{2} + \\dfrac{1}{4} = \\dfrac{3}{4}$ ; $1 - \\dfrac{1}{4} = \\dfrac{3}{4}$.",
+        "À savoir par cœur : $\\dfrac{1}{2} + \\dfrac{1}{2} = 1$ ; $\\dfrac{1}{4} + \\dfrac{1}{4} = \\dfrac{1}{2}$ ; $\\dfrac{1}{2} + \\dfrac{1}{4} = \\dfrac{3}{4}$ ; $1 - \\dfrac{1}{4} = \\dfrac{3}{4}$.\n\n" +
+        "Sur la figure, $\\dfrac{3}{8} + \\dfrac{3}{4} = \\dfrac{3}{8} + \\dfrac{6}{8} = \\dfrac{9}{8}$ : une bande entière et encore $\\dfrac{1}{8}$.",
+      figure: "f6-cours-addition",
       exemple: {
         enonce: "Calcule $\\dfrac{4}{9} + \\dfrac{1}{27}$ et $\\dfrac{4}{5} - \\dfrac{3}{10}$.",
         solution: "$\\dfrac{4}{9} = \\dfrac{12}{27}$, donc $\\dfrac{4}{9} + \\dfrac{1}{27} = \\dfrac{13}{27}$.\n\n$\\dfrac{4}{5} = \\dfrac{8}{10}$, donc $\\dfrac{4}{5} - \\dfrac{3}{10} = \\dfrac{5}{10} = \\dfrac{1}{2}$."
@@ -124,7 +132,9 @@ window.CHAPITRES["sixieme-fractions"] = {
         "Prendre les $\\dfrac{2}{3}$ de $12$ œufs, c'est calculer $\\dfrac{2}{3} \\times 12$ : on partage en $3$, puis on prend $2$ parts.\n\n" +
         "$\\dfrac{2}{3} \\times 12 = (12 \\div 3) \\times 2 = 4 \\times 2 = 8$ œufs.\n\n" +
         "De même, les $\\dfrac{3}{4}$ de $10$ m : $\\dfrac{3}{4} \\times 10 = \\dfrac{30}{4} = 7{,}5$ m.\n\n" +
-        "Pour multiplier une fraction par un entier, on multiplie le **numérateur** et on garde le dénominateur : $5 \\times \\dfrac{2}{7} = \\dfrac{10}{7}$.",
+        "Pour multiplier une fraction par un entier, on multiplie le **numérateur** et on garde le dénominateur : $5 \\times \\dfrac{2}{7} = \\dfrac{10}{7}$.\n\n" +
+        "Sur la figure : $12$ œufs en $3$ rangées de $4$ ; les $\\dfrac{2}{3}$, ce sont $2$ rangées, soit $8$ œufs.",
+      figure: "f6-cours-oeufs",
       exemple: {
         enonce: "Une classe de $28$ élèves : les $\\dfrac{3}{4}$ viennent au collège en bus. Combien d'élèves viennent en bus ? Combien viennent autrement ?",
         solution: "$\\dfrac{3}{4} \\times 28 = (28 \\div 4) \\times 3 = 7 \\times 3 = 21$ élèves en bus.\n\nLes autres : $28 - 21 = 7$ élèves."
@@ -183,7 +193,10 @@ window.CHAPITRES["sixieme-fractions"] = {
     { question: "Les $\\dfrac{2}{3}$ de $12$ œufs, c'est :", choix: ["$8$ œufs", "$4$ œufs", "$18$ œufs", "$6$ œufs"], bonne: 0, explication: "$12 \\div 3 = 4$, puis $4 \\times 2 = 8$." },
     { question: "Les $\\dfrac{3}{4}$ de $10$ m, c'est :", choix: ["$7{,}5$ m", "$7$ m", "$13{,}3$ m", "$2{,}5$ m"], bonne: 0, explication: "$\\dfrac{3}{4} \\times 10 = \\dfrac{30}{4} = 7{,}5$ m. $2{,}5$ m, c'est seulement le quart." },
     { question: "Dans une classe de $28$ élèves, les $\\dfrac{3}{4}$ viennent en bus. Combien ne viennent pas en bus ?", choix: ["$7$", "$21$", "$25$", "$4$"], bonne: 0, explication: "$\\dfrac{3}{4} \\times 28 = 21$ en bus, donc $28 - 21 = 7$ élèves ne viennent pas en bus." },
-    { question: "Un champ : $\\dfrac{3}{8}$ en bananiers et $\\dfrac{1}{4}$ en manioc. Quelle fraction reste libre ?", choix: ["$\\dfrac{3}{8}$", "$\\dfrac{4}{12}$", "$\\dfrac{5}{8}$", "$\\dfrac{1}{2}$"], bonne: 0, explication: "$\\dfrac{1}{4} = \\dfrac{2}{8}$ ; planté : $\\dfrac{5}{8}$ ; libre : $\\dfrac{8}{8} - \\dfrac{5}{8} = \\dfrac{3}{8}$." }
+    { question: "Un champ : $\\dfrac{3}{8}$ en bananiers et $\\dfrac{1}{4}$ en manioc. Quelle fraction reste libre ?", choix: ["$\\dfrac{3}{8}$", "$\\dfrac{4}{12}$", "$\\dfrac{5}{8}$", "$\\dfrac{1}{2}$"], bonne: 0, explication: "$\\dfrac{1}{4} = \\dfrac{2}{8}$ ; planté : $\\dfrac{5}{8}$ ; libre : $\\dfrac{8}{8} - \\dfrac{5}{8} = \\dfrac{3}{8}$." },
+    { question: "Quelle fraction de la pizza est coloriée ?", figure: "f6-qcm-pizza", choix: ["$\\dfrac{2}{3}$", "$\\dfrac{4}{2}$", "$\\dfrac{1}{3}$", "$\\dfrac{4}{10}$"], bonne: 0, explication: "$4$ parts sur $6$ sont coloriées : $\\dfrac{4}{6} = \\dfrac{2}{3}$. Les parts n'ont pas besoin d'être côte à côte." },
+    { question: "Quelle fraction du rectangle est coloriée ?", figure: "f6-qcm-grille", choix: ["$\\dfrac{5}{12}$", "$\\dfrac{5}{7}$", "$\\dfrac{7}{12}$", "$\\dfrac{12}{5}$"], bonne: 0, explication: "Le rectangle est partagé en $3 \\times 4 = 12$ cases égales, dont $5$ sont coloriées : $\\dfrac{5}{12}$." },
+    { question: "Un segment de $3$ unités est partagé en $4$ parts égales. Chaque part mesure :", figure: "f6-cours-quotient", choix: ["$\\dfrac{3}{4}$ d'unité", "$\\dfrac{4}{3}$ d'unité", "$\\dfrac{1}{4}$ d'unité", "$3{,}4$ unités"], bonne: 0, explication: "On partage $3$ en $4$ : $3 \\div 4 = \\dfrac{3}{4}$. C'est le quart de $3$." }
   ],
 
   /* ---------- 4. FICHE MÉTHODE ---------- */
@@ -195,6 +208,7 @@ window.CHAPITRES["sixieme-fractions"] = {
         "Dénominateur : le nombre de parts dans **une** unité.",
         "Numérateur : le nombre de parts coloriées (on peut dépasser une unité)."
       ],
+      figure: "f6-bande-7",
       exemple: "$7$ parts coloriées, l'unité partagée en $4$ : $\\dfrac{7}{4}$."
     },
     {
@@ -204,6 +218,7 @@ window.CHAPITRES["sixieme-fractions"] = {
         "Pose la division décimale.",
         "Si elle ne s'arrête pas, le nombre n'est pas décimal : donne une valeur approchée, ou garde la fraction."
       ],
+      figure: "f6-cours-quotient",
       exemple: "$\\dfrac{7}{4} = 1{,}75$ ; $\\dfrac{2}{3} = 0{,}666\\ldots \\approx 0{,}67$."
     },
     {
@@ -213,6 +228,7 @@ window.CHAPITRES["sixieme-fractions"] = {
         "Multiplie (ou divise) l'autre étage par le même nombre.",
         "Jamais d'addition ni de soustraction en haut et en bas."
       ],
+      figure: "f6-cours-egales",
       exemple: "$\\dfrac{5}{7} = \\dfrac{30}{42}$ (on a multiplié par $6$)."
     },
     {
@@ -222,6 +238,7 @@ window.CHAPITRES["sixieme-fractions"] = {
         "Compare les numérateurs.",
         "Pour comparer à $1$ : numérateur plus petit que le dénominateur, la fraction est plus petite que $1$."
       ],
+      figure: "f6-cours-comparer",
       exemple: "$\\dfrac{3}{7} = \\dfrac{9}{21} < \\dfrac{11}{21}$."
     },
     {
@@ -231,6 +248,7 @@ window.CHAPITRES["sixieme-fractions"] = {
         "Additionne ou soustrais les numérateurs, garde le dénominateur.",
         "Simplifie si c'est possible."
       ],
+      figure: "f6-cours-addition",
       exemple: "$\\dfrac{4}{5} - \\dfrac{3}{10} = \\dfrac{8}{10} - \\dfrac{3}{10} = \\dfrac{5}{10} = \\dfrac{1}{2}$."
     },
     {
@@ -240,6 +258,7 @@ window.CHAPITRES["sixieme-fractions"] = {
         "Multiplie le résultat par le numérateur.",
         "Écris l'unité et fais une phrase."
       ],
+      figure: "f6-cours-oeufs",
       exemple: "$\\dfrac{3}{5}$ de $40$ € : $40 \\div 5 = 8$, puis $8 \\times 3 = 24$ €."
     }
   ],

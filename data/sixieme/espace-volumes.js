@@ -28,7 +28,7 @@ window.CHAPITRES["sixieme-espace-volumes"] = {
   cours: [
     {
       titre: "Les solides usuels",
-      video: { titre: "Vidéo d'Yvan Monka : reconnaître un solide et ses éléments", youtube: "https://youtu.be/9SlR8ANDL1w" },
+      video: { titre: "Vidéo d'Yvan Monka : le cours sur les solides et les volumes", youtube: "https://youtu.be/18rPxmBBG-8" },
       texte:
         "- **Cube** : $6$ faces carrées identiques.\n" +
         "- **Pavé droit** : $6$ faces rectangulaires (une boîte à chaussures).\n" +
@@ -37,8 +37,9 @@ window.CHAPITRES["sixieme-espace-volumes"] = {
         "- **Cylindre** : deux bases en forme de disque, reliées par une face courbe (une boîte de conserve).\n" +
         "- **Cône** : une base en forme de disque et une face courbe qui se termine en pointe.\n" +
         "- **Boule** : tous les points de sa surface sont à la même distance de son centre.\n\n" +
-        "En perspective, les arêtes cachées sont dessinées **en pointillés**.",
-      figure: "so6-pave",
+        "En perspective, les arêtes cachées sont dessinées **en pointillés**.\n\n" +
+        "Un **patron** d'un solide est une figure plane qui, une fois pliée, forme ce solide. Six carrés ne forment pas toujours un patron du cube : au pliage, deux carrés ne doivent jamais venir l'un sur l'autre.",
+      figure: "so6-cours-solides",
       exemple: {
         enonce: "Une boîte de lait concentré, un dé à jouer, une glace en cornet : quels solides ?",
         solution: "La boîte : un cylindre. Le dé : un cube. Le cornet : un cône."
@@ -46,13 +47,15 @@ window.CHAPITRES["sixieme-espace-volumes"] = {
     },
     {
       titre: "Faces, arêtes et sommets",
-      video: { titre: "Vidéo d'Yvan Monka : dessiner en perspective", youtube: "https://youtu.be/i7PtsYJhs6g" },
+      video: { titre: "Vidéo d'Yvan Monka : reconnaître un solide et ses éléments", youtube: "https://youtu.be/9SlR8ANDL1w" },
       texte:
         "- Une **face** est une surface plane du solide.\n" +
         "- Une **arête** est un segment où deux faces se rejoignent.\n" +
         "- Un **sommet** est un point où plusieurs arêtes se rejoignent.\n\n" +
         "Un pavé droit (et un cube) a $6$ faces, $12$ arêtes et $8$ sommets.\n\n" +
-        "Un prisme dont la base a $n$ côtés a $n + 2$ faces, $2 \\times n$ sommets et $3 \\times n$ arêtes. Une pyramide dont la base a $n$ côtés a $n + 1$ faces, $n + 1$ sommets et $2 \\times n$ arêtes.",
+        "Un prisme dont la base a $n$ côtés a $n + 2$ faces, $2 \\times n$ sommets et $3 \\times n$ arêtes. Une pyramide dont la base a $n$ côtés a $n + 1$ faces, $n + 1$ sommets et $2 \\times n$ arêtes.\n\n" +
+        "Sur les dessins, compte aussi les arêtes en pointillés : elles existent, on ne les voit pas.",
+      figure: "so6-cours-elements",
       exemple: {
         enonce: "Combien d'arêtes a une pyramide à base carrée ?",
         solution: "$4$ arêtes pour la base carrée, et $4$ arêtes qui montent jusqu'au sommet : $8$ arêtes."
@@ -81,6 +84,7 @@ window.CHAPITRES["sixieme-espace-volumes"] = {
         "Un assemblage de $12$ cubes de $1$ cm d'arête a un volume de $12$ cm³.\n\n" +
         "Pour un pavé construit avec des cubes, on compte une **couche** (rangées $\\times$ cubes par rangée), puis on multiplie par le nombre de couches.\n\n" +
         "Deux solides de formes différentes peuvent avoir le même volume.",
+      figure: "so6-cours-volume",
       exemple: {
         enonce: "Un pavé fait de cubes de $1$ cm³ mesure $5$ cubes de long, $3$ de large et $4$ couches. Quel est son volume ?",
         solution: "Une couche : $5 \\times 3 = 15$ cubes. $4$ couches : $15 \\times 4 = 60$ cubes, soit $60$ cm³."
@@ -90,7 +94,8 @@ window.CHAPITRES["sixieme-espace-volumes"] = {
 
   videosNote: "Méthodes expliquées par Yvan Monka (maths-et-tiques).",
   videos: [
-    { titre: "Fabriquer un patron d'un pavé droit", type: "Patron", youtube: "https://youtu.be/WhwYCIcA220" }
+    { titre: "Fabriquer un patron d'un pavé droit", type: "Patron", youtube: "https://youtu.be/WhwYCIcA220" },
+    { titre: "Dessiner un pavé droit en perspective", type: "Perspective", youtube: "https://youtu.be/i7PtsYJhs6g" }
   ],
 
   /* ---------- 2. EXERCICES INTERACTIFS ---------- */
@@ -117,7 +122,15 @@ window.CHAPITRES["sixieme-espace-volumes"] = {
     { question: "$1$ cm³ est :", choix: ["le volume d'un cube de $1$ cm d'arête", "l'aire d'un carré de $1$ cm de côté", "la longueur de $1$ cm", "le volume d'un litre"], bonne: 0, explication: "Le centimètre cube mesure un volume." },
     { question: "Un pavé de cubes de $1$ cm³ : $5$ de long, $3$ de large, $4$ couches. Son volume est :", choix: ["$60$ cm³", "$12$ cm³", "$15$ cm³", "$47$ cm³"], bonne: 0, explication: "$5 \\times 3 = 15$ cubes par couche, $\\times 4$ couches $= 60$." },
     { question: "Deux assemblages de $8$ cubes identiques de formes différentes ont :", choix: ["le même volume", "des volumes différents", "toujours la même forme", "le même nombre de carrés vus de dessus"], bonne: 0, explication: "Le volume ne dépend que du nombre de cubes." },
-    { question: "Une glace en cornet a la forme :", choix: ["d'un cône", "d'une pyramide", "d'un cylindre", "d'un prisme"], bonne: 0, explication: "Une base en disque et une pointe." }
+    { question: "Une glace en cornet a la forme :", choix: ["d'un cône", "d'une pyramide", "d'un cylindre", "d'un prisme"], bonne: 0, explication: "Une base en disque et une pointe." },
+    { question: "Combien de faces a ce prisme droit ?", figure: "so6-cours-prisme", choix: ["$8$", "$6$", "$12$", "$18$"], bonne: 0, explication: "Ses bases sont des hexagones ($6$ côtés) : $2$ bases et $6$ faces latérales, soit $8$ faces. ($12$ : les sommets ; $18$ : les arêtes.)" },
+    { question: "Combien d'arêtes a cette pyramide ?", figure: "so6-cours-pyramide", choix: ["$10$", "$6$", "$5$", "$15$"], bonne: 0, explication: "Sa base est un pentagone : $5$ arêtes pour la base et $5$ arêtes qui montent au sommet, soit $10$ arêtes (dont certaines en pointillés)." },
+    { question: "Lequel de ces assemblages de six carrés est un patron de cube ?", figure: "so6-patrons", choix: ["A", "B", "C", "D"], bonne: 1, explication: "B : quatre carrés alignés font le tour du cube, et il y a un carré de chaque côté de cette bande. A contient un bloc de $2 \\times 2$ carrés, C a deux carrés du même côté, D a cinq carrés alignés." },
+    { question: "Ce pavé est formé de cubes de $1$ cm³. Quel est son volume ?", figure: "so6-qcm-pave", choix: ["$24$ cm³", "$26$ cm³", "$9$ cm³", "$8$ cm³"], bonne: 0, explication: "Une couche : $4 \\times 2 = 8$ cubes ; $3$ couches : $8 \\times 3 = 24$ cm³. $26$ est le nombre de carrés visibles : il y a aussi des cubes cachés." },
+    { question: "Voici la vue de dessus d'un assemblage, avec le nombre de cubes de chaque colonne. Combien de cubes compte l'assemblage ?", figure: "so6-methode-vue", choix: ["$6$", "$5$", "$4$", "$7$"], bonne: 0, explication: "$2 + 1 + 1 + 1 + 1 = 6$ cubes : on additionne les hauteurs des colonnes. $5$ est le nombre de colonnes." },
+    { question: "Une pyramide à base hexagonale a combien de sommets ?", choix: ["$7$", "$6$", "$12$", "$8$"], bonne: 0, explication: "Les $6$ sommets de la base et le sommet de la pyramide : $7$ sommets." },
+    { question: "Un prisme droit a pour bases deux pentagones. Combien a-t-il de faces latérales (en plus des bases) ?", choix: ["$5$", "$7$", "$2$", "$10$"], bonne: 0, explication: "Une face latérale rectangulaire par côté de la base : $5$ faces latérales ($7$ faces en tout avec les deux bases)." },
+    { question: "Quel est le volume d'un cube de $2$ cm d'arête ?", choix: ["$8$ cm³", "$6$ cm³", "$4$ cm³", "$12$ cm³"], bonne: 0, explication: "On peut le remplir avec $2 \\times 2 = 4$ cubes de $1$ cm³ par couche, sur $2$ couches : $8$ cm³." }
   ],
 
   /* ---------- 4. FICHE MÉTHODE ---------- */
@@ -129,7 +142,18 @@ window.CHAPITRES["sixieme-espace-volumes"] = {
         "Deux bases identiques et parallèles : prisme ou cylindre. Une pointe : pyramide ou cône.",
         "Une face courbe : cylindre, cône ou boule."
       ],
-      exemple: "Deux disques et une face courbe : un cylindre."
+      figure: "so6-cours-pyramide",
+      exemple: "Deux disques et une face courbe : un cylindre. Une base pentagonale et des triangles qui se rejoignent en un sommet : une pyramide."
+    },
+    {
+      titre: "Reconnaître un patron de cube",
+      etapes: [
+        "Vérifie qu'il y a exactement $6$ carrés.",
+        "Jamais de bloc de $2 \\times 2$ carrés, jamais plus de $4$ carrés alignés.",
+        "Plie en pensée : chaque carré doit devenir une face différente du cube."
+      ],
+      figure: "so6-cours-patron",
+      exemple: "La croix (quatre carrés alignés, un carré au-dessus, un carré au-dessous) est un patron du cube ; un rectangle de $2 \\times 3$ carrés n'en est pas un."
     },
     {
       titre: "Compter les cubes d'un assemblage",
@@ -138,7 +162,8 @@ window.CHAPITRES["sixieme-espace-volumes"] = {
         "Pour chaque colonne, compte combien de cubes sont empilés (même ceux qu'on ne voit pas).",
         "Additionne : c'est le nombre de cubes, donc le volume en cubes."
       ],
-      exemple: "Colonnes de $3$, $2$ et $1$ cubes : $6$ cubes."
+      figure: "so6-assemblage",
+      exemple: "Sur la figure : colonnes de $2$, $1$, $1$, $1$ et $1$ cubes, soit $6$ cubes."
     },
     {
       titre: "Trouver une vue",
@@ -147,7 +172,8 @@ window.CHAPITRES["sixieme-espace-volumes"] = {
         "De dessus : un carré par colonne.",
         "De face ou de côté : pour chaque rangée, la hauteur de la colonne la plus haute."
       ],
-      exemple: "Une rangée avec des colonnes de $1$, $3$ et $2$ cubes se voit de face comme $3$ carrés empilés."
+      figure: "so6-methode-vue",
+      exemple: "Vue de dessus de l'assemblage précédent : $5$ carrés ; on peut y écrire la hauteur de chaque colonne."
     },
     {
       titre: "Calculer le volume d'un pavé de cubes",
@@ -156,6 +182,7 @@ window.CHAPITRES["sixieme-espace-volumes"] = {
         "Multiplie par le nombre de couches.",
         "Avec des cubes de $1$ cm³, le résultat est en cm³."
       ],
+      figure: "so6-methode-pave",
       exemple: "$4 \\times 3 \\times 2 = 24$ cm³."
     }
   ],

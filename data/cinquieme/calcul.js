@@ -35,7 +35,9 @@ window.CHAPITRES["cinquieme-calcul"] = {
         "**Sans priorité.** S'il n'y a que des additions et des soustractions, ou que des multiplications et des divisions, on calcule **de gauche à droite** :\n\n" +
         "$25 - 7 + 3 = 18 + 3 = 21$ et $48 \\div 6 \\times 2 = 8 \\times 2 = 16$.\n\n" +
         "**Avec priorité.** Dans un calcul sans parenthèses, on effectue **d'abord les multiplications et les divisions**, puis les additions et les soustractions :\n\n" +
-        "$4 + 5 \\times 3 = 4 + 15 = 19$ (et non $9 \\times 3 = 27$).",
+        "$4 + 5 \\times 3 = 4 + 15 = 19$ (et non $9 \\times 3 = 27$).\n\n" +
+        "Un **arbre de calcul** montre l'ordre des opérations : les nombres sont en haut, on calcule en descendant, et la dernière opération est tout en bas.",
+      figure: "rc5-cours-arbre",
       exemple: {
         enonce: "Calcule $A = 30 - 4 \\times 6 + 2$ et $B = 7 \\times 8 - 36 \\div 4$.",
         solution: "$A = 30 - 24 + 2 = 6 + 2 = 8$.\n\n$B = 56 - 9 = 47$ : les deux produits (ou quotients) sont calculés avant la soustraction."
@@ -49,6 +51,7 @@ window.CHAPITRES["cinquieme-calcul"] = {
         "$5 \\times (8 - 3) = 5 \\times 5 = 25$, alors que $5 \\times 8 - 3 = 37$.\n\n" +
         "S'il y a des parenthèses dans des crochets, on commence par les parenthèses **les plus intérieures** :\n\n" +
         "$2 \\times [10 - (3 + 4)] = 2 \\times [10 - 7] = 2 \\times 3 = 6$.",
+      figure: "rc5-cours-parentheses",
       exemple: {
         enonce: "Calcule $C = (12 + 8) \\times (9 - 4)$ et $D = 50 - (6 + 4 \\times 3)$.",
         solution: "$C = 20 \\times 5 = 100$.\n\n$D = 50 - (6 + 12) = 50 - 18 = 32$ : dans la parenthèse aussi, la multiplication passe avant l'addition."
@@ -60,6 +63,7 @@ window.CHAPITRES["cinquieme-calcul"] = {
       texte:
         "Un **trait de fraction** joue le rôle de parenthèses : on calcule le numérateur et le dénominateur, puis on divise.\n\n" +
         "$\\dfrac{18 + 6}{11 - 3} = \\dfrac{24}{8} = 3$. Écrit sur une ligne, ce calcul devient $(18 + 6) \\div (11 - 3)$.",
+      figure: "rc5-cours-fraction",
       exemple: {
         enonce: "Calcule $E = \\dfrac{7 \\times 6}{5 + 9}$.",
         solution: "$E = \\dfrac{42}{14} = 3$."
@@ -75,6 +79,7 @@ window.CHAPITRES["cinquieme-calcul"] = {
         "- $15 \\div 3$ est le **quotient** de $15$ par $3$.\n\n" +
         "La nature d'une expression est donnée par la **dernière opération** effectuée : $3 + 4 \\times 5$ est une somme, $(3 + 4) \\times 5$ est un produit.\n\n" +
         "Pour traduire une phrase, le premier mot donne la dernière opération : « le produit de $3$ par la somme de $4$ et de $5$ » s'écrit $3 \\times (4 + 5)$.",
+      figure: "rc5-cours-nature",
       exemple: {
         enonce: "Écris une expression pour : « la différence entre $20$ et le quotient de $12$ par $4$ », puis calcule-la.",
         solution: "C'est une différence ; le second terme est le quotient $12 \\div 4$ : $20 - 12 \\div 4 = 20 - 3 = 17$."
@@ -88,7 +93,9 @@ window.CHAPITRES["cinquieme-calcul"] = {
         "$k \\times (a + b) = k \\times a + k \\times b$ et $k \\times (a - b) = k \\times a - k \\times b$.\n\n" +
         "Le facteur $k$ multiplie **chaque terme** de la parenthèse. Cette règle sert au calcul mental :\n\n" +
         "$7 \\times 102 = 7 \\times (100 + 2) = 700 + 14 = 714$ et $6 \\times 99 = 6 \\times (100 - 1) = 600 - 6 = 594$.\n\n" +
-        "Dans l'autre sens, on regroupe un facteur commun : $13 \\times 7 + 13 \\times 3 = 13 \\times (7 + 3) = 130$.",
+        "Dans l'autre sens, on regroupe un facteur commun : $13 \\times 7 + 13 \\times 3 = 13 \\times (7 + 3) = 130$.\n\n" +
+        "Avec des aires : un rectangle de largeur $7$ et de longueur $100 + 2$ a pour aire $7 \\times 102$, c'est-à-dire la somme des aires de ses deux morceaux, $7 \\times 100$ et $7 \\times 2$.",
+      figure: "rc5-cours-distributivite",
       exemple: {
         enonce: "Calcule mentalement $25 \\times 104$ et $4{,}5 \\times 37 + 4{,}5 \\times 63$.",
         solution: "$25 \\times 104 = 25 \\times 100 + 25 \\times 4 = 2\\,500 + 100 = 2\\,600$.\n\n$4{,}5 \\times 37 + 4{,}5 \\times 63 = 4{,}5 \\times (37 + 63) = 4{,}5 \\times 100 = 450$."
@@ -120,7 +127,15 @@ window.CHAPITRES["cinquieme-calcul"] = {
     { question: "« Le produit de $4$ par la somme de $2$ et de $6$ » s'écrit :", choix: ["$4 \\times (2 + 6)$", "$4 \\times 2 + 6$", "$(4 + 2) \\times 6$", "$4 + 2 \\times 6$"], bonne: 0, explication: "Le premier mot, « produit », donne la dernière opération." },
     { question: "$9 \\times 101$ est égal à :", choix: ["$909$", "$901$", "$910$", "$9\\,001$"], bonne: 0, explication: "$9 \\times 100 + 9 \\times 1 = 909$." },
     { question: "$8 \\times (10 - 3)$ est égal à :", choix: ["$8 \\times 10 - 8 \\times 3$", "$8 \\times 10 - 3$", "$80 - 3$", "$8 - 3 \\times 10$"], bonne: 0, explication: "Le facteur $8$ multiplie chaque terme de la parenthèse." },
-    { question: "$17 \\times 6 + 17 \\times 4$ est égal à :", choix: ["$170$", "$408$", "$1\\,734$", "$27$"], bonne: 0, explication: "$17 \\times (6 + 4) = 17 \\times 10 = 170$." }
+    { question: "$17 \\times 6 + 17 \\times 4$ est égal à :", choix: ["$170$", "$408$", "$1\\,734$", "$27$"], bonne: 0, explication: "$17 \\times (6 + 4) = 17 \\times 10 = 170$." },
+    { question: "Quelle expression correspond à cet arbre de calcul ?", figure: "rc5-qcm-arbre", choix: ["$(6 + 2) \\times 5$", "$6 + 2 \\times 5$", "$6 \\times 2 + 5$", "$6 \\times (2 + 5)$"], bonne: 0, explication: "On calcule d'abord $6 + 2$, puis on multiplie par $5$ : il faut des parenthèses, $(6 + 2) \\times 5 = 40$." },
+    { question: "L'aire totale de ce rectangle est égale à :", figure: "rc5-qcm-rect", choix: ["$8 \\times 10 + 8 \\times 3$", "$8 \\times 10 + 3$", "$8 + 10 \\times 3$", "$8 \\times 10 \\times 3$"], bonne: 0, explication: "Les deux morceaux ont la même largeur $8$ : $8 \\times (10 + 3) = 8 \\times 10 + 8 \\times 3 = 80 + 24 = 104$." },
+    { question: "$48 \\div 4 \\div 2$ est égal à :", choix: ["$6$", "$24$", "$12$", "$96$"], bonne: 0, explication: "Que des divisions : de gauche à droite, $48 \\div 4 = 12$ puis $12 \\div 2 = 6$." },
+    { question: "$7 \\times 99$ est égal à :", choix: ["$693$", "$699$", "$707$", "$793$"], bonne: 0, explication: "$7 \\times (100 - 1) = 700 - 7 = 693$." },
+    { question: "Dans $(5 + 3) \\times 2$, quelle opération effectue-t-on en dernier ?", choix: ["la multiplication", "l'addition", "aucune : tout se calcule en même temps", "la soustraction"], bonne: 0, explication: "On calcule d'abord la parenthèse, puis on multiplie : c'est un produit." },
+    { question: "Pour que le calcul $4 + 6 \\times 3$ donne $30$, on écrit :", choix: ["$(4 + 6) \\times 3$", "$4 + (6 \\times 3)$", "$4 \\times 6 + 3$", "$4 + 6 \\times 3$"], bonne: 0, explication: "$(4 + 6) \\times 3 = 10 \\times 3 = 30$, alors que $4 + 6 \\times 3 = 4 + 18 = 22$." },
+    { question: "« La somme de $12$ et du quotient de $20$ par $5$ » s'écrit :", choix: ["$12 + 20 \\div 5$", "$(12 + 20) \\div 5$", "$12 \\div 20 + 5$", "$12 + 5 \\div 20$"], bonne: 0, explication: "C'est une somme dont le second terme est $20 \\div 5$ : $12 + 20 \\div 5 = 12 + 4 = 16$. Pas besoin de parenthèses." },
+    { question: "$2{,}5 \\times 46 + 2{,}5 \\times 54$ est égal à :", choix: ["$250$", "$25$", "$2\\,500$", "$102{,}5$"], bonne: 0, explication: "$2{,}5 \\times (46 + 54) = 2{,}5 \\times 100 = 250$." }
   ],
 
   /* ---------- 4. FICHE MÉTHODE ---------- */
@@ -132,6 +147,7 @@ window.CHAPITRES["cinquieme-calcul"] = {
         "Effectue ensuite les multiplications et les divisions, de gauche à droite.",
         "Termine par les additions et les soustractions, de gauche à droite."
       ],
+      figure: "rc5-methode-calcul",
       exemple: "$3 + 2 \\times (9 - 4) = 3 + 2 \\times 5 = 3 + 10 = 13$."
     },
     {
@@ -141,6 +157,7 @@ window.CHAPITRES["cinquieme-calcul"] = {
         "Cherche la dernière opération effectuée.",
         "Elle donne la nature : somme ($+$), différence ($-$), produit ($\\times$) ou quotient ($\\div$)."
       ],
+      figure: "rc5-methode-nature",
       exemple: "$5 \\times 4 - 3$ : la soustraction est faite en dernier, c'est une différence."
     },
     {
@@ -159,7 +176,8 @@ window.CHAPITRES["cinquieme-calcul"] = {
         "Multiplie chaque terme : $k \\times (a + b) = k \\times a + k \\times b$.",
         "Avec un facteur commun, regroupe : $k \\times a + k \\times b = k \\times (a + b)$."
       ],
-      exemple: "$12 \\times 99 = 1\\,200 - 12 = 1\\,188$."
+      figure: "rc5-methode-distributivite",
+      exemple: "$12 \\times 105 = 1\\,200 + 60 = 1\\,260$ et $12 \\times 99 = 1\\,200 - 12 = 1\\,188$."
     }
   ],
   erreurs: [

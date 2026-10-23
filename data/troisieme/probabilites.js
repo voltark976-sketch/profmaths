@@ -32,7 +32,9 @@ window.CHAPITRES["troisieme-probabilites"] = {
       texte:
         "Quand toutes les issues ont la même chance (**équiprobabilité**) : $P(A) = \\dfrac{\\text{nombre d'issues favorables}}{\\text{nombre total d'issues}}$.\n\n" +
         "Une probabilité est comprise entre $0$ (événement impossible) et $1$ (événement certain). La somme des probabilités de toutes les issues vaut $1$.\n\n" +
-        "L'**événement contraire** de $A$, noté $\\overline{A}$, a pour probabilité $P(\\overline{A}) = 1 - P(A)$.",
+        "L'**événement contraire** de $A$, noté $\\overline{A}$, a pour probabilité $P(\\overline{A}) = 1 - P(A)$.\n\n" +
+        "Avec l'urne de la figure ($5$ rouges, $3$ vertes, $2$ jaunes) : $P(R) = \\dfrac{5}{10} = \\dfrac{1}{2}$ et $P(\\text{pas verte}) = 1 - \\dfrac{3}{10} = \\dfrac{7}{10}$.",
+      figure: "pr3-cours-urne",
       exemple: {
         enonce: "Un dé est truqué : $P(6) = 0{,}3$. Quelle est la probabilité de ne pas obtenir $6$ ?",
         solution: "$1 - 0{,}3 = 0{,}7$."
@@ -44,7 +46,9 @@ window.CHAPITRES["troisieme-probabilites"] = {
       texte:
         "- Un **tableau à double entrée** liste toutes les issues : avec deux dés, il y a $6 \\times 6 = 36$ issues équiprobables.\n" +
         "- Un **arbre** représente les épreuves successives : on **multiplie** les probabilités le long d'un chemin, puis on **additionne** les chemins qui réalisent l'événement.\n\n" +
-        "Sans remise, la composition de l'urne change au second tirage.",
+        "Sans remise, la composition de l'urne change au second tirage.\n\n" +
+        "L'arbre de la figure correspond à l'exemple : à chaque tirage, $\\dfrac{3}{5}$ pour rouge et $\\dfrac{2}{5}$ pour vert.",
+      figure: "pr3-cours-arbre",
       exemple: {
         enonce: "Une urne contient $3$ rouges et $2$ vertes. On tire deux boules avec remise. $P(\\text{deux rouges})$ ?",
         solution: "$\\dfrac{3}{5} \\times \\dfrac{3}{5} = \\dfrac{9}{25}$."
@@ -56,7 +60,9 @@ window.CHAPITRES["troisieme-probabilites"] = {
       texte:
         "La **fréquence** d'une issue est $\\dfrac{\\text{nombre de fois où elle apparaît}}{\\text{nombre d'essais}}$.\n\n" +
         "Quand on répète l'expérience un **grand nombre** de fois, la fréquence se rapproche de la probabilité. On peut ainsi **estimer** une probabilité inconnue.\n\n" +
-        "Chaque lancer d'une pièce est indépendant des précédents : après $5$ « pile », $P(\\text{pile})$ vaut toujours $\\dfrac{1}{2}$.",
+        "Chaque lancer d'une pièce est indépendant des précédents : après $5$ « pile », $P(\\text{pile})$ vaut toujours $\\dfrac{1}{2}$.\n\n" +
+        "Sur la figure, la fréquence de « pile » varie beaucoup au début, puis se stabilise autour de $0{,}5$ quand le nombre de lancers augmente.",
+      figure: "pr3-cours-frequence",
       exemple: {
         enonce: "Sur $200$ lancers d'une punaise, elle tombe $76$ fois sur la pointe. Estime la probabilité.",
         solution: "$\\dfrac{76}{200} = 0{,}38$."
@@ -85,7 +91,17 @@ window.CHAPITRES["troisieme-probabilites"] = {
     { question: "Une urne : $2$ rouges, $3$ vertes. Deux tirages sans remise. $P(\\text{deux rouges})$ :", choix: ["$\\dfrac{1}{10}$", "$\\dfrac{4}{25}$", "$\\dfrac{2}{5}$", "$\\dfrac{1}{5}$"], bonne: 0, explication: "$\\dfrac{2}{5} \\times \\dfrac{1}{4}$." },
     { question: "Une roue : $P(\\text{bleu}) = 0{,}4$, $P(\\text{rouge}) = 0{,}35$. $P(\\text{vert})$, dernière couleur :", choix: ["$0{,}25$", "$0{,}75$", "$0{,}35$", "$0{,}33$"], bonne: 0, explication: "$1 - 0{,}4 - 0{,}35$." },
     { question: "Sur $500$ lancers, on obtient $90$ fois « 6 ». La fréquence est :", choix: ["$0{,}18$", "$0{,}09$", "$\\dfrac{1}{6}$", "$90$"], bonne: 0, explication: "$90 \\div 500$." },
-    { question: "Après $4$ « face » de suite, au lancer suivant d'une pièce équilibrée :", choix: ["$P(\\text{face}) = \\dfrac{1}{2}$", "« pile » est plus probable", "« face » est plus probable", "$P(\\text{face}) = \\dfrac{1}{5}$"], bonne: 0, explication: "Les lancers sont indépendants." }
+    { question: "Après $4$ « face » de suite, au lancer suivant d'une pièce équilibrée :", choix: ["$P(\\text{face}) = \\dfrac{1}{2}$", "« pile » est plus probable", "« face » est plus probable", "$P(\\text{face}) = \\dfrac{1}{5}$"], bonne: 0, explication: "Les lancers sont indépendants." },
+    { question: "On tire une boule au hasard dans cette urne. $P(\\text{verte})$ vaut :", figure: "pr3-qcm-urne", choix: ["$\\dfrac{3}{8}$", "$\\dfrac{3}{5}$", "$\\dfrac{1}{3}$", "$\\dfrac{3}{7}$"], bonne: 0, explication: "$3$ boules vertes sur $8$ boules en tout." },
+    { question: "D'après cet arbre (deux tirages sans remise), $P(\\text{deux vertes})$ vaut :", figure: "pr3-qcm-arbre", choix: ["$\\dfrac{3}{10}$", "$\\dfrac{9}{25}$", "$\\dfrac{1}{2}$", "$\\dfrac{3}{5}$"], bonne: 0, explication: "Chemin V puis V : $\\dfrac{3}{5} \\times \\dfrac{2}{4} = \\dfrac{6}{20} = \\dfrac{3}{10}$." },
+    { question: "La roue est partagée comme sur la figure (A occupe la moitié). $P(B)$ vaut :", figure: "pr3-qcm-roue", choix: ["$\\dfrac{1}{4}$", "$\\dfrac{1}{3}$", "$\\dfrac{1}{2}$", "$\\dfrac{3}{4}$"], bonne: 0, explication: "B occupe un quart de la roue : les secteurs ne sont pas équiprobables." },
+    { question: "On lance deux dés. La probabilité d'obtenir un double est :", choix: ["$\\dfrac{1}{6}$", "$\\dfrac{1}{36}$", "$\\dfrac{1}{12}$", "$\\dfrac{1}{3}$"], bonne: 0, explication: "$6$ doubles sur $36$ issues." },
+    { question: "Une urne contient $3$ boules rouges et $7$ noires. On tire deux fois avec remise. $P(\\text{deux rouges})$ :", choix: ["$\\dfrac{9}{100}$", "$\\dfrac{6}{10}$", "$\\dfrac{3}{10}$", "$\\dfrac{9}{10}$"], bonne: 0, explication: "$\\dfrac{3}{10} \\times \\dfrac{3}{10} = \\dfrac{9}{100}$." },
+    { question: "Sur $1\\,000$ lancers, une punaise tombe $350$ fois sur la pointe. Une estimation de la probabilité est :", choix: ["$0{,}35$", "$0{,}5$", "$350$", "$0{,}65$"], bonne: 0, explication: "Fréquence : $\\dfrac{350}{1\\,000} = 0{,}35$." },
+    { question: "On tire une carte dans un jeu de $32$ cartes. $P(\\text{roi})$ vaut :", choix: ["$\\dfrac{1}{8}$", "$\\dfrac{1}{32}$", "$\\dfrac{1}{4}$", "$\\dfrac{1}{13}$"], bonne: 0, explication: "Il y a $4$ rois : $\\dfrac{4}{32} = \\dfrac{1}{8}$." },
+    { question: "Un événement certain a pour probabilité :", choix: ["$1$", "$0$", "$\\dfrac{1}{2}$", "$100$"], bonne: 0, explication: "Il se réalise à coup sûr." },
+    { question: "Que montre ce graphique ?", figure: "pr3-cours-frequence", choix: ["La fréquence de pile se rapproche de $0{,}5$ quand le nombre de lancers augmente", "La fréquence de pile vaut toujours $0{,}5$", "La probabilité de pile change à chaque lancer", "Pile sort exactement une fois sur deux"], bonne: 0, explication: "Sur un grand nombre d'essais, la fréquence se stabilise autour de la probabilité." },
+    { question: "$P(A) = 0{,}4$. La probabilité de l'événement contraire est :", choix: ["$0{,}6$", "$0{,}4$", "$-0{,}4$", "$1{,}4$"], bonne: 0, explication: "$1 - 0{,}4 = 0{,}6$." }
   ],
 
   /* ---------- 4. FICHE MÉTHODE ---------- */
@@ -97,7 +113,8 @@ window.CHAPITRES["troisieme-probabilites"] = {
         "Multiplie les probabilités le long de chaque chemin.",
         "Additionne les chemins qui réalisent l'événement."
       ],
-      exemple: "$P(\\text{couleurs différentes}) = P(RV) + P(VR)$."
+      figure: "pr3-qcm-arbre",
+      exemple: "Avec cet arbre : $P(\\text{couleurs différentes}) = P(RV) + P(VR) = \\dfrac{2}{5} \\times \\dfrac{3}{4} + \\dfrac{3}{5} \\times \\dfrac{2}{4} = \\dfrac{3}{5}$."
     },
     {
       titre: "Penser à l'événement contraire",
@@ -106,7 +123,8 @@ window.CHAPITRES["troisieme-probabilites"] = {
         "Calcule la probabilité de l'événement contraire, souvent plus simple.",
         "Conclus avec $P(A) = 1 - P(\\overline{A})$."
       ],
-      exemple: "$P(\\text{au moins un six en deux lancers}) = 1 - \\dfrac{25}{36} = \\dfrac{11}{36}$."
+      figure: "pr3-methode-six",
+      exemple: "$P(\\text{au moins un six en deux lancers}) = 1 - P(\\text{pas 6, puis pas 6}) = 1 - \\dfrac{5}{6} \\times \\dfrac{5}{6} = 1 - \\dfrac{25}{36} = \\dfrac{11}{36}$."
     }
   ],
   erreurs: [

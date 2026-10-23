@@ -37,6 +37,7 @@ window.CHAPITRES["sixieme-triangles"] = {
         "- on trace un arc de cercle de centre $B$ et de rayon $5$ cm ;\n" +
         "- le point $C$ est à l'intersection des deux arcs.\n\n" +
         "Attention : trois longueurs **ne permettent pas toujours** de construire un triangle. Si le plus grand côté est **plus long** que la somme des deux autres, les arcs ne se coupent pas. S'il lui est **égal**, les trois points sont alignés.",
+      figure: "tg6-cours-construction",
       exemple: {
         enonce: "Peut-on construire un triangle de côtés $3$ cm, $4$ cm et $8$ cm ? Et $3$ cm, $5$ cm et $8$ cm ?",
         solution: "$3 + 4 = 7 < 8$ : impossible, les arcs ne se coupent pas.\n\n$3 + 5 = 8$ : les trois points sont alignés, on n'obtient pas un vrai triangle."
@@ -78,7 +79,8 @@ window.CHAPITRES["sixieme-triangles"] = {
         "- Dans un triangle **isocèle**, les deux **angles à la base** ont la même mesure.\n" +
         "- Dans un triangle **équilatéral**, les trois angles mesurent **$60$°** ($180 \\div 3$).\n" +
         "- Dans un triangle **rectangle**, les deux autres angles ont une somme de **$90$°** ($180 - 90$).\n\n" +
-        "Sur la figure, $ABC$ est isocèle en $A$ : $\\widehat{ABC} = \\widehat{ACB} = 55$°, et $\\widehat{BAC} = 180 - 2 \\times 55 = 70$°.",
+        "Sur la figure, $ABC$ est équilatéral : ses trois angles mesurent $60$°. Dans le triangle isocèle de la partie 2, $\\widehat{ABC} = \\widehat{ACB} = 55$°, et $\\widehat{BAC} = 180 - 2 \\times 55 = 70$°.",
+      figure: "tg6-cours-particuliers",
       exemple: {
         enonce: "$DEF$ est isocèle en $D$ et $\\widehat{EDF} = 50$°. Combien mesurent les angles à la base ?",
         solution: "Il reste $180 - 50 = 130$° pour deux angles égaux : $130 \\div 2 = 65$°. Donc $\\widehat{DEF} = \\widehat{DFE} = 65$°."
@@ -90,7 +92,9 @@ window.CHAPITRES["sixieme-triangles"] = {
       texte:
         "Les trois **médiatrices** des côtés d'un triangle se coupent en **un même point** : on dit qu'elles sont **concourantes**.\n\n" +
         "Ce point est à égale distance des trois sommets (il est sur chaque médiatrice). C'est le centre du **cercle circonscrit** au triangle : le cercle qui passe par ses **trois sommets**.\n\n" +
-        "Pour le tracer : on construit deux médiatrices (la troisième passe aussi par leur point d'intersection), puis le cercle de centre ce point qui passe par un sommet.",
+        "Pour le tracer : on construit deux médiatrices (la troisième passe aussi par leur point d'intersection), puis le cercle de centre ce point qui passe par un sommet.\n\n" +
+        "Ce centre n'est pas toujours à l'intérieur du triangle : pour un triangle rectangle, c'est le milieu de l'hypoténuse ; quand un angle est obtus, il est à l'extérieur.",
+      figure: "tg6-cours-circonscrit",
       exemple: {
         enonce: "$O$ est le centre du cercle circonscrit au triangle $ABC$, et $OA = 3{,}5$ cm. Combien mesurent $OB$ et $OC$ ?",
         solution: "$[OA]$, $[OB]$ et $[OC]$ sont trois rayons du cercle circonscrit : $OB = OC = 3{,}5$ cm."
@@ -132,7 +136,13 @@ window.CHAPITRES["sixieme-triangles"] = {
     { question: "Dans un triangle rectangle, le côté opposé à l'angle droit s'appelle :", choix: ["l'hypoténuse", "la base", "la médiatrice", "le sommet principal"], bonne: 0, explication: "C'est le plus long côté du triangle rectangle." },
     { question: "Les trois médiatrices d'un triangle :", choix: ["se coupent en un même point", "sont parallèles", "passent par les sommets", "ne se coupent jamais"], bonne: 0, explication: "Elles sont concourantes : leur point commun est le centre du cercle circonscrit." },
     { question: "Le cercle circonscrit à un triangle :", choix: ["passe par ses trois sommets", "touche ses trois côtés à l'intérieur", "a pour diamètre le plus grand côté", "a pour centre un sommet"], bonne: 0, explication: "« Circonscrit » : qui entoure le triangle en passant par ses sommets." },
-    { question: "$O$ est le centre du cercle circonscrit à $ABC$ et $OA = 3{,}5$ cm. Alors $OC = $", choix: ["$3{,}5$ cm", "$7$ cm", "$1{,}75$ cm", "on ne peut pas savoir"], bonne: 0, explication: "$[OA]$ et $[OC]$ sont deux rayons du même cercle." }
+    { question: "$O$ est le centre du cercle circonscrit à $ABC$ et $OA = 3{,}5$ cm. Alors $OC = $", choix: ["$3{,}5$ cm", "$7$ cm", "$1{,}75$ cm", "on ne peut pas savoir"], bonne: 0, explication: "$[OA]$ et $[OC]$ sont deux rayons du même cercle." },
+    { question: "Le triangle $ABC$ est rectangle en $C$. Où se trouve le centre $O$ de son cercle circonscrit ?", figure: "tg6-qcm-rectangle", choix: ["Au milieu de l'hypoténuse $[AB]$", "Au sommet $C$", "À l'extérieur du triangle", "Au milieu de $[AC]$"], bonne: 0, explication: "Pour un triangle rectangle, le centre du cercle circonscrit est le milieu de l'hypoténuse : $[AB]$ est un diamètre du cercle." },
+    { question: "D'après le codage, le triangle $DEF$ est :", figure: "tg6-qcm-equi", choix: ["équilatéral", "rectangle", "isocèle seulement en $D$", "quelconque"], bonne: 0, explication: "Les trois côtés portent le même codage : ils ont la même longueur, le triangle est équilatéral." },
+    { question: "Le triangle $ABC$ est isocèle en $A$. Combien mesure l'angle marqué « ? » ?", figure: "tg6-qcm-isocele", choix: ["$70$°", "$140$°", "$40$°", "$20$°"], bonne: 0, explication: "Il reste $180 - 40 = 140$° pour les deux angles à la base, égaux : $140 \\div 2 = 70$°." },
+    { question: "On essaie de construire au compas un triangle de côtés $8$ cm, $4$ cm et $3$ cm. Que montre la figure ?", figure: "tg6-qcm-arcs", choix: ["Les arcs ne se coupent pas : ce triangle n'existe pas", "Les arcs se coupent en deux points", "Le triangle est rectangle", "Il faut prendre un plus grand compas"], bonne: 0, explication: "$4 + 3 = 7 < 8$ : les deux autres côtés sont trop courts, les arcs ne se rencontrent pas." },
+    { question: "Ces trois angles peuvent-ils être les angles d'un même triangle ?", figure: "tg6-qcm-angles", choix: ["Non, car $50 + 60 + 80 = 190$°", "Oui, car ils sont tous aigus", "Oui, car $50 + 60 = 110$°", "On ne peut pas savoir"], bonne: 0, explication: "La somme des angles d'un triangle doit faire $180$° ; ici elle fait $190$°." },
+    { question: "Dans un triangle rectangle isocèle, chacun des deux angles aigus mesure :", choix: ["$45$°", "$60$°", "$90$°", "$30$°"], bonne: 0, explication: "Ils sont égaux et font $180 - 90 = 90$° à eux deux : $90 \\div 2 = 45$°." }
   ],
 
   /* ---------- 4. FICHE MÉTHODE ---------- */
@@ -144,6 +154,7 @@ window.CHAPITRES["sixieme-triangles"] = {
         "Trace le plus grand côté à la règle.",
         "Trace deux arcs de cercle aux extrémités, avec les deux autres longueurs ; le troisième sommet est à leur intersection."
       ],
+      figure: "tg6-cours-construction",
       exemple: "$6$ cm, $4$ cm, $5$ cm : $6 < 4 + 5$, le triangle existe."
     },
     {
@@ -153,6 +164,7 @@ window.CHAPITRES["sixieme-triangles"] = {
         "Utilise la règle : la somme des trois angles fait $180$°.",
         "Isocèle : les angles à la base sont égaux. Rectangle : les deux autres font $90$° à eux deux."
       ],
+      figure: "tg6-somme",
       exemple: "Isocèle en $A$ avec $\\widehat{A} = 40$° : $(180 - 40) \\div 2 = 70$° pour chaque angle à la base."
     },
     {
@@ -162,6 +174,7 @@ window.CHAPITRES["sixieme-triangles"] = {
         "Leur point d'intersection $O$ est le centre.",
         "Trace le cercle de centre $O$ qui passe par un sommet : il passe aussi par les deux autres."
       ],
+      figure: "tg6-cours-circonscrit",
       exemple: "$OA = OB = OC$ : ce sont trois rayons."
     }
   ],

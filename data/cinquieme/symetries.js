@@ -27,14 +27,15 @@ window.CHAPITRES["cinquieme-symetries"] = {
   cours: [
     {
       titre: "Symétrie axiale et symétrie centrale",
+      video: { titre: "Vidéo d'Yvan Monka : le cours sur les symétries", youtube: "https://youtu.be/-ZWAUCXmXB4" },
       texte:
         "- La **symétrie axiale** d'axe $(d)$ correspond à un **pliage** le long de $(d)$ : $(d)$ est la médiatrice du segment qui joint un point et son image.\n" +
         "- La **symétrie centrale** de centre $O$ correspond à un **demi-tour** autour de $O$ : la figure tourne de $180^\\circ$.\n\n" +
         "Par un demi-tour, une figure n'est pas retournée « en miroir » : elle se retrouve « la tête en bas ».",
-      figure: "sc5-figure",
+      figure: "sc5-cours-deux",
       exemple: {
-        enonce: "Sur la figure, comment passe-t-on du triangle bleu au triangle jaune ?",
-        solution: "Par un demi-tour autour de $O$ : c'est la symétrie de centre $O$. Chaque sommet et son image sont de part et d'autre de $O$, à la même distance."
+        enonce: "Sur la figure, comment passe-t-on du triangle de départ (sans numéro) à l'image $1$ ? Et à l'image $2$ ?",
+        solution: "Image $1$ : par un pliage le long de l'axe en pointillés, c'est la symétrie axiale.\n\nImage $2$ : par un demi-tour autour de $O$, c'est la symétrie de centre $O$. Chaque sommet et son image sont de part et d'autre de $O$, à la même distance."
       }
     },
     {
@@ -60,6 +61,7 @@ window.CHAPITRES["cinquieme-symetries"] = {
         "- les angles, les périmètres et les aires ;\n" +
         "- l'alignement des points.\n\n" +
         "De plus, l'image d'une droite est une droite **parallèle** (ou la même droite si elle passe par $O$).",
+      figure: "sc5-cours-proprietes",
       exemple: {
         enonce: "Par la symétrie de centre $O$, le triangle $ABC$ a pour image $A'B'C'$, avec $AB = 4$ cm et $\\widehat{BAC} = 35^\\circ$. Que sait-on sur $A'B'C'$ ?",
         solution: "$A'B' = 4$ cm et $\\widehat{B'A'C'} = 35^\\circ$ : les longueurs et les angles sont conservés. De plus, $(A'B')$ est parallèle à $(AB)$."
@@ -73,6 +75,7 @@ window.CHAPITRES["cinquieme-symetries"] = {
         "- Le cercle (son centre), le carré, le rectangle, le losange et le parallélogramme (le point d'intersection des diagonales) ont un centre de symétrie.\n" +
         "- Un triangle n'a jamais de centre de symétrie.\n" +
         "- Les lettres N, S, Z ont un centre de symétrie mais pas d'axe ; la lettre A a un axe mais pas de centre ; H, O, X ont les deux.",
+      figure: "sc5-cours-centre",
       exemple: {
         enonce: "Un parallélogramme qui n'est ni un rectangle ni un losange a-t-il un axe de symétrie ? Un centre de symétrie ?",
         solution: "Aucun pliage ne superpose ses deux moitiés : il n'a pas d'axe. Mais un demi-tour autour du point d'intersection de ses diagonales le laisse inchangé : il a un centre de symétrie."
@@ -103,7 +106,14 @@ window.CHAPITRES["cinquieme-symetries"] = {
     { question: "Quelle lettre a un centre de symétrie mais aucun axe ?", choix: ["S", "A", "H", "T"], bonne: 0, explication: "S retournée d'un demi-tour reste S, mais aucun pliage ne la superpose." },
     { question: "Le centre de symétrie d'un rectangle est :", choix: ["le point d'intersection de ses diagonales", "un de ses sommets", "le milieu d'un côté", "il n'en a pas"], bonne: 0, explication: "Les diagonales se coupent en leur milieu." },
     { question: "Un carré possède :", choix: ["un centre et quatre axes de symétrie", "un centre et deux axes", "quatre axes et aucun centre", "un seul axe"], bonne: 0, explication: "Deux médianes et deux diagonales comme axes." },
-    { question: "Par une symétrie centrale, un cercle de rayon $2$ cm a pour image :", choix: ["un cercle de rayon $2$ cm", "un cercle de rayon $4$ cm", "un demi-cercle", "un point"], bonne: 0, explication: "Les longueurs sont conservées." }
+    { question: "Par une symétrie centrale, un cercle de rayon $2$ cm a pour image :", choix: ["un cercle de rayon $2$ cm", "un cercle de rayon $4$ cm", "un demi-cercle", "un point"], bonne: 0, explication: "Les longueurs sont conservées." },
+    { question: "Sur la figure, l'image $2$ du triangle est obtenue par :", figure: "sc5-cours-deux", choix: ["la symétrie de centre $O$", "la symétrie d'axe en pointillés", "un glissement", "un quart de tour"], bonne: 0, explication: "L'image $2$ est « la tête en bas », de l'autre côté de $O$ : c'est un demi-tour. L'image $1$, elle, est obtenue par pliage." },
+    { question: "Écrite comme sur la figure, quelle lettre a un centre de symétrie ?", figure: "sc5-qcm-lettres", choix: ["Z", "A", "T", "E"], bonne: 0, explication: "Retournée d'un demi-tour, la lettre Z reste un Z. A et T ont un axe de symétrie, mais pas de centre ; E a un axe horizontal." },
+    { question: "D'après la figure, combien mesure $A'B'$ ?", figure: "sc5-cours-proprietes", choix: ["$4$ cm", "$8$ cm", "$2$ cm", "on ne peut pas savoir"], bonne: 0, explication: "$[A'B']$ est l'image de $[AB]$ par la symétrie de centre $O$ : les longueurs sont conservées." },
+    { question: "Le centre de symétrie du parallélogramme $ABCD$ est :", figure: "sc5-cours-centre", choix: ["le point $O$, où se coupent les diagonales", "le sommet $A$", "le milieu de $[AB]$", "il n'en a pas"], bonne: 0, explication: "Les diagonales d'un parallélogramme se coupent en leur milieu $O$ : un demi-tour autour de $O$ échange $A$ et $C$, $B$ et $D$." },
+    { question: "$A'$ est le symétrique de $A$ par rapport à $O$ et $OA' = 5$ cm. Alors $AA'$ mesure :", choix: ["$10$ cm", "$5$ cm", "$2{,}5$ cm", "$15$ cm"], bonne: 0, explication: "$OA = OA' = 5$ cm et $O$ est le milieu de $[AA']$ : $AA' = 10$ cm." },
+    { question: "Par une symétrie centrale, un triangle de périmètre $12$ cm a pour image un triangle de périmètre :", choix: ["$12$ cm", "$24$ cm", "$6$ cm", "$36$ cm"], bonne: 0, explication: "Les longueurs sont conservées, donc le périmètre aussi." },
+    { question: "Un losange qui n'est pas un carré possède :", choix: ["un centre et deux axes de symétrie", "un centre et quatre axes", "deux axes et aucun centre", "un centre et aucun axe"], bonne: 0, explication: "Ses deux diagonales sont des axes de symétrie, et leur point d'intersection est un centre de symétrie." }
   ],
 
   /* ---------- 4. FICHE MÉTHODE ---------- */
@@ -115,6 +125,7 @@ window.CHAPITRES["cinquieme-symetries"] = {
         "Reporte la longueur $OA$ de l'autre côté de $O$ (ou refais le même déplacement).",
         "Vérifie que $O$ est le milieu de $[AA']$."
       ],
+      figure: "sc5-point",
       exemple: "De $A$ à $O$ : $+3$ ; $-2$. De $O$ à $A'$ : $+3$ ; $-2$."
     },
     {
@@ -124,6 +135,7 @@ window.CHAPITRES["cinquieme-symetries"] = {
         "Relie les images dans le même ordre.",
         "Contrôle : la figure image est retournée d'un demi-tour, avec les mêmes dimensions."
       ],
+      figure: "sc5-figure",
       exemple: "Image du triangle $ABC$ : le triangle $A'B'C'$."
     },
     {
@@ -133,6 +145,7 @@ window.CHAPITRES["cinquieme-symetries"] = {
         "Longueurs, angles, aires : mêmes mesures.",
         "Droites : l'image est parallèle à la droite de départ."
       ],
+      figure: "sc5-cours-proprietes",
       exemple: "$MN = 5$ cm donc $M'N' = 5$ cm."
     },
     {
@@ -142,6 +155,7 @@ window.CHAPITRES["cinquieme-symetries"] = {
         "Si elle se superpose à elle-même, elle a un centre de symétrie.",
         "Pour un quadrilatère, c'est le point d'intersection des diagonales."
       ],
+      figure: "sc5-cours-centre",
       exemple: "Le losange a un centre de symétrie ; le cerf-volant n'en a pas."
     }
   ],

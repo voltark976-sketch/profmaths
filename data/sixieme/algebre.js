@@ -33,7 +33,9 @@ window.CHAPITRES["sixieme-algebre"] = {
         "Dans $178 - \\ldots = 6 \\times 8$, le côté droit vaut $48$. On cherche donc le nombre qu'on retire à $178$ pour obtenir $48$ : c'est $130$.\n\n" +
         "Pour compléter une égalité à trous :\n\n" +
         "- on calcule le côté qui est complet ;\n" +
-        "- on cherche le nombre qui rend l'autre côté égal, en utilisant l'opération contraire si besoin.",
+        "- on cherche le nombre qui rend l'autre côté égal, en utilisant l'opération contraire si besoin.\n\n" +
+        "On peut imaginer une **balance en équilibre** : les deux plateaux « pèsent » autant.",
+      figure: "a6-cours-balance",
       exemple: {
         enonce: "Complète : $\\ldots + 25 = 12 \\times 5$ et $7 \\times \\ldots = 80 - 17$.",
         solution: "$12 \\times 5 = 60$, et $35 + 25 = 60$ : le nombre manquant est $35$.\n\n$80 - 17 = 63$, et $7 \\times 9 = 63$ : le nombre manquant est $9$."
@@ -47,6 +49,7 @@ window.CHAPITRES["sixieme-algebre"] = {
         "« Choisis un nombre. Multiplie-le par $3$. Ajoute $5$. » Avec $7$ : $7 \\times 3 = 21$, puis $21 + 5 = 26$.\n\n" +
         "Pour retrouver le nombre de départ, on remonte le programme **à l'envers**, avec les opérations contraires : on obtient $26$, donc $26 - 5 = 21$, puis $21 \\div 3 = 7$.\n\n" +
         "Un programme peut aussi décrire un prix quel que soit le nombre d'objets : des tee-shirts à $12$ € et une livraison à $5$ € coûtent $(N \\times 12) + 5$ euros, où $N$ est le nombre de tee-shirts.",
+      figure: "a6-cours-machine",
       exemple: {
         enonce: "Programme : « Choisis un nombre. Ajoute $4$. Multiplie le résultat par $6$. » Quel résultat avec $2{,}5$ ? Quel nombre de départ donne $90$ ?",
         solution: "$2{,}5 + 4 = 6{,}5$, puis $6{,}5 \\times 6 = 39$.\n\nÀ l'envers : $90 \\div 6 = 15$, puis $15 - 4 = 11$. Le nombre de départ est $11$."
@@ -58,6 +61,7 @@ window.CHAPITRES["sixieme-algebre"] = {
         "Dans la suite $3$ ; $7$ ; $11$ ; $15$ ; … on **ajoute $4$** à chaque fois : le nombre suivant est $19$.\n\n" +
         "Pour trouver une règle, on compare deux nombres qui se suivent, et on vérifie que la règle marche **à chaque fois**. Parfois on ajoute toujours le même nombre, parfois on multiplie ($1$ ; $2$ ; $4$ ; $8$ ; … on double).\n\n" +
         "Pour le $10$e nombre de la suite $3$ ; $7$ ; $11$ ; … on part du $1$er nombre et on ajoute $4$ en tout $9$ fois : $3 + 9 \\times 4 = 39$.",
+      figure: "a6-cours-suite",
       exemple: {
         enonce: "Quel est le $20$e nombre de la suite $5$ ; $8$ ; $11$ ; $14$ ; … ?",
         solution: "On ajoute $3$ à chaque fois. Du $1$er au $20$e nombre, on ajoute $3$ en tout $19$ fois : $5 + 19 \\times 3 = 62$."
@@ -130,7 +134,10 @@ window.CHAPITRES["sixieme-algebre"] = {
     { question: "Il y a $2$ fois plus de filles que de garçons, $27$ membres en tout. Il y a :", choix: ["$9$ garçons", "$13{,}5$ garçons", "$18$ garçons", "$25$ garçons"], bonne: 0, explication: "$3$ barres égales pour $27$ : $27 \\div 3 = 9$ garçons (et $18$ filles)." },
     { question: "Anli a $4$ fois plus de cartes que Mia, soit $30$ cartes de plus. Mia a :", choix: ["$10$ cartes", "$7{,}5$ cartes", "$40$ cartes", "$6$ cartes"], bonne: 0, explication: "La différence correspond à $4 - 1 = 3$ barres : $30 \\div 3 = 10$." },
     { question: "$3$ cahiers au même prix et une trousse à $4$ € coûtent $19$ €. Un cahier coûte :", choix: ["$5$ €", "$6{,}33$ €", "$15$ €", "$7{,}66$ €"], bonne: 0, explication: "$19 - 4 = 15$ € pour les $3$ cahiers, donc $15 \\div 3 = 5$ €." },
-    { question: "Dans un schéma en barre, deux barres de même longueur représentent :", choix: ["deux nombres égaux", "deux nombres dont l'un est le double de l'autre", "le total", "des nombres connus seulement"], bonne: 0, explication: "C'est ce qui permet de partager le total en parts égales." }
+    { question: "Dans un schéma en barre, deux barres de même longueur représentent :", choix: ["deux nombres égaux", "deux nombres dont l'un est le double de l'autre", "le total", "des nombres connus seulement"], bonne: 0, explication: "C'est ce qui permet de partager le total en parts égales." },
+    { question: "La balance est en équilibre. Quel nombre remplace les pointillés ?", figure: "a6-qcm-balance", choix: ["$9$", "$36$", "$144$", "$32$"], bonne: 0, explication: "$50 - 14 = 36$, et $4 \\times 9 = 36$. ($36$ est le résultat du plateau de droite, pas le nombre cherché.)" },
+    { question: "Quel nombre de départ donne $48$ avec ce programme ?", figure: "a6-qcm-machine", choix: ["$6$", "$18$", "$10{,}5$", "$198$"], bonne: 0, explication: "À l'envers : $48 \\div 4 = 12$, puis $12 - 6 = 6$. Vérification : $(6 + 6) \\times 4 = 48$." },
+    { question: "Quel est le nombre suivant de cette suite ?", figure: "a6-qcm-suite", choix: ["$162$", "$90$", "$108$", "$58$"], bonne: 0, explication: "Chaque nombre est le triple du précédent : $54 \\times 3 = 162$. ($90$ vient de « $+ 36$ », qui ne marche pas à chaque fois.)" }
   ],
 
   /* ---------- 4. FICHE MÉTHODE ---------- */
@@ -142,6 +149,7 @@ window.CHAPITRES["sixieme-algebre"] = {
         "Cherche le nombre qui donne le même résultat de l'autre côté.",
         "Vérifie en remplaçant le trou par ce nombre."
       ],
+      figure: "a6-cours-balance",
       exemple: "$7 \\times \\ldots = 80 - 17$ : $80 - 17 = 63$ et $7 \\times 9 = 63$."
     },
     {
@@ -151,6 +159,7 @@ window.CHAPITRES["sixieme-algebre"] = {
         "Défais les étapes de la dernière à la première, avec l'opération contraire ($+ \\leftrightarrow -$, $\\times \\leftrightarrow \\div$).",
         "Vérifie en refaisant le programme dans le bon sens."
       ],
+      figure: "a6-cours-machine",
       exemple: "$\\times 3$ puis $+ 5$ donne $26$ : $26 - 5 = 21$, $21 \\div 3 = 7$."
     },
     {
@@ -160,6 +169,7 @@ window.CHAPITRES["sixieme-algebre"] = {
         "Trouve ce qu'on ajoute à chaque étape, et la partie fixe (ce qui ne bouge pas).",
         "Étape $n$ : (ce qu'on ajoute) $\\times n$ $+$ (partie fixe). Vérifie sur les étapes dessinées."
       ],
+      figure: "a6-allumettes",
       exemple: "$4$ ; $7$ ; $10$ allumettes : $3 \\times n + 1$, donc $301$ allumettes à l'étape $100$."
     },
     {
@@ -169,6 +179,7 @@ window.CHAPITRES["sixieme-algebre"] = {
         "Retire ce qui est en plus, puis partage le reste en barres égales.",
         "Réponds à la question posée et vérifie avec l'énoncé."
       ],
+      figure: "a6-barres",
       exemple: "$6$ de plus, $40$ en tout : $(40 - 6) \\div 2 = 17$ et $17 + 6 = 23$."
     }
   ],

@@ -4,7 +4,7 @@
   Programme de mathématiques du cycle 4 (BO n° 10 du 5 mars 2026), en vigueur en 5e à la rentrée 2026, partie
   « Nombres rationnels » : comparer des fractions ; additionner et soustraire des fractions de dénominateurs
   quelconques ; résoudre des problèmes avec additions et soustractions de fractions. Automatismes entretenus :
-  fractions égales, nombre quotient ($3 \times \ldots = 7$), écriture entier + fraction inférieure à $1$,
+  fractions égales, nombre quotient (3 fois combien égale 7 ?), écriture entier + fraction inférieure à 1,
   fraction d'un nombre.
   Mêmes règles d'écriture que data/sixieme/nombres-entiers-decimaux.js. Une réponse attendue en fraction est
   annoncée dans la consigne (CONSIGNE_FR) et les valeurs approchées décimales sont refusées (FRAC_APPROX).
@@ -38,6 +38,7 @@ window.CHAPITRES["cinquieme-fractions"] = {
         "$\\dfrac{2}{3} = \\dfrac{2 \\times 5}{3 \\times 5} = \\dfrac{10}{15}$ et $\\dfrac{18}{24} = \\dfrac{18 \\div 6}{24 \\div 6} = \\dfrac{3}{4}$.\n\n" +
         "Attention : on n'**ajoute** jamais le même nombre en haut et en bas.\n\n" +
         "Le quotient $\\dfrac{7}{3}$ est le nombre qui, multiplié par $3$, donne $7$ : $3 \\times \\dfrac{7}{3} = 7$.",
+      figure: "fr5-cours-egales",
       exemple: {
         enonce: "Complète : $\\dfrac{5}{4} = \\dfrac{\\ldots}{28}$ et $\\dfrac{35}{21} = \\dfrac{5}{\\ldots}$.",
         solution: "$4 \\times 7 = 28$, donc $\\dfrac{5}{4} = \\dfrac{35}{28}$.\n\n$35 \\div 7 = 5$, donc $\\dfrac{35}{21} = \\dfrac{5}{3}$."
@@ -49,7 +50,9 @@ window.CHAPITRES["cinquieme-fractions"] = {
       texte:
         "Une fraction est **plus grande que $1$** quand son numérateur est plus grand que son dénominateur.\n\n" +
         "On peut alors l'écrire comme la somme d'un entier et d'une fraction plus petite que $1$, grâce à la division euclidienne :\n\n" +
-        "$17 = 5 \\times 3 + 2$, donc $\\dfrac{17}{5} = \\dfrac{15}{5} + \\dfrac{2}{5} = 3 + \\dfrac{2}{5}$.",
+        "$17 = 5 \\times 3 + 2$, donc $\\dfrac{17}{5} = \\dfrac{15}{5} + \\dfrac{2}{5} = 3 + \\dfrac{2}{5}$.\n\n" +
+        "Sur une droite graduée où chaque unité est partagée en $5$, le point d'abscisse $\\dfrac{17}{5}$ est à $17$ graduations de $0$, entre $3$ et $4$.",
+      figure: "fr5-cours-plus1",
       exemple: {
         enonce: "Écris $\\dfrac{23}{4}$ sous la forme d'un entier plus une fraction inférieure à $1$.",
         solution: "$23 = 4 \\times 5 + 3$, donc $\\dfrac{23}{4} = 5 + \\dfrac{3}{4}$."
@@ -62,6 +65,7 @@ window.CHAPITRES["cinquieme-fractions"] = {
         "- Avec le **même dénominateur**, la plus grande fraction est celle qui a le plus grand numérateur : $\\dfrac{3}{7} < \\dfrac{5}{7}$.\n" +
         "- Avec le **même numérateur**, la plus grande est celle qui a le plus petit dénominateur : $\\dfrac{2}{3} > \\dfrac{2}{5}$.\n" +
         "- Sinon, on écrit les deux fractions avec un **dénominateur commun** (un multiple commun des deux dénominateurs), puis on compare les numérateurs.",
+      figure: "fr5-cours-comparer",
       exemple: {
         enonce: "Compare $\\dfrac{3}{4}$ et $\\dfrac{5}{6}$.",
         solution: "$12$ est un multiple de $4$ et de $6$ : $\\dfrac{3}{4} = \\dfrac{9}{12}$ et $\\dfrac{5}{6} = \\dfrac{10}{12}$. Comme $9 < 10$, $\\dfrac{3}{4} < \\dfrac{5}{6}$."
@@ -76,6 +80,7 @@ window.CHAPITRES["cinquieme-fractions"] = {
         "- on additionne (ou on soustrait) les **numérateurs** et on **garde** le dénominateur.\n\n" +
         "$\\dfrac{1}{3} + \\dfrac{1}{4} = \\dfrac{4}{12} + \\dfrac{3}{12} = \\dfrac{7}{12}$. On ne fait **jamais** $\\dfrac{1 + 1}{3 + 4}$.\n\n" +
         "Un nombre entier s'écrit aussi comme une fraction : $2 = \\dfrac{10}{5}$.",
+      figure: "fr5-cours-addition",
       exemple: {
         enonce: "Calcule $\\dfrac{5}{6} - \\dfrac{4}{9}$ et $2 - \\dfrac{3}{5}$.",
         solution: "$18$ est un multiple de $6$ et de $9$ : $\\dfrac{5}{6} - \\dfrac{4}{9} = \\dfrac{15}{18} - \\dfrac{8}{18} = \\dfrac{7}{18}$.\n\n$2 - \\dfrac{3}{5} = \\dfrac{10}{5} - \\dfrac{3}{5} = \\dfrac{7}{5}$."
@@ -87,7 +92,9 @@ window.CHAPITRES["cinquieme-fractions"] = {
       texte:
         "Dans un problème, la quantité totale correspond à la fraction $1$.\n\n" +
         "Pour trouver la part qui **reste**, on additionne les parts connues, puis on retire le résultat de $1$.\n\n" +
-        "Pour trouver une quantité, on prend la fraction du total : $\\dfrac{3}{4}$ de $20$, c'est $20 \\div 4 \\times 3 = 15$.",
+        "Pour trouver une quantité, on prend la fraction du total : $\\dfrac{3}{4}$ de $20$, c'est $20 \\div 4 \\times 3 = 15$.\n\n" +
+        "Un **schéma en barre** aide à voir les parts et ce qui reste.",
+      figure: "fr5-cours-probleme",
       exemple: {
         enonce: "Dans une classe de $24$ élèves, $\\dfrac{1}{3}$ font du football et $\\dfrac{1}{4}$ du handball. Les autres font de la danse. Quelle fraction de la classe fait de la danse ? Combien d'élèves ?",
         solution: "$\\dfrac{1}{3} + \\dfrac{1}{4} = \\dfrac{4}{12} + \\dfrac{3}{12} = \\dfrac{7}{12}$. Il reste $1 - \\dfrac{7}{12} = \\dfrac{5}{12}$ de la classe.\n\n$\\dfrac{5}{12}$ de $24$ : $24 \\div 12 \\times 5 = 10$ élèves."
@@ -111,15 +118,23 @@ window.CHAPITRES["cinquieme-fractions"] = {
     { question: "Le nombre qui, multiplié par $7$, donne $5$ est :", choix: ["$\\dfrac{5}{7}$", "$\\dfrac{7}{5}$", "$35$", "$2$"], bonne: 0, explication: "$7 \\times \\dfrac{5}{7} = 5$." },
     { question: "$\\dfrac{19}{4}$ est égal à :", choix: ["$4 + \\dfrac{3}{4}$", "$19 + \\dfrac{1}{4}$", "$3 + \\dfrac{4}{4}$", "$4 + \\dfrac{1}{4}$"], bonne: 0, explication: "$19 = 4 \\times 4 + 3$." },
     { question: "Quelle fraction est plus grande que $1$ ?", choix: ["$\\dfrac{9}{8}$", "$\\dfrac{8}{9}$", "$\\dfrac{5}{10}$", "$\\dfrac{7}{7}$"], bonne: 0, explication: "Le numérateur est plus grand que le dénominateur." },
-    { question: "Compare $\\dfrac{4}{7}$ et $\\dfrac{4}{9}$ :", choix: ["$\\dfrac{4}{7} > \\dfrac{4}{9}$", "$\\dfrac{4}{7} < \\dfrac{4}{9}$", "$\\dfrac{4}{7} = \\dfrac{4}{9}$"], bonne: 0, explication: "Même numérateur : le plus petit dénominateur donne la plus grande fraction." },
-    { question: "Compare $\\dfrac{2}{3}$ et $\\dfrac{3}{4}$ :", choix: ["$\\dfrac{2}{3} < \\dfrac{3}{4}$", "$\\dfrac{2}{3} > \\dfrac{3}{4}$", "$\\dfrac{2}{3} = \\dfrac{3}{4}$"], bonne: 0, explication: "$\\dfrac{8}{12} < \\dfrac{9}{12}$." },
+    { question: "Compare $\\dfrac{4}{7}$ et $\\dfrac{4}{9}$ :", choix: ["$\\dfrac{4}{7} > \\dfrac{4}{9}$", "$\\dfrac{4}{7} < \\dfrac{4}{9}$", "$\\dfrac{4}{7} = \\dfrac{4}{9}$", "on ne peut pas les comparer"], bonne: 0, explication: "Même numérateur : le plus petit dénominateur donne la plus grande fraction (des septièmes sont plus grands que des neuvièmes)." },
+    { question: "Compare $\\dfrac{2}{3}$ et $\\dfrac{3}{4}$ :", choix: ["$\\dfrac{2}{3} < \\dfrac{3}{4}$", "$\\dfrac{2}{3} > \\dfrac{3}{4}$", "$\\dfrac{2}{3} = \\dfrac{3}{4}$", "on ne peut pas les comparer"], bonne: 0, explication: "Avec le dénominateur $12$ : $\\dfrac{8}{12} < \\dfrac{9}{12}$." },
     { question: "Un dénominateur commun à $\\dfrac{1}{6}$ et $\\dfrac{3}{8}$ est :", choix: ["$24$", "$14$", "$12$", "$16$"], bonne: 0, explication: "$24$ est un multiple de $6$ et de $8$." },
     { question: "$\\dfrac{2}{5} + \\dfrac{1}{5}$ est égal à :", choix: ["$\\dfrac{3}{5}$", "$\\dfrac{3}{10}$", "$\\dfrac{2}{25}$", "$\\dfrac{3}{25}$"], bonne: 0, explication: "Même dénominateur : on additionne les numérateurs." },
     { question: "$\\dfrac{1}{2} + \\dfrac{1}{3}$ est égal à :", choix: ["$\\dfrac{5}{6}$", "$\\dfrac{2}{5}$", "$\\dfrac{1}{5}$", "$\\dfrac{2}{6}$"], bonne: 0, explication: "$\\dfrac{3}{6} + \\dfrac{2}{6} = \\dfrac{5}{6}$." },
     { question: "$\\dfrac{3}{4} - \\dfrac{1}{6}$ est égal à :", choix: ["$\\dfrac{7}{12}$", "$\\dfrac{2}{2}$", "$\\dfrac{1}{12}$", "$\\dfrac{2}{10}$"], bonne: 0, explication: "$\\dfrac{9}{12} - \\dfrac{2}{12} = \\dfrac{7}{12}$." },
     { question: "$1 - \\dfrac{3}{8}$ est égal à :", choix: ["$\\dfrac{5}{8}$", "$\\dfrac{2}{8}$", "$\\dfrac{3}{7}$", "$\\dfrac{4}{8}$"], bonne: 0, explication: "$\\dfrac{8}{8} - \\dfrac{3}{8} = \\dfrac{5}{8}$." },
     { question: "$\\dfrac{2}{3}$ de $21$ est égal à :", choix: ["$14$", "$7$", "$63$", "$42$"], bonne: 0, explication: "$21 \\div 3 \\times 2 = 14$." },
-    { question: "$\\dfrac{1}{4}$ d'un terrain est planté de bananiers et $\\dfrac{1}{2}$ de manioc. Quelle fraction reste ?", choix: ["$\\dfrac{1}{4}$", "$\\dfrac{3}{4}$", "$\\dfrac{2}{6}$", "$\\dfrac{1}{2}$"], bonne: 0, explication: "$\\dfrac{1}{4} + \\dfrac{2}{4} = \\dfrac{3}{4}$, il reste $\\dfrac{1}{4}$." }
+    { question: "$\\dfrac{1}{4}$ d'un terrain est planté de bananiers et $\\dfrac{1}{2}$ de manioc. Quelle fraction reste ?", choix: ["$\\dfrac{1}{4}$", "$\\dfrac{3}{4}$", "$\\dfrac{2}{6}$", "$\\dfrac{1}{2}$"], bonne: 0, explication: "$\\dfrac{1}{4} + \\dfrac{2}{4} = \\dfrac{3}{4}$, il reste $\\dfrac{1}{4}$." },
+    { question: "Les deux bandes ont la même longueur. Quelle égalité montrent-elles ?", figure: "fr5-qcm-bandes", choix: ["$\\dfrac{3}{4} = \\dfrac{6}{8}$", "$\\dfrac{3}{4} = \\dfrac{3}{8}$", "$\\dfrac{3}{4} = \\dfrac{4}{8}$", "$\\dfrac{3}{8} = \\dfrac{6}{4}$"], bonne: 0, explication: "La partie coloriée a la même longueur : $3$ quarts valent $6$ huitièmes. On a multiplié en haut et en bas par $2$." },
+    { question: "Quelle est l'abscisse du point $M$ ?", figure: "fr5-qcm-droite", choix: ["$\\dfrac{7}{3}$", "$\\dfrac{7}{9}$", "$\\dfrac{3}{7}$", "$\\dfrac{8}{3}$"], bonne: 0, explication: "Chaque unité est partagée en $3$ : une graduation vaut $\\dfrac{1}{3}$. $M$ est à $7$ graduations de $0$ : $\\dfrac{7}{3} = 2 + \\dfrac{1}{3}$." },
+    { question: "Le schéma représente les $30$ élèves d'une classe. Quelle fraction de la classe représente la partie marquée « ? » ?", figure: "fr5-qcm-schema", choix: ["$\\dfrac{1}{5}$", "$\\dfrac{2}{8}$", "$\\dfrac{8}{10}$", "$\\dfrac{1}{2}$"], bonne: 0, explication: "La classe est partagée en $10$ parts égales et le « ? » en occupe $2$ : $\\dfrac{2}{10} = \\dfrac{1}{5}$ (soit $6$ élèves)." },
+    { question: "Dans l'ordre croissant, $\\dfrac{1}{2}$, $\\dfrac{2}{5}$ et $\\dfrac{3}{4}$ se rangent ainsi :", choix: ["$\\dfrac{2}{5} < \\dfrac{1}{2} < \\dfrac{3}{4}$", "$\\dfrac{1}{2} < \\dfrac{2}{5} < \\dfrac{3}{4}$", "$\\dfrac{3}{4} < \\dfrac{1}{2} < \\dfrac{2}{5}$", "$\\dfrac{1}{2} < \\dfrac{3}{4} < \\dfrac{2}{5}$"], bonne: 0, explication: "Avec le dénominateur $20$ : $\\dfrac{10}{20}$, $\\dfrac{8}{20}$ et $\\dfrac{15}{20}$. Donc $\\dfrac{2}{5} < \\dfrac{1}{2} < \\dfrac{3}{4}$." },
+    { question: "$\\dfrac{7}{6} - \\dfrac{1}{3}$ est égal à :", choix: ["$\\dfrac{5}{6}$", "$\\dfrac{6}{3}$", "$\\dfrac{6}{6}$", "$\\dfrac{2}{3}$"], bonne: 0, explication: "$\\dfrac{1}{3} = \\dfrac{2}{6}$, donc $\\dfrac{7}{6} - \\dfrac{2}{6} = \\dfrac{5}{6}$. On ne soustrait pas les dénominateurs." },
+    { question: "$2 + \\dfrac{3}{4}$ est égal à :", choix: ["$\\dfrac{11}{4}$", "$\\dfrac{5}{4}$", "$\\dfrac{5}{6}$", "$\\dfrac{6}{4}$"], bonne: 0, explication: "$2 = \\dfrac{8}{4}$, donc $2 + \\dfrac{3}{4} = \\dfrac{8}{4} + \\dfrac{3}{4} = \\dfrac{11}{4}$." },
+    { question: "Au marché de Mamoudzou, Zaïnaba dépense $\\dfrac{5}{8}$ de ses $40$ €. Combien dépense-t-elle ?", choix: ["$25$ €", "$5$ €", "$64$ €", "$15$ €"], bonne: 0, explication: "$40 \\div 8 = 5$, puis $5 \\times 5 = 25$ € ($15$ €, c'est ce qui lui reste)." },
+    { question: "Quelle fraction est égale à $\\dfrac{4}{6}$ ?", choix: ["$\\dfrac{2}{3}$", "$\\dfrac{3}{2}$", "$\\dfrac{5}{7}$", "$\\dfrac{8}{10}$"], bonne: 0, explication: "On divise le numérateur et le dénominateur par $2$ : $\\dfrac{4}{6} = \\dfrac{2}{3}$. Ajouter $1$ en haut et en bas ($\\dfrac{5}{7}$) ne donne pas une fraction égale." }
   ],
 
   /* ---------- 4. FICHE MÉTHODE ---------- */
@@ -131,6 +146,7 @@ window.CHAPITRES["cinquieme-fractions"] = {
         "Multiplie (ou divise) l'autre terme par le même nombre.",
         "N'ajoute jamais le même nombre en haut et en bas."
       ],
+      figure: "fr5-cours-egales",
       exemple: "$\\dfrac{3}{8} = \\dfrac{\\ldots}{40}$ : $\\times 5$, donc $\\dfrac{15}{40}$."
     },
     {
@@ -140,6 +156,7 @@ window.CHAPITRES["cinquieme-fractions"] = {
         "Sinon, cherche un multiple commun aux dénominateurs.",
         "Écris les deux fractions avec ce dénominateur, puis compare les numérateurs."
       ],
+      figure: "fr5-cours-comparer",
       exemple: "$\\dfrac{5}{6}$ et $\\dfrac{7}{9}$ : $\\dfrac{15}{18} > \\dfrac{14}{18}$."
     },
     {
@@ -149,6 +166,7 @@ window.CHAPITRES["cinquieme-fractions"] = {
         "Transforme chaque fraction pour avoir ce dénominateur.",
         "Additionne ou soustrais les numérateurs, garde le dénominateur, puis simplifie si possible."
       ],
+      figure: "fr5-cours-addition",
       exemple: "$\\dfrac{1}{4} + \\dfrac{1}{6} = \\dfrac{3}{12} + \\dfrac{2}{12} = \\dfrac{5}{12}$."
     },
     {
@@ -158,6 +176,7 @@ window.CHAPITRES["cinquieme-fractions"] = {
         "Additionne les parts connues.",
         "Retire leur somme de $1$ ; pour une quantité, prends cette fraction du total."
       ],
+      figure: "fr5-methode-reste",
       exemple: "$1 - \\left(\\dfrac{1}{2} + \\dfrac{1}{5}\\right) = 1 - \\dfrac{7}{10} = \\dfrac{3}{10}$."
     }
   ],

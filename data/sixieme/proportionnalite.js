@@ -36,8 +36,9 @@ window.CHAPITRES["sixieme-proportionnalite"] = {
         "- Le prix de mangues vendues au kilo est proportionnel à la masse achetée.\n" +
         "- La taille d'un enfant n'est **pas** proportionnelle à son âge.\n" +
         "- Un taxi avec une prise en charge fixe n'est **pas** proportionnel à la distance : on paie une somme même pour $0$ km.",
+      figure: "p6-cours-pommes",
       exemple: {
-        enonce: "Au marché, $2$ kg de pommes coûtent $5$ € et $6$ kg coûtent $15$ €. À $10$ ans, Chipie mesurait $1{,}20$ m et à $20$ ans $1{,}70$ m. Quelles situations sont proportionnelles ?",
+        enonce: "Au marché de Mamoudzou, $2$ kg de pommes coûtent $5$ € et $6$ kg coûtent $15$ €. À $10$ ans, Roukia mesurait $1{,}20$ m et à $20$ ans $1{,}70$ m. Quelles situations sont proportionnelles ?",
         solution: "Pommes : la masse est multipliée par $3$ ($2 \\times 3 = 6$) et le prix aussi ($5 \\times 3 = 15$) : c'est proportionnel.\n\nTaille : l'âge est multiplié par $2$, mais pas la taille ($1{,}20 \\times 2 = 2{,}40$, et non $1{,}70$) : ce n'est pas proportionnel."
       }
     },
@@ -49,10 +50,11 @@ window.CHAPITRES["sixieme-proportionnalite"] = {
         "C'est un tableau de proportionnalité si l'on trouve **toujours la même quantité pour $1$** (le même prix pour $1$ tour, pour $1$ kg…).\n\n" +
         "Dans l'exemple, $5 \\div 2 = 2{,}5$ ; $10 \\div 4 = 2{,}5$ ; $15 \\div 6 = 2{,}5$ : un tour coûte toujours $2{,}50$ €.\n\n" +
         "Attention : il ne suffit pas que les deux lignes augmentent.",
+      figure: "p6-cours-tours",
       exemple: {
         enonce: "Le prix est-il proportionnel au nombre de tours de manège ?",
-        solution: "Pour $1$ tour : $5 \\div 2 = 2{,}5$ ; $10 \\div 4 = 2{,}5$ ; $15 \\div 6 = 2{,}5$. Le prix pour $1$ tour est toujours $2{,}50$ € : c'est un tableau de proportionnalité.",
-        tableau: { lignes: [["\\text{Nombre de tours}", "2", "4", "6"], ["\\text{Prix en €}", "5", "10", "15"]] }
+        solution: "Pour $1$ tour : $5 \\div 2 = 2{,}5$ ; $10 \\div 4 = 2{,}5$ ; $15 \\div 6 = 2{,}5$. Le prix pour $1$ tour est toujours $2{,}50$ € : c'est un tableau de proportionnalité. On passe de la 1re ligne à la 2de en multipliant par $2{,}5$.",
+        tableau: { lignes: [["\\text{Nombre de tours}", "2", "4", "6"], ["\\text{Prix en euros}", "5", "10", "15"]] }
       }
     },
     {
@@ -62,6 +64,7 @@ window.CHAPITRES["sixieme-proportionnalite"] = {
         "Dans une situation de proportionnalité, si une grandeur est **multipliée** par un nombre, l'autre est multipliée par le même nombre. Si elle est **divisée**, l'autre aussi.\n\n" +
         "$6$ effaceurs coûtent $9$ €. Pour $3$ effaceurs (deux fois moins), on paie deux fois moins : $9 \\div 2 = 4{,}50$ €. Pour $12$ effaceurs (deux fois plus) : $9 \\times 2 = 18$ €.\n\n" +
         "« $4$ fois plus », c'est multiplier par $4$ ; « $5$ fois moins », c'est diviser par $5$.",
+      figure: "p6-cours-effaceurs",
       exemple: {
         enonce: "$3$ kg de riz coûtent $4{,}20$ €. Combien coûtent $12$ kg ? Et $1{,}5$ kg ?",
         solution: "$12 = 3 \\times 4$ : $4{,}20 \\times 4 = 16{,}80$ €.\n\n$1{,}5 = 3 \\div 2$ : $4{,}20 \\div 2 = 2{,}10$ €."
@@ -73,6 +76,7 @@ window.CHAPITRES["sixieme-proportionnalite"] = {
       texte:
         "Si l'on connaît la valeur pour deux quantités, on connaît aussi la valeur pour leur **somme** (ou leur **différence**).\n\n" +
         "$6$ effaceurs coûtent $9$ € et $3$ effaceurs coûtent $4{,}50$ €. Comme $9 = 6 + 3$, $9$ effaceurs coûtent $9 + 4{,}50 = 13{,}50$ €.",
+      figure: "p6-cours-somme",
       exemple: {
         enonce: "$4$ pains coûtent $7$ € et $6$ pains coûtent $10{,}50$ €. Combien coûtent $10$ pains ? Et $2$ pains ?",
         solution: "$10 = 4 + 6$ : $7 + 10{,}50 = 17{,}50$ €.\n\n$2 = 6 - 4$ : $10{,}50 - 7 = 3{,}50$ €."
@@ -85,22 +89,25 @@ window.CHAPITRES["sixieme-proportionnalite"] = {
         "Quand les nombres ne se « voient » pas l'un dans l'autre, on calcule d'abord la valeur pour **une** unité, puis on multiplie.\n\n" +
         "$6$ effaceurs coûtent $9$ €, donc $1$ effaceur coûte $9 \\div 6 = 1{,}50$ €, et $5$ effaceurs coûtent $1{,}50 \\times 5 = 7{,}50$ €.\n\n" +
         "On choisit la méthode la plus simple avec les nombres de l'énoncé, et on écrit les **unités** dans les calculs.",
+      figure: "p6-cours-unite",
       exemple: {
-        enonce: "Au repos, le cœur de Nadia bat $210$ fois en $3$ minutes. Combien de fois bat-il en $7$ minutes ?",
+        enonce: "Au repos, le cœur de Nasra bat $210$ fois en $3$ minutes. Combien de fois bat-il en $7$ minutes ?",
         solution: "En $1$ minute : $210 \\div 3 = 70$ battements. En $7$ minutes : $70 \\times 7 = 490$ battements."
       }
     },
     {
       titre: "Les échelles",
+      video: { titre: "Vidéo d'Yvan Monka : utiliser une échelle", youtube: "https://youtu.be/-nKF5P_xxyQ" },
       texte:
         "Sur un **plan** ou une **carte**, les longueurs sont proportionnelles aux longueurs réelles.\n\n" +
         "Si $1$ cm sur le plan représente $20$ m dans la réalité, un bâtiment de $6{,}5$ cm sur le plan mesure $6{,}5 \\times 20 = 130$ m.\n\n" +
         "Dans l'autre sens, une longueur réelle de $90$ m mesure $90 \\div 20 = 4{,}5$ cm sur le plan.\n\n" +
         "De même, quand on **agrandit** une photo, toutes les longueurs sont multipliées par le même nombre.",
+      figure: "p6-cours-carte",
       exemple: {
-        enonce: "Sur une carte de Mayotte, $1$ cm représente $2$ km. Entre Mamoudzou et Sada, on mesure environ $8$ cm à vol d'oiseau. Quelle est la distance réelle ?",
-        solution: "$8 \\times 2 = 16$ : environ $16$ km à vol d'oiseau.",
-        tableau: { lignes: [["\\text{Carte en cm}", "1", "8"], ["\\text{Réalité en km}", "2", "16"]] }
+        enonce: "Sur la carte de Mayotte ci-contre, $1$ cm représente $2$ km. Entre Mamoudzou et Sada, on mesure $7{,}7$ cm. Quelle est la distance réelle, à vol d'oiseau ?",
+        solution: "$7{,}7 \\times 2 = 15{,}4$ : environ $15{,}4$ km à vol d'oiseau.",
+        tableau: { lignes: [["\\text{Carte en cm}", "1", "7{,}7"], ["\\text{Réalité en km}", "2", "15{,}4"]] }
       }
     }
   ],
@@ -145,7 +152,13 @@ window.CHAPITRES["sixieme-proportionnalite"] = {
     { question: "Dans un tableau de proportionnalité, on doit écrire :", choix: ["le nom et l'unité de chaque grandeur", "seulement des nombres entiers", "les nombres dans l'ordre croissant", "un nombre plus grand en bas qu'en haut"], bonne: 0, explication: "Par exemple « Masse en kg » et « Prix en € » : on sait ce que représente chaque nombre." },
     { question: "$3$ L d'essence coûtent $5{,}85$ €. Combien coûtent $9$ L ?", choix: ["$17{,}55$ €", "$11{,}85$ €", "$15{,}55$ €", "$1{,}95$ €"], bonne: 0, explication: "$9 = 3 \\times 3$, donc $5{,}85 \\times 3 = 17{,}55$ €. $1{,}95$ € est le prix d'un litre." },
     { question: "Quelle situation n'est pas une situation de proportionnalité ?", choix: ["Un abonnement de cantine de $30$ € par mois, quel que soit le nombre de repas", "Le prix de tickets de bus à $1{,}50$ € l'un", "La distance parcourue à vitesse constante selon la durée", "La quantité de farine selon le nombre de gâteaux identiques"], bonne: 0, explication: "Le prix de l'abonnement ne change pas avec le nombre de repas." },
-    { question: "$7$ tickets coûtent $10{,}50$ € et $5$ tickets $7{,}50$ €. Combien coûtent $2$ tickets ?", choix: ["$3$ €", "$18$ €", "$2{,}50$ €", "$1{,}50$ €"], bonne: 0, explication: "$2 = 7 - 5$, donc $10{,}50 - 7{,}50 = 3$ €." }
+    { question: "$7$ tickets coûtent $10{,}50$ € et $5$ tickets $7{,}50$ €. Combien coûtent $2$ tickets ?", choix: ["$3$ €", "$18$ €", "$2{,}50$ €", "$1{,}50$ €"], bonne: 0, explication: "$2 = 7 - 5$, donc $10{,}50 - 7{,}50 = 3$ €." },
+    { question: "Ce tableau est-il un tableau de proportionnalité ?", figure: "p6-qcm-mangues", choix: ["Non : $8$ mangues devraient coûter $4{,}80$ €", "Oui : les prix augmentent avec le nombre de mangues", "Oui : on multiplie toujours par $0{,}60$", "On ne peut pas savoir sans le prix d'une mangue"], bonne: 0, explication: "Une mangue coûte $1{,}20 \\div 2 = 0{,}60$ € et $3 \\div 5 = 0{,}60$ €, mais $8 \\times 0{,}60 = 4{,}80$ et non $5$ : ce n'est pas un tableau de proportionnalité." },
+    { question: "Quel prix manque dans ce tableau de proportionnalité ?", figure: "p6-qcm-riz", choix: ["$21{,}60$ €", "$15{,}20$ €", "$86{,}40$ €", "$10{,}20$ €"], bonne: 0, explication: "$12 = 4 \\times 3$ : le prix est aussi multiplié par $3$, $7{,}20 \\times 3 = 21{,}60$ €. $15{,}20$ € vient de l'erreur « $+ 8$ »." },
+    { question: "Sur cette carte de Mayotte, quelle est la distance réelle à vol d'oiseau entre Mamoudzou et Sada ?", figure: "p6-cours-carte", choix: ["$15{,}4$ km", "$9{,}7$ km", "$3{,}85$ km", "$7{,}7$ km"], bonne: 0, explication: "$1$ cm représente $2$ km : $7{,}7 \\times 2 = 15{,}4$ km. De la carte à la réalité, on multiplie." },
+    { question: "Sur ce plan du collège, quelle est la distance réelle entre le CDI et le gymnase ?", figure: "p6-qcm-plan", choix: ["$45$ m", "$14{,}5$ m", "$0{,}45$ m", "$4{,}5$ m"], bonne: 0, explication: "$1$ cm représente $10$ m : $4{,}5 \\times 10 = 45$ m." },
+    { question: "On agrandit cette photo : le côté de $10$ cm devient $30$ cm. Combien mesure le côté marqué « ? » ?", figure: "p6-qcm-photo", choix: ["$45$ cm", "$35$ cm", "$25$ cm", "$450$ cm"], bonne: 0, explication: "Les longueurs sont multipliées par $3$ ($10 \\times 3 = 30$) : $15 \\times 3 = 45$ cm. $35$ cm vient de l'erreur « $+ 20$ »." },
+    { question: "Dans ce tableau, comment a-t-on trouvé le prix de $5$ effaceurs ?", figure: "p6-cours-unite", choix: ["Par le retour à l'unité : le prix d'un effaceur, puis $\\times 5$", "En additionnant deux colonnes", "En ajoutant $1$ € à chaque fois", "En multipliant $9$ par $5$"], bonne: 0, explication: "On divise par $6$ pour avoir le prix d'un effaceur ($1{,}50$ €), puis on multiplie par $5$ : $7{,}50$ €." }
   ],
 
   /* ---------- 4. FICHE MÉTHODE ---------- */
@@ -157,6 +170,7 @@ window.CHAPITRES["sixieme-proportionnalite"] = {
         "Vérifie si la seconde est multipliée (ou divisée) par le même nombre.",
         "Ou bien calcule la quantité pour $1$ dans chaque cas : elle doit toujours être la même."
       ],
+      figure: "p6-cours-tours",
       exemple: "$2$ kg → $5$ € et $6$ kg → $15$ € : $\\times 3$ et $\\times 3$, c'est proportionnel."
     },
     {
@@ -166,6 +180,7 @@ window.CHAPITRES["sixieme-proportionnalite"] = {
         "Une quantité est la somme (ou la différence) de deux autres ? Ajoute (ou soustrais) les valeurs.",
         "Sinon, passe par la valeur pour $1$ (retour à l'unité), puis multiplie."
       ],
+      figure: "p6-cours-unite",
       exemple: "$6$ effaceurs → $9$ € : $3$ effaceurs → $4{,}50$ € ; $9$ effaceurs → $13{,}50$ € ; $5$ effaceurs → $7{,}50$ €."
     },
     {
@@ -175,6 +190,7 @@ window.CHAPITRES["sixieme-proportionnalite"] = {
         "Cherche un lien entre la colonne « ? » et une autre colonne (multiple, somme).",
         "À défaut, calcule la valeur pour $1$ et multiplie."
       ],
+      figure: "p6-cours-effaceurs",
       exemple: "$3 \\rightarrow 4{,}20$ € ; pour $12 = 3 \\times 4$ : $16{,}80$ €."
     },
     {
@@ -184,6 +200,7 @@ window.CHAPITRES["sixieme-proportionnalite"] = {
         "Du plan à la réalité : multiplie. De la réalité au plan : divise.",
         "Garde les bonnes unités (cm sur le plan, m ou km en vrai)."
       ],
+      figure: "p6-methode-plan",
       exemple: "$1$ cm → $20$ m : $6{,}5$ cm → $130$ m ; $90$ m → $4{,}5$ cm."
     }
   ],

@@ -52,6 +52,7 @@ window.CHAPITRES["cinquieme-solides-volumes"] = {
         "- Pavé droit : $6$ rectangles, identiques deux à deux.\n" +
         "- Prisme droit : $2$ bases (polygones superposables) et autant de rectangles que la base a de côtés.\n" +
         "- Cylindre : $2$ disques et $1$ rectangle dont la longueur est le **périmètre** du disque de base, $2\\pi r$.",
+      figure: "sv5-cours-patron",
       exemple: {
         enonce: "Dans le patron d'un cylindre de rayon $3$ cm et de hauteur $5$ cm, quelles sont les dimensions du rectangle ?",
         solution: "Largeur : la hauteur, $5$ cm. Longueur : $2 \\times \\pi \\times 3 = 6\\pi \\approx 18{,}8$ cm."
@@ -65,7 +66,8 @@ window.CHAPITRES["cinquieme-solides-volumes"] = {
         "- Pavé droit : $V = L \\times \\ell \\times h$.\n" +
         "- Prisme droit : $V = \\text{aire de la base} \\times \\text{hauteur}$.\n" +
         "- Cylindre de rayon $r$ et de hauteur $h$ : $V = \\pi r^2 \\times h$.\n\n" +
-        "Le pavé droit et le cylindre sont des cas particuliers : on multiplie toujours l'aire de la base par la hauteur.",
+        "Le pavé droit et le cylindre sont des cas particuliers : on multiplie toujours l'aire de la base par la hauteur. Pour le cylindre dessiné : $V = \\pi \\times 4^2 \\times 10$.",
+      figure: "sv5-cours-cylindre",
       exemple: {
         enonce: "Calcule le volume d'un cylindre de rayon $4$ cm et de hauteur $10$ cm, arrondi au cm³.",
         solution: "$V = \\pi \\times 4^2 \\times 10 = 160\\pi \\approx 503$ cm³."
@@ -75,8 +77,9 @@ window.CHAPITRES["cinquieme-solides-volumes"] = {
       titre: "Unités de volume et de capacité",
       video: { titre: "Vidéo d'Yvan Monka : convertir les unités de volume", youtube: "https://youtu.be/nnXfRWe4WDE" },
       texte:
-        "Un cube de $1$ dm d'arête contient $10 \\times 10 \\times 10 = 1\\,000$ cubes de $1$ cm : $1$ dm³ $= 1\\,000$ cm³. Entre deux unités de volume voisines, le facteur est **$1\\,000$**.\n\n" +
+        "Un cube de $1$ dm d'arête contient $10 \\times 10 \\times 10 = 1\\,000$ cubes de $1$ cm : $1$ dm³ $= 1\\,000$ cm³. Entre deux unités de volume voisines, le facteur est **$1\\,000$** (voir le dessin : $10$ couches de $10 \\times 10$ petits cubes).\n\n" +
         "Capacités : $1$ L $= 1$ dm³ ; $1$ mL $= 1$ cm³ ; $1$ m³ $= 1\\,000$ L. Entre L, dL, cL et mL, le facteur est $10$.",
+      figure: "sv5-cours-dm3",
       exemple: {
         enonce: "Un réservoir contient $2{,}5$ m³ d'eau. Combien de litres ?",
         solution: "$2{,}5$ m³ $= 2\\,500$ dm³ $= 2\\,500$ L."
@@ -107,7 +110,14 @@ window.CHAPITRES["cinquieme-solides-volumes"] = {
     { question: "$1$ L est égal à :", choix: ["$1$ dm³", "$1$ cm³", "$1$ m³", "$10$ dm³"], bonne: 0, explication: "Par définition." },
     { question: "$3$ m³ représentent :", choix: ["$3\\,000$ L", "$300$ L", "$30$ L", "$30\\,000$ L"], bonne: 0, explication: "$1$ m³ $= 1\\,000$ L." },
     { question: "$250$ mL est égal à :", choix: ["$25$ cL", "$2{,}5$ cL", "$2{,}5$ L", "$250$ cL"], bonne: 0, explication: "$1$ cL $= 10$ mL." },
-    { question: "Un aquarium de $50 \\times 30 \\times 40$ cm contient :", choix: ["$60$ L", "$600$ L", "$6$ L", "$120$ L"], bonne: 0, explication: "$60\\,000$ cm³ $= 60$ L." }
+    { question: "Un aquarium de $50 \\times 30 \\times 40$ cm contient :", choix: ["$60$ L", "$600$ L", "$6$ L", "$120$ L"], bonne: 0, explication: "$60\\,000$ cm³ $= 60$ L." },
+    { question: "Quel est le volume du pavé droit dessiné ?", figure: "sv5-qcm-pave", choix: ["$24$ cm³", "$9$ cm³", "$12$ cm³", "$52$ cm³"], bonne: 0, explication: "$4 \\times 3 \\times 2 = 24$ cm³ ($52$ cm² est l'aire de son patron)." },
+    { question: "Sur le dessin du pavé droit, combien d'arêtes sont cachées (en pointillés) ?", figure: "sv5-qcm-pave", choix: ["$3$", "$4$", "$2$", "$6$"], bonne: 0, explication: "Les trois arêtes qui partent du sommet caché, en bas à l'arrière." },
+    { question: "Le volume du cylindre dessiné est :", figure: "sv5-qcm-cylindre", choix: ["$20\\pi$ cm³", "$10\\pi$ cm³", "$20$ cm³", "$100\\pi$ cm³"], bonne: 0, explication: "$\\pi \\times 2^2 \\times 5 = 20\\pi$ cm³ (environ $62{,}8$ cm³)." },
+    { question: "Le volume du prisme droit dessiné (base en triangle rectangle) est :", figure: "sv5-qcm-prisme", choix: ["$120$ cm³", "$240$ cm³", "$20$ cm³", "$12$ cm³"], bonne: 0, explication: "Aire de la base : $\\dfrac{6 \\times 4}{2} = 12$ cm² ; volume : $12 \\times 10 = 120$ cm³." },
+    { question: "Le patron du solide dessiné est formé de :", figure: "sv5-cours-prisme", choix: ["deux triangles et trois rectangles", "trois triangles et deux rectangles", "deux triangles et deux rectangles", "six rectangles"], bonne: 0, explication: "Deux bases triangulaires et une face latérale par côté du triangle." },
+    { question: "Dans le patron de cylindre dessiné (rayon $3$ cm), la longueur du rectangle, arrondie au dixième, est :", figure: "sv5-cours-patron", choix: ["$18{,}8$ cm", "$28{,}3$ cm", "$9{,}4$ cm", "$5$ cm"], bonne: 0, explication: "C'est le périmètre du disque : $2 \\times \\pi \\times 3 = 6\\pi \\approx 18{,}8$ cm." },
+    { question: "Le cube dessiné a une arête de $1$ dm. Il contient :", figure: "sv5-cours-dm3", choix: ["$1\\,000$ cm³, soit $1$ L", "$100$ cm³, soit $1$ L", "$10$ cm³", "$1\\,000$ L"], bonne: 0, explication: "$10 \\times 10 \\times 10 = 1\\,000$ petits cubes de $1$ cm³ ; $1$ dm³ $= 1$ L." }
   ],
 
   /* ---------- 4. FICHE MÉTHODE ---------- */
@@ -119,7 +129,8 @@ window.CHAPITRES["cinquieme-solides-volumes"] = {
         "Multiplie par la hauteur.",
         "Vérifie que toutes les longueurs sont dans la même unité ; le volume est en unité³."
       ],
-      exemple: "Cylindre $r = 3$, $h = 4$ : $9\\pi \\times 4 = 36\\pi \\approx 113{,}1$ cm³."
+      exemple: "Prisme dessiné : base $\\dfrac{4 \\times 3}{2} = 6$ cm², volume $6 \\times 6 = 36$ cm³. Cylindre $r = 3$, $h = 4$ : $9\\pi \\times 4 = 36\\pi \\approx 113{,}1$ cm³.",
+      figure: "sv5-cours-prisme"
     },
     {
       titre: "Convertir un volume",
@@ -128,7 +139,8 @@ window.CHAPITRES["cinquieme-solides-volumes"] = {
         "Capacités : facteur $10$ (L, dL, cL, mL).",
         "Passerelles : $1$ L $= 1$ dm³ et $1$ mL $= 1$ cm³."
       ],
-      exemple: "$4\\,500$ cm³ $= 4{,}5$ dm³ $= 4{,}5$ L."
+      exemple: "$4\\,500$ cm³ $= 4{,}5$ dm³ $= 4{,}5$ L.",
+      figure: "sv5-cours-dm3"
     },
     {
       titre: "Construire un patron",
@@ -137,7 +149,8 @@ window.CHAPITRES["cinquieme-solides-volumes"] = {
         "Place la deuxième base contre une face latérale.",
         "Vérifie les longueurs des arêtes qui se recollent."
       ],
-      exemple: "Cylindre : rectangle de longueur $2\\pi r$ et deux disques de rayon $r$."
+      exemple: "Cylindre : rectangle de longueur $2\\pi r$ et deux disques de rayon $r$ (ici $r = 3$ cm : longueur $6\\pi \\approx 18{,}8$ cm).",
+      figure: "sv5-cours-patron"
     }
   ],
   erreurs: [

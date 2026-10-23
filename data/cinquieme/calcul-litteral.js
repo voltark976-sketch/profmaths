@@ -37,6 +37,7 @@ window.CHAPITRES["cinquieme-calcul-litteral"] = {
         "Attention : $5^2 = 25$, pas $10$. Ce sont l'aire d'un carré de côté $a$ et le volume d'un cube d'arête $a$.\n\n" +
         "Dans un calcul, les puissances passent **avant** les multiplications : $3 + 2^2 \\times 5 = 3 + 4 \\times 5 = 23$.\n\n" +
         "À connaître : $1$ ; $4$ ; $9$ ; $16$ ; $25$ ; $36$ ; $49$ ; $64$ ; $81$ ; $100$ ; $121$ ; $144$ sont les carrés de $1$ à $12$.",
+      figure: "cl5-cours-carre-cube",
       exemple: {
         enonce: "Calcule $(6 - 2)^2$ et $6 - 2^2$.",
         solution: "$(6 - 2)^2 = 4^2 = 16$.\n\n$6 - 2^2 = 6 - 4 = 2$ : sans parenthèses, le carré ne porte que sur $2$."
@@ -50,6 +51,7 @@ window.CHAPITRES["cinquieme-calcul-litteral"] = {
         "**Simplifications d'écriture** : on peut supprimer le signe $\\times$ devant une lettre ou une parenthèse.\n\n" +
         "$3 \\times x = 3x$ ; $a \\times b = ab$ ; $5 \\times (x + 1) = 5(x + 1)$ ; $x \\times x = x^2$ ; $x \\times x \\times x = x^3$.\n\n" +
         "Pour **calculer** une expression, on remplace la lettre par sa valeur en rétablissant le $\\times$ : pour $x = 4$, $3x^2 + 1 = 3 \\times 4^2 + 1 = 49$.",
+      figure: "cl5-cours-perimetre",
       exemple: {
         enonce: "Écris le double de $n$, le triple de $n$ augmenté de $1$, et le successeur de $n$. Calcule-les pour $n = 10$.",
         solution: "$2n = 20$ ; $3n + 1 = 31$ ; $n + 1 = 11$."
@@ -63,7 +65,9 @@ window.CHAPITRES["cinquieme-calcul-litteral"] = {
         "$k(a + b) = ka + kb$ et $k(a - b) = ka - kb$.\n\n" +
         "- **Développer**, c'est transformer un produit en somme : $4(x + 3) = 4x + 12$.\n" +
         "- **Factoriser**, c'est transformer une somme en produit : $5x - 20 = 5 \\times x - 5 \\times 4 = 5(x - 4)$.\n\n" +
-        "Une expression est une **somme** ou un **produit** selon la dernière opération : $3x + 5$ est une somme, $3(x + 5)$ un produit.",
+        "Une expression est une **somme** ou un **produit** selon la dernière opération : $3x + 5$ est une somme, $3(x + 5)$ un produit.\n\n" +
+        "Avec des aires : un rectangle de largeur $4$ et de longueur $x + 3$ a pour aire $4(x + 3)$, c'est-à-dire $4x + 12$.",
+      figure: "cl5-cours-distributivite",
       exemple: {
         enonce: "Développe $7(2 - y)$ et factorise $6a + 18$.",
         solution: "$7(2 - y) = 14 - 7y$.\n\n$6a + 18 = 6 \\times a + 6 \\times 3 = 6(a + 3)$."
@@ -75,7 +79,8 @@ window.CHAPITRES["cinquieme-calcul-litteral"] = {
       texte:
         "**Réduire**, c'est écrire une expression avec le moins de termes possible.\n\n" +
         "On regroupe les termes « en $x$ » entre eux, et les nombres entre eux : $3x + 5 + 4x - 2 = 7x + 3$.\n\n" +
-        "C'est la distributivité : $3x + 4x = (3 + 4)x = 7x$. Mais $7x + 3$ ne se réduit pas en $10x$ : $7x$ et $3$ ne sont pas du même type.",
+        "C'est la distributivité : $3x + 4x = (3 + 4)x = 7x$. Mais $7x + 3$ ne se réduit pas en $10x$ : $7x$ et $3$ ne sont pas du même type, comme les barres et les petits carrés de la figure.",
+      figure: "cl5-cours-tuiles",
       exemple: {
         enonce: "Réduis $8a - 3 + 2a + 10$.",
         solution: "$8a + 2a = 10a$ et $-3 + 10 = 7$ : $10a + 7$."
@@ -89,6 +94,7 @@ window.CHAPITRES["cinquieme-calcul-litteral"] = {
         "Deux entiers consécutifs s'écrivent $n$ et $n + 1$ ; leur somme $n + n + 1 = 2n + 1$ est toujours impaire.\n" +
         "- Pour prouver qu'une affirmation est **fausse**, un seul **contre-exemple** suffit.\n" +
         "« $x^2$ est toujours plus grand que $x$ » est fausse : pour $x = 0{,}5$, $x^2 = 0{,}25$.",
+      figure: "cl5-cours-preuve",
       exemple: {
         enonce: "Montre que la somme de trois entiers consécutifs est un multiple de $3$.",
         solution: "$n + (n + 1) + (n + 2) = 3n + 3 = 3(n + 1)$ : c'est $3$ fois un entier, donc un multiple de $3$, quel que soit $n$."
@@ -120,7 +126,13 @@ window.CHAPITRES["cinquieme-calcul-litteral"] = {
     { question: "$8x - 16$ factorisé donne :", choix: ["$8(x - 2)$", "$8(x - 16)$", "$2(4x - 16)$", "$x(8 - 16)$"], bonne: 0, explication: "$8 \\times x - 8 \\times 2$." },
     { question: "$4x + 3 + 2x$ réduit donne :", choix: ["$6x + 3$", "$9x$", "$9$", "$6x + 3x$"], bonne: 0, explication: "$4x + 2x = 6x$, le $3$ reste seul." },
     { question: "Le triple du successeur de $n$ s'écrit :", choix: ["$3(n + 1)$", "$3n + 1$", "$n + 3$", "$3 + n + 1$"], bonne: 0, explication: "Successeur : $n + 1$ ; triple : $\\times 3$, avec des parenthèses." },
-    { question: "Pour prouver qu'une affirmation est fausse, il suffit :", choix: ["d'un contre-exemple", "de trois exemples", "d'un calcul avec des lettres", "d'un dessin"], bonne: 0, explication: "Un seul cas où elle est fausse suffit." }
+    { question: "Pour prouver qu'une affirmation est fausse, il suffit :", choix: ["d'un contre-exemple", "de trois exemples", "d'un calcul avec des lettres", "d'un dessin"], bonne: 0, explication: "Un seul cas où elle est fausse suffit." },
+    { question: "L'aire totale de ce rectangle est :", figure: "cl5-qcm-rect", choix: ["$5a + 10$", "$5a + 2$", "$7a$", "$5 + a + 2$"], bonne: 0, explication: "$5(a + 2) = 5 \\times a + 5 \\times 2 = 5a + 10$ : les deux morceaux ont pour aires $5a$ et $10$." },
+    { question: "Les tuiles représentent une expression. Une fois réduite, elle s'écrit :", figure: "cl5-qcm-tuiles", choix: ["$5x + 4$", "$9x$", "$5x + 4x$", "$6x + 4$"], bonne: 0, explication: "$2x + 3x = 5x$ et il reste $4$ unités : $5x + 4$. On n'ajoute pas les $x$ et les unités." },
+    { question: "Ce carré est quadrillé en carreaux de $1$ cm. Son aire est :", figure: "cl5-qcm-carre", choix: ["$6^2 = 36$ cm²", "$2 \\times 6 = 12$ cm²", "$4 \\times 6 = 24$ cm²", "$6$ cm²"], bonne: 0, explication: "$6$ rangées de $6$ carreaux : $6 \\times 6 = 6^2 = 36$ cm² ($24$ cm, c'est son périmètre)." },
+    { question: "$(3 + 2)^2$ est égal à :", choix: ["$25$", "$13$", "$10$", "$7$"], bonne: 0, explication: "La parenthèse d'abord : $5^2 = 25$. ($3^2 + 2^2 = 13$ n'est pas la même chose.)" },
+    { question: "Pour $a = 4$ et $b = 1$, $2a + 3b$ vaut :", choix: ["$11$", "$24$", "$9$", "$15$"], bonne: 0, explication: "$2 \\times 4 + 3 \\times 1 = 8 + 3 = 11$." },
+    { question: "Un contre-exemple à « le double d'un nombre est toujours plus grand que ce nombre » est :", choix: ["$0$", "$1$", "$5$", "$10$"], bonne: 0, explication: "Le double de $0$ est $0$ : il n'est pas plus grand que $0$. Un seul contre-exemple suffit." }
   ],
 
   /* ---------- 4. FICHE MÉTHODE ---------- */
@@ -132,6 +144,7 @@ window.CHAPITRES["cinquieme-calcul-litteral"] = {
         "Priorités : parenthèses, puissances, multiplications et divisions, additions et soustractions.",
         "Ne confonds pas $a^2$ (carré) et $2a$ (double)."
       ],
+      figure: "cl5-cours-carre-cube",
       exemple: "$2 \\times 5^2 = 2 \\times 25 = 50$."
     },
     {
@@ -141,6 +154,7 @@ window.CHAPITRES["cinquieme-calcul-litteral"] = {
         "Remplace la lettre par sa valeur.",
         "Applique les priorités."
       ],
+      figure: "cl5-cours-perimetre",
       exemple: "$x = 2$ : $5x^2 - 3 = 5 \\times 4 - 3 = 17$."
     },
     {
@@ -150,6 +164,7 @@ window.CHAPITRES["cinquieme-calcul-litteral"] = {
         "Factoriser : repère le facteur commun aux deux termes.",
         "Vérifie en développant ta factorisation."
       ],
+      figure: "cl5-cours-distributivite",
       exemple: "$4a + 28 = 4(a + 7)$ car $4 \\times 7 = 28$."
     },
     {
@@ -159,6 +174,7 @@ window.CHAPITRES["cinquieme-calcul-litteral"] = {
         "Additionne les termes en $x$ entre eux, les nombres entre eux.",
         "Écris le résultat sous la forme $ax + b$."
       ],
+      figure: "cl5-cours-tuiles",
       exemple: "$5x - 4 + x + 9 = 6x + 5$."
     }
   ],

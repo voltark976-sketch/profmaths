@@ -36,6 +36,7 @@ window.CHAPITRES["sixieme-distances-cercles"] = {
         "- $[AB)$ : la **demi-droite** d'origine $A$ qui passe par $B$.\n" +
         "- $AB$ (sans crochets) : la **longueur** du segment $[AB]$, c'est-à-dire la **distance** entre $A$ et $B$. On écrit $AB = 4$ cm, et jamais « $[AB] = 4$ cm ».\n\n" +
         "Le symbole $\\in$ se lit « appartient à » : si $C$ est entre $A$ et $B$, on écrit $C \\in [AB]$. Le symbole $\\notin$ se lit « n'appartient pas à ».",
+      figure: "c6-cours-notations",
       exemple: {
         enonce: "$A$, $C$ et $B$ sont alignés dans cet ordre. Complète par $\\in$ ou $\\notin$ : $C \\ldots [AB]$ ; $A \\ldots [CB]$ ; $A \\ldots (CB)$.",
         solution: "$C \\in [AB]$ ; $A \\notin [CB]$ (le segment s'arrête en $C$) ; $A \\in (CB)$ (la droite continue)."
@@ -43,11 +44,12 @@ window.CHAPITRES["sixieme-distances-cercles"] = {
     },
     {
       titre: "Milieu d'un segment et codage",
-      video: { titre: "Vidéo d'Yvan Monka : utiliser les symboles ∈ et ∉", youtube: "https://youtu.be/s-KelQ875a8" },
+      video: { titre: "Vidéo d'Yvan Monka : le cours sur les distances, le milieu, le cercle et la médiatrice", youtube: "https://youtu.be/WPrr9ov_Hfw" },
       texte:
         "Le **milieu** d'un segment $[AB]$ est le point $I$ qui est **sur le segment** et à **égale distance** de $A$ et de $B$ : $I \\in [AB]$ et $AI = IB$.\n\n" +
         "Donc $AI = IB = AB \\div 2$.\n\n" +
         "Sur une figure, on **code** les longueurs égales par le même petit signe (un trait, deux traits…) et les angles droits par un petit carré.",
+      figure: "c6-cours-milieu",
       exemple: {
         enonce: "$I$ est le milieu de $[AB]$ et $AB = 7{,}4$ cm. Combien mesure $AI$ ? Un point $M$ vérifie $MA = MB$ : est-il forcément le milieu de $[AB]$ ?",
         solution: "$AI = 7{,}4 \\div 2 = 3{,}7$ cm.\n\nNon : $M$ peut être hors du segment (par exemple au-dessus). Pour être le milieu, il faut aussi $M \\in [AB]$."
@@ -77,7 +79,9 @@ window.CHAPITRES["sixieme-distances-cercles"] = {
         "- $OM = r$ : $M$ est **sur le cercle** ;\n" +
         "- $OM < r$ : $M$ est **à l'intérieur du disque** ;\n" +
         "- $OM > r$ : $M$ est **à l'extérieur du disque**.\n\n" +
-        "Une chèvre attachée à un piquet par une corde de $5$ m peut brouter tout le disque de centre le piquet et de rayon $5$ m.",
+        "Une chèvre attachée à un piquet par une corde de $5$ m peut brouter tout le disque de centre le piquet et de rayon $5$ m.\n\n" +
+        "Sur la figure (rayon $5$ cm) : $M$ est sur le cercle, $N$ à l'intérieur du disque, $P$ à l'extérieur.",
+      figure: "c6-cours-disque",
       exemple: {
         enonce: "Une antenne relais couvre tous les points situés à $6$ km ou moins. Une maison est à $5{,}8$ km de l'antenne, une autre à $6{,}2$ km. Sont-elles couvertes ?",
         solution: "$5{,}8 < 6$ : la première maison est dans le disque, elle est couverte.\n\n$6{,}2 > 6$ : la seconde est hors du disque, elle n'est pas couverte."
@@ -107,6 +111,7 @@ window.CHAPITRES["sixieme-distances-cercles"] = {
         "- de l'autre côté du segment, on recommence : les arcs se coupent en $F$ ;\n" +
         "- la médiatrice est la droite $(EF)$.\n\n" +
         "Pourquoi ça marche ? $E$ est à la même distance de $A$ et de $B$ (le rayon choisi), donc $E$ est sur la médiatrice ; de même pour $F$. Deux points suffisent pour tracer une droite.",
+      figure: "c6-cours-compas",
       exemple: {
         enonce: "Pourquoi faut-il garder le même écartement de compas pour les deux arcs ?",
         solution: "Avec le même rayon, le point d'intersection est à la même distance de $A$ et de $B$ : il est donc sur la médiatrice. Avec deux rayons différents, il ne le serait pas."
@@ -116,6 +121,7 @@ window.CHAPITRES["sixieme-distances-cercles"] = {
 
   videosNote: "Exercices corrigés en vidéo par Yvan Monka (maths-et-tiques).",
   videos: [
+    { titre: "Utiliser les symboles ∈ et ∉", type: "Notations", youtube: "https://youtu.be/s-KelQ875a8" },
     { titre: "Construire une médiatrice", type: "Construction", youtube: "https://youtu.be/XpILo_WMXbg" },
     { titre: "Construire un cercle point par point", type: "Cercle", youtube: "https://youtu.be/tXX1vNK__gM" },
     { titre: "Triangle équilatéral et carré à la règle et au compas", type: "Défi", youtube: "https://youtu.be/331h9qRj_pY" }
@@ -149,7 +155,12 @@ window.CHAPITRES["sixieme-distances-cercles"] = {
     { question: "La médiatrice de $[AB]$ est :", choix: ["la droite perpendiculaire à $[AB]$ passant par son milieu", "la droite $(AB)$", "une droite perpendiculaire à $[AB]$ passant par $A$", "le milieu de $[AB]$"], bonne: 0, explication: "Médiatrice : « media » (le milieu) et « sectrice » (qui coupe), à angle droit." },
     { question: "$M$ est sur la médiatrice de $[AB]$ et $MA = 5{,}2$ cm. Alors $MB = $", figure: "c6-mediatrice", choix: ["$5{,}2$ cm", "$10{,}4$ cm", "$2{,}6$ cm", "on ne peut pas savoir"], bonne: 0, explication: "Tout point de la médiatrice est à égale distance de $A$ et de $B$." },
     { question: "Pour placer une école à égale distance de deux villages, on la met :", choix: ["sur la médiatrice du segment qui relie les villages", "seulement au milieu de la route", "dans le premier village", "n'importe où entre les deux"], bonne: 0, explication: "Les points à égale distance de deux points forment la médiatrice." },
-    { question: "Pour construire la médiatrice au compas, on trace des arcs de centres $A$ et $B$ :", choix: ["de même rayon", "de rayons différents", "de rayon $AB$ obligatoirement", "sans écarter le compas"], bonne: 0, explication: "Avec le même rayon, les points d'intersection sont à égale distance de $A$ et de $B$." }
+    { question: "Pour construire la médiatrice au compas, on trace des arcs de centres $A$ et $B$ :", choix: ["de même rayon", "de rayons différents", "de rayon $AB$ obligatoirement", "sans écarter le compas"], bonne: 0, explication: "Avec le même rayon, les points d'intersection sont à égale distance de $A$ et de $B$." },
+    { question: "Sur la figure, quel point est à l'extérieur du disque ?", figure: "c6-cours-disque", choix: ["$P$", "$M$", "$N$", "$O$"], bonne: 0, explication: "$P$ est plus loin du centre que le rayon. $M$ est sur le cercle, $N$ à l'intérieur." },
+    { question: "Sur la figure, $I$ est le milieu de $[AB]$ et $AB = 7{,}4$ cm. Combien mesure $AI$ ?", figure: "c6-cours-milieu", choix: ["$3{,}7$ cm", "$7{,}4$ cm", "$14{,}8$ cm", "$3{,}2$ cm"], bonne: 0, explication: "Le milieu partage le segment en deux longueurs égales : $7{,}4 \\div 2 = 3{,}7$ cm." },
+    { question: "Sur cette construction au compas, pourquoi la droite $(EF)$ est-elle la médiatrice de $[AB]$ ?", figure: "c6-cours-compas", choix: ["Car $E$ et $F$ sont chacun à égale distance de $A$ et de $B$", "Car $E$ et $F$ sont sur le segment $[AB]$", "Car $(EF)$ passe par $A$", "Car $EF = AB$"], bonne: 0, explication: "Les arcs ont le même rayon : $EA = EB$ et $FA = FB$. $E$ et $F$ sont donc sur la médiatrice, qui est la droite $(EF)$." },
+    { question: "Quelle notation désigne la demi-droite d'origine $A$ qui passe par $B$ ?", figure: "c6-cours-notations", choix: ["$[AB)$", "$(AB)$", "$[AB]$", "$[BA)$"], bonne: 0, explication: "Le crochet est du côté de l'origine $A$, la parenthèse du côté où la demi-droite continue." },
+    { question: "La chèvre de Roukia est attachée par une corde de $6$ m. Un manguier est à $8{,}5$ m du piquet. De combien faut-il rallonger la corde pour qu'elle l'atteigne tout juste ?", choix: ["$2{,}5$ m", "$14{,}5$ m", "$8{,}5$ m", "$3$ m"], bonne: 0, explication: "Il faut une corde de $8{,}5$ m : $8{,}5 - 6 = 2{,}5$ m de plus." }
   ],
 
   /* ---------- 4. FICHE MÉTHODE ---------- */
@@ -161,6 +172,7 @@ window.CHAPITRES["sixieme-distances-cercles"] = {
         "$AB$ : c'est un nombre, la longueur (la distance de $A$ à $B$).",
         "$\\in$ : « appartient à » ; $\\notin$ : « n'appartient pas à »."
       ],
+      figure: "c6-cours-notations",
       exemple: "On écrit $AB = 4$ cm et $C \\in [AB]$."
     },
     {
@@ -170,6 +182,7 @@ window.CHAPITRES["sixieme-distances-cercles"] = {
         "Compare la distance $OM$ au rayon.",
         "$=$ : sur le cercle ; $<$ : dans le disque ; $>$ : à l'extérieur."
       ],
+      figure: "c6-cours-disque",
       exemple: "Rayon $5$ cm, $OM = 6$ cm : $M$ est à l'extérieur du disque."
     },
     {
@@ -179,6 +192,7 @@ window.CHAPITRES["sixieme-distances-cercles"] = {
         "Si on sait qu'il est sur la médiatrice, on en déduit $MA = MB$.",
         "Si on sait que $MA = MB$, on en déduit qu'il est sur la médiatrice."
       ],
+      figure: "c6-mediatrice",
       exemple: "$M$ sur la médiatrice et $MA = 5{,}2$ cm, donc $MB = 5{,}2$ cm."
     },
     {
@@ -188,6 +202,7 @@ window.CHAPITRES["sixieme-distances-cercles"] = {
         "Au compas : deux arcs de même rayon centrés en $A$ et en $B$, de chaque côté du segment.",
         "Trace la droite qui passe par les deux points d'intersection, et code la figure."
       ],
+      figure: "c6-cours-compas",
       exemple: "Les arcs se coupent en $E$ et $F$ : la médiatrice est $(EF)$."
     }
   ],

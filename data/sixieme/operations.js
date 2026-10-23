@@ -49,7 +49,8 @@ window.CHAPITRES["sixieme-operations"] = {
         "- on écrit les nombres l'un sous l'autre, **virgule sous virgule** (unités sous unités, dixièmes sous dixièmes…) ;\n" +
         "- on complète par des **zéros inutiles** pour avoir autant de chiffres après la virgule ;\n" +
         "- on calcule de droite à gauche, comme avec des entiers, et on place la virgule du résultat sous les autres.\n\n" +
-        "Attention : $36{,}3 + 43{,}96$ n'est pas $47{,}59$. Il faut aligner les virgules, pas les derniers chiffres.",
+        "Attention : $36{,}3 + 43{,}96$ n'est pas $47{,}59$. Il faut aligner les virgules, pas les derniers chiffres. Sur la figure, le zéro inutile ajouté est en couleur.",
+      figure: "o6-cours-addition",
       exemple: {
         enonce: "Pose et calcule $36{,}3 + 43{,}96$ et $29{,}13 - 12{,}6$.",
         solution: "$\\begin{array}{r} 36{,}30 \\\\ +\\ 43{,}96 \\\\ \\hline 80{,}26 \\end{array}$ et $\\begin{array}{r} 29{,}13 \\\\ -\\ 12{,}60 \\\\ \\hline 16{,}53 \\end{array}$\n\nDonc $36{,}3 + 43{,}96 = 80{,}26$ et $29{,}13 - 12{,}6 = 16{,}53$."
@@ -106,7 +107,9 @@ window.CHAPITRES["sixieme-operations"] = {
         "- on multiplie les nombres **sans les virgules** ;\n" +
         "- le produit a **autant de chiffres après la virgule** que les deux facteurs **ensemble** ;\n" +
         "- on contrôle avec un **ordre de grandeur**.\n\n" +
-        "Pour $844{,}7 \\times 3{,}68$ : $8\\,447 \\times 368 = 3\\,108\\,496$, et $1 + 2 = 3$ chiffres après la virgule : $3\\,108{,}496$.",
+        "Pour $844{,}7 \\times 3{,}68$ : $8\\,447 \\times 368 = 3\\,108\\,496$, et $1 + 2 = 3$ chiffres après la virgule : $3\\,108{,}496$.\n\n" +
+        "Attention : pour poser une multiplication, on n'aligne pas les virgules. On cale les nombres **à droite**, comme des entiers (voir la figure).",
+      figure: "o6-cours-produit",
       exemple: {
         enonce: "Calcule $4{,}3 \\times 0{,}27$, sachant que $43 \\times 27 = 1\\,161$.",
         solution: "$1 + 2 = 3$ chiffres après la virgule : $4{,}3 \\times 0{,}27 = 1{,}161$.\n\nContrôle : $4 \\times 0{,}3 = 1{,}2$, c'est proche."
@@ -131,7 +134,9 @@ window.CHAPITRES["sixieme-operations"] = {
         "- Cherche les **étapes** : qu'est-ce que je peux calculer d'abord ?\n" +
         "- Pour chaque étape, choisis l'opération : ajouter, enlever, ou multiplier (prix de plusieurs kilos, aire d'un rectangle…).\n" +
         "- Écris les **unités** dans les calculs ($2{,}5$ kg $\\times$ $4{,}90$ € par kg) et fais une phrase de réponse.\n" +
-        "- Contrôle avec un ordre de grandeur.",
+        "- Contrôle avec un ordre de grandeur.\n\n" +
+        "Le ticket de caisse de la figure résume les étapes de l'exemple.",
+      figure: "o6-cours-ticket",
       exemple: {
         enonce: "Au marché de Mamoudzou, tu achètes $2{,}5$ kg de mangues à $4{,}90$ € le kilo et un régime de bananes à $4{,}80$ €. Tu paies avec un billet de $20$ €. Combien te rend-on ?",
         solution: "Mangues : $2{,}5 \\times 4{,}90 = 12{,}25$ €. Total : $12{,}25 + 4{,}80 = 17{,}05$ €.\n\nMonnaie : $20 - 17{,}05 = 2{,}95$ €. On te rend $2{,}95$ €.\n\nContrôle : $2{,}5 \\times 5 + 5 = 17{,}5$ €, c'est proche de $17{,}05$ €."
@@ -187,7 +192,10 @@ window.CHAPITRES["sixieme-operations"] = {
     { question: "Un ordre de grandeur de $398{,}5 + 201{,}7$ est :", choix: ["$600$", "$60$", "$6\\,000$", "$800$"], bonne: 0, explication: "$400 + 200 = 600$." },
     { question: "Tu achètes $3$ kg de riz à $1{,}85$ € le kilo. Tu paies :", choix: ["$5{,}55$ €", "$4{,}85$ €", "$55{,}5$ €", "$5{,}45$ €"], bonne: 0, explication: "$3 \\times 1{,}85 = 5{,}55$ €. Contrôle : $3 \\times 2 = 6$ €." },
     { question: "Un enclos rectangulaire mesure $12{,}5$ m sur $8{,}2$ m. Pour en faire le tour, il faut :", choix: ["$41{,}4$ m", "$20{,}7$ m", "$102{,}5$ m", "$40{,}14$ m"], bonne: 0, explication: "$12{,}5 + 12{,}5 + 8{,}2 + 8{,}2 = 41{,}4$ m. $102{,}5$ m² serait l'aire." },
-    { question: "Tu paies $17{,}05$ € avec un billet de $20$ €. On te rend :", choix: ["$2{,}95$ €", "$3{,}05$ €", "$3{,}95$ €", "$2{,}05$ €"], bonne: 0, explication: "$20{,}00 - 17{,}05 = 2{,}95$ €." }
+    { question: "Tu paies $17{,}05$ € avec un billet de $20$ €. On te rend :", choix: ["$2{,}95$ €", "$3{,}05$ €", "$3{,}95$ €", "$2{,}05$ €"], bonne: 0, explication: "$20{,}00 - 17{,}05 = 2{,}95$ €." },
+    { question: "Inès a posé cette addition. Quelle est son erreur ?", figure: "o6-qcm-malpose", choix: ["Elle n'a pas aligné les virgules", "Elle a oublié une retenue", "Elle aurait dû soustraire", "Il n'y a pas d'erreur"], bonne: 0, explication: "Il faut écrire virgule sous virgule : $36{,}30 + 43{,}96 = 80{,}26$, et non $47{,}59$." },
+    { question: "D'après le ticket, combien a coûté le poisson ?", figure: "o6-qcm-ticket", choix: ["$8{,}75$ €", "$19{,}85$ €", "$9{,}75$ €", "$8{,}25$ €"], bonne: 0, explication: "Total $-$ riz : $14{,}30 - 5{,}55 = 8{,}75$ €. ($19{,}85$ € est la somme, pas la différence.)" },
+    { question: "Quel est le résultat de cette multiplication posée ?", figure: "o6-qcm-produit", choix: ["$7{,}5$", "$75$", "$0{,}75$", "$12{,}3$"], bonne: 0, explication: "$125 \\times 6 = 750$, et $1 + 1 = 2$ chiffres après la virgule : $7{,}50 = 7{,}5$. Contrôle : $12 \\times 0{,}6 \\approx 7$." }
   ],
 
   /* ---------- 4. FICHE MÉTHODE ---------- */
@@ -199,7 +207,8 @@ window.CHAPITRES["sixieme-operations"] = {
         "Complète par des zéros pour avoir le même nombre de chiffres après la virgule.",
         "Calcule de droite à gauche, avec les retenues, et place la virgule du résultat."
       ],
-      exemple: "$7{,}5 + 12{,}36$ : $7{,}50 + 12{,}36 = 19{,}86$."
+      exemple: "$7{,}5 + 12{,}36$ : $7{,}50 + 12{,}36 = 19{,}86$.",
+      figure: "o6-methode-addition"
     },
     {
       titre: "Calculer une expression en ligne",
@@ -226,7 +235,8 @@ window.CHAPITRES["sixieme-operations"] = {
         "Compte les chiffres après la virgule dans les deux facteurs, et additionne.",
         "Place la virgule dans le résultat, puis contrôle avec un ordre de grandeur."
       ],
-      exemple: "$1{,}5 \\times 0{,}24$ : $15 \\times 24 = 360$, $1 + 2 = 3$ chiffres, donc $0{,}360 = 0{,}36$."
+      exemple: "$1{,}5 \\times 0{,}24$ : $15 \\times 24 = 360$, $1 + 2 = 3$ chiffres, donc $0{,}360 = 0{,}36$.",
+      figure: "o6-methode-produit"
     },
     {
       titre: "Trouver un ordre de grandeur",
@@ -244,7 +254,8 @@ window.CHAPITRES["sixieme-operations"] = {
         "Choisis l'opération de chaque étape, en écrivant les unités.",
         "Fais une phrase de réponse et contrôle avec un ordre de grandeur."
       ],
-      exemple: "$12$ L d'essence à $1{,}95$ € : $12 \\times 1{,}95 = 23{,}40$ €."
+      exemple: "Mangues : $2{,}5 \\times 4{,}90 = 12{,}25$ € ; total $12{,}25 + 4{,}80 = 17{,}05$ € ; rendu $20 - 17{,}05 = 2{,}95$ €.",
+      figure: "o6-cours-ticket"
     }
   ],
   erreurs: [

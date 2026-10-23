@@ -52,6 +52,7 @@ window.CHAPITRES["cinquieme-parallelogrammes"] = {
         "- ou ses côtés opposés ont la **même longueur** deux à deux ;\n" +
         "- ou ses côtés opposés sont **parallèles** deux à deux (c'est la définition).\n\n" +
         "Pour construire le point $D$ tel que $ABCD$ soit un parallélogramme, on peut utiliser n'importe laquelle de ces propriétés : sur quadrillage, on va de $C$ à $D$ comme de $B$ à $A$.",
+      figure: "pg5-cours-demontrer",
       exemple: {
         enonce: "Les segments $[EG]$ et $[FH]$ ont le même milieu $I$. Que peut-on dire du quadrilatère $EFGH$ ?",
         solution: "Ses diagonales $[EG]$ et $[FH]$ ont le même milieu : $EFGH$ est un parallélogramme."
@@ -96,7 +97,13 @@ window.CHAPITRES["cinquieme-parallelogrammes"] = {
     { question: "Le centre de symétrie d'un parallélogramme est :", choix: ["le point d'intersection de ses diagonales", "un sommet", "le milieu d'un côté", "il n'en a pas"], bonne: 0, explication: "Les diagonales se coupent en leur milieu." },
     { question: "Les côtés d'un parallélogramme mesurent $7$ cm et $4$ cm. Son périmètre est :", choix: ["$22$ cm", "$11$ cm", "$28$ cm", "$14$ cm"], bonne: 0, explication: "$2 \\times (7 + 4)$." },
     { question: "Un carré :", choix: ["est à la fois un rectangle et un losange", "n'est pas un parallélogramme", "a des diagonales de longueurs différentes", "n'a pas d'angle droit"], bonne: 0, explication: "Il a toutes les propriétés." },
-    { question: "La phrase « Si un quadrilatère est un parallélogramme, alors ses diagonales ont le même milieu » a pour réciproque :", choix: ["Si les diagonales d'un quadrilatère ont le même milieu, alors c'est un parallélogramme.", "Si un quadrilatère n'est pas un parallélogramme, alors ses diagonales n'ont pas le même milieu.", "Un parallélogramme a des diagonales.", "Si les diagonales sont égales, alors c'est un rectangle."], bonne: 0, explication: "On échange la condition et la conclusion." }
+    { question: "La phrase « Si un quadrilatère est un parallélogramme, alors ses diagonales ont le même milieu » a pour réciproque :", choix: ["Si les diagonales d'un quadrilatère ont le même milieu, alors c'est un parallélogramme.", "Si un quadrilatère n'est pas un parallélogramme, alors ses diagonales n'ont pas le même milieu.", "Un parallélogramme a des diagonales.", "Si les diagonales sont égales, alors c'est un rectangle."], bonne: 0, explication: "On échange la condition et la conclusion." },
+    { question: "D'après le codage, le quadrilatère $EFGH$ est :", figure: "pg5-cours-demontrer", choix: ["un parallélogramme", "un rectangle", "un losange", "on ne peut rien dire"], bonne: 0, explication: "Ses diagonales $[EG]$ et $[FH]$ ont le même milieu $I$ : c'est un parallélogramme. Rien n'indique des diagonales égales ou perpendiculaires." },
+    { question: "Sur la figure, $ABCD$ est un parallélogramme de centre $O$. Si $AC = 10$ cm, alors :", figure: "pg5-diagonales", choix: ["$OA = 5$ cm", "$OB = 5$ cm", "$BD = 10$ cm", "$OA = 10$ cm"], bonne: 0, explication: "$O$ est le milieu de $[AC]$ : $OA = 10 \\div 2 = 5$ cm. On ne sait rien sur $BD$." },
+    { question: "Laquelle de ces figures a des diagonales de même longueur ET perpendiculaires ?", figure: "pg5-methode-particuliers", choix: ["le carré", "le rectangle", "le losange", "aucune"], bonne: 0, explication: "Rectangle : diagonales de même longueur. Losange : perpendiculaires. Le carré a les deux." },
+    { question: "$ABCD$ est un parallélogramme avec $AB = BC$. C'est :", choix: ["un losange", "un rectangle", "un trapèze", "un parallélogramme quelconque"], bonne: 0, explication: "Deux côtés consécutifs de même longueur : c'est un losange." },
+    { question: "$ABCD$ est un parallélogramme et $\\widehat{ABC} = 115^\\circ$. Alors $\\widehat{CDA}$ mesure :", choix: ["$115^\\circ$", "$65^\\circ$", "$245^\\circ$", "$90^\\circ$"], bonne: 0, explication: "$\\widehat{B}$ et $\\widehat{D}$ sont des angles opposés : ils ont la même mesure." },
+    { question: "Un quadrilatère a quatre côtés de même longueur. C'est forcément :", choix: ["un losange", "un carré", "un rectangle", "un trapèze"], bonne: 0, explication: "Quatre côtés égaux : c'est un losange. C'est un carré seulement s'il a en plus un angle droit." }
   ],
 
   /* ---------- 4. FICHE MÉTHODE ---------- */
@@ -108,6 +115,7 @@ window.CHAPITRES["cinquieme-parallelogrammes"] = {
         "Diagonales : même milieu (on divise une diagonale par $2$).",
         "Angles opposés égaux ; angles consécutifs supplémentaires."
       ],
+      figure: "pg5-diagonales",
       exemple: "$AC = 12$ cm donc $AO = 6$ cm."
     },
     {
@@ -117,6 +125,7 @@ window.CHAPITRES["cinquieme-parallelogrammes"] = {
         "Choisis la propriété : diagonales de même milieu, côtés opposés de même longueur ou parallèles.",
         "Rédige : « Si … alors … ». Conclus."
       ],
+      figure: "pg5-cours-demontrer",
       exemple: "Les diagonales ont le même milieu, donc c'est un parallélogramme."
     },
     {
@@ -126,6 +135,7 @@ window.CHAPITRES["cinquieme-parallelogrammes"] = {
         "Diagonales perpendiculaires ou deux côtés consécutifs égaux : losange.",
         "Les deux : carré."
       ],
+      figure: "pg5-methode-particuliers",
       exemple: "Parallélogramme à diagonales perpendiculaires et égales : carré."
     }
   ],

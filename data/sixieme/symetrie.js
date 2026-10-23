@@ -47,6 +47,7 @@ window.CHAPITRES["sixieme-symetrie"] = {
         "Donc $(AA')$ est **perpendiculaire** à $(d)$, et $(d)$ passe par le **milieu** de $[AA']$ : $A$ et $A'$ sont à la même distance de $(d)$.\n\n" +
         "Si $A$ est **sur** la droite $(d)$, son symétrique est lui-même.\n\n" +
         "Pour le construire sur papier uni : on trace la perpendiculaire à $(d)$ passant par $A$ (équerre), puis on reporte la distance de l'autre côté (compas).",
+      figure: "sx6-cours-point",
       exemple: {
         enonce: "$A'$ est le symétrique de $A$ par rapport à $(d)$, et $AA' = 7$ cm. À quelle distance de $(d)$ se trouve $A$ ?",
         solution: "$(d)$ passe par le milieu de $[AA']$ : $A$ est à $7 \\div 2 = 3{,}5$ cm de $(d)$."
@@ -62,6 +63,7 @@ window.CHAPITRES["sixieme-symetrie"] = {
         "- les **alignements** : le symétrique d'une droite est une droite ;\n" +
         "- les **aires** et les **formes** : le symétrique d'un cercle est un cercle de même rayon, dont le centre est le symétrique du centre.\n\n" +
         "Pour construire le symétrique d'un polygone, il suffit de construire les symétriques de ses sommets, puis de les relier.",
+      figure: "sx6-cours-proprietes",
       exemple: {
         enonce: "$A'B'C'$ est le symétrique du triangle $ABC$. On sait que $AB = 4{,}2$ cm et $\\widehat{ABC} = 47$°. Que vaut $A'B'$ ? Et $\\widehat{A'B'C'}$ ?",
         solution: "La symétrie conserve les longueurs et les angles : $A'B' = 4{,}2$ cm et $\\widehat{A'B'C'} = 47$°."
@@ -118,7 +120,13 @@ window.CHAPITRES["sixieme-symetrie"] = {
     { question: "Combien d'axes de symétrie a un triangle isocèle non équilatéral ?", choix: ["$1$", "$2$", "$3$", "$0$"], bonne: 0, explication: "La médiatrice de sa base." },
     { question: "Quelle figure n'a aucun axe de symétrie ?", choix: ["un parallélogramme quelconque", "un losange", "un cercle", "un trapèze isocèle"], bonne: 0, explication: "Aucun pliage ne superpose les deux moitiés d'un parallélogramme quelconque." },
     { question: "Un cercle a :", choix: ["une infinité d'axes de symétrie", "$1$ axe de symétrie", "$2$ axes de symétrie", "aucun axe de symétrie"], bonne: 0, explication: "Toute droite passant par son centre est un axe." },
-    { question: "Pour construire le symétrique d'un triangle, on :", choix: ["construit les symétriques des trois sommets, puis on les relie", "recopie le triangle à côté de l'axe", "trace le triangle deux fois plus grand", "construit seulement le symétrique d'un sommet"], bonne: 0, explication: "Les symétriques des sommets suffisent, car les segments sont conservés." }
+    { question: "Pour construire le symétrique d'un triangle, on :", choix: ["construit les symétriques des trois sommets, puis on les relie", "recopie le triangle à côté de l'axe", "trace le triangle deux fois plus grand", "construit seulement le symétrique d'un sommet"], bonne: 0, explication: "Les symétriques des sommets suffisent, car les segments sont conservés." },
+    { question: "D'après les codages, $B$ est-il le symétrique de $A$ par rapport à $(d)$ ?", figure: "sx6-qcm-oblique", choix: ["Non : $(AB)$ n'est pas perpendiculaire à $(d)$", "Oui : $I$ est le milieu de $[AB]$", "Oui : $A$ et $B$ sont de part et d'autre de $(d)$", "On ne peut pas savoir"], bonne: 0, explication: "Il faudrait que $(d)$ soit la médiatrice de $[AB]$ : elle passe bien par le milieu $I$, mais il n'y a pas d'angle droit." },
+    { question: "Sur le quadrillage, $A'$ est le symétrique de $A$ par rapport à $(d)$. À combien de carreaux de $(d)$ se trouve $A'$ ?", figure: "sx6-grille", choix: ["$3$ carreaux", "$6$ carreaux", "$9$ carreaux", "$0$ carreau"], bonne: 0, explication: "$A$ est à $3$ carreaux de $(d)$, et son symétrique est à la même distance, de l'autre côté." },
+    { question: "Sur la figure, $A'B'C'$ est le symétrique de $ABC$ par rapport à $(d)$. Que vaut $A'B'$ ?", figure: "sx6-cours-proprietes", choix: ["$4{,}2$ cm", "$8{,}4$ cm", "$2{,}1$ cm", "on ne peut pas savoir"], bonne: 0, explication: "La symétrie axiale conserve les longueurs : $A'B' = AB = 4{,}2$ cm." },
+    { question: "Combien d'axes de symétrie a cet hexagone régulier ?", figure: "sx6-qcm-hexagone", choix: ["$6$", "$3$", "$2$", "$12$"], bonne: 0, explication: "Trois axes passent par deux sommets opposés, trois autres par les milieux de deux côtés opposés : $6$ axes." },
+    { question: "Un rectangle mesure $5$ cm sur $3$ cm. Le périmètre de son symétrique par rapport à une droite est :", choix: ["$16$ cm", "$32$ cm", "$15$ cm", "$8$ cm"], bonne: 0, explication: "Le symétrique est un rectangle de mêmes dimensions : $2 \\times (5 + 3) = 16$ cm." },
+    { question: "Les axes de symétrie de ce rectangle (en pointillés) sont :", figure: "sx6-cours-axes", choix: ["les médiatrices de ses côtés", "ses diagonales", "ses côtés", "il n'en a pas"], bonne: 0, explication: "Un rectangle non carré a deux axes : les médiatrices de ses côtés. Ses diagonales ne sont pas des axes." }
   ],
 
   /* ---------- 4. FICHE MÉTHODE ---------- */
@@ -130,6 +138,7 @@ window.CHAPITRES["sixieme-symetrie"] = {
         "Reporte le même nombre de carreaux de l'autre côté de l'axe.",
         "Vérifie : l'axe doit être la médiatrice du segment qui relie le point et son symétrique."
       ],
+      figure: "sx6-grille",
       exemple: "$A$ à $3$ carreaux à gauche d'un axe vertical : $A'$ est à $3$ carreaux à droite, sur la même ligne."
     },
     {
@@ -139,6 +148,7 @@ window.CHAPITRES["sixieme-symetrie"] = {
         "Avec le compas, reporte la distance de $A$ à $(d)$ de l'autre côté.",
         "Nomme le point $A'$ et code la figure (angle droit, longueurs égales)."
       ],
+      figure: "sx6-cours-point",
       exemple: "On peut aussi tracer deux arcs centrés sur deux points de $(d)$ et passant par $A$ : ils se recoupent en $A'$."
     },
     {
@@ -148,6 +158,7 @@ window.CHAPITRES["sixieme-symetrie"] = {
         "Les longueurs, les angles et les aires sont les mêmes.",
         "Le symétrique d'une droite est une droite, celui d'un cercle est un cercle de même rayon."
       ],
+      figure: "sx6-cours-proprietes",
       exemple: "$AB = 4{,}2$ cm, donc $A'B' = 4{,}2$ cm."
     },
     {
@@ -157,6 +168,7 @@ window.CHAPITRES["sixieme-symetrie"] = {
         "Garde ceux où les deux moitiés se superposent exactement.",
         "Compte-les."
       ],
+      figure: "sx6-cours-axes",
       exemple: "Losange : ses deux diagonales sont des axes, les médiatrices des côtés non."
     }
   ],

@@ -133,7 +133,9 @@ Les niveaux du catalogue sont Seconde, Automatismes, Première spécialité, Ter
 - `assets/exercices.js` : graphiques et générateurs d'exercices aléatoires (indices et solutions). `graph()` place seul les étiquettes (points, courbes, vecteurs, droites horizontales, nom de l'axe) là où elles ne se chevauchent pas, et n'écrit pas un nombre d'axe qui tomberait dessous.
 - `assets/app.js` : navigation, QCM, points et étoiles.
   - Une série ne pose jamais deux fois la même question, et évite celles de l'essai précédent ; le Défi évite les 20 dernières questions.
-  - Un QCM compte 12 questions : 9 tirées dans la banque du chapitre (en évitant celles de l'essai précédent) et 3 questions à choix fabriquées par les générateurs du chapitre. Les banques peuvent donc grandir sans allonger le QCM.
+  - Un QCM compte 12 questions : 9 tirées dans la banque du chapitre (en évitant celles de l'essai précédent) et 3 questions à choix fabriquées par les générateurs du chapitre, d'abord une par série. Une question à saisie sert aussi quand son générateur prévoit au moins deux erreurs typiques (`erreurs`, hors messages « valeur approchée ») : elle est transformée en question à choix (réponse exacte seulement, jamais une réponse arrondie). Les banques peuvent donc grandir sans allonger le QCM.
+  - Le champ `figure` d'une section de cours, d'une question de QCM ou d'une fiche méthode (`methode[].figure`) donne le nom d'une figure de `FIGURES` (définie dans un fichier `assets/exercices*.js`), ou une liste de noms.
+  - Typographie sur téléphone : une formule n'est jamais séparée de la ponctuation qui la suit (pas de « . » seul en début de ligne), et « ? ! : ; » ainsi que l'intérieur des guillemets prennent une espace insécable.
   - Une liste écrite dans une seule formule avec « ; » (`$3 ; 11 ; 19$`) est coupée en petites formules pour passer à la ligne sur téléphone : séparer les listes par « ; » plutôt que par `\,;\,`.
 - `assets/compte.js` : comptes élèves et sauvegarde de la progression.
 - `assets/style.css` : mise en page, thème clair et sombre.
@@ -144,7 +146,8 @@ Les niveaux du catalogue sont Seconde, Automatismes, Première spécialité, Ter
 - `firestore.rules` et `firebase.json` : règles de sécurité des comptes dans Firebase.
 
 ## Règles de qualité des exercices
-- Une même série ne repose jamais deux fois la même question, et chaque générateur doit produire au moins 29 questions différentes.
+- Une même série ne repose jamais deux fois la même question, et chaque générateur doit produire au moins 29 questions différentes. Au collège, l'objectif est d'au moins 100 questions différentes, la question la plus fréquente ne dépassant pas 2 % des tirages, pour que les élèves s'entraînent sur des données différentes.
+- Chaque chapitre a au moins 3 séries capables de fournir une question au QCM (questions à choix, ou à saisie avec au moins deux erreurs typiques prévues).
 - Une question à deux réponses possibles (vrai/faux, oui/non) n'accorde pas de deuxième essai : une erreur affiche la solution et donne 0 point (`assets/app.js`). Les séries « vrai ou faux » de Terminale passent par `vraiFaux4` (`assets/exercices.js`) : une seule affirmation vraie (ou fausse) parmi quatre.
 - « Arrondi au millième / au centième / à l'unité / à la dizaine » : la tolérance n'accepte que le bon arrondi (0,0006 ; 0,006 ; 0,5 ; 5).
 

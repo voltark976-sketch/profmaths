@@ -50,7 +50,9 @@ window.CHAPITRES["sixieme-angles"] = {
         "- angle **droit** : $90$° (côtés perpendiculaires, on le code par un petit carré) ;\n" +
         "- angle **obtus** : entre $90$° et $180$° ;\n" +
         "- angle **plat** : $180$° (côtés dans le prolongement l'un de l'autre) ;\n" +
-        "- angle **plein** : $360$° (un tour complet).",
+        "- angle **plein** : $360$° (un tour complet).\n\n" +
+        "Pour estimer sans rapporteur, on compare à un angle droit (le coin d'une feuille).",
+      figure: "an6-cours-natures",
       exemple: {
         enonce: "Donne la nature des angles de $35$°, $90$°, $135$° et $180$°.",
         solution: "$35$° : aigu ; $90$° : droit ; $135$° : obtus ; $180$° : plat."
@@ -81,6 +83,7 @@ window.CHAPITRES["sixieme-angles"] = {
         "- on place le centre du rapporteur en $O$, et le $0$ d'une graduation sur $[Ox)$ ;\n" +
         "- on fait un petit repère en face de $70$ sur cette graduation ;\n" +
         "- on trace le second côté, de $O$ jusqu'au repère, et on code l'angle.",
+      figure: "an6-cours-construire",
       exemple: {
         enonce: "Pour construire un angle de $140$°, sur quelle graduation lit-on ?",
         solution: "Sur celle dont le $0$ est sur le premier côté tracé. L'angle doit être obtus : on vérifie que le second côté est « au-delà » de l'angle droit."
@@ -106,7 +109,9 @@ window.CHAPITRES["sixieme-angles"] = {
       texte:
         "La **bissectrice** d'un angle est la demi-droite, issue du sommet, qui partage cet angle en **deux angles de même mesure**.\n\n" +
         "Si $[Oz)$ est la bissectrice de $\\widehat{xOy}$, alors $\\widehat{xOz} = \\widehat{zOy} = \\widehat{xOy} \\div 2$.\n\n" +
-        "Pour la tracer au rapporteur : on mesure l'angle, on calcule la moitié, on place la demi-droite.",
+        "Pour la tracer au rapporteur : on mesure l'angle, on calcule la moitié, on place la demi-droite.\n\n" +
+        "Sur la figure, les deux angles égaux sont codés par le même petit trait.",
+      figure: "an6-cours-bissectrice",
       exemple: {
         enonce: "$[Oz)$ est la bissectrice de $\\widehat{xOy}$, qui mesure $126$°. Combien mesure $\\widehat{xOz}$ ?",
         solution: "$126 \\div 2 = 63$ : $\\widehat{xOz} = 63$°."
@@ -149,7 +154,13 @@ window.CHAPITRES["sixieme-angles"] = {
     { question: "Deux angles opposés par le sommet :", choix: ["ont la même mesure", "sont toujours droits", "ont une somme de $90$°", "sont adjacents"], bonne: 0, explication: "C'est la propriété des angles opposés par le sommet." },
     { question: "$[Oz)$ est la bissectrice de $\\widehat{xOy} = 126$°. Alors $\\widehat{xOz} = $", choix: ["$63$°", "$126$°", "$252$°", "$54$°"], bonne: 0, explication: "La bissectrice partage l'angle en deux angles égaux : $126 \\div 2$." },
     { question: "$[Oz)$ est la bissectrice de $\\widehat{xOy}$ et $\\widehat{xOz} = 35$°. Alors $\\widehat{xOy} = $", choix: ["$70$°", "$17{,}5$°", "$35$°", "$145$°"], bonne: 0, explication: "L'angle entier est le double : $2 \\times 35 = 70$°." },
-    { question: "Autour d'un point, trois angles font un tour complet. Deux mesurent $100$° et $150$°. Le troisième mesure :", choix: ["$110$°", "$250$°", "$70$°", "$10$°"], bonne: 0, explication: "$360 - 100 - 150 = 110$°." }
+    { question: "Autour d'un point, trois angles font un tour complet. Deux mesurent $100$° et $150$°. Le troisième mesure :", figure: "an6-qcm-tour", choix: ["$110$°", "$250$°", "$70$°", "$10$°"], bonne: 0, explication: "$360 - 100 - 150 = 110$°." },
+    { question: "Sans rapporteur, l'angle $\\widehat{EFG}$ dessiné est :", figure: "an6-qcm-obtus", choix: ["obtus", "aigu", "droit", "plat"], bonne: 0, explication: "Il est plus ouvert qu'un angle droit, mais moins qu'un angle plat : il est obtus." },
+    { question: "Sur la figure, combien mesure l'angle $\\widehat{xOy}$ marqué « ? » ?", figure: "an6-qcm-adj", choix: ["$110$°", "$30$°", "$70$°", "$180$°"], bonne: 0, explication: "Les angles de $40$° et $70$° sont adjacents : $40 + 70 = 110$°." },
+    { question: "Sur la figure, $[Ox)$ et $[Oy)$ forment un angle plat. Combien mesure l'angle marqué « ? » ?", figure: "an6-qcm-supp", choix: ["$142$°", "$52$°", "$38$°", "$322$°"], bonne: 0, explication: "Les deux angles sont supplémentaires : $180 - 38 = 142$°." },
+    { question: "$[Oz)$ est la bissectrice de l'angle $\\widehat{xOy}$ de $84$°. Combien mesure l'angle marqué « ? » ?", figure: "an6-qcm-biss", choix: ["$42$°", "$84$°", "$168$°", "$96$°"], bonne: 0, explication: "La bissectrice partage l'angle en deux angles égaux : $84 \\div 2 = 42$°." },
+    { question: "Sur la figure, l'angle $\\widehat{ESF}$ mesure :", figure: "an6-qcm-rapp", choix: ["$130$°", "$50$°", "$140$°", "$120$°"], bonne: 0, explication: "Le côté $[SE)$ est sur le $0$ de la graduation intérieure : on lit $130$ sur cette graduation. L'angle est bien obtus." },
+    { question: "La bissectrice d'un angle plat forme avec chacun de ses côtés un angle de :", choix: ["$90$°", "$180$°", "$45$°", "$360$°"], bonne: 0, explication: "Un angle plat mesure $180$° : $180 \\div 2 = 90$°. La bissectrice est perpendiculaire aux côtés." }
   ],
 
   /* ---------- 4. FICHE MÉTHODE ---------- */
@@ -161,6 +172,7 @@ window.CHAPITRES["sixieme-angles"] = {
         "Choisis un point sur chaque côté.",
         "Écris les trois lettres sous un chapeau, le sommet au milieu."
       ],
+      figure: "an6-angle",
       exemple: "Sommet $B$, côtés passant par $A$ et $C$ : $\\widehat{ABC}$."
     },
     {
@@ -170,6 +182,7 @@ window.CHAPITRES["sixieme-angles"] = {
         "Centre du rapporteur sur le sommet, un côté sur le $0$.",
         "Lis sur la graduation qui part de ce $0$, puis vérifie avec ton estimation."
       ],
+      figure: "an6-rapporteur",
       exemple: "Angle aigu : si on lit $130$, la bonne mesure est $50$°."
     },
     {
@@ -179,6 +192,7 @@ window.CHAPITRES["sixieme-angles"] = {
         "Angles supplémentaires : $180$° moins l'autre.",
         "Angles opposés par le sommet : même mesure."
       ],
+      figure: "an6-cours-adjacents",
       exemple: "Deux droites sécantes, un angle de $55$° : les autres mesurent $125$°, $55$° et $125$°."
     },
     {
@@ -188,6 +202,7 @@ window.CHAPITRES["sixieme-angles"] = {
         "Elle partage l'angle en deux angles égaux.",
         "Chaque moitié vaut l'angle $\\div 2$ ; l'angle vaut $2 \\times$ chaque moitié."
       ],
+      figure: "an6-cours-bissectrice",
       exemple: "Bissectrice de $\\widehat{xOy} = 80$° : $\\widehat{xOz} = 40$°."
     }
   ],

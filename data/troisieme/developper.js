@@ -11,7 +11,7 @@ window.CHAPITRES["troisieme-developper"] = {
   niveau: "3e",
   numero: 2,
   titre: "Développer",
-  accroche: "La double distributivité, l'égalité (a − b)(a + b) = a² − b² et le calcul littéral pour prouver un résultat.",
+  accroche: "La double distributivité, l'égalité $(a - b)(a + b) = a^2 - b^2$ et le calcul littéral pour prouver un résultat.",
 
   playlist: "",
   drive: "",
@@ -32,19 +32,23 @@ window.CHAPITRES["troisieme-developper"] = {
       texte:
         "$(a + b)(c + d) = ac + ad + bc + bd$ : chaque terme de la première parenthèse multiplie chaque terme de la seconde.\n\n" +
         "$(2x + 3)(x - 4) = 2x^2 - 8x + 3x - 12 = 2x^2 - 5x - 12$.\n\n" +
-        "On applique la **règle des signes** à chacun des quatre produits, puis on **réduit**.",
+        "On applique la **règle des signes** à chacun des quatre produits, puis on **réduit**.\n\n" +
+        "Avec des longueurs positives, c'est l'aire d'un rectangle de côtés $a + b$ et $c + d$ : la somme des aires des quatre petits rectangles (voir la figure).",
+      figure: "dv3-cours-double",
       exemple: {
         enonce: "Développe et réduis $(x - 5)(3x + 2)$.",
         solution: "$3x^2 + 2x - 15x - 10 = 3x^2 - 13x - 10$."
       }
     },
     {
-      titre: "L'égalité (a − b)(a + b) = a² − b²",
-      video: { titre: "Vidéo d'Yvan Monka : développer avec (a − b)(a + b) = a² − b²", youtube: "https://youtu.be/6j0oMQlaBYg" },
+      titre: "L'égalité $(a - b)(a + b) = a^2 - b^2$",
+      video: { titre: "Vidéo d'Yvan Monka : développer avec l'identité remarquable de la différence de deux carrés", youtube: "https://youtu.be/6j0oMQlaBYg" },
       texte:
         "Pour tous nombres $a$ et $b$ : $(a - b)(a + b) = a^2 - b^2$.\n\n" +
         "$(3x - 2)(3x + 2) = (3x)^2 - 2^2 = 9x^2 - 4$.\n\n" +
+        "Sur la figure, on enlève un carré de côté $b$ à un carré de côté $a$ : il reste $a^2 - b^2$, et les deux morceaux forment un rectangle de côtés $a + b$ et $a - b$.\n\n" +
         "Elle permet aussi de calculer mentalement : $49 \\times 51 = (50 - 1)(50 + 1) = 2\\,500 - 1 = 2\\,499$.",
+      figure: "dv3-cours-carres",
       exemple: {
         enonce: "Développe $(x + 7)(x - 7)$.",
         solution: "$x^2 - 49$."
@@ -56,7 +60,9 @@ window.CHAPITRES["troisieme-developper"] = {
       texte:
         "Des exemples ne suffisent pas pour prouver qu'un résultat est **toujours** vrai : on appelle $x$ (ou $n$) le nombre de départ et on développe.\n\n" +
         "Programme « choisis $x$, ajoute $3$, multiplie par $x - 3$, ajoute $9$ » : $(x + 3)(x - 3) + 9 = x^2 - 9 + 9 = x^2$. Le résultat est toujours le carré du nombre de départ.\n\n" +
-        "Pour prouver qu'une égalité est **fausse**, un seul **contre-exemple** suffit.",
+        "Pour prouver qu'une égalité est **fausse**, un seul **contre-exemple** suffit.\n\n" +
+        "La figure illustre la preuve de l'exemple : avec $n$, $n + 1$ et $n + 2$ points, on déplace un point et on obtient $3$ lignes de $n + 1$ points.",
+      figure: "dv3-cours-consecutifs",
       exemple: {
         enonce: "Prouve que la somme de trois entiers consécutifs est un multiple de $3$.",
         solution: "$n + (n + 1) + (n + 2) = 3n + 3 = 3(n + 1)$."
@@ -68,7 +74,7 @@ window.CHAPITRES["troisieme-developper"] = {
   exercices: [
     { type: "dv3-double", titre: "Double distributivité", etape: "Développer", nb: 6 },
     { type: "dv3-coef", titre: "Développer et réduire une somme", etape: "Développer", nb: 6 },
-    { type: "dv3-identite", titre: "(a − b)(a + b) = a² − b²", etape: "Égalité remarquable", nb: 5 },
+    { type: "dv3-identite", titre: "$(a - b)(a + b) = a^2 - b^2$", etape: "Égalité remarquable", nb: 5 },
     { type: "dv3-prouver", titre: "Prouver avec des lettres", etape: "Prouver", nb: 5 }
   ],
 
@@ -85,7 +91,17 @@ window.CHAPITRES["troisieme-developper"] = {
     { question: "$2x(x - 3) - x^2$ est égal à :", choix: ["$x^2 - 6x$", "$x^2 - 3x$", "$3x^2 - 6x$", "$-6x$"], bonne: 0, explication: "$2x^2 - 6x - x^2$." },
     { question: "Pour prouver qu'une égalité est vraie pour tout $x$, on :", choix: ["fait un calcul littéral général", "teste trois valeurs", "teste $x = 0$", "trace un graphique"], bonne: 0, explication: "Les exemples ne suffisent pas." },
     { question: "Pour prouver qu'une égalité est fausse, il suffit :", choix: ["d'un contre-exemple", "de la développer", "de trois exemples", "de la factoriser"], bonne: 0, explication: "Un seul cas suffit." },
-    { question: "La somme de deux entiers consécutifs $n + (n + 1)$ est :", choix: ["toujours impaire", "toujours paire", "un multiple de $3$", "un carré"], bonne: 0, explication: "$2n + 1$." }
+    { question: "La somme de deux entiers consécutifs $n + (n + 1)$ est :", choix: ["toujours impaire", "toujours paire", "un multiple de $3$", "un carré"], bonne: 0, explication: "$2n + 1$." },
+    { question: "Ce rectangle a pour côtés $x + 5$ et $x + 2$. Son aire est égale à :", figure: "dv3-qcm-aire", choix: ["$x^2 + 7x + 10$", "$x^2 + 10$", "$x^2 + 7x + 7$", "$2x + 7$"], bonne: 0, explication: "Quatre rectangles : $x^2 + 5x + 2x + 10 = x^2 + 7x + 10$." },
+    { question: "$(x - 1)(x - 2)$ est égal à :", choix: ["$x^2 - 3x + 2$", "$x^2 + 3x + 2$", "$x^2 - 3x - 2$", "$x^2 + 2$"], bonne: 0, explication: "$x^2 - 2x - x + 2$ : le produit de deux négatifs est positif." },
+    { question: "$(3x + 2)(3x - 2)$ est égal à :", choix: ["$9x^2 - 4$", "$3x^2 - 4$", "$9x^2 + 4$", "$6x - 4$"], bonne: 0, explication: "$(3x)^2 - 2^2 = 9x^2 - 4$." },
+    { question: "$51 \\times 49$ est égal à :", choix: ["$2\\,499$", "$2\\,501$", "$2\\,500$", "$2\\,401$"], bonne: 0, explication: "$(50 + 1)(50 - 1) = 2\\,500 - 1$." },
+    { question: "$(2x + 1)^2$ est égal à :", choix: ["$4x^2 + 4x + 1$", "$4x^2 + 1$", "$2x^2 + 4x + 1$", "$4x^2 + 2x + 1$"], bonne: 0, explication: "$(2x + 1)(2x + 1) = 4x^2 + 2x + 2x + 1$." },
+    { question: "Développer une expression, c'est transformer :", choix: ["un produit en somme", "une somme en produit", "une fraction en nombre décimal", "une équation en inégalité"], bonne: 0, explication: "Factoriser, c'est le contraire." },
+    { question: "$x(x + 3) - (x^2 - 2x)$ est égal à :", choix: ["$5x$", "$x$", "$2x^2 + x$", "$-5x$"], bonne: 0, explication: "$x^2 + 3x - x^2 + 2x = 5x$ : le $-$ devant la parenthèse change ses signes." },
+    { question: "La figure illustre l'égalité :", figure: "dv3-cours-carres", choix: ["$(a - b)(a + b) = a^2 - b^2$", "$(a + b)^2 = a^2 + b^2$", "$(a - b)^2 = a^2 - b^2$", "$a^2 + b^2 = (a + b)(a - b)$"], bonne: 0, explication: "Le carré de côté $a$ privé du carré de côté $b$ a la même aire que le rectangle de côtés $a + b$ et $a - b$." },
+    { question: "« Choisis un nombre, ajoute $4$, multiplie par le nombre de départ diminué de $4$, ajoute $16$. » Ce programme donne toujours :", choix: ["le carré du nombre de départ", "$16$", "$0$", "le double du nombre de départ"], bonne: 0, explication: "$(x + 4)(x - 4) + 16 = x^2 - 16 + 16 = x^2$." },
+    { question: "Pour $x = 2$, $(x + 3)^2 = 25$ et $x^2 + 9 = 13$. On peut conclure que :", choix: ["l'égalité $(x + 3)^2 = x^2 + 9$ est fausse", "l'égalité est vraie pour tout $x$", "on ne peut rien conclure", "$x = 2$ est la seule solution"], bonne: 0, explication: "Un seul contre-exemple suffit à prouver qu'une égalité est fausse." }
   ],
 
   /* ---------- 4. FICHE MÉTHODE ---------- */
@@ -97,10 +113,12 @@ window.CHAPITRES["troisieme-developper"] = {
         "Applique la règle des signes à chaque produit.",
         "Réduis : regroupe les termes en $x^2$, en $x$, puis les nombres."
       ],
+      figure: "dv3-cours-double",
       exemple: "$(x + 1)(2x - 3) = 2x^2 - 3x + 2x - 3 = 2x^2 - x - 3$."
     },
     {
-      titre: "Reconnaître (a − b)(a + b)",
+      titre: "Reconnaître $(a - b)(a + b)$",
+      figure: "dv3-cours-carres",
       etapes: [
         "Les deux parenthèses ont les mêmes termes, avec un signe $-$ dans l'une et $+$ dans l'autre.",
         "Repère $a$ et $b$, puis écris $a^2 - b^2$.",

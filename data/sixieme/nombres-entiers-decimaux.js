@@ -37,7 +37,9 @@ window.CHAPITRES["sixieme-nombres"] = {
         "On écrit tous les nombres avec dix **chiffres** : $0$, $1$, $2$, $3$, $4$, $5$, $6$, $7$, $8$, $9$.\n\n" +
         "La valeur d'un chiffre dépend de sa **place** (son **rang**) dans le nombre. Dans $1\\,522$, le $1$ vaut $1\\,000$ et le $5$ vaut $500$ : c'est la **numération de position**.\n\n" +
         "On regroupe les chiffres par **classes** de trois, en partant de la droite : unités, mille, millions, milliards. Dans chaque classe, on trouve les unités, les dizaines et les centaines.\n\n" +
-        "On laisse un petit espace entre deux classes : on écrit $1\\,252\\,342\\,532$ et pas $1252342532$.",
+        "On laisse un petit espace entre deux classes : on écrit $1\\,252\\,342\\,532$ et pas $1252342532$.\n\n" +
+        "Le **tableau de numération** range chaque chiffre à son rang (u : unités, d : dizaines, c : centaines). La figure montre le nombre de l'exemple ; les colonnes coloriées sont les dizaines de mille et les centaines de millions.",
+      figure: "n6-cours-tableau",
       exemple: {
         enonce: "Dans $3\\,205\\,040\\,017$, quel est le chiffre des dizaines de mille ? Et celui des centaines de millions ?",
         solution: "On range le nombre dans le tableau, classe par classe.\n\nChiffre des dizaines de mille : $4$. Chiffre des centaines de millions : $2$.",
@@ -66,7 +68,9 @@ window.CHAPITRES["sixieme-nombres"] = {
         "- $1$ millier $= 10$ centaines $= 100$ dizaines $= 1\\,000$ unités ;\n" +
         "- $1$ unité $= 10$ dixièmes $= 100$ centièmes $= 1\\,000$ millièmes.\n\n" +
         "On peut **décomposer** un nombre suivant ses rangs : $5\\,239 = (5 \\times 1\\,000) + (2 \\times 100) + (3 \\times 10) + (9 \\times 1)$.\n\n" +
-        "Attention : le **chiffre** des centaines et le **nombre** de centaines sont différents. Dans $7\\,524$, le chiffre des centaines est $5$, mais il y a $75$ centaines en tout (on garde tout jusqu'au rang des centaines).",
+        "Attention : le **chiffre** des centaines et le **nombre** de centaines sont différents. Dans $7\\,524$, le chiffre des centaines est $5$, mais il y a $75$ centaines en tout (on garde tout jusqu'au rang des centaines).\n\n" +
+        "Sur la figure, les colonnes coloriées vont jusqu'au rang des dizaines : $7\\,524$ contient $752$ dizaines.",
+      figure: "n6-cours-combien",
       exemple: {
         enonce: "Combien y a-t-il de dizaines dans $7\\,524$ ? Décompose $184\\,030$ suivant ses rangs.",
         solution: "On garde tout jusqu'au chiffre des dizaines : $7\\,524$ contient $752$ dizaines.\n\n$184\\,030 = (1 \\times 100\\,000) + (8 \\times 10\\,000) + (4 \\times 1\\,000) + (3 \\times 10)$."
@@ -80,7 +84,9 @@ window.CHAPITRES["sixieme-nombres"] = {
         "- $52$ est sa **partie entière** ; $0{,}493$ est sa **partie décimale** ; $52{,}493 = 52 + 0{,}493$.\n" +
         "- La virgule se place juste après le chiffre des **unités**. Après la virgule viennent les **dixièmes**, les **centièmes**, puis les **millièmes**.\n\n" +
         "Un nombre décimal s'écrit de plusieurs façons : $2{,}45 = 2{,}450 = 02{,}45$. Ces zéros sont **inutiles**. Mais le zéro de $5{,}08$ est indispensable : $5{,}08 \\neq 5{,}8$.\n\n" +
-        "Un entier est aussi un décimal : $7 = 7{,}0$.",
+        "Un entier est aussi un décimal : $7 = 7{,}0$.\n\n" +
+        "Dans le tableau, la virgule est le trait épais après la colonne des unités ; « dix. », « cent. », « mill. » désignent les dixièmes, centièmes et millièmes. La colonne coloriée est celle des dixièmes de $41\\,876{,}74$.",
+      figure: "n6-cours-tableau-dec",
       exemple: {
         enonce: "Dans $41\\,876{,}74$, quel est le chiffre des dixièmes ? Combien y a-t-il de centièmes dans $52{,}493$ ?",
         solution: "Le chiffre des dixièmes est le premier après la virgule : $7$.\n\nOn garde tout jusqu'au chiffre des centièmes : $52{,}493$ contient $5\\,249$ centièmes."
@@ -94,7 +100,9 @@ window.CHAPITRES["sixieme-nombres"] = {
         "- $\\dfrac{1}{10} = 0{,}1$ (un dixième) ; $\\dfrac{1}{100} = 0{,}01$ (un centième) ; $\\dfrac{1}{1\\,000} = 0{,}001$ (un millième).\n" +
         "- $\\dfrac{1}{10} = \\dfrac{10}{100} = \\dfrac{100}{1\\,000}$ et $\\dfrac{1}{100} = \\dfrac{10}{1\\,000}$.\n\n" +
         "Un même nombre a plusieurs écritures : $\\dfrac{4\\,107}{1\\,000} = 4 + \\dfrac{107}{1\\,000} = 4 + \\dfrac{1}{10} + \\dfrac{7}{1\\,000} = 4{,}107$.\n\n" +
+        "Dans le tableau de la figure, on lit $4$ unités, $1$ dixième, $0$ centième et $7$ millièmes : $4{,}107$.\n\n" +
         "Le savais-tu ? Le Flamand Simon Stevin a popularisé les nombres décimaux en 1585, pour simplifier les calculs avec les fractions.",
+      figure: "n6-cours-fraction",
       exemple: {
         enonce: "Écris $\\dfrac{56}{10}$ et $\\dfrac{49}{100}$ avec une virgule. Écris $45{,}67$ sous forme de fraction décimale.",
         solution: "$\\dfrac{56}{10} = 5{,}6$ (le $6$ est au rang des dixièmes) et $\\dfrac{49}{100} = 0{,}49$ (le $9$ est au rang des centièmes).\n\n$45{,}67$, ce sont $4\\,567$ centièmes : $45{,}67 = \\dfrac{4\\,567}{100}$."
@@ -107,7 +115,9 @@ window.CHAPITRES["sixieme-nombres"] = {
         "- **Multiplier** par $10$, $100$ ou $1\\,000$ : chaque chiffre **monte** de $1$, $2$ ou $3$ rangs. Le nombre devient plus grand.\n" +
         "- **Diviser** par $10$, $100$ ou $1\\,000$ : chaque chiffre **descend** de $1$, $2$ ou $3$ rangs. Le nombre devient plus petit.\n" +
         "- Multiplier par $0{,}1$, c'est diviser par $10$. Multiplier par $0{,}01$, c'est diviser par $100$. Multiplier par $0{,}001$, c'est diviser par $1\\,000$.\n\n" +
-        "On complète les rangs vides par des zéros. Attention : écrire un zéro à droite de $2{,}5$ ne le multiplie pas par $10$, car $2{,}50 = 2{,}5$.",
+        "On complète les rangs vides par des zéros. Attention : écrire un zéro à droite de $2{,}5$ ne le multiplie pas par $10$, car $2{,}50 = 2{,}5$.\n\n" +
+        "Dans le tableau, $3{,}47 \\times 100 = 347$ : chaque chiffre a monté de deux colonnes.",
+      figure: "n6-cours-x10",
       exemple: {
         enonce: "Calcule $3{,}47 \\times 100$ ; $25 \\div 1\\,000$ ; $8{,}6 \\times 0{,}1$.",
         solution: "$3{,}47 \\times 100 = 347$ (les chiffres montent de $2$ rangs).\n\n$25 \\div 1\\,000 = 0{,}025$ (ils descendent de $3$ rangs : on ajoute des zéros devant).\n\n$8{,}6 \\times 0{,}1 = 8{,}6 \\div 10 = 0{,}86$."
@@ -136,7 +146,9 @@ window.CHAPITRES["sixieme-nombres"] = {
         "- on compare d'abord les **parties entières** ;\n" +
         "- si elles sont égales, on écrit les deux nombres avec **autant de chiffres** après la virgule, puis on compare les parties décimales.\n\n" +
         "$<$ se lit « est inférieur à », $>$ se lit « est supérieur à ».\n\n" +
-        "Ranger dans l'ordre **croissant**, c'est du plus petit au plus grand (avec $<$) ; dans l'ordre **décroissant**, du plus grand au plus petit (avec $>$).",
+        "Ranger dans l'ordre **croissant**, c'est du plus petit au plus grand (avec $<$) ; dans l'ordre **décroissant**, du plus grand au plus petit (avec $>$).\n\n" +
+        "Dans le tableau, on aligne les deux nombres et on complète par un zéro inutile (en couleur) : $8{,}32$ et $8{,}40$.",
+      figure: "n6-cours-comparer",
       exemple: {
         enonce: "Compare $8{,}32$ et $8{,}4$. Range dans l'ordre croissant : $3$ ; $2{,}31$ ; $2{,}5$ ; $1{,}9$.",
         solution: "Même partie entière $8$. On écrit $8{,}4 = 8{,}40$, et $32 < 40$ : donc $8{,}32 < 8{,}4$. Un nombre avec plus de chiffres n'est pas forcément plus grand !\n\nOrdre croissant : $1{,}9 < 2{,}31 < 2{,}5 < 3$ (car $2{,}31 < 2{,}50$)."
@@ -213,6 +225,9 @@ window.CHAPITRES["sixieme-nombres"] = {
     { question: "L'encadrement de $33{,}48$ par deux entiers consécutifs est :", choix: ["$33 < 33{,}48 < 34$", "$33{,}4 < 33{,}48 < 33{,}5$", "$30 < 33{,}48 < 40$", "$33 < 33{,}48 < 33{,}5$"], bonne: 0, explication: "Deux entiers qui se suivent : $33$ et $34$. $33{,}4 < 33{,}48 < 33{,}5$ est l'encadrement au dixième." },
     { question: "L'arrondi au dixième de $33{,}48$ est :", choix: ["$33{,}5$", "$33{,}4$", "$33$", "$33{,}48$"], bonne: 0, explication: "$33{,}4 < 33{,}48 < 33{,}5$ ; le chiffre suivant est $8$ : on prend le nombre du haut, $33{,}5$." },
     { question: "L'arrondi à l'unité de $12{,}49$ est :", choix: ["$12$", "$13$", "$12{,}5$", "$12{,}4$"], bonne: 0, explication: "$12 < 12{,}49 < 13$ ; le chiffre des dixièmes est $4$ : on garde $12$. On n'arrondit pas en deux étapes." },
+    { question: "Quel est le chiffre des centaines de mille du nombre écrit dans ce tableau ?", figure: "n6-qcm-tableau", choix: ["$0$", "$5$", "$6$", "$2$"], bonne: 0, explication: "Le nombre est $6\\,052\\,814$. Dans la classe des mille : $0$ centaine, $5$ dizaines, $2$ unités. Le chiffre des centaines de mille est $0$." },
+    { question: "Quel nombre est écrit dans ce tableau ?", figure: "n6-qcm-tableau-dec", choix: ["$30{,}405$", "$3{,}0405$", "$30{,}45$", "$304{,}05$"], bonne: 0, explication: "$3$ dizaines, $0$ unité, puis $4$ dixièmes, $0$ centième et $5$ millièmes : $30{,}405$. Le zéro des centièmes est indispensable." },
+    { question: "Quel est l'arrondi au dixième du nombre placé sur cette demi-droite ?", figure: "n6-qcm-arrondi", choix: ["$7{,}3$", "$7{,}2$", "$7{,}26$", "$7$"], bonne: 0, explication: "$7{,}2 < 7{,}26 < 7{,}3$ et le point est après le milieu $7{,}25$ : il est plus près de $7{,}3$." },
     { question: "Un litre d'essence coûte $1{,}957$ €. Le prix arrondi au centième d'euro est :", choix: ["$1{,}96$ €", "$1{,}95$ €", "$2$ €", "$1{,}9$ €"], bonne: 0, explication: "$1{,}95 < 1{,}957 < 1{,}96$ ; le chiffre suivant est $7$ : on prend $1{,}96$ €." }
   ],
 
@@ -225,7 +240,8 @@ window.CHAPITRES["sixieme-nombres"] = {
         "Avant : unités, dizaines, centaines, puis la classe des mille, des millions, des milliards.",
         "Après la virgule : dixièmes, centièmes, millièmes."
       ],
-      exemple: "Dans $41\\,876{,}74$ : chiffre des centaines $8$, chiffre des dixièmes $7$, chiffre des centièmes $4$."
+      exemple: "Dans $41\\,876{,}74$ : chiffre des centaines $8$, chiffre des dixièmes $7$, chiffre des centièmes $4$.",
+      figure: "n6-cours-tableau-dec"
     },
     {
       titre: "Écrire un grand nombre en chiffres",
@@ -234,7 +250,8 @@ window.CHAPITRES["sixieme-nombres"] = {
         "Écris chaque classe avec **trois chiffres** (sauf la première).",
         "Une classe absente s'écrit $000$."
       ],
-      exemple: "« Trois millions quarante-mille-dix-sept » : $3\\,040\\,017$."
+      exemple: "« Trois millions quarante-mille-dix-sept » : $3\\,040\\,017$.",
+      figure: "n6-methode-grand"
     },
     {
       titre: "Compter les dizaines, les centaines, les dixièmes…",
@@ -242,7 +259,8 @@ window.CHAPITRES["sixieme-nombres"] = {
         "Repère le chiffre du rang demandé.",
         "Garde tous les chiffres à sa gauche, et lui-même : c'est le nombre cherché."
       ],
-      exemple: "$7\\,524$ contient $75$ centaines ; $52{,}493$ contient $524$ dixièmes."
+      exemple: "$7\\,524$ contient $75$ centaines ; $52{,}493$ contient $524$ dixièmes.",
+      figure: "n6-methode-combien"
     },
     {
       titre: "Passer d'une fraction décimale à l'écriture à virgule",
@@ -251,7 +269,8 @@ window.CHAPITRES["sixieme-nombres"] = {
         "Ajoute des zéros devant si besoin.",
         "Dans l'autre sens, le numérateur est le nombre écrit sans la virgule."
       ],
-      exemple: "$\\dfrac{7}{100} = 0{,}07$ ; $\\dfrac{1\\,234}{10} = 123{,}4$ ; $5{,}08 = \\dfrac{508}{100}$."
+      exemple: "$\\dfrac{7}{100} = 0{,}07$ ; $\\dfrac{1\\,234}{10} = 123{,}4$ ; $5{,}08 = \\dfrac{508}{100}$.",
+      figure: "n6-methode-fraction"
     },
     {
       titre: "Multiplier ou diviser par 10, 100, 1 000",
@@ -260,7 +279,8 @@ window.CHAPITRES["sixieme-nombres"] = {
         "Diviser, ou multiplier par $0{,}1$ ; $0{,}01$ ; $0{,}001$ : le nombre devient plus petit, les chiffres descendent.",
         "Complète par des zéros si un rang reste vide."
       ],
-      exemple: "$0{,}52 \\times 1\\,000 = 520$ ; $3{,}5 \\div 100 = 0{,}035$ ; $64 \\times 0{,}1 = 6{,}4$."
+      exemple: "$0{,}52 \\times 1\\,000 = 520$ ; $3{,}5 \\div 100 = 0{,}035$ ; $64 \\times 0{,}1 = 6{,}4$.",
+      figure: "n6-methode-x10"
     },
     {
       titre: "Lire une abscisse sur une demi-droite graduée",
@@ -278,7 +298,8 @@ window.CHAPITRES["sixieme-nombres"] = {
         "Si elles sont égales, écris les nombres avec autant de chiffres après la virgule.",
         "Compare les parties décimales comme des entiers."
       ],
-      exemple: "$2{,}5$ et $2{,}45$ : $2{,}50 > 2{,}45$, donc $2{,}5 > 2{,}45$."
+      exemple: "$2{,}5$ et $2{,}45$ : $2{,}50 > 2{,}45$, donc $2{,}5 > 2{,}45$.",
+      figure: "n6-methode-comparer"
     },
     {
       titre: "Arrondir un nombre",

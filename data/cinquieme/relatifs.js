@@ -37,6 +37,7 @@ window.CHAPITRES["cinquieme-relatifs"] = {
         "- Un nombre **positif** s'écrit sans signe (ou avec $+$) : $4 = +4$.\n" +
         "- $0$ est à la fois positif et négatif. « Strictement positif » signifie positif et différent de $0$.\n\n" +
         "Un nombre relatif a un **signe** et une **distance à zéro** (sa valeur absolue) : $-7$ a pour distance à zéro $7$.",
+      figure: "nr5-cours-thermo",
       exemple: {
         enonce: "Au sommet du Mont Bénara, l'altitude est $660$ m ; une plongeuse est à $18$ m sous la surface. Écris ces altitudes avec des nombres relatifs.",
         solution: "Le sommet : $+660$ m (ou $660$ m). La plongeuse : $-18$ m, car elle est sous le niveau de la mer."
@@ -48,6 +49,7 @@ window.CHAPITRES["cinquieme-relatifs"] = {
       texte:
         "Deux nombres sont **opposés** s'ils ont la même distance à zéro et des signes contraires : $5$ et $-5$ sont opposés, $-2{,}4$ et $2{,}4$ aussi.\n\n" +
         "Sur une droite graduée, deux nombres opposés sont **symétriques par rapport à l'origine**. L'opposé de $0$ est $0$.",
+      figure: "nr5-cours-oppose",
       exemple: {
         enonce: "Donne l'opposé de $-13$, de $0{,}8$ et la distance à zéro de $-6{,}5$.",
         solution: "L'opposé de $-13$ est $13$ ; celui de $0{,}8$ est $-0{,}8$. La distance à zéro de $-6{,}5$ est $6{,}5$."
@@ -73,6 +75,7 @@ window.CHAPITRES["cinquieme-relatifs"] = {
         "- Un nombre négatif est plus petit qu'un nombre positif : $-8 < 1$.\n" +
         "- Deux nombres positifs : le plus petit est le plus proche de zéro.\n" +
         "- Deux nombres **négatifs** : le plus petit est celui qui a la **plus grande** distance à zéro : $-7 < -2$ (il fait plus froid à $-7$ °C qu'à $-2$ °C).",
+      figure: "nr5-cours-comparer",
       exemple: {
         enonce: "Range dans l'ordre croissant : $3$ ; $-4{,}5$ ; $-1$ ; $0$ ; $-12$.",
         solution: "$-12 < -4{,}5 < -1 < 0 < 3$."
@@ -109,13 +112,19 @@ window.CHAPITRES["cinquieme-relatifs"] = {
     { question: "Sur la figure, l'abscisse du point $A$ est :", figure: "nr5-droite", choix: ["$-3$", "$3$", "$-2$", "$2$"], bonne: 0, explication: "Trois graduations à gauche de $0$." },
     { question: "Sur la figure, le point d'abscisse $2$ est :", figure: "nr5-droite", choix: ["$B$", "$A$", "$C$", "aucun"], bonne: 0, explication: "Deux graduations à droite de $0$." },
     { question: "Quelle comparaison est juste ?", choix: ["$-8 < -3$", "$-8 > -3$", "$-3 < -8$", "$-8 = -3$"], bonne: 0, explication: "$-8$ est plus loin de zéro, du côté négatif." },
-    { question: "Quelle comparaison est juste ?", choix: ["$-5 < 1$", "$-5 > 1$", "$1 < -5$", "$-5 = 1$"], bonne: 0, explication: "Un négatif est plus petit qu'un positif." },
+    { question: "Laquelle de ces comparaisons est vraie ?", choix: ["$-5 < 1$", "$-5 > 1$", "$1 < -5$", "$-5 = 1$"], bonne: 0, explication: "Un négatif est plus petit qu'un positif." },
     { question: "Le plus petit de ces nombres est :", choix: ["$-6{,}5$", "$-6$", "$-0{,}5$", "$0$"], bonne: 0, explication: "C'est le plus éloigné de zéro du côté négatif." },
     { question: "Dans l'ordre croissant :", choix: ["$-4 < -1 < 0 < 2$", "$-1 < -4 < 0 < 2$", "$0 < -1 < 2 < -4$", "$2 < 0 < -1 < -4$"], bonne: 0, explication: "Du plus à gauche au plus à droite sur la droite graduée." },
     { question: "Sur la figure, les coordonnées de $A$ sont :", figure: "nr5-repere", choix: ["$(3 \\, ; \\, 2)$", "$(2 \\, ; \\, 3)$", "$(-3 \\, ; \\, 2)$", "$(3 \\, ; \\, -2)$"], bonne: 0, explication: "Abscisse $3$, ordonnée $2$." },
     { question: "Sur la figure, le point de coordonnées $(-2 \\, ; \\, -3)$ est :", figure: "nr5-repere", choix: ["$C$", "$B$", "$D$", "$A$"], bonne: 0, explication: "$2$ à gauche, $3$ en dessous." },
     { question: "Dans les coordonnées $(x \\, ; \\, y)$ d'un point, $x$ est :", choix: ["l'abscisse", "l'ordonnée", "la distance à l'origine", "l'opposé de $y$"], bonne: 0, explication: "On écrit d'abord l'abscisse." },
-    { question: "Un point d'abscisse négative et d'ordonnée positive est :", choix: ["en haut à gauche", "en haut à droite", "en bas à gauche", "en bas à droite"], bonne: 0, explication: "À gauche de l'axe vertical, au-dessus de l'axe horizontal." }
+    { question: "Un point d'abscisse négative et d'ordonnée positive est :", choix: ["en haut à gauche", "en haut à droite", "en bas à gauche", "en bas à droite"], bonne: 0, explication: "À gauche de l'axe vertical, au-dessus de l'axe horizontal." },
+    { question: "Quelle température indique le thermomètre ?", figure: "nr5-qcm-thermo", choix: ["$-6$ °C", "$-4$ °C", "$6$ °C", "$-14$ °C"], bonne: 0, explication: "Une graduation vaut $2$ °C : le repère est $3$ graduations en dessous de $0$, soit $-6$ °C." },
+    { question: "Quelle est l'abscisse du point $M$ ?", figure: "nr5-qcm-droite", choix: ["$-2{,}5$", "$-3{,}5$", "$2{,}5$", "$-2$"], bonne: 0, explication: "Une graduation vaut $0{,}5$. $M$ est $5$ graduations à gauche de $0$ : $5 \\times 0{,}5 = 2{,}5$, donc $-2{,}5$." },
+    { question: "Les coordonnées du point $E$ sont :", figure: "nr5-qcm-repere", choix: ["$(-3 \\, ; \\, -2)$", "$(-2 \\, ; \\, -3)$", "$(3 \\, ; \\, 2)$", "$(-3 \\, ; \\, 2)$"], bonne: 0, explication: "$E$ est $3$ unités à gauche (abscisse $-3$) et $2$ unités en dessous (ordonnée $-2$)." },
+    { question: "L'opposé de l'opposé de $-4$ est :", choix: ["$-4$", "$4$", "$0$", "$8$"], bonne: 0, explication: "L'opposé de $-4$ est $4$, et l'opposé de $4$ est $-4$." },
+    { question: "Combien de nombres entiers sont strictement compris entre $-3$ et $2$ ?", choix: ["$4$", "$5$", "$1$", "$6$"], bonne: 0, explication: "Ce sont $-2$, $-1$, $0$ et $1$." },
+    { question: "Un point d'ordonnée $0$ est situé :", choix: ["sur l'axe des abscisses", "sur l'axe des ordonnées", "à l'origine du repère seulement", "en bas à gauche"], bonne: 0, explication: "Ordonnée $0$ : ni au-dessus ni en dessous de l'axe horizontal, donc sur l'axe des abscisses." }
   ],
 
   /* ---------- 4. FICHE MÉTHODE ---------- */
@@ -127,6 +136,7 @@ window.CHAPITRES["cinquieme-relatifs"] = {
         "L'opposé : même distance à zéro, signe contraire.",
         "Sur la droite graduée, un nombre et son opposé sont symétriques par rapport à $0$."
       ],
+      figure: "nr5-cours-oppose",
       exemple: "$-3{,}5$ : distance à zéro $3{,}5$ ; opposé $3{,}5$."
     },
     {
@@ -136,6 +146,7 @@ window.CHAPITRES["cinquieme-relatifs"] = {
         "Compte les graduations entre $0$ et le point.",
         "À gauche de $0$, l'abscisse est négative."
       ],
+      figure: "nr5-methode-droite",
       exemple: "$4$ graduations de $0{,}5$ à gauche : $-2$."
     },
     {
@@ -145,6 +156,7 @@ window.CHAPITRES["cinquieme-relatifs"] = {
         "Deux positifs : le plus proche de zéro est le plus petit.",
         "Deux négatifs : le plus éloigné de zéro est le plus petit."
       ],
+      figure: "nr5-cours-comparer",
       exemple: "$-9 < -4$ ; $-2 < 0{,}5$."
     },
     {
@@ -154,6 +166,7 @@ window.CHAPITRES["cinquieme-relatifs"] = {
         "Ordonnée : on lit sur l'axe vertical (négative en bas).",
         "On écrit $(\\text{abscisse} \\, ; \\, \\text{ordonnée})$."
       ],
+      figure: "nr5-repere",
       exemple: "$3$ à gauche et $1$ en haut : $(-3 \\, ; \\, 1)$."
     }
   ],

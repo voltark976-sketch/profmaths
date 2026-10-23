@@ -91,6 +91,7 @@ window.CHAPITRES["sixieme-donnees-probabilites"] = {
         "- $1$ : il est **certain** (obtenir un nombre entre $1$ et $6$) ;\n" +
         "- entre les deux, il est possible sans être certain.\n\n" +
         "On peut l'écrire sous forme de fraction, de nombre décimal ou de pourcentage : $\\dfrac{1}{2} = 0{,}5 = 50$ %.",
+      figure: "g6-cours-cartes",
       exemple: {
         enonce: "On tire au hasard une carte parmi les lettres du mot « MATHEMATIQUES ». Quelles lettres ont le plus de chances de sortir ? A-t-on plus de chances d'obtenir une consonne ou une voyelle ?",
         solution: "M, A, T et E apparaissent deux fois : ce sont les plus probables.\n\nIl y a $7$ consonnes et $6$ voyelles sur $13$ lettres : une consonne a un peu plus de chances."
@@ -104,19 +105,22 @@ window.CHAPITRES["sixieme-donnees-probabilites"] = {
         "**probabilité $=$ nombre d'issues favorables $\\div$ nombre total d'issues**.\n\n" +
         "« $3$ chances sur $7$ » s'écrit $\\dfrac{3}{7}$.\n\n" +
         "Obtenir $2$ avec un dé : $1$ issue sur $6$, probabilité $\\dfrac{1}{6}$. Obtenir un nombre pair : $3$ issues ($2$, $4$, $6$) sur $6$, probabilité $\\dfrac{3}{6} = \\dfrac{1}{2}$.",
+      figure: "g6-cours-urne",
       exemple: {
-        enonce: "Un sac contient $3$ boules vertes et $4$ boules jaunes. On tire une boule au hasard. Quelle est la probabilité qu'elle soit verte ?",
+        enonce: "Le sac de la figure contient $3$ boules vertes (V) et $4$ boules jaunes (J). On tire une boule au hasard. Quelle est la probabilité qu'elle soit verte ?",
         solution: "$3$ boules vertes sur $3 + 4 = 7$ boules : la probabilité est $\\dfrac{3}{7}$."
       }
     },
     {
       titre: "Fréquence et probabilité",
+      video: { titre: "Vidéo d'Yvan Monka : calculer des fréquences", youtube: "https://youtu.be/MwNV5eCBFrI" },
+      figure: "g6-cours-frequence",
       texte:
         "On lance un dé $600$ fois et on obtient $6$ en tout $97$ fois. La **fréquence** du $6$ est $\\dfrac{97}{600}$, soit environ $0{,}16$.\n\n" +
         "La probabilité d'obtenir $6$ est $\\dfrac{1}{6} \\approx 0{,}17$. Quand on répète une expérience **un grand nombre de fois**, la fréquence se rapproche de la probabilité, sans être forcément égale.\n\n" +
         "Le dé n'a pas de mémoire : après plusieurs $6$, le prochain lancer a toujours $1$ chance sur $6$ de donner $6$.",
       exemple: {
-        enonce: "Un sac contient $4$ boules. On tire une boule, on la remet, et on recommence $400$ fois : $102$ rouges, $201$ bleues, $97$ vertes. Quel est le contenu probable du sac ?",
+        enonce: "Un sac contient $4$ boules. On tire une boule, on la remet, et on recommence $400$ fois : $102$ rouges, $201$ bleues, $97$ vertes (voir le diagramme). Quel est le contenu probable du sac ?",
         solution: "Chaque boule sort environ $400 \\div 4 = 100$ fois. Les bleues sortent environ $200$ fois : il y a sans doute $2$ bleues, $1$ rouge et $1$ verte."
       }
     }
@@ -157,7 +161,11 @@ window.CHAPITRES["sixieme-donnees-probabilites"] = {
     { question: "On a obtenu cinq fois « pile » de suite avec une pièce équilibrée. Au lancer suivant :", choix: ["« face » a toujours $1$ chance sur $2$", "« face » est certain", "« pile » est plus probable", "« face » est plus probable"], bonne: 0, explication: "La pièce n'a pas de mémoire : chaque lancer est une nouvelle expérience." },
     { question: "On lance un dé $600$ fois ; le $6$ sort $97$ fois. Que peut-on dire ?", choix: ["La fréquence est proche de la probabilité $\\dfrac{1}{6}$", "Le dé est truqué", "La probabilité d'obtenir $6$ est $\\dfrac{97}{600}$", "Il aurait fallu exactement $100$ fois"], bonne: 0, explication: "$\\dfrac{97}{600} \\approx 0{,}16$ et $\\dfrac{1}{6} \\approx 0{,}17$ : c'est proche, c'est normal." },
     { question: "Pour qu'une fréquence soit proche de la probabilité, il faut :", choix: ["répéter l'expérience un grand nombre de fois", "faire l'expérience une seule fois", "choisir les résultats", "lancer le dé plus fort"], bonne: 0, explication: "Avec beaucoup de répétitions, la fréquence se rapproche de la probabilité." },
-    { question: "Sur $13$ lettres de « MATHEMATIQUES », il y a $7$ consonnes. La probabilité de tirer une consonne est :", choix: ["$\\dfrac{7}{13}$", "$\\dfrac{6}{13}$", "$\\dfrac{7}{6}$", "$\\dfrac{1}{7}$"], bonne: 0, explication: "$7$ issues favorables sur $13$." }
+    { question: "Sur $13$ lettres de « MATHEMATIQUES », il y a $7$ consonnes. La probabilité de tirer une consonne est :", choix: ["$\\dfrac{7}{13}$", "$\\dfrac{6}{13}$", "$\\dfrac{7}{6}$", "$\\dfrac{1}{7}$"], bonne: 0, explication: "$7$ issues favorables sur $13$." },
+    { question: "On tire au hasard une boule dans ce sac. Quelle est la probabilité de tirer une boule bleue (B) ?", figure: "g6-qcm-urne", choix: ["$\\dfrac{1}{2}$", "$\\dfrac{5}{2}$", "$\\dfrac{1}{5}$", "$\\dfrac{5}{3}$"], bonne: 0, explication: "$5$ boules bleues sur $2 + 5 + 3 = 10$ boules : $\\dfrac{5}{10} = \\dfrac{1}{2}$." },
+    { question: "On fait tourner cette roue aux $8$ secteurs égaux. Quelle est la probabilité de tomber sur un secteur jaune (J) ?", figure: "g6-qcm-roue", choix: ["$\\dfrac{3}{8}$", "$\\dfrac{3}{5}$", "$\\dfrac{1}{3}$", "$\\dfrac{8}{3}$"], bonne: 0, explication: "$3$ secteurs jaunes sur $8$ : $\\dfrac{3}{8}$. ($\\dfrac{3}{5}$ divise par les secteurs non jaunes.)" },
+    { question: "On tire une carte au hasard. Quelle est la probabilité de tirer un « T » ?", figure: "g6-qcm-cartes", choix: ["$\\dfrac{2}{7}$", "$\\dfrac{1}{7}$", "$\\dfrac{2}{5}$", "$\\dfrac{1}{2}$"], bonne: 0, explication: "Il y a $2$ cartes « T » sur les $7$ cartes de « MAYOTTE »." },
+    { question: "Un sac contient $4$ boules. Après $400$ tirages avec remise, on obtient le diagramme. Quel est le contenu probable du sac ?", figure: "g6-cours-frequence", choix: ["$2$ bleues, $1$ rouge, $1$ verte", "$1$ bleue, $1$ rouge, $2$ vertes", "$2$ rouges, $1$ bleue, $1$ verte", "$4$ bleues"], bonne: 0, explication: "Chaque boule sort environ $400 \\div 4 = 100$ fois : les bleues sortent environ $200$ fois, elles sont donc $2$." }
   ],
 
   /* ---------- 4. FICHE MÉTHODE ---------- */
@@ -169,6 +177,7 @@ window.CHAPITRES["sixieme-donnees-probabilites"] = {
         "Repère la graduation (de combien en combien ?).",
         "Lis la valeur demandée, puis vérifie qu'elle est cohérente."
       ],
+      figure: "g6-barres",
       exemple: "Diagramme en barres gradué de $2$ en $2$ : une barre entre $8$ et $10$, à mi-hauteur, vaut $9$."
     },
     {
@@ -178,6 +187,7 @@ window.CHAPITRES["sixieme-donnees-probabilites"] = {
         "Compare chaque part au disque : moitié, quart, tiers, huitième…",
         "Pour un nombre, prends cette fraction de l'effectif total."
       ],
+      figure: "g6-circulaire",
       exemple: "Un quart de $480$ élèves : $480 \\div 4 = 120$ élèves."
     },
     {
@@ -187,6 +197,7 @@ window.CHAPITRES["sixieme-donnees-probabilites"] = {
         "Compte les issues favorables, puis le nombre total d'issues.",
         "Probabilité $=$ favorables $\\div$ total ; simplifie la fraction si possible."
       ],
+      figure: "g6-cours-urne",
       exemple: "Dé, nombre supérieur ou égal à $5$ : $2$ issues sur $6$, soit $\\dfrac{1}{3}$."
     },
     {
@@ -196,6 +207,7 @@ window.CHAPITRES["sixieme-donnees-probabilites"] = {
         "Sur un grand nombre d'essais, elle est proche de la probabilité.",
         "On peut donc estimer une probabilité inconnue (le contenu d'un sac) avec les fréquences."
       ],
+      figure: "g6-cours-frequence",
       exemple: "$201$ bleues sur $400$ tirages : environ la moitié des boules sont bleues."
     }
   ],

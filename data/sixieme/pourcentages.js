@@ -50,7 +50,9 @@ window.CHAPITRES["sixieme-pourcentages"] = {
         "- $25$ %, c'est **le quart** ($\\dfrac{1}{4}$) : on divise par $4$ ;\n" +
         "- $75$ %, ce sont **les trois quarts** : on divise par $4$, puis on multiplie par $3$ ;\n" +
         "- $10$ %, c'est **le dixième** : on divise par $10$ ;\n" +
-        "- $100$ %, c'est **le tout** ; $200$ %, c'est **le double**.",
+        "- $100$ %, c'est **le tout** ; $200$ %, c'est **le double**.\n\n" +
+        "Sur la figure, la barre entière vaut $100$ % de $40$ € ; partagée en $4$, chaque part vaut $25$ % : $40 \\div 4 = 10$ €.",
+      figure: "t6-cours-barre",
       exemple: {
         enonce: "Calcule $50$ % de $40$ €, $25$ % de $8$ km, $10$ % de $30$ L et $75$ % de $1\\,000$.",
         solution: "$40 \\div 2 = 20$ € ; $8 \\div 4 = 2$ km ; $30 \\div 10 = 3$ L ; $1\\,000 \\div 4 = 250$, puis $250 \\times 3 = 750$."
@@ -70,6 +72,8 @@ window.CHAPITRES["sixieme-pourcentages"] = {
     },
     {
       titre: "Exprimer une proportion en pourcentage",
+      video: { titre: "Vidéo d'Yvan Monka : calculer un pourcentage", youtube: "https://youtu.be/_TcFaeFb6sI" },
+      figure: "t6-cours-proportion",
       texte:
         "Pour exprimer une **proportion** (une partie sur le tout) en pourcentage, on cherche une fraction égale **sur $100$**.\n\n" +
         "$9$ élèves sur $25$ font de la natation : $\\dfrac{9}{25} = \\dfrac{9 \\times 4}{25 \\times 4} = \\dfrac{36}{100}$, soit $36$ %.\n\n" +
@@ -81,6 +85,8 @@ window.CHAPITRES["sixieme-pourcentages"] = {
     },
     {
       titre: "Résoudre un problème avec des pourcentages",
+      video: { titre: "Vidéo d'Yvan Monka : exercice, calculer des pourcentages", youtube: "https://youtu.be/4Ii1FtAxAIY" },
+      figure: "t6-cours-remise",
       texte:
         "- Lis bien ce que représente le pourcentage : une partie de quel total ?\n" +
         "- « Les autres » représentent $100$ % moins le pourcentage donné.\n" +
@@ -129,7 +135,10 @@ window.CHAPITRES["sixieme-pourcentages"] = {
     { question: "Un tee-shirt à $24$ € avec une remise de $25$ % coûte :", choix: ["$18$ €", "$6$ €", "$23{,}75$ €", "$19$ €"], bonne: 0, explication: "Remise : le quart de $24$, soit $6$ €. Prix : $24 - 6 = 18$ €. $19$ € vient de l'erreur « retirer $5$ € »." },
     { question: "Laquelle de ces proportions est la plus grande ?", choix: ["$9$ sur $25$", "$7$ sur $20$", "$3$ sur $10$", "$16$ sur $50$"], bonne: 0, explication: "$36$ % ; $35$ % ; $30$ % ; $32$ % : c'est $9$ sur $25$." },
     { question: "Pour calculer $1$ % d'une quantité, on :", choix: ["divise par $100$", "multiplie par $100$", "divise par $10$", "retire $1$"], bonne: 0, explication: "$1$ % $= \\dfrac{1}{100}$ : on divise par $100$." },
-    { question: "Un jus contient $20$ % de jus de mangue. Dans $50$ cL de ce jus, il y a :", choix: ["$10$ cL de jus de mangue", "$20$ cL", "$2{,}5$ cL", "$30$ cL"], bonne: 0, explication: "$20$ %, c'est le cinquième : $50 \\div 5 = 10$ cL." }
+    { question: "Un jus contient $20$ % de jus de mangue. Dans $50$ cL de ce jus, il y a :", choix: ["$10$ cL de jus de mangue", "$20$ cL", "$2{,}5$ cL", "$30$ cL"], bonne: 0, explication: "$20$ %, c'est le cinquième : $50 \\div 5 = 10$ cL." },
+    { question: "La barre entière représente $40$ €. Combien vaut la partie coloriée ?", figure: "t6-cours-barre", choix: ["$10$ €", "$25$ €", "$15$ €", "$4$ €"], bonne: 0, explication: "La partie coloriée est $25$ %, le quart : $40 \\div 4 = 10$ €." },
+    { question: "D'après la figure, quel pourcentage de la classe représentent les $9$ élèves ?", figure: "t6-qcm-proportion", choix: ["$36$ %", "$9$ %", "$25$ %", "$16$ %"], bonne: 0, explication: "$\\dfrac{9}{25} = \\dfrac{36}{100}$ : $36$ %." },
+    { question: "Un article à $24$ € a une remise de $25$ % (voir la figure). Combien paie-t-on ?", figure: "t6-cours-remise", choix: ["$18$ €", "$6$ €", "$12$ €", "$19$ €"], bonne: 0, explication: "Remise : le quart de $24$ €, soit $6$ €. Prix payé : $24 - 6 = 18$ €." }
   ],
 
   /* ---------- 4. FICHE MÉTHODE ---------- */
@@ -141,6 +150,7 @@ window.CHAPITRES["sixieme-pourcentages"] = {
         "Pour l'écriture décimale, divise $p$ par $100$.",
         "Dans l'autre sens, multiplie par $100$ : $0{,}35 = 35$ %."
       ],
+      figure: "t6-quadrillage",
       exemple: "$8$ % $= \\dfrac{8}{100} = 0{,}08$."
     },
     {
@@ -150,6 +160,7 @@ window.CHAPITRES["sixieme-pourcentages"] = {
         "$10$ % : le dixième ; $5$ % : la moitié de $10$ % ; $20$ % : le double de $10$ %.",
         "$100$ % : le tout ; $200$ % : le double."
       ],
+      figure: "t6-cours-barre",
       exemple: "$20$ % de $45$ € : $10$ % font $4{,}50$ €, donc $20$ % font $9$ €."
     },
     {
@@ -159,6 +170,7 @@ window.CHAPITRES["sixieme-pourcentages"] = {
         "Multiplie la quantité par ce nombre.",
         "Contrôle : moins de $100$ %, le résultat est plus petit que la quantité."
       ],
+      figure: "t6-cours-remise",
       exemple: "$12$ % de $325$ : $0{,}12 \\times 325 = 39$."
     },
     {
@@ -168,6 +180,7 @@ window.CHAPITRES["sixieme-pourcentages"] = {
         "Cherche une fraction égale de dénominateur $100$.",
         "Le numérateur est le pourcentage."
       ],
+      figure: "t6-cours-proportion",
       exemple: "$\\dfrac{7}{20} = \\dfrac{35}{100}$ : $35$ %."
     }
   ],

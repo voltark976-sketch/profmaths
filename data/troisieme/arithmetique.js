@@ -33,7 +33,9 @@ window.CHAPITRES["troisieme-arithmetique"] = {
         "$a$ est un **diviseur** de $b$ (et $b$ un **multiple** de $a$) si le reste de la division euclidienne de $b$ par $a$ est nul.\n\n" +
         "- par $2$ : chiffre des unités pair ; par $5$ : chiffre des unités $0$ ou $5$ ;\n" +
         "- par $3$ : somme des chiffres multiple de $3$ ; par $9$ : somme des chiffres multiple de $9$.\n\n" +
-        "Division euclidienne : $b = a \\times q + r$ avec $0 \\leqslant r < a$.",
+        "Division euclidienne : $b = a \\times q + r$ avec $0 \\leqslant r < a$.\n\n" +
+        "Les diviseurs de $12$ se voient sur la figure : avec $12$ carreaux, on forme les rectangles $1 \\times 12$, $2 \\times 6$ et $3 \\times 4$. Les diviseurs de $12$ sont donc $1$, $2$, $3$, $4$, $6$ et $12$.",
+      figure: "ar3-cours-diviseurs",
       exemple: {
         enonce: "$4\\,572$ est-il divisible par $9$ ?",
         solution: "$4 + 5 + 7 + 2 = 18$, multiple de $9$ : oui."
@@ -44,8 +46,9 @@ window.CHAPITRES["troisieme-arithmetique"] = {
       video: { titre: "Vidéo d'Yvan Monka : décomposer en produit de facteurs premiers", youtube: "https://youtu.be/RBE2wPIKagI" },
       texte:
         "Un nombre **premier** a exactement deux diviseurs : $1$ et lui-même ($2$, $3$, $5$, $7$, $11$, $13$…).\n\n" +
-        "Tout entier supérieur ou égal à $2$ se **décompose** de façon unique en produit de facteurs premiers : $360 = 2^{3} \\times 3^{2} \\times 5$.\n\n" +
+        "Tout entier supérieur ou égal à $2$ se **décompose** de façon unique en produit de facteurs premiers : $360 = 2^{3} \\times 3^{2} \\times 5$. L'arbre de la figure montre les divisions successives ; les nombres premiers sont entourés.\n\n" +
         "La décomposition donne tous les diviseurs et permet de rendre une fraction **irréductible** : $\\dfrac{84}{90} = \\dfrac{2 \\times 2 \\times 3 \\times 7}{2 \\times 3 \\times 3 \\times 5} = \\dfrac{14}{15}$.",
+      figure: "ar3-cours-arbre",
       exemple: {
         enonce: "Décompose $126$.",
         solution: "$126 = 2 \\times 63 = 2 \\times 3^{2} \\times 7$."
@@ -57,7 +60,9 @@ window.CHAPITRES["troisieme-arithmetique"] = {
       texte:
         "Pour faire le **plus grand nombre** de paquets identiques avec $a$ et $b$ objets, on cherche le **plus grand diviseur commun** de $a$ et $b$ (avec les décompositions).\n\n" +
         "Avec des lettres ($k$ entier) : un nombre pair s'écrit $2k$, un impair $2k + 1$, un multiple de $3$ s'écrit $3k$.\n\n" +
-        "Exemple : $(2k + 1) + (2m + 1) = 2(k + m + 1)$, donc la somme de deux impairs est paire.",
+        "Exemple : $(2k + 1) + (2m + 1) = 2(k + m + 1)$, donc la somme de deux impairs est paire.\n\n" +
+        "Même idée pour carreler sans découpe un rectangle de $84$ cm sur $60$ cm avec les plus grands carreaux carrés possible : leur côté est le plus grand diviseur commun de $84$ et $60$, soit $12$ cm ($7 \\times 5 = 35$ carreaux, voir la figure).",
+      figure: "ar3-cours-carrelage",
       exemple: {
         enonce: "Avec $84$ billes rouges et $60$ bleues, combien de sacs identiques au maximum ?",
         solution: "$84 = 2^2 \\times 3 \\times 7$, $60 = 2^2 \\times 3 \\times 5$ : $2^2 \\times 3 = 12$ sacs."
@@ -86,7 +91,17 @@ window.CHAPITRES["troisieme-arithmetique"] = {
     { question: "La somme de deux nombres impairs est :", choix: ["paire", "impaire", "première", "un multiple de $3$"], bonne: 0, explication: "$2(k + m + 1)$." },
     { question: "Avec $48$ crayons et $36$ gommes, le plus grand nombre de lots identiques est :", choix: ["$12$", "$6$", "$84$", "$4$"], bonne: 0, explication: "Plus grand diviseur commun." },
     { question: "Combien y a-t-il de nombres premiers entre $20$ et $30$ ?", choix: ["$2$", "$3$", "$1$", "$4$"], bonne: 0, explication: "$23$ et $29$." },
-    { question: "$1$ est :", choix: ["ni premier ni composé", "premier", "pair", "un multiple de $2$"], bonne: 0, explication: "Il n'a qu'un diviseur." }
+    { question: "$1$ est :", choix: ["ni premier ni composé", "premier", "pair", "un multiple de $2$"], bonne: 0, explication: "Il n'a qu'un diviseur." },
+    { question: "Dans cet arbre de décomposition de $84$, quel nombre est caché sous le « ? » ?", figure: "ar3-qcm-arbre", choix: ["$21$", "$40$", "$84$", "$7$"], bonne: 0, explication: "$42 = 2 \\times 21$, puis $21 = 3 \\times 7$ : $84 = 2^2 \\times 3 \\times 7$." },
+    { question: "Combien y a-t-il de nombres premiers inférieurs à $30$ ?", choix: ["$10$", "$9$", "$11$", "$15$"], bonne: 0, explication: "$2, 3, 5, 7, 11, 13, 17, 19, 23, 29$." },
+    { question: "Le plus petit diviseur premier de $91$ est :", choix: ["$7$", "$3$", "$13$", "$1$"], bonne: 0, explication: "$91 = 7 \\times 13$, et $91$ n'est divisible ni par $2$, ni par $3$, ni par $5$." },
+    { question: "Le nombre $91$ :", choix: ["n'est pas premier, car $91 = 7 \\times 13$", "est premier", "n'est pas premier, car il est pair", "n'est pas premier, car il est divisible par $3$"], bonne: 0, explication: "Attention au piège : $91 = 7 \\times 13$." },
+    { question: "La forme irréductible de $\\dfrac{84}{126}$ est :", choix: ["$\\dfrac{2}{3}$", "$\\dfrac{42}{63}$", "$\\dfrac{4}{6}$", "$\\dfrac{7}{9}$"], bonne: 0, explication: "$84 = 2^2 \\times 3 \\times 7$ et $126 = 2 \\times 3^2 \\times 7$ : on simplifie par $2 \\times 3 \\times 7 = 42$." },
+    { question: "Le quotient de la division euclidienne de $158$ par $12$ est :", choix: ["$13$", "$2$", "$14$", "$12$"], bonne: 0, explication: "$158 = 12 \\times 13 + 2$ avec $2 < 12$." },
+    { question: "Avec $18$ carreaux, combien de rectangles différents peut-on former (comme celui de la figure) ?", figure: "ar3-qcm-rect", choix: ["$3$", "$6$", "$4$", "$2$"], bonne: 0, explication: "$18 = 1 \\times 18 = 2 \\times 9 = 3 \\times 6$ : trois rectangles." },
+    { question: "Deux bus partent ensemble de la gare de Mamoudzou à $7$ h. L'un repasse toutes les $12$ min, l'autre toutes les $18$ min. Ils repartent ensemble pour la première fois à :", choix: ["$7$ h $36$", "$7$ h $30$", "$7$ h $06$", "$10$ h $36$"], bonne: 0, explication: "Multiples de $12$ : $12, 24, 36$ ; multiples de $18$ : $18, 36$. Le premier commun est $36$ min." },
+    { question: "Un nombre divisible par $2$ et par $9$ est divisible par :", choix: ["$18$", "$11$", "$7$", "$27$"], bonne: 0, explication: "$2$ et $9$ n'ont pas de diviseur commun autre que $1$ : il est divisible par $2 \\times 9 = 18$." },
+    { question: "La somme des chiffres de $4\\,518$ est $18$. On peut en déduire que $4\\,518$ est divisible :", choix: ["par $3$ et par $9$", "par $3$ seulement", "par $9$ seulement", "par $5$"], bonne: 0, explication: "$18$ est un multiple de $9$ (donc de $3$)." }
   ],
 
   /* ---------- 4. FICHE MÉTHODE ---------- */
@@ -98,6 +113,7 @@ window.CHAPITRES["troisieme-arithmetique"] = {
         "Continue avec $3$, puis $5$, $7$, $11$… jusqu'à obtenir $1$.",
         "Regroupe les facteurs égaux avec des puissances."
       ],
+      figure: "ar3-methode-arbre",
       exemple: "$180 = 2 \\times 90 = 2^2 \\times 45 = 2^2 \\times 3^2 \\times 5$."
     },
     {
@@ -107,7 +123,8 @@ window.CHAPITRES["troisieme-arithmetique"] = {
         "Décompose les quantités et prends le produit des facteurs communs.",
         "Divise chaque quantité par ce nombre pour la composition d'un paquet."
       ],
-      exemple: "$90$ et $126$ : $2 \\times 3^2 = 18$ paquets de $5$ et $7$."
+      figure: "ar3-methode-carrelage",
+      exemple: "$90$ et $126$ : $2 \\times 3^2 = 18$ paquets de $5$ et $7$ (ou, pour un rectangle de $126$ cm sur $90$ cm, $5 \\times 7$ carreaux de $18$ cm)."
     }
   ],
   erreurs: [

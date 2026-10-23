@@ -72,6 +72,7 @@ window.CHAPITRES["sixieme-informatique"] = {
     },
     {
       titre: "Programmer un chemin",
+      video: { titre: "Vidéo de Mr. Robin : programmer un déplacement relatif", youtube: "https://youtu.be/_ZtXizmh620" },
       texte:
         "Pour faire suivre un chemin à un robot :\n\n" +
         "- on repère sa case de départ et la direction dans laquelle il regarde ;\n" +
@@ -123,7 +124,14 @@ window.CHAPITRES["sixieme-informatique"] = {
     { question: "Le code → ↓ → ↓ → ↓ → ↓ peut s'écrire :", choix: ["répéter $4$ fois (→ ↓)", "répéter $8$ fois (→ ↓)", "répéter $2$ fois (→ ↓)", "répéter $4$ fois (→)"], bonne: 0, explication: "Le groupe → ↓ revient $4$ fois." },
     { question: "Quelle figure trace le lutin avec ce programme ?", figure: "pi6-boucle", choix: ["un carré", "un triangle", "un rectangle non carré", "un hexagone"], bonne: 0, explication: "$4$ côtés de $80$ pas et $4$ quarts de tour : un carré." },
     { question: "On part de $2$ et on répète $3$ fois « multiplier par $2$ ». On obtient :", choix: ["$16$", "$12$", "$8$", "$64$"], bonne: 0, explication: "$2 \\to 4 \\to 8 \\to 16$." },
-    { question: "Pour tracer un triangle équilatéral, le lutin répète « avancer ; tourner de $120^\\circ$ » :", choix: ["$3$ fois", "$120$ fois", "$4$ fois", "$6$ fois"], bonne: 0, explication: "Un triangle a $3$ côtés, et $3 \\times 120^\\circ = 360^\\circ$." }
+    { question: "Pour tracer un triangle équilatéral, le lutin répète « avancer ; tourner de $120^\\circ$ » :", choix: ["$3$ fois", "$120$ fois", "$4$ fois", "$6$ fois"], bonne: 0, explication: "Un triangle a $3$ côtés, et $3 \\times 120^\\circ = 360^\\circ$." },
+    { question: "On donne le nombre $3$ à ce programme. Qu'affiche-t-il ?", figure: "pi6-qcm-calc", choix: ["$14$", "$10$", "$24$", "$9$"], bonne: 0, explication: "On suit l'ordre des blocs : $3 + 4 = 7$, puis $7 \\times 2 = 14$. ($10$ vient de $3 \\times 2 + 4$ : mauvais ordre.)" },
+    { question: "Le robot (en B4, il regarde vers la droite) exécute ce programme. Où arrive-t-il ?", figure: "pi6-qcm-robot", choix: ["E6", "E2", "B6", "E4"], bonne: 0, explication: "Il avance de $3$ cases vers la droite (E4), tourne à gauche : il regarde vers le haut, puis avance de $2$ cases : E6. ($E2$ : on a tourné du mauvais côté.)" },
+    { question: "Le robot part de B2 en regardant vers la droite. Quel programme lui fait suivre le chemin jusqu'au carré ?", figure: "pi6-chemin", choix: ["avancer de 3 ; tourner à gauche ; avancer de 2 ; tourner à gauche ; avancer de 1", "avancer de 3 ; tourner à droite ; avancer de 2 ; tourner à droite ; avancer de 1", "avancer de 2 ; tourner à gauche ; avancer de 3 ; tourner à gauche ; avancer de 1", "avancer de 3 ; avancer de 2 ; avancer de 1"], bonne: 0, explication: "$3$ cases vers la droite, puis il tourne vers **sa** gauche pour monter de $2$ cases, puis encore à gauche pour aller d'une case vers la gauche de la feuille." },
+    { question: "Quelle est la longueur totale du trait tracé par le lutin ?", figure: "pi6-boucle", choix: ["$320$ pas", "$80$ pas", "$84$ pas", "$360$ pas"], bonne: 0, explication: "La boucle trace $4$ côtés de $80$ pas : $4 \\times 80 = 320$ pas. Tourner ne trace rien." },
+    { question: "Avec ce programme à $3$ répétitions, le lutin trace :", figure: "pi6-qcm-triangle", choix: ["un triangle équilatéral", "un carré", "un hexagone", "une droite"], bonne: 0, explication: "$3$ côtés de $60$ pas et $3$ rotations de $120^\\circ$ (un tour complet) : un triangle équilatéral." },
+    { question: "On part de $10$ et on répète $5$ fois « ajouter $3$ ». On obtient :", choix: ["$25$", "$13$", "$50$", "$18$"], bonne: 0, explication: "On ajoute $3$ cinq fois, soit $5 \\times 3 = 15$ : $10 + 15 = 25$." },
+    { question: "Combien de flèches contient le code « répéter $4$ fois (→ → ↑) » ?", choix: ["$12$", "$4$", "$7$", "$3$"], bonne: 0, explication: "Chaque passage contient $3$ flèches, et il y a $4$ passages : $4 \\times 3 = 12$ flèches." }
   ],
 
   /* ---------- 4. FICHE MÉTHODE ---------- */
@@ -135,6 +143,7 @@ window.CHAPITRES["sixieme-informatique"] = {
         "Lis les blocs de haut en bas, un par un.",
         "Après chaque bloc, note le nouveau nombre (ou la nouvelle case et la direction du robot)."
       ],
+      figure: "pi6-programme",
       exemple: "Entrée $4$ ; multiplier par $3$ : $12$ ; ajouter $5$ : $17$. Sortie : $17$."
     },
     {
@@ -144,6 +153,7 @@ window.CHAPITRES["sixieme-informatique"] = {
         "Une flèche = une case dans sa direction ; regroupe les flèches identiques.",
         "Pour écrire un code, découpe le chemin en lignes droites et compte les cases."
       ],
+      figure: "pi6-fleches",
       exemple: "De A1 avec ↑ ↑ → → → ↓ : A3, puis D3, puis D2."
     },
     {
@@ -153,6 +163,7 @@ window.CHAPITRES["sixieme-informatique"] = {
         "« Avancer » : tout droit, devant lui. « Tourner » : quart de tour sur place, vers sa droite ou sa gauche.",
         "À chaque virage, mets-toi à la place du robot pour savoir s'il tourne à droite ou à gauche."
       ],
+      figure: "pi6-chemin",
       exemple: "Il regarde vers le haut ; « tourner à droite » : il regarde vers la droite de la feuille."
     },
     {
@@ -162,6 +173,7 @@ window.CHAPITRES["sixieme-informatique"] = {
         "Écris : répéter … fois (la séquence).",
         "Pour exécuter une boucle, fais tout l'intérieur, puis recommence, autant de fois qu'indiqué."
       ],
+      figure: "pi6-boucle",
       exemple: "→ ↑ → ↑ → ↑ s'écrit répéter $3$ fois (→ ↑)."
     }
   ],

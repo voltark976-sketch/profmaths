@@ -31,6 +31,7 @@ window.CHAPITRES["cinquieme-angles"] = {
   cours: [
     {
       titre: "Angles opposés, adjacents, supplémentaires",
+      video: { titre: "Vidéo d'Yvan Monka : utiliser les angles opposés par le sommet", youtube: "https://youtu.be/gPzK6EcCMPY" },
       texte:
         "- Un angle **aigu** mesure moins de $90^\\circ$, un angle **droit** $90^\\circ$, un angle **obtus** entre $90^\\circ$ et $180^\\circ$, un angle **plat** $180^\\circ$.\n" +
         "- Deux angles **adjacents** ont le même sommet et un côté commun, et sont de part et d'autre de ce côté.\n" +
@@ -63,6 +64,7 @@ window.CHAPITRES["cinquieme-angles"] = {
         "**Propriété** : si deux droites **parallèles** sont coupées par une sécante, alors les angles alternes-internes ont la même mesure, et les angles correspondants aussi.\n\n" +
         "**Propriété réciproque** : si deux droites coupées par une sécante forment des angles alternes-internes (ou correspondants) **de même mesure**, alors elles sont **parallèles**.\n\n" +
         "Avec deux parallèles, il n'y a donc que deux mesures sur la figure : un angle aigu $a$ et son supplémentaire $180^\\circ - a$.",
+      figure: "an5-cours-egaux",
       exemple: {
         enonce: "$(d)$ et $(d')$ sont parallèles et l'angle $1$ mesure $60^\\circ$. Combien mesurent les angles $5$ et $6$ ?",
         solution: "$1$ et $5$ sont correspondants : l'angle $5$ mesure $60^\\circ$.\n\n$5$ et $6$ sont adjacents supplémentaires : l'angle $6$ mesure $180^\\circ - 60^\\circ = 120^\\circ$."
@@ -75,6 +77,7 @@ window.CHAPITRES["cinquieme-angles"] = {
         "**Propriété** : dans un triangle, la somme des mesures des trois angles vaut $180^\\circ$.\n\n" +
         "**Démonstration** : dans le triangle $ABC$, on trace la droite parallèle à $(BC)$ passant par $A$. Avec la sécante $(AB)$, l'angle $\\widehat{B}$ et l'angle formé en $A$ à gauche sont alternes-internes : ils sont égaux. De même avec $(AC)$ pour l'angle $\\widehat{C}$. En $A$, ces deux angles et $\\widehat{A}$ forment un angle plat : $\\widehat{A} + \\widehat{B} + \\widehat{C} = 180^\\circ$.\n\n" +
         "Conséquences : dans un triangle **rectangle**, les deux angles aigus ont une somme de $90^\\circ$ ; dans un triangle **isocèle**, les angles à la base sont égaux ; dans un triangle **équilatéral**, chaque angle mesure $60^\\circ$.",
+      figure: "an5-cours-somme",
       exemple: {
         enonce: "$ABC$ est isocèle en $A$ avec $\\widehat{A} = 40^\\circ$. Calcule $\\widehat{B}$.",
         solution: "$\\widehat{B} + \\widehat{C} = 180^\\circ - 40^\\circ = 140^\\circ$, et $\\widehat{B} = \\widehat{C}$, donc $\\widehat{B} = 140^\\circ \\div 2 = 70^\\circ$."
@@ -105,7 +108,14 @@ window.CHAPITRES["cinquieme-angles"] = {
     { question: "Dans un triangle, $\\widehat{A} = 50^\\circ$ et $\\widehat{B} = 60^\\circ$. $\\widehat{C}$ mesure :", choix: ["$70^\\circ$", "$110^\\circ$", "$250^\\circ$", "$90^\\circ$"], bonne: 0, explication: "$180 - 110 = 70$." },
     { question: "Dans un triangle rectangle, un angle aigu mesure $35^\\circ$. L'autre mesure :", choix: ["$55^\\circ$", "$145^\\circ$", "$35^\\circ$", "$65^\\circ$"], bonne: 0, explication: "$90 - 35 = 55$." },
     { question: "Chaque angle d'un triangle équilatéral mesure :", choix: ["$60^\\circ$", "$90^\\circ$", "$45^\\circ$", "$180^\\circ$"], bonne: 0, explication: "$180 \\div 3 = 60$." },
-    { question: "Un triangle isocèle a deux angles à la base de $50^\\circ$. Le troisième angle mesure :", choix: ["$80^\\circ$", "$50^\\circ$", "$130^\\circ$", "$100^\\circ$"], bonne: 0, explication: "$180 - 2 \\times 50 = 80$." }
+    { question: "Un triangle isocèle a deux angles à la base de $50^\\circ$. Le troisième angle mesure :", choix: ["$80^\\circ$", "$50^\\circ$", "$130^\\circ$", "$100^\\circ$"], bonne: 0, explication: "$180 - 2 \\times 50 = 80$." },
+    { question: "Combien mesure l'angle marqué « ? » ?", figure: "an5-qcm-triangle", choix: ["$65^\\circ$", "$115^\\circ$", "$245^\\circ$", "$75^\\circ$"], bonne: 0, explication: "$180^\\circ - (48^\\circ + 67^\\circ) = 180^\\circ - 115^\\circ = 65^\\circ$." },
+    { question: "Le triangle est isocèle en $A$. Combien mesure l'angle marqué « ? » ?", figure: "an5-qcm-iso", choix: ["$72^\\circ$", "$36^\\circ$", "$144^\\circ$", "$54^\\circ$"], bonne: 0, explication: "Les angles à la base sont égaux : $(180^\\circ - 36^\\circ) \\div 2 = 144^\\circ \\div 2 = 72^\\circ$." },
+    { question: "$(d) \\parallel (d')$. Combien mesure l'angle marqué « ? » ?", figure: "an5-qcm-alternes", choix: ["$115^\\circ$", "$65^\\circ$", "$25^\\circ$", "$180^\\circ$"], bonne: 0, explication: "Les deux angles sont alternes-internes et les droites sont parallèles : ils ont la même mesure, $115^\\circ$." },
+    { question: "D'après les mesures indiquées, les droites $(d)$ et $(d')$ sont-elles parallèles ?", figure: "an5-qcm-corresp", choix: ["Non : les angles correspondants ne sont pas égaux", "Oui : les angles correspondants sont presque égaux", "Oui : elles semblent parallèles sur le dessin", "On ne peut pas savoir"], bonne: 0, explication: "$62^\\circ \\neq 64^\\circ$ : des angles correspondants différents prouvent que les droites ne sont pas parallèles." },
+    { question: "Deux angles complémentaires ont une somme de :", choix: ["$90^\\circ$", "$180^\\circ$", "$360^\\circ$", "$45^\\circ$"], bonne: 0, explication: "Ensemble, ils forment un angle droit." },
+    { question: "Un angle plein mesure :", choix: ["$360^\\circ$", "$180^\\circ$", "$90^\\circ$", "$0^\\circ$"], bonne: 0, explication: "Un tour complet : $360^\\circ$." },
+    { question: "Un triangle peut-il avoir deux angles obtus ?", choix: ["Non, leur somme dépasserait déjà $180^\\circ$", "Oui, s'il est isocèle", "Oui, s'il est très grand", "Oui, toujours"], bonne: 0, explication: "Deux angles obtus mesurent chacun plus de $90^\\circ$ : ensemble, plus de $180^\\circ$, c'est impossible dans un triangle." }
   ],
 
   /* ---------- 4. FICHE MÉTHODE ---------- */
@@ -117,6 +127,7 @@ window.CHAPITRES["cinquieme-angles"] = {
         "Sommets différents : de part et d'autre de la sécante et entre les droites → alternes-internes.",
         "Du même côté de la sécante et à la même place → correspondants."
       ],
+      figure: "an5-paralleles",
       exemple: "Les angles $3$ et $5$ de la figure du cours sont alternes-internes."
     },
     {
@@ -126,6 +137,7 @@ window.CHAPITRES["cinquieme-angles"] = {
         "Alternes-internes ou correspondants : même mesure. Opposés par le sommet : même mesure.",
         "Adjacents formant un angle plat : $180^\\circ$ moins l'angle connu."
       ],
+      figure: "an5-cours-egaux",
       exemple: "Angle connu $65^\\circ$, angle adjacent : $115^\\circ$."
     },
     {
@@ -135,6 +147,7 @@ window.CHAPITRES["cinquieme-angles"] = {
         "Compare leurs mesures (données, pas lues sur le dessin).",
         "Égales : les droites sont parallèles. Différentes : elles ne le sont pas."
       ],
+      figure: "an5-methode-paralleles",
       exemple: "$47^\\circ$ et $47^\\circ$ alternes-internes : $(d) \\parallel (d')$."
     },
     {
@@ -144,6 +157,7 @@ window.CHAPITRES["cinquieme-angles"] = {
         "Retire la somme de $180^\\circ$.",
         "Isocèle : angles à la base égaux. Rectangle : angles aigus de somme $90^\\circ$."
       ],
+      figure: "an5-methode-triangle",
       exemple: "$180 - (45 + 75) = 60^\\circ$."
     }
   ],
