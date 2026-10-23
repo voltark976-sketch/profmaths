@@ -190,7 +190,11 @@
   }
   function inline(s) {
     const maths = [];
-    const t = String(s).replace(/\$([^$]+)\$/g, (_, m) => "\u0000" + (maths.push(m) - 1) + "\u0000");
+    // Typographie sur petit écran : espace insécable devant « ? ! : ; » et à l'intérieur des guillemets,
+    // et aucune coupure de ligne entre une formule et la ponctuation qui la suit (pas de « . » seul en début de ligne)
+    const t = String(s).replace(/\$([^$]+)\$/g, (_, m) => "\u0000" + (maths.push(m) - 1) + "\u0000")
+      .replace(/ ([?!:;»])/g, " $1").replace(/« /g, "« ")
+      .replace(/\u0000(\d+)\u0000(?=[.,;:!?)%» ])/g, "\u0000$1\u0000⁠");
     return esc(t).replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>").replace(/\u0000(\d+)\u0000/g, (_, i) => tex(maths[+i]));
   }
   // Étiquette devant la case réponse : « x_I = », « P(Ā ∩ B) ≈ », « Q₃ − Q₁ = » sont écrits en maths (KaTeX),
@@ -228,7 +232,8 @@
   const tableau = (t) => t.lignes
     ? `<div class="scroll-x"><table class="valeurs croise">${t.lignes.map((l, i) => `<tr>${l.map((v, j) => (i === 0 || j === 0 ? `<th>${v === "" ? "" : tex(String(v))}</th>` : `<td>${tex(String(v))}</td>`)).join("")}</tr>`).join("")}</table></div>`
     : `<div class="scroll-x"><table class="valeurs"><tr><th>${tex(t.var || "x")}</th>${t.x.map((v) => `<td>${tex(String(v))}</td>`).join("")}</tr><tr><th>${tex(t.nom)}</th>${t.y.map((v) => `<td>${tex(String(v))}</td>`).join("")}</tr></table></div>`;
-  const figure = (nom) => (FIGURES[nom] ? `<figure class="fig">${FIGURES[nom]()}</figure>` : "");
+  // Une figure nommée (FIGURES de assets/exercices*.js), ou une liste de noms
+  const figure = (nom) => [].concat(nom || []).map((n) => (FIGURES[n] ? `<figure class="fig">${FIGURES[n]()}</figure>` : "")).join("");
 
   /* ---------- Vidéos YouTube : vignette légère, la vidéo ne se charge qu'au clic ---------- */
   function ytId(url) {
@@ -1263,17 +1268,51 @@
      plus 3 questions à choix fabriquées par les générateurs d'exercices du chapitre. */
   const QCM_N = 12, QCM_GEN = 3, QCM_RECENTS = {};
   const tailleQcm = (c) => Math.min(QCM_N, c.qcm.length + (c.exercices.length ? QCM_GEN : 0));
+  // Écriture KaTeX d'un nombre à la française (espaces fines, virgule), ou fraction si ce n'est pas un décimal court
+  function nombreTex(x, enFraction) {
+    if (!isFinite(x)) return null;
+    const a = Math.abs(x);
+    let s;
+    if (Number.isInteger(+a.toFixed(9)) || (!enFraction && Math.abs(a * 1e6 - Math.round(a * 1e6)) < 1e-6 * Math.max(1, a))) {
+      const p = String(+a.toFixed(6)).split(".");
+      s = p[0].replace(/\B(?=(\d{3})+(?!\d))/g, "\\,") + (p[1] ? "{,}" + p[1] : "");
+    } else {
+      let f = null;
+      for (let d = 2; d <= 1000 && !f; d++) { const m = Math.round(a * d); if (Math.abs(m / d - a) < 1e-9) f = [m, d]; }
+      if (!f) return null;
+      s = `\\dfrac{${f[0]}}{${f[1]}}`;
+    }
+    return (x < 0 ? "-" : "") + s;
+  }
+  // Une question à saisie devient une question à choix si le générateur prévoit au moins deux erreurs typiques
+  // (réponses exactes seulement : pas de conversion quand la réponse est un arrondi accepté avec une tolérance)
+  function versChoix(q) {
+    if (q.mode !== "nombre" || !isFinite(q.attendu) || (q.tolerance || 0) >= 1e-6) return null;
+    const vals = [];
+    // les « valeurs approchées » d'une fraction (message valeur exacte) ne sont pas des leurres honnêtes
+    (q.erreurs || []).forEach((e) => { const v = +e.valeur; if (isFinite(v) && Math.abs(v - q.attendu) > 1e-9 && !/valeur approchée|valeur exacte/i.test(e.message || "") && !vals.some((w) => Math.abs(w - v) < 1e-9)) vals.push(v); });
+    if (vals.length < 2) return null;
+    const suf = q.suffixe ? " " + q.suffixe : "";
+    const enFraction = Math.abs(q.attendu * 1e6 - Math.round(q.attendu * 1e6)) >= 1e-6 * Math.max(1, Math.abs(q.attendu)); // réponse non décimale : tous les choix en fractions
+    const choix = [q.attendu, ...vals.slice(0, 3)].map((v) => { const t = nombreTex(v, enFraction); return t === null ? null : `$${t}$${suf}`; });
+    if (choix.includes(null) || new Set(choix).size !== choix.length) return null;
+    return { choix, attendu: 0 };
+  }
   function questionsGenerees(c, n) {
     const types = shuffle(c.exercices.map((e) => e.type).filter((t) => GEN[t])), out = [], vus = new Set();
-    for (let essai = 0; out.length < n && essai < 60 && types.length; essai++) {
-      const t = types[essai % types.length];
-      if (out.some((x) => x.type === t) && essai < 3 * types.length) continue; // d'abord un seul par type
-      let q;
-      try { q = GEN[t](Math.floor(Math.random() * 5)); } catch (e) { continue; }
-      const k = cleQuestion(q);
-      if (q.mode !== "choix" || vus.has(k)) continue;
-      vus.add(k);
-      out.push({ type: t, gen: true, question: q.enonce, choix: q.choix, bonne: q.attendu, explication: q.solution, svg: q.figure, tableau: q.tableau });
+    const ajouter = (t, q, choix, bonne) => { vus.add(cleQuestion(q)); out.push({ type: t, gen: true, question: q.enonce, choix, bonne, explication: q.solution, svg: q.figure, tableau: q.tableau }); };
+    // 1) une question à choix par série ; 2) puis, pour les séries pas encore utilisées, une question à saisie
+    //    transformée en choix ; 3) seulement s'il en manque encore, une deuxième question d'une même série
+    for (const passe of [1, 2, 3]) {
+      for (let essai = 0; out.length < n && essai < 40 && types.length; essai++) {
+        const t = types[essai % types.length];
+        if (out.filter((x) => x.type === t).length >= (passe === 3 ? 2 : 1)) continue;
+        let q;
+        try { q = GEN[t](Math.floor(Math.random() * 5)); } catch (e) { continue; }
+        if (vus.has(cleQuestion(q))) continue;
+        if (q.mode === "choix") { if (passe !== 2) ajouter(t, q, q.choix, q.attendu); }
+        else if (passe > 1) { const v = versChoix(q); if (v) ajouter(t, q, v.choix, v.attendu); }
+      }
     }
     return out;
   }
@@ -1335,7 +1374,7 @@
   function vueMethode(p, c) {
     let h = `<div class="methodes">`;
     c.methode.forEach((m) => {
-      h += `<article class="methode"><h2>${inline(m.titre)}</h2><ol>${m.etapes.map((e) => `<li>${inline(e)}</li>`).join("")}</ol>${m.exemple ? `<p class="ex">${inline(m.exemple)}</p>` : ""}</article>`;
+      h += `<article class="methode"><h2>${inline(m.titre)}</h2><ol>${m.etapes.map((e) => `<li>${inline(e)}</li>`).join("")}</ol>${m.figure ? figure(m.figure) : ""}${m.exemple ? `<p class="ex">${inline(m.exemple)}</p>` : ""}</article>`;
     });
     h += `</div><section class="erreurs"><h2>Les erreurs fréquentes</h2><ul>${c.erreurs.map((e) => `<li>${inline(e)}</li>`).join("")}</ul></section>`;
     p.innerHTML = h;
