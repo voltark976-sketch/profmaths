@@ -3,7 +3,7 @@
   Ce fichier se charge après assets/exercices-college.js et reprend ses outils (window.PM_EXO.college).
   Mêmes règles : chaque générateur fabrique une question avec des nombres tirés au hasard, la réponse
   attendue, trois indices progressifs et la solution rédigée.
-  Préfixes : rc5- (règles de calcul), tr5-, fr5-, pp5-, an5-, dv5-, sc5-, nr5-, cr5-, gf5-, cl5-.
+  Préfixes : rc5- (règles de calcul), tr5-, fr5-, pp5-, an5-, dv5-, sc5-, nr5-, cr5-, gf5-, cl5-, pg5-.
 */
 (function () {
   "use strict";
@@ -1381,8 +1381,112 @@
       aides: ["Écris la somme avec les lettres, puis réduis-la.", "Regroupe les termes en $n$ et les nombres.", "Vérifie avec $n = 1$."], solution: `On obtient $${P[1]}$ : c'est toujours ${P[2]}. Le calcul littéral permet de le **démontrer** pour tous les nombres $n$.` };
   };
 
+  /* =====================================================================
+     Chapitre 12 : parallélogrammes (pg5-)
+     ===================================================================== */
+  const NOMS4 = [["A", "B", "C", "D"], ["E", "F", "G", "H"], ["M", "N", "P", "Q"], ["R", "S", "T", "U"], ["I", "J", "K", "L"]];
+  // Quadrilatère codé : type parmi parallelogramme, rectangle, losange, carre ; codes selon ce qu'on montre
+  function figureQuad(type, noms, montrer) {
+    const [A, B, C, D] = noms, o = rand(-15, 15) * DEG;
+    let P;
+    if (type === "parallelogramme") P = [[50, 150], [210, 150], [270, 60], [110, 60]];
+    if (type === "rectangle") P = [[60, 150], [260, 150], [260, 60], [60, 60]];
+    if (type === "losange") P = [[160, 175], [235, 105], [160, 35], [85, 105]];
+    if (type === "carre") P = [[95, 165], [225, 165], [225, 35], [95, 35]];
+    const g = [160, 105], rot = ([x, y]) => [+(g[0] + (x - g[0]) * Math.cos(o) - (y - g[1]) * Math.sin(o)).toFixed(1), +(g[1] + (x - g[0]) * Math.sin(o) + (y - g[1]) * Math.cos(o)).toFixed(1)];
+    P = P.map(rot);
+    const pts = { [A]: P[0], [B]: P[1], [C]: P[2], [D]: P[3] }, Oc = [(P[0][0] + P[2][0]) / 2, (P[0][1] + P[2][1]) / 2].map((v) => +v.toFixed(1));
+    const opt = { W: 320, H: 205, pts, segs: [[A, B], [B, C], [C, D], [D, A]], codes: [], droitAngle: [], caches: [], decal: {} };
+    noms.forEach((n, i) => { const dx = P[i][0] - g[0], dy = P[i][1] - g[1], L = Math.hypot(dx, dy); opt.decal[n] = [Math.round((dx / L) * 13) - 3, Math.round((dy / L) * 13) + 4]; });
+    if (montrer === "diagonales") { pts.O = Oc; opt.decal.O = [7, 14]; opt.segs.push([A, C], [B, D]); opt.codes.push([A, "O", 1], ["O", C, 1], [B, "O", 2], ["O", D, 2]);
+      if (type === "rectangle" || type === "carre") { opt.codes = [[A, "O", 1], ["O", C, 1], [B, "O", 1], ["O", D, 1]]; }
+      if (type === "losange" || type === "carre") opt.droitAngle.push([A, "O", B]); }
+    else { // côtés
+      if (type === "losange" || type === "carre") opt.codes.push([A, B, 1], [B, C, 1], [C, D, 1], [D, A, 1]); else opt.codes.push([A, B, 1], [C, D, 1], [B, C, 2], [D, A, 2]);
+      if (type === "rectangle" || type === "carre") opt.droitAngle.push([B, A, D]); }
+    return geo(Object.assign(opt, { aria: `Quadrilatère ${noms.join("")} codé` }));
+  }
+  const NOMS_Q = { parallelogramme: "un parallélogramme", rectangle: "un rectangle", losange: "un losange", carre: "un carré" };
+  FIGURES["pg5-diagonales"] = () => figureQuad("parallelogramme", ["A", "B", "C", "D"], "diagonales").replace(/<svg[^>]*>/, (m) => m);
+  FIGURES["pg5-losange"] = () => figureQuad("losange", ["A", "B", "C", "D"], "diagonales");
+
+  GEN["pg5-proprietes"] = function () {
+    const [A, B, C, D] = pick(NOMS4), t = rand(0, 4), x = Dc(rand(15, 95), 1), X1 = tD(x);
+    if (t === 0) return { enonce: `$${A}${B}${C}${D}$ est un parallélogramme et $${A}${B} = ${X1}$ cm. Combien mesure $${C}${D}$ ?`, mode: "nombre", prefixe: `$${C}${D} =$`, suffixe: "cm", attendu: x.m / 10,
+      aides: ["Dans un parallélogramme, les côtés opposés ont la même longueur.", `$[${A}${B}]$ et $[${C}${D}]$ sont des côtés opposés.`, "Aucun calcul n'est nécessaire."], solution: `Les côtés opposés d'un parallélogramme ont la même longueur : $${C}${D} = ${A}${B} = ${X1}$ cm.` };
+    if (t === 1) { const d = Dc(x.m * 2, 1);
+      return { enonce: `$${A}${B}${C}${D}$ est un parallélogramme de centre $O$ et $${A}${C} = ${tD(d)}$ cm. Combien mesure $${A}O$ ?`, mode: "nombre", prefixe: `$${A}O =$`, suffixe: "cm", attendu: x.m / 10, erreurs: [{ valeur: d.m / 10, message: "$O$ est le milieu de la diagonale : $AO$ en est la moitié." }],
+        aides: ["Les diagonales d'un parallélogramme se coupent en leur milieu.", `$O$ est donc le milieu de $[${A}${C}]$.`, `$${A}O = ${A}${C} \\div 2$.`], solution: `$O$ est le milieu de $[${A}${C}]$ : $${A}O = ${tD(d)} \\div 2 = ${X1}$ cm.` }; }
+    if (t === 2) { const a = rand(30, 150); if (a === 90) return GEN["pg5-proprietes"]();
+      const q = rand(0, 1);
+      return { enonce: `$${A}${B}${C}${D}$ est un parallélogramme et $\\widehat{${D}${A}${B}} = ${a}^\\circ$. Combien mesure $\\widehat{${q ? `${B}${C}${D}` : `${A}${B}${C}`}}$ ?`, mode: "nombre", prefixe: "Mesure :", suffixe: "°", attendu: q ? a : 180 - a,
+        erreurs: [{ valeur: q ? 180 - a : a, message: q ? "Les angles opposés d'un parallélogramme sont égaux." : "Deux angles consécutifs d'un parallélogramme sont supplémentaires." }],
+        aides: ["Dans un parallélogramme, deux angles opposés ont la même mesure.", "Deux angles consécutifs sont supplémentaires (leur somme vaut $180^\\circ$), car les côtés opposés sont parallèles.", q ? `$\\widehat{${A}}$ et $\\widehat{${C}}$ sont opposés.` : `$\\widehat{${A}}$ et $\\widehat{${B}}$ sont consécutifs.`],
+        solution: q ? `$\\widehat{${A}}$ et $\\widehat{${C}}$ sont opposés : $\\widehat{${B}${C}${D}} = ${a}^\\circ$.` : `$\\widehat{${A}}$ et $\\widehat{${B}}$ sont consécutifs : $\\widehat{${A}${B}${C}} = 180^\\circ - ${a}^\\circ = ${180 - a}^\\circ$.` }; }
+    if (t === 3) { const a = rand(3, 15), b = rand(2, a);
+      return { enonce: `$${A}${B}${C}${D}$ est un parallélogramme avec $${A}${B} = ${a}$ cm et $${B}${C} = ${b}$ cm. Quel est son périmètre ?`, mode: "nombre", prefixe: "Périmètre :", suffixe: "cm", attendu: 2 * (a + b), erreurs: [{ valeur: a + b, message: "Il y a quatre côtés : chaque longueur apparaît deux fois." }],
+        aides: ["Les côtés opposés ont la même longueur.", `$${C}${D} = ${a}$ cm et $${D}${A} = ${b}$ cm.`, "Additionne les quatre côtés."], solution: `$2 \\times (${a} + ${b}) = ${2 * (a + b)}$ cm.` }; }
+    const c = rand(2, 15), type = pick(["losange", "carre"]);
+    return { enonce: `$${A}${B}${C}${D}$ est ${NOMS_Q[type]} de côté $${c}$ cm. Quel est son périmètre ?`, mode: "nombre", prefixe: "Périmètre :", suffixe: "cm", attendu: 4 * c, erreurs: [{ valeur: c * c, message: "Ça, ce serait l'aire d'un carré. Le périmètre est la longueur du tour." }],
+      aides: [`Un ${type === "carre" ? "carré" : "losange"} a quatre côtés de même longueur.`, "Le périmètre est la somme des quatre côtés.", `$4 \\times ${c}$.`], solution: `$4 \\times ${c} = ${4 * c}$ cm.` };
+  };
+
+  GEN["pg5-nature"] = function () {
+    const [A, B, C, D] = pick(NOMS4), t = rand(0, 1);
+    if (t === 0) {
+      const type = pick(["parallelogramme", "rectangle", "losange", "carre"]), montrer = pick(["diagonales", "cotes"]);
+      const choix = ["un parallélogramme quelconque", "un rectangle", "un losange", "un carré"], k = ["parallelogramme", "rectangle", "losange", "carre"].indexOf(type);
+      const expl = montrer === "diagonales" ? ["Les diagonales ont le même milieu : c'est un parallélogramme. Rien de plus n'est codé.", "Les diagonales ont le même milieu et la même longueur : c'est un rectangle.", "Les diagonales ont le même milieu et sont perpendiculaires : c'est un losange.", "Les diagonales ont le même milieu, la même longueur et sont perpendiculaires : c'est un carré."][k]
+        : ["Les côtés opposés ont la même longueur (deux à deux) : c'est un parallélogramme.", "Les côtés opposés ont la même longueur et il y a un angle droit : c'est un rectangle.", "Les quatre côtés ont la même longueur : c'est un losange.", "Les quatre côtés ont la même longueur et il y a un angle droit : c'est un carré."][k];
+      return { enonce: `D'après les codages, quelle est la nature du quadrilatère $${A}${B}${C}${D}$ ?`, figure: figureQuad(type, [A, B, C, D], montrer), mode: "choix", choix, attendu: k,
+        aides: ["Ne te fie qu'aux codages, pas à l'allure du dessin.", "Diagonales de même milieu : parallélogramme. De même longueur en plus : rectangle. Perpendiculaires en plus : losange. Les deux : carré.", "Côtés opposés égaux : parallélogramme. Quatre côtés égaux : losange. Un angle droit en plus : rectangle ou carré."], solution: expl };
+    }
+    const F = pick([
+      ["Ses diagonales ont le même milieu.", 0], ["Ses côtés opposés sont parallèles deux à deux.", 0], ["Ses côtés opposés ont la même longueur deux à deux.", 0],
+      ["Ses diagonales ont le même milieu et la même longueur.", 1], ["C'est un parallélogramme qui a un angle droit.", 1],
+      ["Ses diagonales ont le même milieu et sont perpendiculaires.", 2], ["Ses quatre côtés ont la même longueur.", 2], ["C'est un parallélogramme qui a deux côtés consécutifs de même longueur.", 2],
+      ["Ses diagonales ont le même milieu, la même longueur et sont perpendiculaires.", 3], ["C'est un losange qui a un angle droit.", 3], ["C'est un rectangle dont les diagonales sont perpendiculaires.", 3]
+    ]);
+    const choix = ["un parallélogramme (on ne peut pas en dire plus)", "un rectangle", "un losange", "un carré"];
+    return { enonce: `On sait seulement ceci sur le quadrilatère $${A}${B}${C}${D}$ : « ${F[0]} » Que peut-on affirmer ?`, mode: "choix", choix, attendu: F[1],
+      aides: ["Parallélogramme : diagonales de même milieu, ou côtés opposés parallèles, ou côtés opposés de même longueur.", "Rectangle : parallélogramme avec un angle droit, ou diagonales de même longueur. Losange : parallélogramme avec deux côtés consécutifs égaux, ou diagonales perpendiculaires.", "Carré : à la fois rectangle et losange."], solution: `« ${F[0]} » : on peut affirmer que c'est ${choix[F[1]].replace(" (on ne peut pas en dire plus)", "")}${F[1] === 0 ? ", sans pouvoir en dire plus" : ""}.` };
+  };
+
+  GEN["pg5-construire"] = function () {
+    for (let e = 0; e < 500; e++) {
+      const A = [rand(1, 6), rand(1, 4)], B = [A[0] + rand(3, 5), A[1] + rand(-1, 1)], C = [B[0] + rand(-2, 2), B[1] + rand(2, 3)];
+      const D = [A[0] + C[0] - B[0], A[1] + C[1] - B[1]];
+      const F = [[B[0] + C[0] - A[0], B[1] + C[1] - A[1]], [A[0] + B[0] - C[0], A[1] + B[1] - C[1]], [D[0] + pick([-2, 2]), D[1] + pick([-1, 1])], [D[0] + pick([-1, 1]), D[1] + pick([-2, 2])]];
+      const cand = [D, ...F].filter(([x, y]) => x >= 0 && x <= 11 && y >= 0 && y <= 7);
+      if (cand[0] !== D) continue;
+      const uniq = []; cand.forEach((p) => { if (!uniq.some((q) => Math.abs(q[0] - p[0]) + Math.abs(q[1] - p[1]) < 2) && ![A, B, C].some((q) => q[0] === p[0] && q[1] === p[1])) uniq.push(p); });
+      if (uniq.length < 4 || uniq[0] !== D) continue;
+      const L = shuffle(uniq.slice(0, 4).map((p, i) => ({ p, ok: i === 0 }))), noms = ["E", "F", "G", "H"], bon = L.findIndex((z) => z.ok);
+      return { enonce: "Quel point faut-il prendre comme point $D$ pour que $ABCD$ soit un parallélogramme ?", figure: grilleC({ polys: [], points: [["A", A], ["B", B], ["C", C], ...L.map((z, i) => [noms[i], z.p, "g-point"])], aria: "Quadrillage avec les points A, B, C et quatre points E, F, G, H" }).replace("</svg>", `<polyline class="g-segment" points="${[A, B, C].map(([x, y]) => `${8 + x * 24},${8 + (8 - y) * 24}`).join(" ")}" fill="none"/></svg>`), mode: "choix", choix: noms.map((n) => `$${n}$`), attendu: bon,
+        aides: ["Dans le parallélogramme $ABCD$, les côtés $[AB]$ et $[DC]$ sont parallèles et de même longueur : on va de $D$ à $C$ comme de $A$ à $B$.", "Compte les carreaux pour aller de $B$ à $A$.", "Fais le même déplacement à partir de $C$ : tu arrives en $D$."],
+        solution: `On va de $B$ à $A$ par $${A[0] - B[0]}$ carreau(x) horizontalement et $${A[1] - B[1]}$ verticalement ; le même déplacement à partir de $C$ mène au point $${noms[bon]}$. Attention à l'ordre des lettres : $ABCD$ se lit en tournant.` };
+    }
+  };
+
+  GEN["pg5-demontrer"] = function () {
+    const [A, B, C, D] = pick(NOMS4), t = rand(0, 7);
+    const Q = [
+      [`On sait que $${A}${B} = ${C}${D}$ et $${A}${D} = ${B}${C}$ (le quadrilatère n'est pas croisé). Que peut-on en déduire ?`, `$${A}${B}${C}${D}$ est un parallélogramme`, [`$${A}${B}${C}${D}$ est un rectangle`, `$${A}${B}${C}${D}$ est un losange`, "on ne peut rien en déduire"]],
+      [`On sait que $(${A}${B}) \\parallel (${C}${D})$ et $(${A}${D}) \\parallel (${B}${C})$. Que peut-on en déduire ?`, `$${A}${B}${C}${D}$ est un parallélogramme`, [`$${A}${B}${C}${D}$ est un carré`, `$${A}${B}${C}${D}$ est un rectangle`, "on ne peut rien en déduire"]],
+      [`$${A}${B}${C}${D}$ est un losange dont les diagonales ont la même longueur. C'est donc :`, "un carré", ["un rectangle seulement", "un parallélogramme seulement", "un trapèze"]],
+      [`$${A}${B}${C}${D}$ est un parallélogramme et $\\widehat{${A}${B}${C}} = 90^\\circ$. C'est donc :`, "un rectangle", ["un losange", "un carré", "un parallélogramme seulement"]],
+      [`On veut démontrer que $${A}${B}${C}${D}$ est un parallélogramme. On sait que $[${A}${C}]$ et $[${B}${D}]$ ont le même milieu. Quelle propriété utilise-t-on ?`, "Si les diagonales d'un quadrilatère ont le même milieu, alors c'est un parallélogramme.", ["Si un quadrilatère a quatre côtés, alors c'est un parallélogramme.", "Si les diagonales d'un quadrilatère sont perpendiculaires, alors c'est un parallélogramme.", "Si un quadrilatère est un parallélogramme, alors ses diagonales ont le même milieu."]],
+      [`$${A}${B}${C}${D}$ est un parallélogramme. On veut démontrer que c'est un rectangle. Quelle information suffit ?`, `$${A}${C} = ${B}${D}$`, [`$${A}${B} = ${C}${D}$`, `$(${A}${B}) \\parallel (${C}${D})$`, `$[${A}${C}]$ et $[${B}${D}]$ ont le même milieu`]],
+      [`$${A}${B}${C}${D}$ est un parallélogramme. On veut démontrer que c'est un losange. Quelle information suffit ?`, `$(${A}${C}) \\perp (${B}${D})$`, [`$${A}${C} = ${B}${D}$`, `$${A}${B} = ${C}${D}$`, `$\\widehat{${A}${B}${C}} = 90^\\circ$`]],
+      [`$${A}${B}${C}${D}$ est un rectangle. On veut démontrer que c'est un carré. Quelle information suffit ?`, `$${A}${B} = ${B}${C}$`, [`$${A}${C} = ${B}${D}$`, `$\\widehat{${A}${B}${C}} = 90^\\circ$`, `$(${A}${B}) \\parallel (${C}${D})$`]]
+    ].slice(t, t + 1)[0] || null;
+    const { choix, attendu } = melange(Q[1], Q[2]);
+    return { enonce: Q[0], mode: "choix", choix, attendu,
+      aides: ["Une propriété de démonstration commence par « Si » (ce qu'on sait) et se termine par « alors » (ce qu'on veut prouver).", "Rectangle : un parallélogramme dont les diagonales ont la même longueur (ou qui a un angle droit). Losange : un parallélogramme dont les diagonales sont perpendiculaires (ou qui a deux côtés consécutifs égaux).", "Carré : un rectangle qui est aussi un losange."], solution: `Réponse : ${Q[1]}` };
+  };
+
   /* Une « erreur connue » ne doit jamais coïncider avec la bonne réponse */
-  Object.keys(GEN).filter((k) => /^(rc5|tr5|fr5|pp5|an5|dv5|sc5|nr5|cr5|gf5|cl5)-/.test(k)).forEach((k) => {
+  Object.keys(GEN).filter((k) => /^(rc5|tr5|fr5|pp5|an5|dv5|sc5|nr5|cr5|gf5|cl5|pg5)-/.test(k)).forEach((k) => {
     const g = GEN[k];
     GEN[k] = (i) => {
       const q = g(i);

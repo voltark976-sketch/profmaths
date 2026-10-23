@@ -214,7 +214,7 @@ window.CATALOGUE = {
           id: "cinquieme-parallelogrammes",
           numero: 12,
           titre: "Parallélogrammes",
-          statut: "bientot",
+          statut: "disponible",
           drive: ""
         },
         {
