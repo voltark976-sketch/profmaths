@@ -581,7 +581,7 @@
     const d = rand(2, 6), D = d + rand(2, 12), h = rand(2, 9) / 10, H = arr((h * D) / d, 3);
     if (!Number.isInteger(H * 100)) return GEN["th4-problemes"]();
     return { enonce: `Une rampe d'accès monte régulièrement. À $${d}$ m de son point de départ (mesurés à l'horizontale), elle est à $${nb(h)}$ m de hauteur. À quelle hauteur est-elle à $${D}$ m du départ ? (Les poteaux verticaux sont parallèles.)`, mode: "nombre", prefixe: "Hauteur :", suffixe: "m", attendu: H,
-      aides: ["Les poteaux verticaux sont parallèles : on a une configuration de Thalès.", `$\dfrac{h}{${nb(h)}} = \dfrac{${D}}{${d}}$.`, `$h = \dfrac{${nb(h)} \times ${D}}{${d}}$.`], solution: `$h = \dfrac{${nb(h)} \times ${D}}{${d}} = ${nb(H)}$ m.` };
+      aides: ["Les poteaux verticaux sont parallèles : on a une configuration de Thalès.", `$\\dfrac{h}{${nb(h)}} = \\dfrac{${D}}{${d}}$.`, `$h = \\dfrac{${nb(h)} \\times ${D}}{${d}}$.`], solution: `$h = \\dfrac{${nb(h)} \\times ${D}}{${d}} = ${nb(H)}$ m.` };
   };
 
   /* =====================================================================

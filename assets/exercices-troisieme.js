@@ -3,7 +3,7 @@
   Ce fichier se charge après assets/exercices-college.js et reprend ses outils (window.PM_EXO.college).
   Mêmes règles : chaque générateur fabrique une question avec des nombres tirés au hasard, la réponse
   attendue, trois indices progressifs et la solution rédigée.
-  Préfixes : cn3-, dv3-, fc3-, eq3-, ar3-, fn3-, fa3-, pp3-, pr3-.
+  Préfixes : cn3-, dv3-, fc3-, eq3-, ar3-, fn3-, fa3-, pp3-, pr3-, st3-.
 */
 (function () {
   "use strict";
@@ -861,8 +861,89 @@
     return { enonce: Q[0], mode: "choix", choix, attendu, aides: ["Une probabilité est entre $0$ et $1$.", "La fréquence observée se rapproche de la probabilité quand le nombre d'essais augmente.", "Les lancers successifs d'une pièce sont indépendants."], solution: `Réponse : ${Q[1]}.` };
   };
 
+  /* =====================================================================
+     Chapitre 10 : statistiques (st3-) — fréquences, indicateurs, classes, comparaison
+     ===================================================================== */
+  const med3 = (T) => { const n = T.length; return n % 2 ? T[(n - 1) / 2] : (T[n / 2 - 1] + T[n / 2]) / 2; };
+
+  GEN["st3-frequences"] = function () {
+    const N = pick([20, 25, 40, 50, 200, 100]), cats = pick([["Bus", "Voiture", "À pied", "Taxi"], ["Football", "Handball", "Basket", "Natation"], ["Mangue", "Banane", "Ananas", "Papaye"]]);
+    for (;;) {
+      const e = cats.map(() => rand(1, N)); const s = e.slice(0, 3).reduce((a, b) => a + b, 0); if (s >= N) continue; e[3] = N - s;
+      const i = rand(0, 3), f = arr((e[i] / N) * 100, 2);
+      if (!Number.isInteger(f * 10)) continue;
+      const tab = { lignes: [["\\text{Choix}", "\\text{Effectif}"], ...cats.map((c, j) => [`\\text{${c}}`, String(e[j])])] };
+      return { enonce: `Le tableau donne les réponses de $${N}$ personnes. Quelle est la fréquence de la réponse « ${cats[i]} », en pourcentage ?`, tableau: tab, mode: "nombre", prefixe: "Fréquence :", suffixe: "%", attendu: f,
+        erreurs: [{ valeur: arr(e[i] / N, 4), message: "Ça, c'est la fréquence en écriture décimale : multiplie par $100$ pour l'avoir en pourcentage." }, { valeur: e[i], message: "Ça, c'est l'effectif ; divise-le par l'effectif total." }],
+        aides: ["Fréquence $= \\dfrac{\\text{effectif}}{\\text{effectif total}}$.", `$\\dfrac{${e[i]}}{${N}} = ${nb(arr(e[i] / N, 4))}$.`, "Multiplie par $100$ pour obtenir un pourcentage."], solution: `$\\dfrac{${e[i]}}{${N}} \\times 100 = ${nb(f)}\\,\\%$.` };
+    }
+  };
+
+  GEN["st3-indicateurs"] = function () {
+    for (;;) {
+      const v0 = rand(5, 14), vals = [0, 1, 2, 3, 4, 5].slice(0, rand(5, 6)).map((k) => v0 + k), eff = vals.map(() => rand(1, 9)), N = eff.reduce((a, b) => a + b, 0);
+      const T = []; vals.forEach((v, i) => { for (let k = 0; k < eff[i]; k++) T.push(v); });
+      const S = vals.reduce((s, v, i) => s + v * eff[i], 0), m = S / N, q = rand(0, 2);
+      if (q === 0 && !Number.isInteger(m * 100)) continue;
+      const tab = { lignes: [["\\text{Note}", ...vals.map(String)], ["\\text{Effectif}", ...eff.map(String)]] };
+      if (q === 0) return { enonce: "Le tableau donne les notes d'un contrôle. Calcule la moyenne de la classe.", tableau: tab, mode: "nombre", prefixe: "Moyenne :", attendu: m,
+        erreurs: [{ valeur: arr(vals.reduce((a, b) => a + b, 0) / vals.length, 4), message: "Il faut pondérer chaque note par son effectif." }],
+        aides: ["Moyenne $= \\dfrac{\\text{somme des (note} \\times \\text{effectif)}}{\\text{effectif total}}$.", `Somme : $${S}$.`, `Effectif total : $${N}$.`], solution: `$\\dfrac{${S}}{${N}} = ${nb(m)}$.` };
+      if (q === 1) { const M = med3(T);
+        return { enonce: "Le tableau donne les notes d'un contrôle. Détermine la médiane des notes.", tableau: tab, mode: "nombre", prefixe: "Médiane :", attendu: M,
+          erreurs: [{ valeur: vals[Math.floor(vals.length / 2)], message: "La médiane dépend des effectifs : utilise les effectifs cumulés." }],
+          aides: [`Effectif total : $${N}$.`, N % 2 ? `La médiane est la $${(N + 1) / 2}$e note.` : `La médiane est la moyenne des $${N / 2}$e et $${N / 2 + 1}$e notes.`, "Cumule les effectifs de gauche à droite pour trouver la colonne."],
+          solution: `Avec $${N}$ notes, ${N % 2 ? `la $${(N + 1) / 2}$e` : `les $${N / 2}$e et $${N / 2 + 1}$e`} ${N % 2 ? "est" : "donnent"} $${nb(M)}$ : la médiane est $${nb(M)}$.` }; }
+      const e = vals[vals.length - 1] - vals[0];
+      return { enonce: "Le tableau donne les notes d'un contrôle. Quelle est l'étendue de la série ?", tableau: tab, mode: "nombre", prefixe: "Étendue :", attendu: e,
+        erreurs: [{ valeur: Math.max(...eff) - Math.min(...eff), message: "L'étendue se calcule sur les notes, pas sur les effectifs." }],
+        aides: ["Étendue $=$ plus grande valeur $-$ plus petite valeur.", `Plus grande note : $${vals[vals.length - 1]}$.`, `Plus petite note : $${vals[0]}$.`], solution: `$${vals[vals.length - 1]} - ${vals[0]} = ${e}$.` };
+    }
+  };
+
+  GEN["st3-classes"] = function () {
+    for (;;) {
+      const a = pick([0, 10, 20, 140, 150]), w = pick([10, 20]), k = rand(4, 5), eff = Array.from({ length: k }, () => rand(2, 12)), N = eff.reduce((x, y) => x + y, 0);
+      const cl = eff.map((_, i) => [a + i * w, a + (i + 1) * w]), centres = cl.map(([u, v]) => (u + v) / 2), S = centres.reduce((s, c, i) => s + c * eff[i], 0), m = S / N;
+      const unite = a >= 140 ? "Taille (cm)" : "Temps (min)";
+      const tab = { lignes: [[`\\text{${unite}}`, "\\text{Effectif}"], ...cl.map(([u, v], j) => [`[${u} ; ${v}[`, String(eff[j])])] };
+      if (Math.random() < 0.5) {
+        if (!Number.isInteger(m * 100)) continue;
+        return { enonce: "Les données sont regroupées en classes. Calcule une estimation de la moyenne en utilisant le centre de chaque classe.", tableau: tab, mode: "nombre", prefixe: "Moyenne :", attendu: m,
+          erreurs: [{ valeur: arr(cl.reduce((s, [u], i) => s + u * eff[i], 0) / N, 4), message: "On prend le centre de chaque classe, pas sa borne inférieure." }],
+          aides: [`Centres des classes : $${centres.join(" \\; ; \\; ")}$.`, `Somme des (centre $\\times$ effectif) : $${S}$.`, `Effectif total : $${N}$.`], solution: `$\\dfrac{${S}}{${N}} = ${nb(m)}$.` };
+      }
+      let c = 0, j = 0; const rang = Math.ceil(N / 2); while (c + eff[j] < rang) { c += eff[j]; j++; }
+      const bonne = `$[${cl[j][0]} ; ${cl[j][1]}[$`, faux = cl.filter((_, i) => i !== j).map(([u, v]) => `$[${u} ; ${v}[$`);
+      const { choix, attendu } = melange(bonne, shuffle(faux).slice(0, 3));
+      return { enonce: "Les données sont regroupées en classes. Dans quelle classe se trouve la médiane ?", tableau: tab, mode: "choix", choix, attendu,
+        aides: [`Effectif total : $${N}$ ; la médiane est vers la $${rang}$e valeur.`, "Cumule les effectifs de gauche à droite.", `Effectifs cumulés : $${eff.map((_, i) => eff.slice(0, i + 1).reduce((x, y) => x + y, 0)).join(" \\; ; \\; ")}$.`],
+        solution: `Les effectifs cumulés atteignent $${rang}$ dans la classe ${bonne} : la médiane s'y trouve.` };
+    }
+  };
+
+  GEN["st3-comparer"] = function () {
+    if (Math.random() < 0.5) { // note nécessaire
+      const n = rand(3, 6), notes = Array.from({ length: n }, () => rand(6, 18)), M = rand(10, 15), x = M * (n + 1) - notes.reduce((a, b) => a + b, 0);
+      if (x < 0 || x > 20) return GEN["st3-comparer"]();
+      return { enonce: `Lina a obtenu les notes $${notes.join(" \\; ; \\; ")}$. Quelle note doit-elle avoir au prochain contrôle pour obtenir une moyenne de $${M}$ ?`, mode: "nombre", prefixe: "Note :", attendu: x,
+        erreurs: [{ valeur: M, message: "Ce n'est pas la moyenne voulue elle-même : les autres notes comptent aussi." }],
+        aides: [`Avec $${n + 1}$ notes de moyenne $${M}$, la somme doit être $${n + 1} \\times ${M} = ${M * (n + 1)}$.`, `Somme actuelle : $${notes.reduce((a, b) => a + b, 0)}$.`, "Fais la différence."],
+        solution: `$${M * (n + 1)} - ${notes.reduce((a, b) => a + b, 0)} = ${x}$ : il lui faut $${x}$.` };
+    }
+    const m = rand(10, 14), e1 = rand(3, 6), e2 = rand(10, 16), A = pick(["A", "B"]);
+    const Q = pick([
+      [`Deux classes ont la même moyenne, $${m}$. L'étendue des notes est $${e1}$ en 3e ${A === "A" ? "A" : "B"} et $${e2}$ en 3e ${A === "A" ? "B" : "A"}. On peut dire que :`, `les notes de la 3e ${A === "A" ? "B" : "A"} sont plus dispersées`, [`les notes de la 3e ${A === "A" ? "A" : "B"} sont plus dispersées`, "les deux classes ont les mêmes notes", `la 3e ${A === "A" ? "B" : "A"} a la meilleure médiane`]],
+      [`Dans une série, la médiane est $${m}$ et la moyenne $${m + rand(2, 4)}$. Cela peut s'expliquer par :`, "quelques valeurs très grandes", ["quelques valeurs très petites", "une étendue égale à zéro", "une erreur de calcul obligatoire"]],
+      [`La médiane des salaires d'une entreprise est $${nb(m * 150)}$ €. Cela signifie :`, `qu'au moins la moitié des salariés gagne $${nb(m * 150)}$ € ou moins`, [`que tous les salariés gagnent $${nb(m * 150)}$ €`, `que le salaire moyen est $${nb(m * 150)}$ €`, `que la moitié gagne exactement $${nb(m * 150)}$ €`]],
+      [`On ajoute la valeur $${m * 10}$ à une série dont toutes les valeurs sont entre $${m - 3}$ et $${m + 3}$. Quel indicateur change le plus ?`, "la moyenne et l'étendue", ["la médiane seulement", "aucun indicateur", "l'effectif total seulement"]]
+    ]);
+    const { choix, attendu } = melange(Q[1], Q[2]);
+    return { enonce: Q[0], mode: "choix", choix, attendu, aides: ["La moyenne est sensible aux valeurs extrêmes ; la médiane l'est peu.", "L'étendue mesure la dispersion.", "La médiane partage la série en deux groupes de même effectif."], solution: `Réponse : ${Q[1]}.` };
+  };
+
   /* Une « erreur connue » ne doit jamais coïncider avec la bonne réponse */
-  Object.keys(GEN).filter((k) => /^(cn3|dv3|fc3|eq3|ar3|fn3|fa3|pp3|pr3)-/.test(k)).forEach((k) => {
+  Object.keys(GEN).filter((k) => /^(cn3|dv3|fc3|eq3|ar3|fn3|fa3|pp3|pr3|st3)-/.test(k)).forEach((k) => {
     const g = GEN[k];
     GEN[k] = (i) => {
       const q = g(i);

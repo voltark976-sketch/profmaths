@@ -53,6 +53,7 @@ Site statique : aucune base de données, aucun compte élève. Ouvrir `index.htm
   - `data/quatrieme/cosinus.js` : 4e, chapitre 11 (cosinus d'un angle aigu, calcul de longueurs et d'angles, problèmes). Générateurs `cs4-` ; figure `figCos()`.
   - `data/quatrieme/translation.js` : 4e, chapitre 12 (translation sur quadrillage, image d'un point, reconnaître une transformation, propriétés). Générateurs `tl4-` ; figure `grilleT()`.
   - `data/quatrieme/equations.js` : 4e, chapitre 13 (équations du premier degré, inconnue dans les deux membres, parenthèses, mise en équation). Générateurs `eq4-`.
+  -   - `data/troisieme/statistiques.js` : 3e, chapitre 10 (fréquences, moyenne, médiane, étendue, données en classes, comparaison de séries). Générateurs `st3-`.
   -   - `data/troisieme/probabilites.js` : 3e, chapitre 9 (contraire, non-équiprobabilité, deux dés, tirages avec ou sans remise, arbres, fréquences). Générateurs `pr3-`.
   -   - `data/troisieme/proportionnalite.js` : 3e, chapitre 8 (pourcentages, taux d'évolution, évolutions successives, valeur initiale, vitesse, débit, masse volumique). Générateurs `pp3-`.
   -   - `data/troisieme/fonctions-affines.js` : 3e, chapitre 7 (fonctions linéaires et affines, lecture de droites, a et b à partir de deux images, pourcentages et tarifs). Générateurs `fa3-`.

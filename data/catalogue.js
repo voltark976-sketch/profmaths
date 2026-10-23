@@ -447,7 +447,7 @@ window.CATALOGUE = {
           id: "troisieme-statistiques",
           numero: 10,
           titre: "Statistiques",
-          statut: "bientot",
+          statut: "disponible",
           drive: ""
         },
         {
