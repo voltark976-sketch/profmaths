@@ -378,8 +378,121 @@ window.CATALOGUE = {
       id: "troisieme",
       nom: "3e",
       groupe: "college",
-      intro: "Programme de 3e en vigueur en 2026-2027 (cycle 4, programme de 2020), celui du brevet 2027. Les chapitres sont en préparation.",
-      chapitres: []
+      intro: "Programme de 3e en vigueur en 2026-2027 (cycle 4, programme de 2020), celui du brevet 2027. Les chapitres arrivent un par un ; les vidéos et les cours PDF sont ceux d'Yvan Monka.",
+      chapitres: [
+        {
+          id: "troisieme-calcul-numerique",
+          numero: 1,
+          titre: "Calcul numérique : fractions et puissances",
+          statut: "disponible",
+          drive: ""
+        },
+        {
+          id: "troisieme-developper",
+          numero: 2,
+          titre: "Développer",
+          statut: "bientot",
+          drive: ""
+        },
+        {
+          id: "troisieme-factoriser",
+          numero: 3,
+          titre: "Factoriser",
+          statut: "bientot",
+          drive: ""
+        },
+        {
+          id: "troisieme-equations",
+          numero: 4,
+          titre: "Équations",
+          statut: "bientot",
+          drive: ""
+        },
+        {
+          id: "troisieme-arithmetique",
+          numero: 5,
+          titre: "Arithmétique",
+          statut: "bientot",
+          drive: ""
+        },
+        {
+          id: "troisieme-fonctions",
+          numero: 6,
+          titre: "Notion de fonction",
+          statut: "bientot",
+          drive: ""
+        },
+        {
+          id: "troisieme-fonctions-affines",
+          numero: 7,
+          titre: "Fonctions linéaires et affines",
+          statut: "bientot",
+          drive: ""
+        },
+        {
+          id: "troisieme-proportionnalite",
+          numero: 8,
+          titre: "Proportionnalité et pourcentages",
+          statut: "bientot",
+          drive: ""
+        },
+        {
+          id: "troisieme-probabilites",
+          numero: 9,
+          titre: "Probabilités",
+          statut: "bientot",
+          drive: ""
+        },
+        {
+          id: "troisieme-statistiques",
+          numero: 10,
+          titre: "Statistiques",
+          statut: "bientot",
+          drive: ""
+        },
+        {
+          id: "troisieme-thales",
+          numero: 11,
+          titre: "Théorème de Thalès",
+          statut: "bientot",
+          drive: ""
+        },
+        {
+          id: "troisieme-triangles-semblables",
+          numero: 12,
+          titre: "Triangles semblables",
+          statut: "bientot",
+          drive: ""
+        },
+        {
+          id: "troisieme-trigonometrie",
+          numero: 13,
+          titre: "Trigonométrie",
+          statut: "bientot",
+          drive: ""
+        },
+        {
+          id: "troisieme-transformations",
+          numero: 14,
+          titre: "Transformations",
+          statut: "bientot",
+          drive: ""
+        },
+        {
+          id: "troisieme-espace",
+          numero: 15,
+          titre: "Géométrie dans l'espace",
+          statut: "bientot",
+          drive: ""
+        },
+        {
+          id: "troisieme-informatique",
+          numero: 16,
+          titre: "Programmation",
+          statut: "bientot",
+          drive: ""
+        }
+      ]
     },
     {
       id: "seconde",
