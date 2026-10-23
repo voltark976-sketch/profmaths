@@ -3,7 +3,7 @@
   Ce fichier se charge après assets/exercices-college.js et reprend ses outils (window.PM_EXO.college).
   Mêmes règles : chaque générateur fabrique une question avec des nombres tirés au hasard, la réponse
   attendue, trois indices progressifs et la solution rédigée.
-  Préfixes : cn3-, dv3-, fc3-, eq3-, ar3-.
+  Préfixes : cn3-, dv3-, fc3-, eq3-, ar3-, fn3-.
 */
 (function () {
   "use strict";
@@ -505,8 +505,113 @@
     return { enonce: Q[0], mode: "choix", choix, attendu, aides: ["Écris les nombres avec des lettres : pair $= 2k$, impair $= 2k + 1$, multiple de $3$ $= 3k$.", "Développe et factorise pour faire apparaître la forme voulue.", "Un nombre premier a exactement deux diviseurs."], solution: Q[3] };
   };
 
+  /* =====================================================================
+     Chapitre 6 : notion de fonction (fn3-) — image, antécédent, tableau, courbe
+     ===================================================================== */
+  // Repère quadrillé (unité = 1) avec la courbe de f sur [xmin ; xmax] ; o.lignes : droites horizontales y = k en pointillés
+  function repere3(o) {
+    const { f, xmin, xmax, ymin, ymax } = o, u = Math.min(28, Math.floor(300 / (xmax - xmin))), v = Math.min(24, Math.floor(260 / (ymax - ymin)));
+    const mx = 18, my = 12, W = mx * 2 + u * (xmax - xmin), H = my * 2 + v * (ymax - ymin);
+    const X = (x) => +(mx + (x - xmin) * u).toFixed(1), Y = (y) => +(my + (ymax - y) * v).toFixed(1);
+    let s = `<svg class="graph repere3" viewBox="0 0 ${W} ${H}" style="max-width:${W}px" role="img" aria-label="${o.aria}"><g class="g-grid">`;
+    for (let x = xmin; x <= xmax; x++) s += `<line x1="${X(x)}" y1="${Y(ymax)}" x2="${X(x)}" y2="${Y(ymin)}"/>`;
+    for (let y = ymin; y <= ymax; y++) s += `<line x1="${X(xmin)}" y1="${Y(y)}" x2="${X(xmax)}" y2="${Y(y)}"/>`;
+    s += `</g><g class="g-axis"><line x1="${X(xmin)}" y1="${Y(0)}" x2="${X(xmax)}" y2="${Y(0)}"/><line x1="${X(0)}" y1="${Y(ymin)}" x2="${X(0)}" y2="${Y(ymax)}"/></g><g class="g-tick">`;
+    for (let x = xmin; x <= xmax; x++) if (x !== 0 && (xmax - xmin <= 12 || x % 2 === 0)) s += `<text x="${X(x)}" y="${Y(0) + 12}" text-anchor="middle">${x}</text>`;
+    for (let y = ymin; y <= ymax; y++) if (y !== 0 && (ymax - ymin <= 12 || y % 2 === 0)) s += `<text x="${X(0) - 4}" y="${Y(y) + 4}" text-anchor="end">${y}</text>`;
+    s += `<text x="${X(0) - 4}" y="${Y(0) + 12}" text-anchor="end">0</text></g>`;
+    (o.lignes || []).forEach((k) => { s += `<line class="g-hline" x1="${X(xmin)}" y1="${Y(k)}" x2="${X(xmax)}" y2="${Y(k)}"/>`; });
+    const P = []; for (let i = 0; i <= 120; i++) { const x = xmin + ((xmax - xmin) * i) / 120, y = f(x); if (y >= ymin - 0.01 && y <= ymax + 0.01) P.push(`${X(x)},${Y(y)}`); else if (P.length && P[P.length - 1] !== "|") P.push("|"); }
+    P.join(" ").split("|").filter((z) => z.trim()).forEach((seg) => { s += `<polyline class="g-curve" points="${seg.trim()}"/>`; });
+    return s + `<text class="g-plabel" x="${X(xmax) - 4}" y="${Y(ymax) + 14}" text-anchor="end">${o.nom || "𝒞"}</text></svg>`;
+  }
+  // parabole y = p(x − h)² + m tenant dans la fenêtre, valeurs entières aux points utiles
+  const parabole3 = () => {
+    for (;;) {
+      const p = pick([1, -1, 0.5, -0.5]), h = rand(-2, 2), m = rand(-4, 4), f = (x) => p * (x - h) ** 2 + m;
+      const xmin = h - 4, xmax = h + 4, ys = [xmin, xmax].map(f); const ymin = Math.floor(Math.min(m, ...ys)), ymax = Math.ceil(Math.max(m, ...ys));
+      if (ymax - ymin > 14 || ymin > 0 || ymax < 0 || xmin > 0 || xmax < 0) continue;
+      return { p, h, m, f, xmin, xmax, ymin: Math.min(ymin, -1), ymax: Math.max(ymax, 1) };
+    }
+  };
+
+  GEN["fn3-image"] = function () {
+    const x = "x", a = nz(1, 4, true), b = rand(-6, 6), c = rand(-9, 9), v = nz(1, 6, true), t = rand(0, 1);
+    if (t === 0) {
+      const r = a * v * v + b * v + c;
+      return { enonce: `On considère la fonction $f : x \\mapsto ${poly(a, b, c, x)}$. Calcule l'image de $${rel(v)}$ par $f$.`, mode: "nombre", prefixe: `$f(${rel(v)}) =$`, attendu: r,
+        erreurs: [{ valeur: -a * v * v + b * v + c, message: `$${relP(v)}^2 = ${v * v}$ est positif.` }, { valeur: a * 2 * v + b * v + c, message: "$x^2$ n'est pas $2x$." }],
+        aides: [`Remplace $x$ par $${relP(v)}$ dans l'expression.`, `$f(${rel(v)}) = ${a === 1 ? "" : a === -1 ? "-" : `${a} \\times `}${relP(v)}^2 ${b < 0 ? "-" : "+"} ${Math.abs(b)} \\times ${relP(v)} ${c < 0 ? "-" : "+"} ${Math.abs(c)}$.`, `$${relP(v)}^2 = ${v * v}$ ; respecte les priorités.`],
+        solution: `$f(${rel(v)}) = ${rel(a * v * v)} ${b * v < 0 ? "-" : "+"} ${Math.abs(b * v)} ${c < 0 ? "-" : "+"} ${Math.abs(c)} = ${rel(r)}$.` };
+    }
+    // antécédent par une fonction affine : résoudre f(x) = k
+    const s = rand(-8, 9), k = a * s + b;
+    return { enonce: `On considère la fonction $g : x \\mapsto ${poly(0, a, b, x)}$. Quel est l'antécédent de $${rel(k)}$ par $g$ ?`, mode: "nombre", prefixe: "Antécédent :", attendu: s,
+      erreurs: [{ valeur: a * k + b, message: `Ça, c'est l'image de $${rel(k)}$. On cherche $x$ tel que $g(x) = ${rel(k)}$.` }],
+      aides: [`On cherche $x$ tel que $g(x) = ${rel(k)}$.`, `Résous $${poly(0, a, b, x)} = ${rel(k)}$.`, `$${poly(0, a, 0, x)} = ${rel(k - b)}$.`],
+      solution: `$${poly(0, a, b, x)} = ${rel(k)}$ donne $${poly(0, a, 0, x)} = ${rel(k - b)}$, donc $x = ${rel(s)}$. L'antécédent de $${rel(k)}$ est $${rel(s)}$.` };
+  };
+
+  GEN["fn3-tableau"] = function () {
+    const xs = shuffle([-3, -2, -1, 0, 1, 2, 3, 4, 5]).slice(0, 5).sort((p, q) => p - q), a = nz(1, 3, true), b = rand(-4, 4), c = rand(-6, 6);
+    const f = (x) => a * x * x + b * x + c, ys = xs.map(f), tab = { lignes: [["x", ...xs.map(rel)], ["f(x)", ...ys.map(rel)]] };
+    const t = rand(0, 2), i = rand(0, xs.length - 1);
+    if (t === 0) return { enonce: "Voici un tableau de valeurs d'une fonction $f$. Quelle est l'image de " + `$${rel(xs[i])}$ par $f$ ?`, tableau: tab, mode: "nombre", prefixe: `$f(${rel(xs[i])}) =$`, attendu: ys[i],
+      aides: ["L'image de $x$ se lit sur la deuxième ligne, sous $x$.", `Repère la colonne où $x = ${rel(xs[i])}$.`, "Lis la valeur de $f(x)$ dans cette colonne."], solution: `Sous $x = ${rel(xs[i])}$, on lit $f(${rel(xs[i])}) = ${rel(ys[i])}$.` };
+    const cnt = ys.filter((y) => y === ys[i]).length;
+    if (t === 1 && cnt === 1 && !xs.includes(ys[i])) return { enonce: `Voici un tableau de valeurs d'une fonction $f$. D'après ce tableau, quel est un antécédent de $${rel(ys[i])}$ par $f$ ?`, tableau: tab, mode: "nombre", prefixe: "Antécédent :", attendu: xs[i],
+      aides: ["Un antécédent de $k$ est une valeur de $x$ dont l'image est $k$.", `Cherche $${rel(ys[i])}$ sur la deuxième ligne.`, "Lis la valeur de $x$ au-dessus."], solution: `On lit $f(${rel(xs[i])}) = ${rel(ys[i])}$ : $${rel(xs[i])}$ est un antécédent de $${rel(ys[i])}$.` };
+    const k = rand(0, xs.length - 1);
+    return { enonce: `Voici un tableau de valeurs d'une fonction $f$. Calcule $f(${rel(xs[k])}) + f(${rel(xs[i])})$.`, tableau: tab, mode: "nombre", prefixe: "Résultat :", attendu: ys[k] + ys[i],
+      aides: ["Lis chaque image dans le tableau.", `$f(${rel(xs[k])}) = ${rel(ys[k])}$.`, `$f(${rel(xs[i])}) = ${rel(ys[i])}$.`], solution: `$${rel(ys[k])} + ${relP(ys[i])} = ${rel(ys[k] + ys[i])}$.` };
+  };
+
+  GEN["fn3-graphe"] = function () {
+    const P = parabole3(), t = rand(0, 1), fig = (lignes) => repere3({ f: P.f, xmin: P.xmin, xmax: P.xmax, ymin: P.ymin, ymax: P.ymax, lignes, nom: "𝒞f", aria: `Courbe d'une parabole de sommet (${P.h} ; ${P.m})` });
+    if (t === 0) {
+      let x0; do x0 = rand(P.xmin, P.xmax); while (!Number.isInteger(P.f(x0)) || P.f(x0) < P.ymin || P.f(x0) > P.ymax || x0 === 0);
+      const y0 = P.f(x0);
+      return { enonce: `La courbe représente une fonction $f$. Lis l'image de $${rel(x0)}$ par $f$.`, figure: fig(), mode: "nombre", prefixe: `$f(${rel(x0)}) =$`, attendu: y0,
+        erreurs: [{ valeur: x0, message: "Pars de $" + rel(x0) + "$ sur l'axe des abscisses (horizontal) et lis l'ordonnée du point de la courbe." }],
+        aides: [`Place-toi à $x = ${rel(x0)}$ sur l'axe horizontal.`, "Monte ou descends jusqu'à la courbe.", "Lis l'ordonnée de ce point sur l'axe vertical."],
+        solution: `Le point de la courbe d'abscisse $${rel(x0)}$ a pour ordonnée $${rel(y0)}$ : $f(${rel(x0)}) = ${rel(y0)}$.` };
+    }
+    // antécédents de k (deux, entiers)
+    for (let e = 0; e < 50; e++) {
+      const d = pick(Math.abs(P.p) === 0.5 ? [2] : [1, 2, 3]), k = P.m + P.p * d * d, s1 = P.h - d, s2 = P.h + d;
+      if (!Number.isInteger(k) || k < P.ymin || k > P.ymax || s1 < P.xmin || s2 > P.xmax) continue;
+      const bonne = `$${rel(s1)}$ et $${rel(s2)}$`;
+      const faux = uniq3(bonne, [`$${rel(P.f(k))}$`, `$${rel(s1)}$ seulement`, `$${rel(-s1)}$ et $${rel(-s2)}$`, `$${rel(k)}$`, `$${rel(s2)}$ seulement`]);
+      const { choix, attendu } = melange(bonne, faux);
+      return { enonce: `La courbe représente une fonction $f$. Quels sont les antécédents de $${rel(k)}$ par $f$ ?`, figure: fig([k]), mode: "choix", choix, attendu,
+        aides: [`Trace la droite horizontale d'ordonnée $${rel(k)}$ (en pointillés).`, "Repère les points où elle coupe la courbe.", "Lis les abscisses de ces points."],
+        solution: `La droite d'ordonnée $${rel(k)}$ coupe la courbe en deux points, d'abscisses $${rel(s1)}$ et $${rel(s2)}$ : ce sont les antécédents de $${rel(k)}$.` };
+    }
+    return GEN["fn3-graphe"]();
+  };
+
+  GEN["fn3-vocab"] = function () {
+    const a = rand(-9, 9), b = rand(-9, 12), t = rand(0, 3);
+    if (t === 0) {
+      const bonne = `l'image de $${rel(a)}$ par $f$ est $${rel(b)}$`, faux = [`l'image de $${rel(b)}$ par $f$ est $${rel(a)}$`, `$${rel(b)}$ a pour antécédent $${rel(b)}$`, `$f$ multiplié par $${relP(a)}$ vaut $${rel(b)}$`];
+      const { choix, attendu } = melange(bonne, faux);
+      return { enonce: `L'égalité $f(${rel(a)}) = ${rel(b)}$ signifie :`, mode: "choix", choix, attendu, aides: ["$f(x)$ se lit « $f$ de $x$ » : c'est l'image de $x$.", "La valeur entre parenthèses est le nombre de départ.", "Le résultat est son image."], solution: `$f(${rel(a)}) = ${rel(b)}$ : l'image de $${rel(a)}$ est $${rel(b)}$, et $${rel(a)}$ est un antécédent de $${rel(b)}$.` };
+    }
+    if (t === 1) {
+      const bonne = `$${rel(a)}$ est un antécédent de $${rel(b)}$`, faux = [`$${rel(b)}$ est un antécédent de $${rel(a)}$`, `$${rel(a)}$ est l'image de $${rel(b)}$`, `$f(${rel(b)}) = ${rel(a)}$`];
+      const { choix, attendu } = melange(bonne, faux);
+      return { enonce: `On sait que $f(${rel(a)}) = ${rel(b)}$. On peut dire que :`, mode: "choix", choix, attendu, aides: ["L'antécédent est le nombre de départ.", "L'image est le nombre d'arrivée.", `Ici le nombre de départ est $${rel(a)}$.`], solution: `$${rel(a)}$ est un antécédent de $${rel(b)}$ (et $${rel(b)}$ est l'image de $${rel(a)}$).` };
+    }
+    // programme de calcul → expression
+    const k = rand(2, 9), m = rand(2, 9), u = rand(0, 1);
+    const bonne = u ? `$f(x) = ${k}(x + ${m})$` : `$f(x) = ${k}x + ${m}$`, faux = u ? [`$f(x) = ${k}x + ${m}$`, `$f(x) = x + ${k * m}$`, `$f(x) = ${k + m}x$`] : [`$f(x) = ${k}(x + ${m})$`, `$f(x) = ${k + m}x$`, `$f(x) = (x + ${m})^{${k}}$`];
+    const { choix, attendu } = melange(bonne, faux);
+    return { enonce: `Une fonction $f$ correspond au programme : ${u ? `« ajouter $${m}$, puis multiplier par $${k}$ »` : `« multiplier par $${k}$, puis ajouter $${m}$ »`}. Son expression est :`, mode: "choix", choix, attendu,
+      aides: ["Applique le programme à $x$, étape par étape.", u ? `D'abord $x + ${m}$, puis on multiplie le tout par $${k}$.` : `D'abord $${k}x$, puis on ajoute $${m}$.`, "Les parenthèses sont nécessaires quand l'addition est faite en premier."], solution: `Réponse : ${bonne}.` };
+  };
+
   /* Une « erreur connue » ne doit jamais coïncider avec la bonne réponse */
-  Object.keys(GEN).filter((k) => /^(cn3|dv3|fc3|eq3|ar3)-/.test(k)).forEach((k) => {
+  Object.keys(GEN).filter((k) => /^(cn3|dv3|fc3|eq3|ar3|fn3)-/.test(k)).forEach((k) => {
     const g = GEN[k];
     GEN[k] = (i) => {
       const q = g(i);

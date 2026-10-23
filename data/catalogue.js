@@ -419,7 +419,7 @@ window.CATALOGUE = {
           id: "troisieme-fonctions",
           numero: 6,
           titre: "Notion de fonction",
-          statut: "bientot",
+          statut: "disponible",
           drive: ""
         },
         {
