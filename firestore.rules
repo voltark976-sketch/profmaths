@@ -18,7 +18,8 @@ service cloud.firestore {
     // prof.maths (sans marque « groupes ») lit toutes les fiches : page « Tous les comptes »
     match /eleves/{uid} {
       // Un professeur ne lit que les élèves de ses classes (marque « groupes » ; sans elle, toutes les classes)
-      allow read: if (eleve() && request.auth.uid == uid)
+      // prof.maths lit toutes les fiches, même rattaché à des classes (page « Tous les comptes »)
+      allow read: if (eleve() && request.auth.uid == uid) || chef()
         || (prof() && (!('groupes' in request.auth.token) || resource.data.groupe in request.auth.token.groupes));
       allow create, update: if eleve() && request.auth.uid == uid
         && request.resource.data.keys().hasOnly(['identifiant', 'prenom', 'nom', 'classe', 'groupe', 'xp', 'exo', 'qcm', 'jeux', 'avatar', 'quand', 'temps', 'vuLe', 'creeLe', 'majLe'])
@@ -28,7 +29,7 @@ service cloud.firestore {
     // Liste des élèves de chaque classe (identifiant, prénom, nom), écrite seulement par outils/comptes (--classes) :
     // permet d'afficher dans le suivi les élèves jamais connectés. Un professeur lit celles de ses classes (document par document).
     match /classes/{groupe} {
-      allow read: if prof() && (!('groupes' in request.auth.token) || groupe in request.auth.token.groupes);
+      allow read: if chef() || (prof() && (!('groupes' in request.auth.token) || groupe in request.auth.token.groupes));
     }
     // Progression personnelle d'un professeur (exercices faits avec son propre compte, ou compte prof approuvé),
     // avec son identité, son temps actif et sa dernière activité (temps, vuLe), lus par prof.maths (page « Tous les comptes »)
