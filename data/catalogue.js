@@ -412,7 +412,7 @@ window.CATALOGUE = {
           id: "troisieme-arithmetique",
           numero: 5,
           titre: "Arithmétique",
-          statut: "bientot",
+          statut: "disponible",
           drive: ""
         },
         {

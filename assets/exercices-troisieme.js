@@ -3,7 +3,7 @@
   Ce fichier se charge après assets/exercices-college.js et reprend ses outils (window.PM_EXO.college).
   Mêmes règles : chaque générateur fabrique une question avec des nombres tirés au hasard, la réponse
   attendue, trois indices progressifs et la solution rédigée.
-  Préfixes : cn3-, dv3-, fc3-, eq3-.
+  Préfixes : cn3-, dv3-, fc3-, eq3-, ar3-.
 */
 (function () {
   "use strict";
@@ -405,8 +405,108 @@
       aides: [`Soit $x$ le côté : $(x + ${k})^2 - x^2 = ${d}$.`, `Développe : $x^2 + ${2 * k}x + ${k * k} - x^2 = ${d}$.`, `$${2 * k}x + ${k * k} = ${d}$.`], solution: `$${2 * k}x = ${d - k * k}$, donc $x = ${c}$ cm.` };
   };
 
+  /* =====================================================================
+     Chapitre 5 : arithmétique (ar3-) — critères, décomposition, diviseurs communs, preuves
+     ===================================================================== */
+  const premier3 = (n) => { if (n < 2) return false; for (let k = 2; k * k <= n; k++) if (n % k === 0) return false; return true; };
+  const decompo3 = (n) => { const f = []; let m = n, p = 2; while (m > 1) { while (m % p === 0) { f.push(p); m /= p; } p++; } return f; };
+  const decTex3 = (n) => { const c = {}; decompo3(n).forEach((p) => { c[p] = (c[p] || 0) + 1; }); return Object.keys(c).map((p) => (c[p] > 1 ? `${p}^{${c[p]}}` : p)).join(" \\times "); };
+  const nbDiv3 = (n) => { const c = {}; decompo3(n).forEach((p) => { c[p] = (c[p] || 0) + 1; }); return Object.values(c).reduce((a, k) => a * (k + 1), 1); };
+
+  GEN["ar3-criteres"] = function () {
+    const t = rand(0, 2);
+    if (t === 0) { // chiffre manquant pour être divisible par 9
+      for (;;) {
+        const L = Array.from({ length: rand(3, 4) }, () => rand(0, 9)); L[0] = rand(1, 9); const pos = rand(1, L.length);
+        const s = L.reduce((a, b) => a + b, 0), c = (9 - (s % 9)) % 9; if (c === 0) continue;
+        const ecr = [...L.slice(0, pos), "\\square", ...L.slice(pos)].join("");
+        return { enonce: `Quel chiffre faut-il écrire à la place de $\\square$ pour que le nombre $${ecr}$ soit divisible par $9$ ?`, mode: "nombre", prefixe: "Chiffre :", attendu: c,
+          erreurs: [{ valeur: (3 - (s % 3)) % 3, message: "Ce chiffre rend le nombre divisible par $3$, mais pas forcément par $9$." }],
+          aides: ["Un nombre est divisible par $9$ si la somme de ses chiffres est un multiple de $9$.", `Somme des chiffres connus : $${L.join(" + ")} = ${s}$.`, `Quel chiffre ajouter à $${s}$ pour obtenir un multiple de $9$ ?`],
+          solution: `$${s} + ${c} = ${s + c}$, qui est un multiple de $9$ : le chiffre est $${c}$.` };
+      }
+    }
+    if (t === 1) { // reste de la division euclidienne
+      const b = rand(6, 25), q = rand(4, 60), r = rand(1, b - 1), a = b * q + r;
+      return { enonce: `Quel est le reste de la division euclidienne de $${nb(a)}$ par $${b}$ ?`, mode: "nombre", prefixe: "Reste :", attendu: r,
+        erreurs: [{ valeur: q, message: "Ça, c'est le quotient." }],
+        aides: [`Cherche le plus grand multiple de $${b}$ inférieur ou égal à $${nb(a)}$.`, `$${b} \\times ${q} = ${nb(b * q)}$.`, `Le reste est $${nb(a)} - ${nb(b * q)}$ ; il doit être inférieur à $${b}$.`],
+        solution: `$${nb(a)} = ${b} \\times ${q} + ${r}$ avec $${r} < ${b}$ : le reste est $${r}$.` };
+    }
+    // par quels nombres est-il divisible ?
+    const n = rand(10, 999) * pick([1, 2, 3, 5, 6, 9, 10, 15]);
+    const d = [2, 3, 5, 9].filter((k) => n % k === 0), non = [2, 3, 5, 9].filter((k) => n % k);
+    const txt = (D) => (D.length ? `par $${D.join("$, $")}$` : "par aucun de ces nombres");
+    const bonne = `divisible ${txt(d)}${non.length && d.length ? `, mais pas par $${non.join("$, $")}$` : ""}`;
+    const variantes = [[2, 3], [3, 5], [2, 5], [3, 9], [2, 3, 5], [5], [3], [2], [9], [2, 9]].map((D) => `divisible ${txt(D)}${[2, 3, 5, 9].filter((k) => !D.includes(k)).length ? `, mais pas par $${[2, 3, 5, 9].filter((k) => !D.includes(k)).join("$, $")}$` : ""}`);
+    const faux = uniq3(bonne, shuffle(variantes));
+    const { choix, attendu } = melange(bonne, faux);
+    return { enonce: `Parmi $2$, $3$, $5$ et $9$, le nombre $${nb(n)}$ est :`, mode: "choix", choix, attendu,
+      aides: ["Par $2$ : chiffre des unités pair ; par $5$ : chiffre des unités $0$ ou $5$.", "Par $3$ (ou $9$) : somme des chiffres multiple de $3$ (ou de $9$).", `Somme des chiffres de $${nb(n)}$ : $${String(n).split("").join(" + ")} = ${String(n).split("").reduce((a, b) => a + +b, 0)}$.`],
+      solution: `$${nb(n)}$ est ${bonne}.` };
+  };
+
+  GEN["ar3-decomposer"] = function () {
+    let n; do { const f = Array.from({ length: rand(3, 6) }, () => pick([2, 2, 2, 3, 3, 5, 5, 7, 11, 13])); n = f.reduce((a, b) => a * b, 1); } while (n < 60 || n > 9000);
+    const t = rand(0, 1);
+    if (t === 0) {
+      const f = decompo3(n), bonne = `$${decTex3(n)}$`;
+      const faux = uniq3(bonne, [`$${decTex3(n / f[0])} \\times ${f[0] * f[0]}$`.replace(/\$ \\times/, "$ \\times"), `$${decTex3(n * 2)}$`, `$${decTex3((n / f[f.length - 1]) * 3)}$`, `$${f[0]} \\times ${n / f[0]}$`]);
+      const { choix, attendu } = melange(bonne, faux);
+      return { enonce: `Quelle est la décomposition de $${nb(n)}$ en produit de facteurs premiers ?`, mode: "choix", choix, attendu,
+        aides: ["Tous les facteurs doivent être premiers, et leur produit doit redonner le nombre.", `Divise par $2$ autant que possible, puis par $3$, $5$, $7$…`, `Commence : $${nb(n)} = ${f[0]} \\times ${nb(n / f[0])}$.`], solution: `$${nb(n)} = ${decTex3(n)}$.` };
+    }
+    const k = nbDiv3(n);
+    return { enonce: `On sait que $${nb(n)} = ${decTex3(n)}$. Combien $${nb(n)}$ a-t-il de diviseurs ?`, mode: "nombre", prefixe: "Diviseurs :", attendu: k,
+      erreurs: [{ valeur: decompo3(n).length, message: "Ça, c'est le nombre de facteurs premiers ; les diviseurs sont tous les produits possibles de ces facteurs." }],
+      aides: ["Un diviseur s'obtient en choisissant, pour chaque nombre premier, un exposant entre $0$ et celui de la décomposition.", "Si $n = p^a \\times q^b$, il y a $(a + 1)(b + 1)$ diviseurs.", `Ici : ${Object.entries(decompo3(n).reduce((c, p) => ((c[p] = (c[p] || 0) + 1), c), {})).map(([p, e]) => `$${e} + 1$`).join(", ")}.`],
+      solution: `Le nombre de diviseurs est ${Object.entries(decompo3(n).reduce((c, p) => ((c[p] = (c[p] || 0) + 1), c), {})).map(([p, e]) => `$(${e} + 1)$`).join(" $\\times$ ")} $= ${k}$.` };
+  };
+
+  GEN["ar3-problemes"] = function () {
+    const t = rand(0, 2);
+    let a, b, g;
+    do { g = rand(2, 15); a = rand(2, 12); b = rand(2, 12); } while (pgcd(a, b) !== 1 || a === b);
+    const A = g * a, B = g * b;
+    if (t === 0) return { enonce: `Un fleuriste a $${A}$ roses et $${B}$ tulipes. Il veut faire le plus grand nombre de bouquets identiques en utilisant toutes les fleurs. Combien de bouquets peut-il faire ?`, mode: "nombre", prefixe: "Bouquets :", attendu: g,
+      erreurs: [{ valeur: a + b, message: "Ça, c'est le nombre de fleurs par bouquet." }],
+      aides: [`Le nombre de bouquets doit diviser $${A}$ et $${B}$.`, `$${A} = ${decTex3(A)}$ et $${B} = ${decTex3(B)}$.`, "Prends le plus grand diviseur commun."],
+      solution: `Le plus grand diviseur commun de $${A}$ et $${B}$ est $${g}$ : $${g}$ bouquets de $${a}$ roses et $${b}$ tulipes.` };
+    if (t === 1) return { enonce: `On veut carreler une pièce rectangulaire de $${A * 10}$ cm sur $${B * 10}$ cm avec des carreaux carrés identiques, les plus grands possible, sans découpe. Quel est le côté d'un carreau ?`, mode: "nombre", prefixe: "Côté :", suffixe: "cm", attendu: g * 10,
+      erreurs: [{ valeur: a * b, message: "Ça, c'est le nombre de carreaux." }],
+      aides: [`Le côté doit diviser $${A * 10}$ et $${B * 10}$.`, `$${A * 10} = ${decTex3(A * 10)}$ et $${B * 10} = ${decTex3(B * 10)}$.`, "Prends le plus grand diviseur commun."],
+      solution: `Le plus grand diviseur commun de $${A * 10}$ et $${B * 10}$ est $${g * 10}$ : carreaux de $${g * 10}$ cm de côté ($${a} \\times ${b} = ${a * b}$ carreaux).` };
+    return { enonce: `Une classe prépare des sachets identiques avec $${A}$ bonbons et $${B}$ chocolats, en utilisant tout. On fait le plus grand nombre de sachets possible. Combien de chocolats contient chaque sachet ?`, mode: "nombre", prefixe: "Chocolats :", attendu: b,
+      erreurs: [{ valeur: g, message: "Ça, c'est le nombre de sachets." }, { valeur: a, message: "Ça, c'est le nombre de bonbons par sachet." }],
+      aides: [`Le nombre de sachets est le plus grand diviseur commun de $${A}$ et $${B}$.`, `C'est $${g}$.`, `Divise le nombre de chocolats par $${g}$.`],
+      solution: `$${g}$ sachets, chacun avec $${B} \\div ${g} = ${b}$ chocolats (et $${a}$ bonbons).` };
+  };
+
+  GEN["ar3-preuves"] = function () {
+    if (Math.random() < 0.45) { // nombres premiers dans un intervalle
+      const a = rand(2, 15) * 10, b = a + pick([10, 20, 30]), L = []; for (let k = a; k <= b; k++) if (premier3(k)) L.push(k);
+      return { enonce: `Combien y a-t-il de nombres premiers entre $${a}$ et $${b}$ ?`, mode: "nombre", prefixe: "Nombres premiers :", attendu: L.length,
+        aides: ["Élimine les nombres pairs et ceux qui se terminent par $5$.", "Teste ensuite la divisibilité par $3$ et par $7$.", `Il suffit de tester jusqu'à $${Math.floor(Math.sqrt(b))}$.`],
+        solution: `Les nombres premiers entre $${a}$ et $${b}$ sont $${L.join(" \\; ; \\; ")}$ : il y en a $${L.length}$.` };
+    }
+    const Q = pick([
+      ["Un multiple de $5$ s'écrit, avec $k$ entier :", "$5k$", ["$k + 5$", "$\\dfrac{k}{5}$", "$k^5$"], "Un multiple de $5$ est $5$ fois un entier."],
+      ["Un nombre impair s'écrit, avec $k$ entier :", "$2k + 1$", ["$2k$", "$k + 1$", "$k^2$"], "Il suit un nombre pair $2k$."],
+      ["La somme de deux nombres pairs $2k + 2m$ est :", "toujours paire", ["toujours impaire", "parfois paire", "un multiple de $4$"], "$2k + 2m = 2(k + m)$."],
+      ["La somme de deux nombres impairs $(2k + 1) + (2m + 1)$ est :", "toujours paire", ["toujours impaire", "un multiple de $4$", "un nombre premier"], "$2k + 2m + 2 = 2(k + m + 1)$."],
+      ["La somme de trois entiers consécutifs est toujours :", "un multiple de $3$", ["un multiple de $6$", "impaire", "paire"], "$n + n + 1 + n + 2 = 3(n + 1)$."],
+      ["Le produit de deux nombres impairs est :", "toujours impair", ["toujours pair", "un multiple de $4$", "parfois pair"], "$(2k + 1)(2m + 1) = 2(2km + k + m) + 1$."],
+      ["$2$ est :", "le seul nombre premier pair", ["un nombre composé", "un nombre qui n'est pas premier", "divisible par $4$"], "Ses seuls diviseurs sont $1$ et $2$."],
+      ["Le nombre $1$ est :", "ni premier ni composé", ["premier", "pair", "un multiple de tous les nombres"], "Il n'a qu'un seul diviseur."],
+      ["Si un nombre est divisible par $6$, alors il est divisible :", "par $2$ et par $3$", ["par $12$", "par $4$", "par $9$"], "$6 = 2 \\times 3$."],
+      ["Le carré d'un nombre pair $(2k)^2$ est :", "un multiple de $4$", ["impair", "un nombre premier", "un multiple de $3$"], "$(2k)^2 = 4k^2$."]
+    ]);
+    const { choix, attendu } = melange(Q[1], Q[2]);
+    return { enonce: Q[0], mode: "choix", choix, attendu, aides: ["Écris les nombres avec des lettres : pair $= 2k$, impair $= 2k + 1$, multiple de $3$ $= 3k$.", "Développe et factorise pour faire apparaître la forme voulue.", "Un nombre premier a exactement deux diviseurs."], solution: Q[3] };
+  };
+
   /* Une « erreur connue » ne doit jamais coïncider avec la bonne réponse */
-  Object.keys(GEN).filter((k) => /^(cn3|dv3|fc3|eq3)-/.test(k)).forEach((k) => {
+  Object.keys(GEN).filter((k) => /^(cn3|dv3|fc3|eq3|ar3)-/.test(k)).forEach((k) => {
     const g = GEN[k];
     GEN[k] = (i) => {
       const q = g(i);
