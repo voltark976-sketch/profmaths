@@ -292,14 +292,14 @@ window.CATALOGUE = {
           id: "quatrieme-fractions",
           numero: 4,
           titre: "Calculer avec des fractions",
-          statut: "bientot",
+          statut: "disponible",
           drive: ""
         },
         {
           id: "quatrieme-proportionnalite",
           numero: 5,
           titre: "Proportionnalité",
-          statut: "bientot",
+          statut: "disponible",
           drive: ""
         },
         {

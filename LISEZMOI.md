@@ -43,6 +43,8 @@ Site statique : aucune base de données, aucun compte élève. Ouvrir `index.htm
   - `data/quatrieme/divisibilite.js` : 4e, chapitre 1 (nombres premiers, décomposition en facteurs premiers, fractions irréductibles, problèmes). Générateurs `dp4-` dans `assets/exercices-quatrieme.js` (même modèle que la 5e).
   - `data/quatrieme/relatifs.js` : 4e, chapitre 2 (règle des signes, produits et quotients de relatifs, signe d'un produit, priorités). Générateurs `rx4-`.
   - `data/quatrieme/pythagore.js` : 4e, chapitre 3 (racine carrée, théorème de Pythagore et réciproque, problèmes). Générateurs `py4-` ; figure `figureRectangle4()`.
+  - `data/quatrieme/fractions.js` : 4e, chapitre 4 (addition et soustraction avec relatifs, multiplication, inverse et division, priorités, problèmes). Générateurs `fq4-`.
+  - `data/quatrieme/proportionnalite.js` : 4e, chapitre 5 (produits en croix, quatrième proportionnelle, pourcentages d'évolution, vitesses et conversions). Générateurs `pq4-`.
 - `data/seconde/ensembles.js` : chapitre 1 de Seconde (ensembles de nombres, intervalles, valeur absolue). Les générateurs d'exercices correspondants commencent par `ens-`, `int-` et `abs-` dans `assets/exercices.js`.
 - `data/seconde/information-chiffree.js` : chapitre 3 de Seconde.
 - `data/seconde/arithmetique.js` : chapitre 4 de Seconde (multiples, diviseurs, parité, nombres premiers, fractions irréductibles). Générateurs `ar-` dans `assets/exercices.js`.
