@@ -482,7 +482,7 @@ window.CATALOGUE = {
           id: "troisieme-espace",
           numero: 15,
           titre: "Géométrie dans l'espace",
-          statut: "bientot",
+          statut: "disponible",
           drive: ""
         },
         {

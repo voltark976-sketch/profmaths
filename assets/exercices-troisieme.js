@@ -3,7 +3,7 @@
   Ce fichier se charge après assets/exercices-college.js et reprend ses outils (window.PM_EXO.college).
   Mêmes règles : chaque générateur fabrique une question avec des nombres tirés au hasard, la réponse
   attendue, trois indices progressifs et la solution rédigée.
-  Préfixes : cn3-, dv3-, fc3-, eq3-, ar3-, fn3-, fa3-, pp3-, pr3-, st3-, th3-, ts3-, tg3-, tf3-.
+  Préfixes : cn3-, dv3-, fc3-, eq3-, ar3-, fn3-, fa3-, pp3-, pr3-, st3-, th3-, ts3-, tg3-, tf3-, ep3-.
 */
 (function () {
   "use strict";
@@ -1264,8 +1264,90 @@
     return { enonce: Q[0], mode: "choix", choix, attendu, aides: ["Translation : glissement ; rotation : on tourne autour d'un point ; homothétie : agrandissement ou réduction depuis un centre.", "Les translations et rotations conservent longueurs, angles et aires.", "Une homothétie conserve les angles, multiplie les longueurs par $|k|$ et les aires par $k^2$."], solution: `Réponse : ${Q[1]}.` };
   };
 
+  /* =====================================================================
+     Chapitre 15 : géométrie dans l'espace (ep3-) — boule, volumes, sections, repérage
+     ===================================================================== */
+  GEN["ep3-boule"] = function () {
+    const r = rand(2, 30), t = rand(0, 2);
+    if (t === 0) { const V = (4 / 3) * Math.PI * r ** 3, R = Math.round(V);
+      return { enonce: `Calcule le volume d'une boule de rayon $${r}$ cm, arrondi au cm³.`, mode: "nombre", prefixe: "Volume :", suffixe: "cm³", attendu: R,
+        erreurs: [{ valeur: Math.round(4 * Math.PI * r * r), message: "Ça, c'est l'aire de la sphère ($4\\pi r^2$). Le volume est $\\dfrac{4}{3}\\pi r^3$." }, { valeur: Math.floor(V) === R ? Math.ceil(V) : Math.floor(V), message: "Vérifie l'arrondi à l'unité." }],
+        aides: ["$V = \\dfrac{4}{3} \\pi r^3$.", `$${r}^3 = ${r ** 3}$.`, `$V = \\dfrac{4}{3} \\times \\pi \\times ${r ** 3}$.`], solution: `$V = \\dfrac{4}{3} \\pi \\times ${r}^3 \\approx ${nb(arr(V, 2))}$, soit $${nb(R)}$ cm³.` }; }
+    if (t === 1) { const A = 4 * Math.PI * r * r, R = Math.round(A);
+      return { enonce: `Calcule l'aire d'une sphère de rayon $${r}$ cm, arrondie au cm².`, mode: "nombre", prefixe: "Aire :", suffixe: "cm²", attendu: R,
+        erreurs: [{ valeur: Math.round(Math.PI * r * r), message: "Ça, c'est l'aire d'un disque. L'aire de la sphère vaut $4\\pi r^2$." }],
+        aides: ["$\\mathcal{A} = 4 \\pi r^2$.", `$${r}^2 = ${r * r}$.`, `$\\mathcal{A} = 4 \\times \\pi \\times ${r * r}$.`], solution: `$\\mathcal{A} = 4 \\pi \\times ${r}^2 \\approx ${nb(arr(A, 2))}$, soit $${nb(R)}$ cm².` }; }
+    const d = 2 * r, V = (4 / 3) * Math.PI * r ** 3, R = Math.round(V);
+    return { enonce: `Un ballon a un diamètre de $${d}$ cm. Quel est son volume, arrondi au cm³ ?`, mode: "nombre", prefixe: "Volume :", suffixe: "cm³", attendu: R,
+      erreurs: [{ valeur: Math.round((4 / 3) * Math.PI * d ** 3), message: "Le rayon est la moitié du diamètre." }],
+      aides: [`Rayon : $${d} \\div 2 = ${r}$ cm.`, "$V = \\dfrac{4}{3} \\pi r^3$.", `$\\dfrac{4}{3} \\times \\pi \\times ${r}^3$.`], solution: `$r = ${r}$ cm et $V = \\dfrac{4}{3} \\pi \\times ${r}^3 \\approx ${nb(R)}$ cm³.` };
+  };
+
+  GEN["ep3-volumes"] = function () {
+    const t = rand(0, 3);
+    if (t === 0) { const r = rand(2, 12), h = rand(3, 20), V = (Math.PI * r * r * h) / 3, R = Math.round(V);
+      return { enonce: `Calcule le volume d'un cône de révolution de rayon $${r}$ cm et de hauteur $${h}$ cm, arrondi au cm³.`, mode: "nombre", prefixe: "Volume :", suffixe: "cm³", attendu: R,
+        erreurs: [{ valeur: Math.round(Math.PI * r * r * h), message: "Ça, c'est le volume du cylindre : pour un cône, on divise par $3$." }],
+        aides: ["$V = \\dfrac{1}{3} \\times \\pi r^2 \\times h$.", `Aire de la base : $\\pi \\times ${r}^2 = ${r * r}\\pi$.`, `$V = \\dfrac{${r * r} \\pi \\times ${h}}{3}$.`], solution: `$V = \\dfrac{\\pi \\times ${r}^2 \\times ${h}}{3} \\approx ${nb(R)}$ cm³.` }; }
+    if (t === 1) { const c = rand(2, 12), h = rand(3, 18) * 3 / 3, V = (c * c * h) / 3;
+      if (!Number.isInteger(V * 100)) return GEN["ep3-volumes"]();
+      return { enonce: `Une pyramide a pour base un carré de côté $${c}$ cm et pour hauteur $${h}$ cm. Calcule son volume.`, mode: "nombre", prefixe: "Volume :", suffixe: "cm³", attendu: arr(V, 2),
+        erreurs: [{ valeur: c * c * h, message: "Pour une pyramide, on divise par $3$." }],
+        aides: ["$V = \\dfrac{1}{3} \\times \\text{aire de la base} \\times h$.", `Aire de la base : $${c}^2 = ${c * c}$ cm².`, `$V = \\dfrac{${c * c} \\times ${h}}{3}$.`], solution: `$V = \\dfrac{${c * c} \\times ${h}}{3} = ${nb(arr(V, 2))}$ cm³.` }; }
+    if (t === 2) { const k = pick([2, 3, 0.5, 4, 1.5]), V = rand(2, 40) * 8, r = arr(V * k ** 3, 3);
+      return { enonce: `Un solide a un volume de $${V}$ cm³. On l'${k > 1 ? "agrandit" : "réduit"} à l'échelle $${nb(k)}$ (longueurs multipliées par $${nb(k)}$). Quel est le volume du nouveau solide ?`, mode: "nombre", prefixe: "Volume :", suffixe: "cm³", attendu: r,
+        erreurs: [{ valeur: arr(V * k, 3), message: "Les volumes sont multipliés par $k^3$." }, { valeur: arr(V * k * k, 3), message: "$k^2$, c'est pour les aires ; pour les volumes, c'est $k^3$." }],
+        aides: ["Longueurs × $k$, aires × $k^2$, volumes × $k^3$.", `$${nb(k)}^3 = ${nb(arr(k ** 3, 4))}$.`, `$${V} \\times ${nb(arr(k ** 3, 4))}$.`], solution: `$${V} \\times ${nb(k)}^3 = ${nb(r)}$ cm³.` }; }
+    const r = rand(2, 10), h = rand(5, 25), Vc = Math.PI * r * r * h, n = Math.floor(Vc / ((4 / 3) * Math.PI * r ** 3));
+    if (n < 1) return GEN["ep3-volumes"]();
+    const L = 2 * r * pick([2, 3, 4]), Vcyl = Math.PI * r * r * L, Vb = (4 / 3) * Math.PI * r ** 3, rest = Math.round(Vcyl - (L / (2 * r)) * Vb);
+    return { enonce: `Une boîte cylindrique de rayon $${r}$ cm et de hauteur $${L}$ cm contient $${L / (2 * r)}$ balles de rayon $${r}$ cm. Quel volume reste-t-il libre dans la boîte, arrondi au cm³ ?`, mode: "nombre", prefixe: "Volume libre :", suffixe: "cm³", attendu: rest,
+      erreurs: [{ valeur: Math.round(Vcyl), message: "Retire le volume des balles." }],
+      aides: [`Volume du cylindre : $\\pi \\times ${r}^2 \\times ${L}$.`, `Volume d'une balle : $\\dfrac{4}{3} \\pi \\times ${r}^3$.`, `Volume libre : cylindre $- ${L / (2 * r)} \\times$ balle.`], solution: `$\\pi \\times ${r * r} \\times ${L} - ${L / (2 * r)} \\times \\dfrac{4}{3}\\pi \\times ${r ** 3} \\approx ${nb(rest)}$ cm³.` };
+  };
+
+  GEN["ep3-sections"] = function () {
+    if (Math.random() < 0.4) { // rayon d'une section de sphère
+      const ech = pick([1, 1, 2, 3, 0.5]), [d, rr, R] = pick([[3, 4, 5], [5, 12, 13], [4, 3, 5], [12, 5, 13], [8, 15, 17], [15, 8, 17], [7, 24, 25], [24, 7, 25], [20, 21, 29], [21, 20, 29]]).map((v) => v * ech);
+      return { enonce: `Une sphère de centre $O$ et de rayon $${nb(R)}$ cm est coupée par un plan situé à $${nb(d)}$ cm de $O$. Quel est le rayon du cercle de section ?`, mode: "nombre", prefixe: "Rayon :", suffixe: "cm", attendu: rr,
+        erreurs: [{ valeur: R - d, message: "Utilise le théorème de Pythagore dans le triangle rectangle formé par $O$, le centre de la section et un point du cercle." }],
+        aides: ["Le centre $H$ du cercle de section, le centre $O$ et un point $M$ du cercle forment un triangle rectangle en $H$.", `$OM = ${nb(R)}$ (rayon de la sphère) et $OH = ${nb(d)}$.`, `$HM^2 = ${nb(R)}^2 - ${nb(d)}^2$.`], solution: `$HM^2 = ${nb(R * R)} - ${nb(d * d)} = ${nb(rr * rr)}$, donc $HM = ${nb(rr)}$ cm.` };
+    }
+    const Q = pick([
+      ["La section d'un cube par un plan parallèle à une face est :", "un carré", ["un rectangle non carré", "un triangle", "un cercle"]],
+      ["La section d'un cylindre par un plan parallèle à sa base est :", "un disque de même rayon que la base", ["un rectangle", "un disque plus petit", "une ellipse"]],
+      ["La section d'un cylindre par un plan parallèle à son axe est :", "un rectangle", ["un disque", "un triangle", "un carré obligatoirement"]],
+      ["La section d'une sphère par un plan est :", "un cercle", ["un carré", "un rectangle", "un triangle"]],
+      ["La section d'une pyramide par un plan parallèle à sa base est :", "une réduction de la base", ["un agrandissement de la base", "un triangle quelconque", "un cercle"]],
+      ["La section d'un cône par un plan parallèle à sa base est :", "un disque", ["un triangle", "un rectangle", "un carré"]],
+      ["La section d'un pavé droit par un plan parallèle à une arête est :", "un rectangle", ["un triangle", "un cercle", "un trapèze obligatoirement"]],
+      ["Un plan passant par le centre d'une sphère la coupe selon :", "un grand cercle, de même rayon que la sphère", ["un point", "un petit cercle", "un carré"]]
+    ]);
+    const { choix, attendu } = melange(Q[1], Q[2]);
+    return { enonce: Q[0], mode: "choix", choix, attendu, aides: ["Imagine que tu coupes le solide comme un fromage.", "Un plan parallèle à une base donne une figure semblable à cette base.", "Une sphère coupée donne toujours un cercle."], solution: `Réponse : ${Q[1]}.` };
+  };
+
+  GEN["ep3-reperage"] = function () {
+    if (Math.random() < 0.5) { // pavé dans un repère de l'espace
+      const L = rand(2, 9), l = rand(2, 9), h = rand(2, 9), q = pick([["G", [L, l, h], "le sommet opposé à l'origine"], ["B", [L, 0, 0], "le sommet sur l'axe des abscisses"], ["D", [0, l, 0], "le sommet sur l'axe des ordonnées"], ["E", [0, 0, h], "le sommet sur l'axe des altitudes"], ["F", [L, 0, h], "le sommet au-dessus de B"], ["C", [L, l, 0], "le sommet de la base opposé à l'origine"]]), c = rand(0, 2);
+      return { enonce: `Un pavé droit $ABCDEFGH$ a pour sommet $A$ l'origine d'un repère de l'espace ; ses arêtes issues de $A$ sont sur les axes : $AB = ${L}$ (abscisses), $AD = ${l}$ (ordonnées), $AE = ${h}$ (altitudes). Quelle est ${["l'abscisse", "l'ordonnée", "l'altitude"][c]} du point $${q[0]}$ (${q[2]}) ?`, mode: "nombre", prefixe: `${["Abscisse", "Ordonnée", "Altitude"][c]} :`, attendu: q[1][c],
+        aides: ["Dans l'espace, un point est repéré par trois coordonnées : abscisse, ordonnée, altitude.", `$${q[0]}$ s'obtient en partant de $A$ et en suivant les arêtes du pavé.`, `$${q[0]}(${q[1].join(" ; ")})$.`], solution: `$${q[0]}(${q[1].join(" ; ")})$ : ${["l'abscisse", "l'ordonnée", "l'altitude"][c]} vaut $${q[1][c]}$.` };
+    }
+    const Q = pick([
+      ["Sur la Terre, on repère un point par :", "sa latitude et sa longitude", ["son altitude seulement", "sa distance au pôle Nord seulement", "son fuseau horaire"]],
+      ["L'équateur correspond à la latitude :", "$0^\\circ$", ["$90^\\circ$ Nord", "$180^\\circ$", "$45^\\circ$ Nord"]],
+      ["Le méridien de Greenwich correspond à la longitude :", "$0^\\circ$", ["$90^\\circ$ Est", "$180^\\circ$", "$23^\\circ$ Ouest"]],
+      ["Mayotte est dans l'hémisphère :", "Sud, et à l'est du méridien de Greenwich", ["Nord, et à l'ouest de Greenwich", "Nord, et à l'est de Greenwich", "Sud, et à l'ouest de Greenwich"]],
+      ["Le pôle Nord a pour latitude :", "$90^\\circ$ Nord", ["$0^\\circ$", "$180^\\circ$ Nord", "$45^\\circ$ Nord"]],
+      ["Les méridiens sont :", "des demi-cercles qui joignent les deux pôles", ["des cercles parallèles à l'équateur", "des droites", "des points"]],
+      ["Les parallèles sont :", "des cercles parallèles à l'équateur", ["des demi-cercles d'un pôle à l'autre", "des droites", "des carrés"]]
+    ]);
+    const { choix, attendu } = melange(Q[1], Q[2]);
+    return { enonce: Q[0], mode: "choix", choix, attendu, aides: ["La latitude mesure l'angle au nord ou au sud de l'équateur.", "La longitude mesure l'angle à l'est ou à l'ouest du méridien de Greenwich.", "Mayotte : environ $13^\\circ$ Sud et $45^\\circ$ Est."], solution: `Réponse : ${Q[1]}.` };
+  };
+
   /* Une « erreur connue » ne doit jamais coïncider avec la bonne réponse */
-  Object.keys(GEN).filter((k) => /^(cn3|dv3|fc3|eq3|ar3|fn3|fa3|pp3|pr3|st3|th3|ts3|tg3|tf3)-/.test(k)).forEach((k) => {
+  Object.keys(GEN).filter((k) => /^(cn3|dv3|fc3|eq3|ar3|fn3|fa3|pp3|pr3|st3|th3|ts3|tg3|tf3|ep3)-/.test(k)).forEach((k) => {
     const g = GEN[k];
     GEN[k] = (i) => {
       const q = g(i);

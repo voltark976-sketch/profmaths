@@ -596,8 +596,8 @@
       const i = rand(0, 3), p = (v[i] / T) * 100;
       return { enonce: `À l'élection des délégués, chaque élève a voté pour un seul candidat. Quel pourcentage des voix a obtenu ${noms[i]} ?`, tableau: { lignes: [["\\text{Candidat}", "\\text{Voix}"], ...noms.map((n, j) => [`\\text{${n}}`, v[j]]), ["\\text{Total}", T]] }, mode: "nombre", prefixe: "Pourcentage :", suffixe: "%", attendu: p,
         erreurs: [{ valeur: v[i], message: "Ça, c'est le nombre de voix, pas le pourcentage." }],
-        aides: [`${noms[i]} a $${v[i]}$ voix sur $${T}$.`, `Pourcentage $= \\dfrac{${v[i]}}{${T}} \\times 100$.`, `$100 \\div ${T} = ${100 / T}$.`],
-        solution: `$\\dfrac{${v[i]}}{${T}} \\times 100 = ${v[i]} \\times ${100 / T} = ${dec(p)}$ : ${noms[i]} a obtenu $${dec(p)}\\,\\%$ des voix.` };
+        aides: [`${noms[i]} a $${v[i]}$ voix sur $${T}$.`, `Pourcentage $= \\dfrac{${v[i]}}{${T}} \\times 100$.`, `$100 \\div ${T} = ${dec(100 / T)}$.`],
+        solution: `$\\dfrac{${v[i]}}{${T}} \\times 100 = ${v[i]} \\times ${dec(100 / T)} = ${dec(p)}$ : ${noms[i]} a obtenu $${dec(p)}\\,\\%$ des voix.` };
     }
     const p = pick([10, 20, 25, 30, 40, 50]), P = rand(2, 40) * 10, r = (P * p) / 100;
     const hausse = Math.random() < 0.4, fin = hausse ? P + r : P - r;
