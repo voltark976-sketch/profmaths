@@ -334,14 +334,14 @@ window.CATALOGUE = {
           id: "quatrieme-probabilites",
           numero: 10,
           titre: "Probabilités",
-          statut: "bientot",
+          statut: "disponible",
           drive: ""
         },
         {
           id: "quatrieme-cosinus",
           numero: 11,
           titre: "Cosinus d'un angle",
-          statut: "bientot",
+          statut: "disponible",
           drive: ""
         },
         {

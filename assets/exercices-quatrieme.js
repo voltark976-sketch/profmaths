@@ -3,7 +3,7 @@
   Ce fichier se charge après assets/exercices-college.js et reprend ses outils (window.PM_EXO.college).
   Mêmes règles : chaque générateur fabrique une question avec des nombres tirés au hasard, la réponse
   attendue, trois indices progressifs et la solution rédigée.
-  Préfixes : dp4-, rx4-, py4-, fq4-, pq4-, es4-, pw4-, th4-, lc4-.
+  Préfixes : dp4-, rx4-, py4-, fq4-, pq4-, es4-, pw4-, th4-, lc4-, pb4-, cs4-.
 */
 (function () {
   "use strict";
@@ -659,8 +659,124 @@
       solution: `$${a === 1 ? "" : a === -1 ? "-" : `${a} \\times `}${relP(v)}^2 ${b < 0 ? "-" : "+"} ${Math.abs(b)} \\times ${relP(v)} ${c < 0 ? "-" : "+"} ${Math.abs(c)} = ${rel(a * v * v)} ${b * v < 0 ? "-" : "+"} ${Math.abs(b * v)} ${c < 0 ? "-" : "+"} ${Math.abs(c)} = ${rel(r)}$.` };
   };
 
+  /* =====================================================================
+     Chapitre 10 : probabilités (pb4-)
+     ===================================================================== */
+  const URNE4 = () => { const r = rand(1, 9), v = rand(1, 9), b = rand(0, 7); return { r, v, b, n: r + v + b, txt: `une urne contient $${r}$ boule${r > 1 ? "s" : ""} rouge${r > 1 ? "s" : ""}, $${v}$ verte${v > 1 ? "s" : ""}${b ? ` et $${b}$ bleue${b > 1 ? "s" : ""}` : ""}, indiscernables au toucher` }; };
+
+  GEN["pb4-calcul"] = function () {
+    const t = rand(0, 2);
+    if (t === 0) { const U = URNE4(), [c, k] = pick([["rouge", U.r], ["verte", U.v], ...(U.b ? [["bleue", U.b]] : [])]);
+      return { enonce: `On tire une boule au hasard : ${U.txt}. Quelle est la probabilité de tirer une boule ${c} ?${CONSIGNE_FR}`, mode: "nombre", prefixe: "Probabilité :", attendu: k / U.n,
+        erreurs: [{ valeur: k / (U.n - k), message: "On divise par le nombre **total** de boules." }, ...approx(k / U.n)],
+        aides: ["Les issues sont équiprobables : $P = \\dfrac{\\text{issues favorables}}{\\text{issues possibles}}$.", `Il y a $${U.n}$ boules en tout.`, `Il y a $${k}$ boules ${c}s.`], solution: `$P = \\dfrac{${k}}{${U.n}}${pgcd(k, U.n) > 1 ? ` = ${frS(k, U.n)}` : ""}$.` }; }
+    if (t === 1) { const ev = pick([["un nombre premier", [2, 3, 5, 7, 11]], ["un multiple de 3", [3, 6, 9, 12]], ["un nombre pair", [2, 4, 6, 8, 10, 12]], ["un diviseur de 12", [1, 2, 3, 4, 6, 12]], ["un nombre supérieur à 8", [9, 10, 11, 12]], ["un carré parfait", [1, 4, 9]]]);
+      return { enonce: `On lance un dé équilibré à $12$ faces numérotées de $1$ à $12$. Quelle est la probabilité d'obtenir ${ev[0]} ?${CONSIGNE_FR}`, mode: "nombre", prefixe: "Probabilité :", attendu: ev[1].length / 12, erreurs: approx(ev[1].length / 12),
+        aides: ["Il y a $12$ issues équiprobables.", "Liste les issues qui réalisent l'évènement.", `Issues favorables : $${ev[1].join(" \\; ; \\; ")}$.`], solution: `$${ev[1].length}$ issues favorables sur $12$ : $P = \\dfrac{${ev[1].length}}{12} = ${frS(ev[1].length, 12)}$.` }; }
+    const s = pick([["la somme vaut $7$", 6], ["la somme vaut $10$", 3], ["les deux dés donnent le même nombre", 6], ["la somme vaut $2$", 1], ["la somme est supérieure ou égale à $11$", 3]]);
+    return { enonce: `On lance deux dés équilibrés à six faces (il y a $36$ issues équiprobables, comme dans un tableau à double entrée). Quelle est la probabilité que ${s[0]} ?${CONSIGNE_FR}`, mode: "nombre", prefixe: "Probabilité :", attendu: s[1] / 36, erreurs: approx(s[1] / 36),
+      aides: ["Fais un tableau : le premier dé en ligne, le second en colonne.", "Compte les cases qui réalisent l'évènement.", `Il y en a $${s[1]}$.`], solution: `$${s[1]}$ issues favorables sur $36$ : $P = \\dfrac{${s[1]}}{36}${pgcd(s[1], 36) > 1 ? ` = ${frS(s[1], 36)}` : ""}$.` };
+  };
+
+  GEN["pb4-contraire"] = function () {
+    const t = rand(0, 1);
+    if (t === 0) { const p = pick([0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.05, 0.12, 0.38]);
+      const C = pick([["qu'il pleuve demain à Mamoudzou", "qu'il ne pleuve pas"], ["que la barge parte en retard", "qu'elle parte à l'heure"], ["de gagner à ce jeu de grattage", "de perdre"], ["qu'un œuf pondu soit cassé à l'arrivée", "qu'il arrive intact"], ["qu'un élève choisi au hasard soit externe", "qu'il soit demi-pensionnaire (il n'y a que ces deux catégories)"], ["que le bus soit complet", "qu'il reste des places"]]);
+      return { enonce: `La probabilité ${C[0]} est $${nb(p)}$. Quelle est la probabilité ${C[1]} ?`, mode: "nombre", prefixe: "Probabilité :", attendu: arr(1 - p, 4),
+        aides: ["L'évènement demandé est l'évènement contraire de celui dont on connaît la probabilité.", "$P(\\text{non } A) = 1 - P(A)$.", `$1 - ${nb(p)}$.`], solution: `$P(\\text{non } A) = 1 - ${nb(p)} = ${nb(arr(1 - p, 4))}$.` }; }
+    const Q = pick([
+      ["On lance un dé. L'évènement contraire de « obtenir un nombre pair » est :", "obtenir un nombre impair", ["obtenir $6$", "obtenir un nombre premier", "ne pas lancer le dé"]],
+      ["On lance un dé. L'évènement contraire de « obtenir au moins $5$ » est :", "obtenir au plus $4$", ["obtenir $5$ ou $6$", "obtenir moins de $5$ ou $5$", "obtenir $1$"]],
+      ["On tire une carte. L'évènement contraire de « tirer un cœur » est :", "tirer un pique, un carreau ou un trèfle", ["tirer un pique", "tirer une carte rouge", "tirer un roi"]],
+      ["On lance deux pièces. L'évènement contraire de « obtenir au moins un pile » est :", "obtenir deux faces", ["obtenir deux piles", "obtenir exactement un pile", "obtenir un pile et un face"]],
+      ["La somme des probabilités d'un évènement et de son contraire vaut :", "$1$", ["$0$", "$\\dfrac{1}{2}$", "$100$"]]
+    ]);
+    const { choix, attendu } = melange(Q[1], Q[2]);
+    return { enonce: Q[0], mode: "choix", choix, attendu, aides: ["L'évènement contraire de $A$ est réalisé exactement quand $A$ ne l'est pas.", "Ensemble, $A$ et son contraire contiennent toutes les issues, sans en partager.", "$P(A) + P(\\text{non } A) = 1$."], solution: `Réponse : ${Q[1]}.` };
+  };
+
+  GEN["pb4-incompatibles"] = function () {
+    const t = rand(0, 1);
+    if (t === 0) { const pa = rand(1, 5) / 20, pb = rand(1, 6) / 20;
+      return { enonce: `$A$ et $B$ sont deux évènements incompatibles avec $P(A) = ${nb(pa)}$ et $P(B) = ${nb(pb)}$. Quelle est la probabilité de « $A$ ou $B$ » ?`, mode: "nombre", prefixe: "Probabilité :", attendu: arr(pa + pb, 4), erreurs: [{ valeur: arr(pa * pb, 4), message: "Pour des évènements incompatibles, on additionne les probabilités." }],
+        aides: ["Deux évènements incompatibles ne peuvent pas se réaliser en même temps.", "Alors $P(A \\text{ ou } B) = P(A) + P(B)$.", `$${nb(pa)} + ${nb(pb)}$.`], solution: `$P(A \\text{ ou } B) = ${nb(pa)} + ${nb(pb)} = ${nb(arr(pa + pb, 4))}$.` }; }
+    const Q = pick([
+      ["On lance un dé. « Obtenir $2$ » et « obtenir un nombre impair » sont-ils incompatibles ?", 0], ["On lance un dé. « Obtenir un nombre pair » et « obtenir un multiple de $3$ » sont-ils incompatibles ?", 1],
+      ["On tire une carte. « Tirer un roi » et « tirer un cœur » sont-ils incompatibles ?", 1], ["On tire une carte. « Tirer une carte rouge » et « tirer un pique » sont-ils incompatibles ?", 0],
+      ["On lance un dé. « Obtenir $1$ » et « obtenir $6$ » sont-ils incompatibles ?", 0], ["On lance un dé. « Obtenir un nombre premier » et « obtenir un nombre pair » sont-ils incompatibles ?", 1]
+    ]);
+    const choix = ["Oui, ils ne peuvent pas se réaliser en même temps", "Non, une même issue peut réaliser les deux", "Oui, car ils ont la même probabilité"];
+    return { enonce: Q[0], mode: "choix", choix, attendu: Q[1], aides: ["Deux évènements sont incompatibles s'ils n'ont aucune issue en commun.", "Cherche une issue qui réaliserait les deux à la fois.", "S'il en existe une, ils ne sont pas incompatibles."], solution: Q[1] ? "Une même issue réalise les deux évènements : ils ne sont pas incompatibles." : "Aucune issue ne réalise les deux évènements : ils sont incompatibles." };
+  };
+
+  GEN["pb4-tableau"] = function () {
+    for (;;) { const k = rand(3, 5), P = Array.from({ length: k - 1 }, () => rand(1, 30) / 100), s = arr(P.reduce((a, b) => a + b, 0), 4); if (s >= 0.95) continue;
+      const x = arr(1 - s, 4), noms = ["Rouge", "Vert", "Bleu", "Jaune", "Noir"].slice(0, k);
+      return { enonce: "Une roue est partagée en secteurs de couleurs. Le tableau donne la probabilité de chaque couleur. Quelle est la probabilité de « " + noms[k - 1] + " » ?", tableau: { lignes: [["\\text{Couleur}", "\\text{Probabilité}"], ...noms.map((n, i) => [`\\text{${n}}`, i < k - 1 ? nb(P[i]) : "\\ldots"])] }, mode: "nombre", prefixe: "Probabilité :", attendu: x,
+        aides: ["La somme des probabilités de toutes les issues vaut $1$.", `Somme des probabilités connues : $${P.map(nb).join(" + ")} = ${nb(s)}$.`, `$1 - ${nb(s)}$.`], solution: `$1 - (${P.map(nb).join(" + ")}) = 1 - ${nb(s)} = ${nb(x)}$.` }; }
+  };
+
+  /* =====================================================================
+     Chapitre 11 : cosinus d'un angle (cs4-)
+     Figure : triangle rectangle en R ; l'angle étudié est en P1 (en bas à droite).
+     ===================================================================== */
+  const DEG4 = Math.PI / 180;
+  const figCos = (N, labs, ang) => figureRectangle4(N, labs).replace("</svg>", `<path class="g-arc" d="M245 165 A25 25 0 0 1 249.2 152.5"/><text class="g-mesure" x="226" y="158" text-anchor="middle">${ang}</text></svg>`);
+  FIGURES["cs4-triangle"] = () => figCos(["A", "B", "C"], ["adjacent", "opposé", "hypoténuse"], "");
+
+  GEN["cs4-rapport"] = function () {
+    const N = pick(NOMS3_4), [R, P1, P2] = N;
+    if (Math.random() < 0.6) {
+      const [a, b, c] = pick(TRIPLES), autre = Math.random() < 0.5, adj = autre ? b : a, v = adj / c;
+      const ang = autre ? `${R}${P2}${P1}` : `${R}${P1}${P2}`;
+      return { enonce: `$${R}${P1}${P2}$ est rectangle en $${R}$ avec $${R}${P1} = ${nb(a)}$ cm, $${R}${P2} = ${nb(b)}$ cm et $${P1}${P2} = ${nb(c)}$ cm. Calcule $\\cos \\widehat{${ang}}$.${CONSIGNE_FR}`, figure: figCos(N, [lab(a), lab(b), lab(c)], autre ? "" : "?"), mode: "nombre", prefixe: "Cosinus :", attendu: v,
+        erreurs: [{ valeur: (autre ? a : b) / c, message: "Ça, c'est le rapport avec le côté opposé. Le cosinus utilise le côté adjacent." }, { valeur: c / adj, message: "C'est l'inverse : l'hypoténuse est au dénominateur." }, ...approx(v)],
+        aides: ["$\\cos = \\dfrac{\\text{côté adjacent}}{\\text{hypoténuse}}$.", `L'hypoténuse est $[${P1}${P2}]$.`, `Le côté adjacent à l'angle $\\widehat{${ang}}$ est $[${R}${autre ? P2 : P1}]$.`],
+        solution: `$\\cos \\widehat{${ang}} = \\dfrac{${R}${autre ? P2 : P1}}{${P1}${P2}} = \\dfrac{${nb(adj)}}{${nb(c)}}${Number.isInteger(v * 10000) ? ` = ${nb(v)}` : ""}$.` };
+    }
+    const bonne = `$\\dfrac{${R}${P1}}{${P1}${P2}}$`, faux = [`$\\dfrac{${R}${P2}}{${P1}${P2}}$`, `$\\dfrac{${P1}${P2}}{${R}${P1}}$`, `$\\dfrac{${R}${P1}}{${R}${P2}}$`];
+    const { choix, attendu } = melange(bonne, faux);
+    return { enonce: `Le triangle $${R}${P1}${P2}$ est rectangle en $${R}$. Quelle est l'expression de $\\cos \\widehat{${R}${P1}${P2}}$ ?`, figure: figCos(N, ["", "", ""], ""), mode: "choix", choix, attendu,
+      aides: ["$\\cos = \\dfrac{\\text{côté adjacent}}{\\text{hypoténuse}}$.", `L'hypoténuse est le côté opposé à l'angle droit : $[${P1}${P2}]$.`, `Le côté adjacent à l'angle en $${P1}$ (autre que l'hypoténuse) est $[${R}${P1}]$.`],
+      solution: `$\\cos \\widehat{${R}${P1}${P2}} = \\dfrac{\\text{adjacent}}{\\text{hypoténuse}} = \\dfrac{${R}${P1}}{${P1}${P2}}$.` };
+  };
+
+  GEN["cs4-longueur"] = function () {
+    const N = pick(NOMS3_4), [R, P1, P2] = N, a = rand(15, 75), t = rand(0, 1);
+    if (t === 0) { const h = rand(4, 20), adj = arr(h * Math.cos(a * DEG4), 1);
+      return { enonce: `$${R}${P1}${P2}$ est rectangle en $${R}$, $${P1}${P2} = ${h}$ cm et $\\widehat{${R}${P1}${P2}} = ${a}^\\circ$. Calcule $${R}${P1}$ arrondi au dixième.`, figure: figCos(N, ["?", "", `${h} cm`], `${a}°`), mode: "nombre", prefixe: `$${R}${P1} \\approx$`, suffixe: "cm", attendu: adj,
+        erreurs: [{ valeur: arr(h / Math.cos(a * DEG4), 1), message: "On multiplie l'hypoténuse par le cosinus de l'angle." }],
+        aides: [`$\\cos \\widehat{${R}${P1}${P2}} = \\dfrac{${R}${P1}}{${P1}${P2}}$.`, `$\\cos ${a}^\\circ = \\dfrac{${R}${P1}}{${h}}$.`, `$${R}${P1} = ${h} \\times \\cos ${a}^\\circ$ (calculatrice en mode degrés).`],
+        solution: `$${R}${P1} = ${h} \\times \\cos ${a}^\\circ \\approx ${nb(adj)}$ cm.` }; }
+    const adj = rand(3, 15), h = arr(adj / Math.cos(a * DEG4), 1);
+    return { enonce: `$${R}${P1}${P2}$ est rectangle en $${R}$, $${R}${P1} = ${adj}$ cm et $\\widehat{${R}${P1}${P2}} = ${a}^\\circ$. Calcule l'hypoténuse $${P1}${P2}$ arrondie au dixième.`, figure: figCos(N, [`${adj} cm`, "", "?"], `${a}°`), mode: "nombre", prefixe: `$${P1}${P2} \\approx$`, suffixe: "cm", attendu: h,
+      erreurs: [{ valeur: arr(adj * Math.cos(a * DEG4), 1), message: "L'hypoténuse est plus longue que le côté adjacent : on divise par le cosinus." }],
+      aides: [`$\\cos ${a}^\\circ = \\dfrac{${adj}}{${P1}${P2}}$.`, "Avec un produit en croix : $" + P1 + P2 + " = \\dfrac{" + adj + "}{\\cos " + a + "^\\circ}$.", "Utilise la calculatrice en mode degrés."],
+      solution: `$${P1}${P2} = \\dfrac{${adj}}{\\cos ${a}^\\circ} \\approx ${nb(h)}$ cm.` };
+  };
+
+  GEN["cs4-angle"] = function () {
+    const N = pick(NOMS3_4), [R, P1, P2] = N; let adj, h;
+    do { h = rand(4, 20); adj = rand(1, h - 1); } while (adj / h < 0.1);
+    const ang = Math.round(Math.acos(adj / h) / DEG4);
+    return { enonce: `$${R}${P1}${P2}$ est rectangle en $${R}$, $${R}${P1} = ${adj}$ cm et $${P1}${P2} = ${h}$ cm. Calcule $\\widehat{${R}${P1}${P2}}$ arrondi au degré.`, figure: figCos(N, [`${adj} cm`, "", `${h} cm`], "?"), mode: "nombre", prefixe: "Angle :", suffixe: "°", attendu: ang,
+      erreurs: [{ valeur: Math.round(Math.asin(adj / h) / DEG4), message: "Utilise la touche $\\cos^{-1}$ (ou Arccos), pas $\\sin^{-1}$." }],
+      aides: [`$\\cos \\widehat{${R}${P1}${P2}} = \\dfrac{${adj}}{${h}}$.`, "Pour retrouver l'angle, utilise la touche $\\cos^{-1}$ (ou Arccos) de la calculatrice, en mode degrés.", `$\\cos^{-1}\\left(\\dfrac{${adj}}{${h}}\\right) \\approx ${nb(arr(Math.acos(adj / h) / DEG4, 2))}$.`],
+      solution: `$\\cos \\widehat{${R}${P1}${P2}} = \\dfrac{${adj}}{${h}}$, donc $\\widehat{${R}${P1}${P2}} = \\cos^{-1}\\left(\\dfrac{${adj}}{${h}}\\right) \\approx ${nb(arr(Math.acos(adj / h) / DEG4, 2))}^\\circ$, soit $${ang}^\\circ$ au degré près.` };
+  };
+
+  GEN["cs4-problemes"] = function () {
+    const t = rand(0, 1);
+    if (t === 0) { const L = rand(30, 60) / 10, d = rand(8, 20) / 10, ang = Math.round(Math.acos(d / L) / DEG4);
+      return { enonce: `Une échelle de $${nb(L)}$ m est posée contre un mur vertical ; son pied est à $${nb(d)}$ m du mur. Quel angle fait l'échelle avec le sol, arrondi au degré ?`, mode: "nombre", prefixe: "Angle :", suffixe: "°", attendu: ang,
+        aides: ["Le mur, le sol et l'échelle forment un triangle rectangle ; l'échelle est l'hypoténuse.", `$\\cos(\\text{angle}) = \\dfrac{${nb(d)}}{${nb(L)}}$.`, "Utilise $\\cos^{-1}$."], solution: `$\\cos \\alpha = \\dfrac{${nb(d)}}{${nb(L)}}$, donc $\\alpha \\approx ${ang}^\\circ$.` }; }
+    const L = rand(50, 300), a = rand(5, 30), h = arr(L * Math.cos(a * DEG4), 1);
+    return { enonce: `Une route en pente fait un angle de $${a}^\\circ$ avec l'horizontale. Un scooter parcourt $${L}$ m sur cette route. De quelle distance a-t-il avancé à l'horizontale, arrondie au dixième de mètre ?`, mode: "nombre", prefixe: "Distance :", suffixe: "m", attendu: h,
+      aides: ["La route est l'hypoténuse d'un triangle rectangle ; la distance horizontale est le côté adjacent à l'angle.", `$\\cos ${a}^\\circ = \\dfrac{d}{${L}}$.`, `$d = ${L} \\times \\cos ${a}^\\circ$.`], solution: `$d = ${L} \\times \\cos ${a}^\\circ \\approx ${nb(h)}$ m.` };
+  };
+
   /* Une « erreur connue » ne doit jamais coïncider avec la bonne réponse */
-  Object.keys(GEN).filter((k) => /^(dp4|rx4|py4|fq4|pq4|es4|pw4|th4|lc4)-/.test(k)).forEach((k) => {
+  Object.keys(GEN).filter((k) => /^(dp4|rx4|py4|fq4|pq4|es4|pw4|th4|lc4|pb4|cs4)-/.test(k)).forEach((k) => {
     const g = GEN[k];
     GEN[k] = (i) => {
       const q = g(i);
