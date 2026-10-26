@@ -285,7 +285,7 @@ code.tt { font: 0.92em/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monosp
 
 /* Méthode */
 .methodes { display: grid; gap: 14px; }
-.methode { background: var(--surface); border: 1px solid var(--trait); border-radius: var(--r); padding: 16px 18px; }
+.methode { background: var(--surface); border: 1px solid var(--trait); border-radius: var(--r); padding: 16px 18px; min-width: 0; }
 .methode h2 { font-size: 1.1rem; }
 .methode ol { margin: 0; padding-left: 1.3em; }
 .methode li { margin: 0.35em 0; }
