@@ -72,7 +72,7 @@ ${Object.entries(man).map(([k, v]) => `  ${JSON.stringify(k)}: ${JSON.stringify(
 };
 `;
 const dest = path.join(racine, "data/manifeste.js");
-const actuel = fs.existsSync(dest) ? fs.readFileSync(dest, "utf8") : "";
+const actuel = fs.existsSync(dest) ? fs.readFileSync(dest, "utf8").replace(/\r\n/g, "\n") : ""; // copie de travail en CRLF possible
 if (process.argv.includes("--verifier")) {
   if (actuel !== sortie) { console.error("✗ data/manifeste.js n'est pas à jour : lance   node outils/manifeste.js"); process.exitCode = 1; }
   else console.log(`✓ data/manifeste.js à jour (${Object.keys(man).length} chapitres)`);
