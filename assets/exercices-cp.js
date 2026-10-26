@@ -790,6 +790,212 @@
       solution: `Départ à ${NOM_H(h)}, $${k}$ heure${k > 1 ? "s" : ""} plus tard : ${NOM_H(h + k)}.` };
   };
 
+  /* =====================================================================
+     Chapitre 10 : solides et figures (cp10-)
+     ===================================================================== */
+  const { solide, solides, formes, quadrillage, fleches, barres } = E;
+  const NOM_S = { cube: "un cube", pave: "un pavé", boule: "une boule", cylindre: "un cylindre", cone: "un cône" };
+  const NOM_F = { carre: "un carré", rectangle: "un rectangle", triangle: "un triangle", disque: "un disque" };
+  FIGURES["cp10-cours-solides"] = () => solides(["cube", "pave", "boule"], ["cube", "pavé", "boule"]);
+  FIGURES["cp10-cours-solides2"] = () => solides(["cylindre", "cone"], ["cylindre", "cône"]);
+  FIGURES["cp10-cours-formes"] = () => formes([{ type: "carre", nom: "carré" }, { type: "rectangle", nom: "rectangle" }, { type: "triangle", nom: "triangle" }, { type: "disque", nom: "disque" }]);
+  FIGURES["cp10-qcm-cylindre"] = () => solide("cylindre");
+  FIGURES["cp10-qcm-pave"] = () => solide("pave");
+  FIGURES["cp10-qcm-formes"] = () => formes([{ type: "triangle", nom: "A" }, { type: "carre", nom: "B" }, { type: "disque", nom: "C" }]);
+  // Quatre points, trois alignés (A, B, C, D mélangés)
+  function pointsAlignes() {
+    const noms = E.tirage(["A", "B", "C", "D"], 4), x0 = rand(30, 70), y0 = rand(50, 110), dx = rand(50, 70), dy = rand(-20, 20);
+    const P = [[x0, y0], [x0 + dx, y0 + dy], [x0 + 2 * dx + rand(-5, 5) * 0, y0 + 2 * dy]];
+    let hors; do hors = [rand(40, 280), rand(20, 140)]; while (Math.abs((hors[1] - y0) * dx - (hors[0] - x0) * dy) < 2500);
+    const pts = [...P, hors];
+    const s = pts.map(([x, y], k) => `<path class="g-segment" d="M${x - 5} ${y - 5} l10 10 M${x + 5} ${y - 5} l-10 10" style="stroke-width:2"/><text class="g-clabel" x="${x + 9}" y="${y - 8}">${noms[k]}</text>`).join("");
+    return { fig: svg("points", 320, 160, "Quatre points", s), alignes: noms.slice(0, 3).sort(), seul: noms[3] };
+  }
+  FIGURES["cp10-cours-alignes"] = () => svg("points", 320, 120, "Points A, B, C alignés et D", [[40, 90, "A"], [130, 70, "B"], [220, 50, "C"], [150, 105, "D"]].map(([x, y, n]) => `<path class="g-segment" d="M${x - 5} ${y - 5} l10 10 M${x + 5} ${y - 5} l-10 10" style="stroke-width:2"/><text class="g-clabel" x="${x + 9}" y="${y - 8}">${n}</text>`).join("") + `<line class="g-guide" x1="20" y1="94" x2="300" y2="32"/>`);
+
+  GEN["cp10-solides"] = function () {
+    const t = rand(0, 3), types = Object.keys(NOM_S);
+    if (t === 2) { // lequel est un … ? (trois solides)
+      const L = E.tirage(types, 3), k = rand(0, 2), noms = ["A", "B", "C"], c = melange(noms[k], [...noms, "Aucun"]);
+      return { enonce: `Lequel de ces solides est ${NOM_S[L[k]]} ?`, figure: solides(L), mode: "choix", choix: c.choix, attendu: c.attendu,
+        aides: ["Regarde chaque solide l'un après l'autre.", { cube: "Le cube a des faces carrées.", pave: "Le pavé a des faces rectangles.", boule: "La boule est toute ronde.", cylindre: "Le cylindre a deux disques.", cone: "Le cône a une pointe." }[L[k]], "Élimine ceux qui ne vont pas."],
+        solution: `Le solide ${noms[k]} est ${NOM_S[L[k]]}.` };
+    }
+    if (t === 3) { // combien roulent ?
+      const L = E.tirage(types, rand(3, 4)), n = L.filter((x) => ["boule", "cylindre", "cone"].includes(x)).length;
+      return { enonce: "Parmi ces solides, combien peuvent **rouler** ?", figure: solides(L), mode: "nombre", prefixe: "", suffixe: "solides", attendu: n,
+        erreurs: [{ valeur: L.length, message: "Le cube et le pavé ne roulent pas : leurs faces sont plates." }, { valeur: L.filter((x) => x === "boule").length, message: "La boule roule, mais le cylindre et le cône aussi." }],
+        aides: ["Un solide roule s'il a une partie arrondie.", "La boule, le cylindre et le cône roulent.", "Le cube et le pavé ne roulent pas."],
+        solution: `Ceux qui roulent : ${L.filter((x) => ["boule", "cylindre", "cone"].includes(x)).map((x) => NOM_S[x]).join(", ") || "aucun"}. Il y en a $${n}$.` };
+    }
+    if (t === 0) {
+      const ty = pick(types), c = melange(Maj2(NOM_S[ty]), types.map((x) => Maj2(NOM_S[x])));
+      return { enonce: "Comment s'appelle ce solide ?", figure: solide(ty), mode: "choix", choix: c.choix, attendu: c.attendu,
+        aides: ["Regarde s'il roule (boule, cylindre, cône) ou s'il a des faces plates partout (cube, pavé).", { cube: "Toutes ses faces sont des carrés pareils.", pave: "Ses faces sont des rectangles.", boule: "Il est tout rond.", cylindre: "Il a deux disques et roule.", cone: "Il a une pointe et un disque." }[ty], "Compare avec le cours."],
+        solution: `C'est ${NOM_S[ty]}.` };
+    }
+    const [obj, ty] = pick([["un dé à jouer", "cube"], ["une boîte à chaussures", "pave"], ["un ballon de foot", "boule"], ["une boîte de conserve", "cylindre"], ["un cornet de glace", "cone"], ["une brique de lait", "pave"], ["une orange", "boule"], ["un rouleau d'essuie-tout", "cylindre"], ["un chapeau de clown", "cone"], ["un carton de déménagement", "pave"], ["un glaçon", "cube"], ["une bille", "boule"], ["une bougie", "cylindre"], ["une boîte de mouchoirs", "pave"], ["une boule de pétanque", "boule"], ["un tube de colle", "cylindre"], ["un morceau de sucre", "cube"], ["une boîte de céréales", "pave"], ["un entonnoir à l'envers", "cone"], ["un verre droit", "cylindre"]]);
+    const c = melange(Maj2(NOM_S[ty]), types.map((x) => Maj2(NOM_S[x])));
+    return { enonce: `${Maj2(obj)} a la forme de quel solide ?`, mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: ["Imagine l'objet dans ta main.", "Est-ce qu'il roule ? A-t-il une pointe ? Des faces plates ?", "Compare avec les solides du cours."],
+      solution: `${Maj2(obj)} a la forme d'${NOM_S[ty]}.` };
+  };
+  GEN["cp10-faces"] = function () {
+    const t = rand(0, 4);
+    if (t === 4) { // quelle figure a k côtés ?
+      const T = { triangle: 3, carre: 4, pentagone: 5, hexagone: 6, disque: 0 }, L = E.tirage(Object.keys(T), 3), k = rand(0, 2), noms = ["A", "B", "C"];
+      const c = melange(noms[k], [...noms, "Aucune"]), nbC = T[L[k]];
+      return { enonce: nbC ? `Quelle figure a $${nbC}$ côtés ?` : "Quelle figure n'a aucun côté ?", figure: formes(L.map((ty, i) => ({ type: ty, nom: noms[i] }))), mode: "choix", choix: c.choix, attendu: c.attendu,
+        aides: ["Compte les côtés de chaque figure en faisant le tour avec ton doigt.", "Un côté est un trait droit du bord.", "Un disque n'a pas de côté."],
+        solution: `La figure ${noms[k]} ${nbC ? `a $${nbC}$ côtés` : "est un disque : elle n'a pas de côté"}.` };
+    }
+    if (t <= 1) {
+      const ty = t ? "cube" : "pave", q = rand(0, 1);
+      if (q) return { enonce: `Combien de faces a ${NOM_S[ty]} ?`, figure: solide(ty), mode: "nombre", prefixe: "Il a", suffixe: "faces", attendu: 6,
+        erreurs: [{ valeur: 3, message: "Sur le dessin, on ne voit que $3$ faces : les autres sont cachées derrière." }, { valeur: 4, message: "N'oublie pas la face du dessus et celle du dessous." }],
+        aides: ["Compte les faces que tu vois, puis celles qui sont cachées.", "Devant, derrière, à gauche, à droite…", "… et dessus, dessous."],
+        solution: `${Maj2(NOM_S[ty])} a $6$ faces : devant, derrière, gauche, droite, dessus et dessous.` };
+      const bon = ty === "cube" ? "des carrés tous pareils" : "des rectangles (ou des rectangles et des carrés)";
+      const c = melange(bon, ["des triangles", "des disques", ty === "cube" ? "des rectangles pas carrés" : "seulement des triangles", "des ronds et des carrés"]);
+      return { enonce: `Les faces d'${NOM_S[ty].slice(3)} sont :`, figure: solide(ty), mode: "choix", choix: c.choix, attendu: c.attendu,
+        aides: ["Regarde la forme de chaque face.", ty === "cube" ? "Toutes les faces du cube sont pareilles." : "Les faces du pavé sont allongées.", "Une face est une surface plate."],
+        solution: `Les faces d'${NOM_S[ty].slice(3)} sont ${bon}.` };
+    }
+    const [ty, cotes] = pick([["triangle", 3], ["carre", 4], ["rectangle", 4], ["pentagone", 5], ["hexagone", 6]]), q = rand(0, 1);
+    return { enonce: `Combien de ${q ? "sommets" : "côtés"} a cette figure ?`, figure: formes([{ type: ty }]), mode: "nombre", prefixe: "Elle a", suffixe: q ? "sommets" : "côtés", attendu: cotes,
+      erreurs: [{ valeur: cotes - 1, message: "Recompte en mettant un doigt sur chaque " + (q ? "sommet (coin)." : "côté (trait).") }, { valeur: cotes + 1, message: "Tu as compté un " + (q ? "sommet" : "côté") + " deux fois." }],
+      aides: [q ? "Un sommet, c'est un coin de la figure." : "Un côté, c'est un trait droit du bord.", "Pars d'un endroit et fais le tour en comptant.", "Une figure a autant de sommets que de côtés."],
+      solution: `Cette figure a $${cotes}$ côtés et $${cotes}$ sommets.` };
+  };
+  GEN["cp10-figures"] = function () {
+    const t = rand(0, 2);
+    if (t === 0) {
+      const ty = pick(Object.keys(NOM_F)), c = melange(Maj2(NOM_F[ty]), Object.keys(NOM_F).map((x) => Maj2(NOM_F[x])));
+      return { enonce: "Comment s'appelle cette figure ?", figure: formes([{ type: ty }]), mode: "choix", choix: c.choix, attendu: c.attendu,
+        aides: ["Compte les côtés.", "Regarde si les côtés ont la même longueur.", { carre: "$4$ côtés de la même longueur.", rectangle: "$4$ côtés, deux longs et deux courts.", triangle: "$3$ côtés.", disque: "Pas de côté : c'est rond." }[ty]],
+        solution: `C'est ${NOM_F[ty]}.` };
+    }
+    if (t === 1) {
+      const L = E.tirage(["carre", "rectangle", "triangle", "disque"], 3), noms = ["A", "B", "C"], k = rand(0, 2);
+      const c = melange(noms[k], [...noms, "Aucune"]);
+      return { enonce: `Quelle figure est ${NOM_F[L[k]]} ?`, figure: formes(L.map((ty, i) => ({ type: ty, nom: noms[i] }))), mode: "choix", choix: c.choix, attendu: c.attendu,
+        aides: ["Regarde chaque figure et compte ses côtés.", { carre: "Un carré a $4$ côtés de même longueur.", rectangle: "Un rectangle a $4$ côtés : deux longs, deux courts.", triangle: "Un triangle a $3$ côtés.", disque: "Un disque est tout rond." }[L[k]], "Élimine les figures qui ne vont pas."],
+        solution: `La figure ${noms[k]} est ${NOM_F[L[k]]}.` };
+    }
+    const A = pointsAlignes(), bon = A.alignes.join(", "), toutes = [["A", "B", "C"], ["A", "B", "D"], ["A", "C", "D"], ["B", "C", "D"]].map((x) => x.join(", "));
+    const c = melange(bon, toutes);
+    return { enonce: "Quels sont les trois points alignés (on peut les relier avec une règle sur une même ligne droite) ?", figure: A.fig, mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: ["Pose ta règle sur deux points.", "Regarde si un troisième point est aussi le long de la règle.", `Un des quatre points n'est pas sur la ligne.`],
+      solution: `Les points ${bon} sont alignés. Le point ${A.seul} n'est pas sur la même ligne droite.` };
+  };
+
+  /* =====================================================================
+     Chapitre 11 : se repérer et se déplacer (cp11-)
+     ===================================================================== */
+  const SYMB = ["★", "●", "▲", "■", "♥", "◆"];
+  const VOC = { d: "à droite du", g: "à gauche du", h: "au-dessus du", b: "en dessous du" };
+  FIGURES["cp11-cours-positions"] = () => quadrillage(5, 3, { objets: [[2, 1, "★"], [3, 1, "●"], [1, 1, "▲"], [2, 0, "■"], [2, 2, "♥"]] });
+  FIGURES["cp11-cours-chemin"] = () => quadrillage(6, 4, { depart: [0, 3], chemin: "ddhhd", objets: [[3, 1, "A"]] });
+  FIGURES["cp11-qcm-chemin"] = () => quadrillage(6, 4, { depart: [0, 3], objets: [[2, 1, "A"], [3, 0, "B"], [4, 3, "C"]] });
+
+  GEN["cp11-positions"] = function () {
+    const n = 5, m = 4, cells = E.tirage(Array.from({ length: n * m }, (_, k) => [k % n, Math.floor(k / n)]), 5), sym = E.tirage(SYMB, 5);
+    const objets = cells.map(([c, l], k) => [c, l, sym[k]]);
+    // une relation vraie : on cherche deux objets voisins
+    const paires = [];
+    objets.forEach((a) => objets.forEach((b) => { if (a === b) return; const dc = b[0] - a[0], dl = b[1] - a[1]; const dir = dc === 1 && !dl ? "d" : dc === -1 && !dl ? "g" : !dc && dl === -1 ? "h" : !dc && dl === 1 ? "b" : null; if (dir) paires.push([a, b, dir]); }));
+    if (!paires.length) return GEN["cp11-positions"]();
+    const [a, b, dir] = pick(paires), c = melange(b[2], [...sym, "Rien"]);
+    return { enonce: `Quelle forme est juste **${VOC[dir]}** ${a[2]} ?`.replace(" du ★", " de l'étoile ★").replace(" du ●", " du rond ●").replace(" du ▲", " du triangle ▲").replace(" du ■", " du carré ■").replace(" du ♥", " du cœur ♥").replace(" du ◆", " du losange ◆"), figure: quadrillage(n, m, { objets }), mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: [`Trouve d'abord ${a[2]} sur le quadrillage.`, { d: "La droite, c'est le côté de ta main droite.", g: "À gauche, c'est du côté de ta main gauche.", h: "Au-dessus, c'est la case juste en haut.", b: "En dessous, c'est la case juste en bas." }[dir], "Regarde la case collée, juste à côté."],
+      solution: `Juste ${VOC[dir]} ${a[2]}, il y a ${b[2]}.`.replace(" du ★", " de l'étoile").replace(" du ●", " du rond").replace(" du ▲", " du triangle").replace(" du ■", " du carré").replace(" du ♥", " du cœur").replace(" du ◆", " du losange") };
+  };
+  // Un chemin au hasard qui reste dans le quadrillage n × m
+  function cheminHasard(n, m, k) {
+    for (let essai = 0; essai < 50; essai++) {
+      let c = rand(0, n - 1), l = rand(0, m - 1); const dep = [c, l]; let ch = "", ok = true;
+      for (let i = 0; i < k; i++) {
+        const opts = ["h", "b", "g", "d"].filter((d) => { const nc = c + (d === "d") - (d === "g"), nl = l + (d === "b") - (d === "h"); return nc >= 0 && nc < n && nl >= 0 && nl < m && !(ch.slice(-1) === { h: "b", b: "h", g: "d", d: "g" }[d]); });
+        if (!opts.length) { ok = false; break; }
+        const d = pick(opts); ch += d; c += (d === "d") - (d === "g"); l += (d === "b") - (d === "h");
+      }
+      if (ok && (c !== dep[0] || l !== dep[1])) return { dep, ch, fin: [c, l] };
+    }
+    return cheminHasard(n, m, k);
+  }
+  GEN["cp11-chemin"] = function () {
+    const n = 6, m = 4, C = cheminHasard(n, m, rand(3, 6)), noms = ["A", "B", "C", "D"];
+    const autres = [];
+    while (autres.length < 3) { const p = [rand(0, n - 1), rand(0, m - 1)]; if ((p[0] !== C.fin[0] || p[1] !== C.fin[1]) && (p[0] !== C.dep[0] || p[1] !== C.dep[1]) && !autres.some((q) => q[0] === p[0] && q[1] === p[1])) autres.push(p); }
+    const k = rand(0, 3), places = [...autres]; places.splice(k, 0, C.fin);
+    const c = melange(noms[k], noms);
+    return { enonce: `Le robot part du point rond et suit le code ${fleches(C.ch)} (une flèche = une case). Sur quelle lettre arrive-t-il ?`, figure: quadrillage(n, m, { depart: C.dep, objets: places.map((p, i) => [p[0], p[1], noms[i]]) }), mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: ["Pose ton doigt sur le point rond.", "Avance d'une case pour chaque flèche, dans le sens de la flèche.", "Suis les flèches dans l'ordre, de gauche à droite."],
+      solution: `En suivant ${fleches(C.ch)} case par case, le robot arrive sur ${noms[k]}.`, figureSolution: quadrillage(n, m, { depart: C.dep, chemin: C.ch, objets: places.map((p, i) => [p[0], p[1], noms[i]]) }) };
+  };
+  GEN["cp11-coder"] = function () {
+    const n = 6, m = 4, C = cheminHasard(n, m, rand(3, 5)), inv = { h: "b", b: "h", g: "d", d: "g" };
+    const f1 = C.ch.split("").map((d) => inv[d]).join(""), f2 = C.ch.slice(0, -1), f3 = C.ch + C.ch.slice(-1), f4 = C.ch.split("").reverse().join("");
+    const c = melange(fleches(C.ch), [f1, f2, f3, f4].filter((x) => x !== C.ch).map(fleches));
+    return { enonce: "Le trait montre le chemin du robot depuis le point rond. Quel code décrit ce chemin ?", figure: quadrillage(n, m, { depart: C.dep, chemin: C.ch }), mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: ["Pars du point rond.", "Pour chaque case traversée, écris la flèche du sens dans lequel tu vas.", `Le chemin fait $${C.ch.length}$ cases.`],
+      solution: `Le code est ${fleches(C.ch)}.` };
+  };
+  GEN["cp11-rang"] = function () {
+    const L = E.tirage(E.PRENOMS.map((p) => p[0]), 4), t = rand(0, 2), k = rand(0, 3);
+    const lieu = pick(["sur un banc de la cour", "sur la photo de classe", "devant le tableau", "dans la pirogue"]);
+    const intro = `${L.join(", ")} sont ${lieu}, dans cet ordre de **gauche à droite**.`;
+    if (t === 0) { if (k === 3) return GEN["cp11-rang"](); const c = melange(L[k + 1], [...L, "Personne"]); return { enonce: `${intro} Qui est juste à droite de ${L[k]} ?`, mode: "choix", choix: c.choix, attendu: c.attendu, aides: ["On lit les prénoms de gauche à droite, comme dans un livre.", `Trouve ${L[k]} dans la liste.`, "Celui qui est juste à droite est le prénom suivant."], solution: `Juste à droite de ${L[k]}, il y a ${L[k + 1]}.` }; }
+    if (t === 1) { if (k === 0) return GEN["cp11-rang"](); const c = melange(L[k - 1], [...L, "Personne"]); return { enonce: `${intro} Qui est juste à gauche de ${L[k]} ?`, mode: "choix", choix: c.choix, attendu: c.attendu, aides: ["On lit les prénoms de gauche à droite.", `Trouve ${L[k]} dans la liste.`, "Celui qui est juste à gauche est le prénom d'avant."], solution: `Juste à gauche de ${L[k]}, il y a ${L[k - 1]}.` }; }
+    const j = rand(1, 2), c = melange(L[j], [...L, "Personne"]);
+    return { enonce: `${intro} Qui est entre ${L[j - 1]} et ${L[j + 1]} ?`, mode: "choix", choix: c.choix, attendu: c.attendu, aides: ["Entre deux enfants, c'est au milieu.", `Trouve ${L[j - 1]} et ${L[j + 1]}.`, "Regarde qui est au milieu."], solution: `Entre ${L[j - 1]} et ${L[j + 1]}, il y a ${L[j]}.` };
+  };
+
+  /* =====================================================================
+     Chapitre 12 : tableaux et diagrammes (cp12-)
+     ===================================================================== */
+  const TX = (t) => "\\text{" + t + "}";
+  const ENQUETES = [
+    ["Fruit préféré", ["mangue", "banane", "papaye", "ananas", "litchi"]],
+    ["Animal préféré", ["maki", "tortue", "dauphin", "chat", "zébu"]],
+    ["Moyen de venir à l'école", ["à pied", "en bus", "en voiture", "à vélo"]],
+    ["Sport préféré", ["foot", "basket", "natation", "course"]],
+    ["Couleur préférée", ["rouge", "bleu", "vert", "jaune", "violet"]]
+  ];
+  function enquete() {
+    const [titre, cats0] = pick(ENQUETES), k = rand(3, Math.min(5, cats0.length)), cats = E.tirage(cats0, k);
+    const vals = []; while (vals.length < k) { const v = rand(1, 12); if (!vals.includes(v)) vals.push(v); }
+    return { titre, cats, vals, tot: vals.reduce((s, v) => s + v, 0) };
+  }
+  const tableHTML = (L) => `<table class="valeurs croise">${L.map((l, i) => `<tr>${l.map((v, j) => (i === 0 || j === 0 ? `<th>${v}</th>` : `<td>${v}</td>`)).join("")}</tr>`).join("")}</table>`;
+  FIGURES["cp12-cours-tableau"] = () => tableHTML([["Fruit", "orange", "fraise", "banane", "kiwi"], ["Élèves", 4, 12, 8, 2]]);
+  FIGURES["cp12-cours-double"] = () => tableHTML([["", "à pied", "en bus", "en voiture"], ["Filles", 7, 5, 2], ["Garçons", 6, 4, 3]]);
+  FIGURES["cp12-cours-barres"] =() => barres([["orange", 4], ["fraise", 12], ["banane", 8], ["kiwi", 2]], 2, "élèves");
+  FIGURES["cp12-qcm-barres"] = () => barres([["mangue", 9], ["banane", 5], ["papaye", 7]], 1, "élèves");
+
+  GEN["cp12-tableau"] = function () {
+    const Q = enquete(), t = rand(0, 2), i = rand(0, Q.cats.length - 1);
+    const tab = { lignes: [[TX(Q.titre), ...Q.cats.map(TX)], [TX("Élèves"), ...Q.vals.map(String)]] };
+    if (t === 0) return { enonce: `La classe a fait une enquête. Combien d'élèves ont choisi « ${Q.cats[i]} » ?`, tableau: tab, mode: "nombre", prefixe: "", suffixe: "élèves", attendu: Q.vals[i], erreurs: [{ valeur: Q.tot, message: "On demande une seule case, pas le total." }, { valeur: Q.vals[(i + 1) % Q.vals.length], message: "Tu as lu la case d'à côté : regarde bien la bonne colonne." }], aides: [`Cherche « ${Q.cats[i]} » dans la première ligne.`, "Descends dans la même colonne.", "Lis le nombre d'élèves."], solution: `Sous « ${Q.cats[i]} », on lit $${Q.vals[i]}$ élèves.` };
+    if (t === 1) return { enonce: "Combien d'élèves ont répondu à l'enquête en tout ?", tableau: tab, mode: "nombre", prefixe: "", suffixe: "élèves", attendu: Q.tot, erreurs: [{ valeur: Q.cats.length, message: "On ne compte pas les colonnes : on additionne les nombres d'élèves." }, { valeur: Math.max(...Q.vals), message: "Il faut additionner tous les nombres." }], aides: ["Il faut additionner tous les nombres d'élèves.", `$${Q.vals.join(" + ")}$.`, "Ajoute-les un par un."], solution: `$${Q.vals.join(" + ")} = ${Q.tot}$ élèves.` };
+    let j; do j = rand(0, Q.cats.length - 1); while (j === i);
+    const [a, b] = Q.vals[i] > Q.vals[j] ? [i, j] : [j, i];
+    return { enonce: `Combien d'élèves de plus ont choisi « ${Q.cats[a]} » que « ${Q.cats[b]} » ?`, tableau: tab, mode: "nombre", prefixe: "", suffixe: "élèves de plus", attendu: Q.vals[a] - Q.vals[b], erreurs: [{ valeur: Q.vals[a] + Q.vals[b], message: "On cherche l'écart : c'est une soustraction." }, { valeur: Q.vals[a], message: "Il faut comparer avec l'autre colonne." }], aides: [`« ${Q.cats[a]} » : $${Q.vals[a]}$ élèves.`, `« ${Q.cats[b]} » : $${Q.vals[b]}$ élèves.`, `$${Q.vals[a]} - ${Q.vals[b]}$.`], solution: `$${Q.vals[a]} - ${Q.vals[b]} = ${Q.vals[a] - Q.vals[b]}$ élèves de plus.` };
+  };
+  GEN["cp12-diagramme"] = function () {
+    const Q = enquete(), t = rand(0, 2), fig = barres(Q.cats.map((c, k) => [c, Q.vals[k]]), 2, "élèves");
+    if (t === 0) { const i = rand(0, Q.cats.length - 1); return { enonce: `${Q.titre} : combien d'élèves ont choisi « ${Q.cats[i]} » ?`, figure: fig, mode: "nombre", prefixe: "", suffixe: "élèves", attendu: Q.vals[i], erreurs: [{ valeur: Q.vals[i] + 1, message: "Regarde bien la ligne qui passe au bout de la barre." }, { valeur: Q.vals[i] - 1, message: "Regarde bien la ligne qui passe au bout de la barre." }], aides: [`Trouve la barre « ${Q.cats[i]} ».`, "Suis le haut de la barre jusqu'aux nombres à gauche.", "Les lignes vont de $2$ en $2$ : une barre peut s'arrêter entre deux lignes."], solution: `La barre « ${Q.cats[i]} » monte jusqu'à $${Q.vals[i]}$.` }; }
+    if (t === 1) { const plus = rand(0, 1), v = plus ? Math.max(...Q.vals) : Math.min(...Q.vals), rep = Q.cats[Q.vals.indexOf(v)], c = melange(rep, Q.cats); return { enonce: `${Q.titre} : quel choix a été le **${plus ? "plus" : "moins"}** choisi ?`, figure: fig, mode: "choix", choix: c.choix, attendu: c.attendu, aides: [`Cherche la barre la plus ${plus ? "haute" : "basse"}.`, "Compare la hauteur des barres.", "Lis le nom sous cette barre."], solution: `La barre la plus ${plus ? "haute" : "basse"} est « ${rep} » ($${v}$ élèves).` }; }
+    return { enonce: `${Q.titre} : combien d'élèves ont répondu en tout ?`, figure: fig, mode: "nombre", prefixe: "", suffixe: "élèves", attendu: Q.tot, erreurs: [{ valeur: Q.cats.length, message: "On additionne les hauteurs des barres, pas le nombre de barres." }, { valeur: Math.max(...Q.vals), message: "Il faut additionner toutes les barres." }], aides: ["Lis la valeur de chaque barre.", `$${Q.vals.join(" + ")}$.`, "Ajoute-les une par une."], solution: `$${Q.vals.join(" + ")} = ${Q.tot}$ élèves.` };
+  };
+  GEN["cp12-double"] = function () {
+    const [titre, cats0] = pick(ENQUETES), cats = E.tirage(cats0, 3), V = [cats.map(() => rand(1, 9)), cats.map(() => rand(1, 9))];
+    const tab = { lignes: [["", ...cats.map(TX)], [TX("Filles"), ...V[0].map(String)], [TX("Garçons"), ...V[1].map(String)]] };
+    const t = rand(0, 1), g = rand(0, 1), j = rand(0, 2), qui = g ? "garçons" : "filles";
+    if (t === 0) return { enonce: `${titre}. Combien de **${qui}** ont choisi « ${cats[j]} » ?`, tableau: tab, mode: "nombre", prefixe: "", suffixe: qui, attendu: V[g][j], erreurs: [{ valeur: V[1 - g][j], message: `Ça, c'est la case des ${g ? "filles" : "garçons"}.` }, { valeur: V[0][j] + V[1][j], message: `On demande seulement les ${qui}.` }].filter((e) => e.valeur !== V[g][j]), aides: [`Trouve la ligne des ${qui}.`, `Trouve la colonne « ${cats[j]} ».`, "Lis la case où elles se croisent."], solution: `Ligne « ${Maj2(qui)} », colonne « ${cats[j]} » : $${V[g][j]}$.` };
+    return { enonce: `${titre}. Combien d'élèves (filles et garçons) ont choisi « ${cats[j]} » ?`, tableau: tab, mode: "nombre", prefixe: "", suffixe: "élèves", attendu: V[0][j] + V[1][j], erreurs: [{ valeur: V[0][j], message: "N'oublie pas les garçons." }, { valeur: V[1][j], message: "N'oublie pas les filles." }].filter((e) => e.valeur !== V[0][j] + V[1][j]), aides: [`Trouve la colonne « ${cats[j]} ».`, `Filles : $${V[0][j]}$. Garçons : $${V[1][j]}$.`, `$${V[0][j]} + ${V[1][j]}$.`], solution: `$${V[0][j]} + ${V[1][j]} = ${V[0][j] + V[1][j]}$ élèves.` };
+  };
+
   // Erreurs de calcul fréquentes (une dizaine de trop ou de moins) dans les problèmes et le calcul mental
   ["cp6-parties", "cp6-deux-etapes", "cp5-dizaines", "cp5-procedures"].forEach((t) => {
     const g = GEN[t];

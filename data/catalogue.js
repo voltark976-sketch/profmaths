@@ -33,9 +33,9 @@ window.CATALOGUE = {
         { id: "cp-longueurs-masses", numero: 7, titre: "Longueurs et masses", statut: "disponible", source: "data/cp/longueurs-masses.js", series: 4, drive: "" },
         { id: "cp-monnaie", numero: 8, titre: "La monnaie", statut: "disponible", source: "data/cp/monnaie.js", series: 4, drive: "" },
         { id: "cp-heure", numero: 9, titre: "Lire l'heure", statut: "disponible", source: "data/cp/heure.js", series: 3, drive: "" },
-        { id: "cp-solides-figures", numero: 10, titre: "Solides et figures", statut: "bientot", source: "data/cp/solides-figures.js", series: 0, drive: "" },
-        { id: "cp-reperage", numero: 11, titre: "Se repérer et se déplacer", statut: "bientot", source: "data/cp/reperage.js", series: 0, drive: "" },
-        { id: "cp-donnees", numero: 12, titre: "Tableaux et diagrammes", statut: "bientot", source: "data/cp/donnees.js", series: 0, drive: "" }
+        { id: "cp-solides-figures", numero: 10, titre: "Solides et figures", statut: "disponible", source: "data/cp/solides-figures.js", series: 3, drive: "" },
+        { id: "cp-reperage", numero: 11, titre: "Se repérer et se déplacer", statut: "disponible", source: "data/cp/reperage.js", series: 4, drive: "" },
+        { id: "cp-donnees", numero: 12, titre: "Tableaux et diagrammes", statut: "disponible", source: "data/cp/donnees.js", series: 3, drive: "" }
       ]
     },
     {
