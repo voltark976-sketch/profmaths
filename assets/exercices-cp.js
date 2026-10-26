@@ -585,6 +585,211 @@
       solution: `$${k}$ fois $${v}$ font $${N}$ : chacun reçoit $${v}$ ${obj}.` };
   };
 
+  /* =====================================================================
+     Chapitre 7 : longueurs et masses (cp7-)
+     ===================================================================== */
+  const { regle, svg, r1 } = E;
+  // Segments horizontaux nommés, alignés à gauche ou non : L = [[nom, longueur en px, décalage]]
+  const segments = (L) => svg("segments", 320, L.length * 34 + 6, "Segments à comparer", L.map(([n, l, d], k) => `<text class="g-clabel" x="14" y="${k * 34 + 26}" text-anchor="middle">${n}</text><line class="g-segment" x1="${36 + (d || 0)}" y1="${k * 34 + 21}" x2="${36 + (d || 0) + l}" y2="${k * 34 + 21}" style="stroke-width:3"/><line class="g-segment" x1="${36 + (d || 0)}" y1="${k * 34 + 15}" x2="${36 + (d || 0)}" y2="${k * 34 + 27}"/><line class="g-segment" x1="${36 + (d || 0) + l}" y1="${k * 34 + 15}" x2="${36 + (d || 0) + l}" y2="${k * 34 + 27}"/>`).join(""));
+  // Balance à plateaux : g et d = textes des objets ; pente > 0 si le plateau de gauche descend
+  function balance(g, d, pente) {
+    const a = pente * 12, yg = 70 + a, yd = 70 - a;
+    return svg("balance", 320, 130, `Balance : ${g} à gauche, ${d} à droite`, `<path class="g-segment" d="M160 120 L160 40 M130 120 H190"/><line class="g-segment" x1="70" y1="${r1(40 + a / 2)}" x2="250" y2="${r1(40 - a / 2)}"/><circle class="g-point" cx="160" cy="40" r="5"/>` +
+      [[70, yg, g, 40 + a / 2], [250, yd, d, 40 - a / 2]].map(([x, y, t, yh]) => `<line class="g-droite" x1="${x}" y1="${r1(yh)}" x2="${x - 30}" y2="${r1(y)}"/><line class="g-droite" x1="${x}" y1="${r1(yh)}" x2="${x + 30}" y2="${r1(y)}"/><path class="g-rect" d="M${x - 40} ${r1(y)} H${x + 40} L${x + 30} ${r1(y + 12)} H${x - 30} Z"/><text class="g-clabel" x="${x}" y="${r1(y - 6)}" text-anchor="middle">${t}</text>`).join(""));
+  }
+  FIGURES["cp7-cours-regle"] = () => regle(10, 0, 70, { nom: "7 cm" });
+  FIGURES["cp7-cours-regle2"] = () => regle(10, 20, 80, { nom: "?" });
+  FIGURES["cp7-cours-balance"] = () => balance("ananas", "citron", 1);
+  FIGURES["cp7-qcm-regle"] = () => regle(10, 30, 90);
+  FIGURES["cp7-qcm-balance"] = () => balance("noix de coco", "mangue", 1);
+  FIGURES["cp7-qcm-segments"] = () => segments([["A", 160, 0], ["B", 210, 0], ["C", 120, 0]]);
+
+  GEN["cp7-mesurer"] = function () {
+    if (rand(0, 2) === 0) { // tracer un segment : jusqu'à quelle graduation ?
+      const a = pick([0, 0, 1, 2, 3, 4, 5]), l = rand(2, 14), P = prenom();
+      return { enonce: `${P.nom} veut tracer un segment de $${l}$ cm. ${P.Il} commence ${a ? `à la graduation $${a}$` : "au $0$"} de sa règle. Jusqu'à quelle graduation doit-${P.il} tracer ?`, mode: "nombre", prefixe: "Jusqu'à", attendu: a + l,
+        erreurs: a ? [{ valeur: l, message: `${P.Il} ne part pas du $0$ mais du $${a}$ : il faut avancer de $${l}$ cm à partir de $${a}$.` }, { valeur: a + l - 1, message: "Compte bien les centimètres (les espaces), pas les traits." }] : [{ valeur: l - 1, message: "Compte bien les centimètres (les espaces), pas les traits." }, { valeur: l + 1, message: "Compte bien les centimètres (les espaces), pas les traits." }],
+        aides: ["Chaque centimètre est l'espace entre deux nombres de la règle.", a ? `On part de $${a}$ et on avance de $${l}$.` : "En partant du $0$, on s'arrête au nombre de centimètres.", a ? `$${a} + ${l}$.` : `Le segment s'arrête sur le $${l}$.`],
+        solution: a ? `$${a} + ${l} = ${a + l}$ : ${P.il} trace jusqu'à la graduation $${a + l}$.` : `Du $0$ au $${l}$, il y a $${l}$ cm : ${P.il} trace jusqu'à $${l}$.` };
+    }
+    const n = 10, a = rand(0, 1) ? 0 : rand(1, 4), l = rand(2, n - a), b = a + l;
+    return { enonce: a ? "Attention, le segment ne commence pas au $0$ de la règle ! Combien mesure-t-il ?" : "Combien mesure le segment posé sur la règle ?", figure: regle(n, 10 * a, 10 * b), mode: "nombre", prefixe: "Il mesure", suffixe: "cm", attendu: l,
+      erreurs: a ? [{ valeur: b, message: `Le segment commence à $${a}$, pas à $0$ : compte les centimètres de $${a}$ à $${b}$.` }, { valeur: l + 1, message: "Compte les espaces entre les traits, pas les traits." }] : [{ valeur: l + 1, message: "Compte les espaces entre les traits, pas les traits." }],
+      aides: ["Regarde où commence le segment et où il finit sur la règle.", a ? `Il commence à $${a}$ et finit à $${b}$.` : "Il commence au $0$ de la règle.", a ? `Compte les centimètres de $${a}$ à $${b}$ : $${b} - ${a}$.` : `Lis le nombre au bout du segment.`],
+      solution: a ? `Le segment va de $${a}$ à $${b}$ : $${b} - ${a} = ${l}$ cm.` : `Le segment part de $0$ et arrive à $${b}$ : il mesure $${l}$ cm.` };
+  };
+  GEN["cp7-comparer"] = function () {
+    const t = rand(0, 1);
+    if (t === 0) {
+      const ls = E.tirage([90, 110, 130, 150, 170, 190, 210, 230, 250], 3), noms = ["A", "B", "C"], long = rand(0, 1);
+      const idx = ls.indexOf(long ? Math.max(...ls) : Math.min(...ls)), dec = rand(0, 1) ? [0, 0, 0] : [rand(0, 40), rand(0, 40), rand(0, 40)];
+      const c = melange(noms[idx], noms.concat(["Ils ont tous la même longueur"]));
+      return { enonce: `Quel segment est le plus **${long ? "long" : "court"}** ?${dec[0] + dec[1] + dec[2] ? " Attention, ils ne commencent pas au même endroit." : ""}`, figure: segments(ls.map((l, k) => [noms[k], l, dec[k]])), mode: "choix", choix: c.choix, attendu: c.attendu,
+        aides: ["Compare la longueur des traits, pas l'endroit où ils finissent.", "Tu peux mesurer avec une bande de papier ou ta règle.", `Cherche le plus ${long ? "long" : "court"} des trois.`],
+        solution: `Le segment ${noms[idx]} est le plus ${long ? "long" : "court"}.` };
+    }
+    const objs = E.tirage([["la porte de la classe", 200], ["la table", 70], ["le crayon", 15], ["la trousse", 20], ["le cahier", 30], ["la règle", 30], ["le tableau", 300], ["la gomme", 5], ["le livre", 25], ["le bureau", 120]], 3).filter((o, k, L) => L.findIndex((x) => x[1] === o[1]) === k);
+    if (objs.length < 3) return GEN["cp7-comparer"]();
+    const long = rand(0, 1), tri = objs.slice().sort((x, y) => x[1] - y[1]), rep = long ? tri[2][0] : tri[0][0];
+    const c = melange(Maj2(rep), objs.map((o) => Maj2(o[0])));
+    const txt = (o) => o[1] >= 100 ? `$${o[1] / 100 === Math.floor(o[1] / 100) ? o[1] / 100 + "$ m" : o[1] + "$ cm"}` : `$${o[1]}$ cm`;
+    return { enonce: `${objs.map((o) => `${Maj2(o[0])} mesure ${txt(o)}`).join(", ")}. Lequel est le plus **${long ? "long" : "court"}** ?`.replace(/, ([A-Z])/g, (m, l) => ", " + l.toLowerCase()), mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: ["Exprime toutes les longueurs dans la même unité.", "$1$ m $= 100$ cm.", "Compare ensuite les nombres."],
+      solution: `En centimètres : ${objs.map((o) => `${o[0]} $${o[1]}$ cm`).join(", ")}. Le plus ${long ? "long" : "court"} est ${rep}.` };
+  };
+  const Maj2 = (s) => s.charAt(0).toUpperCase() + s.slice(1);
+  GEN["cp7-unites"] = function () {
+    const t = rand(0, 2);
+    if (t === 0) {
+      const [obj, v, u] = pick([["une trousse", 20, "cm"], ["un crayon", 15, "cm"], ["une gomme", 4, "cm"], ["la porte de la classe", 2, "m"], ["un cahier", 30, "cm"], ["un enfant de CP", 1, "m"], ["une fourmi", 1, "cm"], ["un banga", 3, "m"], ["une feuille de cocotier", 4, "m"], ["une mangue", 12, "cm"], ["un timbre", 3, "cm"], ["une pirogue", 6, "m"]]);
+      const bon = `$${v}$ ${u}`, autre = u === "cm" ? "m" : "cm", c = melange(bon, [`$${v}$ ${autre}`, `$${v * 10}$ ${u}`, `$${v * 100}$ ${u}`, v > 1 ? `$1$ ${autre}` : `$${v + 50}$ ${u}`]);
+      return { enonce: `Quelle est la longueur la plus probable pour ${obj} ?`, mode: "choix", choix: c.choix, attendu: c.attendu,
+        aides: ["$1$ cm, c'est à peu près la largeur d'un doigt.", "$1$ m, c'est un grand pas d'adulte, ou $100$ cm.", "Imagine l'objet devant toi."],
+        solution: `${Maj2(obj)} mesure environ ${bon}.` };
+    }
+    if (t === 1) { const k = rand(1, 5), q = rand(0, 1); return q ? { enonce: `Complète : $${k}$ m $=$ … cm`, mode: "nombre", prefixe: "", suffixe: "cm", attendu: 100 * k, erreurs: [{ valeur: 10 * k, message: "$1$ m $= 100$ cm, pas $10$." }, { valeur: k, message: "Le nombre change quand on change d'unité : $1$ m $= 100$ cm." }], aides: ["$1$ m $= 100$ cm.", `$${k}$ m, c'est $${k}$ fois $100$ cm.`, `$${Array(k).fill(100).join(" + ")}$.`], solution: `$1$ m $= 100$ cm, donc $${k}$ m $= ${100 * k}$ cm.` } : { enonce: `Complète : $${100 * k}$ cm $=$ … m`, mode: "nombre", prefixe: "", suffixe: "m", attendu: k, erreurs: [{ valeur: 10 * k, message: "$100$ cm font $1$ m." }, { valeur: 100 * k, message: "On change d'unité : $100$ cm $= 1$ m." }], aides: ["$100$ cm $= 1$ m.", `Combien de fois $100$ dans $${100 * k}$ ?`, `$${Array(k).fill(100).join(" + ")} = ${100 * k}$.`], solution: `$${100 * k}$ cm $= ${k}$ m.` }; }
+    const a = rand(10, 90), b = rand(5, 99 - a), P = prenom();
+    return { enonce: `${P.nom} met bout à bout deux bâtons : l'un mesure $${a}$ cm, l'autre $${b}$ cm. Quelle longueur obtient-${P.il} ?`, mode: "nombre", prefixe: "Longueur :", suffixe: "cm", attendu: a + b,
+      erreurs: [{ valeur: Math.abs(a - b), message: "Bout à bout, les longueurs s'ajoutent." }, { valeur: a + b + 10, message: "Vérifie le calcul des dizaines." }],
+      aides: ["Bout à bout : on ajoute les longueurs.", `$${a} + ${b}$.`, "Ajoute les dizaines, puis les unités."],
+      solution: `$${a} + ${b} = ${a + b}$ cm.` };
+  };
+  GEN["cp7-masses"] = function () {
+    // masses approximatives en grammes, pour que les comparaisons soient vraisemblables
+    const M = { "œuf": 60, "citron": 100, "banane": 150, "trousse": 200, "mangue": 350, "cahier": 250, "ballon": 450, "livre": 600, "ananas": 1200, "papaye": 900, "noix de coco": 1500, "pastèque": 4000 };
+    const t = rand(0, 1);
+    if (t === 0) {
+      const egal = rand(0, 3) === 0;
+      let g, d; do { [g, d] = E.tirage(Object.keys(M), 2); } while (!egal && Math.abs(M[g] - M[d]) < 100);
+      if (egal) d = g;
+      const p = egal ? 0 : M[g] > M[d] ? 1 : -1, rep = p > 0 ? Maj2(leLa(g)) : p < 0 ? Maj2(leLa(d)) : "Ils ont la même masse";
+      const c = melange(rep, [Maj2(leLa(g)), Maj2(leLa(d)), "Ils ont la même masse", "On ne peut pas savoir"]);
+      return { enonce: egal ? `On a mis ${unUne(g)} de chaque côté. Que montre la balance ?` : "Regarde la balance. Quel objet est le plus lourd ?", figure: balance(g, d, p), mode: "choix", choix: c.choix, attendu: c.attendu,
+        aides: ["Le plateau le plus lourd descend.", "Si la balance est droite, les deux objets ont la même masse.", "Regarde quel plateau est le plus bas."],
+        solution: p ? `Le plateau ${p > 0 ? "de gauche" : "de droite"} descend : ${leLa(p > 0 ? g : d)} est ${fem(p > 0 ? g : d) ? "la plus lourde" : "le plus lourd"}.` : "La balance est droite : les deux objets ont la même masse." };
+    }
+    let L; do L = E.tirage(Object.keys(M), 3).sort((x, y) => M[y] - M[x]); while (M[L[0]] - M[L[1]] < 100 || M[L[1]] - M[L[2]] < 100);
+    const [A, B, C] = L, lourd = rand(0, 1), rep = lourd ? A : C;
+    const c = melange(Maj2(leLa(rep)), [Maj2(leLa(A)), Maj2(leLa(B)), Maj2(leLa(C))]);
+    const adj = (o) => (lourd ? (fem(o) ? "la plus lourde" : "le plus lourd") : fem(o) ? "la plus légère" : "le plus léger");
+    return { enonce: `On pèse avec une balance : ${leLa(A)} est plus lourd${fem(A)} que ${leLa(B)}, et ${leLa(B)} est plus lourd${fem(B)} que ${leLa(C)}. Quel objet est le plus **${lourd ? "lourd" : "léger"}** ?`, mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: [`Range du plus lourd au plus léger : ${leLa(A)} d'abord.`, `Puis ${leLa(B)}, puis ${leLa(C)}.`, lourd ? "Le plus lourd est le premier." : "Le plus léger est le dernier."],
+      solution: `Du plus lourd au plus léger : ${leLa(A)}, ${leLa(B)}, ${leLa(C)}. ${Maj2(leLa(rep))} est ${adj(rep)}.` };
+  };
+  const unUne = (o) => (FEM.includes(o) ? "une " : "un ") + o;
+  const FEM = ["mangue", "noix de coco", "papaye", "banane", "trousse", "pastèque"];
+  const leLa = (o) => (/^[aeiouœ]/.test(o) ? "l'" : FEM.includes(o) ? "la " : "le ") + o, fem = (o) => (FEM.includes(o) ? "e" : "");
+
+  /* =====================================================================
+     Chapitre 8 : la monnaie (cp8-)
+     ===================================================================== */
+  const { monnaie } = E;
+  const somme = (L) => L.reduce((s, v) => s + v, 0) / 100;
+  // Une somme en euros (entiers) faite de billets et de pièces
+  function tirerMonnaie(max) {
+    const L = [], valeurs = [5000, 2000, 1000, 500, 200, 100];
+    let n = rand(2, 6);
+    while (n-- > 0) { const v = pick(valeurs); if (somme([...L, v]) <= max) L.push(v); }
+    return L.length >= 2 ? L : tirerMonnaie(max);
+  }
+  FIGURES["cp8-cours-monnaie"] = () => monnaie([1000, 500, 200, 100, 100]);
+  FIGURES["cp8-qcm-monnaie"] = () => monnaie([2000, 500, 200, 200]);
+  FIGURES["cp8-methode-monnaie"] = () => monnaie([2000, 1000, 500, 200, 100]);
+
+  GEN["cp8-valeur"] = function () {
+    const L = tirerMonnaie(99), v = somme(L);
+    return { enonce: "Combien d'euros y a-t-il en tout ?", figure: monnaie(L), mode: "nombre", prefixe: "Il y a", suffixe: "euros", attendu: v,
+      erreurs: [{ valeur: L.length, message: "On ne compte pas les pièces et les billets : on additionne leurs **valeurs**." }, { valeur: v + 10, message: "Vérifie : additionne d'abord les billets, puis les pièces." }],
+      aides: ["Commence par les billets (les plus grosses valeurs).", `Billets : $${L.filter((x) => x >= 500).map((x) => x / 100).join(" + ") || "0"}$.`, `Pièces : $${L.filter((x) => x < 500).map((x) => x / 100).join(" + ") || "0"}$.`],
+      solution: `$${L.map((x) => x / 100).join(" + ")} = ${v}$ euros.` };
+  };
+  GEN["cp8-comparer"] = function () {
+    let A, B; do { A = tirerMonnaie(60); B = tirerMonnaie(60); } while (Math.abs(somme(A) - somme(B)) > 15 || (somme(A) === somme(B) && rand(0, 2)));
+    const [P1, P2] = E.deux(), a = somme(A), b = somme(B), rep = a > b ? P1.nom : a < b ? P2.nom : "Ils ont autant l'un que l'autre";
+    const c = melange(rep, [P1.nom, P2.nom, "Ils ont autant l'un que l'autre", "On ne peut pas savoir"]);
+    return { enonce: `${P1.nom} a : ${A.map((x) => `$${x / 100}$ €`).join(", ")}. ${P2.nom} a : ${B.map((x) => `$${x / 100}$ €`).join(", ")}. Qui a le plus d'argent ?`, mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: ["Ce n'est pas le nombre de pièces qui compte, c'est leur valeur.", `Calcule ce qu'a ${P1.nom} : $${A.map((x) => x / 100).join(" + ")}$.`, `Calcule ce qu'a ${P2.nom} : $${B.map((x) => x / 100).join(" + ")}$.`],
+      solution: `${P1.nom} a $${a}$ € et ${P2.nom} a $${b}$ €. ${a === b ? "Ils ont autant l'un que l'autre." : `C'est ${rep} qui a le plus d'argent.`}` };
+  };
+  GEN["cp8-payer"] = function () {
+    const prix = rand(6, 89), d = Math.floor(prix / 10), u = prix % 10;
+    // décomposition juste avec billets de 10 et 5, pièces de 2 et 1
+    const juste = []; let r = prix;
+    [[50, 5000], [20, 2000], [10, 1000], [5, 500], [2, 200], [1, 100]].forEach(([e, c]) => { while (r >= e) { juste.push(c); r -= e; } });
+    const ecr = (L) => L.map((x) => `$${x / 100}$ €`).join(" + ");
+    const f1 = juste.slice(); f1[f1.length - 1] === 100 ? f1.pop() : f1.push(100);
+    const f2 = juste.map((x) => (x === 1000 ? 100 : x));
+    const f3 = juste.slice(); f3.push(200);
+    const c = melange(ecr(juste), [ecr(f1), ecr(f2), ecr(f3)].filter((x) => x !== ecr(juste)));
+    return { enonce: `Un jouet coûte $${prix}$ €. Avec quelles pièces et quels billets peut-on payer **juste** le prix ?`, mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: ["Additionne la valeur de chaque proposition.", `Il faut trouver exactement $${prix}$ €.`, d ? `Les dizaines d'euros ($${10 * d}$ €) peuvent se faire avec des billets.` : "Utilise des pièces de $1$ € et $2$ €."],
+      solution: `${ecr(juste)} $= ${prix}$ €.` };
+  };
+  GEN["cp8-rendre"] = function () {
+    const billet = pick([10, 20, 20, 50, 50]), prix = rand(Math.max(2, billet - 25), billet - 1), P = prenom();
+    const [qui, ou] = pick([["un ballon", "au magasin"], ["des mangues", "au marché de Mamoudzou"], ["un livre", "à la librairie"], ["un poisson", "au port de Mamoudzou"], ["des brochettes", "au marché"]]);
+    return { enonce: `${P.nom} achète ${qui} ${ou} pour $${prix}$ €. ${P.Il} paie avec un billet de $${billet}$ €. Combien la marchande lui rend-elle ?`, figure: monnaie([billet * 100]), mode: "nombre", prefixe: "Elle rend", suffixe: "euros", attendu: billet - prix,
+      erreurs: [{ valeur: billet + prix, message: "On rend la différence entre le billet et le prix : c'est une soustraction." }, { valeur: prix, message: "Ça, c'est le prix. On cherche ce qu'on lui rend." }],
+      aides: ["La marchande garde le prix et rend le reste.", `Compte de $${prix}$ jusqu'à $${billet}$.`, `$${billet} - ${prix}$.`],
+      solution: `$${prix} + ${billet - prix} = ${billet}$, donc elle rend $${billet - prix}$ €.` };
+  };
+
+  /* =====================================================================
+     Chapitre 9 : lire l'heure (cp9-), heures entières
+     ===================================================================== */
+  const { horloges } = E;
+  const NOM_H = (h) => (h === 12 ? "midi (12 heures)" : `${h} heure${h > 1 ? "s" : ""}`);
+  FIGURES["cp9-cours-horloge"] = () => horloges([[3, 0, "3 heures"]]);
+  FIGURES["cp9-cours-aiguilles"] = () => horloges([[9, 0, "9 heures"], [12, 0, "midi"]]);
+  FIGURES["cp9-qcm-horloge"] = () => horloges([[8, 0, ""]]);
+  FIGURES["cp9-qcm-horloges"] = () => horloges([[2, 0, "A"], [10, 0, "B"], [12, 0, "C"]]);
+
+  GEN["cp9-lire"] = function () {
+    const t = rand(0, 3);
+    if (t === 1) { // placer la petite aiguille
+      const h = rand(1, 12), P = prenom();
+      return { enonce: `${P.nom} veut montrer ${NOM_H(h)} sur son horloge en carton. La grande aiguille est sur le $12$. Sur quel nombre doit-${P.il} mettre la **petite** aiguille ?`, mode: "nombre", prefixe: "Sur le", attendu: h,
+        erreurs: [{ valeur: 12, message: "Le $12$, c'est pour la grande aiguille. La petite montre l'heure." }, { valeur: h === 6 ? 3 : 6, message: "La petite aiguille va sur le nombre de l'heure." }],
+        aides: ["La petite aiguille montre les heures.", "Pour une heure juste, la grande aiguille est sur le $12$.", `L'heure est ${NOM_H(h)}.`],
+        solution: `Pour ${NOM_H(h)}, la petite aiguille va sur le $${h}$ et la grande sur le $12$.` };
+    }
+    if (t >= 2) { // plus tard ou plus tôt
+      const h = rand(2, 10), k = rand(1, 3), apres = t === 2, r = apres ? h + k : h - k;
+      if (r < 1 || r > 12) return GEN["cp9-lire"]();
+      return { enonce: `Lis l'heure sur l'horloge. Quelle heure ${apres ? "sera" : "était"}-il ${apres ? "dans" : "il y a"} $${k}$ heure${k > 1 ? "s" : ""} ?`, figure: horloges([[h, 0, ""]]), mode: "nombre", prefixe: apres ? "Il sera" : "Il était", suffixe: "heures", attendu: r,
+        erreurs: [{ valeur: h, message: "Ça, c'est l'heure de l'horloge maintenant." }, { valeur: apres ? h - k : h + k, message: apres ? "Plus tard, on avance : on ajoute." : "Avant, on recule : on enlève." }].filter((e) => e.valeur > 0),
+        aides: [`L'horloge indique ${NOM_H(h)}.`, apres ? `Avance la petite aiguille de $${k}$ nombre${k > 1 ? "s" : ""}.` : `Recule la petite aiguille de $${k}$ nombre${k > 1 ? "s" : ""}.`, `$${h} ${apres ? "+" : "-"} ${k}$.`],
+        solution: `Il est ${NOM_H(h)}. ${apres ? `Dans $${k}$ heure${k > 1 ? "s" : ""}, il sera` : `Il y a $${k}$ heure${k > 1 ? "s" : ""}, il était`} ${NOM_H(r)}.` };
+    }
+    const h = rand(1, 12);
+    return { enonce: "Quelle heure indique l'horloge ? (heures entières)", figure: horloges([[h, 0, ""]]), mode: "nombre", prefixe: "Il est", suffixe: "heures", attendu: h,
+      erreurs: [{ valeur: 12, message: "La grande aiguille est sur le $12$ : elle dit seulement que c'est une heure juste. Regarde la **petite** aiguille." }, ...(h !== 6 ? [{ valeur: (h + 6) % 12 || 12, message: "Regarde bien le bout de la petite aiguille." }] : [])],
+      aides: ["La petite aiguille montre les heures.", "La grande aiguille est sur le $12$ : c'est une heure juste.", "Lis le nombre que montre la petite aiguille."],
+      solution: `La petite aiguille est sur le $${h}$ et la grande sur le $12$ : il est ${NOM_H(h)}.` };
+  };
+  GEN["cp9-choisir"] = function () {
+    const hs = E.tirage([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], 3), k = rand(0, 2), noms = ["A", "B", "C"];
+    const c = melange(noms[k], [...noms, "Aucune"]);
+    return { enonce: `Quelle horloge indique ${NOM_H(hs[k])} ?`, figure: horloges(hs.map((h, i) => [h, 0, noms[i]])), mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: ["Regarde la petite aiguille de chaque horloge.", `On cherche la petite aiguille sur le $${hs[k]}$.`, "La grande aiguille est sur le $12$ pour toutes."],
+      solution: `L'horloge ${noms[k]} a sa petite aiguille sur le $${hs[k]}$ : elle indique ${NOM_H(hs[k])}.` };
+  };
+  GEN["cp9-moments"] = function () {
+    const t = rand(0, 1), P = prenom();
+    if (t === 0) {
+      const [act, h, autres] = pick([["se lève pour aller à l'école", "6 h", ["12 h", "9 h du soir", "3 h de l'après-midi"]], ["arrive à l'école le matin", "7 h", ["midi", "8 h du soir", "4 h de l'après-midi"]], ["déjeune à la cantine", "midi", ["7 h du matin", "9 h du soir", "minuit"]], ["se couche le soir", "8 h du soir", ["8 h du matin", "midi", "3 h de l'après-midi"]], ["prend le goûter", "4 h de l'après-midi", ["minuit", "6 h du matin", "midi"]], ["va à la madrassa après l'école", "4 h de l'après-midi", ["minuit", "6 h du matin", "2 h du matin"]]]);
+      const c = melange(h, autres);
+      return { enonce: `Le plus souvent, à quelle heure ${P.nom} ${act} ?`, mode: "choix", choix: c.choix, attendu: c.attendu,
+        aides: ["Pense à ta journée : le matin, le midi, l'après-midi, le soir.", "La nuit, on dort.", "Choisis l'heure qui correspond au bon moment de la journée."],
+        solution: `${P.nom} ${act} vers ${h}.` };
+    }
+    const h = rand(1, 10), k = rand(1, 2);
+    return { enonce: `L'horloge indique l'heure où ${P.nom} part en randonnée au mont Choungui. La randonnée dure $${k}$ heure${k > 1 ? "s" : ""}. À quelle heure finit-elle ?`, figure: horloges([[h, 0, ""]]), mode: "nombre", prefixe: "À", suffixe: "heures", attendu: h + k,
+      erreurs: [{ valeur: h, message: "Ça, c'est l'heure du départ." }, { valeur: h - k, message: "Le temps avance : on ajoute." }].filter((e) => e.valeur > 0),
+      aides: [`L'horloge indique ${NOM_H(h)}.`, `On avance de $${k}$ heure${k > 1 ? "s" : ""}.`, `$${h} + ${k}$.`],
+      solution: `Départ à ${NOM_H(h)}, $${k}$ heure${k > 1 ? "s" : ""} plus tard : ${NOM_H(h + k)}.` };
+  };
+
   // Erreurs de calcul fréquentes (une dizaine de trop ou de moins) dans les problèmes et le calcul mental
   ["cp6-parties", "cp6-deux-etapes", "cp5-dizaines", "cp5-procedures"].forEach((t) => {
     const g = GEN[t];

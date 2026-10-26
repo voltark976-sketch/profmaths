@@ -30,9 +30,9 @@ window.CATALOGUE = {
         { id: "cp-additionner-soustraire", numero: 4, titre: "Additionner et soustraire", statut: "disponible", source: "data/cp/additionner-soustraire.js", series: 4, drive: "" },
         { id: "cp-calcul-mental", numero: 5, titre: "Calcul mental", statut: "disponible", source: "data/cp/calcul-mental.js", series: 4, drive: "" },
         { id: "cp-problemes", numero: 6, titre: "Résoudre des problèmes", statut: "disponible", source: "data/cp/problemes.js", series: 3, drive: "" },
-        { id: "cp-longueurs-masses", numero: 7, titre: "Longueurs et masses", statut: "bientot", source: "data/cp/longueurs-masses.js", series: 0, drive: "" },
-        { id: "cp-monnaie", numero: 8, titre: "La monnaie", statut: "bientot", source: "data/cp/monnaie.js", series: 0, drive: "" },
-        { id: "cp-heure", numero: 9, titre: "Lire l'heure", statut: "bientot", source: "data/cp/heure.js", series: 0, drive: "" },
+        { id: "cp-longueurs-masses", numero: 7, titre: "Longueurs et masses", statut: "disponible", source: "data/cp/longueurs-masses.js", series: 4, drive: "" },
+        { id: "cp-monnaie", numero: 8, titre: "La monnaie", statut: "disponible", source: "data/cp/monnaie.js", series: 4, drive: "" },
+        { id: "cp-heure", numero: 9, titre: "Lire l'heure", statut: "disponible", source: "data/cp/heure.js", series: 3, drive: "" },
         { id: "cp-solides-figures", numero: 10, titre: "Solides et figures", statut: "bientot", source: "data/cp/solides-figures.js", series: 0, drive: "" },
         { id: "cp-reperage", numero: 11, titre: "Se repérer et se déplacer", statut: "bientot", source: "data/cp/reperage.js", series: 0, drive: "" },
         { id: "cp-donnees", numero: 12, titre: "Tableaux et diagrammes", statut: "bientot", source: "data/cp/donnees.js", series: 0, drive: "" }

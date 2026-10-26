@@ -184,10 +184,10 @@
 
   // Horloges à aiguilles : L = [[heure, minute, légende, seconde?]]
   function horloges(L) {
-    const n = L.length, R = n > 1 ? 58 : 70, cy = R + 8, H = 2 * R + (L.some((x) => x[2]) ? 34 : 16);
+    const n = L.length, R = n > 2 ? 48 : n > 1 ? 58 : 70, cy = R + 8, H = 2 * R + (L.some((x) => x[2]) ? 34 : 16);
     let s = "";
     L.forEach(([h, m, lab, sec], i) => {
-      const cx = n > 1 ? 80 + 160 * i : 160, p = (a, r) => `${r1(cx + r * Math.sin(a))} ${r1(cy - r * Math.cos(a))}`;
+      const cx = n > 2 ? 55 + 105 * i : n > 1 ? 80 + 160 * i : 160, p = (a, r) => `${r1(cx + r * Math.sin(a))} ${r1(cy - r * Math.cos(a))}`;
       s += `<circle cx="${cx}" cy="${cy}" r="${R}" style="fill:var(--surface);stroke:var(--encre);stroke-width:2.5"/>`;
       for (let k = 0; k < 60; k++) { const a = (k * Math.PI) / 30, l = k % 5 ? 4 : 8; s += `<path d="M${p(a, R - 3)} L${p(a, R - 3 - l)}" style="stroke:var(--encre);stroke-width:${k % 5 ? 0.8 : 2}"/>`; }
       for (let k = 1; k <= 12; k++) { const a = (k * Math.PI) / 6, [tx, ty] = p(a, R - 19).split(" "); s += `<text class="g-plabel" x="${tx}" y="${+ty + 4}" text-anchor="middle">${k}</text>`; }
