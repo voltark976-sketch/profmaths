@@ -8,12 +8,136 @@
   - drive   : lien du sous-dossier Drive du chapitre
   - code    : sigle affiché dans la pastille (sinon le numéro du chapitre, ou « A »)
   - fichier : nom de la variable du fichier de contenu (seulement si disponible)
+  Les niveaux avec groupe: "ecole" (CP à CM2) sont derrière la carte « École » (page #ecole). Leurs chapitres
+  ne sont pas dans index.html : source = fichier du chapitre, chargé à l'ouverture avec les générateurs du niveau
+  (champ exercices) ; series = nombre de séries affiché avant le chargement.
   Un niveau avec groupe: "college" (6e, 5e, 4e, 3e) n'a pas sa propre carte sur l'accueil :
   il est rangé derrière la carte « Collège » (page #college). Les autres niveaux sont
   rangés derrière la carte « Lycée » (page #lycee).
 */
 window.CATALOGUE = {
   niveaux: [
+    {
+      id: "cp",
+      nom: "CP",
+      groupe: "ecole",
+      exercices: "assets/exercices-cp.js",
+      intro: "Programme du CP en vigueur depuis la rentrée 2025 (cycle 2) : les nombres jusqu'à 100, le calcul, les problèmes, les mesures et la géométrie.",
+      chapitres: [
+        { id: "cp-nombres", numero: 1, titre: "Les nombres jusqu'à 100", statut: "disponible", source: "data/cp/nombres.js", series: 5, drive: "" },
+        { id: "cp-comparer", numero: 2, titre: "Comparer et ranger", statut: "bientot", source: "data/cp/comparer.js", series: 0, drive: "" },
+        { id: "cp-rangs-suites", numero: 3, titre: "Les rangs et les suites", statut: "bientot", source: "data/cp/rangs-suites.js", series: 0, drive: "" },
+        { id: "cp-additionner-soustraire", numero: 4, titre: "Additionner et soustraire", statut: "bientot", source: "data/cp/additionner-soustraire.js", series: 0, drive: "" },
+        { id: "cp-calcul-mental", numero: 5, titre: "Calcul mental", statut: "bientot", source: "data/cp/calcul-mental.js", series: 0, drive: "" },
+        { id: "cp-problemes", numero: 6, titre: "Résoudre des problèmes", statut: "bientot", source: "data/cp/problemes.js", series: 0, drive: "" },
+        { id: "cp-longueurs-masses", numero: 7, titre: "Longueurs et masses", statut: "bientot", source: "data/cp/longueurs-masses.js", series: 0, drive: "" },
+        { id: "cp-monnaie", numero: 8, titre: "La monnaie", statut: "bientot", source: "data/cp/monnaie.js", series: 0, drive: "" },
+        { id: "cp-heure", numero: 9, titre: "Lire l'heure", statut: "bientot", source: "data/cp/heure.js", series: 0, drive: "" },
+        { id: "cp-solides-figures", numero: 10, titre: "Solides et figures", statut: "bientot", source: "data/cp/solides-figures.js", series: 0, drive: "" },
+        { id: "cp-reperage", numero: 11, titre: "Se repérer et se déplacer", statut: "bientot", source: "data/cp/reperage.js", series: 0, drive: "" },
+        { id: "cp-donnees", numero: 12, titre: "Tableaux et diagrammes", statut: "bientot", source: "data/cp/donnees.js", series: 0, drive: "" }
+      ]
+    },
+    {
+      id: "ce1",
+      nom: "CE1",
+      groupe: "ecole",
+      exercices: "assets/exercices-ce1.js",
+      intro: "Programme du CE1 en vigueur depuis la rentrée 2025 (cycle 2) : les nombres jusqu'à 1 000, les fractions, la multiplication, les mesures et la géométrie.",
+      chapitres: [
+        { id: "ce1-nombres", numero: 1, titre: "Les nombres jusqu'à 1 000", statut: "bientot", source: "data/ce1/nombres.js", series: 0, drive: "" },
+        { id: "ce1-comparer", numero: 2, titre: "Comparer, ranger, encadrer", statut: "bientot", source: "data/ce1/comparer.js", series: 0, drive: "" },
+        { id: "ce1-pair-impair", numero: 3, titre: "Pair ou impair", statut: "bientot", source: "data/ce1/pair-impair.js", series: 0, drive: "" },
+        { id: "ce1-fractions", numero: 4, titre: "Les fractions", statut: "bientot", source: "data/ce1/fractions.js", series: 0, drive: "" },
+        { id: "ce1-addition-soustraction", numero: 5, titre: "Addition et soustraction posées", statut: "bientot", source: "data/ce1/addition-soustraction.js", series: 0, drive: "" },
+        { id: "ce1-multiplication", numero: 6, titre: "La multiplication", statut: "bientot", source: "data/ce1/multiplication.js", series: 0, drive: "" },
+        { id: "ce1-calcul-mental", numero: 7, titre: "Calcul mental", statut: "bientot", source: "data/ce1/calcul-mental.js", series: 0, drive: "" },
+        { id: "ce1-problemes", numero: 8, titre: "Résoudre des problèmes", statut: "bientot", source: "data/ce1/problemes.js", series: 0, drive: "" },
+        { id: "ce1-longueurs-masses", numero: 9, titre: "Longueurs et masses", statut: "bientot", source: "data/ce1/longueurs-masses.js", series: 0, drive: "" },
+        { id: "ce1-monnaie", numero: 10, titre: "La monnaie", statut: "bientot", source: "data/ce1/monnaie.js", series: 0, drive: "" },
+        { id: "ce1-heure-durees", numero: 11, titre: "L'heure et les durées", statut: "bientot", source: "data/ce1/heure-durees.js", series: 0, drive: "" },
+        { id: "ce1-solides", numero: 12, titre: "Les solides", statut: "bientot", source: "data/ce1/solides.js", series: 0, drive: "" },
+        { id: "ce1-figures", numero: 13, titre: "Figures et instruments", statut: "bientot", source: "data/ce1/figures.js", series: 0, drive: "" },
+        { id: "ce1-reperage-donnees", numero: 14, titre: "Se repérer, tableaux et diagrammes", statut: "bientot", source: "data/ce1/reperage-donnees.js", series: 0, drive: "" }
+      ]
+    },
+    {
+      id: "ce2",
+      nom: "CE2",
+      groupe: "ecole",
+      exercices: "assets/exercices-ce2.js",
+      intro: "Programme du CE2 en vigueur depuis la rentrée 2025 (cycle 2) : les nombres jusqu'à 10 000, les fractions, les quatre opérations, les mesures et la géométrie.",
+      chapitres: [
+        { id: "ce2-nombres", numero: 1, titre: "Les nombres jusqu'à 10 000", statut: "bientot", source: "data/ce2/nombres.js", series: 0, drive: "" },
+        { id: "ce2-comparer", numero: 2, titre: "Comparer, ranger, encadrer", statut: "bientot", source: "data/ce2/comparer.js", series: 0, drive: "" },
+        { id: "ce2-fractions", numero: 3, titre: "Les fractions", statut: "bientot", source: "data/ce2/fractions.js", series: 0, drive: "" },
+        { id: "ce2-addition-soustraction", numero: 4, titre: "Addition et soustraction", statut: "bientot", source: "data/ce2/addition-soustraction.js", series: 0, drive: "" },
+        { id: "ce2-multiplication", numero: 5, titre: "La multiplication posée", statut: "bientot", source: "data/ce2/multiplication.js", series: 0, drive: "" },
+        { id: "ce2-division", numero: 6, titre: "Découvrir la division", statut: "bientot", source: "data/ce2/division.js", series: 0, drive: "" },
+        { id: "ce2-calcul-mental", numero: 7, titre: "Calcul mental", statut: "bientot", source: "data/ce2/calcul-mental.js", series: 0, drive: "" },
+        { id: "ce2-problemes", numero: 8, titre: "Résoudre des problèmes", statut: "bientot", source: "data/ce2/problemes.js", series: 0, drive: "" },
+        { id: "ce2-longueurs-perimetre", numero: 9, titre: "Longueurs et périmètre", statut: "bientot", source: "data/ce2/longueurs-perimetre.js", series: 0, drive: "" },
+        { id: "ce2-masses-contenances", numero: 10, titre: "Masses et contenances", statut: "bientot", source: "data/ce2/masses-contenances.js", series: 0, drive: "" },
+        { id: "ce2-monnaie", numero: 11, titre: "La monnaie", statut: "bientot", source: "data/ce2/monnaie.js", series: 0, drive: "" },
+        { id: "ce2-heure-durees", numero: 12, titre: "L'heure et les durées", statut: "bientot", source: "data/ce2/heure-durees.js", series: 0, drive: "" },
+        { id: "ce2-solides", numero: 13, titre: "Les solides", statut: "bientot", source: "data/ce2/solides.js", series: 0, drive: "" },
+        { id: "ce2-figures-symetrie", numero: 14, titre: "Figures et symétrie", statut: "bientot", source: "data/ce2/figures-symetrie.js", series: 0, drive: "" },
+        { id: "ce2-donnees", numero: 15, titre: "Tableaux et diagrammes", statut: "bientot", source: "data/ce2/donnees.js", series: 0, drive: "" }
+      ]
+    },
+    {
+      id: "cm1",
+      nom: "CM1",
+      groupe: "ecole",
+      exercices: "assets/exercices-cm1.js",
+      intro: "Programme du CM1 en vigueur depuis la rentrée 2025 (cycle 3) : les grands nombres, les fractions, les nombres décimaux, l'algèbre, les mesures, la géométrie et les probabilités.",
+      chapitres: [
+        { id: "cm1-grands-nombres", numero: 1, titre: "Les grands nombres", statut: "bientot", source: "data/cm1/grands-nombres.js", series: 0, drive: "" },
+        { id: "cm1-fractions", numero: 2, titre: "Les fractions", statut: "bientot", source: "data/cm1/fractions.js", series: 0, drive: "" },
+        { id: "cm1-decimaux", numero: 3, titre: "Les nombres décimaux", statut: "bientot", source: "data/cm1/decimaux.js", series: 0, drive: "" },
+        { id: "cm1-calcul-mental", numero: 4, titre: "Calcul mental", statut: "bientot", source: "data/cm1/calcul-mental.js", series: 0, drive: "" },
+        { id: "cm1-operations", numero: 5, titre: "Les opérations posées", statut: "bientot", source: "data/cm1/operations.js", series: 0, drive: "" },
+        { id: "cm1-division", numero: 6, titre: "La division euclidienne", statut: "bientot", source: "data/cm1/division.js", series: 0, drive: "" },
+        { id: "cm1-problemes", numero: 7, titre: "Résoudre des problèmes", statut: "bientot", source: "data/cm1/problemes.js", series: 0, drive: "" },
+        { id: "cm1-algebre", numero: 8, titre: "Algèbre", statut: "bientot", source: "data/cm1/algebre.js", series: 0, drive: "" },
+        { id: "cm1-proportionnalite", numero: 9, titre: "La proportionnalité", statut: "bientot", source: "data/cm1/proportionnalite.js", series: 0, drive: "" },
+        { id: "cm1-mesures", numero: 10, titre: "Longueurs, masses, contenances", statut: "bientot", source: "data/cm1/mesures.js", series: 0, drive: "" },
+        { id: "cm1-aires", numero: 11, titre: "Les aires", statut: "bientot", source: "data/cm1/aires.js", series: 0, drive: "" },
+        { id: "cm1-angles", numero: 12, titre: "Les angles", statut: "bientot", source: "data/cm1/angles.js", series: 0, drive: "" },
+        { id: "cm1-durees", numero: 13, titre: "Le temps et les durées", statut: "bientot", source: "data/cm1/durees.js", series: 0, drive: "" },
+        { id: "cm1-geometrie", numero: 14, titre: "Géométrie plane", statut: "bientot", source: "data/cm1/geometrie.js", series: 0, drive: "" },
+        { id: "cm1-solides-reperage", numero: 15, titre: "Solides et repérage", statut: "bientot", source: "data/cm1/solides-reperage.js", series: 0, drive: "" },
+        { id: "cm1-donnees-probabilites", numero: 16, titre: "Tableaux, diagrammes, probabilités", statut: "bientot", source: "data/cm1/donnees-probabilites.js", series: 0, drive: "" },
+        { id: "cm1-informatique", numero: 17, titre: "Pensée informatique", statut: "bientot", source: "data/cm1/informatique.js", series: 0, drive: "" }
+      ]
+    },
+    {
+      id: "cm2",
+      nom: "CM2",
+      groupe: "ecole",
+      exercices: "assets/exercices-cm2.js",
+      intro: "Programme du CM2 en vigueur depuis la rentrée 2026 (cycle 3) : les grands nombres, les fractions, les nombres décimaux, l'algèbre, les mesures, la géométrie et les probabilités.",
+      chapitres: [
+        { id: "cm2-grands-nombres", numero: 1, titre: "Les grands nombres", statut: "bientot", source: "data/cm2/grands-nombres.js", series: 0, drive: "" },
+        { id: "cm2-fractions", numero: 2, titre: "Les fractions", statut: "bientot", source: "data/cm2/fractions.js", series: 0, drive: "" },
+        { id: "cm2-decimaux", numero: 3, titre: "Les nombres décimaux", statut: "bientot", source: "data/cm2/decimaux.js", series: 0, drive: "" },
+        { id: "cm2-calcul-mental", numero: 4, titre: "Calcul mental", statut: "bientot", source: "data/cm2/calcul-mental.js", series: 0, drive: "" },
+        { id: "cm2-operations", numero: 5, titre: "Les opérations posées", statut: "bientot", source: "data/cm2/operations.js", series: 0, drive: "" },
+        { id: "cm2-division", numero: 6, titre: "La division", statut: "bientot", source: "data/cm2/division.js", series: 0, drive: "" },
+        { id: "cm2-problemes", numero: 7, titre: "Résoudre des problèmes", statut: "bientot", source: "data/cm2/problemes.js", series: 0, drive: "" },
+        { id: "cm2-algebre", numero: 8, titre: "Algèbre", statut: "bientot", source: "data/cm2/algebre.js", series: 0, drive: "" },
+        { id: "cm2-proportionnalite", numero: 9, titre: "La proportionnalité", statut: "bientot", source: "data/cm2/proportionnalite.js", series: 0, drive: "" },
+        { id: "cm2-mesures", numero: 10, titre: "Mesures et conversions", statut: "bientot", source: "data/cm2/mesures.js", series: 0, drive: "" },
+        { id: "cm2-aires", numero: 11, titre: "Les aires", statut: "bientot", source: "data/cm2/aires.js", series: 0, drive: "" },
+        { id: "cm2-angles", numero: 12, titre: "Les angles", statut: "bientot", source: "data/cm2/angles.js", series: 0, drive: "" },
+        { id: "cm2-durees", numero: 13, titre: "Le temps et les durées", statut: "bientot", source: "data/cm2/durees.js", series: 0, drive: "" },
+        { id: "cm2-geometrie", numero: 14, titre: "Géométrie plane", statut: "bientot", source: "data/cm2/geometrie.js", series: 0, drive: "" },
+        { id: "cm2-solides-deplacements", numero: 15, titre: "Solides et déplacements", statut: "bientot", source: "data/cm2/solides-deplacements.js", series: 0, drive: "" },
+        { id: "cm2-donnees", numero: 16, titre: "Tableaux et graphiques", statut: "bientot", source: "data/cm2/donnees.js", series: 0, drive: "" },
+        { id: "cm2-probabilites", numero: 17, titre: "Les probabilités", statut: "bientot", source: "data/cm2/probabilites.js", series: 0, drive: "" },
+        { id: "cm2-informatique", numero: 18, titre: "Pensée informatique", statut: "bientot", source: "data/cm2/informatique.js", series: 0, drive: "" }
+      ]
+    },
     {
       id: "sixieme",
       nom: "6e",

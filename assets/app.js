@@ -272,10 +272,36 @@
     { id: "methode", nom: "Méthode" }
   ];
   let minuterieJeu = null; // chrono du jeu en cours, arrêté quand on change de page
+
+  /* ---------- Chapitres de l'école chargés à la demande ----------
+     Un chapitre du catalogue qui a un champ source (data/cp/…) n'est pas dans index.html : à son ouverture,
+     on charge les outils de l'école, les générateurs de son niveau (champ exercices du niveau) puis son fichier. */
+  const VERSION = (/[?&]v=([^&]+)/.exec((document.currentScript || {}).src || "") || [])[1] || "";
+  const scriptsCharges = {};
+  const chargerScript = (src) => scriptsCharges[src] || (scriptsCharges[src] = new Promise((ok, ko) => {
+    const s = document.createElement("script");
+    s.src = src + (VERSION ? "?v=" + VERSION : "");
+    s.onload = ok;
+    s.onerror = () => { delete scriptsCharges[src]; s.remove(); ko(new Error(src)); };
+    document.body.appendChild(s);
+  }));
+  function chargerChapitre(id) {
+    const n = CATALOGUE.niveaux.find((x) => x.chapitres.some((ch) => ch.id === id && ch.source && ch.statut === "disponible"));
+    if (!n) return null;
+    const src = n.chapitres.find((ch) => ch.id === id).source;
+    return ["assets/exercices-ecole.js", n.exercices, src].filter(Boolean).reduce((p, f) => p.then(() => chargerScript(f)), Promise.resolve());
+  }
   function route() {
     const h = location.hash.replace(/^#/, "");
     const [chap, onglet] = h.split(".");
     if (minuterieJeu) { clearInterval(minuterieJeu); minuterieJeu = null; }
+    const attente = chap && !(window.CHAPITRES && CHAPITRES[chap]) && chargerChapitre(chap);
+    if (attente) {
+      $app.innerHTML = `<p class="chargement">Chargement du chapitre…</p>`;
+      attente.then(() => { if (location.hash.replace(/^#/, "").split(".")[0] === chap) route(); })
+        .catch(() => { $app.innerHTML = `<a class="retour" href="#">← Accueil</a><p class="lead">Le chapitre n'a pas pu se charger. Vérifie ta connexion, puis <a href="javascript:location.reload()">recharge la page</a>.</p>`; });
+      return;
+    }
     document.getElementById("jeu-btn").toggleAttribute("aria-current", chap === "jeu");
     $xpLien.toggleAttribute("aria-current", chap === "avatar");
     if (chap === "compte") pageCompte();
@@ -285,7 +311,7 @@
     else if (chap === "frequentation") pageFrequentation();
     else if (chap === "avatar") pageAvatar();
     else if (chap === "jeu") pageJeu(onglet);
-    else if (chap === "college" || chap === "lycee") pageCycle(chap);
+    else if (Object.prototype.hasOwnProperty.call(CYCLES, chap)) pageCycle(chap);
     else if (chap && window.CHAPITRES && CHAPITRES[chap]) pageChapitre(chap, onglet || "cours");
     else if (chap && CATALOGUE.niveaux.some((n) => "niveau-" + n.id === chap)) pageNiveau(CATALOGUE.niveaux.find((n) => "niveau-" + n.id === chap));
     else pageAccueil();
@@ -295,7 +321,7 @@
     else Compte.visite();
     // Couleur du niveau (Seconde, Première...) pour habiller la page niveau et la page chapitre
     const niv = CATALOGUE.niveaux.find((n) => "niveau-" + n.id === chap || n.chapitres.some((ch) => ch.id === chap));
-    if (niv) $app.dataset.niv = niv.id; else if (chap === "college" || chap === "lycee") $app.dataset.niv = chap; else delete $app.dataset.niv;
+    if (niv) $app.dataset.niv = niv.id; else if (Object.prototype.hasOwnProperty.call(CYCLES, chap)) $app.dataset.niv = chap; else delete $app.dataset.niv;
   }
   window.addEventListener("hashchange", () => { route(); window.scrollTo(0, 0); });
 
@@ -338,11 +364,13 @@
     "terminale-spe": "Vers le bac et le supérieur",
     terminale: "Option maths complémentaires"
   };
-  const chapitresEnLigne = (n) => n.chapitres.filter((ch) => ch.statut === "disponible" && window.CHAPITRES && CHAPITRES[ch.id]).length;
-  // L'accueil a deux grandes cartes : Collège (niveaux du groupe « college ») et Lycée (tous les autres)
+  // Un chapitre de l'école (ch.source) compte comme en ligne avant même d'être chargé
+  const chapitresEnLigne = (n) => n.chapitres.filter((ch) => ch.statut === "disponible" && ((window.CHAPITRES && CHAPITRES[ch.id]) || ch.source)).length;
+  // L'accueil a trois grandes cartes : École (groupe « ecole »), Collège (groupe « college ») et Lycée (tous les autres)
   const CYCLES = {
+    ecole: { nom: "École", sous: "Du CP au CM2", glyphe: "+", lead: "Choisis ta classe. Chaque chapitre suit le programme officiel de l'école en vigueur cette année.", niveaux: () => CATALOGUE.niveaux.filter((n) => n.groupe === "ecole") },
     college: { nom: "Collège", sous: "De la 6e à la 3e", glyphe: "÷", lead: "Choisis ta classe. Chaque chapitre suit le programme officiel en vigueur cette année.", niveaux: () => CATALOGUE.niveaux.filter((n) => n.groupe === "college") },
-    lycee: { nom: "Lycée", sous: "De la Seconde à la Terminale", glyphe: "∫", lead: "Choisis ta classe. Les chapitres sont rangés dans l'ordre des playlists de la chaîne.", niveaux: () => CATALOGUE.niveaux.filter((n) => n.groupe !== "college") }
+    lycee: { nom: "Lycée", sous: "De la Seconde à la Terminale", glyphe: "∫", lead: "Choisis ta classe. Les chapitres sont rangés dans l'ordre des playlists de la chaîne.", niveaux: () => CATALOGUE.niveaux.filter((n) => !n.groupe) }
   };
   const COURT = { "Première spécialité": "Première spé", "Terminale spécialité": "Terminale spé", "Terminale maths complémentaires": "Terminale compl." };
   const carteNiveau = (href, id, nom, nb) => `<a class="carte-niv" href="${href}" data-niv="${esc(id)}"><span class="pastille-niv" aria-hidden="true"></span><span class="carte-niv-t"><strong>${esc(nom)}</strong>${ACCROCHES[id] ? `<span class="accroche">${esc(ACCROCHES[id])}</span>` : ""}<span class="meta">${nb ? `${nb} chapitre${nb > 1 ? "s" : ""} en ligne` : "En préparation"}</span></span><span class="go" aria-hidden="true">→</span></a>`;
@@ -352,7 +380,7 @@
     const dispos = Object.keys(window.CHAPITRES || {});
     const nbSeries = dispos.reduce((s, k) => s + CHAPITRES[k].exercices.length, 0);
     const nbQcm = dispos.reduce((s, k) => s + CHAPITRES[k].qcm.length, 0);
-    let h = `<section class="hero"><div class="hero-in"><p class="eyebrow">Maths au collège et au lycée · Mayotte</p><h1>Une vidéo, un cours, des exercices. À ton rythme.</h1><p class="lead">Choisis ton niveau : tous ses chapitres s'affichent, dans l'ordre des playlists de la chaîne.</p>
+    let h = `<section class="hero"><div class="hero-in"><p class="eyebrow">Maths de l'école au lycée · Mayotte</p><h1>Une vidéo, un cours, des exercices. À ton rythme.</h1><p class="lead">Choisis ton niveau : tous ses chapitres s'affichent, dans l'ordre du programme.</p>
       <ul class="chiffres"><li><b>${dispos.length}</b> chapitres</li><li><b>${nbSeries}</b> séries d'exercices</li><li><b>${nbQcm}</b> questions de QCM</li></ul></div>${DECOR_HERO}</section>`;
     // Deux grandes cartes, Collège et Lycée : chacune ouvre la page qui regroupe ses classes
     h += `<h2 class="titre-bloc">Choisis ton niveau</h2><nav class="cartes-cycle" aria-label="Collège ou lycée">`;
@@ -384,7 +412,7 @@
     document.title = `${C.nom} · ProfMaths`;
     let h = `<a class="retour" href="#">← Accueil</a>
       <header class="niv-head"><p class="eyebrow">${esc(C.sous)}</p><h1><span class="pastille-niv" aria-hidden="true"></span>${esc(C.nom)}</h1><p class="lead">${esc(C.lead)}</p></header>
-      <nav class="cartes-niv" aria-label="Classes du ${k === "college" ? "collège" : "lycée"}">`;
+      <nav class="cartes-niv" aria-label="Classes ${{ ecole: "de l'école", college: "du collège", lycee: "du lycée" }[k]}">`;
     C.niveaux().forEach((n) => { h += carteNiveau(`#niveau-${esc(n.id)}`, n.id, n.nom, chapitresEnLigne(n)); });
     h += `</nav>` + piedDePage();
     $app.innerHTML = h;
@@ -393,7 +421,7 @@
   /* ---------- Page d'un niveau : tous ses chapitres ---------- */
   function pageNiveau(n) {
     document.title = `${n.nom} · ProfMaths`;
-    const cycle = n.groupe === "college" ? "college" : "lycee";
+    const cycle = n.groupe || "lycee";
     let h = `<a class="retour" href="#${cycle}">← ${CYCLES[cycle].nom}</a>
       <header class="niv-head"><p class="eyebrow">${CYCLES[cycle].nom}</p><h1><span class="pastille-niv" aria-hidden="true"></span>${esc(n.nom)}</h1>${n.intro ? `<p class="lead">${esc(n.intro)}</p>` : `<p class="lead">Choisis ton chapitre. Ils sont rangés dans l'ordre de la playlist.</p>`}</header>
       <ol class="chapitres chapitres-niv">`;
@@ -401,7 +429,10 @@
     n.chapitres.forEach((ch) => {
       const dispo = ch.statut === "disponible" && window.CHAPITRES && CHAPITRES[ch.id];
       const num = ch.code ? `<span class="num num-a">${esc(ch.code)}</span>` : ch.numero ? `<span class="num">${ch.numero}</span>` : `<span class="num num-a">A</span>`;
-      if (dispo) {
+      if (!dispo && ch.statut === "disponible" && ch.source) {
+        // Chapitre de l'école pas encore chargé : son fichier arrive quand on l'ouvre
+        h += `<li><a class="chap" href="#${ch.id}">${num}<span class="chap-t"><strong>${esc(ch.titre)}</strong><span class="meta">Cours · ${ch.series} séries d'exercices · QCM</span></span><span class="go" aria-hidden="true">→</span></a></li>`;
+      } else if (dispo) {
         const b = bilanChapitre(ch.id);
         const pct = Math.round((b.got / b.total) * 100);
         h += `<li><a class="chap" href="#${ch.id}">${num}<span class="chap-t"><strong>${esc(ch.titre)}</strong><span class="meta">Cours · ${CHAPITRES[ch.id].exercices.length} séries d'exercices · QCM${b.qcm !== undefined ? ` · meilleur score ${b.qcm}/${CHAPITRES[ch.id].qcm.length}` : ""}</span><span class="barre"><span style="width:${pct}%"></span></span></span><span class="go" aria-hidden="true">→</span></a></li>`;
