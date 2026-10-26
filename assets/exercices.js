@@ -310,7 +310,15 @@
     const H = Math.max(200, Math.min(400, o.h || Math.round(ux * (o.ymax - o.ymin) * ((o.xstep || 1) / (o.ystep || 1)) + pad + padB)));
     const uy = (H - pad - padB) / (o.ymax - o.ymin);
     const X = (x) => +(padL + (x - o.xmin) * ux).toFixed(1), Y = (y) => +(pad + (o.ymax - y) * uy).toFixed(1);
-    return graph(o).replace(/<\/svg>$/, plus(X, Y, H) + "</svg>");
+    const ajout = plus(X, Y, H);
+    // les noms ajoutés par-dessus sont inconnus de graph() : on retire les nombres d'axes qu'ils recouvriraient
+    const boites = [...ajout.matchAll(/<text([^>]*)>([\s\S]*?)<\/text>/g)].map(([, att, t]) => {
+      const v = (n) => (att.match(new RegExp(n + '="([^"]*)"')) || [])[1];
+      const b = boiteTexte(+v("x"), +v("y"), t.replace(/<[^>]+>/g, ""), 11, v("text-anchor") || "start");
+      return { x1: b.x1 - 2, x2: b.x2 + 2, y1: b.y1 - 2, y2: b.y2 + 2 };
+    }).filter((b) => isFinite(b.x1) && isFinite(b.y1));
+    const svg = graph(o).replace(/<g class="g-tick">([\s\S]*?)<\/g>/, (m, nombres) => '<g class="g-tick">' + nombres.replace(/<text x="([^"]*)" y="([^"]*)" text-anchor="([^"]*)">([^<]*)<\/text>/g, (n, x, y, an, t) => (boites.some((b) => seCoupent(boiteTexte(+x, +y, t, 10, an), b)) ? "" : n)) + "</g>");
+    return svg.replace(/<\/svg>$/, ajout + "</svg>");
   }
   // Étiquette d'un point placée autour de lui, là où elle est le plus loin des courbes [f, a, b] (à utiliser dans fgGraphe)
   function fgEtiquette(X, Y, H, x0, y0, courbes, txt) {
@@ -4560,7 +4568,7 @@
     const t = rand(0, 4);
     if (t === 1 || t === 2) {
       const semi = t === 2, [titre, noms] = semi ? pick([["Élection du délégué de la classe", ["Anli", "Zaïnaba", "Moussa", "Awa"]], ["Vote pour le voyage de fin d'année", ["Saziley", "N'Gouja", "Choungui", "Îlot"]]]) : pick([["Moyen de transport des élèves d'un lycée de Mamoudzou", ["Bus", "À pied", "Barge", "Taxi"]], ["Fruit préféré des élèves de Seconde", ["Mangue", "Banane", "Coco", "Ananas"]], ["Sport pratiqué au club de Sada", ["Foot", "Hand", "Basket", "Va'a"]]]);
-      let ps; do { ps = [rand(2, 9), rand(2, 9), rand(2, 9)].map((x) => 5 * x); } while (ps[0] + ps[1] + ps[2] > 90);
+      let ps; do { ps = [rand(semi ? 3 : 2, 9), rand(semi ? 3 : 2, 9), rand(semi ? 3 : 2, 9)].map((x) => 5 * x); } while (ps[0] + ps[1] + ps[2] > (semi ? 85 : 90)); // en demi-disque, des secteurs d'au moins 15 % : les noms ne se chevauchent pas
       ps.push(100 - ps[0] - ps[1] - ps[2]);
       const plein = semi ? 180 : 360, ang = ps.map((p) => (p * plein) / 100), k = rand(0, 3), N = pick([20, 40, 60, 80, 100, 120, 200]), effectif = Math.random() < 0.45;
       const fig = amSecteurs(ang, noms, ang.map((a) => `${amT(a)}°`), semi, `${titre} : diagramme ${semi ? "semi-circulaire" : "circulaire"}, angles ${ang.map(amT).join(", ")} degrés`);
@@ -7331,7 +7339,7 @@
     let lo = 0, hi = 0;
     for (let k = 0; k <= 80; k++) { const y = f(a + ((b - a) * k) / 80); lo = Math.min(lo, y); hi = Math.max(hi, y); }
     const ys = clPas(hi - lo, 7), xs = clPas(b - a, 9);
-    return graph({ xmin: Math.floor(a) - 0.4, xmax: Math.ceil(b) + 0.4, ymin: lo - 0.6 * ys, ymax: hi + 0.6 * ys, xstep: xs, ystep: ys, h: 240, padB: 22,
+    return graph({ xmin: Math.min(Math.floor(a) - 0.4, -0.6), xmax: Math.max(Math.ceil(b) + 0.4, 0.6), ymin: lo - 0.6 * ys, ymax: hi + 0.6 * ys, xstep: xs, ystep: ys, h: 240, padB: 22,
       curves: [{ f, a, b, closed: false }], points: racines.map((x, i) => ({ x, y: 0, label: etiq[i], gauche: f(x + 0.3) > f(x) })),
       aria: `Courbe de y = ${nom} : elle coupe l'axe des abscisses en ${etiq.join(" et ")}` });
   }
@@ -17899,7 +17907,7 @@
         erreurs: [{ valeur: +(1 + k * h).toFixed(6), message: `On n'ajoute pas $${nb(h)}$ à chaque passage : on ajoute $${nb(h)} \\times y$, c'est-à-dire qu'on multiplie $y$ par $${nb(m)}$.` }, { valeur: +(m ** (k - 1)).toFixed(6), message: "Compte bien les passages : la valeur de départ $y = 1$ est avant le premier passage." }].filter((e) => Math.abs(e.valeur - v) > 1e-6),
         aides: ["Au départ, $x = 0$ et $y = 1$.", `À chaque passage, $y$ devient $y + ${nb(h)} \\times y = ${nb(m)} \\times y$.`, `Après $${k}$ passages : $y = ${nb(m)}^{${k}}$.`],
         solution: `$y$ vaut successivement ${etapes} : à chaque passage, il est multiplié par $${nb(m)}$. Après $${k}$ passages, $y = ${nb(m)}^{${k}} = ${nb(v)}$.`,
-        figure: graph({ xmin: -0.1, xmax: k * h + 0.15, ymin: -0.2, ymax: m ** k + 0.3, xstep: h, ystep: 0.25, xetiq: h, yetiq: 0.5, h: 220, curves: [{ f: Math.exp, a: 0, b: k * h + 0.05, closed: false, label: "y = eˣ", lx: k * h + 0.05, dx: -4, dy: -6 }], chemins: [Array.from({ length: k + 1 }, (_, j) => [j * h, m ** j])], points: Array.from({ length: k + 1 }, (_, j) => ({ x: j * h, y: m ** j, label: j === k ? "?" : "" })), aria: `Méthode d'Euler avec un pas de ${String(h).replace(".", ",")} : la ligne brisée part de (0 ; 1), sous la courbe de l'exponentielle ; le point atteint après ${k} pas est marqué d'un point d'interrogation` })
+        figure: graph({ xmin: -0.1, xmax: k * h + 0.15, ymin: -0.2, ymax: Math.max(m ** k, Math.exp(k * h + 0.05)) + 0.3, xstep: h, ystep: 0.25, xetiq: h, yetiq: 0.5, h: 220, curves: [{ f: Math.exp, a: 0, b: k * h + 0.05, closed: false, label: "y = eˣ", lx: k * h + 0.05, dx: -4, dy: -6 }], chemins: [Array.from({ length: k + 1 }, (_, j) => [j * h, m ** j])], points: Array.from({ length: k + 1 }, (_, j) => ({ x: j * h, y: m ** j, label: j === k ? "?" : "" })), aria: `Méthode d'Euler avec un pas de ${String(h).replace(".", ",")} : la ligne brisée part de (0 ; 1), sous la courbe de l'exponentielle ; le point atteint après ${k} pas est marqué d'un point d'interrogation` })
       };
     }
     if (t === 5) {
@@ -27504,7 +27512,7 @@
   FIGURES["pri-cours-signe"] = () => graph({ xmin: -2.6, xmax: 2.6, ymin: -2.4, ymax: 3.4, h: 260, curves: [{ f: (x) => x * x - 1, a: -2.25, b: 2.25, closed: false, label: "f", lx: 2.2, dx: -6, dy: 4 }, { f: (x) => (x * x * x) / 3 - x, a: -2.4, b: 2.4, closed: false, label: "F", lx: -2.4, dx: 14, dy: 22 }], points: [{ x: -1, y: 2 / 3 }, { x: 1, y: -2 / 3 }], aria: "Courbes de f(x) = x² − 1 et de sa primitive F(x) = x³/3 − x : F est croissante là où f est positive (avant −1 et après 1) et décroissante là où f est négative ; F a un maximum en −1 et un minimum en 1, là où f s'annule" });
   FIGURES["pri-cours-famille"] = () => graph({ xmin: -2.6, xmax: 2.6, ymin: -3.4, ymax: 4.4, h: 270, curves: [-2, -1, 0, 1, 2].map((C) => ({ f: (x) => (x * x * x) / 3 - x + C, a: -2.4, b: 2.4, closed: false, couleur: C === 1 ? 1 : 0 })), points: [{ x: 0, y: 1, label: "A(0 ; 1)" }], aria: "Plusieurs primitives de f(x) = x² − 1 : les courbes de x³/3 − x + C se déduisent les unes des autres par translation verticale ; une seule (en couleur) passe par le point A(0 ; 1), celle avec C = 1" });
   FIGURES["pri-cours-euler"] = () => { const h = 0.5, P = [[0, 0]]; for (let k = 0; k < 6; k++) { const [x, y] = P[P.length - 1]; P.push([x + h, y + h * 2 * x]); } return graph({ xmin: -0.3, xmax: 3.4, ymin: -0.6, ymax: 9.6, h: 260, curves: [{ f: (x) => x * x, a: 0, b: 3.05, closed: false, label: "y = x²", lx: 3.05, dx: -6, dy: -4 }], chemins: [P], points: P.map(([x, y]) => ({ x, y })), aria: "Méthode d'Euler pour y′ = 2x avec y(0) = 0 et un pas de 0,5 : la ligne brisée (pointillés) suit la courbe de y = x² en restant un peu en dessous" }); };
-  FIGURES["pri-qcm-signe"] = () => graph({ xmin: -3.6, xmax: 4.6, ymin: -3.4, ymax: 3.4, h: 250, curves: [{ f: (x) => 0.5 * (x + 2) * (x - 3), a: -3.4, b: 4.4, closed: false, label: PRI_CF, lx: 4.3, dx: -6, dy: -4 }], points: [{ x: -2, y: 0 }, { x: 3, y: 0 }], aria: "Courbe de la fonction f, une parabole qui coupe l'axe des abscisses en −2 et en 3 : f est positive avant −2 et après 3, négative entre −2 et 3" });
+  FIGURES["pri-qcm-signe"] = () => graph({ xmin: -3.6, xmax: 4.6, ymin: -3.4, ymax: 3.4, h: 250, curves: [{ f: (x) => 0.5 * (x + 2) * (x - 3), a: -3.4, b: 4.4, closed: false, label: PRI_CF, lx: 3.9, dx: -6, dy: -4 }], points: [{ x: -2, y: 0 }, { x: 3, y: 0 }], aria: "Courbe de la fonction f, une parabole qui coupe l'axe des abscisses en −2 et en 3 : f est positive avant −2 et après 3, négative entre −2 et 3" });
 
   GEN["pri-verifier"] = function () {
     const a = randNZ(-3, 3), b = randNZ(-4, 4), c = rand(1, 9), k = pick([2, 3, -1, -2, 4, 5]), n = rand(2, 5), m = rand(1, 5), ex = `e^{${k === -1 ? "-" : k}x}`;
