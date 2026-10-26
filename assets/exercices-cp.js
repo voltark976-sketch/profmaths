@@ -82,11 +82,11 @@
         ? { enonce: `Combien y a-t-il de dizaines dans $${10 * d}$ ?`, mode: "nombre", prefixe: "Il y a", suffixe: "dizaines", attendu: d,
           erreurs: [{ valeur: 10 * d, message: "On demande le nombre de **dizaines** (de paquets de dix)." }],
           aides: ["Une dizaine, c'est $10$.", `Compte de $10$ en $10$ jusqu'à $${10 * d}$.`, "Compte combien de bonds de $10$ tu as faits."],
-          solution: `$${10 * d} = ${Array(d).fill(10).join(" + ")}$ : il y a $${d}$ dizaines.` }
+          solution: `En comptant de $10$ en $10$ : ${Array.from({ length: d }, (_, k) => `$${10 * (k + 1)}$`).join(", ")}. Cela fait $${d}$ bonds : il y a $${d}$ dizaines dans $${10 * d}$.` }
         : { enonce: `Combien font $${d}$ dizaines ?`, mode: "nombre", prefixe: "Cela fait", attendu: 10 * d,
           erreurs: [{ valeur: d, message: "Chaque dizaine vaut $10$." }, { valeur: d + 10, message: `Ce n'est pas $${d} + 10$ : c'est $${d}$ fois $10$.` }],
-          aides: ["Une dizaine, c'est $10$.", "Compte de $10$ en $10$.", `$${Array.from({ length: d }, (_, k) => 10 * (k + 1)).join(", ")}$.`],
-          solution: `$${d}$ dizaines, c'est $${Array(d).fill(10).join(" + ")} = ${10 * d}$.` };
+          aides: ["Une dizaine, c'est $10$.", "Compte de $10$ en $10$.", `${Array.from({ length: d }, (_, k) => `$${10 * (k + 1)}$`).join(", ")}.`],
+          solution: `On compte $${d}$ fois de $10$ en $10$ : ${Array.from({ length: d }, (_, k) => `$${10 * (k + 1)}$`).join(", ")}. Donc $${d}$ dizaines, c'est $${10 * d}$.` };
     }
     if (t === 3) { // trop d'unités
       const d = rand(1, 7), u = rand(10, 19), n = 10 * d + u;
@@ -967,7 +967,7 @@
     const vals = []; while (vals.length < k) { const v = rand(1, 12); if (!vals.includes(v)) vals.push(v); }
     return { titre, cats, vals, tot: vals.reduce((s, v) => s + v, 0) };
   }
-  const tableHTML = (L) => `<table class="valeurs croise">${L.map((l, i) => `<tr>${l.map((v, j) => (i === 0 || j === 0 ? `<th>${v}</th>` : `<td>${v}</td>`)).join("")}</tr>`).join("")}</table>`;
+  const tableHTML = (L) => `<div class="scroll-x"><table class="valeurs croise">${L.map((l, i) => `<tr>${l.map((v, j) => (i === 0 || j === 0 ? `<th>${v}</th>` : `<td>${v}</td>`)).join("")}</tr>`).join("")}</table></div>`;
   FIGURES["cp12-cours-tableau"] = () => tableHTML([["Fruit", "orange", "fraise", "banane", "kiwi"], ["Élèves", 4, 12, 8, 2]]);
   FIGURES["cp12-cours-double"] = () => tableHTML([["", "à pied", "en bus", "en voiture"], ["Filles", 7, 5, 2], ["Garçons", 6, 4, 3]]);
   FIGURES["cp12-cours-barres"] =() => barres([["orange", 4], ["fraise", 12], ["banane", 8], ["kiwi", 2]], 2, "élèves");
