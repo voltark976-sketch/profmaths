@@ -366,9 +366,9 @@
   };
   // Un chapitre de l'école (ch.source) compte comme en ligne avant même d'être chargé
   const chapitresEnLigne = (n) => n.chapitres.filter((ch) => ch.statut === "disponible" && ((window.CHAPITRES && CHAPITRES[ch.id]) || ch.source)).length;
-  // L'accueil a trois grandes cartes : École (groupe « ecole »), Collège (groupe « college ») et Lycée (tous les autres)
+  // L'accueil a trois grandes cartes : Primaire (groupe « ecole »), Collège (groupe « college ») et Lycée (tous les autres)
   const CYCLES = {
-    ecole: { nom: "École", sous: "Du CP au CM2", glyphe: "+", lead: "Choisis ta classe. Chaque chapitre suit le programme officiel de l'école en vigueur cette année.", niveaux: () => CATALOGUE.niveaux.filter((n) => n.groupe === "ecole") },
+    ecole: { nom: "Primaire", sous: "Du CP au CM2", glyphe: "+", lead: "Choisis ta classe. Chaque chapitre suit le programme officiel du primaire en vigueur cette année.", niveaux: () => CATALOGUE.niveaux.filter((n) => n.groupe === "ecole") },
     college: { nom: "Collège", sous: "De la 6e à la 3e", glyphe: "÷", lead: "Choisis ta classe. Chaque chapitre suit le programme officiel en vigueur cette année.", niveaux: () => CATALOGUE.niveaux.filter((n) => n.groupe === "college") },
     lycee: { nom: "Lycée", sous: "De la Seconde à la Terminale", glyphe: "∫", lead: "Choisis ta classe. Les chapitres sont rangés dans l'ordre des playlists de la chaîne.", niveaux: () => CATALOGUE.niveaux.filter((n) => !n.groupe) }
   };
