@@ -1676,7 +1676,8 @@
   route();
 
   /* ---------- Hors ligne et cache (sw.js) : les fichiers déjà téléchargés sont servis sans réseau ---------- */
-  if ("serviceWorker" in navigator && (location.protocol === "https:" || /^(localhost|127.0.0.1)$/.test(location.hostname))) {
+  // Seulement sur le site en ligne (https) : en local, le cache cacherait les fichiers qu'on est en train de modifier
+  if ("serviceWorker" in navigator && (location.protocol === "https:" || /[?&]sw=1/.test(location.search))) { // ?sw=1 : test en local
     window.addEventListener("load", () => { navigator.serviceWorker.register("sw.js" + (VERSION ? "?v=" + VERSION : "")).catch(() => {}); });
   }
 })();

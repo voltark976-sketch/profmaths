@@ -4254,7 +4254,8 @@
         mode: "nombre", prefixe: "Moyenne :", suffixe: "min", attendu: +(S / N).toFixed(6),
         erreurs: amErr([[ctr.reduce((x, y) => x + y, 0) / 4, "Chaque centre doit compter autant de fois que l'effectif de sa classe."], [eff.reduce((s, e, k) => s + (a + w * k) * e, 0) / N, "On prend le **centre** de chaque classe, pas sa borne inférieure."], [S, "Il reste à diviser par l'effectif total."]]),
         aides: [`Centres des classes : $${ctr.map(nb).join(" ; ")}$.`, `Somme des produits : $${ctr.map((c, k) => `${nb(c)} \\times ${eff[k]}`).join(" + ")} = ${nb(S)}$.`, `Effectif total : $${N}$. Divise.`],
-        solution: `$\\bar{x} = \\dfrac{${ctr.map((c, k) => `${nb(c)} \\times ${eff[k]}`).join(" + ")}}{${N}} = \\dfrac{${nb(S)}}{${N}} = ${nb(S / N)}$ min.`
+        // la somme est écrite à part : dans une seule fraction, elle dépasserait d'un écran de 360 px
+        solution: `Somme des produits : $${ctr.map((c, k) => `${nb(c)} \\times ${eff[k]}`).join(" + ")} = ${nb(S)}$.\n\n$\\bar{x} = \\dfrac{${nb(S)}}{${N}} = ${nb(S / N)}$ min.`
       };
     }
     const N = pick([4, 5, 8, 10, 10, 20]), k = Math.min(N, rand(3, 4)), vals = shuffle([6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18]).slice(0, k).sort((x, y) => x - y), eff = part(N, k), S = vals.reduce((s, v, j) => s + v * eff[j], 0);
@@ -4292,7 +4293,7 @@
       mode: "nombre", prefixe: "Moyenne :", attendu: +(Sd / N).toFixed(6),
       erreurs: amErr([[vd.reduce((x, y) => x + y, 0) / k, "Chaque valeur doit compter autant de fois que son effectif."], [Sd, "Il reste à diviser par l'effectif total."], [Sd / k, `On divise par l'effectif total, $${N}$, pas par le nombre de valeurs différentes.`]]),
       aides: ["Moyenne pondérée : $\\dfrac{\\text{somme des (valeur} \\times \\text{effectif)}}{\\text{effectif total}}$.", `Somme : $${vd.map((v, j) => `${v} \\times ${eff[j]}`).join(" + ")} = ${Sd}$.`, `Effectif total : $${eff.join(" + ")} = ${N}$.`],
-      solution: `$\\bar{x} = \\dfrac{${vd.map((v, j) => `${v} \\times ${eff[j]}`).join(" + ")}}{${N}} = \\dfrac{${Sd}}{${N}} = ${nb(Sd / N)}$`
+      solution: `Somme des produits : $${vd.map((v, j) => `${v} \\times ${eff[j]}`).join(" + ")} = ${Sd}$.\n\n$\\bar{x} = \\dfrac{${Sd}}{${N}} = ${nb(Sd / N)}$`
     };
   };
 
