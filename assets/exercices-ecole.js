@@ -392,7 +392,7 @@
   }
 
   // Élision automatique dans les textes générés (« de Anli » → « d'Anli »), à appliquer aux générateurs d'un préfixe
-  const elide = (s) => (typeof s === "string" ? s.replace(/(?<![A-Za-zÀ-ÿ])(de|que|le|la) (?=[AEIOUYÉÈÎ][a-zàâçéèêëîïôûù])/g, (m, w) => (w === "de" ? "d'" : w === "que" ? "qu'" : "l'")) : s);
+  const elide = (s) => (typeof s === "string" ? s.replace(/(?<![A-Za-zÀ-ÿ])(de|que|le|la) (?=[AEIOUYÉÈÎ][a-zàâçéèêëîïôûù]|[aeiouéèêîœ])/g, (m, w) => (w === "de" ? "d'" : w === "que" ? "qu'" : "l'")) : s);
   function elisions(re) {
     Object.keys(GEN).filter((k) => re.test(k)).forEach((k) => {
       const g = GEN[k];

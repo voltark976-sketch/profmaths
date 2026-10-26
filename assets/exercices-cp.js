@@ -356,5 +356,244 @@
       solution: `$${Array.from({ length: k }, (_, j) => a + j * pas).join(" \\;;\\; ")}$ : le ${ordF(k)} nombre est $${rep}$.` };
   };
 
+  /* =====================================================================
+     Chapitre 4 : additionner et soustraire (cp4-)
+     ===================================================================== */
+  // Addition posée en KaTeX (nombres alignés à droite) ; res = résultat affiché ou non
+  const posee = (L, op, res) => `$\\begin{array}{r} ${L.map((v, k) => (k ? `${op}\\;${v}` : `${v}`)).join(" \\\\ ")} \\\\ \\hline ${res === undefined ? "\\phantom{00}" : res} \\end{array}$\n\n`;
+  FIGURES["cp4-cours-collections"] = () => collection(12, { groupes: 0, aria: "12 ronds" });
+  FIGURES["cp4-cours-schema"] = () => schema([["32", 32], ["15", 15]], null, { total: "47 en tout" });
+  FIGURES["cp4-cours-fois"] = () => collection(15, { groupes: 5, aria: "3 paquets de 5 ronds" });
+  FIGURES["cp4-qcm-fois"] = () => collection(12, { groupes: 4, aria: "3 paquets de 4 ronds" });
+  const schema = E.schema;
+
+  // Le sens : quelle opération, puis le résultat
+  GEN["cp4-sens"] = function () {
+    const t = rand(0, 3), P = prenom(), c = E.chose();
+    if (t <= 1) { // ajout ou retrait, résultat
+      const ajout = t === 0, a = rand(5, 60), b = ajout ? rand(2, Math.min(39, 99 - a)) : rand(2, a - 1), rep = ajout ? a + b : a - b;
+      const verbe = ajout ? pick([`en reçoit encore $${b}$`, `en trouve encore $${b}$`, `en achète encore $${b}$ au marché`]) : pick([`en donne $${b}$ à ${pick(["sa sœur", "son frère", "son cousin", "sa cousine"])}`, `en perd $${b}$`, `en mange $${b}$`.replace("mange", c.p.includes("mangue") || c.p.includes("banane") || c.p.includes("papaye") ? "mange" : "donne")]);
+      return { enonce: `${P.nom} a $${a}$ ${c.p}. ${P.Il} ${verbe}. Combien de ${c.p} a-t-${P.il} maintenant ?`, mode: "nombre", prefixe: `${P.Il} a`, suffixe: c.p, attendu: rep,
+        erreurs: [{ valeur: ajout ? a - b : a + b, message: ajout ? `${P.nom} en a **plus** qu'avant : c'est une addition.` : `${P.nom} en a **moins** qu'avant : c'est une soustraction.` }],
+        aides: [ajout ? "On en ajoute : le nombre augmente." : "On en enlève : le nombre diminue.", `Écris l'opération : $${a} ${ajout ? "+" : "-"} ${b}$.`, ajout ? "Ajoute d'abord les dizaines, puis les unités." : `Enlève d'abord ${b >= 10 ? "les dizaines, puis les unités" : "pour arriver à la dizaine, puis le reste"}.`],
+        solution: `$${a} ${ajout ? "+" : "-"} ${b} = ${rep}$. ${P.Il} a maintenant $${rep}$ ${c.p}.` };
+    }
+    if (t === 2) { // choisir l'opération
+      const a = rand(12, 60), b = rand(3, 11), ajout = rand(0, 1);
+      const bon = ajout ? `$${a} + ${b}$` : `$${a} - ${b}$`, c2 = melange(bon, [ajout ? `$${a} - ${b}$` : `$${a} + ${b}$`, `$${b} - ${a}$`, `$${a} + ${a}$`]);
+      return { enonce: `Dans le bus pour ${pick(E.LIEUX)}, il y a $${a}$ passagers. Au premier arrêt, $${b}$ passagers ${ajout ? "montent" : "descendent"}. Quelle opération donne le nombre de passagers maintenant ?`, mode: "choix", choix: c2.choix, attendu: c2.attendu,
+        aides: [ajout ? "Des passagers montent : il y en a plus." : "Des passagers descendent : il y en a moins.", ajout ? "Quand on ajoute, on fait une addition." : "Quand on enlève, on fait une soustraction.", "On part toujours du nombre de départ."],
+        solution: `On part de $${a}$ passagers et on ${ajout ? "ajoute" : "enlève"} $${b}$ : ${bon} $= ${ajout ? a + b : a - b}$.` };
+    }
+    // l'addition et la soustraction sont inverses
+    const a = rand(11, 60), b = rand(5, 39), s = a + b, q = rand(0, 1);
+    return { enonce: `On sait que $${a} + ${b} = ${s}$. Sans poser d'opération, calcule $${s} - ${q ? a : b}$.`, mode: "nombre", prefixe: "Résultat :", attendu: q ? b : a,
+      erreurs: [{ valeur: s, message: "On enlève un des deux nombres : il reste l'autre." }, { valeur: q ? a : b, message: "Tu as donné le nombre qu'on enlève : il reste l'autre." }],
+      aides: [`$${s}$, c'est $${a}$ et $${b}$ ensemble.`, `Si on enlève $${q ? a : b}$, il reste l'autre nombre.`, `La soustraction défait l'addition.`],
+      solution: `$${a} + ${b} = ${s}$, donc $${s} - ${q ? a : b} = ${q ? b : a}$.` };
+  };
+
+  // Le signe = : écritures justes ou fausses, égalités
+  GEN["cp4-egal"] = function () {
+    const t = rand(0, 2);
+    if (t === 0) { // trouver l'écriture juste
+      const a = rand(21, 79), b = rand(3, 9), dz = Math.ceil((a + 1) / 10) * 10, k = dz - a;
+      if (k >= b) return GEN["cp4-egal"]();
+      const bon = `$${a} + ${k} = ${dz}$ puis $${dz} + ${b - k} = ${a + b}$`;
+      const c = melange(bon, [`$${a} + ${k} = ${dz} + ${b - k} = ${a + b}$`, `$${a} + ${b} = ${dz} = ${a + b}$`, `$${a} = ${dz} - ${k} + ${b} = ${a + b}$`]);
+      return { enonce: `Pour calculer $${a} + ${b}$, on passe par $${dz}$. Quelle écriture est **juste** ?`, mode: "choix", choix: c.choix, attendu: c.attendu,
+        aides: ["Le signe $=$ ne se met qu'entre deux choses qui ont la même valeur.", `Est-ce que $${a} + ${k}$ vaut la même chose que $${dz} + ${b - k}$ ?`, "Écris chaque étape dans une égalité séparée."],
+        solution: `$${a} + ${k}$ vaut $${dz}$, mais $${dz} + ${b - k}$ vaut $${a + b}$ : on ne peut pas les relier par $=$. On écrit deux égalités : ${bon}.` };
+    }
+    if (t === 1) { // égalité à trou
+      const a = rand(10, 50), b = rand(2, 40), c = a + b, pos = rand(0, 2);
+      const txt = [`$\\ldots + ${b} = ${c}$`, `$${a} + \\ldots = ${c}$`, `$${c} = ${a} + \\ldots$`][pos], rep = pos === 0 ? a : b;
+      return { enonce: `Complète l'égalité : ${txt}`, mode: "nombre", prefixe: "Le nombre qui manque :", attendu: rep,
+        erreurs: [{ valeur: c + (pos ? a : b), message: "Le nombre qui manque est plus petit que le total : il faut chercher ce qui manque." }],
+        aides: ["Les deux côtés du signe $=$ ont la même valeur.", `Cherche ce qu'il faut ajouter à $${pos === 0 ? b : a}$ pour arriver à $${c}$.`, `$${c} - ${pos === 0 ? b : a}$.`],
+        solution: `$${c} - ${pos === 0 ? b : a} = ${rep}$, donc ${txt.replace("\\ldots", String(rep))}.` };
+    }
+    // l'ordre ne compte pas pour l'addition, mais compte pour la soustraction
+    const a = rand(20, 70), b = rand(5, 19), q = rand(0, 1);
+    const bon = q ? `$${b} + ${a}$` : `$${a} - ${b}$`, c = melange(bon, q ? [`$${b} - ${a}$`, `$${a} - ${b}$`, `$${a} + ${a}$`] : [`$${b} - ${a}$`, `$${b} + ${a}$`, `$${a} + ${b}$`]);
+    return { enonce: q ? `Quel calcul donne le même résultat que $${a} + ${b}$ ?` : `Il y a $${a}$ mangues dans le panier. On en prend $${b}$. Quel calcul donne le nombre de mangues qui restent ?`, mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: q ? ["Dans une addition, on peut échanger les nombres.", "Dans une soustraction, on ne peut pas.", "Cherche une addition avec les mêmes nombres."] : ["On enlève des mangues : soustraction.", "On part du nombre de mangues du panier.", "Dans une soustraction, l'ordre des nombres compte."],
+      solution: q ? `$${a} + ${b} = ${b} + ${a} = ${a + b}$ : l'ordre ne change pas une addition.` : `On part de $${a}$ et on enlève $${b}$ : $${a} - ${b} = ${a - b}$. Le calcul $${b} - ${a}$ ne veut rien dire ici.` };
+  };
+
+  // Addition posée en colonnes (deux ou trois nombres, résultat jusqu'à 100)
+  GEN["cp4-posee"] = function () {
+    const trois = rand(0, 3) === 0;
+    let L;
+    do { L = trois ? [rand(10, 50), rand(2, 9), rand(10, 40)] : [rand(10, 79), rand(5, 49)]; } while (L.reduce((s, v) => s + v, 0) > 100);
+    const s = L.reduce((x, v) => x + v, 0), u = L.reduce((x, v) => x + (v % 10), 0), ret = Math.floor(u / 10);
+    return { enonce: `Pose et calcule : $${L.join(" + ")}$`, figure: undefined, mode: "nombre", prefixe: "Résultat :", attendu: s,
+      erreurs: ret ? [{ valeur: s - 10 * ret, message: "Tu as oublié la retenue : les unités font plus de $10$, il faut ajouter une dizaine." }, { valeur: Number(`${Math.floor((s - u) / 10)}${u}`), message: "Quand les unités dépassent $9$, on écrit seulement le chiffre des unités et on retient une dizaine." }] : [],
+      aides: ["Écris les unités sous les unités, les dizaines sous les dizaines.", `Additionne d'abord les unités : $${L.map((v) => v % 10).join(" + ")} = ${u}$.${ret ? ` Écris $${u % 10}$ et retiens $${ret}$.` : ""}`, `Additionne ensuite les dizaines${ret ? " sans oublier la retenue" : ""}.`],
+      solution: `${posee(L, "+", s)}Unités : $${L.map((v) => v % 10).join(" + ")} = ${u}$${ret ? ` (on écrit $${u % 10}$, on retient $${ret}$)` : ""}. Dizaines : $${[...(ret ? [ret] : []), ...L.map((v) => Math.floor(v / 10))].join(" + ")} = ${Math.floor(s / 10)}$. Résultat : $${s}$.` };
+  };
+
+  // Le sens de la multiplication : « fois », addition répétée (nombres jusqu'à 30)
+  GEN["cp4-fois"] = function () {
+    const t = rand(0, 2), k = rand(2, 5), v = rand(2, Math.min(10, Math.floor(30 / k)));
+    const [obj, boite] = pick([["biscuits", "paquets"], ["œufs", "boîtes"], ["mangues", "sacs"], ["crayons", "trousses"], ["billes", "sachets"], ["poissons", "seaux"]]);
+    if (t === 0) return { enonce: `Il y a $${k}$ ${boite} de $${v}$ ${obj}. Combien y a-t-il de ${obj} en tout ?`, figure: k * v <= 30 ? collection(k * v, { groupes: v }) : undefined, mode: "nombre", prefixe: "Il y a", suffixe: obj, attendu: k * v,
+      erreurs: [{ valeur: k + v, message: `Il n'y a pas $${k}$ ${obj} et $${v}$ ${obj} : il y a $${k}$ fois $${v}$ ${obj}.` }],
+      aides: [`Chaque ${boite.slice(0, -1)} contient $${v}$ ${obj}.`, `C'est $${k}$ fois $${v}$ : $${Array(k).fill(v).join(" + ")}$.`, "Ajoute les nombres un à un."],
+      solution: `$${k}$ fois $${v}$ : $${Array(k).fill(v).join(" + ")} = ${k * v}$ ${obj}.` };
+    if (t === 1) {
+      const bon = `$${Array(k).fill(v).join(" + ")}$`, c = melange(bon, [`$${k} + ${v}$`, `$${Array(v).fill(k).join(" + ")}$`.length > 60 ? `$${v} + ${v}$` : `$${k} + ${k}$`, `$${Array(k + 1).fill(v).join(" + ")}$`, `$${v} - ${k}$`]);
+      return { enonce: `« $${k}$ fois $${v}$ », c'est :`, mode: "choix", choix: c.choix, attendu: c.attendu,
+        aides: [`« $${k}$ fois $${v}$ », c'est le nombre $${v}$ répété $${k}$ fois.`, "Compte combien de fois le même nombre est écrit.", "Ce n'est pas une simple addition de deux nombres."],
+        solution: `« $${k}$ fois $${v}$ » $= ${Array(k).fill(v).join(" + ")} = ${k * v}$.` };
+    }
+    return { enonce: `Combien y a-t-il de ronds ? Compte les paquets.`, figure: collection(k * v, { groupes: v }), mode: "nombre", prefixe: "Il y a", suffixe: "ronds", attendu: k * v,
+      erreurs: [{ valeur: k, message: "Ça, c'est le nombre de paquets. Combien de ronds en tout ?" }, { valeur: v, message: "Ça, c'est le nombre de ronds dans un paquet." }],
+      aides: ["Compte les paquets.", `Il y a $${k}$ paquets de $${v}$ ronds.`, `$${Array(k).fill(v).join(" + ")}$.`],
+      solution: `$${k}$ paquets de $${v}$ : $${Array(k).fill(v).join(" + ")} = ${k * v}$ ronds ($${k}$ fois $${v}$).` };
+  };
+
+  /* =====================================================================
+     Chapitre 5 : calcul mental (cp5-)
+     ===================================================================== */
+  FIGURES["cp5-cours-passer10"] = () => droite({ a: 45, pas: 1, n: 12, lab: [2, 5, 10], fleches: [[2, 5, "+3"], [5, 10, "+5"]], aria: "47 + 8 : on va de 47 à 50 (+3) puis de 50 à 55 (+5)" });
+  FIGURES["cp5-cours-plus9"] = () => droite({ a: 35, pas: 1, n: 13, lab: [2, 11, 12], fleches: [[2, 12, "+10"], [12, 11, "−1"]], aria: "37 + 9 : on ajoute 10 puis on enlève 1" });
+
+  // Tables d'addition dans les deux sens
+  GEN["cp5-tables"] = function () {
+    const a = rand(0, 10), b = rand(0, 10), c = a + b, pos = rand(0, 3);
+    const [txt, rep] = [[`$${a} + ${b} = \\ldots$`, c], [`$${a} + \\ldots = ${c}$`, b], [`$\\ldots + ${b} = ${c}$`, a], [`$${c} = ${a} + \\ldots$`, b]][pos];
+    return { enonce: `Complète : ${txt}`, mode: "nombre", prefixe: "Le nombre qui manque :", attendu: rep,
+      erreurs: [...(pos ? [{ valeur: c + (pos === 2 ? b : a), message: "Le nombre qui manque est plus petit que le total : cherche ce qu'il faut ajouter." }] : []), { valeur: rep + 1, message: "Presque ! Recompte un par un pour vérifier." }, { valeur: rep - 1, message: "Presque ! Recompte un par un pour vérifier." }].filter((e) => e.valeur >= 0),
+      aides: pos ? [`Pars de $${pos === 2 ? b : a}$ et compte jusqu'à $${c}$.`, "Tu peux t'aider des doubles ou du passage par $10$.", `$${c} - ${pos === 2 ? b : a}$.`] : ["Pars du plus grand nombre et ajoute le plus petit.", Math.abs(a - b) <= 1 ? "C'est presque un double !" : "Tu peux passer par $10$.", `Récite la table de $${Math.min(a, b)}$.`],
+      solution: `$${a} + ${b} = ${c}$.` };
+  };
+
+  // Doubles et moitiés
+  GEN["cp5-doubles"] = function () {
+    const t = rand(0, 4);
+    if (t === 0) { const n = pick([...Array.from({ length: 10 }, (_, k) => k + 1), 20, 30, 40, 50]); return { enonce: `Quel est le double de $${n}$ ?`, mode: "nombre", prefixe: "Le double est", attendu: 2 * n, erreurs: [{ valeur: n / 2, message: "Ça, c'est la moitié. Le double, c'est deux fois plus." }, { valeur: n + 2, message: "Le double, ce n'est pas « plus 2 » : c'est le nombre ajouté à lui-même." }], aides: ["Le double d'un nombre, c'est ce nombre ajouté à lui-même.", `$${n} + ${n}$.`, n >= 20 ? `Double des dizaines : $${n / 10}$ dizaines, deux fois.` : "Pense à tes doigts : deux mains pareilles."], solution: `Le double de $${n}$ : $${n} + ${n} = ${2 * n}$.` }; }
+    if (t === 1) { const n = pick([2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 40, 60, 80, 100]); return { enonce: `Quelle est la moitié de $${n}$ ?`, mode: "nombre", prefixe: "La moitié est", attendu: n / 2, erreurs: [{ valeur: 2 * n, message: "Ça, c'est le double. La moitié, c'est deux fois moins." }], aides: ["La moitié, c'est partager en deux parts égales.", `Quel nombre ajouté à lui-même donne $${n}$ ?`, `$\\ldots + \\ldots = ${n}$ avec deux fois le même nombre.`], solution: `$${n / 2} + ${n / 2} = ${n}$ : la moitié de $${n}$ est $${n / 2}$.` }; }
+    if (t === 2) { const n = rand(1, 10), q = rand(0, 1); return q ? { enonce: `Complète : double de $\\ldots = ${2 * n}$`, mode: "nombre", prefixe: "Le nombre est", attendu: n, erreurs: [{ valeur: 4 * n, message: "On cherche le nombre de départ : c'est la moitié." }], aides: [`Quel nombre ajouté à lui-même donne $${2 * n}$ ?`, `C'est la moitié de $${2 * n}$.`, `$${n} + ${n} = ${2 * n}$ ?`], solution: `Le double de $${n}$ est $${2 * n}$.` } : { enonce: `Combien font $${n} + ${n}$ ?`, mode: "nombre", prefixe: "Résultat :", attendu: 2 * n, erreurs: [], aides: ["C'est un double.", "Pense aux doigts des deux mains.", `Le double de $${n}$.`], solution: `$${n} + ${n} = ${2 * n}$ (le double de $${n}$).` }; }
+    // moitié d'un nombre pair par décomposition (dizaines paires)
+    const d = 2 * rand(1, 4), u = 2 * rand(1, 4), n = 10 * d + u;
+    return { enonce: `Quelle est la moitié de $${n}$ ?`, mode: "nombre", prefixe: "La moitié est", attendu: n / 2,
+      erreurs: [{ valeur: 10 * (d / 2) + u, message: "Il faut aussi prendre la moitié des unités." }, { valeur: 5 * d + u / 2 + 10, message: "Recompte la moitié des dizaines." }],
+      aides: [`Décompose : $${n} = ${10 * d} + ${u}$.`, `La moitié de $${10 * d}$ est $${5 * d}$, la moitié de $${u}$ est $${u / 2}$.`, `$${5 * d} + ${u / 2}$.`],
+      solution: `$${n} = ${10 * d} + ${u}$. Moitiés : $${5 * d}$ et $${u / 2}$. Donc la moitié de $${n}$ est $${5 * d + u / 2}$.` };
+  };
+
+  // Ajouter ou enlever 1, 2, 10, des dizaines
+  GEN["cp5-dizaines"] = function () {
+    const t = rand(0, 2);
+    if (t === 0) { const a = rand(12, 97), k = pick([1, 2]), plus = rand(0, 1) || a + k > 100; const r = plus && a + k <= 100 ? a + k : a - k; const op = r > a ? "+" : "-"; return { enonce: `Calcule : $${a} ${op} ${k}$`, mode: "nombre", prefixe: "Résultat :", attendu: r, erreurs: [{ valeur: op === "+" ? a - k : a + k, message: op === "+" ? "On ajoute : le résultat est plus grand." : "On enlève : le résultat est plus petit." }], aides: [op === "+" ? "Ajouter $1$, c'est dire le nombre juste après." : "Enlever $1$, c'est dire le nombre juste avant.", k === 2 ? `Fais-le deux fois.` : "Récite la comptine des nombres.", `${op === "+" ? "Après" : "Avant"} $${a}$ vient $${op === "+" ? a + 1 : a - 1}$.`], solution: `$${a} ${op} ${k} = ${r}$.` }; }
+    const k = t === 1 ? 1 : rand(2, 9), a = rand(10, 99), plus = rand(0, 1);
+    if ((plus && a + 10 * k > 100) || (!plus && a - 10 * k < 0)) return GEN["cp5-dizaines"]();
+    const r = plus ? a + 10 * k : a - 10 * k;
+    return { enonce: `Calcule : $${a} ${plus ? "+" : "-"} ${10 * k}$`, mode: "nombre", prefixe: "Résultat :", attendu: r,
+      erreurs: [{ valeur: plus ? a + k : a - k, message: `$${10 * k}$, c'est $${k}$ dizaine${k > 1 ? "s" : ""}, pas $${k}$ unité${k > 1 ? "s" : ""} : c'est le chiffre des dizaines qui change.` }],
+      aides: [`$${10 * k}$, c'est $${k}$ dizaine${k > 1 ? "s" : ""}.`, `$${a}$ a $${Math.floor(a / 10)}$ dizaines : ${plus ? "ajoute" : "enlève"} $${k}$ dizaine${k > 1 ? "s" : ""}.`, "Le chiffre des unités ne change pas."],
+      solution: `$${a}$, c'est $${Math.floor(a / 10)}$ dizaines et $${a % 10}$ unités. $${Math.floor(a / 10)} ${plus ? "+" : "-"} ${k} = ${Math.floor(r / 10)}$ dizaine${Math.floor(r / 10) > 1 ? "s" : ""}, et toujours $${a % 10}$ unités : $${a} ${plus ? "+" : "-"} ${10 * k} = ${r}$.` };
+  };
+
+  // Procédures : complément à la dizaine, passer par la dizaine, ajouter 9, ajouter deux nombres, dizaine moins un petit nombre
+  GEN["cp5-procedures"] = function () {
+    const t = rand(0, 4);
+    if (t === 0) { let a; do a = rand(11, 89); while (a % 10 === 0); const dz = Math.ceil(a / 10) * 10; return { enonce: `Combien faut-il ajouter à $${a}$ pour arriver à la dizaine juste après ?`, mode: "nombre", prefixe: "Il faut ajouter", attendu: dz - a, erreurs: [{ valeur: dz, message: "On demande ce qu'il faut ajouter, pas la dizaine." }, { valeur: a % 10, message: `$${a % 10}$, c'est le chiffre des unités : on cherche son complément à $10$.` }], aides: [`La dizaine juste après $${a}$ est $${dz}$.`, `$${a % 10}$ unités : il en manque combien pour faire $10$ ?`, `$${a % 10} + \\ldots = 10$.`], solution: `$${a % 10} + ${10 - (a % 10)} = 10$, donc $${a} + ${dz - a} = ${dz}$.` }; }
+    if (t === 1) { const a = rand(12, 88), b = rand(2, 8), dz = Math.ceil((a + 1) / 10) * 10, k = dz - a; if (k >= b || a + b > 100 || a % 10 === 0) return GEN["cp5-procedures"](); return { enonce: `Calcule en passant par $${dz}$ : $${a} + ${b}$`, mode: "nombre", prefixe: "Résultat :", attendu: a + b, erreurs: [{ valeur: a + b - 10, message: "Tu as dépassé la dizaine : le chiffre des dizaines augmente de $1$." }], aides: [`Pour aller de $${a}$ à $${dz}$, il faut $${k}$.`, `Il reste à ajouter $${b} - ${k} = ${b - k}$.`, `$${dz} + ${b - k}$.`], solution: `$${a} + ${k} = ${dz}$, puis $${dz} + ${b - k} = ${a + b}$. Donc $${a} + ${b} = ${a + b}$.` }; }
+    if (t === 2) { const a = rand(10, 90), r = a + 9; if (r > 100) return GEN["cp5-procedures"](); return { enonce: `Calcule : $${a} + 9$`, mode: "nombre", prefixe: "Résultat :", attendu: r, erreurs: [{ valeur: a + 10, message: "Tu as ajouté $10$ : il faut ensuite enlever $1$." }, { valeur: a + 8, message: "Ajouter $9$, c'est ajouter $10$ puis enlever $1$ (pas $2$)." }], aides: ["Ajouter $9$, c'est ajouter $10$, puis enlever $1$.", `$${a} + 10 = ${a + 10}$.`, `$${a + 10} - 1$.`], solution: `$${a} + 10 = ${a + 10}$, puis $${a + 10} - 1 = ${r}$.` }; }
+    if (t === 3) { const a = rand(11, 59), b = rand(11, 99 - a); if (a + b > 99) return GEN["cp5-procedures"](); const D = 10 * (Math.floor(a / 10) + Math.floor(b / 10)), U = (a % 10) + (b % 10); return { enonce: `Calcule de tête : $${a} + ${b}$`, mode: "nombre", prefixe: "Résultat :", attendu: a + b, erreurs: U >= 10 ? [{ valeur: D + (U % 10), message: `Les unités font $${U}$ : c'est $1$ dizaine et $${U % 10}$ unités.` }] : [], aides: ["Ajoute les dizaines entre elles, puis les unités entre elles.", `Dizaines : $${10 * Math.floor(a / 10)} + ${10 * Math.floor(b / 10)} = ${D}$. Unités : $${a % 10} + ${b % 10} = ${U}$.`, `$${D} + ${U}$.`], solution: `$${D} + ${U} = ${a + b}$, donc $${a} + ${b} = ${a + b}$.` }; }
+    const dz = 10 * rand(2, 10), b = rand(2, 9);
+    return { enonce: `Calcule : $${dz} - ${b}$`, mode: "nombre", prefixe: "Résultat :", attendu: dz - b, erreurs: [{ valeur: dz - 10 + b, message: `On casse une dizaine : il reste $10 - ${b} = ${10 - b}$ unités, pas $${b}$.` }, { valeur: dz + b, message: "On enlève : le résultat est plus petit." }],
+      aides: [`$${dz}$, c'est $${dz / 10 - 1}$ dizaines et $10$ unités.`, `$10 - ${b} = ${10 - b}$.`, `Il reste $${dz / 10 - 1}$ dizaines et $${10 - b}$ unités.`],
+      solution: `On casse une dizaine : $${dz} = ${dz - 10} + 10$. $10 - ${b} = ${10 - b}$, donc $${dz} - ${b} = ${dz - b}$.` };
+  };
+
+  /* =====================================================================
+     Chapitre 6 : résoudre des problèmes (cp6-)
+     ===================================================================== */
+  FIGURES["cp6-cours-tout"] = () => schema([["25", 25], ["?", 18, 1]], null, { total: "43 cerises" });
+  FIGURES["cp6-cours-groupes"] = () => collection(21, { groupes: 7, aria: "3 paquets de 7 biscuits" });
+  FIGURES["cp6-qcm-schema"] = () => schema([["30", 30], ["12", 12]], null, { total: "?" });
+
+  // Problèmes parties-tout et de transformation en une étape
+  GEN["cp6-parties"] = function () {
+    const t = rand(0, 4), P = prenom(), c = E.chose();
+    if (t === 0) { // tout à partir de deux parties
+      const a = rand(10, 60), b = rand(5, 99 - a), [lieu, qa, qb] = pick([["À l'école", "filles", "garçons"], ["Dans le panier", "mangues vertes", "mangues jaunes"], ["À la bibliothèque", "livres de contes", "bandes dessinées"], ["Dans l'aquarium", "poissons rouges", "poissons bleus"]]);
+      return { enonce: `${lieu}, il y a $${a}$ ${qa} et $${b}$ ${qb}. Combien y en a-t-il en tout ?`, figure: schema([[String(a), a], [String(b), b]], null, { total: "?" }), mode: "nombre", prefixe: "En tout :", attendu: a + b,
+        erreurs: [{ valeur: Math.abs(a - b), message: "On cherche le tout : on réunit les deux parties, c'est une addition." }],
+        aides: ["Les deux parties ensemble font le tout.", `Écris le calcul : $${a} + ${b}$.`, "Ajoute les dizaines, puis les unités."],
+        solution: `$${a} + ${b} = ${a + b}$. Il y en a $${a + b}$ en tout.` };
+    }
+    if (t === 1) { // une partie à partir du tout
+      const tot = rand(25, 99), a = rand(5, tot - 5);
+      return { enonce: `${P.nom} a $${tot}$ ${c.p}. $${a}$ sont dans ${pick(["son sac", "une boîte", "son cartable", "un panier"])}, les autres sont sur la table. Combien de ${c.p} sont sur la table ?`, figure: schema([[String(a), a], ["?", tot - a, 1]], null, { total: `${tot}` }), mode: "nombre", prefixe: "Sur la table :", suffixe: c.p, attendu: tot - a,
+        erreurs: [{ valeur: tot + a, message: "On connaît le tout et une partie : on cherche l'autre partie, c'est une soustraction." }],
+        aides: [`Le tout, c'est $${tot}$. Une partie, c'est $${a}$.`, "L'autre partie, c'est ce qui reste quand on enlève la première.", `$${tot} - ${a}$, ou : $${a} + \\ldots = ${tot}$.`],
+        solution: `$${tot} - ${a} = ${tot - a}$. Il y a $${tot - a}$ ${c.p} sur la table.` };
+    }
+    if (t === 2) { // combien sont partis ?
+      const a = rand(20, 90), b = rand(5, a - 5), [obj, verbe] = pick([["oiseaux dans le manguier", "se sont envolés"], ["enfants au parc", "sont rentrés chez eux"], ["poissons dans le filet", "se sont échappés"], ["passagers dans la barge", "sont descendus"]]);
+      return { enonce: `Il y avait $${a}$ ${obj}. Maintenant, il n'en reste que $${b}$. Combien ${verbe} ?`, mode: "nombre", prefixe: "Réponse :", attendu: a - b,
+        erreurs: [{ valeur: a + b, message: "Il en reste moins qu'avant : on cherche l'écart, c'est une soustraction." }],
+        aides: [`Au début : $${a}$. À la fin : $${b}$.`, "Ceux qui sont partis + ceux qui restent = ceux du début.", `$${b} + \\ldots = ${a}$, ou $${a} - ${b}$.`],
+        solution: `$${a} - ${b} = ${a - b}$. Réponse : $${a - b}$.` };
+    }
+    if (t === 3) { // combien au début ?
+      const b = rand(3, 30), r = rand(10, 99 - b);
+      return { enonce: `${P.nom} a mangé $${b}$ ${pick(["litchis", "bonbons", "morceaux d'ananas"])}. Il en reste encore $${r}$ dans le bol. Combien y en avait-il dans le bol avant ?`, mode: "nombre", prefixe: "Avant :", attendu: r + b,
+        erreurs: [{ valeur: Math.abs(r - b), message: "Avant, il y en avait plus : ceux mangés et ceux qui restent." }],
+        aides: ["Avant = ceux qui ont été mangés + ceux qui restent.", `$${b} + ${r}$.`, "Ajoute les dizaines, puis les unités."],
+        solution: `$${r} + ${b} = ${r + b}$. Il y en avait $${r + b}$.` };
+    }
+    // trois parties (wagons, rangées)
+    let a, b, d; do { a = rand(10, 40); b = rand(10, 40); d = rand(5, 30); } while (a + b + d > 100);
+    return { enonce: `La barge transporte des voitures : $${a}$ au premier voyage, $${b}$ au deuxième et $${d}$ au troisième. Combien de voitures a-t-elle transportées en tout ?`, mode: "nombre", prefixe: "En tout :", suffixe: "voitures", attendu: a + b + d,
+      erreurs: [{ valeur: a + b, message: "N'oublie pas le troisième voyage." }],
+      aides: ["Il faut ajouter les trois nombres.", `$${a} + ${b} = ${a + b}$.`, `$${a + b} + ${d}$.`],
+      solution: `$${a} + ${b} + ${d} = ${a + b + d}$ voitures.` };
+  };
+
+  // Problèmes en deux étapes (nombres jusqu'à 30)
+  GEN["cp6-deux-etapes"] = function () {
+    const t = rand(0, 2), P = prenom();
+    if (t === 0) { let a, d, m; do { a = rand(12, 30); d = rand(2, a - 2); m = rand(2, 12); } while (a - d + m > 30); return { enonce: `Il y a $${a}$ enfants dans le taxi-brousse${""} pour ${pick(E.LIEUX)}. Au premier arrêt, $${d}$ enfants descendent. Au deuxième arrêt, $${m}$ enfants montent. Combien y a-t-il d'enfants maintenant ?`.replace("taxi-brousse", "bus"), mode: "nombre", prefixe: "Il y a", suffixe: "enfants", attendu: a - d + m, erreurs: [{ valeur: a + d + m, message: "Au premier arrêt, des enfants descendent : on enlève." }, { valeur: a - d - m, message: "Au deuxième arrêt, des enfants montent : on ajoute." }, { valeur: a - d, message: "N'oublie pas le deuxième arrêt." }], aides: ["Fais le calcul arrêt par arrêt.", `Après le premier arrêt : $${a} - ${d} = ${a - d}$.`, `Après le deuxième : $${a - d} + ${m}$.`], solution: `$${a} - ${d} = ${a - d}$, puis $${a - d} + ${m} = ${a - d + m}$ enfants.` }; }
+    if (t === 1) { let tot, x, y; do { tot = rand(15, 30); x = rand(3, 10); y = rand(3, 10); } while (x + y >= tot); return { enonce: `Sur l'étagère, il y a $${tot}$ livres : $${x}$ albums, $${y}$ bandes dessinées et le reste sont des documentaires. Combien y a-t-il de documentaires ?`, figure: schema([[String(x), x], [String(y), y], ["?", tot - x - y, 1]], null, { total: `${tot} livres` }), mode: "nombre", prefixe: "Il y a", suffixe: "documentaires", attendu: tot - x - y, erreurs: [{ valeur: tot - x, message: "Il faut aussi enlever les bandes dessinées." }, { valeur: x + y, message: "Ça, ce sont les albums et les BD ensemble. On cherche le reste." }], aides: ["Le tout, c'est tous les livres.", `Albums et BD ensemble : $${x} + ${y} = ${x + y}$.`, `$${tot} - ${x + y}$.`], solution: `$${x} + ${y} = ${x + y}$, puis $${tot} - ${x + y} = ${tot - x - y}$ documentaires.` }; }
+    let a, b, c; do { a = rand(5, 15); b = rand(2, 10); c = rand(2, 10); } while (a + b - c > 30 || a + b - c < 1);
+    return { enonce: `${P.nom} a $${a}$ coquillages. ${P.Il} en ramasse encore $${b}$ sur la plage de ${pick(["Moya", "N'Gouja", "Sakouli", "Saziley"])}, puis en donne $${c}$ à ${pick(["Awa", "Anli", "son petit frère", "sa grand-mère"])}. Combien en a-t-${P.il} maintenant ?`, mode: "nombre", prefixe: `${P.Il} en a`, attendu: a + b - c,
+      erreurs: [{ valeur: a + b + c, message: `${P.Il} en donne : il faut enlever.` }, { valeur: a + b, message: "N'oublie pas ceux qui sont donnés." }],
+      aides: ["Fais le calcul dans l'ordre de l'histoire.", `D'abord : $${a} + ${b} = ${a + b}$.`, `Puis : $${a + b} - ${c}$.`],
+      solution: `$${a} + ${b} = ${a + b}$, puis $${a + b} - ${c} = ${a + b - c}$ coquillages.` };
+  };
+
+  // Problèmes multiplicatifs (jusqu'à 30) : groupes égaux, partage
+  GEN["cp6-groupes"] = function () {
+    const t = rand(0, 2), k = rand(2, 6), v = rand(2, Math.min(10, Math.floor(30 / k))), N = k * v;
+    const [obj, gr] = pick([["biscuits", "paquets"], ["élèves", "équipes"], ["mangues", "sacs"], ["perles", "colliers"], ["œufs", "boîtes"], ["chaises", "rangées"]]);
+    if (t === 0) return { enonce: `Il y a $${k}$ ${gr}. Dans chacun${["équipes", "boîtes", "rangées"].includes(gr) ? "e" : ""}, il y a $${v}$ ${obj}. Combien y a-t-il de ${obj} en tout ?`, mode: "nombre", prefixe: "En tout :", suffixe: obj, attendu: N,
+      erreurs: [{ valeur: k + v, message: `Il y a $${v}$ ${obj} **dans chaque** groupe : ajoute $${v}$ autant de fois qu'il y a de groupes.` }],
+      aides: ["Dessine les groupes avec des croix si tu veux.", `C'est $${k}$ fois $${v}$.`, `$${Array(k).fill(v).join(" + ")}$.`],
+      solution: `$${Array(k).fill(v).join(" + ")} = ${N}$ ${obj}.` };
+    if (t === 1) return { enonce: `On a $${N}$ ${obj}. On fait des ${gr} de $${v}$ ${obj}. Combien de ${gr} peut-on faire ?`, figure: collection(N, { groupes: v }), mode: "nombre", prefixe: "On fait", suffixe: gr, attendu: k,
+      erreurs: [{ valeur: N - v, message: "On ne fait pas qu'un seul groupe : on fait des groupes tant qu'il reste des objets." }, { valeur: v, message: `$${v}$, c'est le nombre de ${obj} dans un groupe.` }],
+      aides: [`Fais des paquets de $${v}$.`, `Compte de $${v}$ en $${v}$ jusqu'à $${N}$.`, "Compte combien de paquets tu as faits."],
+      solution: `$${Array(k).fill(v).join(" + ")} = ${N}$ : on fait $${k}$ ${gr}.` };
+    return { enonce: `On partage $${N}$ ${obj} équitablement entre $${k}$ ${pick(["enfants", "amis", "cousins"])}. Combien chacun en reçoit-il ?`, mode: "nombre", prefixe: "Chacun reçoit", suffixe: obj, attendu: v,
+      erreurs: [{ valeur: N - k, message: "On distribue un par un à chacun, jusqu'à ce qu'il n'en reste plus." }, { valeur: k, message: `$${k}$, c'est le nombre d'enfants.` }],
+      aides: ["Distribue un objet à chacun, puis recommence.", `Chaque tour, on donne $${k}$ ${obj}.`, `Combien de tours pour arriver à $${N}$ ?`],
+      solution: `$${k}$ fois $${v}$ font $${N}$ : chacun reçoit $${v}$ ${obj}.` };
+  };
+
+  // Erreurs de calcul fréquentes (une dizaine de trop ou de moins) dans les problèmes et le calcul mental
+  ["cp6-parties", "cp6-deux-etapes", "cp5-dizaines", "cp5-procedures"].forEach((t) => {
+    const g = GEN[t];
+    GEN[t] = (i) => {
+      const q = g(i);
+      q.erreurs = [...(q.erreurs || []), ...[10, -10].map((k) => ({ valeur: q.attendu + k, message: "Erreur de calcul : vérifie le chiffre des dizaines (pense aux retenues)." })).filter((e) => e.valeur >= 0)];
+      return q;
+    };
+  });
+
   elisions(/^cp\d+-/);
 })();
