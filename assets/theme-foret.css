@@ -1,0 +1,31 @@
+/* Thème « Forêt » : sous-bois vert, rayons de lumière entre les troncs, deux rangées de sapins
+   et quelques lucioles. Création originale, uniquement CSS et SVG en ligne : téléchargé seulement si on le choisit. */
+:root[data-theme="foret"] {
+  color-scheme: light;
+  --fond: #eef3e6; --surface: #ffffff; --encre: #1b2a1c; --doux: #536350; --trait: #d4ddcb;
+  --lagon: #2e6b35; --lagon-pale: #dfeedc; --ylang: #b57512; --ylang-pale: #fbeccb;
+  --bon: #1d7a3f; --bon-pale: #dff2e3; --faux: #b23a2c; --faux-pale: #fbe3de; --courbe2: #b8601f;
+  --hero-a: #2f6e3a; --hero-b: #163d26; --barre: #e7ede0;
+  --ombre: 0 1px 2px rgba(27, 42, 28, 0.06), 0 4px 14px rgba(27, 42, 28, 0.08);
+  --ombre-haut: 0 2px 4px rgba(27, 42, 28, 0.08), 0 12px 28px rgba(27, 42, 28, 0.14);
+}
+/* Fond de page : feuilles discrètes et lumière verte */
+:root[data-theme="foret"] body { background: #eef3e6; }
+:root[data-theme="foret"] body::before { content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+  background:
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 120'><path d='M20 70c0-22 14-36 36-36 0 22-14 36-36 36zm2-2c10-10 18-18 30-30M80 110c0-18 12-30 30-30 0 18-12 30-30 30z' fill='%232e6b35' fill-opacity='.06' stroke='%232e6b35' stroke-opacity='.08' stroke-width='1.5'/></svg>") 0 0 / 120px 120px,
+    radial-gradient(40rem 24rem at 100% -6%, rgba(130, 190, 90, 0.25), transparent 70%), #eef3e6; }
+/* Bandeau : canopée sombre en haut, rayons, sapins et brume au bas */
+:root[data-theme="foret"] .hero { padding-bottom: clamp(96px, 25%, 136px);
+  background:
+    radial-gradient(3px 3px at 22% 58%, #ffe88a 50%, transparent 52%), radial-gradient(2px 2px at 64% 48%, #ffe88a 50%, transparent 52%), radial-gradient(2.5px 2.5px at 86% 66%, #ffe88a 50%, transparent 52%), radial-gradient(2px 2px at 40% 72%, #ffe88a 50%, transparent 52%),
+    linear-gradient(104deg, transparent 18%, rgba(255, 240, 180, 0.12) 20%, rgba(255, 240, 180, 0.12) 25%, transparent 27%, transparent 48%, rgba(255, 240, 180, 0.1) 50%, rgba(255, 240, 180, 0.1) 53%, transparent 55%, transparent 74%, rgba(255, 240, 180, 0.12) 76%, rgba(255, 240, 180, 0.12) 80%, transparent 82%),
+    linear-gradient(180deg, #11311f 0%, #2a6b38 calc(100% - 150px), #8fc46a calc(100% - 40px), #bfe0a8 100%); }
+:root[data-theme="foret"] .hero-decor { display: none; }
+:root[data-theme="foret"] .hero::after { content: ""; position: absolute; z-index: 0; left: 0; right: 0; bottom: 0; height: 110px; pointer-events: none;
+  background:
+    linear-gradient(180deg, transparent 55%, rgba(255, 255, 255, 0.4) 100%),
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 60'><path d='M15 60V40l-9 2 12-20-6 1L22 6l10 17-6-1 12 20-9-2v20zM70 60V44l-10 2 13-18-7 1 14-21 14 21-7-1 13 18-10-2v16z' fill='%230f2d1c'/></svg>") repeat-x 0 100% / 120px 60px,
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 60'><path d='M15 60V40l-9 2 12-20-6 1L22 6l10 17-6-1 12 20-9-2v20zM70 60V44l-10 2 13-18-7 1 14-21 14 21-7-1 13 18-10-2v16z' fill='%231f5a33'/></svg>") repeat-x 50px calc(100% - 14px) / 150px 54px; }
+:root[data-theme="foret"] .hero h1, :root[data-theme="foret"] .hero .lead { text-shadow: 0 1px 10px rgba(5, 30, 10, 0.5); }
+:root[data-theme="foret"] .chiffres li { background: rgba(5, 40, 15, 0.4); }

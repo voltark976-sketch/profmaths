@@ -130,53 +130,91 @@
   setTimeout(lancerCompte, 5000); // au plus tard 5 s après le départ
   if (/^#(compte|suivi|demandes|comptes|frequentation|avatar)\b/.test(location.hash)) lancerCompte();
 
-  /* ---------- Apparence : clair, sombre ou ruines ---------- */
-  // Sans choix enregistré, le site suit le réglage clair/sombre de l'appareil.
-  // Ordinateur : trois boutons. Téléphone : un seul bouton qui passe au thème suivant.
+  /* ---------- Apparence : le choix des thèmes ---------- */
+  // Sans choix enregistré, le site suit le réglage clair/sombre de l'appareil (« Auto »).
+  // Le bouton rond de la barre du haut ouvre un menu de pastilles. Chaque thème autre que
+  // Clair et Sombre a sa feuille assets/theme-<id>.css, téléchargée seulement quand on le choisit
+  // (index.html la charge au démarrage si c'est le thème enregistré). Pour ajouter un thème :
+  // une entrée ci-dessous et une feuille theme-<id>.css (voir LISEZMOI.md).
   const CLE_THEME = "profmaths:theme";
-  const THEMES = { light: "Clair", dark: "Sombre", ruines: "Ruines" };
-  const boutonsTheme = document.querySelectorAll("[data-theme-choix]");
-  const cycleTheme = document.getElementById("theme-cycle");
-  // Couleur de la barre du navigateur sur téléphone, accordée à la barre du haut du site
-  const COULEUR_BARRE = { light: "#f2f6f6", dark: "#0c1a1c", ruines: "#fbf1d9" };
+  // nom : affiché dans le menu ; apercu : pastille (fond, bandeau, accent) ; sombre : fond foncé
+  const THEMES = {
+    light: { nom: "Clair", apercu: "#f2f6f6,#0a7c76,#c98a08" },
+    dark: { nom: "Sombre", apercu: "#0c1a1c,#0b5e5a,#3cc2b6", sombre: true },
+    mer: { nom: "Mer", apercu: "#eaf4f8,#2f8fb5,#f2b544" },
+    montagne: { nom: "Montagne", apercu: "#eef2ee,#5b7f98,#2f6b4f" },
+    mayotte: { nom: "Mayotte", apercu: "#fbf3e4,#ff9a5c,#0e9a99" },
+    foret: { nom: "Forêt", apercu: "#eef3e6,#2f6e3a,#d98f1f" },
+    crepuscule: { nom: "Crépuscule", apercu: "#fbeff0,#ff8f6b,#7b4bb3" },
+    ruines: { nom: "Ruines", apercu: "#f4e3bd,#1a64a0,#e3a008" },
+    ocean: { nom: "Océan", apercu: "#061a2b,#0a4d6e,#39d1e0", sombre: true },
+    nuit: { nom: "Nuit étoilée", apercu: "#0b1026,#2b2f6e,#ffd27a", sombre: true },
+    tableau: { nom: "Tableau noir", apercu: "#203b2f,#17302a,#f3d36b", sombre: true }
+  };
   const sombreSysteme = matchMedia("(prefers-color-scheme: dark)");
+  const pastille = (id) => {
+    const c = id === "auto" ? ["#f2f6f6", "#0c1a1c", "#0a7c76"] : THEMES[id].apercu.split(",");
+    return `linear-gradient(135deg, ${c[0]} 0 44%, ${c[1]} 44% 74%, ${c[2]} 74%)`;
+  };
+  const themeChoisi = () => { try { const t = localStorage.getItem(CLE_THEME); return THEMES[t] ? t : "auto"; } catch (e) { return "auto"; } };
   const themeActuel = () => document.documentElement.dataset.theme || (sombreSysteme.matches ? "dark" : "light");
+  const boutonTheme = document.getElementById("theme-btn");
+  const menuTheme = document.getElementById("theme-menu");
+  if (menuTheme) {
+    menuTheme.innerHTML = `<p class="theme-menu-t" id="theme-menu-t">Apparence du site</p><div class="theme-grille">` +
+      ["auto", ...Object.keys(THEMES)].map((id) => `<button type="button" data-theme-choix="${id}" aria-pressed="false"><span class="pastille" style="background:${pastille(id)}"></span><span>${id === "auto" ? "Auto" : THEMES[id].nom}</span></button>`).join("") +
+      `</div><p class="theme-menu-aide">Auto : suit le réglage clair ou sombre de l'appareil.</p>`;
+  }
+  const boutonsTheme = document.querySelectorAll("[data-theme-choix]");
   function majTheme() {
-    const t = themeActuel();
-    boutonsTheme.forEach((b) => b.setAttribute("aria-pressed", b.dataset.themeChoix === t));
-    if (cycleTheme) {
-      cycleTheme.dataset.actuel = t;
-      cycleTheme.setAttribute("aria-label", `Apparence : ${THEMES[t]}. Toucher pour changer.`);
-      cycleTheme.title = `Apparence : ${THEMES[t]}`;
+    const t = themeActuel(), choix = themeChoisi();
+    boutonsTheme.forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.themeChoix === choix)));
+    if (boutonTheme) {
+      boutonTheme.querySelector(".pastille").style.background = pastille(choix);
+      const nom = choix === "auto" ? `Auto (${THEMES[t].nom.toLowerCase()})` : THEMES[choix].nom;
+      boutonTheme.setAttribute("aria-label", `Apparence : ${nom}. Ouvrir le choix des thèmes.`);
+      boutonTheme.title = `Apparence : ${nom}`;
     }
+    // Couleur de la barre du navigateur sur téléphone, accordée à la barre du haut (--barre de chaque thème)
     const meta = document.querySelector('meta[name="theme-color"]');
-    if (meta) meta.content = COULEUR_BARRE[t];
+    if (meta) meta.content = getComputedStyle(document.documentElement).getPropertyValue("--barre").trim() || "#f2f6f6";
   }
   if (sombreSysteme.addEventListener) sombreSysteme.addEventListener("change", majTheme);
-  // La feuille du thème « Ruines » n'est téléchargée que si on le choisit : on attend qu'elle soit
-  // arrivée avant de changer d'apparence, pour ne pas montrer une page à moitié habillée.
-  function chargerRuines(suite) {
-    if (document.getElementById("css-ruines")) return suite();
+  // La feuille d'un thème n'est téléchargée que si on le choisit : on attend qu'elle soit arrivée
+  // avant de changer d'apparence, pour ne pas montrer une page à moitié habillée.
+  function chargerTheme(t, suite) {
+    if (t === "light" || t === "dark" || document.getElementById("css-theme-" + t)) return suite();
     const base = document.querySelector('link[href*="style.css"]');
     const l = document.createElement("link");
-    l.rel = "stylesheet"; l.id = "css-ruines";
-    l.href = base ? base.getAttribute("href").replace("style.css", "ruines.css") : "assets/ruines.css";
+    l.rel = "stylesheet"; l.id = "css-theme-" + t;
+    l.href = base ? base.getAttribute("href").replace("style.css", `theme-${t}.css`) : `assets/theme-${t}.css`;
     l.onload = l.onerror = suite;
     document.head.appendChild(l);
   }
   function choisirTheme(t) {
-    const appliquer = () => {
+    if (t === "auto" || !THEMES[t]) {
+      delete document.documentElement.dataset.theme;
+      try { localStorage.removeItem(CLE_THEME); } catch (e) {}
+      return majTheme();
+    }
+    chargerTheme(t, () => {
       document.documentElement.dataset.theme = t;
       try { localStorage.setItem(CLE_THEME, t); } catch (e) {}
       majTheme();
-    };
-    if (t === "ruines") chargerRuines(appliquer); else appliquer();
+    });
   }
-  boutonsTheme.forEach((b) => b.addEventListener("click", () => choisirTheme(b.dataset.themeChoix)));
-  if (cycleTheme) cycleTheme.addEventListener("click", () => {
-    const ordre = Object.keys(THEMES);
-    choisirTheme(ordre[(ordre.indexOf(themeActuel()) + 1) % ordre.length]);
-  });
+  function ouvrirMenuTheme(ouvrir) {
+    if (!menuTheme || !boutonTheme) return;
+    menuTheme.hidden = !ouvrir;
+    boutonTheme.setAttribute("aria-expanded", String(ouvrir));
+    if (ouvrir) (menuTheme.querySelector('[aria-pressed="true"]') || menuTheme.querySelector("button")).focus();
+  }
+  boutonsTheme.forEach((b) => b.addEventListener("click", () => { choisirTheme(b.dataset.themeChoix); ouvrirMenuTheme(false); if (boutonTheme) boutonTheme.focus(); }));
+  if (boutonTheme && menuTheme) {
+    boutonTheme.addEventListener("click", () => ouvrirMenuTheme(menuTheme.hidden));
+    document.addEventListener("click", (e) => { if (!menuTheme.hidden && !menuTheme.contains(e.target) && !boutonTheme.contains(e.target)) ouvrirMenuTheme(false); });
+    document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !menuTheme.hidden) { ouvrirMenuTheme(false); boutonTheme.focus(); } });
+  }
   majTheme();
 
   /* ---------- Mise en forme du texte : $maths$, **gras**, puces ---------- */

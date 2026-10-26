@@ -1,0 +1,33 @@
+/* Thème « Mer » : ciel d'été, soleil doux et deux rangées de vagues sous le bandeau d'accueil
+   (dans l'esprit du site « Suivi de thèse »). Création originale, uniquement CSS et SVG en ligne :
+   ce fichier n'est téléchargé que par ceux qui choisissent ce thème. */
+:root[data-theme="mer"] {
+  color-scheme: light;
+  --fond: #eaf4f8; --surface: #ffffff; --encre: #0f2a3d; --doux: #4e6b7d; --trait: #cfe0e8;
+  --lagon: #0f6e8c; --lagon-pale: #dcedf3; --ylang: #c27a12; --ylang-pale: #fdebc8;
+  --bon: #1d7a3f; --bon-pale: #def3e3; --faux: #b23a2c; --faux-pale: #fbe3de; --courbe2: #c2501f;
+  --hero-a: #2f8fb5; --hero-b: #0f4c69; --barre: #e3eff5;
+  --ombre: 0 1px 2px rgba(15, 42, 61, 0.06), 0 4px 14px rgba(15, 42, 61, 0.08);
+  --ombre-haut: 0 2px 4px rgba(15, 42, 61, 0.08), 0 12px 28px rgba(15, 42, 61, 0.14);
+}
+/* Fond de page : ciel pâle qui tire vers le sable en bas, lueur du soleil en haut à droite */
+:root[data-theme="mer"] body { background: #eaf4f8; }
+:root[data-theme="mer"] body::before { content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+  background: radial-gradient(40rem 24rem at 92% -8%, rgba(255, 214, 120, 0.42), transparent 70%), linear-gradient(180deg, #d4e8f2, #eaf4f8 45%, #f4f0e6); }
+/* Bandeau : le texte en haut sur le ciel, la mer dans la bande du bas */
+:root[data-theme="mer"] .hero { padding-bottom: clamp(118px, 28%, 150px);
+  background:
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 24'><path d='M2 12q7-9 14 0M18 12q7-9 14 0M32 7q5-6 10 0M42 7q5-6 10 0' fill='none' stroke='%23ffffff' stroke-width='1.6' stroke-linecap='round' stroke-opacity='.75'/></svg>") 80% calc(100% - 184px) / 54px 22px no-repeat,
+    radial-gradient(4.6rem 4.6rem at 84% calc(100% - 122px), #fff6dc 0 40%, rgba(255, 228, 150, 0.6) 48%, transparent 66%),
+    linear-gradient(180deg, #1f78a8 0%, #5aa8cf calc(100% - 190px), #cfe6f0 calc(100% - 114px), #2b8aa8 calc(100% - 112px), #0f4c69 100%); }
+:root[data-theme="mer"] .hero-decor { display: none; }
+:root[data-theme="mer"] .hero::after { content: ""; position: absolute; z-index: 0; left: 0; right: 0; bottom: 0; height: 100px; pointer-events: none;
+  background:
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 480 60' preserveAspectRatio='none'><path d='M0 30C60 10 120 10 180 30s120 20 180 0 90-20 120 0V60H0z' fill='%23ffffff' fill-opacity='.22'/></svg>") repeat-x 0 0 / 480px 100%,
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 360 60' preserveAspectRatio='none'><path d='M0 36C45 16 90 16 135 36s90 20 135 0 60-16 90 0V60H0z' fill='%23083a54' fill-opacity='.5'/></svg>") repeat-x 0 100% / 360px 64%; }
+:root[data-theme="mer"] .hero h1, :root[data-theme="mer"] .hero .lead { text-shadow: 0 1px 10px rgba(5, 40, 60, 0.45); }
+:root[data-theme="mer"] .chiffres li { background: rgba(6, 50, 75, 0.35); }
+@media (prefers-reduced-motion: no-preference) {
+  :root[data-theme="mer"] .hero::after { animation: mer-houle 26s linear infinite; }
+  @keyframes mer-houle { to { background-position: 480px 0, -360px 100%; } }
+}

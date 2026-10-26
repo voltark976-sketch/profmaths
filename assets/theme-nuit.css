@@ -1,0 +1,38 @@
+/* Thème « Nuit étoilée » (sombre) : ciel indigo, étoiles, croissant de lune, étoile filante et collines
+   endormies. Création originale, uniquement CSS et SVG en ligne : téléchargé seulement si on le choisit. */
+:root[data-theme="nuit"] {
+  color-scheme: dark;
+  --fond: #0b1026; --surface: #161c3c; --encre: #e6e8ff; --doux: #a3a9d6; --trait: #2a3160;
+  --lagon: #9fb2ff; --lagon-pale: #232c5c; --ylang: #ffd27a; --ylang-pale: #3d341c;
+  --bon: #6fd49a; --bon-pale: #15382a; --faux: #ff8f8f; --faux-pale: #46222c; --courbe2: #ffab76;
+  --hero-a: #2b2f6e; --hero-b: #0b1026; --barre: #0b1026;
+  --ombre: 0 1px 2px rgba(0, 0, 0, 0.35); --ombre-haut: 0 10px 26px rgba(0, 0, 0, 0.5);
+  scrollbar-color: #2a3160 #0b1026;
+}
+/* Couleurs des niveaux et réglages repris du thème sombre */
+:root[data-theme="nuit"] [data-niv="college"], :root[data-theme="nuit"] [data-niv="sixieme"], :root[data-theme="nuit"] [data-niv="cinquieme"], :root[data-theme="nuit"] [data-niv="quatrieme"], :root[data-theme="nuit"] [data-niv="troisieme"] { --ac: #7fd38d; --ac-pale: #16322a; }
+:root[data-theme="nuit"] [data-niv="ecole"], :root[data-theme="nuit"] [data-niv="cp"], :root[data-theme="nuit"] [data-niv="ce1"], :root[data-theme="nuit"] [data-niv="ce2"], :root[data-theme="nuit"] [data-niv="cm1"], :root[data-theme="nuit"] [data-niv="cm2"] { --ac: #ff9a76; --ac-pale: #3f2030; }
+:root[data-theme="nuit"] [data-niv="automatismes"] { --ac: #f3a24b; --ac-pale: #3c2a2c; }
+:root[data-theme="nuit"] [data-niv="premiere"] { --ac: #b9a6ff; --ac-pale: #2a2358; }
+:root[data-theme="nuit"] [data-niv="terminale"] { --ac: #7fb3ff; --ac-pale: #172c52; }
+:root[data-theme="nuit"] [data-niv="terminale-spe"] { --ac: #ff8fb1; --ac-pale: #43203a; }
+:root[data-theme="nuit"] .onglets a[aria-current="page"] { color: var(--fond); }
+:root[data-theme="nuit"] .chap-prog, :root[data-theme="nuit"] .chap-prog.fini { color: var(--encre); }
+/* Fond de page : nuit profonde, quelques étoiles dans le haut */
+:root[data-theme="nuit"] body { background: #0b1026; }
+:root[data-theme="nuit"] body::before { content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+  background:
+    radial-gradient(1.4px 1.4px at 6% 18%, #fff 50%, transparent 52%), radial-gradient(1px 1px at 14% 42%, #fff 50%, transparent 52%), radial-gradient(1.2px 1.2px at 23% 12%, #fff 50%, transparent 52%), radial-gradient(1px 1px at 31% 30%, #dfeaff 50%, transparent 52%), radial-gradient(1.6px 1.6px at 39% 8%, #fff 50%, transparent 52%), radial-gradient(1px 1px at 47% 36%, #fff 50%, transparent 52%), radial-gradient(1.2px 1.2px at 55% 16%, #dfeaff 50%, transparent 52%), radial-gradient(1px 1px at 61% 46%, #fff 50%, transparent 52%), radial-gradient(1.4px 1.4px at 68% 10%, #fff 50%, transparent 52%), radial-gradient(1px 1px at 74% 28%, #fff 50%, transparent 52%), radial-gradient(1.2px 1.2px at 81% 20%, #dfeaff 50%, transparent 52%), radial-gradient(1px 1px at 88% 6%, #fff 50%, transparent 52%), radial-gradient(1.4px 1.4px at 94% 34%, #fff 50%, transparent 52%),
+    linear-gradient(180deg, #121848, #0b1026 50%, #080c1c); }
+/* Bandeau : étoiles, lune, étoile filante et collines */
+:root[data-theme="nuit"] .hero { padding-bottom: clamp(96px, 25%, 130px);
+  background:
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 60'><path d='M30 4a26 26 0 1 0 0 52 30 30 0 0 1 0-52z' fill='%23fff4cc'/></svg>") 88% calc(100% - 150px) / 40px 40px no-repeat,
+    radial-gradient(circle at calc(88% - 15px) calc(100% - 170px), rgba(255, 244, 204, 0.16) 0 14px, transparent 44px),
+    radial-gradient(1.6px 1.6px at 8% 16%, #fff 50%, transparent 52%), radial-gradient(1.2px 1.2px at 18% 40%, #fff 50%, transparent 52%), radial-gradient(1.4px 1.4px at 28% 10%, #fff 50%, transparent 52%), radial-gradient(1px 1px at 38% 32%, #dfeaff 50%, transparent 52%), radial-gradient(1.8px 1.8px at 48% 12%, #fff 50%, transparent 52%), radial-gradient(1.2px 1.2px at 58% 42%, #fff 50%, transparent 52%), radial-gradient(1.4px 1.4px at 64% 20%, #dfeaff 50%, transparent 52%), radial-gradient(1px 1px at 92% 46%, #fff 50%, transparent 52%), radial-gradient(1.6px 1.6px at 96% 12%, #fff 50%, transparent 52%), radial-gradient(1.2px 1.2px at 42% 56%, #fff 50%, transparent 52%), radial-gradient(1px 1px at 12% 62%, #dfeaff 50%, transparent 52%),
+    linear-gradient(180deg, #232a74 0%, #141a4e 55%, #0b1026 100%); }
+:root[data-theme="nuit"] .hero-decor { display: none; }
+:root[data-theme="nuit"] .hero::after { content: ""; position: absolute; z-index: 0; left: 0; right: 0; bottom: 0; height: 86px; pointer-events: none;
+  background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 86' preserveAspectRatio='none'><path d='M0 46C60 20 120 20 170 42s90 30 140 6 60-16 90 0V86H0z' fill='%23111640'/><path d='M0 70C70 48 130 50 190 64s120 20 210 2V86H0z' fill='%23060a1c'/></svg>") 0 100% / 100% 100% no-repeat; }
+:root[data-theme="nuit"] .hero .eyebrow { color: #ffe3a1; }
+:root[data-theme="nuit"] .chiffres li { background: rgba(5, 8, 30, 0.45); }

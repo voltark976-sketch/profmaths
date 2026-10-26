@@ -1,0 +1,38 @@
+/* Thème « Océan » (sombre) : grands fonds, rayons de lumière qui descendent de la surface, bulles et
+   un banc de poissons. Création originale, uniquement CSS et SVG en ligne : téléchargé seulement si on le choisit. */
+:root[data-theme="ocean"] {
+  color-scheme: dark;
+  --fond: #061a2b; --surface: #0c2a40; --encre: #dcf1fb; --doux: #93b3c5; --trait: #1b4259;
+  --lagon: #39d1e0; --lagon-pale: #0f3b4d; --ylang: #ffcf5c; --ylang-pale: #3b3217;
+  --bon: #5fd18a; --bon-pale: #12352a; --faux: #ff8a78; --faux-pale: #42211f; --courbe2: #ff9a62;
+  --hero-a: #0a4d6e; --hero-b: #03111c; --barre: #061a2b;
+  --ombre: 0 1px 2px rgba(0, 0, 0, 0.35); --ombre-haut: 0 10px 26px rgba(0, 0, 0, 0.5);
+  scrollbar-color: #1b4259 #061a2b;
+}
+/* Couleurs des niveaux et réglages repris du thème sombre */
+:root[data-theme="ocean"] [data-niv="college"], :root[data-theme="ocean"] [data-niv="sixieme"], :root[data-theme="ocean"] [data-niv="cinquieme"], :root[data-theme="ocean"] [data-niv="quatrieme"], :root[data-theme="ocean"] [data-niv="troisieme"] { --ac: #7fd38d; --ac-pale: #123526; }
+:root[data-theme="ocean"] [data-niv="ecole"], :root[data-theme="ocean"] [data-niv="cp"], :root[data-theme="ocean"] [data-niv="ce1"], :root[data-theme="ocean"] [data-niv="ce2"], :root[data-theme="ocean"] [data-niv="cm1"], :root[data-theme="ocean"] [data-niv="cm2"] { --ac: #ff9a76; --ac-pale: #3d201c; }
+:root[data-theme="ocean"] [data-niv="automatismes"] { --ac: #f3a24b; --ac-pale: #3a2a18; }
+:root[data-theme="ocean"] [data-niv="premiere"] { --ac: #b19dff; --ac-pale: #282a4f; }
+:root[data-theme="ocean"] [data-niv="terminale"] { --ac: #7fb3ff; --ac-pale: #14304d; }
+:root[data-theme="ocean"] [data-niv="terminale-spe"] { --ac: #ff8fb1; --ac-pale: #43202f; }
+:root[data-theme="ocean"] .onglets a[aria-current="page"] { color: var(--fond); }
+:root[data-theme="ocean"] .chap-prog, :root[data-theme="ocean"] .chap-prog.fini { color: var(--encre); }
+/* Fond de page : bleu profond, rayons et bulles qui ne bougent pas */
+:root[data-theme="ocean"] body { background: #061a2b; }
+:root[data-theme="ocean"] body::before { content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+  background:
+    radial-gradient(circle at 12% 78%, transparent 5px, rgba(255, 255, 255, 0.09) 6px, transparent 7.5px), radial-gradient(circle at 88% 62%, transparent 3px, rgba(255, 255, 255, 0.08) 4px, transparent 5.5px), radial-gradient(circle at 70% 88%, transparent 7px, rgba(255, 255, 255, 0.07) 8px, transparent 9.5px),
+    linear-gradient(100deg, transparent 22%, rgba(120, 200, 230, 0.07) 24%, rgba(120, 200, 230, 0.07) 30%, transparent 32%, transparent 60%, rgba(120, 200, 230, 0.06) 62%, rgba(120, 200, 230, 0.06) 66%, transparent 68%),
+    linear-gradient(180deg, #0a3350, #061a2b 55%, #03111c); }
+/* Bandeau : surface lumineuse en haut, rayons, bulles, poissons dans le bas */
+:root[data-theme="ocean"] .hero { padding-bottom: clamp(90px, 24%, 130px);
+  background:
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 60'><g fill='%2339d1e0' fill-opacity='.55'><path d='M4 14q6-6 14-6 4 2 6 6-2 4-6 6Q10 20 4 14zm20 0 6-5v10z'/><path d='M44 30q6-6 14-6 4 2 6 6-2 4-6 6Q50 36 44 30zm20 0 6-5v10z'/><path d='M14 44q6-6 14-6 4 2 6 6-2 4-6 6Q20 50 14 44zm20 0 6-5v10z'/><path d='M80 12q6-6 14-6 4 2 6 6-2 4-6 6Q86 18 80 12zm20 0 6-5v10z'/></g></svg>") 92% calc(100% - 30px) / 120px 60px no-repeat,
+    radial-gradient(circle at 18% calc(100% - 20px), transparent 6px, rgba(255, 255, 255, 0.35) 7px, transparent 8.5px), radial-gradient(circle at 24% calc(100% - 58px), transparent 4px, rgba(255, 255, 255, 0.3) 5px, transparent 6.5px), radial-gradient(circle at 15% calc(100% - 92px), transparent 3px, rgba(255, 255, 255, 0.28) 4px, transparent 5.5px), radial-gradient(circle at 60% calc(100% - 40px), transparent 5px, rgba(255, 255, 255, 0.3) 6px, transparent 7.5px),
+    linear-gradient(100deg, transparent 14%, rgba(180, 240, 255, 0.16) 16%, rgba(180, 240, 255, 0.16) 23%, transparent 25%, transparent 44%, rgba(180, 240, 255, 0.12) 46%, rgba(180, 240, 255, 0.12) 50%, transparent 52%, transparent 72%, rgba(180, 240, 255, 0.14) 74%, rgba(180, 240, 255, 0.14) 80%, transparent 82%),
+    linear-gradient(180deg, #1a86a8 0%, #0a4d6e 36%, #03111c 100%); }
+:root[data-theme="ocean"] .hero-decor { display: none; }
+:root[data-theme="ocean"] .hero .eyebrow { color: #9af0ff; }
+:root[data-theme="ocean"] .chiffres li { background: rgba(2, 20, 35, 0.45); border-color: rgba(154, 240, 255, 0.3); }
+:root[data-theme="ocean"] .chiffres b { color: #9af0ff; }

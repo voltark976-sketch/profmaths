@@ -1,0 +1,29 @@
+/* Thème « Montagne » : aube froide, trois chaînes de sommets enneigés et brume dans la vallée.
+   Création originale, uniquement CSS et SVG en ligne : téléchargé seulement si on le choisit. */
+:root[data-theme="montagne"] {
+  color-scheme: light;
+  --fond: #eef2ee; --surface: #ffffff; --encre: #1c2a24; --doux: #56675f; --trait: #d3dcd4;
+  --lagon: #2f6b4f; --lagon-pale: #dfeee5; --ylang: #b8731a; --ylang-pale: #fbeacc;
+  --bon: #1d7a3f; --bon-pale: #dff2e3; --faux: #b23a2c; --faux-pale: #fbe3de; --courbe2: #b85c1f;
+  --hero-a: #5b7f98; --hero-b: #26486b; --barre: #e7ece7;
+  --ombre: 0 1px 2px rgba(28, 42, 36, 0.06), 0 4px 14px rgba(28, 42, 36, 0.08);
+  --ombre-haut: 0 2px 4px rgba(28, 42, 36, 0.08), 0 12px 28px rgba(28, 42, 36, 0.14);
+}
+/* Fond de page : brume claire, silhouette de crêtes tout en bas */
+:root[data-theme="montagne"] body { background: #eef2ee; }
+:root[data-theme="montagne"] body::before { content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+  background:
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 80' preserveAspectRatio='none'><path d='M0 60 60 30 100 46 150 18 200 42 240 26 300 50 340 34 400 54V80H0z' fill='%232f6b4f' fill-opacity='.08'/></svg>") 0 100% / 100% 140px no-repeat,
+    linear-gradient(180deg, #e3eaf0, #eef2ee 50%, #f3f4ee); }
+/* Bandeau : ciel d'aube, soleil bas, sommets et brume */
+:root[data-theme="montagne"] .hero { padding-bottom: clamp(100px, 26%, 140px);
+  background:
+    radial-gradient(4rem 4rem at 78% calc(100% - 118px), #fff1d2 0 36%, rgba(255, 220, 150, 0.55) 46%, transparent 64%),
+    linear-gradient(180deg, #223f5f 0%, #6a93b5 calc(100% - 180px), #e8d6c4 calc(100% - 96px), #e8d6c4 100%); }
+:root[data-theme="montagne"] .hero-decor { display: none; }
+:root[data-theme="montagne"] .hero::after { content: ""; position: absolute; z-index: 0; left: 0; right: 0; bottom: 0; height: 126px; pointer-events: none;
+  background:
+    linear-gradient(180deg, transparent 60%, rgba(255, 255, 255, 0.35) 100%),
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 120' preserveAspectRatio='none'><path d='M0 70 40 45 75 60 110 30 140 55 180 38 215 62 250 36 290 58 330 42 370 60 400 48V120H0z' fill='%236d8fa8'/><path d='M100 39 110 30 120 39 116 37 110 41 104 37zM241 44 250 36 259 44 255 42 250 46 245 42zM322 49 330 42 338 49 334 47 330 51 326 47z' fill='%23ffffff' fill-opacity='.9'/><path d='M0 90 50 66 90 80 130 58 170 78 205 64 240 84 280 66 320 82 360 70 400 86V120H0z' fill='%233e607a'/><path d='M0 108 30 96 70 104 120 90 160 102 210 94 260 106 300 96 350 104 400 98V120H0z' fill='%231f3b4f'/></svg>") 0 100% / 100% 100% no-repeat; }
+:root[data-theme="montagne"] .hero h1, :root[data-theme="montagne"] .hero .lead { text-shadow: 0 1px 10px rgba(10, 30, 50, 0.45); }
+:root[data-theme="montagne"] .chiffres li { background: rgba(20, 40, 60, 0.35); }

@@ -1,0 +1,33 @@
+/* Thème « Mayotte » : coucher de soleil sur le lagon, écume de la barrière de corail, cocotier
+   en silhouette, sable clair et jaune ylang-ylang. Création originale, uniquement CSS et SVG en ligne :
+   téléchargé seulement si on le choisit. */
+:root[data-theme="mayotte"] {
+  color-scheme: light;
+  --fond: #fbf3e4; --surface: #fffdf8; --encre: #23302c; --doux: #5f6d66; --trait: #e9dcc4;
+  --lagon: #0b7c7b; --lagon-pale: #d9f0ec; --ylang: #c48a0c; --ylang-pale: #fdedc1;
+  --bon: #1d7a3f; --bon-pale: #dff2e3; --faux: #c0392b; --faux-pale: #fbe2dc; --courbe2: #d2541c;
+  --hero-a: #ff9a5c; --hero-b: #0e9a99; --barre: #f7eedc;
+  --ombre: 0 1px 2px rgba(60, 40, 10, 0.06), 0 4px 14px rgba(60, 40, 10, 0.08);
+  --ombre-haut: 0 2px 4px rgba(60, 40, 10, 0.08), 0 12px 28px rgba(60, 40, 10, 0.14);
+}
+/* Fond de page : sable, lueur turquoise en haut, ylang en bas à gauche */
+:root[data-theme="mayotte"] body { background: #fbf3e4; }
+:root[data-theme="mayotte"] body::before { content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+  background: radial-gradient(44rem 22rem at 100% -10%, rgba(14, 154, 153, 0.18), transparent 70%), radial-gradient(36rem 20rem at -10% 110%, rgba(240, 190, 40, 0.22), transparent 70%), #fbf3e4; }
+/* Bandeau : ciel de fin de journée, soleil à l'horizon, lagon turquoise, écume de la barrière, cocotier */
+:root[data-theme="mayotte"] .hero { padding-bottom: clamp(118px, 28%, 150px);
+  background:
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 130 150'><path d='M62 150c3-30 2-62 12-92' fill='none' stroke='%231a2a24' stroke-width='6' stroke-linecap='round'/><path d='M74 58C54 36 28 38 10 52c22-6 44 0 64 8zM74 58c-8-26 2-46 26-54C84 20 78 40 76 60zM74 58c16-20 44-20 56-4-20-6-40-2-56 6zM74 58c22 2 38 18 42 40C104 84 90 72 74 62zM74 58C50 60 32 76 28 98 44 82 60 70 74 62z' fill='%231a2a24'/><circle cx='70' cy='62' r='4' fill='%231a2a24'/><circle cx='78' cy='64' r='4' fill='%231a2a24'/></svg>") 3% 100% / auto 134px no-repeat,
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.5) 0 14px, rgba(255, 255, 255, 0.08) 14px 22px) 0 calc(100% - 66px) / 100% 2px no-repeat,
+    radial-gradient(5rem 5rem at 80% calc(100% - 112px), #fff2cc 0 36%, rgba(255, 190, 90, 0.7) 46%, transparent 66%),
+    linear-gradient(180deg, #c84d2c 0%, #ff8a4c calc(100% - 190px), #ffc98a calc(100% - 114px), #13a3b0 calc(100% - 112px), #0b6e86 100%); }
+:root[data-theme="mayotte"] .hero-decor { display: none; }
+:root[data-theme="mayotte"] .hero::after { content: ""; position: absolute; z-index: 0; left: 0; right: 0; bottom: 0; height: 60px; pointer-events: none;
+  background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 360 60' preserveAspectRatio='none'><path d='M0 40C45 20 90 20 135 40s90 20 135 0 60-16 90 0V60H0z' fill='%23ffffff' fill-opacity='.18'/></svg>") repeat-x 0 100% / 360px 100%; }
+:root[data-theme="mayotte"] .hero h1, :root[data-theme="mayotte"] .hero .lead { text-shadow: 0 1px 10px rgba(90, 30, 10, 0.45); }
+:root[data-theme="mayotte"] .hero .eyebrow { color: #fff1b8; }
+:root[data-theme="mayotte"] .chiffres li { background: rgba(120, 40, 20, 0.3); }
+@media (prefers-reduced-motion: no-preference) {
+  :root[data-theme="mayotte"] .hero::after { animation: mayotte-houle 22s linear infinite; }
+  @keyframes mayotte-houle { to { background-position: -360px 100%; } }
+}

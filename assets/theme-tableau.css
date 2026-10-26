@@ -1,0 +1,41 @@
+/* Thème « Tableau noir » (sombre) : tableau vert de salle de classe, cadre en bois, traces de craie,
+   formules du bandeau tracées à la craie. Création originale, uniquement CSS : téléchargé seulement si on le choisit. */
+:root[data-theme="tableau"] {
+  color-scheme: dark;
+  --fond: #203b2f; --surface: #2a4c3d; --encre: #f1efe2; --doux: #c3cdbf; --trait: #436b5a;
+  --lagon: #f3d36b; --lagon-pale: #4a4a2c; --ylang: #f7a8b8; --ylang-pale: #4c3339;
+  --bon: #8fe3a8; --bon-pale: #25442f; --faux: #ff9d8a; --faux-pale: #4c2b27; --courbe2: #ffb36b;
+  --hero-a: #17302a; --hero-b: #1f4234; --barre: #203b2f;
+  --ombre: 0 1px 2px rgba(0, 0, 0, 0.35); --ombre-haut: 0 10px 26px rgba(0, 0, 0, 0.5);
+  --r: 10px;
+  scrollbar-color: #436b5a #203b2f;
+}
+/* Couleurs des niveaux et réglages repris du thème sombre (craies de couleur) */
+:root[data-theme="tableau"] [data-niv="college"], :root[data-theme="tableau"] [data-niv="sixieme"], :root[data-theme="tableau"] [data-niv="cinquieme"], :root[data-theme="tableau"] [data-niv="quatrieme"], :root[data-theme="tableau"] [data-niv="troisieme"] { --ac: #8fe3a8; --ac-pale: #27503a; }
+:root[data-theme="tableau"] [data-niv="ecole"], :root[data-theme="tableau"] [data-niv="cp"], :root[data-theme="tableau"] [data-niv="ce1"], :root[data-theme="tableau"] [data-niv="ce2"], :root[data-theme="tableau"] [data-niv="cm1"], :root[data-theme="tableau"] [data-niv="cm2"] { --ac: #ffb08a; --ac-pale: #4a3a2e; }
+:root[data-theme="tableau"] [data-niv="automatismes"] { --ac: #f3b45b; --ac-pale: #4a4028; }
+:root[data-theme="tableau"] [data-niv="premiere"] { --ac: #c9b8ff; --ac-pale: #3b3b58; }
+:root[data-theme="tableau"] [data-niv="terminale"] { --ac: #9cc6ff; --ac-pale: #2c4458; }
+:root[data-theme="tableau"] [data-niv="terminale-spe"] { --ac: #ffa3c0; --ac-pale: #4b3340; }
+:root[data-theme="tableau"] .onglets a[aria-current="page"] { color: var(--fond); }
+:root[data-theme="tableau"] .chap-prog, :root[data-theme="tableau"] .chap-prog.fini { color: var(--encre); }
+/* Fond de page : ardoise verte avec des traces d'éponge */
+:root[data-theme="tableau"] body { background: #203b2f; }
+:root[data-theme="tableau"] body::before { content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+  background: radial-gradient(34rem 12rem at 20% 85%, rgba(255, 255, 255, 0.06), transparent 70%), radial-gradient(26rem 14rem at 85% 15%, rgba(255, 255, 255, 0.05), transparent 70%), radial-gradient(20rem 20rem at 60% 50%, rgba(255, 255, 255, 0.03), transparent 70%), #203b2f; }
+/* Bandeau : le tableau dans son cadre en bois, avec sa rigole et un bout de craie */
+:root[data-theme="tableau"] .hero { border-radius: 8px; border: 10px solid #8a5a2b; padding-bottom: 34px;
+  background: radial-gradient(28rem 10rem at 22% 80%, rgba(255, 255, 255, 0.08), transparent 70%), radial-gradient(18rem 10rem at 80% 20%, rgba(255, 255, 255, 0.06), transparent 70%), linear-gradient(135deg, #17302a, #1f4234);
+  box-shadow: inset 0 0 0 2px #5c3a16, inset 0 0 36px rgba(0, 0, 0, 0.45), 0 3px 0 #5c3a16, var(--ombre-haut); }
+:root[data-theme="tableau"] .hero::after { content: ""; position: absolute; z-index: 2; left: -10px; right: -10px; bottom: -10px; height: 12px; pointer-events: none;
+  background: linear-gradient(90deg, transparent 0 9%, #f4f1e4 9% 15%, transparent 15%) 0 1px / 100% 4px no-repeat, linear-gradient(180deg, #b07a3e, #8a5a2b 70%, #5c3a16); border-radius: 0 0 6px 6px; }
+:root[data-theme="tableau"] .hero-decor { opacity: 0.55; -webkit-mask-image: none; mask-image: none; right: -40px; bottom: -40px; }
+:root[data-theme="tableau"] .hero-decor .d-courbe { stroke: #f3d36b; }
+:root[data-theme="tableau"] .hero-decor .d-point, :root[data-theme="tableau"] .hero-decor .t2 { fill: #f7a8b8; }
+:root[data-theme="tableau"] .hero .eyebrow { color: #f3d36b; }
+:root[data-theme="tableau"] .hero h1, :root[data-theme="tableau"] .hero .lead { text-shadow: 0 0 6px rgba(255, 255, 255, 0.18); }
+:root[data-theme="tableau"] .chiffres li { background: rgba(255, 255, 255, 0.07); border-color: rgba(241, 239, 226, 0.4); }
+/* Cartes : contours à la craie, coins moins arrondis */
+:root[data-theme="tableau"] .chap, :root[data-theme="tableau"] .serie, :root[data-theme="tableau"] .carte-niv, :root[data-theme="tableau"] .carte-cycle, :root[data-theme="tableau"] .promo, :root[data-theme="tableau"] .methode, :root[data-theme="tableau"] .pdf, :root[data-theme="tableau"] .fig, :root[data-theme="tableau"] .profil { border-color: rgba(241, 239, 226, 0.35); }
+:root[data-theme="tableau"] .marque i { background: #f3d36b; color: #203b2f; box-shadow: 0 2px 0 #b89a3c; }
+:root[data-theme="tableau"] .theme-btn { background: rgba(241, 239, 226, 0.14); }
