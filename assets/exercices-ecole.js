@@ -78,7 +78,7 @@
   // « 1 mangue », « 3 mangues » (nombre en KaTeX)
   const plur = (k, mot, pl) => `$${nb(k)}$ ${k > 1 ? pl || mot + "s" : mot}`;
   // Choses à compter, au singulier et au pluriel, avec le genre (f) pour « une », « chacune »
-  const CHOSES = [["mangue", "mangues", 1], ["banane", "bananes", 1], ["coquillage", "coquillages", 0], ["bille", "billes", 1], ["crayon", "crayons", 0], ["livre", "livres", 0], ["image", "images", 1], ["noix de coco", "noix de coco", 1], ["poisson", "poissons", 0], ["tortue", "tortues", 1], ["perle", "perles", 1], ["ballon", "ballons", 0], ["fleur d'ylang", "fleurs d'ylang", 1], ["pierre", "pierres", 1], ["cahier", "cahiers", 0], ["papaye", "papayes", 1]];
+  const CHOSES = [["mangue", "mangues", 1], ["banane", "bananes", 1], ["coquillage", "coquillages", 0], ["bille", "billes", 1], ["crayon", "crayons", 0], ["livre", "livres", 0], ["image", "images", 1], ["noix de coco", "noix de coco", 1], ["poisson", "poissons", 0], ["perle", "perles", 1], ["ballon", "ballons", 0], ["fleur d'ylang", "fleurs d'ylang", 1], ["pierre", "pierres", 1], ["cahier", "cahiers", 0], ["papaye", "papayes", 1]];
   const chose = () => { const [s, p, f] = pick(CHOSES); return { s, p, f, un: f ? "une" : "un" }; };
   const Maj = (s) => s.charAt(0).toUpperCase() + s.slice(1);
 
@@ -402,7 +402,7 @@
         q.enonce = elide(q.enonce); q.solution = elide(q.solution);
         if (q.aides) q.aides = q.aides.map(elide);
         if (q.choix) q.choix = q.choix.map(elide);
-        if (q.erreurs) q.erreurs.forEach((e) => { e.message = elide(e.message); });
+        if (q.erreurs) { q.erreurs.forEach((e) => { e.message = elide(e.message); }); q.erreurs = q.erreurs.filter((e, k, L) => q.mode !== "nombre" || (Math.abs(e.valeur - q.attendu) > 1e-9 && L.findIndex((x) => x.valeur === e.valeur) === k)); }
         return q;
       };
       GEN[k].elide = true;

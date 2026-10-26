@@ -25,8 +25,8 @@ window.CATALOGUE = {
       intro: "Programme du CP en vigueur depuis la rentrée 2025 (cycle 2) : les nombres jusqu'à 100, le calcul, les problèmes, les mesures et la géométrie.",
       chapitres: [
         { id: "cp-nombres", numero: 1, titre: "Les nombres jusqu'à 100", statut: "disponible", source: "data/cp/nombres.js", series: 5, drive: "" },
-        { id: "cp-comparer", numero: 2, titre: "Comparer et ranger", statut: "bientot", source: "data/cp/comparer.js", series: 0, drive: "" },
-        { id: "cp-rangs-suites", numero: 3, titre: "Les rangs et les suites", statut: "bientot", source: "data/cp/rangs-suites.js", series: 0, drive: "" },
+        { id: "cp-comparer", numero: 2, titre: "Comparer et ranger", statut: "disponible", source: "data/cp/comparer.js", series: 4, drive: "" },
+        { id: "cp-rangs-suites", numero: 3, titre: "Les rangs et les suites", statut: "disponible", source: "data/cp/rangs-suites.js", series: 4, drive: "" },
         { id: "cp-additionner-soustraire", numero: 4, titre: "Additionner et soustraire", statut: "bientot", source: "data/cp/additionner-soustraire.js", series: 0, drive: "" },
         { id: "cp-calcul-mental", numero: 5, titre: "Calcul mental", statut: "bientot", source: "data/cp/calcul-mental.js", series: 0, drive: "" },
         { id: "cp-problemes", numero: 6, titre: "Résoudre des problèmes", statut: "bientot", source: "data/cp/problemes.js", series: 0, drive: "" },

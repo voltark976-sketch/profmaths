@@ -45,7 +45,7 @@
     }
     if (t === 2) { // combien de paquets de dix peut-on faire ?
       const n = rand(13, 99), d = Math.floor(n / 10), u = n % 10, c = E.chose(), P = prenom(), reste = rand(0, 1);
-      return { enonce: `${P.nom} a ${n}$ ${c.p}${rand(0, 1) ? "" : " à " + pick(E.LIEUX)}. ${P.Il} fait des paquets de $10$ ${c.p}. ${reste ? `Combien de ${c.p} restent tout seuls ?` : "Combien de paquets complets peut-" + P.il + " faire ?"}`, mode: "nombre", prefixe: reste ? "Il en reste" : P.Il + " fait", suffixe: reste ? (u > 1 ? "seuls" : "") : "paquets", attendu: reste ? u : d,
+      return { enonce: `${P.nom} a $${n}$ ${c.p}${rand(0, 1) ? "" : " à " + pick(E.LIEUX)}. ${P.Il} fait des paquets de $10$ ${c.p}. ${reste ? `Combien de ${c.p} restent tout seuls ?` : "Combien de paquets complets peut-" + P.il + " faire ?"}`, mode: "nombre", prefixe: reste ? "Il en reste" : P.Il + " fait", suffixe: reste ? (u > 1 ? "seuls" : "") : "paquets", attendu: reste ? u : d,
         erreurs: reste ? [{ valeur: d, message: `$${d}$, c'est le nombre de paquets. On demande ce qui reste.` }] : [{ valeur: u, message: `$${u}$, c'est ce qui reste. On demande le nombre de paquets de dix.` }],
         aides: [`Dans $${n}$, le chiffre des dizaines dit combien de paquets de dix on peut faire.`, `$${n}$, c'est $${d}$ dizaine${d > 1 ? "s" : ""} et $${u}$ unité${u > 1 ? "s" : ""}.`, reste ? "Les unités, ce sont les objets qui restent seuls." : "Les dizaines, ce sont les paquets de dix."],
         solution: `$${n} = ${10 * d} + ${u}$ : ${P.il} fait $${d}$ paquet${d > 1 ? "s" : ""} de $10$ et il reste $${u}$ ${u > 1 ? c.p : c.s} seul${u > 1 ? "s" : ""}.` };
@@ -194,6 +194,166 @@
         n >= 70 && n < 80 ? `« soixante-${enLettres(n - 60)} », c'est $60 + ${n - 60}$.` : n > 90 && n < 100 ? `« quatre-vingt-${enLettres(n - 80)} », c'est $80 + ${n - 80}$.` : `Cherche les dizaines, puis les unités.`,
         `Le nombre a $${d}$ dizaine${d > 1 ? "s" : ""} et $${u}$ unité${u > 1 ? "s" : ""}.`],
       solution: `« ${enLettres(n)} » s'écrit $${n}$ : $${d}$ dizaine${d > 1 ? "s" : ""} et $${u}$ unité${u > 1 ? "s" : ""}.` };
+  };
+
+  /* =====================================================================
+     Chapitre 2 : comparer et ranger (cp2-)
+     ===================================================================== */
+  const SIGNES = ["$<$", "$>$", "$=$"];
+  FIGURES["cp2-cours-signes"] = () => droite({ a: 40, pas: 1, n: 12, lab: [0, 2, 4, 6, 8, 10, 12], points: [{ i: 3, label: "43" }, { i: 8, label: "48" }], aria: "43 est avant 48 sur la droite graduée" });
+  FIGURES["cp2-cours-collections"] = () => `${paquets(0, 3, 6, { aria: "36 cubes" })}`;
+  FIGURES["cp2-cours-droite"] = () => droite({ a: 20, pas: 1, n: 10, lab: [0, 5, 10], points: [{ i: 7, label: "A" }], aria: "Droite graduée de 20 à 30, point A" });
+  FIGURES["cp2-qcm-droite"] = () => droite({ a: 50, pas: 1, n: 10, lab: [0, 5, 10], points: [{ i: 3, label: "B" }], aria: "Droite graduée de 50 à 60, point B" });
+  FIGURES["cp2-methode-droite"] = () => droite({ a: 60, pas: 1, n: 10, lab: [0, 10], points: [{ i: 4, label: "C" }], aria: "Droite graduée de 60 à 70, point C" });
+
+  // Placer <, > ou = (trois choix)
+  GEN["cp2-signes"] = function () {
+    const t = rand(0, 3);
+    let a, b;
+    if (t === 0) { a = rand(10, 99); b = rand(10, 99); }
+    else if (t === 1) { const d = rand(1, 9), u = rand(1, 9); a = 10 * d + u; b = u !== d ? 10 * u + d : a + rand(1, 9); } // mêmes chiffres
+    else if (t === 2) { a = rand(11, 98); b = a + pick([-1, 1, 0, 10, -10].filter((k) => a + k <= 100)); }
+    else { // dizaines et unités contre un nombre
+      const d = rand(1, 9), u = rand(0, 9), n = 10 * d + u, m = n + pick([-2, -1, 0, 1, 2, 10, -10]);
+      const c = melange(SIGNES[n < m ? 0 : n > m ? 1 : 2], SIGNES);
+      return { enonce: `Choisis le bon signe : $${d}$ dizaine${d > 1 ? "s" : ""} et $${u}$ unité${u > 1 ? "s" : ""} $\\;\\ldots\\;$ $${m}$`, mode: "choix", choix: c.choix, attendu: c.attendu,
+        aides: [`$${d}$ dizaine${d > 1 ? "s" : ""} et $${u}$ unité${u > 1 ? "s" : ""}, c'est $${n}$.`, `Compare $${n}$ et $${m}$ : regarde d'abord les dizaines.`, "Le signe $<$ veut dire « plus petit que », le signe $>$ « plus grand que »."],
+        solution: `$${d}$ dizaine${d > 1 ? "s" : ""} et $${u}$ unité${u > 1 ? "s" : ""}, c'est $${n}$, et $${n} ${n < m ? "<" : n > m ? ">" : "="} ${m}$.` };
+    }
+    const sg = a < b ? "<" : a > b ? ">" : "=", c = melange(`$${sg}$`, SIGNES);
+    const da = Math.floor(a / 10), db = Math.floor(b / 10);
+    return { enonce: `Choisis le bon signe : $${a} \\;\\ldots\\; ${b}$`, mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: ["Le signe $<$ veut dire « est plus petit que », le signe $>$ « est plus grand que ».", "La pointe du signe montre toujours le plus petit nombre.", da !== db ? `Compare d'abord les dizaines : $${da}$ et $${db}$.` : `Même nombre de dizaines : compare les unités, $${a % 10}$ et $${b % 10}$.`],
+      solution: a === b ? `Les deux nombres sont égaux : $${a} = ${b}$.` : da !== db ? `$${a}$ a $${da}$ dizaine${da > 1 ? "s" : ""}, $${b}$ en a $${db}$ : $${a} ${sg} ${b}$.` : `Même nombre de dizaines ($${da}$) ; on compare les unités $${a % 10}$ et $${b % 10}$ : $${a} ${sg} ${b}$.` };
+  };
+
+  // Qui a le plus, le moins ? Ranger (toujours au moins trois nombres)
+  GEN["cp2-ranger"] = function () {
+    const t = rand(0, 2), k = t === 2 ? 4 : 3, nums = new Set();
+    while (nums.size < k) nums.add(rand(10, 99));
+    const L = [...nums], tri = L.slice().sort((x, y) => x - y);
+    if (t === 2) { // ordre croissant ou décroissant parmi des propositions
+      const dec = rand(0, 1), bon = (dec ? tri.slice().reverse() : tri).map((v) => `$${v}$`).join(" ; ");
+      const fausses = [L.map((v) => `$${v}$`).join(" ; "), (dec ? tri : tri.slice().reverse()).map((v) => `$${v}$`).join(" ; "), [tri[1], tri[0], tri[2], tri[3]].map((v) => `$${v}$`).join(" ; "), [tri[0], tri[2], tri[1], tri[3]].map((v) => `$${v}$`).join(" ; ")];
+      const c = melange(bon, fausses);
+      return { enonce: `Quels nombres sont rangés dans l'ordre **${dec ? "décroissant" : "croissant"}** (du plus ${dec ? "grand au plus petit" : "petit au plus grand"}) ?`, mode: "choix", choix: c.choix, attendu: c.attendu,
+        aides: [`${dec ? "Décroissant" : "Croissant"} : on commence par le plus ${dec ? "grand" : "petit"}.`, `Le plus ${dec ? "grand" : "petit"} est $${dec ? tri[3] : tri[0]}$.`, "Compare les dizaines, puis les unités si besoin."],
+        solution: `Dans l'ordre ${dec ? "décroissant" : "croissant"} : ${bon}.` };
+    }
+    const [A, B, C] = E.tirage(E.PRENOMS, 3).map((p) => p[0]), ch = E.chose(), plus = t === 0;
+    const qui = [A, B, C][L.indexOf(plus ? tri[2] : tri[0])], c = melange(qui, [A, B, C]);
+    return { enonce: `${A} a $${L[0]}$ ${ch.p}, ${B} en a $${L[1]}$ et ${C} en a $${L[2]}$. Qui en a le **${plus ? "plus" : "moins"}** ?`, mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: ["Compare les nombres deux par deux.", "Regarde d'abord le chiffre des dizaines.", `Le plus ${plus ? "grand" : "petit"} des trois nombres est $${plus ? tri[2] : tri[0]}$.`],
+      solution: `$${tri[0]} < ${tri[1]} < ${tri[2]}$ : c'est ${qui} qui en a le ${plus ? "plus" : "moins"} ($${plus ? tri[2] : tri[0]}$ ${ch.p}).` };
+  };
+
+  // Encadrer, intercaler
+  GEN["cp2-encadrer"] = function () {
+    const t = rand(0, 2);
+    if (t === 0) { // le nombre entre deux nombres
+      const a = rand(10, 97);
+      return { enonce: `Quel nombre se trouve entre $${a}$ et $${a + 2}$ ?`, mode: "nombre", prefixe: "C'est", attendu: a + 1,
+        erreurs: [{ valeur: a + 2, message: `$${a + 2}$ est une des bornes : on cherche le nombre **entre** les deux.` }, { valeur: a, message: `$${a}$ est une des bornes : on cherche le nombre **entre** les deux.` }],
+        aides: [`Récite les nombres à partir de $${a}$.`, `Après $${a}$ vient…`, `$${a} + 1$.`],
+        solution: `$${a} < ${a + 1} < ${a + 2}$ : le nombre entre les deux est $${a + 1}$.` };
+    }
+    if (t === 1) { // encadrer entre deux dizaines
+      let n; do n = rand(11, 99); while (n % 10 === 0);
+      const bas = rand(0, 1), d = Math.floor(n / 10);
+      return { enonce: `Complète avec une dizaine : ${bas ? `$\\ldots < ${n} < ${10 * d + 10}$` : `$${10 * d} < ${n} < \\ldots$`}`, mode: "nombre", prefixe: "La dizaine qui manque :", attendu: bas ? 10 * d : 10 * d + 10,
+        erreurs: [{ valeur: bas ? n - 1 : n + 1, message: "On demande une **dizaine** : un nombre qui se termine par $0$." }, { valeur: bas ? d : d + 1, message: `On demande la dizaine entière, par exemple $${10 * d}$, pas le chiffre $${d}$.` }],
+        aides: [`$${n}$ a $${d}$ dizaine${d > 1 ? "s" : ""}.`, `La dizaine juste avant est $${10 * d}$, la dizaine juste après est $${10 * d + 10}$.`, bas ? "Cherche la dizaine juste avant." : "Cherche la dizaine juste après."],
+        solution: `$${10 * d} < ${n} < ${10 * d + 10}$.` };
+    }
+    // nombre juste plus grand / plus petit parmi une liste, ou plus grand nombre avec deux chiffres
+    const a = rand(1, 9); let b; do b = rand(1, 9); while (b === a);
+    const grand = rand(0, 1), rep = grand ? 10 * Math.max(a, b) + Math.min(a, b) : 10 * Math.min(a, b) + Math.max(a, b);
+    return { enonce: `Avec les chiffres $${a}$ et $${b}$ (une fois chacun), écris le plus ${grand ? "**grand**" : "**petit**"} nombre possible.`, mode: "nombre", prefixe: "C'est", attendu: rep,
+      erreurs: [{ valeur: grand ? 10 * Math.min(a, b) + Math.max(a, b) : 10 * Math.max(a, b) + Math.min(a, b), message: `Ça, c'est le plus ${grand ? "petit" : "grand"}.` }, { valeur: a + b, message: "On n'additionne pas : on écrit un nombre à deux chiffres." }],
+      aides: ["Le chiffre des dizaines compte le plus.", `Mets le plus ${grand ? "grand" : "petit"} chiffre aux dizaines.`, `Les deux nombres possibles sont $${10 * a + b}$ et $${10 * b + a}$.`],
+      solution: `On peut écrire $${10 * a + b}$ ou $${10 * b + a}$. Le plus ${grand ? "grand" : "petit"} est $${rep}$.` };
+  };
+
+  // Lire un nombre sur une droite graduée de un en un
+  GEN["cp2-droite"] = function () {
+    const a = 10 * rand(0, 9), n = 10, i = rand(1, 9), lab = pick([[0, 10], [0, 5, 10], [0, 5, 10]]);
+    if (lab.length === 2 && i === 5) return GEN["cp2-droite"]();
+    const L = pick(["A", "B", "C", "M", "P"]);
+    return { enonce: `Quel nombre est au point ${L} ?`, figure: droite({ a, pas: 1, n, lab, points: [{ i, label: L }], aria: `Droite graduée de ${a} à ${a + 10}, point ${L}` }), mode: "nombre", prefixe: `Point ${L} :`, attendu: a + i,
+      erreurs: [{ valeur: a + i + 1, message: "Compte les bonds entre les traits, pas les traits." }, { valeur: a + i - 1, message: "Compte les bonds depuis le nombre écrit, sans oublier le dernier." }, { valeur: i, message: `La droite ne commence pas à $0$ : elle commence à $${a}$.` }].filter((e) => e.valeur !== a + i),
+      aides: ["Entre deux traits qui se suivent, on avance de $1$.", lab.length === 3 ? `Le trait du milieu est $${a + 5}$.` : `Le premier nombre écrit est $${a}$.`, `Compte les bonds de $1$ jusqu'au point ${L}.`],
+      solution: `Chaque bond vaut $1$. Le point ${L} est à $${i}$ bonds de $${a}$ : $${a} + ${i} = ${a + i}$.` };
+  };
+
+  /* =====================================================================
+     Chapitre 3 : les rangs et les suites (cp3-)
+     ===================================================================== */
+  const ORD = ["", "premier", "deuxième", "troisième", "quatrième", "cinquième", "sixième", "septième", "huitième", "neuvième", "dixième", "onzième", "douzième", "treizième", "quatorzième", "quinzième", "seizième", "dix-septième", "dix-huitième", "dix-neuvième", "vingtième"];
+  const ordF = (k, f) => (k === 1 ? (f ? "première" : "premier") : ORD[k]);
+  const FORMES = ["▲", "■", "●", "★", "◆", "♥"];
+  FIGURES["cp3-cours-file"] = () => motifs(["1er", "2e", "3e", "4e", "5e", "6e", "7e"].map((x) => x));
+  FIGURES["cp3-cours-motifs"] = () => motifs(["▲", "■", "●", "▲", "■", "●", "▲", "■", "?"]);
+  FIGURES["cp3-qcm-motifs"] = () => motifs(["★", "★", "●", "★", "★", "●", "★", "?"]);
+  const motifs = E.motifs;
+
+  // Position dans une file
+  GEN["cp3-file"] = function () {
+    const t = rand(0, 3), P = prenom(), tot = rand(6, 20), r = rand(2, tot - 1);
+    const lieu = pick(["à la cantine", "devant la barge", "au marché de Mamoudzou", "pour prendre le bus", "à la bibliothèque", "devant le stade de Cavani"]);
+    if (t === 0) return { enonce: `${P.nom} fait la queue ${lieu}. ${P.Il} est ${P.f ? "la" : "le"} ${ordF(r, P.f)} de la file. Combien de personnes y a-t-il **devant** ${P.f ? "elle" : "lui"} ?`, mode: "nombre", prefixe: "Il y a", suffixe: "personnes", attendu: r - 1,
+      erreurs: [{ valeur: r, message: `${P.nom} est ${ordF(r, P.f)}, mais on ne ${P.f ? "la" : "le"} compte pas : on compte seulement ceux qui sont devant.` }],
+      aides: [`Le ${ordF(r)} a des personnes devant lui : le premier, le deuxième…`, `Devant ${P.nom}, il y a tous les rangs avant ${P.f ? "la" : "le"} ${ordF(r, P.f)}.`, `$${r} - 1$.`],
+      solution: `Devant ${P.nom}, il y a les personnes du premier au ${ORD[r - 1] || "premier"} rang : $${r - 1}$ personne${r - 1 > 1 ? "s" : ""}.` };
+    if (t === 1) return { enonce: `Il y a $${tot}$ enfants dans la file ${lieu}. ${P.nom} est ${P.f ? "la" : "le"} ${ordF(r, P.f)}. Combien d'enfants y a-t-il **derrière** ${P.f ? "elle" : "lui"} ?`, mode: "nombre", prefixe: "Il y a", suffixe: "enfants", attendu: tot - r,
+      erreurs: [{ valeur: r - 1, message: "Ça, ce sont les enfants devant. On demande ceux qui sont derrière." }, { valeur: tot - r + 1, message: `N'oublie pas d'enlever ${P.nom} aussi.` }],
+      aides: [`Il y a $${r - 1}$ enfant${r - 1 > 1 ? "s" : ""} devant ${P.nom}.`, `Avec ${P.nom}, cela fait $${r}$ enfants.`, `Les autres sont derrière : $${tot} - ${r}$.`],
+      solution: `${P.nom} et les enfants devant ${P.f ? "elle" : "lui"} : $${r}$ enfants. Derrière : $${tot} - ${r} = ${tot - r}$ enfant${tot - r > 1 ? "s" : ""}.` };
+    if (t === 2) return { enonce: `Dans la file ${lieu}, il y a $${r - 1}$ personne${r - 1 > 1 ? "s" : ""} devant ${P.nom}. Quel est son rang ? (écris le nombre : $3$ pour troisième)`, mode: "nombre", prefixe: `${P.nom} est`, suffixe: "e", attendu: r,
+      erreurs: [{ valeur: r - 1, message: `Il faut compter ${P.nom} aussi : ${P.il} vient juste après.` }],
+      aides: [`Les $${r - 1}$ personnes devant ont les rangs $1$ à $${r - 1}$.`, `${P.nom} vient juste après.`, `$${r - 1} + 1$.`],
+      solution: `$${r - 1}$ personne${r - 1 > 1 ? "s" : ""} devant, puis ${P.nom} : ${P.il} est ${ordF(r, P.f)} ($${r}$e).` };
+    // mot ordinal
+    const k = rand(2, 20), c = melange(ordF(k), [k >= 4 && k <= 6 ? ORD[k + 10] : ORD[k > 10 ? k - 10 : k + 1], ORD[k === 20 ? 19 : k + 1], ORD[k - 1] || "premier", { 2: "deuxe", 3: "troisème", 4: "quatrème", 5: "cinqième", 9: "neufième" }[k] || ORD[Math.max(2, k - 2)]]);
+    return { enonce: `Comment écrit-on en lettres le rang $${k}$e ?`, mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: ["On ajoute « ième » au nom du nombre.", k === 5 ? "Pour cinq, on ajoute un « u » : cinquième." : k === 9 ? "Pour neuf, le « f » devient « v » : neuvième." : `Le nombre $${k}$ s'écrit « ${enLettres(k)} ».`, "Lis chaque proposition."],
+      solution: `$${k}$e s'écrit « ${ordF(k)} ».` };
+  };
+
+  // Rang d'un nombre dans une liste
+  GEN["cp3-liste"] = function () {
+    const pas = pick([1, 2, 3, 4, 5, 10]), a = rand(0, 20), L = Array.from({ length: 6 }, (_, k) => a + k * pas), k = rand(1, 6), sens = rand(0, 1);
+    const aff = `$${L.join(" \\;;\\; ")}$`;
+    return sens
+      ? { enonce: `Voici une liste : ${aff}. Quel nombre est en **${ordF(k)}** position ?`.replace("premier position", "première position"), mode: "nombre", prefixe: "C'est", attendu: L[k - 1],
+        erreurs: [...(k < 6 ? [{ valeur: L[k], message: "Tu as compté un nombre de trop : le premier nombre est en première position." }] : []), ...(k > 1 ? [{ valeur: L[k - 2], message: "Il manque un nombre : recompte depuis le début." }] : [])],
+        aides: ["Le premier nombre de la liste est en première position.", "Pointe chaque nombre en disant : premier, deuxième, troisième…", `Arrête-toi au ${ordF(k)}.`],
+        solution: `On compte : ${L.slice(0, k).map((v, j) => `$${v}$ (${ordF(j + 1, 1)})`).join(", ")}. Le nombre en ${ordF(k, 1)} position est $${L[k - 1]}$.` }
+      : { enonce: `Voici une liste : ${aff}. À quelle position est le nombre $${L[k - 1]}$ ? (écris $1$ pour la première, $2$ pour la deuxième…)`, mode: "nombre", prefixe: "Position :", attendu: k,
+        erreurs: [{ valeur: L[k - 1], message: "On ne demande pas le nombre, mais sa place dans la liste." }, { valeur: k - 1, message: "Le premier nombre de la liste est en position $1$." }].filter((e) => e.valeur !== k),
+        aides: ["Compte les nombres depuis le début de la liste.", "Le premier nombre est en position $1$.", `Compte jusqu'à $${L[k - 1]}$ compris.`],
+        solution: `$${L[k - 1]}$ est le ${ordF(k)} nombre de la liste : position $${k}$.` };
+  };
+
+  // Suites répétitives de formes : le n-ième élément
+  GEN["cp3-motifs"] = function () {
+    const lg = rand(2, 4), base = E.tirage(FORMES, lg), motif = rand(0, 2) && lg === 2 ? [base[0], base[0], base[1]] : base, p = motif.length;
+    const vis = rand(6, 9), cible = rand(0, 1) ? vis + 1 : rand(vis + 2, 20), rep = motif[(cible - 1) % p];
+    const autres = FORMES.filter((f) => !motif.includes(f));
+    const c = melange(rep, [...motif, ...autres]);
+    const L = Array.from({ length: vis }, (_, k) => motif[k % p]);
+    return { enonce: `Les formes se répètent toujours dans le même ordre. Quelle est la **${ordF(cible, 1)}** forme ?`, figure: motifs(cible === vis + 1 ? [...L, "?"] : L), mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: [`Trouve le motif qui se répète : ${motif.join(" ")}.`, `Le motif a $${p}$ formes. Il recommence à la forme ${p + 1}, ${2 * p + 1}, ${3 * p + 1}…`, `Continue la suite jusqu'à la ${ordF(cible, 1)} forme.`],
+      solution: `Le motif ${motif.join(" ")} recommence toutes les $${p}$ formes. En continuant : la ${ordF(cible, 1)} forme est ${rep}.` };
+  };
+
+  // Suites de nombres qui avancent ou reculent d'un même pas : le n-ième terme
+  GEN["cp3-suite-nombres"] = function () {
+    const pas = pick([1, 2, 2, 3, 5, 10]), a = rand(0, 15), k = rand(5, 9), rep = a + (k - 1) * pas;
+    if (rep > 100) return GEN["cp3-suite-nombres"]();
+    return { enonce: `La suite commence par $${a} \\;;\\; ${a + pas} \\;;\\; ${a + 2 * pas} \\;;\\; ${a + 3 * pas}$ et continue de la même façon. Quel est le **${ordF(k)}** nombre ?`, mode: "nombre", prefixe: "C'est", attendu: rep,
+      erreurs: [{ valeur: rep + pas, message: "Tu es allé un cran trop loin : le premier nombre compte comme le premier." }, { valeur: rep - pas, message: "Il manque un cran : continue jusqu'au bon rang." }],
+      aides: [`On ajoute $${pas}$ à chaque fois.`, `Écris la suite : ${[0, 1, 2, 3, 4].map((j) => `$${a + j * pas}$`).join(", ")}…`, `Compte les rangs : premier, deuxième… jusqu'au ${ordF(k)}.`],
+      solution: `$${Array.from({ length: k }, (_, j) => a + j * pas).join(" \\;;\\; ")}$ : le ${ordF(k)} nombre est $${rep}$.` };
   };
 
   elisions(/^cp\d+-/);
