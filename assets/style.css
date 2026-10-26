@@ -801,3 +801,76 @@ table.suivi { border-collapse: collapse; background: var(--surface); font-varian
 .page-demandes .table-defile { overflow-x: auto; }
 .table-autres { border-collapse: collapse; width: 100%; font-size: 0.9rem; }
 .table-autres th, .table-autres td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--trait); white-space: nowrap; }
+
+/* Chargement à la demande : attente discrète, figure réservée le temps que le moteur arrive */
+.patiente { color: var(--doux); padding: 18px 0; display: flex; align-items: center; gap: 10px; }
+.patiente::before { content: ""; width: 18px; height: 18px; flex: none; border-radius: 50%; border: 3px solid var(--trait); border-top-color: var(--ac); animation: tourne 0.8s linear infinite; }
+@keyframes tourne { to { transform: rotate(360deg); } }
+.fig-attente { min-height: 120px; background: repeating-linear-gradient(135deg, var(--surface) 0 12px, var(--fond) 12px 24px); }
+@media (prefers-reduced-motion: reduce) { .patiente::before { animation: none; border-top-color: var(--trait); } }
+
+/* ==========================================================================
+   Finitions (26 octobre 2026) : en-tête de chapitre plus lisible, cartes de
+   chapitre qui montrent la progression, accès clavier, page sans JavaScript.
+   ========================================================================== */
+/* Lien d'évitement : la première touche Tab propose d'aller droit au contenu */
+.evite { position: absolute; left: 12px; top: -60px; z-index: 20; padding: 10px 14px; border-radius: 10px; background: var(--encre); color: var(--fond); font-weight: 700; text-decoration: none; transition: top 0.15s; }
+.evite:focus { top: 12px; }
+.sans-js { max-width: 44rem; margin: 24px auto; padding: 14px 16px; border-radius: var(--r); background: var(--ylang-pale); }
+
+/* En-tête de chapitre : le grand numéro reste décoratif, il ne passe plus derrière le texte */
+.chap-head { box-shadow: var(--ombre); padding-right: 22px; }
+.chap-filigrane { right: 10px; bottom: auto; top: 6px; font-size: 6.2rem; opacity: 0.09; line-height: 1; }
+.chap-head .eyebrow { padding-right: 3.2em; }
+.chap-head h1 { max-width: 15ch; }
+.chap-head .lead { margin-top: 6px; }
+@media (min-width: 760px) {
+  .chap-filigrane { font-size: 11rem; right: 28px; top: -4px; }
+  .chap-head h1 { max-width: 22ch; }
+}
+
+/* Carte de chapitre : étoiles gagnées à la place de la flèche dès qu'on a commencé, coche quand c'est fini */
+.chap-prog { display: inline-flex; align-items: center; gap: 3px; margin-left: 6px; padding: 2px 8px; border-radius: 999px; vertical-align: 1px; background: var(--ylang-pale); color: var(--encre); font: 700 0.82rem/1 var(--f-texte); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.chap-prog::before { content: "★"; color: var(--ylang); }
+.chap-prog.fini { background: var(--bon-pale); }
+.chap-prog.fini::before { content: "✓"; color: var(--bon); }
+.chap .barre { margin-top: 6px; }
+.chap-off .meta a { color: var(--ac); }
+
+/* Onglets : un rappel discret du défilement possible, et un contraste suffisant pour l'onglet inactif */
+.onglets a { color: color-mix(in srgb, var(--doux) 85%, var(--encre)); }
+.onglets a:focus-visible { outline-offset: -3px; }
+
+/* Séries : la ligne « 5 questions » et les étoiles sont alignées ; une série réussie se repère d'un coup d'œil */
+.serie:has(.etoiles) .etoiles { font-size: 1.15rem; }
+.serie.serie-faite { border-left-color: var(--ylang); }
+.serie.serie-faite .chap-t strong::after { content: " ✓"; color: var(--bon); font-weight: 800; }
+
+/* Exercice : la question se détache mieux du reste ; retour « juste / faux » plus net */
+.exo { container-type: inline-size; }
+.exo .enonce { padding: 14px 16px; border-radius: var(--r); background: var(--surface); border: 1px solid color-mix(in srgb, var(--trait) 70%, transparent); box-shadow: var(--ombre); }
+.exo .enonce > :last-child, .exo .enonce p:last-child { margin-bottom: 0; }
+.exo-top .progression { font-weight: 700; color: var(--encre); }
+.retour-rep.bon strong { color: var(--bon); }
+.retour-rep.faux strong { color: var(--faux); }
+.retour-rep.info strong { color: var(--ylang); }
+
+/* QCM : le numéro de la question ne se retrouve plus seul sur sa ligne, et la question est en gras lisible */
+.q legend { line-height: 1.45; }
+.q legend .n { margin-top: 0; }
+
+/* Bilan : étoiles plus grandes, record mis en avant */
+.bilan .etoiles { display: block; margin: 4px 0 6px; }
+.bilan .record { font-size: 1.05rem; }
+
+/* Pied de page : plus aéré, avec le rappel du créateur du site */
+.pied { gap: 10px 22px; color: var(--doux); }
+.pied a { color: var(--ac); text-underline-offset: 3px; }
+.pied .pied-note { flex-basis: 100%; font-size: 0.85rem; margin: 0; }
+
+/* Thème sombre : les pastilles de progression des cartes restent visibles */
+:root[data-theme="dark"] .chap-prog, :root[data-theme="dark"] .chap-prog.fini { color: var(--encre); }
+
+/* Clavier et lecteurs d'écran : le choix sélectionné dans un QCM est aussi visible au focus */
+.opt:focus-within { border-color: var(--ac); }
+.opt input:focus-visible { outline: 3px solid var(--ylang); outline-offset: 2px; }

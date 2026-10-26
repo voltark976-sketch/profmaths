@@ -4,9 +4,19 @@
 */
 (function () {
   "use strict";
-  const { GEN, FIGURES, shuffle } = window.PM_EXO;
   const $app = document.getElementById("app");
   const $xp = document.getElementById("xp");
+  // Générateurs et figures : remplis par assets/exercices*.js, chargés à la demande (voir « Chargement à la demande »)
+  let GEN = {}, FIGURES = {};
+  const shuffle = (a) => { const t = a.slice(); for (let i = t.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [t[i], t[j]] = [t[j], t[i]]; } return t; };
+  const MAN = window.MANIFESTE || {}, MOTEURS = window.MOTEURS || {};
+  // Un chapitre est « en ligne » s'il figure au manifeste (data/manifeste.js, fabriqué par outils/manifeste.js)
+  const dispo = (id) => !!(MAN[id] || (window.CHAPITRES && CHAPITRES[id]));
+  const charge = (id) => !!(window.CHAPITRES && CHAPITRES[id]);
+  const nbSeries = (id) => (charge(id) ? CHAPITRES[id].exercices.length : MAN[id] ? MAN[id].series : 0);
+  const nbQcmBanque = (id) => (charge(id) ? CHAPITRES[id].qcm.length : MAN[id] ? MAN[id].qcm : 0);
+  // Série, QCM ou défi en cours : la page n'est pas redessinée quand le compte se connecte (l'élève garderait sa question)
+  let activiteEnCours = false;
 
   /* ---------- Progression (gardée dans le navigateur de l'élève) ---------- */
   const CLE = "profmaths:v1";
@@ -87,7 +97,15 @@
     $compteBtn.classList.toggle("connecte", !!e);
   }
   const progVide = () => ({ xp: 0, exo: {}, qcm: {}, jeux: {}, quand: {} });
-  Compte.init((eleve, distant, indisponible) => {
+  // Le service de comptes (Firebase, environ 230 ko) démarre juste après le premier affichage de la page,
+  // pour que le contenu demandé arrive d'abord ; tout de suite pour les pages du compte.
+  let compteLance = false;
+  function lancerCompte() {
+    if (compteLance) return;
+    compteLance = true;
+    Compte.init(quandCompte);
+  }
+  function quandCompte(eleve, distant, indisponible) {
     if (eleve) {
       // La progression appartient au compte : celle d'un autre compte ou faite sans compte sur cet appareil
       // est écartée ; seule la copie locale du même compte (essais faits hors ligne) est fusionnée.
@@ -106,9 +124,11 @@
       majXP();
     }
     majBoutonCompte();
-    route();
-  });
+    if (!activiteEnCours) route();
+  }
   majBoutonCompte();
+  setTimeout(lancerCompte, 5000); // au plus tard 5 s après le départ
+  if (/^#(compte|suivi|demandes|comptes|frequentation|avatar)\b/.test(location.hash)) lancerCompte();
 
   /* ---------- Apparence : clair, sombre ou ruines ---------- */
   // Sans choix enregistré, le site suit le réglage clair/sombre de l'appareil.
@@ -238,7 +258,8 @@
     ? `<div class="scroll-x"><table class="valeurs croise">${t.lignes.map((l, i) => `<tr>${l.map((v, j) => (i === 0 || j === 0 ? `<th>${v === "" ? "" : tex(String(v))}</th>` : `<td>${tex(String(v))}</td>`)).join("")}</tr>`).join("")}</table></div>`
     : `<div class="scroll-x"><table class="valeurs"><tr><th>${tex(t.var || "x")}</th>${t.x.map((v) => `<td>${tex(String(v))}</td>`).join("")}</tr><tr><th>${tex(t.nom)}</th>${t.y.map((v) => `<td>${tex(String(v))}</td>`).join("")}</tr></table></div>`;
   // Une figure nommée (FIGURES de assets/exercices*.js), ou une liste de noms
-  const figure = (nom) => [].concat(nom || []).map((n) => (FIGURES[n] ? `<figure class="fig">${FIGURES[n]()}</figure>` : "")).join("");
+  // (générateurs pas encore chargés : place réservée, remplie ensuite par remplirFigures)
+  const figure = (nom) => [].concat(nom || []).map((n) => (FIGURES[n] ? `<figure class="fig">${FIGURES[n]()}</figure>` : `<figure class="fig fig-attente" data-figure="${esc(n)}" aria-busy="true"></figure>`)).join("");
 
   /* ---------- Vidéos YouTube : vignette légère, la vidéo ne se charge qu'au clic ---------- */
   function ytId(url) {
@@ -273,33 +294,55 @@
   ];
   let minuterieJeu = null; // chrono du jeu en cours, arrêté quand on change de page
 
-  /* ---------- Chapitres de l'école chargés à la demande ----------
-     Un chapitre du catalogue qui a un champ source (data/cp/…) n'est pas dans index.html : à son ouverture,
-     on charge les outils de l'école, les générateurs de son niveau (champ exercices du niveau) puis son fichier. */
+  /* ---------- Chargement à la demande (rapide en 3G) ----------
+     Au démarrage, index.html ne charge que le catalogue, data/manifeste.js et le moteur du site.
+     À l'ouverture d'un chapitre : son fichier (data/…), KaTeX et les outils communs (assets/exercices-base.js, 7 ko).
+     Les générateurs de son niveau (MOTEURS du manifeste) arrivent pour les onglets Exercices, QCM et Défi,
+     ou pour une figure du cours qui en a besoin. Les fichiers déjà téléchargés restent en cache (sw.js). */
   const VERSION = (/[?&]v=([^&]+)/.exec((document.currentScript || {}).src || "") || [])[1] || "";
-  const scriptsCharges = {};
+  const BASE = "assets/exercices-base.js", KATEX = "assets/katex/katex.min.js";
+  const scriptsCharges = {}, scriptsFaits = new Set();
   const chargerScript = (src) => scriptsCharges[src] || (scriptsCharges[src] = new Promise((ok, ko) => {
     const s = document.createElement("script");
     s.src = src + (VERSION ? "?v=" + VERSION : "");
-    s.onload = ok;
+    s.onload = () => { scriptsFaits.add(src); ok(); };
     s.onerror = () => { delete scriptsCharges[src]; s.remove(); ko(new Error(src)); };
     document.body.appendChild(s);
   }));
-  function chargerChapitre(id) {
-    const n = CATALOGUE.niveaux.find((x) => x.chapitres.some((ch) => ch.id === id && ch.source && ch.statut === "disponible"));
-    if (!n) return null;
-    const src = n.chapitres.find((ch) => ch.id === id).source;
-    return ["assets/exercices-ecole.js", n.exercices, src].filter(Boolean).reduce((p, f) => p.then(() => chargerScript(f)), Promise.resolve());
+  // Les fichiers d'exercices remplissent window.PM_EXO : on reprend ses GEN et FIGURES
+  const majMoteur = () => { if (window.PM_EXO) { GEN = window.PM_EXO.GEN || GEN; FIGURES = window.PM_EXO.FIGURES || FIGURES; } };
+  const chargerListe = (l) => l.reduce((p, f) => p.then(() => chargerScript(f)), Promise.resolve()).then(majMoteur);
+  const moteurDe = (id) => (MAN[id] && MOTEURS[MAN[id].niveau]) || [BASE, "assets/exercices.js"];
+  const moteurPret = (id) => moteurDe(id).every((f) => scriptsFaits.has(f));
+  const assurerMoteur = (id) => chargerListe(moteurDe(id));
+  const chapitrePret = (id) => charge(id) && scriptsFaits.has(KATEX) && scriptsFaits.has(BASE);
+  // Précharge les générateurs du chapitre pendant que l'élève lit le cours, seulement si le réseau est bon
+  function prechargerMoteur(id) {
+    const c = navigator.connection || {};
+    if (c.saveData || /(^|-)(2g|3g)$/.test(c.effectiveType || "")) return;
+    const go = () => assurerMoteur(id).catch(() => {});
+    if (window.requestIdleCallback) requestIdleCallback(go, { timeout: 5000 }); else setTimeout(go, 3000);
   }
+  const msgAttente = (t) => `<p class="patiente" role="status">${esc(t)}</p>`;
+  const msgReseau = (t) => `<p class="retour-rep info"><strong>${esc(t)}</strong> Vérifie ta connexion, puis <a href="javascript:location.reload()">recharge la page</a>. Les chapitres déjà ouverts restent lisibles hors connexion.</p>`;
+  const memePage = (h) => location.hash === h;
+
   function route() {
     const h = location.hash.replace(/^#/, "");
     const [chap, onglet] = h.split(".");
     if (minuterieJeu) { clearInterval(minuterieJeu); minuterieJeu = null; }
-    const attente = chap && !(window.CHAPITRES && CHAPITRES[chap]) && chargerChapitre(chap);
-    if (attente) {
-      $app.innerHTML = `<p class="chargement">Chargement du chapitre…</p>`;
-      attente.then(() => { if (location.hash.replace(/^#/, "").split(".")[0] === chap) route(); })
-        .catch(() => { $app.innerHTML = `<a class="retour" href="#">← Accueil</a><p class="lead">Le chapitre n'a pas pu se charger. Vérifie ta connexion, puis <a href="javascript:location.reload()">recharge la page</a>.</p>`; });
+    activiteEnCours = false;
+    if (chap && MAN[chap] && !chapitrePret(chap)) {
+      // Le titre du chapitre s'affiche tout de suite, le contenu arrive juste après
+      const n = CATALOGUE.niveaux.find((x) => x.id === MAN[chap].niveau), e = n && n.chapitres.find((x) => x.id === chap);
+      const retour = `<a class="retour" href="#${n ? "niveau-" + esc(n.id) : ""}">← ${n ? esc(n.nom) : "Accueil"} : tous les chapitres</a>`;
+      $app.dataset.niv = MAN[chap].niveau;
+      $app.innerHTML = `${retour}<header class="chap-head"><p class="eyebrow">${n ? esc(n.nom) : ""}${e && e.numero ? ` · Chapitre&nbsp;${e.numero}` : ""}</p><h1>${esc(e ? e.titre : "")}</h1></header>${msgAttente("Chargement du chapitre…")}`;
+      const h0 = location.hash;
+      Promise.all([chargerScript(MAN[chap].fichier), chargerScript(KATEX), chargerScript(BASE)]).then(majMoteur)
+        .then(() => { if (memePage(h0)) route(); })
+        .catch(() => { if (memePage(h0)) $app.innerHTML = retour + msgReseau("Le chapitre n'a pas pu se charger."); });
+      setTimeout(lancerCompte, 300);
       return;
     }
     document.getElementById("jeu-btn").toggleAttribute("aria-current", chap === "jeu");
@@ -312,18 +355,23 @@
     else if (chap === "avatar") pageAvatar();
     else if (chap === "jeu") pageJeu(onglet);
     else if (Object.prototype.hasOwnProperty.call(CYCLES, chap)) pageCycle(chap);
-    else if (chap && window.CHAPITRES && CHAPITRES[chap]) pageChapitre(chap, onglet || "cours");
+    else if (chap && charge(chap)) pageChapitre(chap, onglet || "cours");
     else if (chap && CATALOGUE.niveaux.some((n) => "niveau-" + n.id === chap)) pageNiveau(CATALOGUE.niveaux.find((n) => "niveau-" + n.id === chap));
     else pageAccueil();
     // Fréquentation anonyme (une fois par appareil et par jour)
     if (chap === "jeu") Compte.visite("jeu");
-    else if (chap && window.CHAPITRES && CHAPITRES[chap]) Compte.visite(chap, ONGLETS.some((o) => o.id === onglet) ? onglet : "cours");
+    else if (chap && dispo(chap)) Compte.visite(chap, ONGLETS.some((o) => o.id === onglet) ? onglet : "cours");
     else Compte.visite();
     // Couleur du niveau (Seconde, Première...) pour habiller la page niveau et la page chapitre
     const niv = CATALOGUE.niveaux.find((n) => "niveau-" + n.id === chap || n.chapitres.some((ch) => ch.id === chap));
     if (niv) $app.dataset.niv = niv.id; else if (Object.prototype.hasOwnProperty.call(CYCLES, chap)) $app.dataset.niv = chap; else delete $app.dataset.niv;
+    // La page est affichée : le service de comptes peut démarrer
+    setTimeout(lancerCompte, 300);
   }
   window.addEventListener("hashchange", () => { route(); window.scrollTo(0, 0); });
+  // Lien d'évitement (clavier, lecteur d'écran) : va droit au contenu
+  const $evite = document.getElementById("evite");
+  if ($evite) $evite.addEventListener("click", (e) => { e.preventDefault(); $app.focus(); });
 
   const etoiles = (n, max) => `<span class="etoiles" aria-label="${n} étoile${n > 1 ? "s" : ""} sur ${max}">${"★".repeat(n)}<span class="off">${"★".repeat(max - n)}</span></span>`;
   // Numéro de chapitre en chiffres romains, gravé en filigrane dans le thème « Ruines »
@@ -336,10 +384,12 @@
   }
 
   function bilanChapitre(id) {
-    const c = CHAPITRES[id];
-    const total = c.exercices.length * 3;
-    const got = c.exercices.reduce((s, e) => s + (prog.exo[id + ":" + e.type] || 0), 0);
-    return { got, total, qcm: prog.qcm[id] };
+    const total = nbSeries(id) * 3;
+    // Chapitre chargé : étoiles série par série ; sinon toutes les étoiles enregistrées pour ce chapitre
+    const got = charge(id)
+      ? CHAPITRES[id].exercices.reduce((s, e) => s + (prog.exo[id + ":" + e.type] || 0), 0)
+      : Object.keys(prog.exo).filter((k) => k.startsWith(id + ":")).reduce((s, k) => s + (+prog.exo[k] || 0), 0);
+    return { got: Math.min(got, total), total, qcm: prog.qcm[id] };
   }
 
   /* ---------- Accueil ---------- */
@@ -364,8 +414,7 @@
     "terminale-spe": "Vers le bac et le supérieur",
     terminale: "Option maths complémentaires"
   };
-  // Un chapitre de l'école (ch.source) compte comme en ligne avant même d'être chargé
-  const chapitresEnLigne = (n) => n.chapitres.filter((ch) => ch.statut === "disponible" && ((window.CHAPITRES && CHAPITRES[ch.id]) || ch.source)).length;
+  const chapitresEnLigne = (n) => n.chapitres.filter((ch) => ch.statut === "disponible" && dispo(ch.id)).length;
   // L'accueil a trois grandes cartes : Primaire (groupe « ecole »), Collège (groupe « college ») et Lycée (tous les autres)
   const CYCLES = {
     ecole: { nom: "Primaire", sous: "Du CP au CM2", glyphe: "+", lead: "Choisis ta classe. Chaque chapitre suit le programme officiel du primaire en vigueur cette année.", niveaux: () => CATALOGUE.niveaux.filter((n) => n.groupe === "ecole") },
@@ -377,11 +426,11 @@
 
   function pageAccueil() {
     document.title = "ProfMaths";
-    const dispos = Object.keys(window.CHAPITRES || {});
-    const nbSeries = dispos.reduce((s, k) => s + CHAPITRES[k].exercices.length, 0);
-    const nbQcm = dispos.reduce((s, k) => s + CHAPITRES[k].qcm.length, 0);
+    const dispos = CATALOGUE.niveaux.flatMap((n) => n.chapitres.filter((ch) => ch.statut === "disponible").map((ch) => ch.id)).filter(dispo);
+    const totSeries = dispos.reduce((s, k) => s + nbSeries(k), 0);
+    const nbQcm = dispos.reduce((s, k) => s + nbQcmBanque(k), 0);
     let h = `<section class="hero"><div class="hero-in"><p class="eyebrow">Maths de l'école au lycée · Mayotte</p><h1>Une vidéo, un cours, des exercices. À ton rythme.</h1><p class="lead">Choisis ton niveau : tous ses chapitres s'affichent, dans l'ordre du programme.</p>
-      <ul class="chiffres"><li><b>${dispos.length}</b> chapitres</li><li><b>${nbSeries}</b> séries d'exercices</li><li><b>${nbQcm}</b> questions de QCM</li></ul></div>${DECOR_HERO}</section>`;
+      <ul class="chiffres"><li><b>${dispos.length}</b> chapitres</li><li><b>${totSeries}</b> séries d'exercices</li><li><b>${nbQcm}</b> questions de QCM</li></ul></div>${DECOR_HERO}</section>`;
     // Deux grandes cartes, Collège et Lycée : chacune ouvre la page qui regroupe ses classes
     h += `<h2 class="titre-bloc">Choisis ton niveau</h2><nav class="cartes-cycle" aria-label="Collège ou lycée">`;
     Object.keys(CYCLES).forEach((k) => {
@@ -404,7 +453,7 @@
     h += piedDePage();
     $app.innerHTML = h;
   }
-  const piedDePage = () => `<footer class="pied"><a href="${YT_PROF}" target="_blank" rel="noopener">Chaîne YouTube</a><a href="https://drive.google.com/drive/folders/1mTeWgDGTv4hNYrD_ozxN9-cSDDGH_Oqn" target="_blank" rel="noopener">Cours et corrigés (Drive)</a></footer>`;
+  const piedDePage = () => `<footer class="pied"><a href="${YT_PROF}" target="_blank" rel="noopener">Chaîne YouTube</a><a href="https://drive.google.com/drive/folders/1mTeWgDGTv4hNYrD_ozxN9-cSDDGH_Oqn" target="_blank" rel="noopener">Cours et corrigés (Drive)</a><p class="pied-note">Site gratuit et sans publicité, fait par un professeur de mathématiques de Mayotte. Les chapitres déjà ouverts restent lisibles sans connexion.</p></footer>`;
 
   /* ---------- Pages Collège et Lycée : les classes de chaque cycle ---------- */
   function pageCycle(k) {
@@ -427,15 +476,14 @@
       <ol class="chapitres chapitres-niv">`;
     if (!n.chapitres.length) h += `<li><div class="chap chap-off"><span class="num num-a">…</span><span class="chap-t"><strong>Les chapitres arrivent bientôt</strong><span class="meta">En attendant, révise avec les vidéos d'<a href="${YT_MONKA}" target="_blank" rel="noopener">Yvan Monka</a>.</span></span></div></li>`;
     n.chapitres.forEach((ch) => {
-      const dispo = ch.statut === "disponible" && window.CHAPITRES && CHAPITRES[ch.id];
+      const enLigne = ch.statut === "disponible" && dispo(ch.id);
       const num = ch.code ? `<span class="num num-a">${esc(ch.code)}</span>` : ch.numero ? `<span class="num">${ch.numero}</span>` : `<span class="num num-a">A</span>`;
-      if (!dispo && ch.statut === "disponible" && ch.source) {
-        // Chapitre de l'école pas encore chargé : son fichier arrive quand on l'ouvre
-        h += `<li><a class="chap" href="#${ch.id}">${num}<span class="chap-t"><strong>${esc(ch.titre)}</strong><span class="meta">Cours · ${ch.series} séries d'exercices · QCM</span></span><span class="go" aria-hidden="true">→</span></a></li>`;
-      } else if (dispo) {
+      if (enLigne) {
         const b = bilanChapitre(ch.id);
-        const pct = Math.round((b.got / b.total) * 100);
-        h += `<li><a class="chap" href="#${ch.id}">${num}<span class="chap-t"><strong>${esc(ch.titre)}</strong><span class="meta">Cours · ${CHAPITRES[ch.id].exercices.length} séries d'exercices · QCM${b.qcm !== undefined ? ` · meilleur score ${b.qcm}/${CHAPITRES[ch.id].qcm.length}` : ""}</span><span class="barre"><span style="width:${pct}%"></span></span></span><span class="go" aria-hidden="true">→</span></a></li>`;
+        const pct = b.total ? Math.round((b.got / b.total) * 100) : 0;
+        // Étoiles déjà gagnées dans le chapitre, coche verte quand tout est réussi
+        const gagnees = b.got ? `<span class="chap-prog${b.got >= b.total ? " fini" : ""}" aria-label="${b.got} étoiles sur ${b.total}">${b.got}/${b.total}</span>` : "";
+        h += `<li><a class="chap" href="#${ch.id}">${num}<span class="chap-t"><strong>${esc(ch.titre)}</strong><span class="meta">Cours · ${nbSeries(ch.id)} séries · QCM${b.qcm !== undefined ? ` ${Math.min(b.qcm, tailleQcmId(ch.id))}/${tailleQcmId(ch.id)}` : ""}${gagnees}</span><span class="barre" role="progressbar" aria-label="Étoiles d'exercices" aria-valuemin="0" aria-valuemax="${b.total}" aria-valuenow="${b.got}"><span style="width:${pct}%"></span></span></span><span class="go" aria-hidden="true">→</span></a></li>`;
       } else {
         h += `<li><div class="chap chap-off">${num}<span class="chap-t"><strong>${esc(ch.titre)}</strong><span class="meta">En préparation${ch.drive ? ` · <a href="${ch.drive}" target="_blank" rel="noopener">documents sur le Drive</a>` : ""}</span></span></div></li>`;
       }
@@ -566,15 +614,17 @@
     if (e) {
       let lignes = "";
       CATALOGUE.niveaux.forEach((n) => n.chapitres.forEach((ch) => {
-        if (!(window.CHAPITRES && CHAPITRES[ch.id])) return;
+        if (!dispo(ch.id)) return;
         const b = bilanChapitre(ch.id);
-        lignes += `<li><a class="chap" href="#${ch.id}"><span class="chap-t"><strong>${esc(ch.titre)}</strong><span class="meta">${esc(n.nom)} · ${b.got}/${b.total} étoiles${b.qcm !== undefined ? ` · QCM ${Math.min(b.qcm, tailleQcm(CHAPITRES[ch.id]))}/${tailleQcm(CHAPITRES[ch.id])}` : ""}</span><span class="barre"><span style="width:${Math.round((b.got / b.total) * 100)}%"></span></span></span></a></li>`;
+        // Seulement les chapitres commencés : la liste complète (plus de 200 chapitres) serait illisible
+        if (!b.got && b.qcm === undefined) return;
+        lignes += `<li><a class="chap" href="#${ch.id}"><span class="chap-t"><strong>${esc(ch.titre)}</strong><span class="meta">${esc(n.nom)} · ${b.got}/${b.total} étoiles${b.qcm !== undefined ? ` · QCM ${Math.min(b.qcm, tailleQcmId(ch.id))}/${tailleQcmId(ch.id)}` : ""}</span><span class="barre"><span style="width:${b.total ? Math.round((b.got / b.total) * 100) : 0}%"></span></span></span></a></li>`;
       }));
       $app.innerHTML = `<section class="page-compte"><p class="eyebrow">Mon compte</p><h1>Bonjour ${esc(e.prenom || e.identifiant)} !</h1>
         <p class="lead">Identifiant : <strong>${esc(e.identifiant)}</strong>${e.classe ? ` · ${esc(e.classe)}${e.groupe ? " " + esc(e.groupe) : ""}${e.niveau ? " (" + esc(e.niveau) + ")" : ""}` : ""}</p>${demo}
         ${e.inscrit ? `<p class="demo">Tu es dans une classe de M. Cadena ? Déconnecte-toi et utilise plutôt les identifiants transmis sur Pronote : c'est avec eux que ton professeur voit ton travail.</p>` : ""}
         ${carteProfil()}
-        <h2>Ma progression</h2><ol class="chapitres">${lignes}</ol>
+        <h2>Ma progression</h2>${lignes ? `<ol class="chapitres">${lignes}</ol>` : `<p class="muted">Aucun chapitre commencé pour l'instant. Choisis ton niveau sur l'<a href="#">accueil</a> et lance une première série !</p>`}
         <p class="muted">Ta progression est enregistrée automatiquement après chaque exercice et chaque QCM.</p>
         <button class="btn-sec" id="deco">Se déconnecter</button>
         <p class="muted">Sur un téléphone partagé, pense à te déconnecter : tes points restent sauvegardés dans ton compte.</p></section>`;
@@ -750,13 +800,22 @@
       <div class="scroll-x"><table class="suivi ${classeTable}"><thead><tr>${entete}</tr><tr class="suivi-filtres">${filtres}</tr></thead><tbody>${corps || `<tr><td colspan="${cols.length}">${vide}</td></tr>`}</tbody></table></div>`;
   }
   function afficherSuivi() {
+    // Le détail d'un chapitre a besoin de son fichier (titres des séries) et de KaTeX : on les charge d'abord
+    if (suiviChoix.chap && suiviChoix.chap !== "*" && MAN[suiviChoix.chap] && !chapitrePret(suiviChoix.chap)) {
+      const etat = document.getElementById("suivi-etat") || $app.querySelector(".suivi-compte");
+      if (etat) etat.textContent = "Chargement du chapitre…";
+      Promise.all([chargerScript(MAN[suiviChoix.chap].fichier), chargerScript(KATEX), chargerScript(BASE)]).then(majMoteur)
+        .catch(() => { suiviChoix.chap = "*"; })
+        .then(() => { if (location.hash === "#suivi") afficherSuivi(); });
+      return;
+    }
     const donnees = suiviCache || {}, fiches = donnees.eleves || [], classes = donnees.classes || {};
     const groupeDe = (x) => x.groupe || x.classe || "?";
     // Classes du professeur (même sans élève encore connecté), classes des listes et classes présentes dans les fiches
     const groupes = [...new Set(((Compte.eleve() || {}).groupes || []).concat(Object.keys(classes), fiches.map(groupeDe)))].sort();
     if (!groupes.includes(suiviChoix.groupe)) suiviChoix.groupe = groupes[0] || "";
     const chaps = [];
-    CATALOGUE.niveaux.forEach((n) => n.chapitres.forEach((ch) => { if (window.CHAPITRES && CHAPITRES[ch.id]) chaps.push({ id: ch.id, titre: ch.titre, niveau: n.nom }); }));
+    CATALOGUE.niveaux.forEach((n) => n.chapitres.forEach((ch) => { if (dispo(ch.id)) chaps.push({ id: ch.id, titre: ch.titre, niveau: n.nom }); }));
     if (suiviChoix.chap !== "*" && !chaps.some((c) => c.id === suiviChoix.chap)) suiviChoix.chap = "*";
     // Élèves de la classe : fiches des élèves déjà connectés, complétées par la liste de classe (élèves jamais connectés, marqués « jamais »)
     const parUid = new Map(fiches.filter((x) => groupeDe(x) === suiviChoix.groupe).map((x) => [x.uid, x]));
@@ -903,7 +962,7 @@
       <p class="muted">Actif = venu sur le site connecté, ou a fait une série ou un QCM, ${periode}. Temps = temps actif sur le site (page ouverte et utilisée, vidéos comprises). Chapitres = chapitres ouverts ou travaillés (série, QCM) sur la période. Touche un nom pour voir le détail par chapitre.${infos.avecListe ? " Les élèves jamais connectés sont en grisé." : " Un élève n'apparaît qu'après sa première connexion (lance « creer-comptes.js --classes » pour voir aussi les autres)."}</p>
       ${tableauSuivi(cols, lignes, "suivi-site", detail)}
       <h2>Chapitres travaillés par la classe</h2>
-      ${chapsClasse.length ? `<div class="scroll-x"><table class="suivi freq-chap"><thead><tr><th>Chapitre</th><th>Élèves (${court})</th><th>Temps total</th></tr></thead><tbody>${chapsClasse.map(([id, v]) => `<tr><th scope="row">${CHAPITRES[id] ? `<a href="#${esc(id)}">${esc(titres[id] || id)}</a>` : esc(titres[id] || id)}</th><td>${v.eleves || "·"}</td><td>${v.temps ? duree(v.temps) : "·"}</td></tr>`).join("")}</tbody></table></div>` : `<p class="muted">Rien pour l'instant.</p>`}
+      ${chapsClasse.length ? `<div class="scroll-x"><table class="suivi freq-chap"><thead><tr><th>Chapitre</th><th>Élèves (${court})</th><th>Temps total</th></tr></thead><tbody>${chapsClasse.map(([id, v]) => `<tr><th scope="row">${dispo(id) ? `<a href="#${esc(id)}">${esc(titres[id] || id)}</a>` : esc(titres[id] || id)}</th><td>${v.eleves || "·"}</td><td>${v.temps ? duree(v.temps) : "·"}</td></tr>`).join("")}</tbody></table></div>` : `<p class="muted">Rien pour l'instant.</p>`}
       <p class="muted">Le temps passé n'est mesuré que pour un élève connecté à son compte, depuis la mise à jour du site d'octobre 2026. Les élèves ne voient pas ces durées.</p></section>`;
     $app.querySelector(".suivi-site tbody").addEventListener("click", (ev) => {
       const b = ev.target.closest("[data-detail]");
@@ -1093,7 +1152,27 @@
       <div class="panneau" id="panneau"></div>`;
     $app.innerHTML = h;
     const p = document.getElementById("panneau");
-    ({ cours: vueCours, exercices: vueExercices, qcm: vueQCM, defi: vueDefi, methode: vueMethode })[onglet](p, c, id);
+    const h0 = location.hash;
+    if (onglet === "cours" || onglet === "methode") {
+      // Le cours s'affiche sans attendre les générateurs ; une figure qui en a besoin arrive dès qu'ils sont là
+      ({ cours: vueCours, methode: vueMethode })[onglet](p, c, id);
+      if (p.querySelector("[data-figure]")) assurerMoteur(id).then(() => { if (memePage(h0)) remplirFigures(p); }).catch(() => {});
+      else prechargerMoteur(id);
+      return;
+    }
+    const vue = () => ({ exercices: vueExercices, qcm: vueQCM, defi: vueDefi })[onglet](p, c, id);
+    const vueEtFigures = () => { vue(); remplirFigures(p); };
+    if (moteurPret(id)) return vueEtFigures();
+    p.innerHTML = msgAttente("Chargement des exercices…");
+    assurerMoteur(id).then(() => { if (memePage(h0)) vueEtFigures(); })
+      .catch(() => { if (memePage(h0)) p.innerHTML = msgReseau("Les exercices n'ont pas pu se charger."); });
+  }
+  // Figures du cours réservées (data-figure) : dessinées quand les générateurs du niveau sont chargés
+  function remplirFigures(p) {
+    p.querySelectorAll("[data-figure]").forEach((f) => {
+      const d = FIGURES[f.dataset.figure];
+      if (d) { f.innerHTML = d(); f.classList.remove("fig-attente"); f.removeAttribute("data-figure"); } else f.remove();
+    });
   }
 
   function vueCours(p, c, id) {
@@ -1126,7 +1205,7 @@
     c.exercices.forEach((e, i) => {
       const st = prog.exo[id + ":" + e.type] || 0;
       if (e.etape !== etape) { etape = e.etape; h += `<li class="etape">${inline(etape)}</li>`; }
-      h += `<li><button class="serie" data-i="${i}"><span class="chap-t"><strong>${inline(e.titre)}</strong><span class="meta">${e.nb} questions</span></span>${etoiles(st, 3)}</button></li>`;
+      h += `<li><button class="serie${st >= 3 ? " serie-faite" : ""}" data-i="${i}"><span class="chap-t"><strong>${inline(e.titre)}</strong><span class="meta">${e.nb} questions</span></span>${etoiles(st, 3)}</button></li>`;
     });
     h += `</ol>`;
     p.innerHTML = h;
@@ -1183,6 +1262,7 @@
 
   function lancerSerie(p, c, id, ex) {
     const gen = GEN[ex.type];
+    activiteEnCours = true;
     let i = 0, score = 0;
     const max = ex.nb * 10;
     const vus = new Set(), recents = new Set(RECENTS[ex.type] || []);
@@ -1206,7 +1286,7 @@
       </div>`;
       const fb = p.querySelector("#fb"), $aides = p.querySelector("#aides");
       const bAide = p.querySelector("#aide"), bVoir = p.querySelector("#voir"), bSuiv = p.querySelector("#suivant");
-      p.querySelector("#quitter").addEventListener("click", () => vueExercices(p, c, id));
+      p.querySelector("#quitter").addEventListener("click", () => { activiteEnCours = false; vueExercices(p, c, id); });
 
       function terminer(gagne, montrer) {
         fini = true;
@@ -1279,6 +1359,7 @@
     }
 
     function bilan() {
+      activiteEnCours = false;
       const r = score / max;
       const st = r >= 0.9 ? 3 : r >= 0.7 ? 2 : r >= 0.4 ? 1 : 0;
       const k = id + ":" + ex.type;
@@ -1305,6 +1386,7 @@
      plus 3 questions à choix fabriquées par les générateurs d'exercices du chapitre. */
   const QCM_N = 12, QCM_GEN = 3, QCM_RECENTS = {};
   const tailleQcm = (c) => Math.min(QCM_N, c.qcm.length + (c.exercices.length ? QCM_GEN : 0));
+  const tailleQcmId = (id) => Math.min(QCM_N, nbQcmBanque(id) + (nbSeries(id) ? QCM_GEN : 0));
   // Écriture KaTeX d'un nombre à la française (espaces fines, virgule), ou fraction si ce n'est pas un décimal court
   function nombreTex(x, enFraction) {
     if (!isFinite(x)) return null;
@@ -1354,6 +1436,7 @@
     return out;
   }
   function vueQCM(p, c, id) {
+    activiteEnCours = true; // un QCM en cours n'est pas effacé quand le compte se connecte
     const gen = questionsGenerees(c, QCM_GEN);
     const deja = new Set(QCM_RECENTS[id] || []);
     const banque = shuffle(c.qcm).sort((a, b) => deja.has(a.question) - deja.has(b.question)).slice(0, Math.max(0, QCM_N - gen.length));
@@ -1491,6 +1574,7 @@
       return q;
     };
     let vies = J.vies, score = 0, serie = 0, bonnes = 0, n = 0;
+    activiteEnCours = true;
     let reste = J.duree * 1000, depart = 0, enPause = true, fini = false;
     $c.innerHTML = `<div class="jeu">
       <div class="jeu-haut"><button class="lien" id="quitter">← ${esc(o.retourTexte || "Thèmes")}</button><span class="vies" aria-label="Vies"></span><span class="jeu-score"><b id="score">0</b> pts</span></div>
@@ -1499,7 +1583,7 @@
       <div id="zone"></div></div>`;
     if ($c !== $app) window.scrollTo(0, Math.max(0, $c.getBoundingClientRect().top + window.scrollY - 110));
     const $zone = $c.querySelector("#zone"), $barre = $c.querySelector("#barre"), $temps = $c.querySelector("#temps");
-    $c.querySelector("#quitter").addEventListener("click", () => { clearInterval(minuterieJeu); minuterieJeu = null; o.retour(); });
+    $c.querySelector("#quitter").addEventListener("click", () => { clearInterval(minuterieJeu); minuterieJeu = null; activiteEnCours = false; o.retour(); });
     const multi = () => (serie >= 6 ? 3 : serie >= 3 ? 2 : 1);
     function majHaut() {
       $c.querySelector(".vies").innerHTML = "♥".repeat(vies) + `<span class="off">${"♥".repeat(J.vies - vies)}</span>`;
@@ -1557,7 +1641,7 @@
 
     function fin(raison) {
       fini = true; pause();
-      clearInterval(minuterieJeu); minuterieJeu = null;
+      clearInterval(minuterieJeu); minuterieJeu = null; activiteEnCours = false;
       const k = "chrono:" + theme.id;
       const ancien = prog.jeux[k] || 0;
       const record = score > ancien;
@@ -1590,4 +1674,9 @@
   }
 
   route();
+
+  /* ---------- Hors ligne et cache (sw.js) : les fichiers déjà téléchargés sont servis sans réseau ---------- */
+  if ("serviceWorker" in navigator && (location.protocol === "https:" || /^(localhost|127.0.0.1)$/.test(location.hostname))) {
+    window.addEventListener("load", () => { navigator.serviceWorker.register("sw.js" + (VERSION ? "?v=" + VERSION : "")).catch(() => {}); });
+  }
 })();

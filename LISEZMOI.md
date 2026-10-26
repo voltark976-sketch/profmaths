@@ -1,13 +1,22 @@
 # Site ProfMaths
 
-Site statique : aucune base de données, aucun compte élève. Ouvrir `index.html` dans un navigateur suffit.
+Site statique, sans serveur à gérer. Les comptes élèves et professeurs (progression, suivi, classement) passent par Firebase (projet profmaths-ca535, voir `data/config-comptes.js` et `outils/comptes/`) ; sans connexion, le site marche quand même et garde la progression sur l'appareil.
+
+## Chargement à la demande et mode hors ligne (depuis le 26 octobre 2026)
+- `index.html` ne charge que le catalogue, `data/manifeste.js`, les niveaux et avatars, les comptes et `assets/app.js` (environ 90 ko compressés, contre 2,3 Mo avant). **Aucune ligne `<script>` n'est à ajouter dans `index.html` pour un chapitre**, quel que soit le niveau.
+- À l'ouverture d'un chapitre, le site charge son fichier `data/…`, KaTeX et `assets/exercices-base.js` (outils et graphiques communs, 7 ko). Les générateurs du niveau n'arrivent que pour les onglets Exercices, QCM et Défi (ou pour une figure du cours qui en a besoin) : `assets/exercices.js` pour le lycée, `assets/exercices-college.js` et le fichier du niveau pour le collège, `assets/exercices-ecole.js` et le fichier du niveau pour l'école.
+- `assets/exercices-base.js` contient les outils partagés (`rand`, `pick`, `poly`, `nbAxe`, `deN`…, `graph`, `FIGURES` des cours, `C`). Ils sont repris en tête d'`assets/exercices.js` par `window.PM_EXO.outils` : un nouvel outil commun s'ajoute dans `exercices-base.js` **et** dans la liste `outils` en bas de ce fichier.
+- `data/manifeste.js` est **fabriqué** par `node outils/manifeste.js` : pour chaque niveau, les fichiers d'exercices à charger (`MOTEURS`) ; pour chaque chapitre « disponible », son fichier et ses nombres de séries et de questions de QCM. **À relancer après tout ajout ou changement de chapitre ou de série** ; `node outils/manifeste.js --verifier` dit s'il est à jour. Un champ `exercices` (texte ou liste) sur un niveau du catalogue remplace sa liste de fichiers par défaut.
+- `sw.js` (service worker) garde les fichiers déjà téléchargés : les chapitres déjà ouverts se relisent sans réseau, et rien n'est retéléchargé tant que le numéro `?v=…` d'`index.html` ne change pas. Changer ce numéro à chaque mise en ligne suffit pour que les téléphones prennent la nouvelle version.
+- `manifest.webmanifest` et `assets/icone*` : icône pour ajouter le site à l'écran d'accueil du téléphone ; `assets/apercu.jpg` : image affichée quand on partage le lien (WhatsApp…).
+- Pour tester en local, servir le dossier par HTTP (par exemple `npx serve`) : ouvert directement en `file://`, le chargement à la demande ne marche pas.
 
 ## Ce que vous pouvez modifier
 - `data/catalogue.js` : la liste des niveaux et des chapitres (ordre des playlists, statut « disponible » ou « bientot »).
 - `data/jeux.js` : le Défi chrono (onglet « Défi » de chaque chapitre) : durée, nombre de vies, séries exclues. Le classement (top 10 général et par classe) est dans la collection Firestore `classement` : prénom, classe et points seulement.
 - `data/config-comptes.js` : activation des comptes élèves (Firebase) et liste des classes.
 - École (CP à CM2) : les niveaux `cp`, `ce1`, `ce2`, `cm1` et `cm2` du catalogue ont `groupe: "ecole"` ; l'accueil affiche une carte « Primaire » qui ouvre `#ecole`. Programmes suivis : cycle 2 (CP, CE1, CE2) du BO n° 41 du 31 octobre 2024 ; cycle 3 (CM1, CM2) du BO n° 16 du 17 avril 2025 (CM2 depuis la rentrée 2026). Ces chapitres sont **chargés à la demande** pour ne pas alourdir le premier affichage : dans le catalogue, chaque chapitre a `source` (son fichier `data/<niveau>/<chapitre>.js`) et `series` (nombre de séries, affiché avant chargement), et chaque niveau a `exercices` (`assets/exercices-<niveau>.js`). À l'ouverture d'un chapitre, le site charge `assets/exercices-ecole.js` (outils et figures communs : droites graduées, horloges, monnaie, quadrillages, solides, schémas en barres…), puis le fichier du niveau, puis le chapitre ; il n'y a donc **pas** de ligne à ajouter dans `index.html` pour un chapitre de l'école. Préfixes des générateurs : `cp…` (CP), `e1` (CE1), `e2` (CE2), `m1` (CM1), `m2` (CM2) ; un niveau n'utilise que ses propres générateurs. Règles propres à l'école : pas de calculatrice ; au cours moyen, proportionnalité raisonnée en phrases (ni tableau, ni coefficient, ni produit en croix), conversions par les relations entre unités (pas de tableau de conversion), angles sans rapporteur (degré au CM2 seulement) ; problèmes situés à Mayotte ; vidéos surtout de Maître Lucas, vérifiées publiques et intégrables.
-- Collège : les niveaux `sixieme`, `cinquieme`, `quatrieme` et `troisieme` du catalogue ont `groupe: "college"`. L'accueil n'affiche pour eux qu'une carte « Collège », qui ouvre la page `#college` (choix de la classe). Programmes suivis : 6e, cycle 3 de 2025 (BO n° 16 du 17 avril 2025) ; 5e, cycle 4 de 2026 (BO n° 10 du 5 mars 2026, en vigueur à la rentrée 2026) ; 4e et 3e, programme de 2020 en 2026-2027. Les générateurs du collège sont dans `assets/exercices-college.js` (chargé juste après `assets/exercices.js`), avec les figures de demi-droite graduée (`demiDroite`).
+- Collège : les niveaux `sixieme`, `cinquieme`, `quatrieme` et `troisieme` du catalogue ont `groupe: "college"`. L'accueil n'affiche pour eux qu'une carte « Collège », qui ouvre la page `#college` (choix de la classe). Programmes suivis : 6e, cycle 3 de 2025 (BO n° 16 du 17 avril 2025) ; 5e, cycle 4 de 2026 (BO n° 10 du 5 mars 2026, en vigueur à la rentrée 2026) ; 4e et 3e, programme de 2020 en 2026-2027. Les générateurs du collège sont dans `assets/exercices-college.js` (chargé juste après `assets/exercices-base.js`, sans le fichier du lycée), avec les figures de demi-droite graduée (`demiDroite`).
   - `data/sixieme/nombres-entiers-decimaux.js` : 6e, chapitre 1 (rangs, grands nombres, fractions décimales, × et ÷ par 10, 100, 1 000, demi-droite graduée, comparer, ranger, encadrer, arrondir). Générateurs `n6-`. Vidéos et PDF d'Yvan Monka (pas encore de vidéos collège sur la chaîne).
   - `data/sixieme/operations.js` : 6e, chapitre 2 (vocabulaire, addition et soustraction posées, calcul en ligne avec parenthèses, calcul astucieux, sens et calcul du produit de deux décimaux sur un quadrillage, ordre de grandeur, problèmes). Générateurs `o6-` ; figure `quadrillage()`.
   - `data/sixieme/division.js` : 6e, chapitre 3 (multiples et diviseurs, critères par 2, 5 et 10, division euclidienne et problèmes, division d'un décimal par un entier inférieur à 10, valeur arrondie d'un quotient, durées et horaires). Générateurs `d6-`.
@@ -158,11 +167,11 @@ Les niveaux du catalogue sont Seconde, Automatismes, Première spécialité, Ter
 
 ## Ajouter un chapitre
 1. Copier `data/seconde/fonctions.js` sous un nouveau nom et remplacer le contenu.
-2. Ajouter une ligne `<script src="data/...">` dans `index.html`.
-3. Passer le chapitre en `statut: "disponible"` dans `data/catalogue.js`.
+2. Passer le chapitre en `statut: "disponible"` dans `data/catalogue.js`.
+3. Lancer `node outils/manifeste.js` (il signale un chapitre « disponible » sans fichier, ou un fichier d'exercices introuvable).
 
 ## Version des fichiers (à chaque mise en ligne)
-Les liens de `index.html` finissent par `?v=...` (par exemple `?v=20261007b`). À chaque mise en ligne, remplacer cette valeur partout dans `index.html` par une nouvelle (la date, plus une lettre). Sinon, les navigateurs des élèves peuvent garder l'ancienne version des fichiers jusqu'à 10 minutes, même après avoir rechargé la page.
+Les liens de `index.html` finissent par `?v=...` (par exemple `?v=202610261035`). À chaque mise en ligne, remplacer cette valeur partout dans `index.html` par une plus grande. Les fichiers chargés à la demande et le service worker reprennent ce même numéro : sans changement, les téléphones gardent l'ancienne version en cache.
 
 ## Le jeu « Les Salles »
 Le jeu existe en deux versions :

@@ -91,7 +91,7 @@
 :root[data-theme="ruines"] .niv-head { position: relative; margin-top: 6px; padding: 16px 18px 18px; }
 :root[data-theme="ruines"] .chap-head::before { content: ""; position: absolute; top: 16px; right: 18px; width: 26px; height: 26px; background: var(--ac); opacity: 0.85; -webkit-mask: var(--sigil) center / contain no-repeat; mask: var(--sigil) center / contain no-repeat; }
 :root[data-theme="ruines"] .chap-head .eyebrow { padding-right: 34px; letter-spacing: 0.02em; }
-:root[data-theme="ruines"] .chap-filigrane { font: 700 0/1 Georgia, "Times New Roman", serif; right: 16px; bottom: 10px; opacity: 0.16; }
+:root[data-theme="ruines"] .chap-filigrane { font: 700 0/1 Georgia, "Times New Roman", serif; right: 16px; top: auto; bottom: 10px; opacity: 0.16; }
 :root[data-theme="ruines"] .chap-filigrane::after { content: attr(data-romain); font-size: 5.6rem; line-height: 0.8; }
 :root[data-theme="ruines"] .score-chap { background: #fffaf0; }
 

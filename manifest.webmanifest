@@ -1,0 +1,16 @@
+{
+  "name": "ProfMaths",
+  "short_name": "ProfMaths",
+  "description": "Cours en vidéo, exercices interactifs et QCM de mathématiques, du CP à la Terminale.",
+  "lang": "fr",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f2f6f6",
+  "theme_color": "#0a7c76",
+  "icons": [
+    { "src": "assets/icone-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "assets/icone-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
+    { "src": "assets/icone.svg", "sizes": "any", "type": "image/svg+xml" }
+  ]
+}

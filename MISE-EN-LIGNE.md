@@ -49,7 +49,7 @@ Le fichier `data/config-comptes.js` modifié se redépose ensuite comme indiqué
 Quand un chapitre est ajouté ou un fichier modifié :
 1. Dans le dépôt GitHub, ouvrez le dossier concerné (par exemple `data/premiere`).
 2. **Add file** > **Upload files**, faites glisser le ou les fichiers modifiés (ils remplacent les anciens), puis **Commit changes**.
-3. Le site en ligne est à jour une à deux minutes plus tard. Sur téléphone, rechargez la page si l'ancienne version reste affichée.
+3. Le site en ligne est à jour une à deux minutes plus tard. Le numéro `?v=…` d'`index.html` doit avoir changé : c'est lui qui dit aux téléphones de remplacer les fichiers gardés en cache. Si un chapitre a été ajouté ou modifié, lancer d'abord `node outils/manifeste.js`.
 
 Ajouter une vidéo YouTube à un chapitre : dans le fichier du chapitre (`data/...`), collez le lien de la vidéo entre les guillemets de `youtube: ""`, puis redéposez ce fichier.
 
