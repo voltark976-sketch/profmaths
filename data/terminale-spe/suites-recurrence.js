@@ -6,7 +6,8 @@
   Mêmes règles d'écriture que data/seconde/fonctions.js (formules entre $...$, antislash doublé,
   **gras**, "- " pour une puce, virgule décimale {,} dans les formules).
   Vidéos : celles de la chaîne (rappels de Première) d'abord, puis Yvan Monka (cours 20SuitesTS1).
-  Figures : "rec-dominos", "rec-bornee". Générateurs : rec- dans assets/exercices.js.
+  Figures (assets/exercices.js) : cours "rec-cours-nuage", "rec-dominos", "rec-cours-impairs", "rec-cours-bernoulli",
+  "rec-cours-escalier", "rec-bornee", "rec-cours-seuil" ; QCM "rec-qcm-…" ; méthode "rec-meth-…". Générateurs : rec-.
 */
 window.CHAPITRES = window.CHAPITRES || {};
 window.CHAPITRES["terminale-spe-suites-recurrence"] = {
@@ -17,7 +18,9 @@ window.CHAPITRES["terminale-spe-suites-recurrence"] = {
 
   playlist: "",
   drive: "",
-  pdfs: [],
+  pdfs: [
+    { titre: "Cours d'Yvan Monka : suites, chapitre 1 (récurrence, limites) (PDF)", url: "https://www.maths-et-tiques.fr/telech/20SuitesTS1.pdf" }
+  ],
   liens: [
     { titre: "Le cours complet sur les suites en vidéo (Yvan Monka)", url: "https://youtu.be/MJv7_pkFcdA", type: "video" }
   ],
@@ -26,6 +29,7 @@ window.CHAPITRES["terminale-spe-suites-recurrence"] = {
   cours: [
     {
       titre: "Rappels : définir une suite",
+      figure: "rec-cours-nuage",
       video: { titre: "Vidéo de ton prof (rappel de Première) : notion de suite, formule explicite et récurrence", youtube: "https://youtu.be/sVkYEQQWvDo" },
       texte:
         "Une **suite** $(u_n)$ associe un nombre $u_n$ à chaque entier naturel $n$ (le **rang**).\n\n" +
@@ -33,6 +37,7 @@ window.CHAPITRES["terminale-spe-suites-recurrence"] = {
         "- **Forme récurrente** : on donne le premier terme et la relation entre un terme et le suivant, par exemple $u_0 = 2$ et $u_{n+1} = 3u_n - 1$. On calcule alors les termes **un par un**.\n" +
         "- **Suite arithmétique** de raison $r$ : $u_{n+1} = u_n + r$, et $u_n = u_0 + nr$.\n" +
         "- **Suite géométrique** de raison $q$ : $u_{n+1} = q \\times u_n$, et $u_n = u_0 \\times q^n$.\n\n" +
+        "Dans un repère, on représente une suite par des **points isolés** de coordonnées $(n\\,;u_n)$ : la figure montre les premiers termes de $u_n = n^2 - 3n$.\n\n" +
         "Une forme récurrente permet de calculer les termes, mais pas directement $u_{100}$ : on cherche souvent une forme explicite, qu'il faut ensuite **démontrer**. C'est le rôle de la récurrence.",
       exemple: {
         enonce: "On pose $u_0 = 2$ et $u_{n+1} = 3u_n - 1$. Calcule $u_1$, $u_2$ et $u_3$.",
@@ -57,25 +62,28 @@ window.CHAPITRES["terminale-spe-suites-recurrence"] = {
     },
     {
       titre: "Sommes et symbole $\\Sigma$",
+      figure: "rec-cours-impairs",
       video: { titre: "Vidéo d'Yvan Monka : utiliser le symbole de somme Σ", youtube: "https://youtu.be/0zspJuzo7L8" },
       texte:
         "La somme $u_0 + u_1 + \\dots + u_n$ s'écrit $\\displaystyle\\sum_{k=0}^{n} u_k$ (« somme des $u_k$ pour $k$ allant de $0$ à $n$ »). La lettre $k$ est muette : on pourrait la remplacer par $i$.\n\n" +
         "Deux formules à connaître, démontrées par récurrence :\n\n" +
         "- $1 + 2 + \\dots + n = \\displaystyle\\sum_{k=1}^{n} k = \\dfrac{n(n + 1)}{2}$ ;\n" +
         "- pour $q \\neq 1$ : $1 + q + q^2 + \\dots + q^n = \\dfrac{q^{n+1} - 1}{q - 1}$.\n\n" +
+        "Conséquence : une somme de termes consécutifs d'une suite arithmétique vaut $\\text{nombre de termes} \\times \\dfrac{\\text{premier} + \\text{dernier}}{2}$. Attention, de $u_p$ à $u_n$ il y a $n - p + 1$ termes.\n\n" +
         "**Hérédité de la première** : si $1 + \\dots + n = \\dfrac{n(n + 1)}{2}$, alors $1 + \\dots + n + (n + 1) = \\dfrac{n(n + 1)}{2} + (n + 1) = \\dfrac{(n + 1)(n + 2)}{2}$, qui est la formule au rang $n + 1$.",
       exemple: {
         enonce: "Démontre que, pour tout entier $n \\geqslant 1$, $1 + 3 + 5 + \\dots + (2n - 1) = n^2$.",
-        solution: "**Initialisation** : pour $n = 1$, la somme vaut $1$ et $1^2 = 1$.\n\n**Hérédité** : supposons $1 + 3 + \\dots + (2n - 1) = n^2$. On ajoute le terme suivant, $2(n + 1) - 1 = 2n + 1$ : la somme devient $n^2 + 2n + 1 = (n + 1)^2$.\n\n**Conclusion** : la propriété est vraie pour tout $n \\geqslant 1$. Par exemple, la somme des $10$ premiers impairs vaut $100$."
+        solution: "**Initialisation** : pour $n = 1$, la somme vaut $1$ et $1^2 = 1$.\n\n**Hérédité** : supposons $1 + 3 + \\dots + (2n - 1) = n^2$. On ajoute le terme suivant, $2(n + 1) - 1 = 2n + 1$ : la somme devient $n^2 + 2n + 1 = (n + 1)^2$.\n\n**Conclusion** : la propriété est vraie pour tout $n \\geqslant 1$. Par exemple, la somme des $10$ premiers impairs vaut $100$.\n\nLa figure le montre : chaque équerre de $2n + 1$ carreaux agrandit le carré de côté $n$ en un carré de côté $n + 1$."
       }
     },
     {
       titre: "Démontrer une inégalité par récurrence",
+      figure: "rec-cours-bernoulli",
       video: { titre: "Vidéo d'Yvan Monka : démonstration par récurrence de l'inégalité de Bernoulli", youtube: "https://youtu.be/H6XJ2tB1_fg" },
       texte:
         "**Inégalité de Bernoulli** (démonstration au programme) : pour tout réel $a > 0$ et tout entier naturel $n$, $(1 + a)^n \\geqslant 1 + na$.\n\n" +
         "- Initialisation : $(1 + a)^0 = 1 \\geqslant 1 + 0 \\times a$.\n" +
-        "- Hérédité : si $(1 + a)^n \\geqslant 1 + na$, on multiplie par $1 + a > 0$ : $(1 + a)^{n+1} \\geqslant (1 + na)(1 + a) = 1 + (n + 1)a + na^2 \\geqslant 1 + (n + 1)a$, car $na^2 \\geqslant 0$.\n\n" +
+        "- Hérédité : si $(1 + a)^n \\geqslant 1 + na$, on multiplie par $1 + a > 0$ : $(1 + a)^{n+1} \\geqslant (1 + na)(1 + a) = 1 + (n + 1)a + na^2 \\geqslant 1 + (n + 1)a$, car $na^2 \\geqslant 0$.\n\nLa figure illustre le cas $a = 0{,}3$ : les points $(n\\,;1{,}3^n)$ restent au-dessus de la droite d'équation $y = 1 + 0{,}3x$.\n\n" +
         "**Encadrer une suite** $u_{n+1} = f(u_n)$ : pour montrer que $a \\leqslant u_n \\leqslant b$ pour tout $n$, on utilise dans l'hérédité que $f$ est **croissante** sur $[a\\,;b]$ : de $a \\leqslant u_n \\leqslant b$, on déduit $f(a) \\leqslant u_{n+1} \\leqslant f(b)$, puis on vérifie que $f(a) \\geqslant a$ et $f(b) \\leqslant b$.\n\n" +
         "Attention : multiplier une inégalité par un nombre **négatif** en change le sens.",
       exemple: {
@@ -85,6 +93,7 @@ window.CHAPITRES["terminale-spe-suites-recurrence"] = {
     },
     {
       titre: "Sens de variation d'une suite",
+      figure: "rec-cours-escalier",
       video: { titre: "Vidéo de ton prof (rappel de Première) : sens de variation d'une suite, trois méthodes", youtube: "https://youtu.be/jpI-dQAsU24" },
       texte:
         "$(u_n)$ est **croissante** si $u_{n+1} \\geqslant u_n$ pour tout $n$, **décroissante** si $u_{n+1} \\leqslant u_n$ pour tout $n$. Méthodes :\n\n" +
@@ -92,7 +101,8 @@ window.CHAPITRES["terminale-spe-suites-recurrence"] = {
         "- si tous les termes sont **strictement positifs**, comparer $\\dfrac{u_{n+1}}{u_n}$ à $1$ ;\n" +
         "- si $u_n = f(n)$ avec $f$ monotone sur $[0\\,;+\\infty[$, la suite a le même sens de variation que $f$ ;\n" +
         "- **par récurrence** pour une suite $u_{n+1} = f(u_n)$ : on démontre $u_n \\leqslant u_{n+1}$ (ou $\\geqslant$). Si $f$ est croissante, $u_n \\leqslant u_{n+1}$ donne $f(u_n) \\leqslant f(u_{n+1})$, soit $u_{n+1} \\leqslant u_{n+2}$.\n\n" +
-        "Attention : pour $u_{n+1} = f(u_n)$, la suite n'a pas forcément le sens de variation de $f$ ; il faut comparer les deux premiers termes.",
+        "Attention : pour $u_{n+1} = f(u_n)$, la suite n'a pas forcément le sens de variation de $f$ ; il faut comparer les deux premiers termes.\n\n" +
+        "Pour **conjecturer**, on construit l'« escalier » : on part de $u_0$ sur l'axe des abscisses, on monte jusqu'à la courbe de $f$ (on lit $u_1$), on revient sur la droite $y = x$ pour reporter $u_1$ sur l'axe, et on recommence. La figure montre l'escalier de l'exemple ci-dessous : les termes avancent vers la droite, la suite semble croissante.",
       exemple: {
         enonce: "On pose $u_0 = 1$ et $u_{n+1} = 0{,}5u_n + 3$. Démontre que la suite est croissante.",
         solution: "Soit $P(n)$ : « $u_n \\leqslant u_{n+1}$ ».\n\n**Initialisation** : $u_1 = 3{,}5$ et $u_0 = 1 \\leqslant 3{,}5$.\n\n**Hérédité** : si $u_n \\leqslant u_{n+1}$, alors $0{,}5u_n + 3 \\leqslant 0{,}5u_{n+1} + 3$ (on multiplie par $0{,}5 > 0$ puis on ajoute $3$), soit $u_{n+1} \\leqslant u_{n+2}$.\n\n**Conclusion** : $u_n \\leqslant u_{n+1}$ pour tout $n$, la suite est croissante."
@@ -117,6 +127,7 @@ window.CHAPITRES["terminale-spe-suites-recurrence"] = {
     },
     {
       titre: "Algorithmique : suites en Python",
+      figure: "rec-cours-seuil",
       video: { titre: "Vidéo de ton prof (rappel de Première) : limite d'une suite et recherche de seuil", youtube: "https://youtu.be/ug71_j3MXlo" },
       texte:
         "Trois programmes types, à savoir lire et écrire :\n\n" +
@@ -127,7 +138,7 @@ window.CHAPITRES["terminale-spe-suites-recurrence"] = {
         "Attention : $\\texttt{range(1, n + 1)}$ va de $1$ à $n$ ; la borne de droite est **exclue**.",
       exemple: {
         enonce: "Que renvoie $\\texttt{seuil(120)}$ ?",
-        solution: "Le programme calcule $u_1 = 105$, $u_2 = 110{,}25$, $u_3 \\approx 115{,}76$, $u_4 \\approx 121{,}55$ : c'est le premier terme qui n'est plus inférieur à $120$.\n\nLa fonction renvoie $4$ : il faut $4$ hausses de $5\\,\\%$ pour dépasser $120$."
+        solution: "Le programme calcule $u_1 = 105$, $u_2 = 110{,}25$, $u_3 \\approx 115{,}76$, $u_4 \\approx 121{,}55$ : c'est le premier terme qui n'est plus inférieur à $120$.\n\nLa fonction renvoie $4$ : il faut $4$ hausses de $5\\,\\%$ pour dépasser $120$. Sur la figure, le point de rang $4$ est le premier au-dessus de la droite $y = 120$."
       }
     }
   ],
@@ -184,13 +195,19 @@ window.CHAPITRES["terminale-spe-suites-recurrence"] = {
     { question: "Dans un programme de seuil avec $\\texttt{while u < 1000:}$, la boucle s'arrête :", choix: ["au premier terme supérieur ou égal à $1\\,000$", "au dernier terme inférieur à $1\\,000$", "quand $u$ vaut exactement $1\\,000$", "après $1\\,000$ tours"], bonne: 0, explication: "La boucle tourne tant que la condition est vraie, et s'arrête dès qu'elle devient fausse." },
     { question: "On pose $u_1 = 1$ et $u_{n+1} = u_n + 2n + 1$. Quelle formule conjecture-t-on ?", choix: ["$u_n = n^2$", "$u_n = 2n - 1$", "$u_n = n^2 + 1$", "$u_n = 2^n - 1$"], bonne: 0, explication: "$u_1 = 1$, $u_2 = 4$, $u_3 = 9$, $u_4 = 16$ : ce sont les carrés. Hérédité : $n^2 + 2n + 1 = (n + 1)^2$." },
     { question: "$(u_n)$ est géométrique de premier terme $u_0 = 5$ et de raison $2$. Que vaut $u_4$ ?", choix: ["$80$", "$40$", "$13$", "$160$"], bonne: 0, explication: "$u_4 = 5 \\times 2^4 = 80$." },
-    { question: "$(u_n)$ est arithmétique avec $u_3 = 11$ et $u_8 = 26$. Sa raison est :", choix: ["$3$", "$15$", "$5$", "$\\dfrac{26}{11}$"], bonne: 0, explication: "De $u_3$ à $u_8$, on ajoute $5$ fois la raison : $5r = 15$, donc $r = 3$." }
+    { question: "$(u_n)$ est arithmétique avec $u_3 = 11$ et $u_8 = 26$. Sa raison est :", choix: ["$3$", "$15$", "$5$", "$\\dfrac{26}{11}$"], bonne: 0, explication: "De $u_3$ à $u_8$, on ajoute $5$ fois la raison : $5r = 15$, donc $r = 3$." },
+    { question: "Les points représentent les premiers termes d'une suite $(u_n)$. Quelle formule explicite est compatible avec la figure ?", figure: "rec-qcm-nuage", choix: ["$u_n = n^2 + 1$", "$u_n = 2n + 1$", "$u_n = n + 1$", "$u_n = 2^n$"], bonne: 0, explication: "Les ordonnées sont $1$, $2$, $5$, $10$, $17$, $26$ : ce sont les valeurs de $n^2 + 1$. Les formules $n + 1$ et $2^n$ conviennent pour $n = 0$ et $n = 1$, mais pas pour $n = 2$ ($3$ et $4$ au lieu de $5$) : il faut tester tous les points, puis démontrer la conjecture par récurrence." },
+    { question: "Les points représentent les termes $u_0$ à $u_{12}$ d'une suite ; les droites ont pour équations $y = 1$ et $y = 4$. Que peut-on conjecturer ?", figure: "rec-qcm-bornee", choix: ["$(u_n)$ est bornée : minorée par $1$ et majorée par $4$", "$(u_n)$ est croissante", "$(u_n)$ est majorée par $1$", "$(u_n)$ n'est ni majorée ni minorée"], bonne: 0, explication: "Tous les points sont entre les deux droites : $1 \\leqslant u_n \\leqslant 4$ pour les termes représentés. On conjecture que la suite est bornée ; il faudra le démontrer pour tous les entiers $n$. Elle n'est pas croissante : ses termes montent et descendent tour à tour." },
+    { question: "Voici la construction des premiers termes de la suite définie par $u_0 = 6$ et $u_{n+1} = 0{,}5u_n + 1$. Que peut-on conjecturer ?", figure: "rec-qcm-escalier", choix: ["La suite est décroissante", "La suite est croissante", "La suite est constante", "La suite n'est ni croissante ni décroissante"], bonne: 0, explication: "Sur l'axe, $u_0 = 6$, $u_1 = 4$, $u_2 = 3$… se déplacent vers la gauche : la suite semble décroissante. Preuve par récurrence : $f(x) = 0{,}5x + 1$ est croissante et $u_1 \\leqslant u_0$, donc $u_{n+1} \\leqslant u_n$ entraîne $f(u_{n+1}) \\leqslant f(u_n)$, soit $u_{n+2} \\leqslant u_{n+1}$." },
+    { question: "La figure découpe un carré en équerres. Que vaut $1 + 3 + 5 + 7 + 9$ ?", figure: "rec-qcm-carres", choix: ["$25$", "$20$", "$81$", "$45$"], bonne: 0, explication: "Les équerres de $1$, $3$, $5$, $7$ et $9$ carreaux remplissent un carré de côté $5$ : la somme vaut $5^2 = 25$. En général, $1 + 3 + \\dots + (2n - 1) = n^2$ (démontré par récurrence dans le cours)." },
+    { question: "Deux escaliers identiques s'emboîtent pour former ce rectangle. Que vaut $1 + 2 + 3 + 4 + 5$ ?", figure: "rec-qcm-gauss", choix: ["$15$", "$30$", "$25$", "$12$"], bonne: 0, explication: "Le rectangle a $5 \\times 6 = 30$ carreaux et il est formé de deux escaliers de $1 + 2 + 3 + 4 + 5$ carreaux : la somme vaut $\\dfrac{5 \\times 6}{2} = 15$. C'est la formule $\\dfrac{n(n + 1)}{2}$ avec $n = 5$." }
   ],
 
   /* ---------- 4. FICHE MÉTHODE ---------- */
   methode: [
     {
       titre: "Rédiger une démonstration par récurrence",
+      figure: "rec-dominos",
       etapes: [
         "Écrire clairement la propriété $P(n)$ à démontrer, et pour quels entiers $n$.",
         "**Initialisation** : vérifier $P(n_0)$ en calculant séparément les deux membres.",
@@ -201,16 +218,18 @@ window.CHAPITRES["terminale-spe-suites-recurrence"] = {
     },
     {
       titre: "Démontrer une formule de somme",
+      figure: "rec-meth-gauss",
       etapes: [
         "Noter $S_n$ la somme et la propriété $P(n)$ : « $S_n = \\dots$ ».",
         "Initialisation : calculer la somme pour le premier rang (un seul terme).",
         "Hérédité : écrire $S_{n+1} = S_n + (\\text{terme suivant})$, remplacer $S_n$ par la formule.",
         "Factoriser ou réduire pour retrouver la formule au rang $n + 1$."
       ],
-      exemple: "$S_{n+1} = \\dfrac{n(n + 1)}{2} + (n + 1) = (n + 1)\\left(\\dfrac{n}{2} + 1\\right) = \\dfrac{(n + 1)(n + 2)}{2}$."
+      exemple: "$S_{n+1} = \\dfrac{n(n + 1)}{2} + (n + 1)$ $= (n + 1)\\left(\\dfrac{n}{2} + 1\\right)$ $= \\dfrac{(n + 1)(n + 2)}{2}$. La figure montre l'idée pour $n = 4$ : deux escaliers identiques forment un rectangle de $4 \\times 5$ carreaux."
     },
     {
       titre: "Encadrer une suite $u_{n+1} = f(u_n)$",
+      figure: "rec-meth-encadrer",
       etapes: [
         "Étudier les variations de $f$ sur l'intervalle visé : il faut qu'elle soit croissante.",
         "Initialisation : vérifier que $u_0$ est dans l'intervalle.",
@@ -221,6 +240,7 @@ window.CHAPITRES["terminale-spe-suites-recurrence"] = {
     },
     {
       titre: "Étudier le sens de variation",
+      figure: "rec-meth-variation",
       etapes: [
         "Forme explicite : calculer et simplifier $u_{n+1} - u_n$, puis étudier son signe pour $n \\geqslant 0$.",
         "Termes strictement positifs (produits, puissances) : comparer $\\dfrac{u_{n+1}}{u_n}$ à $1$.",
@@ -231,13 +251,14 @@ window.CHAPITRES["terminale-spe-suites-recurrence"] = {
     },
     {
       titre: "Programmer une recherche de seuil",
+      figure: "rec-meth-seuil",
       etapes: [
         "Initialiser le rang $\\texttt{n = 0}$ et le premier terme $\\texttt{u}$.",
         "Écrire la condition de la boucle $\\texttt{while}$ : c'est le **contraire** de ce qu'on cherche.",
         "Dans la boucle, calculer le terme suivant et augmenter $\\texttt{n}$ de $1$.",
         "Après la boucle, renvoyer $\\texttt{n}$ : c'est le premier rang qui convient."
       ],
-      exemple: "Premier rang où $u_n \\geqslant 500$ : on écrit $\\texttt{while u < 500:}$."
+      exemple: "Premier rang où $u_n \\geqslant 500$ : on écrit $\\texttt{while u < 500:}$. Pour $u_n = 50 \\times 1{,}5^n$ (figure), le programme renvoie $6$ : $u_5 \\approx 380$ et $u_6 \\approx 570$."
     }
   ],
   erreurs: [

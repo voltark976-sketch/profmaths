@@ -31,6 +31,7 @@ window.CHAPITRES["seconde-automatismes"] = {
         "- $a^m \\times a^n = a^{m+n}$, $\\dfrac{a^m}{a^n} = a^{m-n}$, $(a^m)^n = a^{mn}$, $a^0 = 1$, $a^{-n} = \\dfrac{1}{a^n}$.\n" +
         "- Écriture scientifique : $a \\times 10^n$ avec $1 \\leqslant a < 10$, par exemple $52\\,300 = 5{,}23 \\times 10^4$.",
       video: { titre: "Vidéo de ton prof : calculer avec des fractions", youtube: "https://youtu.be/Zp_aC-8QbWw" },
+      figure: "am-cours-fractions",
       exemple: {
         enonce: "Calculer $\\dfrac{3}{4} - \\dfrac{1}{3}$ et $2^5 \\times 2^{-2}$.",
         solution: "$\\dfrac{9}{12} - \\dfrac{4}{12} = \\dfrac{5}{12}$ et $2^{5 + (-2)} = 2^3 = 8$.\n\nPièges : $(-3)^2 = 9$ mais $-3^2 = -9$ ; $2^3 \\times 2^4 = 2^7$, pas $4^7$."
@@ -44,6 +45,7 @@ window.CHAPITRES["seconde-automatismes"] = {
         "- Durées : $0{,}25$ h $= 15$ min, $0{,}1$ h $= 6$ min. Vitesses : $1$ m/s $= 3{,}6$ km/h.\n" +
         "- Ordre de grandeur : on arrondit chaque nombre à une valeur « ronde », puis on calcule de tête : $387 \\times 0{,}52 \\approx 400 \\times 0{,}5 = 200$.\n" +
         "- Avant de conclure, on contrôle : unité, signe, ordre de grandeur, cohérence (une proportion est entre $0$ et $1$).",
+      figure: "am-cours-conversions",
       exemple: {
         enonce: "Convertir $72$ km/h en m/s, et $1$ h $30$ min en heures.",
         solution: "$72 \\div 3{,}6 = 20$ m/s.\n\n$1$ h $30$ min $= 1{,}5$ h, et non $1{,}3$ h."
@@ -57,6 +59,7 @@ window.CHAPITRES["seconde-automatismes"] = {
         "- $(a + b)(a - b) = a^2 - b^2$.\n" +
         "- Factoriser : chercher un facteur commun, sinon une identité remarquable. On vérifie en redéveloppant.",
       video: { titre: "Vidéo de ton prof : développer et factoriser avec les identités remarquables", youtube: "https://youtu.be/zrIo7AksY5o" },
+      figure: "am-cours-identite",
       exemple: {
         enonce: "Développer $(x - 3)^2$ et factoriser $x^2 - 25$.",
         solution: "$(x - 3)^2 = x^2 - 6x + 9$ (et non $x^2 - 9$).\n\n$x^2 - 25 = (x - 5)(x + 5)$."
@@ -67,9 +70,10 @@ window.CHAPITRES["seconde-automatismes"] = {
       texte:
         "- $ax + b = cx + d$ : on regroupe les $x$ d'un côté, les nombres de l'autre, puis on divise.\n" +
         "- $x^2 = a$ : deux solutions $\\sqrt{a}$ et $-\\sqrt{a}$ si $a > 0$, une seule ($0$) si $a = 0$, aucune si $a < 0$.\n" +
-        "- Dans une inéquation, multiplier ou diviser par un nombre **négatif** change le sens : $-2x \\geqslant 6 \\iff x \\leqslant -3$.\n" +
+        "- Dans une inéquation, multiplier ou diviser par un nombre **négatif** change le sens : $-2x \\geqslant 6 \\iff x \\leqslant -3$, soit l'intervalle $]-\\infty\\,;-3]$ représenté ci-contre.\n" +
         "- Isoler une variable : $d = vt \\iff t = \\dfrac{d}{v}$.",
       video: { titre: "Vidéo de ton prof : équations et inéquations", youtube: "https://youtu.be/2Fv54-YT1lI" },
+      figure: "am-cours-inequation",
       exemple: {
         enonce: "Résoudre $3x - 7 = x + 5$.",
         solution: "$3x - x = 5 + 7 \\iff 2x = 12 \\iff x = 6$. $S = \\{6\\}$"
@@ -79,9 +83,10 @@ window.CHAPITRES["seconde-automatismes"] = {
       titre: "Proportions et évolutions",
       texte:
         "- Proportion : $p = \\dfrac{n_A}{n_E}$ ; partie $n_A = p \\times n_E$ ; tout $n_E = \\dfrac{n_A}{p}$.\n" +
-        "- $+t\\,\\%$ : $\\times \\left(1 + \\dfrac{t}{100}\\right)$ ; $-t\\,\\%$ : $\\times \\left(1 - \\dfrac{t}{100}\\right)$.\n" +
+        "- $+t\\,\\%$ : $\\times \\left(1 + \\dfrac{t}{100}\\right)$ ; $-t\\,\\%$ : $\\times \\left(1 - \\dfrac{t}{100}\\right)$. Augmenter de $5\\,\\%$, c'est multiplier par $1{,}05$ ; diminuer de $5\\,\\%$, c'est multiplier par $0{,}95$ (schéma ci-contre).\n" +
         "- Évolutions successives : on multiplie les coefficients. Valeur initiale : on divise par le coefficient.",
       video: { titre: "Vidéo de ton prof : pourcentages et coefficients multiplicateurs", youtube: "https://youtu.be/DWf_35WEQuI" },
+      figure: "am-cours-coefficient",
       exemple: {
         enonce: "Un article à $60$ € baisse de $15\\,\\%$. Nouveau prix ?",
         solution: "$60 \\times 0{,}85 = 51$ €."
@@ -90,10 +95,11 @@ window.CHAPITRES["seconde-automatismes"] = {
     {
       titre: "Fonctions et graphiques",
       texte:
-        "- $M(x\\,;y) \\in \\mathcal{C}_f \\iff y = f(x)$ : on calcule l'image de l'abscisse et on compare à l'ordonnée.\n" +
+        "- $M(x\\,;y) \\in \\mathcal{C}_f \\iff y = f(x)$ : on calcule l'image de l'abscisse et on compare à l'ordonnée. Ci-contre, $f(x) = x^2 - 2$ : $f(2) = 2$, donc $A(2\\,;2)$ est sur la courbe, mais $f(1) = -1 \\neq 1$, donc $B(1\\,;1)$ n'y est pas.\n" +
         "- Image : unique. Antécédents : zéro, un ou plusieurs.\n" +
         "- $f(x) = ax + b$ est **affine** (droite) ; si $b = 0$, elle est **linéaire** (droite passant par l'origine). $a$ est le coefficient directeur : $a = \\dfrac{f(x_2) - f(x_1)}{x_2 - x_1}$.",
       video: { titre: "Vidéo de ton prof : lire un graphique, images et antécédents", youtube: "https://youtu.be/SSnZlcRgllg" },
+      figure: "am-cours-appartenance",
       exemple: {
         enonce: "$f(x) = 2x^2 - 1$. Le point $A(-2\\,;7)$ est-il sur la courbe de $f$ ?",
         solution: "$f(-2) = 2 \\times 4 - 1 = 7$ : oui, $A \\in \\mathcal{C}_f$."
@@ -103,9 +109,11 @@ window.CHAPITRES["seconde-automatismes"] = {
       titre: "Repérage, aires et volumes",
       video: { titre: "Vidéo de ton prof : périmètres, aires, volumes", youtube: "https://youtu.be/UgnC010qfVI" },
       texte:
+        "- Repérage : dans un repère, $A(x\\,;y)$ s'écrit abscisse d'abord (axe horizontal), ordonnée ensuite (axe vertical). Sur une droite graduée, on cherche d'abord ce que vaut une graduation.\n" +
         "- Rectangle $L \\times \\ell$ ; triangle $\\dfrac{\\text{base} \\times \\text{hauteur}}{2}$ ; disque $\\pi r^2$ ; cercle $2\\pi r$.\n" +
         "- Pavé $L \\times \\ell \\times h$ ; prisme et cylindre $\\mathcal{B} \\times h$ ($\\pi r^2 h$) ; pyramide et cône $\\dfrac{1}{3}\\mathcal{B} \\times h$ ; boule $\\dfrac{4}{3}\\pi r^3$.\n" +
         "- Toutes les longueurs dans la même unité ; la valeur exacte ($9\\pi$) avant la valeur approchée ($\\approx 28{,}27$).",
+      figure: "am-cours-cylindre",
       exemple: {
         enonce: "Volume d'un cylindre de rayon $2$ cm et de hauteur $5$ cm (valeur exacte) ?",
         solution: "$V = \\pi \\times 2^2 \\times 5 = 20\\pi$ cm³ $\\approx 62{,}8$ cm³."
@@ -118,6 +126,7 @@ window.CHAPITRES["seconde-automatismes"] = {
         "- Thalès : si $(MN) \\parallel (BC)$, $\\dfrac{AM}{AB} = \\dfrac{AN}{AC} = \\dfrac{MN}{BC}$.\n" +
         "- Trigonométrie (CAH SOH TOA) : $\\cos = \\dfrac{\\text{adj}}{\\text{hyp}}$, $\\sin = \\dfrac{\\text{opp}}{\\text{hyp}}$, $\\tan = \\dfrac{\\text{opp}}{\\text{adj}}$. À connaître : $\\cos 60^\\circ = \\sin 30^\\circ = 0{,}5$, $\\tan 45^\\circ = 1$.",
       video: { titre: "Vidéo d'Yvan Monka : calculer une longueur avec Pythagore", youtube: "https://youtu.be/M9sceJ8gzNc" },
+      figure: "am-cours-pythagore",
       exemple: {
         enonce: "Un triangle rectangle a des côtés de l'angle droit de $5$ et $12$. Longueur de l'hypoténuse ?",
         solution: "$5^2 + 12^2 = 25 + 144 = 169$, donc l'hypoténuse mesure $\\sqrt{169} = 13$."
@@ -126,11 +135,12 @@ window.CHAPITRES["seconde-automatismes"] = {
     {
       titre: "Statistiques",
       texte:
-        "- Moyenne : somme des valeurs ÷ nombre de valeurs (avec effectifs : $\\bar{x} = \\dfrac{n_1 x_1 + \\dots + n_p x_p}{N}$).\n" +
+        "- Moyenne : $\\bar{x} = \\dfrac{\\text{somme des valeurs}}{\\text{nombre de valeurs}}$ ; avec des effectifs : $\\bar{x} = \\dfrac{n_1 x_1 + \\dots + n_p x_p}{N}$.\n" +
         "- Médiane : on **range** les valeurs ; c'est la valeur du milieu (ou la moyenne des deux du milieu si $N$ est pair).\n" +
-        "- Quartiles $Q_1$, $Q_3$ : rangs $\\dfrac{N}{4}$ et $\\dfrac{3N}{4}$ arrondis à l'entier supérieur. Étendue = max − min.\n" +
-        "- Diagramme circulaire : angle = fréquence $\\times 360^\\circ$.",
+        "- Quartiles $Q_1$, $Q_3$ : rangs $\\dfrac{N}{4}$ et $\\dfrac{3N}{4}$ arrondis à l'entier supérieur. Étendue : max $-$ min.\n" +
+        "- Diagramme circulaire : angle $=$ fréquence $\\times 360^\\circ$. Ci-contre, le secteur « Taxi » de $54^\\circ$ représente $\\dfrac{54}{360} = 15\\,\\%$ des élèves.",
       video: { titre: "Vidéo de ton prof : moyenne, médiane, quartiles", youtube: "https://youtu.be/ncb1y7IwBZA" },
+      figure: "am-cours-secteurs",
       exemple: {
         enonce: "Médiane de la série $3 ; 8 ; 5 ; 12 ; 9 ; 1$ ?",
         solution: "Rangée : $1 ; 3 ; 5 ; 8 ; 9 ; 12$. Six valeurs : médiane $= \\dfrac{5 + 8}{2} = 6{,}5$."
@@ -142,8 +152,9 @@ window.CHAPITRES["seconde-automatismes"] = {
       texte:
         "- Une probabilité est toujours entre $0$ et $1$ ; la somme des probabilités des issues vaut $1$.\n" +
         "- Événement contraire : $P(\\overline{A}) = 1 - P(A)$.\n" +
-        "- Équiprobabilité : $P(A) = \\dfrac{\\text{nombre d'issues favorables}}{\\text{nombre d'issues possibles}}$.\n" +
+        "- Équiprobabilité : $P(A) = \\dfrac{\\text{nombre d'issues favorables}}{\\text{nombre d'issues possibles}}$. Dans l'urne ci-contre ($3$ boules R et $5$ boules V), on tire une boule au hasard : $P(R) = \\dfrac{3}{8}$.\n" +
         "- Deux dés : tableau à double entrée, $36$ issues équiprobables.",
+      figure: "am-cours-urne",
       exemple: {
         enonce: "$P(A) = 0{,}35$. Calculer $P(\\overline{A})$.",
         solution: "$P(\\overline{A}) = 1 - 0{,}35 = 0{,}65$."
@@ -213,8 +224,8 @@ window.CHAPITRES["seconde-automatismes"] = {
     { question: "P4 · Les solutions de $x^2 = 16$ sont :", choix: ["$4$ seulement", "$-4$ et $4$", "$8$", "Il n'y en a pas"], bonne: 1, explication: "$4^2 = 16$ et $(-4)^2 = 16$." },
     { question: "P4 · Si $d = vt$ (avec $v \\neq 0$), alors :", choix: ["$t = \\dfrac{d}{v}$", "$t = \\dfrac{v}{d}$", "$t = d - v$", "$t = dv$"], bonne: 0, explication: "On divise les deux membres par $v$." },
     { question: "P5 · Un article à $60$ € baisse de $15\\,\\%$. Nouveau prix ?", choix: ["$45$ €", "$51$ €", "$69$ €", "$59{,}10$ €"], bonne: 1, explication: "$60 \\times 0{,}85 = 51$ €." },
-    { question: "P6 · $f(x) = 2x^2 - 1$. Le point $A(-2\\,;7)$ est-il sur la courbe de $f$ ?", choix: ["Oui, car $f(-2) = 7$", "Non, car $f(-2) = -9$", "Non, car $f(7) \\neq -2$"], bonne: 0, explication: "$f(-2) = 2 \\times (-2)^2 - 1 = 8 - 1 = 7$." },
-    { question: "P7 · Volume d'un cylindre de rayon $2$ cm et de hauteur $5$ cm ?", choix: ["$10\\pi$ cm³", "$20\\pi$ cm³", "$40\\pi$ cm³", "$100\\pi$ cm³"], bonne: 1, explication: "$\\pi r^2 h = \\pi \\times 4 \\times 5 = 20\\pi$ cm³." },
+    { question: "P6 · $f(x) = 3x^2 - 2$. Le point $A(-1\\,;1)$ est-il sur la courbe de $f$ ?", choix: ["Oui, car $f(-1) = 1$", "Non, car $f(-1) = -5$", "Non, car $f(1) \\neq -1$", "Non, car $f(-1) = 7$"], bonne: 0, explication: "$f(-1) = 3 \\times (-1)^2 - 2 = 3 - 2 = 1$ : c'est l'ordonnée de $A$. ($-5$ vient de l'erreur $(-1)^2 = -1$, et $7$ de $(3 \\times (-1))^2 - 2$.)" },
+    { question: "P7 · Quel est le volume du pavé droit ci-contre ?", figure: "am-qcm-pave", choix: ["$30$ cm³", "$10$ cm³", "$62$ cm³", "$60$ cm³"], bonne: 0, explication: "$5 \\times 2 \\times 3 = 30$ cm³. ($62$ cm² est l'aire totale des six faces : $2 \\times (10 + 15 + 6)$.)" },
     { question: "P8 · Triangle rectangle de côtés de l'angle droit $5$ et $12$. Hypoténuse ?", choix: ["$17$", "$13$", "$\\sqrt{119}$", "$169$"], bonne: 1, explication: "$\\sqrt{25 + 144} = \\sqrt{169} = 13$." },
     { question: "P9 · Médiane de la série $3 ; 8 ; 5 ; 12 ; 9 ; 1$ ?", choix: ["$5$", "$6{,}5$", "$12$", "$6{,}3$"], bonne: 1, explication: "Rangée : $1 ; 3 ; 5 ; 8 ; 9 ; 12$, médiane $= \\dfrac{5 + 8}{2} = 6{,}5$. ($6{,}3$ est à peu près la moyenne.)" },
     { question: "P10 · $P(A) = 0{,}35$. $P(\\overline{A}) =$", choix: ["$0{,}35$", "$0{,}65$", "$1{,}35$", "$-0{,}35$"], bonne: 1, explication: "$1 - 0{,}35 = 0{,}65$." },
@@ -229,6 +240,9 @@ window.CHAPITRES["seconde-automatismes"] = {
     { question: "P8 · Dans le triangle $ABC$ rectangle en $A$, $\\cos \\widehat{ABC} =$", choix: ["$\\dfrac{AB}{BC}$", "$\\dfrac{AC}{BC}$", "$\\dfrac{AB}{AC}$", "$\\dfrac{BC}{AB}$"], bonne: 0, explication: "Pour l'angle en $B$, le côté adjacent est $[AB]$ et l'hypoténuse est $[BC]$ : $\\cos = \\dfrac{\\text{adj}}{\\text{hyp}} = \\dfrac{AB}{BC}$." },
     { question: "P9 · Dans un groupe, deux élèves ont eu $8$ et un élève a eu $14$. Moyenne des trois notes ?", choix: ["$10$", "$11$", "$30$", "$12$"], bonne: 0, explication: "$\\bar{x} = \\dfrac{2 \\times 8 + 1 \\times 14}{3} = \\dfrac{30}{3} = 10$. $11$ est la moyenne de $8$ et $14$ sans tenir compte des effectifs." },
     { question: "P10 · On lance un dé équilibré à six faces. Probabilité d'obtenir un multiple de $3$ ?", choix: ["$\\dfrac{1}{3}$", "$\\dfrac{1}{2}$", "$\\dfrac{1}{6}$", "$\\dfrac{2}{3}$"], bonne: 0, explication: "Les issues favorables sont $3$ et $6$ : $2$ issues sur $6$ équiprobables, donc $P = \\dfrac{2}{6} = \\dfrac{1}{3}$." },
+    { question: "P1 · La bande ci-contre est partagée en $12$ parts égales. Quelle fraction de la bande est coloriée ?", figure: "am-qcm-fractions", choix: ["$\\dfrac{11}{12}$", "$\\dfrac{3}{7}$", "$\\dfrac{2}{3}$", "$\\dfrac{1}{4}$"], bonne: 0, explication: "$\\dfrac{2}{3} + \\dfrac{1}{4} = \\dfrac{8}{12} + \\dfrac{3}{12} = \\dfrac{11}{12}$ : $11$ parts sur $12$ sont coloriées. ($\\dfrac{3}{7}$ vient de l'erreur $\\dfrac{2 + 1}{3 + 4}$.)" },
+    { question: "P8 · D'après la figure, $FG =$", figure: "am-qcm-pythagore", choix: ["$10$", "$14$", "$\\sqrt{28}$", "$100$"], bonne: 0, explication: "$EFG$ est rectangle en $E$ : $FG^2 = 8^2 + 6^2 = 64 + 36 = 100$, donc $FG = 10$. On additionne les carrés, pas les longueurs." },
+    { question: "P9 · Le diagramme donne le nombre de frères et sœurs des élèves d'une classe. Combien d'élèves ont au moins $3$ frères et sœurs ?", figure: "am-qcm-batons", choix: ["$6$", "$3$", "$13$", "$12$"], bonne: 0, explication: "« Au moins $3$ » : $3$, $4$ ou $5$ frères et sœurs, soit $3 + 2 + 1 = 6$ élèves. ($13$ compte aussi les $7$ élèves qui en ont $2$.)" },
     { question: "P10 · On lance deux dés équilibrés. Probabilité que la somme fasse $12$ ?", choix: ["$\\dfrac{1}{36}$", "$\\dfrac{1}{12}$", "$\\dfrac{1}{11}$", "$\\dfrac{1}{6}$"], bonne: 0, explication: "Il y a $36$ issues équiprobables (tableau à double entrée) et une seule donne $12$ : $(6\\,;6)$. Les $11$ sommes possibles de $2$ à $12$ ne sont pas équiprobables." }
   ],
 
@@ -260,6 +274,7 @@ window.CHAPITRES["seconde-automatismes"] = {
         "Par la différence : $a - b > 0 \\iff a > b$.",
         "Par le quotient, si $a$ et $b$ sont strictement positifs : $\\dfrac{a}{b} > 1 \\iff a > b$."
       ],
+      figure: "am-cours-comparer",
       exemple: "$\\dfrac{7}{9} - \\dfrac{4}{5} = \\dfrac{35}{45} - \\dfrac{36}{45} = -\\dfrac{1}{45} < 0$, donc $\\dfrac{7}{9} < \\dfrac{4}{5}$."
     }
   ],

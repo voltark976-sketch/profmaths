@@ -16,7 +16,10 @@ window.CHAPITRES["premiere-trigonometrie"] = {
 
   playlist: "",
   drive: "",
-  pdfs: [],
+  pdfs: [
+    { titre: "Cours d'Yvan Monka : trigonométrie, chapitre 1 (PDF)", url: "https://www.maths-et-tiques.fr/telech/19TrigoP1M.pdf" },
+    { titre: "Cours d'Yvan Monka : trigonométrie, chapitre 2 (PDF)", url: "https://www.maths-et-tiques.fr/telech/19TrigoP2M.pdf" }
+  ],
   liens: [
     { titre: "Le cours sur la trigonométrie en vidéo (Yvan Monka)", url: "https://youtu.be/wJjb3CSS3cg", type: "video" },
     { titre: "Démonstration : sin(π/4) = √2/2 (Yvan Monka)", url: "https://youtu.be/b2-EQupZUp8", type: "video" }
@@ -88,6 +91,7 @@ window.CHAPITRES["premiere-trigonometrie"] = {
     {
       titre: "Lien avec le triangle rectangle",
       figure: "pedalier",
+      video: { titre: "Vidéo d'Yvan Monka : calculer une longueur avec le cosinus, le sinus ou la tangente (rappel du collège)", youtube: "https://youtu.be/BscM5Iti3zI" },
       texte:
         "Pour $0 < x < \\dfrac{\\pi}{2}$, le point $M(x)$, son projeté $H$ sur l'axe des abscisses et $O$ forment un triangle rectangle en $H$, d'hypoténuse $OM = 1$. On retrouve les formules du collège :\n\n" +
         "$\\cos x = \\dfrac{OH}{OM} = OH$ et $\\sin x = \\dfrac{HM}{OM} = HM$.\n\n" +
@@ -117,6 +121,7 @@ window.CHAPITRES["premiere-trigonometrie"] = {
     },
     {
       titre: "Démonstrations : $\\dfrac{\\pi}{4}$ et $\\dfrac{\\pi}{3}$",
+      figure: "tr-cours-demo",
       video: { titre: "Vidéo d'Yvan Monka : démonstration de cos(π/3) et sin(π/3)", youtube: "https://youtu.be/4R1i5Vj72Ls" },
       texte:
         "**Pour $\\dfrac{\\pi}{4}$.** Le point $M\\left(\\dfrac{\\pi}{4}\\right)$ est sur la bissectrice du premier quart de cercle : ses deux coordonnées sont égales, $\\cos\\dfrac{\\pi}{4} = \\sin\\dfrac{\\pi}{4} = c$ avec $c > 0$. Comme $\\cos^2 + \\sin^2 = 1$ : $2c^2 = 1$, donc $c = \\dfrac{1}{\\sqrt{2}} = \\dfrac{\\sqrt{2}}{2}$.\n\n" +
@@ -130,6 +135,7 @@ window.CHAPITRES["premiere-trigonometrie"] = {
     {
       titre: "Angles associés",
       figure: "angles-associes",
+      video: { titre: "Vidéo de Galilee AC : les angles associés", youtube: "https://youtu.be/zRc9T269Iys" },
       texte:
         "Par symétrie sur le cercle (schéma), on lit les cosinus et sinus d'autres réels à partir des valeurs remarquables :\n\n" +
         "- $-x$ : symétrique par rapport à l'axe des abscisses, $\\cos(-x) = \\cos x$ et $\\sin(-x) = -\\sin x$ ;\n" +
@@ -143,6 +149,8 @@ window.CHAPITRES["premiere-trigonometrie"] = {
     },
     {
       titre: "Python : π par la méthode d'Archimède",
+      figure: "tr-cours-archimede",
+      video: { titre: "Vidéo d'Yvan Monka : Archimède et le nombre π (histoire des maths)", youtube: "https://youtu.be/TcNfC8b4hUg" },
       texte:
         "Archimède (IIIe siècle avant notre ère) approchait $\\pi$ avec des polygones réguliers inscrits dans un cercle. Dans le cercle de rayon $1$, le demi-périmètre du polygone se rapproche de $\\pi$ quand on double le nombre de côtés.\n\n" +
         "```python\nfrom math import sqrt\n\ndef archimede(etapes):\n    n = 6    # hexagone inscrit dans le cercle de rayon 1\n    c = 1    # longueur d'un côté\n    for i in range(etapes):\n        c = sqrt(2 - sqrt(4 - c**2))\n        n = 2 * n\n    return n * c / 2\n```\n\n" +
@@ -157,6 +165,7 @@ window.CHAPITRES["premiere-trigonometrie"] = {
     },
     {
       titre: "Logique : « pour tout » et « il existe »",
+      video: { titre: "Vidéo de Maths 2SPI : les quantificateurs « pour tout » et « il existe », et leur négation", youtube: "https://youtu.be/NSXbo_C3uXk" },
       texte:
         "- « **Pour tout** réel $x$, $\\cos^2 x + \\sin^2 x = 1$ » : la propriété est vraie pour chaque réel, sans exception. Pour montrer qu'un « pour tout » est faux, **un contre-exemple** suffit : « pour tout $x$, $\\sin x \\geqslant 0$ » est faux car $\\sin\\left(-\\dfrac{\\pi}{2}\\right) = -1$.\n" +
         "- « **Il existe** un réel $x$ tel que $\\cos x = \\sin x$ » : **un exemple** suffit, $x = \\dfrac{\\pi}{4}$. Pour montrer qu'un « il existe » est faux, il faut prouver qu'**aucun** réel ne convient : « il existe $x$ tel que $\\cos x = 2$ » est faux car $\\cos x \\leqslant 1$ pour tout $x$.",

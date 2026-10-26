@@ -4,7 +4,10 @@
   Chapitre 9 de la progression spiralée 2026-2027 (programme de maths complémentaires de 2019).
   Mêmes règles d'écriture que data/seconde/fonctions.js.
   Vidéos d'Yvan Monka (cours 20ConvexiteTC).
-  Figures : "tcv-convexe", "tcv-inflexion", "tcv-epidemie". Générateurs : tcv-.
+  Figures : "tcv-convexe", "tcv-inflexion", "tcv-cours-inegalites", "tcv-epidemie", "tcv-cours-python", "tcv-meth-etude", "tcv-qcm-secante".
+  Générateurs : tcv- (tcv-graphique sert aussi en Terminale spécialité).
+  Programme (BO spécial n° 8 du 25 juillet 2019) : dérivée seconde ; convexité définie par les sécantes, équivalence admise avec les
+  tangentes ; caractérisation par f' croissante et f'' positive ; point d'inflexion ; lecture graphique.
 */
 window.CHAPITRES = window.CHAPITRES || {};
 window.CHAPITRES["terminale-convexite"] = {
@@ -15,7 +18,9 @@ window.CHAPITRES["terminale-convexite"] = {
 
   playlist: "",
   drive: "",
-  pdfs: [],
+  pdfs: [
+    { titre: "Cours d'Yvan Monka : convexité (PDF)", url: "https://www.maths-et-tiques.fr/telech/20ConvexiteTC.pdf" }
+  ],
   liens: [
     { titre: "Le cours sur la convexité en vidéo (Yvan Monka)", url: "https://youtu.be/gge4xdn6cFA", type: "video" }
   ],
@@ -77,11 +82,13 @@ window.CHAPITRES["terminale-convexite"] = {
     },
     {
       titre: "Convexité et inégalités",
+      figure: "tcv-cours-inegalites",
+      video: { titre: "Vidéo d'Yvan Monka : démontrer une inégalité à l'aide de la convexité", youtube: "https://youtu.be/AaxQHlsxZkg" },
       texte:
         "Une fonction convexe est au-dessus de ses tangentes : cela donne des inégalités utiles.\n\n" +
         "- $e^x$ est convexe, sa tangente en $0$ est $y = x + 1$ : pour tout réel $x$, $e^x \\geqslant x + 1$.\n" +
         "- $\\ln$ est concave, sa tangente en $1$ est $y = x - 1$ : pour tout $x > 0$, $\\ln x \\leqslant x - 1$.\n\n" +
-        "On les retrouve souvent dans les sujets : « montrer que pour tout $x$, … ».",
+        "On les retrouve souvent dans les sujets : « montrer que pour tout $x$, … ». La figure montre les deux courbes avec ces tangentes.",
       exemple: {
         enonce: "Déduis de $e^x \\geqslant x + 1$ une minoration de $e^{-0{,}5}$.",
         solution: "Avec $x = -0{,}5$ : $e^{-0{,}5} \\geqslant 0{,}5$ (en fait $e^{-0{,}5} \\approx 0{,}607$)."
@@ -103,10 +110,11 @@ window.CHAPITRES["terminale-convexite"] = {
     },
     {
       titre: "Python : tester la position d'une courbe et d'une sécante",
+      figure: "tcv-cours-python",
       texte:
         "On calcule la courbe et la sécante en $99$ points entre $a$ et $b$ :\n\n" +
         "```python\ndef f(x):\n    return x**2\n\ndef sous_secante(a, b):\n    for k in range(1, 100):\n        x = a + (b - a) * k / 100\n        s = f(a) + (f(b) - f(a)) * (x - a) / (b - a)\n        if f(x) > s:\n            return False\n    return True\n```\n\n" +
-        "Pour $x^2$, la fonction renvoie True quels que soient $a$ et $b$ : c'est un indice (pas une preuve) de convexité. Pour $x^3$ entre $-2$ et $1$, elle renvoie False.",
+        "Pour $x^2$, la fonction renvoie True quels que soient $a$ et $b$ : c'est un indice (pas une preuve) de convexité. Pour $x^3$ entre $-2$ et $1$, elle renvoie False : entre $-2$ et $1$, la courbe passe au-dessus de la sécante (figure).",
       exemple: {
         enonce: "Pourquoi un test numérique ne démontre-t-il pas la convexité ?",
         solution: "Il ne teste que $99$ points et quelques intervalles : pour démontrer, il faut un argument valable pour tous les points, par exemple le signe de $f''$."
@@ -115,8 +123,12 @@ window.CHAPITRES["terminale-convexite"] = {
   ],
 
   videos: [
-    { titre: "Étudier une fonction exponentielle exp(u)", type: "Étude", youtube: "https://youtu.be/Q4cqUJrTPZo" },
-    { titre: "Reconnaître graphiquement un point d'inflexion", type: "Inflexion", youtube: "https://youtu.be/r8sYr6ToeLo" }
+    { titre: "Le cours : convexité", type: "Cours", youtube: "https://youtu.be/gge4xdn6cFA" },
+    { titre: "Déterminer la dérivée seconde d'une fonction", type: "Calcul", youtube: "https://youtu.be/W6rypabq8uA" },
+    { titre: "Reconnaître graphiquement la convexité", type: "Lecture", youtube: "https://youtu.be/ERML85y_s6E" },
+    { titre: "Étudier la convexité d'une fonction", type: "Étude", youtube: "https://youtu.be/ji-0MWrZl_c" },
+    { titre: "Reconnaître graphiquement un point d'inflexion", type: "Inflexion", youtube: "https://youtu.be/r8sYr6ToeLo" },
+    { titre: "Démontrer une inégalité à l'aide de la convexité", type: "Inégalité", youtube: "https://youtu.be/AaxQHlsxZkg" }
   ],
   videosNote: "Vidéos d'Yvan Monka : l'énoncé est donné au début de chaque vidéo.",
 
@@ -141,14 +153,16 @@ window.CHAPITRES["terminale-convexite"] = {
     { question: "La fonction $\\ln$ est :", choix: ["concave", "convexe", "ni l'un ni l'autre", "affine"], bonne: 0, explication: "$(\\ln)'' = -\\dfrac{1}{x^2} < 0$." },
     { question: "La fonction exponentielle est :", choix: ["convexe", "concave", "affine", "ni l'un ni l'autre"], bonne: 0, explication: "$(e^x)'' = e^x > 0$." },
     { question: "$x \\mapsto x^3$ a un point d'inflexion en :", choix: ["$0$", "$1$", "$-1$", "aucun point"], bonne: 0, explication: "$f''(x) = 6x$ change de signe en $0$." },
-    { question: "En un point d'inflexion, la tangente :", choix: ["traverse la courbe", "est horizontale", "n'existe pas", "est verticale"], bonne: 0, explication: "La courbe change de côté." },
+    { question: "En un point d'inflexion, la tangente :", choix: ["traverse la courbe", "est horizontale", "n'existe pas", "est verticale"], bonne: 0, explication: "La courbe change de côté (figure : la tangente $T$ en $I$).", figure: "tcv-inflexion" },
+    { question: "Sur la figure, la courbe est sous sa sécante entre les points d'abscisses $0$ et $3$. On peut penser que la fonction est :", choix: ["convexe sur $[0\\,;3]$", "concave sur $[0\\,;3]$", "affine sur $[0\\,;3]$", "décroissante sur $[0\\,;3]$"], bonne: 0, explication: "Convexe : la courbe est sous ses sécantes (une seule sécante ne suffit pas à le prouver, mais c'est cohérent).", figure: "tcv-qcm-secante" },
     { question: "$f''(a) = 0$ suffit-il pour un point d'inflexion ?", choix: ["Non, il faut que $f''$ change de signe", "Oui, toujours", "Oui, si $f$ est convexe", "Non, il faut $f'(a) = 0$"], bonne: 0, explication: "Contre-exemple : $x^4$ en $0$." },
-    { question: "Pour tout réel $x$ :", choix: ["$e^x \\geqslant x + 1$", "$e^x \\leqslant x + 1$", "$e^x \\geqslant x + 2$", "$e^x = x + 1$"], bonne: 0, explication: "Convexité de l'exponentielle et tangente en $0$." },
+    { question: "Pour tout réel $x$ :", choix: ["$e^x \\geqslant x + 1$", "$e^x \\leqslant x + 1$", "$e^x \\geqslant x + 2$", "$e^x = x + 1$"], bonne: 0, explication: "Convexité de l'exponentielle et tangente en $0$ (figure).", figure: "tcv-cours-inegalites" },
     { question: "Pour tout $x > 0$ :", choix: ["$\\ln x \\leqslant x - 1$", "$\\ln x \\geqslant x - 1$", "$\\ln x \\geqslant x$", "$\\ln x = x - 1$"], bonne: 0, explication: "Concavité de $\\ln$ et tangente en $1$." },
     { question: "$f(x) = x^3 - 6x^2$. Son point d'inflexion a pour abscisse :", choix: ["$2$", "$0$", "$4$", "$6$"], bonne: 0, explication: "$f''(x) = 6x - 12$." },
     { question: "Une fonction affine est :", choix: ["à la fois convexe et concave", "seulement convexe", "seulement concave", "ni convexe ni concave"], bonne: 0, explication: "$f'' = 0$." },
     { question: "$x^2$ est convexe. Elle est aussi :", choix: ["décroissante sur $]-\\infty\\,;0]$", "croissante sur $\\mathbb{R}$", "positive et croissante", "concave sur $]-\\infty\\,;0]$"], bonne: 0, explication: "Convexe ne veut pas dire croissante." },
-    { question: "Pour le nombre cumulé de cas d'une épidémie, le point d'inflexion correspond :", choix: ["au pic des nouveaux cas par jour", "à la fin de l'épidémie", "au maximum du nombre cumulé", "au premier cas"], bonne: 0, explication: "$N'$ y est maximale." },
+    { question: "Pour le nombre cumulé de cas d'une épidémie (figure), le point d'inflexion correspond :", choix: ["au pic des nouveaux cas par jour", "à la fin de l'épidémie", "au maximum du nombre cumulé", "au premier cas"], bonne: 0, explication: "$N'$ y est maximale.", figure: "tcv-epidemie" },
+    { question: "Le test Python « sous la sécante » appliqué à $x^3$ entre $-2$ et $1$ (figure) renvoie False. Cela montre que :", choix: ["$x^3$ n'est pas convexe sur $[-2\\,;1]$", "$x^3$ est convexe sur $[-2\\,;1]$", "$x^3$ est concave sur $\\mathbb{R}$", "le programme est faux"], bonne: 0, explication: "Un point de la courbe au-dessus d'une sécante suffit : la fonction n'est pas convexe sur cet intervalle.", figure: "tcv-cours-python" },
     { question: "La négation de « $f$ est convexe sur $I$ » est :", choix: ["« il existe une sécante sous laquelle la courbe ne reste pas »", "« $f$ est concave sur $I$ »", "« $f$ est décroissante »", "« $f'' < 0$ partout »"], bonne: 0, explication: "Une fonction peut n'être ni convexe ni concave." },
     { question: "$f'(x) = x^2 + 1$ sur $\\mathbb{R}$. La fonction $f$ est :", choix: ["ni convexe ni concave sur $\\mathbb{R}$", "convexe sur $\\mathbb{R}$", "concave sur $\\mathbb{R}$", "affine"], bonne: 0, explication: "$f''(x) = 2x$ change de signe : concave puis convexe." },
     { question: "$\\sqrt{x}$ est :", choix: ["concave sur $]0\\,;+\\infty[$", "convexe sur $]0\\,;+\\infty[$", "affine", "décroissante"], bonne: 0, explication: "Sa dérivée $\\dfrac{1}{2\\sqrt{x}}$ décroît." },
@@ -162,17 +176,20 @@ window.CHAPITRES["terminale-convexite"] = {
     {
       titre: "Étudier la convexité d'une fonction",
       etapes: ["Calculer $f'$, puis $f''$.", "Étudier le signe de $f''$ (tableau de signes).", "Conclure : convexe où $f'' \\geqslant 0$, concave où $f'' \\leqslant 0$ ; inflexion là où $f''$ change de signe."],
-      exemple: "$x^3 - 3x^2 + 5$ : $f'' = 6(x - 1)$, concave puis convexe, inflexion en $(1\\,;3)$."
+      exemple: "$x^3 - 3x^2 + 5$ : $f'' = 6(x - 1)$, concave puis convexe, inflexion en $(1\\,;3)$ (figure).",
+      figure: "tcv-meth-etude"
     },
     {
       titre: "Lire la convexité sur un graphique",
       etapes: ["Courbe « en U », au-dessus des tangentes : convexe.", "Courbe « en ∩ », sous les tangentes : concave.", "Point où la tangente traverse la courbe : inflexion."],
-      exemple: "Une courbe en S a un point d'inflexion au milieu."
+      exemple: "Une courbe en S a un point d'inflexion au milieu (figure).",
+      figure: "tcv-inflexion"
     },
     {
       titre: "Démontrer une inégalité par convexité",
       etapes: ["Montrer que $f$ est convexe (ou concave).", "Écrire l'équation d'une tangente.", "Conclure : courbe au-dessus (ou au-dessous) de la tangente."],
-      exemple: "$e^x \\geqslant x + 1$ pour tout réel $x$."
+      exemple: "$e^x \\geqslant x + 1$ pour tout réel $x$, et $\\ln x \\leqslant x - 1$ pour tout $x > 0$ (figure).",
+      figure: "tcv-cours-inegalites"
     }
   ],
   erreurs: [

@@ -3,9 +3,12 @@
   -------------------------------------------------------------------
   Chapitre 17 de la progression spiralée 2026-2027 (programme de Première 2026), 2 semaines en fin d'année.
   Mêmes règles d'écriture que data/seconde/fonctions.js.
-  Format de l'épreuve (site du ministère) : 2 h sans calculatrice, partie 1 automatismes (6 points), partie 2 deux ou trois
-  exercices indépendants (14 points). La maîtrise de la langue (2 points sur 20) vient du tableau 3 de la progression.
-  Liens : sujets zéro officiels de spécialité (Eduscol) et liste officielle des automatismes.
+  Format de l'épreuve : note de service du 11-9-2026 (BO spécial n° 4 du 17 septembre 2026), session 2028, qui remplace la
+  note du 10 juin 2025. Écrit de 2 h sans calculatrice, coefficient 2 : partie 1 automatismes en questions à réponses courtes
+  (6 points), partie 2 deux ou trois exercices indépendants (14 points), maîtrise de la langue 2 points sur 20. Oral de
+  contrôle : 20 min de préparation, 20 min d'entretien, sans calculatrice. Automatismes : sections « Automatismes » des
+  programmes 2026 de Seconde et de Première.
+  Liens : sujets zéro de spécialité (Eduscol, publiés pour la session 2027 : leur partie 1 était un QCM).
   Figures : "ea-temps", "ea-raisonnements", "ea-poissons", "ea-tabvar-paniers", "ea-expo", "ea-barge", "ea-bouees".
   Générateurs : ea- (dont des séries qui mélangent les générateurs des chapitres 1 à 15) et am-flash-tout (automatismes de Seconde).
 */
@@ -19,9 +22,8 @@ window.CHAPITRES["premiere-epreuve-anticipee"] = {
   playlist: "",
   drive: "",
   pdfs: [
-    { titre: "Sujet zéro n° 1 de l'épreuve, spécialité maths (Eduscol)", url: "https://eduscol.education.fr/document/65500/download" },
-    { titre: "Sujet zéro n° 2 de l'épreuve, spécialité maths (Eduscol)", url: "https://eduscol.education.fr/document/65502/download" },
-    { titre: "Liste officielle des automatismes évaluables (ministère)", url: "https://www.education.gouv.fr/sites/default/files/2025-06/annexe-automatismes-valuables-lors-de-l-preuve-anticip-e-de-math-matiques-pour-l-ann-e-scolaire-2025-2026-au-titre-de-la-session-2027-des-baccalaur-ats-g-n-ral-et-technologique-440631.pdf" }
+    { titre: "Sujet zéro n° 1, spécialité maths (Eduscol, publié pour la session 2027)", url: "https://eduscol.education.gouv.fr/sites/default/files/document/sujet-specialite-1pdf-112050.pdf" },
+    { titre: "Sujet zéro n° 2, spécialité maths (Eduscol, publié pour la session 2027)", url: "https://eduscol.education.gouv.fr/sites/default/files/document/sujet-specialite-2pdf-112053.pdf" }
   ],
   liens: [],
 
@@ -31,13 +33,14 @@ window.CHAPITRES["premiere-epreuve-anticipee"] = {
       titre: "L'épreuve anticipée en bref",
       figure: "ea-temps",
       texte:
-        "En juin, tous les élèves de Première passent l'**épreuve anticipée de mathématiques**. En spécialité, elle porte sur le programme de Première de spécialité, avec les automatismes de Seconde.\n\n" +
+        "En juin, tous les élèves de Première passent l'**épreuve anticipée de mathématiques** (session 2028, note de service du 11 septembre 2026). Il y a trois sujets différents, selon l'enseignement suivi ; en spécialité, le sujet porte sur le programme de Première de spécialité, avec les automatismes de Seconde et de Première.\n\n" +
         "- **Durée** : $2$ heures, **sans calculatrice** (interdite pendant toute l'épreuve).\n" +
-        "- **Note** : sur $20$, coefficient $2$. Elle apparaît dans ton dossier Parcoursup.\n" +
-        "- **Partie 1 ($6$ points)** : automatismes, des calculs et des questions à choix multiples, à réponse courte.\n" +
+        "- **Note** : sur $20$, coefficient $2$ au baccalauréat.\n" +
+        "- **Partie 1 ($6$ points)** : automatismes, une liste de **questions à réponses courtes** : tu écris directement le résultat, sans justification.\n" +
         "- **Partie 2 ($14$ points)** : deux ou trois exercices indépendants, à rédiger.\n\n" +
-        "La rédaction compte : la maîtrise de la langue vaut $2$ points sur $20$. Justifie, conclus par une phrase, soigne l'orthographe.\n\n" +
-        "Les deux sujets zéro officiels sont en lien en haut de la page : fais-les en conditions réelles, en $2$ heures et sans calculatrice.",
+        "La rédaction compte : la **maîtrise de la langue** vaut $2$ points sur $20$ (orthographe et syntaxe, raisonnement bien formulé, vocabulaire juste). Justifie, conclus par une phrase, soigne l'orthographe.\n\n" +
+        "Au second groupe, l'**oral de contrôle** dure $20$ minutes, après $20$ minutes de préparation : au moins deux exercices sur des parties différentes du programme, sans calculatrice.\n\n" +
+        "Les deux sujets zéro de spécialité sont en lien en haut de la page. Ils ont été publiés pour la session 2027 : leur partie 2 a le format de 2028, mais leur partie 1 était un QCM. Entraîne-toi à y répondre sans regarder les propositions, en $2$ heures et sans calculatrice.",
       exemple: {
         enonce: "Après la partie 1, il te reste $1$ h $35$ pour trois exercices. Comment t'organiser ?",
         solution: "Lis les trois énoncés ($5$ minutes), commence par celui que tu maîtrises le mieux, compte environ $25$ minutes par exercice et garde $10$ minutes pour relire.\n\nSi une question te bloque, admets son résultat et passe à la suivante : les questions d'après rapportent encore des points."
@@ -47,14 +50,14 @@ window.CHAPITRES["premiere-epreuve-anticipee"] = {
       titre: "Partie 1 : les automatismes",
       video: { titre: "Vidéo de ton prof : un automatisme expliqué pas à pas (comparer deux nombres)", youtube: "https://youtu.be/qt6CzZFcV3s" },
       texte:
-        "Les automatismes évalués couvrent six domaines (liste officielle en lien en haut de la page) :\n\n" +
+        "La partie 1 est une liste de **questions à réponses courtes** : pas de propositions à cocher, tu écris toi-même le résultat. Les automatismes évalués sont ceux des parties « Automatismes » des programmes de Seconde et de Première (programmes 2026). Ils couvrent six domaines :\n\n" +
         "- calcul numérique et algébrique : fractions, puissances, développer, factoriser, équations ;\n" +
         "- proportions et pourcentages ;\n" +
         "- évolutions et variations : taux, coefficient multiplicateur, évolutions successives et réciproques ;\n" +
         "- fonctions et représentations : image, signe, tableau de variations, équation de droite ;\n" +
         "- statistiques : moyenne, médiane, quartiles, boîtes à moustaches ;\n" +
         "- probabilités : tableau, arbre, $P(A \\cap B)$ et $P_A(B)$.\n\n" +
-        "S'y ajoutent les réflexes de Première : dérivées usuelles, discriminant, termes de suites, cosinus et sinus remarquables, produit scalaire en coordonnées, règles de calcul sur l'exponentielle.\n\n" +
+        "Les notions nouvelles de Première se travaillent aussi en automatismes : dérivées usuelles, discriminant, termes de suites, cosinus et sinus remarquables, produit scalaire en coordonnées, règles de calcul sur l'exponentielle.\n\n" +
         "Trois réflexes sans calculatrice :\n\n" +
         "- **l'ordre de grandeur** : estime le résultat avant de calculer ;\n" +
         "- **la cohérence** : une probabilité est entre $0$ et $1$, une longueur est positive ;\n" +
@@ -216,7 +219,7 @@ window.CHAPITRES["premiere-epreuve-anticipee"] = {
   exercices: [
     { type: "am-flash-tout", titre: "Automatismes de Seconde, tous les thèmes", etape: "Partie 1 : automatismes", nb: 10 },
     { type: "ea-flash-1re", titre: "Automatismes de Première", etape: "Partie 1 : automatismes", nb: 10 },
-    { type: "ea-partie1", titre: "Partie 1 blanche : 12 questions sans calculatrice", etape: "Partie 1 : automatismes", nb: 12 },
+    { type: "ea-partie1", titre: "Partie 1 blanche : questions à réponses courtes", etape: "Partie 1 : automatismes", nb: 12 },
     { type: "ea-suites", titre: "Suites", etape: "Partie 2 : exercices par thème", nb: 5 },
     { type: "ea-second-degre", titre: "Second degré", etape: "Partie 2 : exercices par thème", nb: 5 },
     { type: "ea-derivation", titre: "Dérivation et variations", etape: "Partie 2 : exercices par thème", nb: 5 },
@@ -233,6 +236,9 @@ window.CHAPITRES["premiere-epreuve-anticipee"] = {
   qcm: [
     { question: "L'épreuve anticipée de mathématiques dure :", choix: ["$2$ heures", "$1$ heure", "$3$ heures", "$4$ heures"], bonne: 0, explication: "Deux heures pour les deux parties." },
     { question: "Pendant l'épreuve, la calculatrice est :", choix: ["interdite", "autorisée en partie 2", "autorisée partout", "autorisée en partie 1"], bonne: 0, explication: "Elle est interdite pendant toute l'épreuve." },
+    { question: "En 2028, la partie 1 de l'épreuve (automatismes) se présente sous la forme :", choix: ["d'une liste de questions à réponses courtes", "d'un QCM de $12$ questions", "d'un exercice long à rédiger", "d'un oral de $20$ minutes"], bonne: 0, explication: "La note de service du 11 septembre 2026 prévoit une liste de questions à réponses courtes, notée sur $6$ points. Le QCM était le format de l'ancienne note de 2025." },
+    { question: "La maîtrise de la langue compte dans la note de l'épreuve pour :", choix: ["$2$ points sur $20$", "rien du tout", "$6$ points sur $20$", "$14$ points sur $20$"], bonne: 0, explication: "Deux points sur vingt évaluent l'orthographe, la syntaxe, la formulation du raisonnement et la justesse du vocabulaire." },
+    { question: "L'oral de contrôle (second groupe) de l'épreuve anticipée de mathématiques comporte :", choix: ["$20$ minutes de préparation et $20$ minutes d'entretien, sans calculatrice", "$1$ heure de préparation et $10$ minutes d'entretien", "un exposé sur un sujet libre", "$20$ minutes d'entretien avec calculatrice"], bonne: 0, explication: "L'examinateur propose au moins deux exercices sur des parties différentes du programme ; la calculatrice est interdite." },
     { question: "$\\dfrac{3}{4} - \\dfrac{1}{6} =$", choix: ["$\\dfrac{7}{12}$", "$\\dfrac{1}{2}$", "$\\dfrac{2}{10}$", "$\\dfrac{5}{12}$"], bonne: 0, explication: "$\\dfrac{9}{12} - \\dfrac{2}{12} = \\dfrac{7}{12}$." },
     { question: "Une hausse de $20\\,\\%$ suivie d'une baisse de $20\\,\\%$ correspond à :", choix: ["une baisse de $4\\,\\%$", "aucune évolution", "une hausse de $4\\,\\%$", "une baisse de $40\\,\\%$"], bonne: 0, explication: "$1{,}2 \\times 0{,}8 = 0{,}96$." },
     { question: "$2^{10} \\times 2^{-3} =$", choix: ["$2^{7}$", "$2^{-30}$", "$4^{7}$", "$2^{13}$"], bonne: 0, explication: "On additionne les exposants : $10 + (-3) = 7$." },

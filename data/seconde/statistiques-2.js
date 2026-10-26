@@ -3,9 +3,12 @@
   -------------------------------------------------------
   Chapitre 16 de la progression spiralée 2026-2027 (programme de Seconde 2026).
   Mêmes règles d'écriture que data/seconde/fonctions.js.
-  Figures disponibles : "histogramme-tortues", "polygone-tortues" (40 tortues, effectifs 4, 10, 14, 8, 4).
-  Pas encore de vidéo de la chaîne ni de PDF pour ce chapitre : les vidéos sont celles d'Yvan Monka.
-  Les générateurs d'exercices commencent par « ec- » dans assets/exercices.js.
+  Figures disponibles : "histogramme-tortues", "polygone-tortues", "ec-cours-centres" (40 tortues, effectifs 4, 10, 14, 8, 4),
+  "ec-cours-lgn" (fréquence du 6 sur deux séries simulées de 2 000 lancers).
+  Programme 2026 : la loi des grands nombres « vulgarisée » et la fluctuation d'échantillonnage s'observent par simulation ;
+  l'intervalle de fluctuation à 95 % et la prise de décision ne sont plus au programme de Seconde (absents ici).
+  Vidéos : celle de la chaîne (#23) pour les classes, puis celles d'Yvan Monka.
+  Les générateurs d'exercices commencent par « ec- » dans assets/exercices.js (ec-lgn et ec-python servent aussi en Première).
 */
 window.CHAPITRES = window.CHAPITRES || {};
 window.CHAPITRES["seconde-statistiques-2"] = {
@@ -16,7 +19,10 @@ window.CHAPITRES["seconde-statistiques-2"] = {
 
   playlist: "",
   drive: "",
-  pdfs: [],
+  pdfs: [
+    { titre: "Cours d'Yvan Monka : statistiques (regroupement par classes) (PDF)", url: "https://www.maths-et-tiques.fr/telech/19StatistiquesM.pdf" },
+    { titre: "Cours d'Yvan Monka : probabilités (loi des grands nombres) (PDF)", url: "https://www.maths-et-tiques.fr/telech/19ProbabilitesM.pdf" }
+  ],
   liens: [
     { titre: "Le cours sur les statistiques (2) en vidéo (Yvan Monka)", url: "https://youtu.be/mJahFqsk3dc", type: "video" }
   ],
@@ -25,6 +31,7 @@ window.CHAPITRES["seconde-statistiques-2"] = {
   cours: [
     {
       titre: "Séries regroupées en classes, histogramme",
+      video: { titre: "Vidéo de ton prof : comparer deux séries (boîtes à moustaches et classes)", youtube: "https://youtu.be/ZuVX12i3Wp4" },
       texte:
         "Quand les valeurs sont nombreuses et variées, on les regroupe en **classes** $[a\\,;b[$ de même **amplitude** $b - a$.\n\n" +
         "- On les représente par un **histogramme** : des rectangles accolés, un par classe.\n" +
@@ -42,6 +49,7 @@ window.CHAPITRES["seconde-statistiques-2"] = {
       texte:
         "On ne connaît plus chaque valeur. Pour **estimer** la moyenne, on remplace chaque valeur par le **centre** de sa classe, $\\dfrac{a + b}{2}$, puis on calcule une moyenne pondérée par les effectifs :\n\n" +
         "$\\bar{x} \\approx \\dfrac{n_1 c_1 + n_2 c_2 + \\ldots}{N}$.",
+      figure: "ec-cours-centres",
       exemple: {
         enonce: "Estimer la masse moyenne des $40$ tortues (effectifs $4$, $10$, $14$, $8$, $4$ pour $[60\\,;70[$, …, $[100\\,;110[$).",
         solution: "Centres : $65$, $75$, $85$, $95$, $105$.\n\nSomme des produits : $4 \\times 65 + 10 \\times 75 + 14 \\times 85 + 8 \\times 95 + 4 \\times 105 = 3\\,380$.\n\n$\\bar{x} \\approx \\dfrac{3\\,380}{40} = 84{,}5$ kg."
@@ -80,7 +88,9 @@ window.CHAPITRES["seconde-statistiques-2"] = {
       texte:
         "- **Fluctuation d'échantillonnage** : deux échantillons de même taille donnent des fréquences différentes. Plus l'échantillon est **petit**, plus les fréquences varient.\n" +
         "- **Loi des grands nombres** : quand on répète une expérience un très grand nombre de fois, la fréquence d'un événement se rapproche de sa probabilité.\n\n" +
-        "Modèle et réalité : une probabilité est un **modèle**. Une fréquence observée sur un grand échantillon permet d'**estimer** une probabilité inconnue (par exemple la proportion de tortues porteuses d'une étiquette), mais un petit nombre d'essais ne permet pas de conclure.",
+        "Modèle et réalité : une probabilité est un **modèle**. Une fréquence observée sur un grand échantillon permet d'**estimer** une probabilité inconnue (par exemple la proportion de tortues porteuses d'une étiquette), mais un petit nombre d'essais ne permet pas de conclure.\n\n" +
+        "Sur la figure, deux élèves ont simulé $2\\,000$ lancers d'un dé : après $10$ lancers, leurs fréquences du $6$ sont très différentes ; après $2\\,000$ lancers, elles sont toutes les deux proches de $\\dfrac{1}{6}$.",
+      figure: "ec-cours-lgn",
       exemple: {
         enonce: "On lance $10$ fois une pièce et on obtient $3$ « pile ». Puis on la lance $10\\,000$ fois et on obtient $4\\,982$ « pile ». Que conclure ?",
         solution: "Sur $10$ lancers, $0{,}3$ n'a rien d'anormal : la fluctuation est forte. Sur $10\\,000$ lancers, la fréquence $0{,}498$ est très proche de $0{,}5$ : la pièce semble équilibrée."
@@ -161,7 +171,11 @@ window.CHAPITRES["seconde-statistiques-2"] = {
     { question: "Quand la taille des échantillons augmente, les fréquences observées :", choix: ["varient moins d'un échantillon à l'autre", "varient davantage d'un échantillon à l'autre", "deviennent toujours égales à la probabilité", "s'éloignent de la probabilité"], bonne: 0, explication: "La fluctuation d'échantillonnage diminue avec la taille : les fréquences se resserrent autour de la probabilité, sans forcément l'égaler." },
     { question: "Une pièce équilibrée vient de tomber $5$ fois de suite sur « pile ». Au lancer suivant, la probabilité d'obtenir « face » est :", choix: ["$\\dfrac{1}{2}$", "plus grande que $\\dfrac{1}{2}$", "plus petite que $\\dfrac{1}{2}$", "$\\dfrac{5}{6}$"], bonne: 0, explication: "Les lancers sont indépendants : le hasard n'a pas de mémoire, la probabilité reste $\\dfrac{1}{2}$." },
     { question: "Sur $2\\,000$ tortues observées, $500$ portent une étiquette. Une estimation de la probabilité qu'une tortue soit étiquetée est :", choix: ["$0{,}25$", "$0{,}5$", "$0{,}2$", "$4$"], bonne: 0, explication: "Sur un grand échantillon, la fréquence estime la probabilité : $\\dfrac{500}{2\\,000} = 0{,}25$. Une probabilité ne dépasse jamais $1$." },
-    { question: "Vrai ou faux : on lance $10$ fois un dé sans obtenir de $6$, donc le dé est truqué.", choix: ["Faux", "Vrai"], bonne: 0, explication: "Sur $10$ lancers, la fluctuation est forte : ce résultat peut arriver avec un dé équilibré. Il faudrait un très grand nombre de lancers pour conclure." },
+    { question: "On lance $10$ fois un dé sans obtenir de $6$. Que peut-on en conclure ?", choix: ["rien : sur $10$ lancers, la fréquence fluctue beaucoup, même avec un dé équilibré", "le dé est forcément truqué", "la probabilité d'obtenir $6$ avec ce dé est $0$", "le prochain lancer donnera sûrement un $6$"], bonne: 0, explication: "Sur $10$ lancers, la fluctuation est forte : ce résultat peut arriver avec un dé équilibré. Il faudrait un très grand nombre de lancers pour douter du dé. Et le dé n'a pas de mémoire." },
+    { question: "D'après l'histogramme ci-dessous (masses de $40$ tortues), combien de tortues pèsent au moins $90$ kg ?", figure: "histogramme-tortues", choix: ["$12$", "$8$", "$26$", "$4$"], bonne: 0, explication: "Au moins $90$ kg : les classes $[90\\,;100[$ et $[100\\,;110[$, soit $8 + 4 = 12$ tortues. ($8$ ne compte qu'une classe.)" },
+    { question: "D'après le polygone des fréquences cumulées croissantes ci-dessous, quel pourcentage des tortues pèse moins de $90$ kg ?", figure: "polygone-tortues", choix: ["$70\\,\\%$", "$35\\,\\%$", "$90\\,\\%$", "$50\\,\\%$"], bonne: 0, explication: "Au point d'abscisse $90$, la fréquence cumulée vaut $70\\,\\%$ : $70\\,\\%$ des tortues pèsent moins de $90$ kg." },
+    { question: "D'après le polygone des fréquences cumulées croissantes ci-dessous, la masse médiane des tortues est environ :", figure: "polygone-tortues", choix: ["$84$ kg", "$50$ kg", "$75$ kg", "$95$ kg"], bonne: 0, explication: "On part de $50\\,\\%$ sur l'axe vertical, on rejoint le polygone et on lit l'abscisse : environ $84$ kg (le calcul donne $80 + \\dfrac{15}{35} \\times 10 \\approx 84{,}3$). $50$ est un pourcentage, pas une masse." },
+    { question: "La figure ci-dessous montre la fréquence du $6$ au fil de $2\\,000$ lancers d'un dé, simulés par deux élèves. Que montre-t-elle ?", figure: "ec-cours-lgn", choix: ["au début les fréquences varient beaucoup, puis elles se rapprochent toutes les deux de $\\dfrac{1}{6}$", "les deux élèves obtiennent toujours la même fréquence", "plus on lance le dé, plus la fréquence s'éloigne de $\\dfrac{1}{6}$", "la fréquence vaut exactement $\\dfrac{1}{6}$ dès les premiers lancers"], bonne: 0, explication: "Sur peu de lancers, la fréquence fluctue beaucoup (fluctuation d'échantillonnage) ; sur un grand nombre de lancers, elle se rapproche de la probabilité $\\dfrac{1}{6}$ : c'est la loi des grands nombres." },
     { question: "En Python, $\\texttt{random()}$ renvoie :", choix: ["un nombre au hasard dans $[0\\,;1[$", "un entier au hasard, $0$ ou $1$", "un nombre au hasard dans $[0\\,;100]$", "toujours $0{,}5$"], bonne: 0, explication: "$\\texttt{random()}$ (module $\\texttt{random}$) donne un nombre décimal au hasard, supérieur ou égal à $0$ et strictement inférieur à $1$." },
     { question: "Pour simuler le lancer d'une pièce en Python (pile : $0$, face : $1$), on peut écrire :", choix: ["$\\texttt{randint(0, 1)}$", "$\\texttt{randint(1, 6)}$", "$\\texttt{random() * 2}$", "$\\texttt{randint(0, 2)}$"], bonne: 0, explication: "$\\texttt{randint(0, 1)}$ donne $0$ ou $1$, bornes incluses. $\\texttt{randint(0, 2)}$ donnerait trois résultats possibles, et $\\texttt{random() * 2}$ un nombre décimal." },
     { question: "Dans la fonction $\\texttt{frequence\\_six(n)}$ du cours, l'instruction $\\texttt{return c / n}$ renvoie :", choix: ["la fréquence des $6$ obtenus", "le nombre de $6$ obtenus", "la probabilité exacte d'obtenir un $6$", "le résultat du dernier lancer"], bonne: 0, explication: "$\\texttt{c}$ compte les $6$ et $\\texttt{n}$ est le nombre de lancers : $\\texttt{c / n}$ est une fréquence, proche de $\\dfrac{1}{6}$ quand $\\texttt{n}$ est grand." }
@@ -176,6 +190,7 @@ window.CHAPITRES["seconde-statistiques-2"] = {
         "Multiplier chaque centre par l'effectif de la classe et additionner.",
         "Diviser par l'effectif total."
       ],
+      figure: "ec-cours-centres",
       exemple: "Centres $65$, $75$, …, $105$ : $\\bar{x} \\approx \\dfrac{3\\,380}{40} = 84{,}5$ kg."
     },
     {
@@ -185,6 +200,7 @@ window.CHAPITRES["seconde-statistiques-2"] = {
         "Repérer la classe médiane : la première qui atteint la moitié de l'effectif.",
         "Interpoler dans la classe $[a\\,;b[$ : $Me \\approx a + k \\times (b - a)$, où $k$ est la part de la classe à parcourir pour atteindre la moitié de l'effectif."
       ],
+      figure: "polygone-tortues",
       exemple: "$Me \\approx 80 + \\dfrac{20 - 14}{14} \\times 10 \\approx 84{,}3$ kg."
     },
     {
@@ -194,6 +210,7 @@ window.CHAPITRES["seconde-statistiques-2"] = {
         "Petit échantillon : la fréquence peut s'en éloigner (fluctuation).",
         "Grand échantillon : la fréquence s'en rapproche (loi des grands nombres)."
       ],
+      figure: "ec-cours-lgn",
       exemple: "$10\\,000$ lancers d'une pièce : fréquence de « pile » proche de $0{,}5$."
     }
   ],

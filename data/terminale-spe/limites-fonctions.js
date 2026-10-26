@@ -6,7 +6,8 @@
   (avec la fonction exponentielle et les croissances comparées ; le logarithme vient au chapitre 9).
   Mêmes règles d'écriture que data/seconde/fonctions.js.
   Pas de vidéo de la chaîne sur ce thème : vidéos d'Yvan Monka (cours 20LimitesFct1 et 20LimitesFct2).
-  Figures : "lfo-asymptotes", "lfo-croissance". Générateurs : lfo- dans assets/exercices.js.
+  Figures : "lfo-asymptotes", "lfo-croissance", "lfo-cours-…" (asymptote verticale, exponentielle, composée,
+  gendarmes), "lfo-meth-…", "lfo-qcm-…". Générateurs : lfo- dans assets/exercices.js.
 */
 window.CHAPITRES = window.CHAPITRES || {};
 window.CHAPITRES["terminale-spe-limites-fonctions"] = {
@@ -17,7 +18,10 @@ window.CHAPITRES["terminale-spe-limites-fonctions"] = {
 
   playlist: "",
   drive: "",
-  pdfs: [],
+  pdfs: [
+    { titre: "Cours d'Yvan Monka : limites des fonctions, chapitre 1 (PDF)", url: "https://www.maths-et-tiques.fr/telech/20LimitesFct1.pdf" },
+    { titre: "Cours d'Yvan Monka : limites des fonctions, chapitre 2 (PDF)", url: "https://www.maths-et-tiques.fr/telech/20LimitesFct2.pdf" }
+  ],
   liens: [
     { titre: "Le cours sur la notion de limite d'une fonction (Yvan Monka)", url: "https://youtu.be/YPwJyYDsmxM", type: "video" },
     { titre: "Démonstration : croissance comparée de xⁿ et de l'exponentielle (Yvan Monka)", url: "https://youtu.be/_re6fVWD4b0", type: "video" }
@@ -42,6 +46,7 @@ window.CHAPITRES["terminale-spe-limites-fonctions"] = {
     },
     {
       titre: "Limite en un réel $a$",
+      figure: "lfo-cours-vertical",
       video: { titre: "Vidéo d'Yvan Monka : démontrer qu'une droite est asymptote verticale", youtube: "https://youtu.be/pXDhrx-nMto" },
       texte:
         "Quand $f$ n'est pas définie en $a$ (valeur interdite), on étudie $f(x)$ pour $x$ proche de $a$.\n\n" +
@@ -56,13 +61,14 @@ window.CHAPITRES["terminale-spe-limites-fonctions"] = {
     },
     {
       titre: "Fonctions de référence et exponentielle",
+      figure: "lfo-cours-exp",
       video: { titre: "Vidéo d'Yvan Monka : démonstration des limites de la fonction exponentielle", youtube: "https://youtu.be/DDqgEz1Id2s" },
       texte:
         "- $x^2$, $x^n$ ($n \\geqslant 1$), $\\sqrt{x}$ tendent vers $+\\infty$ en $+\\infty$. En $-\\infty$, $x^n$ tend vers $+\\infty$ si $n$ est pair, vers $-\\infty$ si $n$ est impair.\n" +
         "- $\\dfrac{1}{x}$, $\\dfrac{1}{x^n}$, $\\dfrac{1}{\\sqrt{x}}$ tendent vers $0$ en $+\\infty$.\n" +
         "- En $0$ : $\\dfrac{1}{x^2} \\to +\\infty$ ; $\\dfrac{1}{x} \\to +\\infty$ en $0^+$ et $-\\infty$ en $0^-$.\n" +
         "- **Exponentielle** (démonstration au programme) : $\\lim\\limits_{x \\to +\\infty} e^x = +\\infty$ et $\\lim\\limits_{x \\to -\\infty} e^x = 0$. La droite $y = 0$ est asymptote horizontale en $-\\infty$.\n\n" +
-        "Démonstration en $+\\infty$ : on a vu que $e^x \\geqslant x + 1$ (convexité, chapitre 2), et $x + 1 \\to +\\infty$.",
+        "Démonstration en $+\\infty$ : on a vu que $e^x \\geqslant x + 1$ (convexité, chapitre 2 ; sur la figure, la courbe est au-dessus de cette tangente), et $x + 1 \\to +\\infty$ : par comparaison, $e^x \\to +\\infty$. En $-\\infty$, on écrit $e^x = \\dfrac{1}{e^{-x}}$ avec $e^{-x} \\to +\\infty$.",
       exemple: {
         enonce: "Détermine les limites de $f(x) = 3e^{-x} + 1$ en $+\\infty$ et en $-\\infty$.",
         solution: "En $+\\infty$ : $-x \\to -\\infty$, donc $e^{-x} \\to 0$ et $f(x) \\to 1$.\n\nEn $-\\infty$ : $-x \\to +\\infty$, donc $e^{-x} \\to +\\infty$ et $f(x) \\to +\\infty$."
@@ -84,12 +90,14 @@ window.CHAPITRES["terminale-spe-limites-fonctions"] = {
     },
     {
       titre: "Limite d'une fonction composée",
+      figure: "lfo-cours-compo",
       video: { titre: "Vidéo d'Yvan Monka : calculer la limite d'une fonction composée avec l'exponentielle", youtube: "https://youtu.be/f5i_u8XVMfc" },
       texte:
         "Pour une fonction composée $f(x) = g(u(x))$ :\n\n" +
         "si $\\lim\\limits_{x \\to a} u(x) = b$ et $\\lim\\limits_{X \\to b} g(X) = c$, alors $\\lim\\limits_{x \\to a} g(u(x)) = c$ ($a$, $b$, $c$ réels ou infinis).\n\n" +
         "**Méthode** : on pose $X = u(x)$, on cherche la limite de $X$, puis celle de $g(X)$.\n\n" +
-        "Le même principe donne la limite d'une suite $u_n = f(v_n)$.",
+        "Le même principe donne la limite d'une suite $u_n = f(v_n)$.\n\n" +
+        "Sur la figure, $f(x) = e^{\\frac{1}{x}}$ : en $\\pm\\infty$, $\\dfrac{1}{x} \\to 0$ et $f(x) \\to e^0 = 1$ (asymptote $y = 1$) ; en $0^+$, $\\dfrac{1}{x} \\to +\\infty$ et $f(x) \\to +\\infty$.",
       exemple: {
         enonce: "Détermine $\\lim\\limits_{x \\to +\\infty} e^{\\frac{2x + 1}{x - 3}}$ et $\\lim\\limits_{x \\to 0^-} e^{\\frac{1}{x}}$.",
         solution: "$\\dfrac{2x + 1}{x - 3} \\to 2$ (termes dominants) et $\\lim\\limits_{X \\to 2} e^X = e^2$ : la première limite vaut $e^2$.\n\n$\\dfrac{1}{x} \\to -\\infty$ quand $x \\to 0^-$, et $\\lim\\limits_{X \\to -\\infty} e^X = 0$ : la seconde vaut $0$."
@@ -97,12 +105,13 @@ window.CHAPITRES["terminale-spe-limites-fonctions"] = {
     },
     {
       titre: "Comparaison et encadrement",
+      figure: "lfo-cours-gendarmes",
       video: { titre: "Vidéo d'Yvan Monka : calculer la limite d'une fonction à l'aide du théorème de comparaison", youtube: "https://youtu.be/OAtkpYMdu7Y" },
       texte:
         "Les théorèmes des suites s'étendent aux fonctions, en $\\pm\\infty$ ou en un réel :\n\n" +
         "- **Comparaison** : si $f(x) \\geqslant g(x)$ pour $x$ assez grand et $\\lim\\limits_{x \\to +\\infty} g(x) = +\\infty$, alors $\\lim\\limits_{x \\to +\\infty} f(x) = +\\infty$.\n" +
         "- **Gendarmes** : si $g(x) \\leqslant f(x) \\leqslant h(x)$ pour $x$ assez grand, et si $g$ et $h$ ont la même limite $\\ell$ en $+\\infty$, alors $\\lim\\limits_{x \\to +\\infty} f(x) = \\ell$.\n\n" +
-        "On les utilise avec $\\sin(x)$ et $\\cos(x)$, qui n'ont pas de limite en $\\pm\\infty$ mais restent entre $-1$ et $1$.",
+        "On les utilise avec $\\sin(x)$ et $\\cos(x)$, qui n'ont pas de limite en $\\pm\\infty$ mais restent entre $-1$ et $1$. Sur la figure, la courbe de $\\dfrac{\\sin(x)}{x}$ reste coincée entre celles de $-\\dfrac{1}{x}$ et de $\\dfrac{1}{x}$, qui se rapprochent de $0$.",
       exemple: {
         enonce: "Détermine $\\lim\\limits_{x \\to +\\infty} \\left(x + \\cos(x)\\right)$ et $\\lim\\limits_{x \\to +\\infty} \\dfrac{\\sin(x)}{x}$.",
         solution: "$\\cos(x) \\geqslant -1$, donc $x + \\cos(x) \\geqslant x - 1 \\to +\\infty$ : la première limite vaut $+\\infty$.\n\nPour $x > 0$ : $-\\dfrac{1}{x} \\leqslant \\dfrac{\\sin(x)}{x} \\leqslant \\dfrac{1}{x}$, et les deux bornes tendent vers $0$ : la seconde vaut $0$."
@@ -182,6 +191,9 @@ window.CHAPITRES["terminale-spe-limites-fonctions"] = {
     { question: "$\\lim\\limits_{x \\to +\\infty} \\sin(x)$ :", choix: ["n'existe pas", "vaut $0$", "vaut $1$", "vaut $+\\infty$"], bonne: 0, explication: "$\\sin(x)$ oscille entre $-1$ et $1$ sans se rapprocher d'une valeur." },
     { question: "Si $f(x) \\geqslant x^2$ pour tout $x$, alors $\\lim\\limits_{x \\to -\\infty} f(x)$ :", choix: ["vaut $+\\infty$", "vaut $-\\infty$", "vaut $0$", "on ne peut rien dire"], bonne: 0, explication: "$x^2 \\to +\\infty$ en $-\\infty$ ; par comparaison, $f(x) \\to +\\infty$." },
     { question: "La courbe de $f(x) = \\dfrac{3x - 1}{x + 2}$ a pour asymptotes :", choix: ["$y = 3$ et $x = -2$", "$y = -2$ et $x = 3$", "$y = 3$ et $x = 2$", "$y = -\\dfrac{1}{2}$ et $x = -2$"], bonne: 0, explication: "Limite $3$ en $\\pm\\infty$ (termes dominants) et limite infinie en $-2$ (dénominateur nul, numérateur égal à $-7$)." },
+    { question: "Voici la courbe d'une fonction $f$ et ses deux asymptotes (en pointillés). Quelles sont leurs équations ?", figure: "lfo-qcm-graphe", choix: ["$x = -2$ et $y = -1$", "$x = -1$ et $y = -2$", "$x = 2$ et $y = 1$", "$x = -2$ et $y = 0$"], bonne: 0, explication: "La droite verticale passe par l'abscisse $-2$ : $x = -2$ ; la droite horizontale est à la hauteur $-1$ : $y = -1$. Une droite verticale a une équation $x = \\dots$, une droite horizontale $y = \\dots$." },
+    { question: "Voici la courbe d'une fonction $f$. Que vaut $\\lim\\limits_{x \\to 0^-} f(x)$ ?", figure: "lfo-qcm-compo", choix: ["$0$", "$+\\infty$", "$1$", "$-\\infty$"], bonne: 0, explication: "Juste à gauche de $0$, la courbe se rapproche de l'axe des abscisses : la limite vaut $0$. C'est $f(x) = e^{\\frac{1}{x}}$ : $\\dfrac{1}{x} \\to -\\infty$ quand $x \\to 0^-$, et $e^X \\to 0$ quand $X \\to -\\infty$." },
+    { question: "Le nombre de makis d'une forêt de Mayotte est modélisé par $P(t) = \\dfrac{600}{1 + 5e^{-0{,}4t}}$ ($t$ en années). D'après le calcul et la courbe, vers quelle valeur tend $P(t)$ quand $t \\to +\\infty$ ?", figure: "lfo-qcm-logistique", choix: ["$600$", "$100$", "$0$", "$+\\infty$"], bonne: 0, explication: "$e^{-0{,}4t} \\to 0$ (composée), donc le dénominateur tend vers $1$ et $P(t) \\to 600$. $100 = P(0)$ est la valeur de départ." },
     { question: "Un programme affiche $f(10^6) \\approx 0{,}500001$. On peut :", choix: ["conjecturer que la limite en $+\\infty$ vaut $0{,}5$", "affirmer que la limite vaut $0{,}500001$", "affirmer que $f(x) > 0{,}5$ pour tout $x$", "dire qu'il n'y a pas de limite"], bonne: 0, explication: "Un calcul numérique permet de conjecturer ; il faut ensuite démontrer." }
   ],
 
@@ -189,6 +201,7 @@ window.CHAPITRES["terminale-spe-limites-fonctions"] = {
   methode: [
     {
       titre: "Calculer une limite en $\\pm\\infty$",
+      figure: "lfo-croissance",
       etapes: [
         "Chercher la limite de chaque morceau (fonctions de référence, exponentielle).",
         "Appliquer les règles d'opérations ; si forme indéterminée, transformer.",
@@ -199,6 +212,7 @@ window.CHAPITRES["terminale-spe-limites-fonctions"] = {
     },
     {
       titre: "Calculer une limite en une valeur interdite $a$",
+      figure: "lfo-meth-vertical",
       etapes: [
         "Calculer la limite du numérateur (souvent un nombre non nul).",
         "Le dénominateur tend vers $0$ : étudier son signe à gauche et à droite de $a$ (tableau de signes).",
@@ -219,6 +233,7 @@ window.CHAPITRES["terminale-spe-limites-fonctions"] = {
     },
     {
       titre: "Utiliser une comparaison",
+      figure: "lfo-meth-comparaison",
       etapes: [
         "Repérer le terme borné ($\\sin$, $\\cos$, $(-1)^n$) entre $-1$ et $1$.",
         "Encadrer ou minorer $f(x)$ à partir de cet encadrement.",

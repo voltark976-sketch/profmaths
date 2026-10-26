@@ -6,7 +6,7 @@
   (Bienaymé-Tchebychev), loi des grands nombres.
   Mêmes règles d'écriture que data/seconde/fonctions.js.
   Pas de vidéo de la chaîne sur ce thème : vidéos d'Yvan Monka (cours 20VA2 et 20GrandN).
-  Figure : "lgn-frequences". Générateurs : lgn- dans assets/exercices.js.
+  Figures : "lgn-frequences", "lgn-cours-…". Générateurs : lgn- dans assets/exercices.js.
 */
 window.CHAPITRES = window.CHAPITRES || {};
 window.CHAPITRES["terminale-spe-grands-nombres"] = {
@@ -17,7 +17,10 @@ window.CHAPITRES["terminale-spe-grands-nombres"] = {
 
   playlist: "",
   drive: "",
-  pdfs: [],
+  pdfs: [
+    { titre: "Cours d'Yvan Monka : loi des grands nombres, chapitre 1 (PDF)", url: "https://www.maths-et-tiques.fr/telech/20VA2.pdf" },
+    { titre: "Cours d'Yvan Monka : loi des grands nombres, chapitre 2 (PDF)", url: "https://www.maths-et-tiques.fr/telech/20GrandN.pdf" }
+  ],
   liens: [
     { titre: "Le cours : somme de variables aléatoires (Yvan Monka)", url: "https://youtu.be/GweMOVratYI", type: "video" },
     { titre: "Le cours : concentration et loi des grands nombres (Yvan Monka)", url: "https://youtu.be/_ZzxgjAxrt4", type: "video" },
@@ -43,6 +46,7 @@ window.CHAPITRES["terminale-spe-grands-nombres"] = {
     },
     {
       titre: "Somme de deux variables aléatoires",
+      figure: "lgn-cours-deux-des",
       video: { titre: "Vidéo d'Yvan Monka : déterminer la loi d'une somme de variables aléatoires", youtube: "https://youtu.be/0l7tz8oGh-s" },
       texte:
         "Si $X$ et $Y$ sont deux variables aléatoires sur le même univers :\n\n" +
@@ -52,7 +56,7 @@ window.CHAPITRES["terminale-spe-grands-nombres"] = {
         "Attention : $V(X - Y) = V(X) + V(Y)$ aussi (pour des variables indépendantes), car $V(-Y) = V(Y)$.",
       exemple: {
         enonce: "On lance deux dés équilibrés. $X$ et $Y$ sont les résultats, $S = X + Y$. Calcule $P(S = 4)$, $E(S)$ et $V(S)$, sachant que $V(X) = \\dfrac{35}{12}$.",
-        solution: "Couples de somme $4$ : $(1\\,;3)$, $(2\\,;2)$, $(3\\,;1)$, donc $P(S = 4) = \\dfrac{3}{36} = \\dfrac{1}{12}$.\n\n$E(S) = 3{,}5 + 3{,}5 = 7$ et, les dés étant indépendants, $V(S) = \\dfrac{35}{12} \\times 2 = \\dfrac{35}{6}$."
+        solution: "Couples de somme $4$ : $(1\\,;3)$, $(2\\,;2)$, $(3\\,;1)$, donc $P(S = 4) = \\dfrac{3}{36} = \\dfrac{1}{12}$ (bâton en couleur sur la figure, qui donne toute la loi de $S$).\n\n$E(S) = 3{,}5 + 3{,}5 = 7$ et, les dés étant indépendants, $V(S) = \\dfrac{35}{12} \\times 2 = \\dfrac{35}{6}$."
       }
     },
     {
@@ -71,6 +75,7 @@ window.CHAPITRES["terminale-spe-grands-nombres"] = {
     },
     {
       titre: "Inégalité de Bienaymé-Tchebychev",
+      figure: "lgn-cours-bienayme",
       video: { titre: "Vidéo d'Yvan Monka : appliquer l'inégalité de Bienaymé-Tchebychev", youtube: "https://youtu.be/4XMvq1FnYwU" },
       texte:
         "Pour toute variable aléatoire $X$ d'espérance $\\mu$ et de variance $V$, et pour tout réel $\\delta > 0$ :\n\n" +
@@ -78,7 +83,7 @@ window.CHAPITRES["terminale-spe-grands-nombres"] = {
         "Elle majore la probabilité que $X$ s'écarte de son espérance d'au moins $\\delta$, **quelle que soit la loi** de $X$.\n\n" +
         "- Avec $\\delta = 2\\sigma$ : $P(|X - \\mu| \\geqslant 2\\sigma) \\leqslant \\dfrac{1}{4}$.\n" +
         "- Par passage au contraire : $P(|X - \\mu| < \\delta) \\geqslant 1 - \\dfrac{V}{\\delta^2}$.\n\n" +
-        "C'est une majoration souvent grossière (les vraies probabilités sont plus petites), mais toujours valable.",
+        "C'est une majoration souvent grossière (les vraies probabilités sont plus petites), mais toujours valable. Sur la figure, pour la loi $\\mathcal{B}(20\\,;0{,}5)$ ($\\mu = 10$, $V = 5$) et $\\delta = 4$ : la probabilité des bâtons en couleur vaut environ $0{,}115$, alors que le majorant est $\\dfrac{5}{16} \\approx 0{,}31$.",
       exemple: {
         enonce: "Le temps de trajet $X$ (en minutes) a pour espérance $30$ et pour variance $16$. Minore $P(20 < X < 40)$.",
         solution: "$20 < X < 40 \\iff |X - 30| < 10$. D'après l'inégalité de Bienaymé-Tchebychev, $P(|X - 30| \\geqslant 10) \\leqslant \\dfrac{16}{100} = 0{,}16$.\n\nDonc $P(20 < X < 40) \\geqslant 1 - 0{,}16 = 0{,}84$."
@@ -86,6 +91,7 @@ window.CHAPITRES["terminale-spe-grands-nombres"] = {
     },
     {
       titre: "Inégalité de concentration",
+      figure: "lgn-cours-taille",
       video: { titre: "Vidéo d'Yvan Monka : déterminer la taille d'un échantillon avec l'inégalité de concentration", youtube: "https://youtu.be/7Nk9U-zwWOA" },
       texte:
         "En appliquant Bienaymé-Tchebychev à la moyenne $M_n$ d'un échantillon (espérance $\\mu$, variance $\\dfrac{V}{n}$) :\n\n" +
@@ -93,7 +99,7 @@ window.CHAPITRES["terminale-spe-grands-nombres"] = {
         "**Taille d'échantillon** : pour garantir $P(|M_n - \\mu| \\geqslant \\delta) \\leqslant \\alpha$, il suffit que $\\dfrac{V}{n\\delta^2} \\leqslant \\alpha$, c'est-à-dire $n \\geqslant \\dfrac{V}{\\alpha\\delta^2}$.",
       exemple: {
         enonce: "On estime une proportion $p$ par la fréquence observée sur $n$ personnes (variance de la loi de Bernoulli : $p(1 - p) \\leqslant 0{,}25$). Quelle taille garantit un écart d'au moins $0{,}05$ avec une probabilité au plus $0{,}05$ ?",
-        solution: "Il suffit que $\\dfrac{0{,}25}{n \\times 0{,}05^2} \\leqslant 0{,}05$, soit $n \\geqslant \\dfrac{0{,}25}{0{,}05 \\times 0{,}0025} = 2\\,000$.\n\nAvec $2\\,000$ personnes interrogées, c'est garanti."
+        solution: "Il suffit que $\\dfrac{0{,}25}{n \\times 0{,}05^2} \\leqslant 0{,}05$, soit $n \\geqslant \\dfrac{0{,}25}{0{,}05 \\times 0{,}0025} = 2\\,000$ (figure : le majorant $\\dfrac{100}{n}$ passe sous $0{,}05$ en $n = 2\\,000$).\n\nAvec $2\\,000$ personnes interrogées, c'est garanti."
       }
     },
     {
@@ -113,12 +119,15 @@ window.CHAPITRES["terminale-spe-grands-nombres"] = {
     },
     {
       titre: "Algorithmique : simuler pour estimer",
+      figure: "lgn-cours-marche",
       texte:
         "On simule une expérience un grand nombre de fois et on calcule la fréquence ou la moyenne :\n\n" +
         "```python\nfrom random import randint\n\ndef moyenne(n):\n    s = 0\n    for i in range(n):\n        s = s + randint(1, 6)\n    return s / n\n\nprint(moyenne(10), moyenne(10000))\n```\n\n" +
         "- $\\texttt{moyenne(10)}$ peut être loin de $3{,}5$ ; $\\texttt{moyenne(10000)}$ en est presque toujours très proche.\n" +
         "- Chaque exécution donne un résultat différent : c'est une **valeur observée** d'une variable aléatoire.\n" +
-        "- Un programme peut aussi chercher, avec une boucle $\\texttt{while}$, la plus petite taille $n$ donnée par l'inégalité de concentration.",
+        "- Un programme peut aussi chercher, avec une boucle $\\texttt{while}$, la plus petite taille $n$ donnée par l'inégalité de concentration.\n" +
+        "- **Marche aléatoire** : à chaque étape, on avance de $1$ (probabilité $p$) ou on recule de $1$. La position après $n$ pas est une somme $X_1 + \\dots + X_n$ de variables indépendantes, avec $E(X_i) = 2p - 1$ et $V(X_i) = 4p(1 - p)$. Pour $p = 0{,}5$, son écart type est $\\sqrt{n}$ : sur la figure, la trajectoire simulée reste presque toujours entre $-2\\sqrt{n}$ et $2\\sqrt{n}$.\n" +
+        "- **$N$ échantillons de taille $n$** : l'écart type des $N$ moyennes observées est proche de $\\dfrac{\\sigma}{\\sqrt{n}}$, et la proportion des moyennes à moins de $k\\dfrac{\\sigma}{\\sqrt{n}}$ de $\\mu$ est au moins $1 - \\dfrac{1}{k^2}$ en théorie (inégalité de concentration).",
       exemple: {
         enonce: "Comment estimer, par simulation, la probabilité d'obtenir une somme égale à $7$ avec deux dés ?",
         solution: "On simule un grand nombre $n$ de lancers de deux dés, on compte ceux de somme $7$, et on divise par $n$.\n\nLa fréquence obtenue se rapproche de $\\dfrac{6}{36} = \\dfrac{1}{6}$ quand $n$ augmente (loi des grands nombres)."
@@ -143,7 +152,7 @@ window.CHAPITRES["terminale-spe-grands-nombres"] = {
     { type: "lgn-binomiale", titre: "Variance de la loi binomiale", etape: "Concentration", nb: 4 },
     { type: "lgn-bienayme", titre: "Inégalité de Bienaymé-Tchebychev", etape: "Concentration", nb: 5 },
     { type: "lgn-concentration", titre: "Inégalité de concentration", etape: "Concentration", nb: 5 },
-    { type: "lgn-python", titre: "Simuler en Python", etape: "Algorithmique", nb: 4 }
+    { type: "lgn-python", titre: "Simuler en Python : moyennes, échantillons, marche aléatoire", etape: "Algorithmique", nb: 4 }
   ],
 
   /* ---------- 3. QCM DE RÉVISION ---------- */

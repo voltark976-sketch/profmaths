@@ -3,15 +3,15 @@
   ------------------------------------------------------------------------
   Chapitre 15 de la progression spiralée 2026-2027 (programme de maths complémentaires de 2019, thème d'étude).
   Échantillons de taille n, série des moyennes, écart type à comparer à σ/√n ; sondages, fourchette, biais ;
-  Python : proportion des écarts ⩽ kσ/√n (k = 2 ou 3) ; sondage sur la vaccination au lycée ; préparation du Grand oral.
-  Figure : "tec-moyennes". Générateurs : tec- (et sm-intervalle, sm-taille du chapitre « Échantillons » de Première).
+  Python : proportion des écarts ⩽ kσ/√n (k = 2 ou 3, seuls cas du programme) ; sondage sur la vaccination au lycée ; préparation du Grand oral.
+  Figures : "tec-moyennes", "tec-cours-fourchettes", "tec-cours-amplitude". Générateurs : tec- (et sm-intervalle du chapitre « Échantillons » de Première).
 */
 window.CHAPITRES = window.CHAPITRES || {};
 window.CHAPITRES["terminale-echantillonnage"] = {
   niveau: "Terminale maths complémentaires",
   numero: 15,
   titre: "Échantillonnage et synthèse",
-  accroche: "Ce que dit un échantillon : moyennes d'échantillons et écart type σ/√n, sondages, fourchette et biais, un sondage sur la vaccination au lycée, puis des problèmes de synthèse pour préparer le Grand oral.",
+  accroche: "Ce que dit un échantillon : moyennes d'échantillons et écart type $\\dfrac{\\sigma}{\\sqrt{n}}$, sondages, fourchette et biais, un sondage sur la vaccination au lycée, puis des problèmes de synthèse pour préparer le Grand oral.",
 
   playlist: "",
   drive: "",
@@ -36,14 +36,13 @@ window.CHAPITRES["terminale-echantillonnage"] = {
       }
     },
     {
-      titre: "Les repères 68 %, 95 %, 99,7 %",
+      titre: "Les repères $95\\,\\%$ et $99{,}7\\,\\%$",
       video: { titre: "Vidéo d'Yvan Monka : loi des grands nombres (rappel)", youtube: "https://youtu.be/mFwXs_EMYes" },
       texte:
         "Pour $n$ assez grand, en simulant un grand nombre d'échantillons, on constate que la proportion des moyennes $M_n$ telles que $|M_n - \\mu| \\leqslant k\\dfrac{\\sigma}{\\sqrt{n}}$ est environ :\n\n" +
-        "- $68\\,\\%$ pour $k = 1$ ;\n" +
         "- $95\\,\\%$ pour $k = 2$ ;\n" +
-        "- $99{,}7\\,\\%$ pour $k = 3$.\n\n" +
-        "Ces repères viennent de la loi normale (« courbe en cloche »), que tu rencontreras après le bac.",
+        "- $99{,}7\\,\\%$ pour $k = 3$ (presque toutes les moyennes).\n\n" +
+        "Ces repères viennent de la loi normale (« courbe en cloche »), que tu rencontreras après le bac. Pour information, la proportion est d'environ $68\\,\\%$ pour $k = 1$.",
       exemple: {
         enonce: "$\\mu = 50$, $\\sigma = 10$, $n = 100$. Dans quel intervalle se trouvent environ $95\\,\\%$ des moyennes ?",
         solution: "$\\dfrac{\\sigma}{\\sqrt{n}} = 1$, donc $[50 - 2\\,;50 + 2] = [48\\,;52]$."
@@ -53,7 +52,8 @@ window.CHAPITRES["terminale-echantillonnage"] = {
       titre: "Python : vérifier par simulation",
       texte:
         "```python\nfrom random import random\nfrom math import sqrt\n\nmu = 15\nsigma = 30 / sqrt(12)\n\ndef moyenneEch(n):\n    s = 0\n    for i in range(n):\n        s = s + 30 * random()\n    return s / n\n\ndef proportion(N, n, k):\n    c = 0\n    for i in range(N):\n        m = moyenneEch(n)\n        if abs(m - mu) <= k * sigma / sqrt(n):\n            c = c + 1\n    return c / N\n```\n\n" +
-        "moyenneEch(n) simule $n$ attentes de la barge (loi uniforme sur $[0\\,;30]$) et renvoie leur moyenne. proportion(1000, 25, 2) renvoie une valeur proche de $0{,}95$.",
+        "moyenneEch(n) simule $n$ attentes de la barge (loi uniforme sur $[0\\,;30]$) et renvoie leur moyenne. proportion(1000, 25, 2) renvoie une valeur proche de $0{,}95$.\n\n" +
+        "On peut aussi ranger dans une liste les $N$ moyennes simulées, calculer l'écart type $s$ de cette série et le comparer à $\\dfrac{\\sigma}{\\sqrt{n}}$ : les deux sont proches.",
       exemple: {
         enonce: "Que renvoie environ proportion(1000, 25, 3) ?",
         solution: "Environ $0{,}997$ : presque toutes les moyennes sont à moins de $3\\dfrac{\\sigma}{\\sqrt{n}}$ de $15$."
@@ -61,11 +61,13 @@ window.CHAPITRES["terminale-echantillonnage"] = {
     },
     {
       titre: "Sondages et fourchette",
+      figure: ["tec-cours-fourchettes", "tec-cours-amplitude"],
+      video: { titre: "Vidéo d'Yvan Monka : estimer une proportion avec un intervalle de confiance", youtube: "https://youtu.be/cU5cJlCVAM8" },
       texte:
         "On veut connaître une proportion $p$ inconnue dans une population (part d'élèves vaccinés, d'électeurs…). On interroge un échantillon de $n$ personnes tirées au hasard et on calcule la fréquence $f$ observée.\n\n" +
         "La **fourchette** au niveau de confiance $95\\,\\%$ est $\\left[f - \\dfrac{1}{\\sqrt{n}}\\,;f + \\dfrac{1}{\\sqrt{n}}\\right]$ (pour $n \\geqslant 25$ et $f$ entre $0{,}2$ et $0{,}8$).\n\n" +
-        "- Elle contient $p$ dans environ $95\\,\\%$ des sondages, pas dans tous.\n" +
-        "- Son amplitude $\\dfrac{2}{\\sqrt{n}}$ ne dépend que de $n$ : pour être deux fois plus précis, il faut $4$ fois plus de personnes.\n\n" +
+        "- Elle contient $p$ dans environ $95\\,\\%$ des sondages, pas dans tous (première figure : $20$ sondages de $100$ personnes quand $p = 0{,}6$ ; une seule fourchette manque $p$).\n" +
+        "- Son amplitude $\\dfrac{2}{\\sqrt{n}}$ ne dépend que de $n$ : pour être deux fois plus précis, il faut $4$ fois plus de personnes (seconde figure).\n\n" +
         "Lien avec le cours : une fréquence est la moyenne d'une variable de Bernoulli, d'écart type $\\sqrt{p(1 - p)} \\leqslant 0{,}5$, donc $2\\dfrac{\\sigma}{\\sqrt{n}} \\leqslant \\dfrac{1}{\\sqrt{n}}$.",
       exemple: {
         enonce: "Sondage sur la vaccination au lycée : $244$ élèves à jour sur $400$ interrogés au hasard. Donne la fourchette.",
@@ -74,6 +76,7 @@ window.CHAPITRES["terminale-echantillonnage"] = {
     },
     {
       titre: "Biais : quand l'échantillon ment",
+      video: { titre: "Vidéo de l'UCLouvain (MOOC) : qu'est-ce qu'un bon sondage ?", youtube: "https://youtu.be/bxr-aldRzws" },
       texte:
         "Un **biais** apparaît quand l'échantillon n'est pas tiré au hasard dans toute la population :\n\n" +
         "- **biais de sélection** : interroger les élèves présents à l'infirmerie pour estimer la part de vaccinés ;\n" +
@@ -104,15 +107,18 @@ window.CHAPITRES["terminale-echantillonnage"] = {
 
   videos: [
     { titre: "Simuler une expérience avec Python (rappel)", type: "Python", youtube: "https://youtu.be/EXEcSJE31QY" },
-    { titre: "Estimer une probabilité : loi des grands nombres (rappel)", type: "Cours", youtube: "https://youtu.be/mFwXs_EMYes" }
+    { titre: "Estimer une probabilité : loi des grands nombres (rappel)", type: "Cours", youtube: "https://youtu.be/mFwXs_EMYes" },
+    { titre: "Estimer une proportion avec un intervalle de confiance", type: "Méthode", youtube: "https://youtu.be/cU5cJlCVAM8" },
+    { titre: "Déterminer la taille d'un échantillon", type: "Méthode", youtube: "https://youtu.be/ogmMVpkBVgs" },
+    { titre: "Qu'est-ce qu'un bon sondage ? (UCLouvain)", type: "Cours", youtube: "https://youtu.be/bxr-aldRzws" }
   ],
-  videosNote: "Deux rappels d'Yvan Monka. Le chapitre « Échantillons » de Première reprend aussi la simulation et l'écart 2σ/√n.",
+  videosNote: "Vidéos d'Yvan Monka et d'un MOOC de l'UCLouvain. Le chapitre « Échantillons » de Première reprend aussi la simulation et l'écart de deux écarts types autour de la moyenne.",
 
   /* ---------- 2. EXERCICES INTERACTIFS ---------- */
   exercices: [
-    { type: "tec-ecart-type", titre: "Écart type des moyennes σ/√n", etape: "Échantillons", nb: 4 },
-    { type: "tec-intervalle", titre: "Intervalle μ ± kσ/√n", etape: "Échantillons", nb: 4 },
-    { type: "sm-intervalle", titre: "Rappel de Première : l'écart 2σ/√n", etape: "Échantillons", nb: 3 },
+    { type: "tec-ecart-type", titre: "Écart type des moyennes $\\dfrac{\\sigma}{\\sqrt{n}}$", etape: "Échantillons", nb: 4 },
+    { type: "tec-intervalle", titre: "Intervalle $\\mu \\pm k\\dfrac{\\sigma}{\\sqrt{n}}$", etape: "Échantillons", nb: 4 },
+    { type: "sm-intervalle", titre: "Rappel de Première : l'écart $2\\dfrac{\\sigma}{\\sqrt{n}}$", etape: "Échantillons", nb: 3 },
     { type: "tec-python", titre: "Python : proportion des écarts", etape: "Échantillons", nb: 3 },
     { type: "tec-fourchette", titre: "Sondage et fourchette", etape: "Sondages", nb: 4 },
     { type: "tec-taille", titre: "Taille de l'échantillon", etape: "Sondages", nb: 4 },

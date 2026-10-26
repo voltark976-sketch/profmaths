@@ -4,7 +4,7 @@
   Chapitre 6 de la progression spiralée 2026-2027 (programme de maths complémentaires de 2019).
   Mêmes règles d'écriture que data/seconde/fonctions.js.
   Vidéos d'Yvan Monka (cours 20StatTC). Les données de Pamandzi sont fictives (ordre de grandeur réaliste).
-  Figures : "tsd-nuage", "tsd-correlations". Générateurs : tsd-.
+  Figures : "tsd-nuage", "tsd-correlations", "tsd-cours-…", "tsd-qcm-…". Générateurs : tsd-.
 */
 window.CHAPITRES = window.CHAPITRES || {};
 window.CHAPITRES["terminale-deux-variables"] = {
@@ -15,7 +15,9 @@ window.CHAPITRES["terminale-deux-variables"] = {
 
   playlist: "",
   drive: "",
-  pdfs: [],
+  pdfs: [
+    { titre: "Cours d'Yvan Monka : statistique à deux variables (PDF)", url: "https://www.maths-et-tiques.fr/telech/20StatTC.pdf" }
+  ],
   liens: [],
 
   /* ---------- 1. CAPSULE DE COURS ---------- */
@@ -36,13 +38,14 @@ window.CHAPITRES["terminale-deux-variables"] = {
     },
     {
       titre: "Ajustement affine : la méthode des moindres carrés",
+      figure: "tsd-cours-mc",
       video: { titre: "Vidéo d'Yvan Monka : déterminer et tracer la droite d'ajustement (moindres carrés)", youtube: "https://youtu.be/vdEL0MOKAIg" },
       texte:
         "Quand le nuage est allongé le long d'une droite, on cherche une droite $y = ax + b$ qui le résume au mieux.\n\n" +
         "La **droite des moindres carrés** est celle qui rend minimale la somme des carrés des écarts verticaux :\n\n" +
         "$S = (y_1 - ax_1 - b)^2 + \\dots + (y_n - ax_n - b)^2$.\n\n" +
         "On l'obtient à la **calculatrice** (régression linéaire) ou au tableur. Elle passe toujours par le point moyen $G$.\n\n" +
-        "Pour la figure : $y \\approx 0{,}060x + 26{,}43$.\n\n" +
+        "Pour les températures de Pamandzi : $y \\approx 0{,}060x + 26{,}43$ (sur la figure, les écarts verticaux sont en pointillés).\n\n" +
         "**Pourquoi par $G$ ?** Pour $a$ fixé, $S$ est un trinôme du second degré en $b$, de coefficient $n > 0$ devant $b^2$ ; son minimum est atteint pour $b = \\bar{y} - a\\bar{x}$, c'est-à-dire quand la droite passe par $G$.",
       exemple: {
         enonce: "La calculatrice donne $y = 0{,}06x + 26{,}43$. Vérifie que la droite passe (presque) par $G(4{,}5\\,;26{,}7)$.",
@@ -66,11 +69,12 @@ window.CHAPITRES["terminale-deux-variables"] = {
     },
     {
       titre: "Interpoler, extrapoler, avec un regard critique",
+      figure: "tsd-cours-extrapolation",
       texte:
         "Avec la droite d'ajustement, on peut estimer une valeur :\n\n" +
         "- **interpolation** : à l'intérieur de la plage des données (assez fiable) ;\n" +
         "- **extrapolation** : en dehors (prévision), beaucoup plus fragile.\n\n" +
-        "Exemple : pour le rang $12$ (année 2026), le modèle prévoit $0{,}06 \\times 12 + 26{,}43 \\approx 27{,}1$ °C. C'est une extrapolation : la tendance peut changer.\n\n" +
+        "Exemple : pour le rang $12$ (année 2026), le modèle prévoit $0{,}06 \\times 12 + 26{,}43 \\approx 27{,}2$ °C. C'est une extrapolation : la tendance peut changer.\n\n" +
         "Un ajustement se **critique** : est-il cohérent avec le contexte ? Une concentration ne peut pas devenir négative, une température ne monte pas indéfiniment…",
       exemple: {
         enonce: "Pour un médicament, l'ajustement donne $C = -2x + 24$ ($C$ en mg/L, $x$ en heures, données de $1$ à $7$ h). Que prévoit-il à $15$ h ? Qu'en penser ?",
@@ -79,6 +83,7 @@ window.CHAPITRES["terminale-deux-variables"] = {
     },
     {
       titre: "Ajustement par changement de variable",
+      figure: "tsd-cours-changement",
       video: { titre: "Vidéo d'Yvan Monka : effectuer un ajustement à l'aide d'un changement de variable", youtube: "https://youtu.be/nVDL0razClY" },
       texte:
         "Si le nuage n'est pas allongé le long d'une droite, on peut transformer une variable : $z = x^2$, $z = \\sqrt{x}$, $z = \\dfrac{1}{x}$… (et plus tard $z = \\ln y$, chapitre 8).\n\n" +
@@ -90,6 +95,7 @@ window.CHAPITRES["terminale-deux-variables"] = {
     },
     {
       titre: "Corrélation n'est pas causalité",
+      figure: "tsd-cours-glaces",
       texte:
         "Deux variables peuvent être très corrélées sans que l'une soit la cause de l'autre.\n\n" +
         "**Contre-exemple classique** : sur une année, le nombre de glaces vendues et le nombre de noyades sont fortement corrélés. Manger une glace ne fait pas couler : un **facteur commun**, la chaleur de l'été, augmente les deux.\n\n" +
@@ -101,6 +107,7 @@ window.CHAPITRES["terminale-deux-variables"] = {
     },
     {
       titre: "Tableur ou Python : la somme des carrés des écarts",
+      figure: "tsd-cours-ecarts",
       texte:
         "Pour comparer deux droites, on calcule la somme des carrés des écarts verticaux : la meilleure droite a la plus petite somme.\n\n" +
         "```python\ndef somme_carres(X, Y, a, b):\n    s = 0\n    for i in range(len(X)):\n        s = s + (Y[i] - (a * X[i] + b))**2\n    return s\n```\n\n" +
@@ -114,7 +121,8 @@ window.CHAPITRES["terminale-deux-variables"] = {
 
   videos: [
     { titre: "Déterminer la droite d'ajustement par la méthode des points moyens", type: "Ajustement", youtube: "https://youtu.be/ESHY4QPgriw" },
-    { titre: "Représenter un nuage de points et déterminer le point moyen", type: "Nuage", youtube: "https://youtu.be/Nn6uckb3RvE" }
+    { titre: "Afficher la droite d'ajustement sur la calculatrice TI", type: "Calculatrice", youtube: "https://youtu.be/lC1lfgYE51s" },
+    { titre: "Afficher la droite d'ajustement sur la calculatrice Casio", type: "Calculatrice", youtube: "https://youtu.be/AYfsjiwsW00" }
   ],
   videosNote: "Vidéos d'Yvan Monka : l'énoncé est donné au début de chaque vidéo.",
 
@@ -152,7 +160,11 @@ window.CHAPITRES["terminale-deux-variables"] = {
     { question: "$G(4\\,;10)$ et la pente $a = 2$. L'ordonnée à l'origine $b$ vaut :", choix: ["$2$", "$10$", "$8$", "$-2$"], bonne: 0, explication: "$b = 10 - 2 \\times 4$." },
     { question: "Si $|r| = 1$ :", choix: ["les points sont exactement alignés", "les points sont tous égaux", "le nuage est un cercle", "l'ajustement est impossible"], bonne: 0, explication: "Alignement parfait." },
     { question: "Pour un nuage qui « monte de plus en plus vite », on peut essayer :", choix: ["un changement de variable", "de supprimer des points", "la moyenne seule", "$r = 0$"], bonne: 0, explication: "Par exemple $z = x^2$ (ou $\\ln y$ plus tard)." },
-    { question: "« Corrélation forte » dans le cas des pharmacies et des malades s'explique par :", choix: ["la taille de la population", "les pharmacies", "les malades", "une erreur de calcul"], bonne: 0, explication: "Facteur commun." }
+    { question: "« Corrélation forte » dans le cas des pharmacies et des malades s'explique par :", choix: ["la taille de la population", "les pharmacies", "les malades", "une erreur de calcul"], bonne: 0, explication: "Facteur commun." },
+    { question: "Quelle valeur du coefficient de corrélation correspond au nuage ci-dessous ?", figure: "tsd-qcm-nuage-neg", choix: ["$r \\approx -0{,}99$", "$r \\approx 0{,}99$", "$r \\approx 0{,}1$", "$r \\approx -0{,}5$"], bonne: 0, explication: "Les points sont presque alignés sur une droite décroissante : $|r|$ est proche de $1$ et $r < 0$." },
+    { question: "Pour le nuage ci-dessous, un ajustement affine est-il pertinent ?", figure: "tsd-qcm-nuage-nul", choix: ["Non : les points sont très dispersés, $r$ est proche de $0$", "Oui : $r$ est proche de $1$", "Oui : $r$ est proche de $-1$", "Oui, toujours"], bonne: 0, explication: "Le nuage n'est allongé dans aucune direction : $r$ est proche de $0$ et une droite résumerait mal les données." },
+    { question: "Le nuage ci-dessous monte de plus en plus vite. Que faire pour l'ajuster ?", figure: "tsd-qcm-courbe", choix: ["Un changement de variable, puis un ajustement affine", "Un ajustement affine directement sur $(x\\,;y)$", "Supprimer les derniers points", "Calculer seulement le point moyen"], bonne: 0, explication: "Le nuage n'est pas allongé le long d'une droite : on transforme une variable (par exemple $z = \\ln y$, vu au chapitre 8, ou $z = x^2$) pour obtenir un nuage presque aligné." },
+    { question: "D'après la figure (concentration d'un médicament, droite $C = -2x + 24$ ajustée de $1$ à $7$ h), que penser de la prévision pour $15$ h ?", figure: "tsd-cours-extrapolation", choix: ["Elle donne $-6$ mg/L : c'est absurde, l'extrapolation n'est plus valable", "Elle est fiable car $r$ est proche de $-1$", "Elle donne $6$ mg/L", "Elle donne $24$ mg/L"], bonne: 0, explication: "$-2 \\times 15 + 24 = -6$ : une concentration ne peut pas être négative. Loin des données, le modèle affine ne s'applique plus." }
   ],
 
   /* ---------- 4. FICHE MÉTHODE ---------- */
@@ -160,17 +172,20 @@ window.CHAPITRES["terminale-deux-variables"] = {
     {
       titre: "Ajuster un nuage de points",
       etapes: ["Représenter le nuage et calculer le point moyen $G(\\bar{x}\\,;\\bar{y})$.", "Si le nuage est allongé, obtenir $y = ax + b$ à la calculatrice (régression linéaire).", "Vérifier $|r|$ proche de $1$ et que la droite passe par $G$."],
-      exemple: "Pamandzi : $G(4{,}5\\,;26{,}7)$, $y \\approx 0{,}060x + 26{,}43$, $r \\approx 0{,}91$."
+      exemple: "Pamandzi : $G(4{,}5\\,;26{,}7)$, $y \\approx 0{,}060x + 26{,}43$, $r \\approx 0{,}91$ (nuage, droite et point moyen sur la figure).",
+      figure: "tsd-nuage"
     },
     {
       titre: "Utiliser l'ajustement",
       etapes: ["Remplacer $x$ (ou résoudre $ax + b = y$) pour estimer.", "Dire s'il s'agit d'une interpolation ou d'une extrapolation.", "Critiquer : la valeur est-elle réaliste dans le contexte ?"],
-      exemple: "Rang $12$ : $\\approx 27{,}1$ °C, extrapolation à prendre avec prudence."
+      exemple: "Rang $12$ : $\\approx 27{,}2$ °C, extrapolation à prendre avec prudence. Sur la figure, prolonger la droite d'un médicament donne une concentration négative : absurde.",
+      figure: "tsd-cours-extrapolation"
     },
     {
       titre: "Changement de variable",
       etapes: ["Choisir $z$ ($x^2$, $\\sqrt{x}$, $\\dfrac{1}{x}$…) qui aligne le nuage $(z\\,;y)$.", "Ajuster $y = az + b$.", "Remplacer $z$ par son expression en $x$ pour estimer."],
-      exemple: "$z = x^2$, $y = 0{,}5z + 4$ : pour $x = 6$, $y = 22$."
+      exemple: "$z = x^2$, $y = 0{,}5z + 4$ : pour $x = 6$, $y = 22$ (courbe $y = 0{,}5x^2 + 4$ sur la figure).",
+      figure: "tsd-cours-changement"
     }
   ],
   erreurs: [

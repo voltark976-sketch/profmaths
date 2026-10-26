@@ -3,8 +3,8 @@
   -------------------------------------------------------------------
   Chapitre 7 de la progression spiralée 2026-2027 (programme de Première 2026).
   Mêmes règles d'écriture que data/seconde/fonctions.js.
-  Pas encore de vidéo de la chaîne ni de PDF pour ce chapitre : les vidéos sont celles d'Yvan Monka.
-  Figures : "secante", "secantes-tangente", "tangente-lecture", "taxi-vitesse". Générateurs : d1-.
+  Pas encore de vidéo de la chaîne ni de PDF pour ce chapitre : vidéos d'Yvan Monka d'abord, d'autres chaînes quand il n'en a pas.
+  Figures : "secante", "secantes-tangente", "tangente-lecture", "taxi-vitesse" et les figures d1- (cours, QCM, méthode). Générateurs : d1-.
 */
 window.CHAPITRES = window.CHAPITRES || {};
 window.CHAPITRES["premiere-derivation-1"] = {
@@ -15,7 +15,9 @@ window.CHAPITRES["premiere-derivation-1"] = {
 
   playlist: "",
   drive: "",
-  pdfs: [],
+  pdfs: [
+    { titre: "Cours d'Yvan Monka : dérivation, chapitre 1 (PDF)", url: "https://www.maths-et-tiques.fr/telech/19DeriP1M.pdf" }
+  ],
   liens: [
     { titre: "Le cours sur la dérivation en vidéo (Yvan Monka)", url: "https://youtu.be/uMSNllPBFhQ", type: "video" }
   ],
@@ -25,6 +27,7 @@ window.CHAPITRES["premiere-derivation-1"] = {
     {
       titre: "Taux de variation et sécante",
       figure: "secante",
+      video: { titre: "Vidéo d'Yvan Monka : calculer un taux de variation", youtube: "https://youtu.be/xd0zEwVOmHE" },
       texte:
         "Soit $f$ une fonction et $a$, $b$ deux réels distincts de son ensemble de définition. Le **taux de variation** de $f$ entre $a$ et $b$ est\n\n" +
         "$\\dfrac{f(b) - f(a)}{b - a}$.\n\n" +
@@ -52,13 +55,14 @@ window.CHAPITRES["premiere-derivation-1"] = {
     },
     {
       titre: "Avec la fonction inverse",
+      figure: "d1-cours-inverse",
       video: { titre: "Vidéo d'Yvan Monka : calculer le nombre dérivé (2)", youtube: "https://youtu.be/Iv5_mw1EYBE" },
       texte:
         "Pour $f(x) = \\dfrac{1}{x}$ et $a \\neq 0$ :\n\n" +
         "$f(a + h) - f(a) = \\dfrac{1}{a + h} - \\dfrac{1}{a} = \\dfrac{a - (a + h)}{a(a + h)} = \\dfrac{-h}{a(a + h)}$.\n\n" +
         "Le taux vaut donc $\\dfrac{-1}{a(a + h)}$, qui se rapproche de $-\\dfrac{1}{a^2}$ quand $h$ tend vers $0$ :\n\n" +
         "$f'(a) = -\\dfrac{1}{a^2}$.\n\n" +
-        "Ce nombre dérivé est toujours négatif : la courbe de la fonction inverse descend sur chacun de ses deux intervalles.",
+        "Ce nombre dérivé est toujours négatif : la courbe de la fonction inverse descend sur chacun de ses deux intervalles, et ses tangentes descendent aussi (schéma).",
       exemple: {
         enonce: "Calcule $f'(2)$ et $f'(-1)$ pour $f(x) = \\dfrac{1}{x}$.",
         solution: "$f'(2) = -\\dfrac{1}{4}$ et $f'(-1) = -\\dfrac{1}{(-1)^2} = -1$."
@@ -81,6 +85,7 @@ window.CHAPITRES["premiere-derivation-1"] = {
     },
     {
       titre: "Démonstration : équation de la tangente",
+      figure: "d1-cours-equation",
       video: { titre: "Vidéo d'Yvan Monka : démonstration de l'équation de la tangente", youtube: "https://youtu.be/Jj0ql6-o2Uo" },
       texte:
         "**Propriété** : si $f$ est dérivable en $a$, la tangente à sa courbe au point d'abscisse $a$ a pour équation\n\n" +
@@ -94,11 +99,13 @@ window.CHAPITRES["premiere-derivation-1"] = {
     },
     {
       titre: "Approximation linéaire",
+      figure: "d1-cours-approx",
       video: { titre: "Vidéo d'Yvan Monka : utiliser une approximation linéaire", youtube: "https://youtu.be/jH8CXsqhy7M" },
       texte:
         "Près du point $A$, la courbe et sa tangente sont presque confondues. Pour $h$ proche de $0$ :\n\n" +
         "$f(a + h) \\approx f(a) + f'(a)\\,h$.\n\n" +
-        "C'est l'**approximation linéaire** de $f$ au voisinage de $a$ : on remplace la courbe par sa tangente. Plus $h$ est petit, meilleure est l'approximation.",
+        "C'est l'**approximation linéaire** (on dit aussi approximation affine) de $f$ au voisinage de $a$ : on remplace la courbe par sa tangente. Plus $h$ est petit, meilleure est l'approximation.\n\n" +
+        "Sur le schéma (un zoom près de $A(3\\,;9)$ pour $f(x) = x^2$), en $3{,}2$ la courbe vaut $10{,}24$ et la tangente $10{,}2$ : l'écart n'est que de $0{,}04$.",
       exemple: {
         enonce: "Avec $f(x) = x^2$, $f(3) = 9$ et $f'(3) = 6$, donne une valeur approchée de $3{,}01^2$.",
         solution: "$3{,}01^2 \\approx 9 + 6 \\times 0{,}01 = 9{,}06$. La valeur exacte est $9{,}0601$."
@@ -107,6 +114,7 @@ window.CHAPITRES["premiere-derivation-1"] = {
     {
       titre: "Interpréter : la vitesse du taxi",
       figure: "taxi-vitesse",
+      video: { titre: "Vidéo de Maths en tête : nombre dérivé et vitesse instantanée", youtube: "https://youtu.be/xhX0AkDscUk" },
       texte:
         "Sur la route de Sada, un taxi démarre. La distance parcourue (en m) au bout de $t$ secondes est $d(t) = 0{,}8t^2$.\n\n" +
         "- **Vitesse moyenne** entre $5$ et $10$ s : $\\dfrac{d(10) - d(5)}{10 - 5} = \\dfrac{80 - 20}{5} = 12$ m/s. C'est la pente de la **sécante** (en pointillés).\n" +
@@ -119,6 +127,8 @@ window.CHAPITRES["premiere-derivation-1"] = {
     },
     {
       titre: "Interpréter : le coût marginal",
+      figure: "d1-cours-marginal",
+      video: { titre: "Vidéo de François Le Ninan : coût marginal et nombre dérivé", youtube: "https://youtu.be/ipAbE_ElPq4" },
       texte:
         "Une coopérative de Bandrélé fabrique des pots de confiture de mangue. Le coût de fabrication de $q$ pots est $C(q) = 0{,}02q^2 + 2q + 50$ euros.\n\n" +
         "Le **coût marginal** en $q$ est le nombre dérivé $C'(q)$ : c'est, environ, le coût de fabrication d'un pot supplémentaire.\n\n" +
@@ -131,10 +141,12 @@ window.CHAPITRES["premiere-derivation-1"] = {
     },
     {
       titre: "Python : les pentes des sécantes",
+      figure: "d1-cours-python",
+      video: { titre: "Vidéo de Mathématiques au lycée : approcher un nombre dérivé en Python (exercice corrigé)", youtube: "https://youtu.be/jsMoCibojrs" },
       texte:
         "On calcule la pente des sécantes pour des pas $h$ de plus en plus petits :\n\n" +
         "```python\ndef f(x):\n    return x**2\n\ndef pentes(a, pas):\n    return [(f(a + h) - f(a)) / h for h in pas]\n\nprint(pentes(3, [1, 0.1, 0.01, 0.001]))\n```\n\n" +
-        "Le programme affiche environ $\\texttt{[7.0, 6.1, 6.01, 6.001]}$, avec de petites erreurs d'arrondi dans les derniers chiffres. Les pentes se rapprochent de $6$ : on conjecture que $f'(3) = 6$.",
+        "Le programme affiche environ $\\texttt{[7.0, 6.1, 6.01, 6.001]}$, avec de petites erreurs d'arrondi dans les derniers chiffres. Les pentes se rapprochent de $6$ (schéma) : on conjecture que $f'(3) = 6$.",
       exemple: {
         enonce: "Que faut-il écrire pour étudier $f'(-2)$ ? Que trouve-t-on ?",
         solution: "On appelle $\\texttt{pentes(-2,}$ $\\texttt{[1, 0.1, 0.01, 0.001])}$ : on obtient environ $-3$, $-3{,}9$, $-3{,}99$, $-3{,}999$, qui se rapprochent de $-4 = f'(-2)$."
@@ -142,6 +154,8 @@ window.CHAPITRES["premiere-derivation-1"] = {
     },
     {
       titre: "Logique : paramètre et variable",
+      figure: "d1-cours-statut",
+      video: { titre: "Vidéo d'Hedacademy : comprendre f'(a), le nombre dérivé", youtube: "https://youtu.be/orsYCNXXzvs" },
       texte:
         "Dans $f'(a) = \\lim\\limits_{h \\to 0} \\dfrac{f(a + h) - f(a)}{h}$ :\n\n" +
         "- $a$ est un **paramètre** : il est fixé pendant tout le calcul, c'est l'abscisse du point étudié ;\n" +
@@ -294,14 +308,19 @@ window.CHAPITRES["premiere-derivation-1"] = {
     { question: "La tangente à la courbe de $f$ en $A(1\\,;2)$ passe aussi par $B(3\\,;3)$. Alors $f'(1) =$", choix: ["$\\dfrac{1}{2}$", "$1$", "$2$", "$3$"], bonne: 0, explication: "$f'(1)$ est la pente de la tangente : $\\dfrac{3 - 2}{3 - 1} = \\dfrac{1}{2}$. On avance de $2$ et on monte de $1$." },
     { question: "$f(3) = 9$ et $f'(3) = 6$. Une valeur approchée de $f(2{,}99)$ est :", choix: ["$8{,}94$", "$9{,}06$", "$8{,}99$", "$8{,}4$"], bonne: 0, explication: "$f(3 + h) \\approx f(3) + f'(3)\\,h$ avec $h = -0{,}01$ : $9 + 6 \\times (-0{,}01) = 8{,}94$. Ici $h$ est négatif." },
     { question: "Un taxi parcourt $d(t) = 0{,}8t^2$ mètres en $t$ secondes. Sa vitesse moyenne entre $t = 0$ et $t = 5$ s vaut :", choix: ["$4$ m/s", "$20$ m/s", "$8$ m/s", "$0{,}8$ m/s"], bonne: 0, explication: "$\\dfrac{d(5) - d(0)}{5 - 0} = \\dfrac{20}{5} = 4$ m/s : c'est la pente d'une sécante. $8$ m/s est la vitesse instantanée $d'(5)$." },
-    { question: "Vrai ou faux : si $f(a) = 0$, alors $f'(a) = 0$.", choix: ["Faux", "Vrai"], bonne: 0, explication: "Contre-exemple : $f(x) = 2x$ vérifie $f(0) = 0$, mais toutes ses sécantes ont pour pente $2$, donc $f'(0) = 2$. Ne confonds pas l'ordonnée $f(a)$ et la pente $f'(a)$." },
-    { question: "Avec $f(x) = x^2$, que renvoie environ $\\texttt{pentes(1, [1, 0.1])}$ (programme du cours) ?", choix: ["$\\texttt{[3.0, 2.1]}$", "$\\texttt{[4, 1.21]}$", "$\\texttt{[2, 2]}$", "$\\texttt{[3.0, 3.0]}$"], bonne: 0, explication: "Pour $h = 1$ : $\\dfrac{4 - 1}{1} = 3$. Pour $h = 0{,}1$ : $\\dfrac{1{,}21 - 1}{0{,}1} = 2{,}1$. Ces pentes $2 + h$ se rapprochent de $f'(1) = 2$." }
+    { question: "L'affirmation « si $f(a) = 0$, alors $f'(a) = 0$ » est :", choix: ["fausse : $f(x) = 2x$ vérifie $f(0) = 0$ mais $f'(0) = 2$", "vraie : une courbe qui coupe l'axe des abscisses y a une tangente horizontale", "vraie seulement si $a = 0$", "fausse : on a toujours $f'(a) \\neq 0$"], bonne: 0, explication: "Un contre-exemple suffit : $f(x) = 2x$ vérifie $f(0) = 0$, mais toutes ses sécantes ont pour pente $2$, donc $f'(0) = 2$. Ne confonds pas l'ordonnée $f(a)$ et la pente $f'(a)$. (Et $f'(a) = 0$ arrive, par exemple au sommet d'une parabole.)" },
+    { question: "Avec $f(x) = x^2$, que renvoie environ $\\texttt{pentes(1, [1, 0.1])}$ (programme du cours) ?", choix: ["$\\texttt{[3.0, 2.1]}$", "$\\texttt{[4, 1.21]}$", "$\\texttt{[2, 2]}$", "$\\texttt{[3.0, 3.0]}$"], bonne: 0, explication: "Pour $h = 1$ : $\\dfrac{4 - 1}{1} = 3$. Pour $h = 0{,}1$ : $\\dfrac{1{,}21 - 1}{0{,}1} = 2{,}1$. Ces pentes $2 + h$ se rapprochent de $f'(1) = 2$." },
+    { question: "On a tracé la courbe de $f$ et sa tangente au point $A$ d'abscisse $2$. D'après le graphique, $f'(2)$ vaut :", figure: "d1-qcm-tangente", choix: ["$-2$", "$1$", "$2$", "$-\\dfrac{1}{2}$"], bonne: 0, explication: "La tangente passe par $A(2\\,;1)$ et par $(3\\,;-1)$ : on avance de $1$ et on descend de $2$, donc $f'(2) = -2$. ($1$ est l'ordonnée $f(2)$, pas la pente.)" },
+    { question: "La courbe de $f$ admet au point $A$ une tangente horizontale (en pointillés). Que vaut $f'(1)$ ?", figure: "d1-qcm-horizontale", choix: ["$0$", "$3$", "$1$", "On ne peut pas le savoir"], bonne: 0, explication: "Une tangente horizontale a un coefficient directeur nul : $f'(1) = 0$. $3$ est l'ordonnée $f(1)$ du point $A$, et $1$ son abscisse." },
+    { question: "En lequel des points $A$, $B$ ou $C$ de la courbe le nombre dérivé est-il négatif ?", figure: "d1-qcm-signes", choix: ["En $B$", "En $A$", "En $C$", "En aucun de ces points"], bonne: 0, explication: "En $B$, la courbe descend quand on va vers la droite : la tangente descend, sa pente est négative. En $A$ et en $C$, la courbe monte : le nombre dérivé est positif. Les trois points ont pourtant la même ordonnée, $0$." },
+    { question: "Sur le graphique de la distance parcourue par le taxi du cours, que représente la pente de la droite en pointillés ?", figure: "taxi-vitesse", choix: ["La vitesse moyenne entre $5$ s et $10$ s", "La vitesse instantanée à $10$ s", "La vitesse instantanée à $5$ s", "La distance parcourue entre $5$ s et $10$ s"], bonne: 0, explication: "La droite en pointillés passe par les points d'abscisses $5$ et $10$ de la courbe : c'est une sécante, sa pente $\\dfrac{80 - 20}{10 - 5} = 12$ m/s est une vitesse moyenne. La tangente en $10$ (trait plein) donne la vitesse instantanée, $16$ m/s." }
   ],
 
   /* ---------- 4. FICHE MÉTHODE ---------- */
   methode: [
     {
       titre: "Calculer un taux de variation",
+      figure: "d1-meth-taux",
       etapes: [
         "Calculer $f(a)$ et $f(b)$.",
         "Faire $\\dfrac{f(b) - f(a)}{b - a}$, en mettant les négatifs entre parenthèses.",
@@ -311,6 +330,7 @@ window.CHAPITRES["premiere-derivation-1"] = {
     },
     {
       titre: "Calculer un nombre dérivé avec la limite",
+      figure: "secantes-tangente",
       etapes: [
         "Écrire $f(a + h)$ et développer.",
         "Calculer $f(a + h) - f(a)$ : tous les termes restants contiennent $h$.",
@@ -321,6 +341,7 @@ window.CHAPITRES["premiere-derivation-1"] = {
     },
     {
       titre: "Lire un nombre dérivé sur un graphique",
+      figure: "d1-meth-lire",
       etapes: [
         "Repérer le point $A$ d'abscisse $a$ et la tangente en $A$.",
         "Avancer de $1$ (ou de $2$) unité vers la droite le long de la tangente.",
@@ -330,6 +351,7 @@ window.CHAPITRES["premiere-derivation-1"] = {
     },
     {
       titre: "Déterminer l'équation d'une tangente",
+      figure: "d1-meth-tangente",
       etapes: [
         "Trouver $f(a)$ et $f'(a)$, par le calcul ou par lecture.",
         "Remplacer dans $y = f'(a)(x - a) + f(a)$.",
@@ -339,6 +361,7 @@ window.CHAPITRES["premiere-derivation-1"] = {
     },
     {
       titre: "Utiliser l'approximation linéaire",
+      figure: "d1-meth-approx",
       etapes: [
         "Choisir $a$ proche de la valeur voulue, avec $f(a)$ et $f'(a)$ connus.",
         "Calculer l'écart $h$.",
@@ -348,6 +371,7 @@ window.CHAPITRES["premiere-derivation-1"] = {
     },
     {
       titre: "Interpréter un nombre dérivé",
+      figure: "taxi-vitesse",
       etapes: [
         "Distance en fonction du temps : le nombre dérivé est la vitesse instantanée.",
         "Coût en fonction de la quantité : le nombre dérivé est le coût marginal, environ le coût d'une unité de plus.",

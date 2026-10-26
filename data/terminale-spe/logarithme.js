@@ -6,7 +6,8 @@
   croissances comparées, dérivée de ln(u), seuils.
   Mêmes règles d'écriture que data/seconde/fonctions.js.
   Pas de vidéo de la chaîne sur ce thème : vidéos d'Yvan Monka (cours 20LogT1 et 20LogT2).
-  Figure : "lnx-courbes". Générateurs : lnx- (et tln-proprietes).
+  Figures : "lnx-…" (cours, méthode, QCM). Générateurs : lnx- (et tln-proprietes). Algorithme de Briggs (exemple
+  d'algorithme du programme) dans la partie Python.
 */
 window.CHAPITRES = window.CHAPITRES || {};
 window.CHAPITRES["terminale-spe-logarithme"] = {
@@ -17,7 +18,10 @@ window.CHAPITRES["terminale-spe-logarithme"] = {
 
   playlist: "",
   drive: "",
-  pdfs: [],
+  pdfs: [
+    { titre: "Cours d'Yvan Monka : fonction logarithme népérien, chapitre 1 (PDF)", url: "https://www.maths-et-tiques.fr/telech/20LogT1.pdf" },
+    { titre: "Cours d'Yvan Monka : fonction logarithme népérien, chapitre 2 (PDF)", url: "https://www.maths-et-tiques.fr/telech/20LogT2.pdf" }
+  ],
   liens: [
     { titre: "Le cours complet sur le logarithme népérien en vidéo (Yvan Monka)", url: "https://youtu.be/VJns0RfVWGg", type: "video" },
     { titre: "Démonstration : la dérivée de ln (Yvan Monka)", url: "https://youtu.be/wmysrEq4XIg", type: "video" },
@@ -59,6 +63,7 @@ window.CHAPITRES["terminale-spe-logarithme"] = {
     },
     {
       titre: "Équations et inéquations",
+      figure: "lnx-cours-inequation",
       video: { titre: "Vidéo d'Yvan Monka : résoudre une équation contenant des logarithmes", youtube: "https://youtu.be/lCT-8ijhZiE" },
       texte:
         "La fonction $\\ln$ est strictement croissante sur $]0\\,;+\\infty[$. Pour $a > 0$ et $b > 0$ :\n\n" +
@@ -74,6 +79,7 @@ window.CHAPITRES["terminale-spe-logarithme"] = {
     },
     {
       titre: "Seuils et suites géométriques",
+      figure: "lnx-cours-seuil",
       video: { titre: "Vidéo d'Yvan Monka : déterminer par le calcul un seuil pour une suite géométrique", youtube: "https://youtu.be/fm1YBGcix0E" },
       texte:
         "Le logarithme permet de résoudre des inéquations du type $q^n > A$ ou $q^n < A$, où l'inconnue est un **exposant** :\n\n" +
@@ -82,12 +88,13 @@ window.CHAPITRES["terminale-spe-logarithme"] = {
         "- Si $0 < q < 1$, $\\ln q < 0$ : en divisant, **le sens change**, $n > \\dfrac{\\ln A}{\\ln q}$.\n\n" +
         "On remplace ainsi la recherche de seuil par boucle (chapitres 1 et 4) par un calcul direct.",
       exemple: {
-        enonce: "Un médicament est éliminé à $20\\,\\%$ par heure. À partir de combien d'heures en reste-t-il moins de $5\\,\\%$ ?",
-        solution: "Il reste $0{,}8^n$ de la dose au bout de $n$ heures. $0{,}8^n < 0{,}05 \\iff n\\ln 0{,}8 < \\ln 0{,}05 \\iff n > \\dfrac{\\ln 0{,}05}{\\ln 0{,}8} \\approx 13{,}4$ (le sens change car $\\ln 0{,}8 < 0$).\n\nIl faut $14$ heures."
+        enonce: "À l'hôpital de Mamoudzou, un médicament est éliminé du sang à $20\\,\\%$ par heure. À partir de combien d'heures en reste-t-il moins de $5\\,\\%$ ?",
+        solution: "Il reste $0{,}8^n$ de la dose au bout de $n$ heures. $0{,}8^n < 0{,}05 \\iff n\\ln 0{,}8 < \\ln 0{,}05 \\iff n > \\dfrac{\\ln 0{,}05}{\\ln 0{,}8} \\approx 13{,}4$ (le sens change car $\\ln 0{,}8 < 0$).\n\nIl faut $14$ heures (sur la figure, le point d'abscisse $14$ est le premier sous la droite $y = 0{,}05$)."
       }
     },
     {
       titre: "Dérivée et variations",
+      figure: "lnx-cours-tangente",
       video: { titre: "Vidéo d'Yvan Monka : dériver une fonction contenant des logarithmes", youtube: "https://youtu.be/yiQ4Z5FdFQ8" },
       texte:
         "- La fonction $\\ln$ est dérivable sur $]0\\,;+\\infty[$ et $(\\ln x)' = \\dfrac{1}{x}$ (démonstration au programme).\n" +
@@ -101,6 +108,7 @@ window.CHAPITRES["terminale-spe-logarithme"] = {
     },
     {
       titre: "Limites et croissances comparées",
+      figure: "lnx-cours-croissance",
       video: { titre: "Vidéo d'Yvan Monka : calculer une limite par croissance comparée", youtube: "https://youtu.be/lA3W_j4p-c8" },
       texte:
         "- $\\lim\\limits_{x \\to +\\infty} \\ln x = +\\infty$ et $\\lim\\limits_{x \\to 0^+} \\ln x = -\\infty$ : la droite $x = 0$ est asymptote verticale.\n" +
@@ -119,7 +127,9 @@ window.CHAPITRES["terminale-spe-logarithme"] = {
         "```python\nfrom math import log, floor\n\ndef seuil(q, e):\n    # plus petit entier n tel que q**n < e, pour 0 < q < 1\n    return floor(log(e) / log(q)) + 1\n\nprint(seuil(0.8, 0.05))\n```\n\n" +
         "- $\\texttt{floor}$ donne la partie entière : le programme calcule le premier entier strictement supérieur à $\\dfrac{\\ln e}{\\ln q}$.\n" +
         "- On peut vérifier le résultat avec une boucle $\\texttt{while}$, comme aux chapitres 1 et 4.\n" +
-        "- Attention : $\\texttt{log(0)}$ ou $\\texttt{log(-1)}$ provoquent une erreur, comme $\\ln$ qui n'est définie que sur $]0\\,;+\\infty[$.",
+        "- Attention : $\\texttt{log(0)}$ ou $\\texttt{log(-1)}$ provoquent une erreur, comme $\\ln$ qui n'est définie que sur $]0\\,;+\\infty[$.\n\n" +
+        "**Algorithme de Briggs** (XVIIᵉ siècle) : pour calculer $\\ln a$ sans calculatrice, on prend $k$ fois la racine carrée de $a$. On obtient $r = a^{1/2^k}$, très proche de $1$, et $\\ln r = \\dfrac{\\ln a}{2^k}$. Comme $\\ln r \\approx r - 1$ pour $r$ proche de $1$ (tangente en $1$), on a $\\ln a \\approx 2^k(r - 1)$.\n\n" +
+        "```python\nfrom math import sqrt\n\ndef briggs(a, k):\n    for i in range(k):\n        a = sqrt(a)\n    return 2**k * (a - 1)\n```",
       exemple: {
         enonce: "Que renvoie $\\texttt{seuil(0.5, 0.01)}$ ?",
         solution: "$\\dfrac{\\ln 0{,}01}{\\ln 0{,}5} \\approx 6{,}64$ : la fonction renvoie $7$.\n\nVérification : $0{,}5^6 \\approx 0{,}0156$ et $0{,}5^7 \\approx 0{,}0078 < 0{,}01$."
@@ -147,7 +157,8 @@ window.CHAPITRES["terminale-spe-logarithme"] = {
     { type: "lnx-derivee", titre: "Dériver avec ln", etape: "Étudier", nb: 5 },
     { type: "lnx-variations", titre: "Variations et extremums", etape: "Étudier", nb: 4 },
     { type: "lnx-limites", titre: "Limites et croissances comparées", etape: "Étudier", nb: 5 },
-    { type: "lnx-python", titre: "Logarithmes en Python", etape: "Algorithmique", nb: 4 }
+    { type: "lnx-courbes", titre: "Courbes : lecture, symétrie avec exp, tangentes", etape: "Étudier", nb: 4 },
+    { type: "lnx-python", titre: "Logarithmes en Python (seuils, Briggs)", etape: "Algorithmique", nb: 4 }
   ],
 
   /* ---------- 3. QCM DE RÉVISION ---------- */
@@ -174,7 +185,13 @@ window.CHAPITRES["terminale-spe-logarithme"] = {
     { question: "La fonction $f(x) = x\\ln x$ atteint son minimum en :", choix: ["$x = \\dfrac{1}{e}$", "$x = 1$", "$x = e$", "$x = 0$"], bonne: 0, explication: "$f'(x) = \\ln x + 1 = 0 \\iff x = e^{-1}$." },
     { question: "Comme $\\ln$ est concave, pour tout $x > 0$ :", choix: ["$\\ln x \\leqslant x - 1$", "$\\ln x \\geqslant x - 1$", "$\\ln x = x - 1$", "$\\ln x \\geqslant x$"], bonne: 0, explication: "La courbe est sous sa tangente en $1$, d'équation $y = x - 1$." },
     { question: "Un capital augmente de $3\\,\\%$ par an. Il double au bout de $n$ années, avec $n$ le plus petit entier tel que :", choix: ["$n \\geqslant \\dfrac{\\ln 2}{\\ln 1{,}03}$", "$n \\geqslant \\dfrac{2}{1{,}03}$", "$n \\geqslant \\ln 2 - \\ln 1{,}03$", "$n \\geqslant \\dfrac{\\ln 1{,}03}{\\ln 2}$"], bonne: 0, explication: "$1{,}03^n \\geqslant 2 \\iff n\\ln 1{,}03 \\geqslant \\ln 2$ ; ici $\\ln 1{,}03 > 0$ : $n \\geqslant 23{,}4$, soit $24$ ans." },
-    { question: "En Python, $\\texttt{log(x)}$ du module $\\texttt{math}$ calcule :", choix: ["$\\ln x$", "le logarithme décimal de $x$", "$e^x$", "$\\dfrac{1}{x}$"], bonne: 0, explication: "Sans second argument, $\\texttt{log}$ est le logarithme népérien." }
+    { question: "En Python, $\\texttt{log(x)}$ du module $\\texttt{math}$ calcule :", choix: ["$\\ln x$", "le logarithme décimal de $x$", "$e^x$", "$\\dfrac{1}{x}$"], bonne: 0, explication: "Sans second argument, $\\texttt{log}$ est le logarithme népérien." },
+    { question: "La courbe ci-dessous passe par $A(1\\,;1)$ et $B(e\\,;2)$. C'est la courbe de :", figure: "lnx-qcm-courbe", choix: ["$x \\mapsto \\ln x + 1$", "$x \\mapsto \\ln(x + 1)$", "$x \\mapsto 2\\ln x$", "$x \\mapsto e^x + 1$"], bonne: 0, explication: "$\\ln 1 + 1 = 1$ et $\\ln e + 1 = 2$. ($\\ln(x + 1)$ vaut $\\ln 2$ en $1$, et $2\\ln x$ vaut $0$ en $1$.)" },
+    { question: "Sur la figure, les courbes de $\\exp$ et de $\\ln$ sont symétriques par rapport à :", figure: "lnx-courbes", choix: ["la droite d'équation $y = x$", "l'axe des abscisses", "l'axe des ordonnées", "l'origine du repère"], bonne: 0, explication: "Les fonctions sont réciproques : $(a\\,;b)$ est sur la courbe de $\\ln$ si et seulement si $(b\\,;a)$ est sur celle de $\\exp$." },
+    { question: "La droite $T$ est tangente à la courbe de $\\ln$ au point $(e\\,;1)$. Son équation est :", figure: "lnx-qcm-tangente", choix: ["$y = \\dfrac{x}{e}$", "$y = x - 1$", "$y = ex - e + 1$", "$y = \\dfrac{x}{e} + 1$"], bonne: 0, explication: "$y = \\dfrac{1}{e}(x - e) + 1 = \\dfrac{x}{e}$ : la tangente passe par l'origine." },
+    { question: "Ce tableau de variations est celui de la fonction :", figure: "lnx-qcm-tableau", choix: ["$x \\mapsto x - \\ln x$", "$x \\mapsto \\ln x - x$", "$x \\mapsto x\\ln x$", "$x \\mapsto \\ln x$"], bonne: 0, explication: "$f'(x) = 1 - \\dfrac{1}{x} = \\dfrac{x - 1}{x}$ : négative puis positive, minimum $f(1) = 1$ ; $f \\to +\\infty$ en $0^+$ et en $+\\infty$." },
+    { question: "La figure montre les points $(n\\,;0{,}8^n)$ et la droite $y = 0{,}05$. Le plus petit entier $n$ tel que $0{,}8^n < 0{,}05$ est :", figure: "lnx-cours-seuil", choix: ["$14$", "$13$", "$5$", "$20$"], bonne: 0, explication: "$n > \\dfrac{\\ln 0{,}05}{\\ln 0{,}8} \\approx 13{,}4$ : c'est $n = 14$, le premier point sous la droite." },
+    { question: "L'algorithme de Briggs (racines carrées successives) permet de calculer une valeur approchée de :", choix: ["$\\ln a$", "$e^a$", "$\\sqrt{a}$ seulement", "$a^2$"], bonne: 0, explication: "Après $k$ racines carrées, $r = a^{1/2^k}$ et $\\ln a = 2^k\\ln r \\approx 2^k(r - 1)$." }
   ],
 
   /* ---------- 4. FICHE MÉTHODE ---------- */
@@ -187,6 +204,7 @@ window.CHAPITRES["terminale-spe-logarithme"] = {
         "Supprimer les $\\ln$ ($\\ln$ est strictement croissante) : $A = B$ ou $A < B$.",
         "Résoudre, puis ne garder que les solutions de l'ensemble de départ."
       ],
+      figure: "lnx-cours-inequation",
       exemple: "$\\ln(x + 2) \\geqslant \\ln(3x)$ : il faut $x > 0$ ; $x + 2 \\geqslant 3x \\iff x \\leqslant 1$ ; solutions : $]0\\,;1]$."
     },
     {
@@ -197,6 +215,7 @@ window.CHAPITRES["terminale-spe-logarithme"] = {
         "Résoudre l'équation obtenue.",
         "Pour une inéquation, le sens se conserve (fonctions croissantes)."
       ],
+      figure: "lnx-meth-exp",
       exemple: "$3e^{x} - 6 = 0 \\iff e^x = 2 \\iff x = \\ln 2$."
     },
     {
@@ -207,6 +226,7 @@ window.CHAPITRES["terminale-spe-logarithme"] = {
         "Diviser par $\\ln q$, en **changeant le sens** si $0 < q < 1$.",
         "Calculer la valeur, et prendre le premier entier qui convient."
       ],
+      figure: "lnx-cours-seuil",
       exemple: "$500 \\times 1{,}1^n > 2\\,000 \\iff 1{,}1^n > 4 \\iff n > \\dfrac{\\ln 4}{\\ln 1{,}1} \\approx 14{,}5$ : $n = 15$."
     },
     {
@@ -217,6 +237,7 @@ window.CHAPITRES["terminale-spe-logarithme"] = {
         "Étudier le signe de $f'$ ($x > 0$ simplifie souvent le dénominateur).",
         "Limites aux bornes : factoriser par le terme qui l'emporte (croissances comparées)."
       ],
+      figure: "lnx-meth-etude",
       exemple: "$f(x) = \\dfrac{\\ln x}{x}$ : $f'(x) = \\dfrac{1 - \\ln x}{x^2}$, maximum en $x = e$ ; $f \\to -\\infty$ en $0^+$ et $f \\to 0$ en $+\\infty$."
     }
   ],

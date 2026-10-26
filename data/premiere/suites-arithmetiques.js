@@ -4,7 +4,7 @@
   Chapitre 3 de la progression spiralée 2026-2027 (programme de Première 2026).
   Mêmes règles d'écriture que data/seconde/fonctions.js.
   Vidéos : playlist « 1SPE – Suites numériques » de la chaîne d'abord, Yvan Monka en complément.
-  Figure : "suite-arith". Générateurs : suite-arithmetique et su- (su-arith-…, su-somme-entiers).
+  Figures : "suite-arith", "sa-cours-…", "sa-qcm-…", "sa-meth-…" (fragment 032). Générateurs : suite-arithmetique et su- (su-arith-…, su-somme-entiers).
 */
 window.CHAPITRES = window.CHAPITRES || {};
 window.CHAPITRES["premiere-suites-arithmetiques"] = {
@@ -29,6 +29,7 @@ window.CHAPITRES["premiere-suites-arithmetiques"] = {
   cours: [
     {
       titre: "Définition et terme général",
+      figure: "sa-cours-chaine",
       video: { titre: "Vidéo de ton prof : suites arithmétiques, raison et terme général (cours 3/6)", youtube: "https://youtu.be/nFBjpbUaTrM" },
       texte:
         "$(u_n)$ est **arithmétique** de raison $r$ si l'on passe d'un terme au suivant en **ajoutant** toujours $r$ : pour tout $n$, $u_{n+1} = u_n + r$.\n\n" +
@@ -36,7 +37,7 @@ window.CHAPITRES["premiere-suites-arithmetiques"] = {
         "- Si la suite commence à $u_1$ : $u_n = u_1 + (n - 1)r$.\n\n" +
         "**Condition nécessaire et suffisante** : $(u_n)$ est arithmétique **si et seulement si** $u_{n+1} - u_n$ est constant (ne dépend pas de $n$).",
       exemple: {
-        enonce: "Un club de plongée ramasse $40$ kg de déchets la première semaine, puis $6$ kg de plus chaque semaine ($u_1 = 40$). Combien la semaine $10$ ?",
+        enonce: "Un club de plongée de Mamoudzou ramasse $40$ kg de déchets dans le lagon la première semaine, puis $6$ kg de plus chaque semaine ($u_1 = 40$, schéma). Combien la semaine $10$ ?",
         solution: "$(u_n)$ est arithmétique de raison $6$ : $u_{10} = u_1 + 9 \\times 6 = 40 + 54 = 94$ kg."
       }
     },
@@ -68,10 +69,12 @@ window.CHAPITRES["premiere-suites-arithmetiques"] = {
     },
     {
       titre: "Somme $1 + 2 + \\dots + n$",
+      figure: "sa-cours-gauss",
       video: { titre: "Vidéo de ton prof : sommes de termes consécutifs (cours 5/6)", youtube: "https://youtu.be/vP3Ts0VRPd4" },
       texte:
         "**Propriété** : $1 + 2 + \\dots + n = \\dfrac{n(n + 1)}{2}$.\n\n" +
         "**Démonstration** (Gauss). Soit $S = 1 + 2 + \\dots + n$. On l'écrit aussi à l'envers : $S = n + (n - 1) + \\dots + 1$. En additionnant les deux lignes terme à terme, chaque colonne vaut $n + 1$, et il y a $n$ colonnes : $2S = n(n + 1)$, donc $S = \\dfrac{n(n + 1)}{2}$.\n\n" +
+        "Sur le schéma ($n = 5$), deux escaliers de $1 + 2 + 3 + 4 + 5$ carreaux s'emboîtent en un rectangle de $5$ sur $6$ : $2S = 30$, donc $S = 15$.\n\n" +
         "Plus généralement, pour des termes consécutifs d'une suite arithmétique :\n\n" +
         "$S = \\text{nombre de termes} \\times \\dfrac{\\text{premier terme} + \\text{dernier terme}}{2}$.\n\n" +
         "Compter les termes : de $u_p$ à $u_n$, il y en a $n - p + 1$.",
@@ -107,9 +110,9 @@ window.CHAPITRES["premiere-suites-arithmetiques"] = {
   exercices: [
     { type: "suite-arithmetique", titre: "Terme général, raison", etape: "Terme général", nb: 5 },
     { type: "su-arith-reconnaitre", titre: "Arithmétique ou pas ?", etape: "Terme général", nb: 5 },
-    { type: "su-arith-modele", titre: "L'épargne pour le permis", etape: "Modéliser", nb: 4 },
+    { type: "su-arith-modele", titre: "Modéliser une évolution linéaire", etape: "Modéliser", nb: 4 },
     { type: "su-somme-entiers", titre: "Sommes de termes consécutifs", etape: "Sommes", nb: 5 },
-    { type: "su-arith-python", titre: "Python : somme et factorielle", etape: "Sommes", nb: 3 }
+    { type: "su-arith-python", titre: "Python : sommes, factorielle, listes", etape: "Sommes", nb: 3 }
   ],
 
   /* ---------- 3. QCM DE RÉVISION ---------- */
@@ -122,6 +125,7 @@ window.CHAPITRES["premiere-suites-arithmetiques"] = {
     },
     {
       question: "$(u_n)$ est arithmétique avec $u_3 = 11$ et $u_7 = 23$. Quelle est sa raison ?",
+      figure: "sa-qcm-raison",
       choix: ["$12$", "$4$", "$3$", "$\\dfrac{23}{11}$"],
       bonne: 2,
       explication: "$r = \\dfrac{23 - 11}{7 - 3} = \\dfrac{12}{4} = 3$."
@@ -188,13 +192,17 @@ window.CHAPITRES["premiere-suites-arithmetiques"] = {
     { question: "Combien de termes compte la somme $u_5 + u_6 + \\dots + u_{20}$ ?", choix: ["$16$", "$15$", "$20$", "$25$"], bonne: 0, explication: "De $u_p$ à $u_n$, il y a $n - p + 1$ termes : $20 - 5 + 1 = 16$." },
     { question: "La somme $5 + 8 + 11 + \\dots + 32$ vaut :", choix: ["$185$", "$370$", "$166{,}5$", "$148$"], bonne: 0, explication: "Raison $3$ : $\\dfrac{32 - 5}{3} + 1 = 10$ termes. $S = 10 \\times \\dfrac{5 + 32}{2} = 185$." },
     { question: "La somme $2 + 4 + 6 + \\dots + 100$ vaut :", choix: ["$2\\,550$", "$5\\,050$", "$2\\,500$", "$5\\,100$"], bonne: 0, explication: "$50$ termes, de $2$ à $100$ : $S = 50 \\times \\dfrac{2 + 100}{2} = 50 \\times 51 = 2\\,550$. C'est aussi $2 \\times (1 + 2 + \\dots + 50) = 2 \\times 1\\,275$." },
-    { question: "Avec la fonction $\\texttt{somme}$ du cours ($u_0 = 40$, raison $6$), que renvoie $\\texttt{somme(2)}$ ?", choix: ["$138$", "$86$", "$52$", "$46$"], bonne: 0, explication: "Au départ $\\texttt{s} = 40$ ; la boucle tourne $2$ fois : $\\texttt{u} = 46$ puis $52$, et $\\texttt{s} = 40 + 46 + 52 = 138$." }
+    { question: "Avec la fonction $\\texttt{somme}$ du cours ($u_0 = 40$, raison $6$), que renvoie $\\texttt{somme(2)}$ ?", choix: ["$138$", "$86$", "$52$", "$46$"], bonne: 0, explication: "Au départ $\\texttt{s} = 40$ ; la boucle tourne $2$ fois : $\\texttt{u} = 46$ puis $52$, et $\\texttt{s} = 40 + 46 + 52 = 138$." },
+    { question: "Le nuage représente les premiers termes d'une suite arithmétique $(u_n)$. Quel est son terme général ?", figure: "sa-qcm-nuage", choix: ["$u_n = 1 + 3n$", "$u_n = 3 + n$", "$u_n = 1 + 4n$", "$u_n = 3n$"], bonne: 0, explication: "On lit $u_0 = 1$, et les points montent de $3$ à chaque rang : la raison vaut $3$. Donc $u_n = 1 + 3n$ (vérification : $u_5 = 16$)." },
+    { question: "Les deux escaliers ci-dessous sont identiques et forment ensemble un rectangle. Combien vaut $1 + 2 + 3 + 4$ ?", figure: "sa-qcm-gauss", choix: ["$10$", "$20$", "$16$", "$12$"], bonne: 0, explication: "Le rectangle compte $4 \\times 5 = 20$ carreaux, soit deux fois la somme : $1 + 2 + 3 + 4 = \\dfrac{20}{2} = 10$." },
+    { question: "Les gradins du stade de Cavani ont $10$ rangs : $20$ places au premier, puis $3$ places de plus à chaque rang. Combien y a-t-il de places au total ?", figure: "sa-qcm-gradins", choix: ["$335$", "$230$", "$470$", "$670$"], bonne: 0, explication: "Le rang $10$ compte $20 + 9 \\times 3 = 47$ places. Total : $10 \\times \\dfrac{20 + 47}{2} = 335$. ($230 = 10 \\times 23$ prend le deuxième rang pour tous ; $470 = 10 \\times 47$ prend le dernier ; $670$ oublie de diviser par $2$.)" }
   ],
 
   /* ---------- 4. FICHE MÉTHODE ---------- */
   methode: [
     {
       titre: "Montrer qu'une suite est arithmétique",
+      figure: "sa-meth-chaine",
       etapes: [
         "Calculer $u_{n+1} - u_n$ en fonction de $n$ et simplifier.",
         "Si le résultat ne dépend pas de $n$ : la suite est arithmétique, de raison ce résultat.",
@@ -204,6 +212,7 @@ window.CHAPITRES["premiere-suites-arithmetiques"] = {
     },
     {
       titre: "Trouver la raison et le premier terme",
+      figure: "sa-meth-raison",
       etapes: [
         "Avec deux termes $u_p$ et $u_n$ : $r = \\dfrac{u_n - u_p}{n - p}$.",
         "Puis $u_0 = u_p - pr$.",
@@ -213,6 +222,7 @@ window.CHAPITRES["premiere-suites-arithmetiques"] = {
     },
     {
       titre: "Calculer une somme de termes consécutifs",
+      figure: "sa-cours-gauss",
       etapes: [
         "Repérer le premier et le dernier terme.",
         "Compter les termes : de $u_p$ à $u_n$, il y en a $n - p + 1$.",

@@ -5,7 +5,8 @@
   succession d'épreuves indépendantes, schéma de Bernoulli et loi binomiale.
   Mêmes règles d'écriture que data/seconde/fonctions.js.
   Vidéos : celles de la chaîne (playlist « Tle comp lois discrètes ») d'abord, puis Yvan Monka.
-  Figures : "bin-arbre", "bin-diagramme". Générateurs : bin- (et pi-totales, ld-traduire, ld-cumul).
+  Figures : "bin-arbre", "bin-diagramme", "bin-cours-…" (arbres, loi de Bernoulli, bâtons en couleur, planche
+  de Galton), "bin-meth-…", "bin-qcm-…". Générateurs : bin- (et pi-totales, ld-traduire, ld-cumul).
 */
 window.CHAPITRES = window.CHAPITRES || {};
 window.CHAPITRES["terminale-spe-loi-binomiale"] = {
@@ -16,7 +17,9 @@ window.CHAPITRES["terminale-spe-loi-binomiale"] = {
 
   playlist: "https://www.youtube.com/playlist?list=PLWqYEdzXrOlI",
   drive: "",
-  pdfs: [],
+  pdfs: [
+    { titre: "Cours d'Yvan Monka : loi binomiale (PDF)", url: "https://www.maths-et-tiques.fr/telech/20VA1.pdf" }
+  ],
   liens: [
     { titre: "Le cours complet sur la loi binomiale en vidéo (Yvan Monka)", url: "https://youtu.be/xMmfPUoBTtM", type: "video" },
     { titre: "Démonstration : formule de la loi binomiale (Yvan Monka)", url: "https://youtu.be/R45L_2gS8lU", type: "video" }
@@ -26,6 +29,7 @@ window.CHAPITRES["terminale-spe-loi-binomiale"] = {
   cours: [
     {
       titre: "Rappels : probabilités conditionnelles",
+      figure: "bin-cours-retard",
       video: { titre: "Vidéo d'Yvan Monka : appliquer la formule des probabilités totales", youtube: "https://youtu.be/qTpTBoZA7zY" },
       texte:
         "- **Probabilité conditionnelle** : si $P(A) \\neq 0$, $P_A(B) = \\dfrac{P(A \\cap B)}{P(A)}$, donc $P(A \\cap B) = P(A) \\times P_A(B)$.\n" +
@@ -33,12 +37,13 @@ window.CHAPITRES["terminale-spe-loi-binomiale"] = {
         "- **Probabilités totales** : si $A$ et $\\overline{A}$ partagent l'univers, $P(B) = P(A \\cap B) + P(\\overline{A} \\cap B)$.\n" +
         "- $A$ et $B$ sont **indépendants** si $P(A \\cap B) = P(A) \\times P(B)$, c'est-à-dire (si $P(A) \\neq 0$) $P_A(B) = P(B)$ : savoir que $A$ est réalisé ne change pas la probabilité de $B$.",
       exemple: {
-        enonce: "$60\\,\\%$ des élèves d'un lycée prennent le bus. Parmi eux, $10\\,\\%$ arrivent en retard ; parmi les autres, $5\\,\\%$. Quelle est la probabilité qu'un élève pris au hasard arrive en retard ?",
+        enonce: "$60\\,\\%$ des élèves d'un lycée de Mamoudzou prennent le bus ($B$). Parmi eux, $10\\,\\%$ arrivent en retard ($R$) ; parmi les autres, $5\\,\\%$ (arbre ci-contre). Quelle est la probabilité qu'un élève pris au hasard arrive en retard ?",
         solution: "$P(R) = 0{,}6 \\times 0{,}1 + 0{,}4 \\times 0{,}05 = 0{,}06 + 0{,}02 = 0{,}08$.\n\nLe retard et le bus ne sont pas indépendants : $P_B(R) = 0{,}1 \\neq P(R) = 0{,}08$."
       }
     },
     {
       titre: "Succession d'épreuves indépendantes",
+      figure: "bin-cours-succession",
       video: { titre: "Vidéo d'Yvan Monka : calculer la probabilité d'une succession d'épreuves indépendantes", youtube: "https://youtu.be/Pz9VCp-Rsnk" },
       texte:
         "On enchaîne plusieurs épreuves **indépendantes** : le résultat de l'une n'influence pas les autres (lancers successifs, tirages **avec remise**…).\n\n" +
@@ -47,12 +52,13 @@ window.CHAPITRES["terminale-spe-loi-binomiale"] = {
         "Dans un arbre, les probabilités des branches ne changent pas d'un niveau à l'autre.\n\n" +
         "Attention : des tirages **sans remise** ne sont pas indépendants, car la composition de l'urne change.",
       exemple: {
-        enonce: "On lance un dé équilibré, puis une pièce équilibrée. Quelle est la probabilité d'obtenir un nombre pair puis FACE ?",
-        solution: "Les deux épreuves sont indépendantes : $P = \\dfrac{3}{6} \\times \\dfrac{1}{2} = \\dfrac{1}{4}$."
+        enonce: "On lance un dé équilibré, puis une pièce équilibrée. Quelle est la probabilité d'obtenir un nombre pair ($A$) puis FACE ($F$) ? (arbre ci-contre)",
+        solution: "Les deux épreuves sont indépendantes : $P(A \\cap F) = \\dfrac{3}{6} \\times \\dfrac{1}{2} = \\dfrac{1}{4}$.\n\nSur l'arbre, les probabilités du second niveau sont les mêmes quel que soit le résultat du dé : c'est l'indépendance."
       }
     },
     {
       titre: "Épreuve et loi de Bernoulli",
+      figure: "bin-cours-bernoulli",
       video: { titre: "Vidéo de ton prof : variable aléatoire et loi de Bernoulli", youtube: "https://youtu.be/gQhLo-TDi9Q" },
       texte:
         "Une **épreuve de Bernoulli** de paramètre $p$ est une expérience à **deux issues** : le **succès** $S$, de probabilité $p$, et l'**échec** $\\overline{S}$, de probabilité $1 - p$.\n\n" +
@@ -84,6 +90,7 @@ window.CHAPITRES["terminale-spe-loi-binomiale"] = {
     },
     {
       titre: "Calculer $P(X = k)$",
+      figure: "bin-cours-pxk",
       video: { titre: "Vidéo d'Yvan Monka : calculer une probabilité avec une loi binomiale", youtube: "https://youtu.be/1gMq2TJwSh0" },
       texte:
         "Dans l'arbre d'un schéma de Bernoulli à $n$ épreuves, le nombre de chemins comportant exactement $k$ succès est le **coefficient binomial** $\\dbinom{n}{k}$ (chapitre 14 : c'est le nombre de façons de placer les $k$ succès parmi les $n$ épreuves). Chacun de ces chemins a pour probabilité $p^k(1 - p)^{n-k}$.\n\n" +
@@ -115,6 +122,7 @@ window.CHAPITRES["terminale-spe-loi-binomiale"] = {
     },
     {
       titre: "Cumul et intervalles avec la calculatrice",
+      figure: "bin-cours-cumul",
       video: { titre: "Vidéo de ton prof : fonction de cumul et intervalle de fluctuation", youtube: "https://youtu.be/p1QICyjsI-Y" },
       texte:
         "La calculatrice donne $P(X = k)$ (loi binomiale « Fdp » ou « PD ») et la **fonction de cumul** $P(X \\leqslant k)$ (« FRép » ou « CD »).\n\n" +
@@ -129,10 +137,12 @@ window.CHAPITRES["terminale-spe-loi-binomiale"] = {
     },
     {
       titre: "Algorithmique : simuler et calculer",
+      figure: "bin-cours-galton",
       texte:
         "**Simuler** une variable de loi $\\mathcal{B}(n\\,;p)$ : on répète $n$ fois une épreuve de Bernoulli avec $\\texttt{random()}$, qui renvoie un nombre au hasard dans $[0\\,;1[$ ; la condition $\\texttt{random() < p}$ est vraie avec la probabilité $p$.\n\n" +
         "```python\nfrom random import random\nfrom math import comb\n\ndef simul(n, p):\n    x = 0\n    for i in range(n):\n        if random() < p:\n            x = x + 1\n    return x\n\ndef proba(n, p, k):\n    return comb(n, k) * p**k * (1 - p)**(n - k)\n```\n\n" +
-        "En appelant $\\texttt{simul(10, 0.3)}$ un grand nombre de fois, la moyenne des résultats se rapproche de $E(X) = 3$, et la fréquence de chaque valeur $k$ se rapproche de $\\texttt{proba(10, 0.3, k)}$.",
+        "En appelant $\\texttt{simul(10, 0.3)}$ un grand nombre de fois, la moyenne des résultats se rapproche de $E(X) = 3$, et la fréquence de chaque valeur $k$ se rapproche de $\\texttt{proba(10, 0.3, k)}$.\n\n" +
+        "**Planche de Galton** (figure) : une bille tombe sur $6$ rangées de clous et part, à chaque clou, à gauche ou à droite avec la probabilité $\\dfrac{1}{2}$. Le nombre de rebonds à droite suit la loi $\\mathcal{B}(6\\,;0{,}5)$ : les billes s'accumulent au milieu. Simuler un grand nombre de billes avec $\\texttt{simul(6, 0.5)}$ redonne cette forme en cloche.",
       exemple: {
         enonce: "Que renvoie $\\texttt{proba(4, 0.5, 2)}$ ?",
         solution: "$\\dbinom{4}{2} \\times 0{,}5^2 \\times 0{,}5^2 = 6 \\times 0{,}0625 = 0{,}375$.\n\nLa fonction renvoie $\\texttt{0.375}$."
@@ -191,6 +201,9 @@ window.CHAPITRES["terminale-spe-loi-binomiale"] = {
     { question: "Un tireur atteint sa cible avec la probabilité $0{,}7$. Il tire $3$ fois (tirs indépendants). Probabilité d'atteindre la cible exactement $2$ fois ?", choix: ["$0{,}441$", "$0{,}49$", "$0{,}147$", "$0{,}7$"], bonne: 0, explication: "$\\dbinom{3}{2} \\times 0{,}7^2 \\times 0{,}3 = 3 \\times 0{,}49 \\times 0{,}3 = 0{,}441$." },
     { question: "On sait que $P(X \\leqslant 11) \\approx 0{,}93$ et $P(X \\leqslant 12) \\approx 0{,}97$. Le plus petit entier $b$ tel que $P(X \\leqslant b) \\geqslant 0{,}95$ est :", choix: ["$12$", "$11$", "$13$", "$0{,}95$"], bonne: 0, explication: "$P(X \\leqslant 11) < 0{,}95 \\leqslant P(X \\leqslant 12)$." },
     { question: "$70\\,\\%$ des clients d'un magasin paient par carte. Dans un échantillon de $200$ clients assimilé à des tirages avec remise, le nombre moyen de paiements par carte est :", choix: ["$140$", "$70$", "$60$", "$200$"], bonne: 0, explication: "$E(X) = 200 \\times 0{,}7 = 140$." },
+    { question: "Dans cet arbre de trois épreuves indépendantes, quelle est la probabilité du chemin $S$, $S$, $E$ (dans cet ordre) ?", figure: "bin-qcm-arbre", choix: ["$0{,}147$", "$0{,}441$", "$0{,}063$", "$1{,}7$"], bonne: 0, explication: "On multiplie le long du chemin : $0{,}7 \\times 0{,}7 \\times 0{,}3 = 0{,}147$. $0{,}441 = 3 \\times 0{,}147$ est la probabilité d'avoir exactement deux succès (trois chemins), et $1{,}7$ est une somme : une probabilité ne dépasse jamais $1$." },
+    { question: "Ce diagramme en bâtons est celui d'une loi binomiale. Laquelle ?", figure: "bin-qcm-loi", choix: ["$\\mathcal{B}(8\\,;0{,}75)$", "$\\mathcal{B}(8\\,;0{,}25)$", "$\\mathcal{B}(6\\,;0{,}75)$", "$\\mathcal{B}(10\\,;0{,}75)$"], bonne: 0, explication: "Les valeurs vont de $0$ à $8$, donc $n = 8$ ; le bâton le plus haut est en $6 = 8 \\times 0{,}75$. Avec $p = 0{,}25$, les grands bâtons seraient à gauche, vers $2$." },
+    { question: "$X$ suit la loi $\\mathcal{B}(12\\,;0{,}4)$. Les bâtons en couleur représentent l'événement :", figure: "bin-qcm-evenement", choix: ["$X \\leqslant 4$", "$X < 4$", "$X \\geqslant 4$", "$X = 4$"], bonne: 0, explication: "Les bâtons de $0$ à $4$ inclus sont en couleur : c'est $X \\leqslant 4$, dont la probabilité est donnée directement par la fonction de cumul." },
     { question: "$X$ suit $\\mathcal{B}(5\\,;0{,}1)$. Quelle est la valeur la plus probable de $X$ ?", choix: ["$0$", "$1$", "$5$", "$0{,}5$"], bonne: 0, explication: "$P(X = 0) = 0{,}9^5 \\approx 0{,}59$ et $P(X = 1) = 5 \\times 0{,}1 \\times 0{,}9^4 \\approx 0{,}33$." }
   ],
 
@@ -198,6 +211,7 @@ window.CHAPITRES["terminale-spe-loi-binomiale"] = {
   methode: [
     {
       titre: "Justifier qu'une variable suit une loi binomiale",
+      figure: "bin-arbre",
       etapes: [
         "Décrire l'épreuve de Bernoulli : le succès et sa probabilité $p$.",
         "Dire qu'on la répète $n$ fois, de façon **identique et indépendante** (avec remise, ou population assimilable).",
@@ -208,6 +222,7 @@ window.CHAPITRES["terminale-spe-loi-binomiale"] = {
     },
     {
       titre: "Calculer une probabilité avec une loi binomiale",
+      figure: "bin-meth-cumul",
       etapes: [
         "Traduire l'événement : exactement, au moins, au plus, entre.",
         "Exactement $k$ : formule $\\dbinom{n}{k}p^k(1 - p)^{n-k}$ ou calculatrice.",
@@ -218,6 +233,7 @@ window.CHAPITRES["terminale-spe-loi-binomiale"] = {
     },
     {
       titre: "Trouver un nombre minimal de répétitions",
+      figure: "bin-meth-seuil",
       etapes: [
         "Écrire la probabilité en fonction de $n$ : souvent $1 - (1 - p)^n$.",
         "Écrire l'inégalité voulue, par exemple $1 - (1 - p)^n \\geqslant 0{,}95$.",
@@ -228,6 +244,7 @@ window.CHAPITRES["terminale-spe-loi-binomiale"] = {
     },
     {
       titre: "Interpréter l'espérance",
+      figure: "bin-meth-esperance",
       etapes: [
         "Calculer $E(X) = np$.",
         "L'interpréter : nombre moyen de succès quand on répète un grand nombre de fois le schéma.",

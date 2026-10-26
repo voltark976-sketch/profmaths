@@ -5,7 +5,8 @@
   L'identifiant « seconde-variations » est gardé pour conserver la progression des élèves.
   Les fonctions affines sont au chapitre 6 ; inverse, racine carrée et cube au chapitre 13.
   Mêmes règles d'écriture que data/seconde/fonctions.js.
-  Figures disponibles : "tabvar-exemple", "courbe-carre", "courbe-absolue", "enclos".
+  Figures : "tabvar-exemple", "courbe-carre", "courbe-absolue", "x-et-x2", "enclos" et les figures « vx-cours-… »,
+  « vx-meth-… », « vx-qcm-… » définies dans assets/exercices.js.
   Générateurs : var- (lecture de courbes et de tableaux) et vx- dans assets/exercices.js.
 */
 window.CHAPITRES = window.CHAPITRES || {};
@@ -17,7 +18,9 @@ window.CHAPITRES["seconde-variations"] = {
 
   playlist: "", // lien de la playlist YouTube du chapitre
   drive: "",
-  pdfs: [],
+  pdfs: [
+    { titre: "Cours d'Yvan Monka : variations d'une fonction (PDF)", url: "https://www.maths-et-tiques.fr/telech/19FonctionVariationsM.pdf" }
+  ],
   liens: [
     { titre: "Le cours sur les variations en vidéo (Yvan Monka)", url: "https://youtu.be/i8aYSIidNlk", type: "video" }
   ],
@@ -26,6 +29,7 @@ window.CHAPITRES["seconde-variations"] = {
   cours: [
     {
       titre: "Fonction croissante, fonction décroissante",
+      figure: "vx-cours-sens",
       video: { titre: "Vidéo d'Yvan Monka : déterminer les variations d'une fonction", youtube: "https://youtu.be/zHYaPOWi4Iw" },
       texte:
         "Soit $f$ une fonction définie sur un intervalle $I$.\n\n" +
@@ -33,7 +37,7 @@ window.CHAPITRES["seconde-variations"] = {
         "- $f$ est **décroissante** sur $I$ si, pour tous $a$ et $b$ de $I$ : $a < b \\Rightarrow f(a) \\geqslant f(b)$. L'ordre est **inversé** : la courbe **descend**.\n" +
         "- $f$ est **monotone** sur $I$ si elle est croissante sur tout $I$, ou décroissante sur tout $I$.\n" +
         "- On lit toujours la courbe **de gauche à droite**, et les intervalles se lisent sur l'axe des **abscisses**.\n\n" +
-        "Le mot « pour tous » est important : une propriété vérifiée sur deux exemples ne prouve pas que $f$ est croissante.",
+        "Sur la figure, $f$ est croissante sur $[1\\,;4]$ : pour $a < b$ dans cet intervalle, $f(a) \\leqslant f(b)$. Le mot « pour tous » est important : une propriété vérifiée sur deux exemples ne prouve pas que $f$ est croissante.",
       exemple: {
         enonce: "$f$ est croissante sur $[1\\,;6]$. Comparer $f(2)$ et $f(5)$.",
         solution: "$2 < 5$ et $f$ est croissante sur $[1\\,;6]$, donc $f(2) \\leqslant f(5)$."
@@ -41,33 +45,35 @@ window.CHAPITRES["seconde-variations"] = {
     },
     {
       titre: "Tableau de variations, maximum et minimum",
+      figure: ["vx-meth-courbe", "tabvar-exemple"],
       video: { titre: "Vidéo d'Yvan Monka : dresser un tableau de variations", youtube: "https://youtu.be/yGqqoBMq8Fw" },
       texte:
         "- Un **tableau de variations** résume le sens de variation : sur la première ligne les valeurs de $x$, sur la seconde des flèches qui montent ou descendent, avec les valeurs de $f(x)$ au bout des flèches.\n" +
         "- Le **maximum** de $f$ sur $I$ est la plus grande valeur de $f(x)$ ; le **minimum** est la plus petite. Ce sont des valeurs de $f(x)$, lues sur l'axe **vertical**.\n" +
-        "- On dit qu'un maximum est **atteint** en une valeur de $x$ : « le maximum $2$ est atteint en $x = -3$ ».",
-      figure: "tabvar-exemple",
+        "- On dit qu'un maximum est **atteint** en une valeur de $x$ : « le maximum $2$ est atteint en $x = -3$ ».\n\n" +
+        "Les deux figures décrivent la même fonction : sa courbe, puis son tableau de variations.",
       exemple: {
-        enonce: "D'après le tableau ci-contre, quels sont le maximum et le minimum de $f$ sur $[-3\\,;4]$ ?",
+        enonce: "D'après le tableau, quels sont le maximum et le minimum de $f$ sur $[-3\\,;4]$ ?",
         solution: "Le minimum est $-4$, atteint en $x = 1$. Le maximum est $3$, atteint en $x = 4$ (il faut comparer $2$ et $3$, les deux extrémités hautes)."
       }
     },
     {
       titre: "La fonction carré",
+      figure: "courbe-carre",
       video: { titre: "Vidéo d'Yvan Monka : étudier les variations de la fonction carré", youtube: "https://youtu.be/B3mM6LYdsF8" },
       texte:
         "La fonction carré est définie sur $\\mathbb{R}$ par $f(x) = x^2$. Sa courbe est une **parabole**, symétrique par rapport à l'axe des ordonnées.\n\n" +
         "- Elle est **positive** : $x^2 \\geqslant 0$ pour tout réel $x$.\n" +
-        "- Elle est **décroissante** sur $]-\\infty\\,;0]$ et **croissante** sur $[0\\,;+\\infty[$ ; son minimum est $0$, atteint en $x = 0$.\n" +
+        "- Elle est **décroissante** sur $\\mathopen{]}-\\infty\\,;0]$ et **croissante** sur $[0\\,;+\\infty[$ ; son minimum est $0$, atteint en $x = 0$.\n" +
         "- Attention : « $a < b$ donc $a^2 < b^2$ » est **faux** en général. Contre-exemple : $-3 < 2$ mais $9 > 4$.",
-      figure: "courbe-carre",
       exemple: {
         enonce: "Comparer $(-3{,}1)^2$ et $(-2{,}7)^2$ sans les calculer.",
-        solution: "$-3{,}1 < -2{,}7 \\leqslant 0$ et la fonction carré est décroissante sur $]-\\infty\\,;0]$ : l'ordre s'inverse, donc $(-3{,}1)^2 > (-2{,}7)^2$."
+        solution: "$-3{,}1 < -2{,}7 \\leqslant 0$ et la fonction carré est décroissante sur $\\mathopen{]}-\\infty\\,;0]$ : l'ordre s'inverse, donc $(-3{,}1)^2 > (-2{,}7)^2$."
       }
     },
     {
       titre: "Démonstration : variations de la fonction carré",
+      figure: "vx-cours-demo",
       video: { titre: "Vidéo d'Yvan Monka : démontrer les variations de la fonction carré", youtube: "https://youtu.be/gu2QnY8_9xk" },
       texte:
         "**Propriété** : la fonction carré est croissante sur $[0\\,;+\\infty[$.\n\n" +
@@ -75,21 +81,37 @@ window.CHAPITRES["seconde-variations"] = {
         "- $b^2 - a^2 = (b - a)(b + a)$ (identité remarquable).\n" +
         "- $b - a > 0$ car $a < b$, et $b + a > 0$ car $a \\geqslant 0$ et $b > 0$.\n" +
         "- Le produit de deux nombres positifs est positif : $b^2 - a^2 > 0$, donc $a^2 < b^2$.\n\n" +
-        "Les images sont rangées dans le même ordre : la fonction carré est croissante sur $[0\\,;+\\infty[$. Sur $]-\\infty\\,;0]$, $b + a < 0$ et l'ordre s'inverse : elle est décroissante.",
+        "Les images sont rangées dans le même ordre : la fonction carré est croissante sur $[0\\,;+\\infty[$. Sur $\\mathopen{]}-\\infty\\,;0]$, $b + a < 0$ et l'ordre s'inverse : elle est décroissante.",
       exemple: {
         enonce: "Pourquoi la démonstration ne marche-t-elle pas si $a = -5$ et $b = 1$ ?",
         solution: "Alors $b + a = -4 < 0$ : le produit $(b - a)(b + a)$ est négatif, donc $b^2 < a^2$ ($1 < 25$). La fonction carré n'est pas croissante sur $\\mathbb{R}$ entier."
       }
     },
     {
+      titre: "Démonstration : positions de $y = x$ et $y = x^2$ pour $x \\geqslant 0$",
+      figure: "x-et-x2",
+      video: { titre: "Vidéo d'Yvan Monka : positions relatives des courbes de x, x au carré et x au cube", youtube: "https://youtu.be/op54acayjIQ" },
+      texte:
+        "**Propriété** : pour $0 \\leqslant x \\leqslant 1$, $x^2 \\leqslant x$ ; pour $x \\geqslant 1$, $x^2 \\geqslant x$.\n\n" +
+        "**Démonstration**. On étudie le signe de la différence : $x^2 - x = x(x - 1)$.\n" +
+        "- Si $0 \\leqslant x \\leqslant 1$ : $x \\geqslant 0$ et $x - 1 \\leqslant 0$, donc $x(x - 1) \\leqslant 0$ : $x^2 \\leqslant x$.\n" +
+        "- Si $x \\geqslant 1$ : $x \\geqslant 0$ et $x - 1 \\geqslant 0$, donc $x(x - 1) \\geqslant 0$ : $x^2 \\geqslant x$.\n\n" +
+        "Sur $[0\\,;1]$, la parabole est **sous** la droite $y = x$ ; après $1$, elle passe **au-dessus**. Les deux courbes se coupent en $(0\\,;0)$ et $(1\\,;1)$.",
+      exemple: {
+        enonce: "Ranger $0{,}6$ et $0{,}6^2$, puis $1{,}5$ et $1{,}5^2$, sans calculatrice.",
+        solution: "$0 \\leqslant 0{,}6 \\leqslant 1$, donc $0{,}6^2 \\leqslant 0{,}6$ (en effet $0{,}36 < 0{,}6$).\n\n$1{,}5 \\geqslant 1$, donc $1{,}5^2 \\geqslant 1{,}5$ (en effet $2{,}25 > 1{,}5$)."
+      }
+    },
+    {
       titre: "La fonction valeur absolue",
+      figure: "courbe-absolue",
       video: { titre: "Vidéo d'Yvan Monka : encadrer avec les variations de la valeur absolue", youtube: "https://youtu.be/iOxgSgDQ-3Y" },
       texte:
         "La fonction valeur absolue est définie sur $\\mathbb{R}$ par $f(x) = |x|$, la **distance** entre $x$ et $0$ (vue au chapitre 1).\n\n" +
         "- $|x| = x$ si $x \\geqslant 0$ et $|x| = -x$ si $x < 0$ : par exemple $\\lvert -5 \\rvert = 5$.\n" +
-        "- Elle est **positive**, **décroissante** sur $]-\\infty\\,;0]$ et **croissante** sur $[0\\,;+\\infty[$ ; son minimum est $0$, en $x = 0$.\n" +
-        "- Sa courbe est un **V** formé de deux demi-droites, de sommet l'origine, symétrique par rapport à l'axe des ordonnées.",
-      figure: "courbe-absolue",
+        "- Elle est **positive**, **décroissante** sur $\\mathopen{]}-\\infty\\,;0]$ et **croissante** sur $[0\\,;+\\infty[$ ; son minimum est $0$, en $x = 0$.\n" +
+        "- Sa courbe est un **V** formé de deux demi-droites, de sommet l'origine, symétrique par rapport à l'axe des ordonnées.\n" +
+        "- Pour $k > 0$ : $|x| = k \\iff x = -k$ ou $x = k$, et $|x| < k \\iff -k < x < k$.",
       exemple: {
         enonce: "Résoudre $|x| = 4$, puis encadrer $|x|$ pour $-3 \\leqslant x \\leqslant 2$.",
         solution: "$|x| = 4$ : les nombres à la distance $4$ de $0$ sont $-4$ et $4$.\n\nSur $[-3\\,;2]$, le minimum de $|x|$ est $0$ (en $0$) et le maximum est $3$ (en $-3$) : $0 \\leqslant |x| \\leqslant 3$."
@@ -97,37 +119,40 @@ window.CHAPITRES["seconde-variations"] = {
     },
     {
       titre: "Résoudre $x^2 = k$ et $x^2 < k$",
+      figure: "vx-cours-carre-k",
+      video: { titre: "Vidéo d'Yvan Monka : résoudre une équation du type x au carré égale a", youtube: "https://youtu.be/ef15aeQRs6w" },
       texte:
         "On lit les solutions sur la parabole, en traçant la droite horizontale $y = k$.\n\n" +
         "- $x^2 = k$ : aucune solution si $k < 0$ ; une seule ($0$) si $k = 0$ ; deux solutions $-\\sqrt{k}$ et $\\sqrt{k}$ si $k > 0$.\n" +
         "- Pour $k > 0$ : $x^2 < k \\iff -\\sqrt{k} < x < \\sqrt{k}$ (la parabole est **sous** la droite).\n" +
         "- Pour $k > 0$ : $x^2 > k \\iff x < -\\sqrt{k}$ ou $x > \\sqrt{k}$ (la parabole est **au-dessus**).\n\n" +
         "Erreur classique : $x^2 < 9$ ne donne pas « $x < 3$ » seulement ; $-5 < 3$ mais $(-5)^2 = 25 > 9$.",
-      figure: "courbe-carre",
       exemple: {
         enonce: "Résoudre $x^2 \\leqslant 4$ puis $x^2 > 4$.",
-        solution: "$x^2 = 4$ pour $x = -2$ ou $x = 2$ (points marqués sur la figure).\n\n$x^2 \\leqslant 4 \\iff x \\in [-2\\,;2]$.\n\n$x^2 > 4 \\iff x \\in \\,]-\\infty\\,;-2[ \\cup \\,]2\\,;+\\infty[$."
+        solution: "$x^2 = 4$ pour $x = -2$ ou $x = 2$ (points marqués sur la figure).\n\n$x^2 \\leqslant 4 \\iff x \\in [-2\\,;2]$ (partie colorée de la figure).\n\n$x^2 > 4 \\iff x \\in \\mathopen{]}-\\infty\\,;-2\\mathclose{[} \\cup \\mathopen{]}2\\,;+\\infty\\mathclose{[}$."
       }
     },
     {
       titre: "Problème d'optimisation",
+      figure: "enclos",
       video: { titre: "Vidéo de ton prof : modéliser par une fonction, l'enclos", youtube: "https://youtu.be/LeM5BO2az9w" },
       texte:
         "**Optimiser**, c'est chercher la valeur de $x$ qui rend une quantité (aire, coût, bénéfice) la plus grande ou la plus petite possible.\n\n" +
         "- On exprime la quantité en fonction de $x$ : $A(x) = \\ldots$, en précisant les valeurs possibles de $x$.\n" +
         "- On cherche le maximum (ou le minimum) : avec un tableau de valeurs, la courbe sur la calculatrice, ou par le calcul.\n" +
         "- Pour une parabole qui s'annule en deux valeurs, l'extremum est **au milieu**, par symétrie.",
-      figure: "enclos",
       exemple: {
-        enonce: "Avec $40$ m de grillage, on fait un enclos rectangulaire. Quelle largeur $x$ donne la plus grande aire ?",
-        solution: "Demi-périmètre : $20$ m, donc la longueur vaut $20 - x$ et $A(x) = x(20 - x)$ pour $x \\in [0\\,;20]$.\n\n$A$ s'annule en $0$ et en $20$ : le maximum est au milieu, $x = 10$. C'est un carré de $10$ m de côté, d'aire $100$ m²."
+        enonce: "Avec $20$ m de grillage, on fait un enclos rectangulaire pour des cabris. Quelle largeur $x$ donne la plus grande aire ?",
+        solution: "Demi-périmètre : $10$ m, donc la longueur vaut $10 - x$ et $A(x) = x(10 - x)$ pour $x \\in [0\\,;10]$.\n\n$A$ s'annule en $0$ et en $10$ : le maximum est au milieu, $x = 5$. C'est un carré de $5$ m de côté, d'aire $25$ m² : le point $S(5\\,;25)$ de la figure."
       }
     },
     {
       titre: "Python : approcher un extremum",
+      figure: "vx-cours-balayage",
       texte:
         "**Balayage** : on calcule $f(x)$ pour $x$ allant de $a$ à $b$ avec un petit **pas**, et on garde la plus grande valeur.\n\n" +
         "```python\ndef balayage(f, a, b, pas):\n    x = a\n    meilleur_x = a\n    while x <= b:\n        if f(x) > f(meilleur_x):\n            meilleur_x = x\n        x = x + pas\n    return meilleur_x\n```\n\n" +
+        "Sur la figure, on teste $f(x) = x(20 - x)$ de $2$ en $2$ : le point le plus haut est $(10\\,;100)$.\n\n" +
         "**Dichotomie** (pour une fonction qui monte puis descend) : on coupe l'intervalle en deux et on garde la moitié où la fonction monte encore. À chaque tour, l'intervalle est divisé par $2$ : c'est beaucoup plus rapide.",
       exemple: {
         enonce: "Avec $f(x) = x(20 - x)$, que renvoie $\\texttt{balayage(f, 0, 20, 1)}$ ?",
@@ -148,8 +173,9 @@ window.CHAPITRES["seconde-variations"] = {
     { type: "var-extremum", titre: "Lire un maximum ou un minimum", etape: "Sens de variation", nb: 5 },
     { type: "var-tableau", titre: "Utiliser un tableau de variations", etape: "Sens de variation", nb: 5 },
     { type: "vx-comparer", titre: "Comparer des carrés, des valeurs absolues", etape: "Carré et valeur absolue", nb: 5 },
-    { type: "vx-equation", titre: "Résoudre x² = k et |x| = k", etape: "Carré et valeur absolue", nb: 5 },
-    { type: "vx-inequation-carre", titre: "Résoudre x² < k, x² > k", etape: "Carré et valeur absolue", nb: 5 },
+    { type: "vx-encadrer", titre: "Encadrer $x^2$ ou $|x|$ sur un intervalle", etape: "Carré et valeur absolue", nb: 5 },
+    { type: "vx-equation", titre: "Résoudre $x^2 = k$ et $|x| = k$", etape: "Carré et valeur absolue", nb: 5 },
+    { type: "vx-inequation-carre", titre: "Résoudre $x^2 < k$, $x^2 > k$", etape: "Carré et valeur absolue", nb: 5 },
     { type: "vx-optimisation", titre: "L'enclos le plus grand", etape: "Optimisation", nb: 3 },
     { type: "vx-python", titre: "Python : balayage", etape: "Optimisation", nb: 3 }
   ],
@@ -169,6 +195,34 @@ window.CHAPITRES["seconde-variations"] = {
       explication: "Le maximum est une valeur de $f(x)$ : c'est une ordonnée. L'abscisse indique seulement où il est atteint."
     },
     {
+      question: "D'après la courbe de $f$, sur quel intervalle $f$ est-elle décroissante ?",
+      figure: "vx-qcm-courbe",
+      choix: ["$[-1\\,;2]$", "$[-4\\,;-1]$", "$[2\\,;5]$", "$[-3\\,;4]$"],
+      bonne: 0,
+      explication: "On lit la courbe de gauche à droite : elle monte de $-4$ à $-1$, descend de $-1$ à $2$, puis remonte de $2$ à $5$. Les intervalles se lisent sur l'axe des abscisses."
+    },
+    {
+      question: "D'après la courbe de $f$, le maximum de $f$ sur $[-4\\,;5]$ est :",
+      figure: "vx-qcm-courbe",
+      choix: ["$4$, atteint en $x = -1$", "$-1$, atteint en $x = 4$", "$2$, atteint en $x = 5$", "$5$"],
+      bonne: 0,
+      explication: "Le point le plus haut de la courbe est $(-1\\,;4)$ : le maximum est la valeur $4$, atteinte en $x = -1$. L'extrémité $(5\\,;2)$ est moins haute."
+    },
+    {
+      question: "D'après le tableau de variations, le minimum de $f$ sur $[-2\\,;6]$ est :",
+      figure: "vx-qcm-tabvar",
+      choix: ["$-2$", "$1$", "$3$", "$4$"],
+      bonne: 0,
+      explication: "Les valeurs « basses » sont au bout des flèches qui descendent ou au début : $f(-2) = 1$ et $f(3) = -2$. Le minimum est $-2$, atteint en $x = 3$."
+    },
+    {
+      question: "D'après le tableau de variations, on peut affirmer que :",
+      figure: "vx-qcm-tabvar",
+      choix: ["$f(1) \\geqslant f(2)$", "$f(1) \\leqslant f(2)$", "$f(1) = f(2)$", "$f(1) \\leqslant f(5)$"],
+      bonne: 0,
+      explication: "$1 < 2$ sont dans $[0\\,;3]$, où $f$ est décroissante : l'ordre s'inverse, $f(1) \\geqslant f(2)$. Pour $f(5)$, $1$ et $5$ ne sont pas dans un même intervalle de monotonie : on ne peut pas conclure."
+    },
+    {
       question: "Combien de solutions a l'équation $x^2 = 7$ ?",
       choix: ["aucune", "une", "deux", "une infinité"],
       bonne: 2,
@@ -176,9 +230,9 @@ window.CHAPITRES["seconde-variations"] = {
     },
     {
       question: "Sans calculer : $(-1{,}5)^2$ … $(-2)^2$",
-      choix: ["$<$", "$>$", "$=$"],
+      choix: ["$<$", "$>$", "$=$", "on ne peut pas comparer sans calculer"],
       bonne: 0,
-      explication: "$-2 < -1{,}5 \\leqslant 0$ et le carré est décroissant sur $]-\\infty\\,;0]$ : $(-2)^2 > (-1{,}5)^2$, soit $2{,}25 < 4$."
+      explication: "$-2 < -1{,}5 \\leqslant 0$ et le carré est décroissant sur $\\mathopen{]}-\\infty\\,;0]$ : $(-2)^2 > (-1{,}5)^2$, soit $2{,}25 < 4$."
     },
     {
       question: "« Si $a < b$, alors $a^2 < b^2$ » est :",
@@ -187,8 +241,15 @@ window.CHAPITRES["seconde-variations"] = {
       explication: "Un seul contre-exemple suffit. La fonction carré n'est croissante que sur $[0\\,;+\\infty[$."
     },
     {
+      question: "D'après la figure, l'ensemble des solutions de $x^2 < 4$ est :",
+      figure: "vx-cours-carre-k",
+      choix: ["$\\mathopen{]}-2\\,;2[$", "$\\mathopen{]}-\\infty\\,;2[$", "$]2\\,;+\\infty[$", "$\\mathopen{]}-4\\,;4[$"],
+      bonne: 0,
+      explication: "La parabole est sous la droite $y = 4$ entre $-2$ et $2$, exclus car l'inégalité est stricte. « $x < 2$ » oublie que $(-3)^2 = 9 > 4$."
+    },
+    {
       question: "L'ensemble des solutions de $x^2 < 16$ est :",
-      choix: ["$]-4\\,;4[$", "$]-\\infty\\,;4[$", "$]4\\,;+\\infty[$", "$]-16\\,;16[$"],
+      choix: ["$\\mathopen{]}-4\\,;4[$", "$\\mathopen{]}-\\infty\\,;4[$", "$]4\\,;+\\infty[$", "$\\mathopen{]}-16\\,;16[$"],
       bonne: 0,
       explication: "La parabole est sous la droite $y = 16$ entre $-4$ et $4$ (exclus)."
     },
@@ -197,6 +258,13 @@ window.CHAPITRES["seconde-variations"] = {
       choix: ["$-2$ et $2$", "$-2$", "$2$", "aucune"],
       bonne: 3,
       explication: "$|x|$ est une distance, donc toujours positive : aucune solution."
+    },
+    {
+      question: "D'après la figure, pour $0 < x < 1$ :",
+      figure: "x-et-x2",
+      choix: ["$x^2 < x$", "$x^2 > x$", "$x^2 = x$", "$x^2 < 0$"],
+      bonne: 0,
+      explication: "Sur $]0\\,;1[$, la parabole est sous la droite $y = x$ : $x^2 < x$. En effet $x^2 - x = x(x - 1)$, avec $x > 0$ et $x - 1 < 0$. Exemple : $0{,}5^2 = 0{,}25 < 0{,}5$."
     },
     {
       question: "Pour $-5 \\leqslant x \\leqslant 3$, on a :",
@@ -212,22 +280,23 @@ window.CHAPITRES["seconde-variations"] = {
     },
     {
       question: "La fonction valeur absolue est…",
+      figure: "courbe-absolue",
       choix: ["décroissante puis croissante, avec un minimum $0$ en $0$", "croissante sur $\\mathbb{R}$", "décroissante sur $\\mathbb{R}$", "négative pour $x < 0$"],
       bonne: 0,
-      explication: "$|x|$ est une distance : toujours positive, minimale ($0$) en $0$, décroissante sur $]-\\infty\\,;0]$, croissante sur $[0\\,;+\\infty[$."
+      explication: "$|x|$ est une distance : toujours positive, minimale ($0$) en $0$, décroissante sur $\\mathopen{]}-\\infty\\,;0]$, croissante sur $[0\\,;+\\infty[$ : c'est le « V » de la figure."
     },
     { question: "« $f$ est croissante sur $I$ » signifie : pour tous $a$ et $b$ de $I$,", choix: ["si $a < b$, alors $f(a) \\leqslant f(b)$", "si $a < b$, alors $f(a) \\geqslant f(b)$", "$f(a)$ et $f(b)$ sont positifs", "si $a < b$, alors $f(a) = f(b)$"], bonne: 0, explication: "Les images sont rangées dans le même ordre que les nombres : la courbe monte de gauche à droite." },
     { question: "On sait que $f(1) = 2$ et $f(3) = 5$. Peut-on affirmer que $f$ est croissante sur $[1\\,;3]$ ?", choix: ["Non : deux valeurs ne suffisent pas, la courbe peut descendre entre $1$ et $3$", "Oui, car $2 < 5$", "Non, car $f$ est forcément décroissante", "Oui, car $1 < 3$"], bonne: 0, explication: "La définition demande « pour tous $a$ et $b$ » de l'intervalle. Deux exemples ne prouvent rien." },
     { question: "Une fonction monotone sur un intervalle $I$ est une fonction :", choix: ["croissante sur tout $I$, ou décroissante sur tout $I$", "constante sur $I$", "qui change une seule fois de sens de variation sur $I$", "positive sur $I$"], bonne: 0, explication: "Monotone : elle garde le même sens de variation sur tout l'intervalle." },
     { question: "$f$ croît de $f(-2) = 1$ à $f(1) = 5$, puis décroît jusqu'à $f(6) = -3$. Le minimum de $f$ sur $[-2\\,;6]$ est :", choix: ["$-3$, atteint en $x = 6$", "$1$, atteint en $x = -2$", "$6$", "$-2$"], bonne: 0, explication: "Les deux valeurs « basses » sont aux extrémités : on compare $f(-2) = 1$ et $f(6) = -3$. Le minimum est $-3$. ($-2$ et $6$ sont des abscisses, pas des valeurs de $f$.)" },
-    { question: "$f$ croît de $f(0) = -1$ à $f(2) = 4$, puis décroît jusqu'à $f(5) = 0$. Le maximum de $f$ sur $[0\\,;5]$ est :", choix: ["$4$, atteint en $x = 2$", "$2$, atteint en $x = 4$", "$5$, atteint en $x = 0$", "$0$, atteint en $x = 5$"], bonne: 0, explication: "Le maximum est la plus grande valeur de $f(x)$ : $4$. On dit qu'il est atteint en $x = 2$." },
     { question: "$f$ est décroissante sur $[2\\,;8]$ et croissante sur $[8\\,;12]$. On peut affirmer que :", choix: ["$f(3) \\geqslant f(7)$", "$f(3) \\leqslant f(7)$", "$f(3) \\leqslant f(10)$", "$f(7) \\geqslant f(10)$"], bonne: 0, explication: "$3 < 7$ sont dans $[2\\,;8]$ où $f$ est décroissante : l'ordre s'inverse. Pour $f(10)$, les nombres ne sont pas dans un même intervalle de monotonie : on ne peut pas conclure." },
-    { question: "La courbe de la fonction carré est symétrique par rapport :", choix: ["à l'axe des ordonnées", "à l'axe des abscisses", "à la droite $y = x$", "au point $(1\\,;1)$"], bonne: 0, explication: "$(-x)^2 = x^2$ : deux nombres opposés ont la même image, d'où la symétrie par rapport à l'axe vertical." },
-    { question: "On sait que $-4 \\leqslant x \\leqslant -1$. Alors :", choix: ["$1 \\leqslant x^2 \\leqslant 16$", "$-16 \\leqslant x^2 \\leqslant -1$", "$16 \\leqslant x^2 \\leqslant 1$", "$0 \\leqslant x^2 \\leqslant 16$"], bonne: 0, explication: "La fonction carré est décroissante sur $]-\\infty\\,;0]$ : l'ordre s'inverse, $(-4)^2 \\geqslant x^2 \\geqslant (-1)^2$. Ici $0$ n'est pas dans l'intervalle." },
+    { question: "La courbe de la fonction carré est symétrique par rapport :", figure: "courbe-carre", choix: ["à l'axe des ordonnées", "à l'axe des abscisses", "à la droite $y = x$", "au point $(1\\,;1)$"], bonne: 0, explication: "$(-x)^2 = x^2$ : deux nombres opposés ont la même image, comme $(-2\\,;4)$ et $(2\\,;4)$ sur la figure. D'où la symétrie par rapport à l'axe vertical." },
+    { question: "On sait que $-4 \\leqslant x \\leqslant -1$. Alors :", choix: ["$1 \\leqslant x^2 \\leqslant 16$", "$-16 \\leqslant x^2 \\leqslant -1$", "$16 \\leqslant x^2 \\leqslant 1$", "$0 \\leqslant x^2 \\leqslant 16$"], bonne: 0, explication: "La fonction carré est décroissante sur $\\mathopen{]}-\\infty\\,;0]$ : l'ordre s'inverse, $(-4)^2 \\geqslant x^2 \\geqslant (-1)^2$. Ici $0$ n'est pas dans l'intervalle." },
     { question: "Dans la démonstration du cours, pour $0 \\leqslant a < b$, le produit $b^2 - a^2 = (b - a)(b + a)$ est :", choix: ["strictement positif, donc $a^2 < b^2$", "négatif, donc $a^2 > b^2$", "nul", "de signe inconnu"], bonne: 0, explication: "$b - a > 0$ car $a < b$, et $b + a > 0$ car $a \\geqslant 0$ et $b > 0$ : le produit est positif, donc la fonction carré est croissante sur $[0\\,;+\\infty[$." },
+    { question: "Pour comparer $x$ et $x^2$ quand $x \\geqslant 0$, on étudie le signe de :", choix: ["$x^2 - x = x(x - 1)$", "$x^2 + x$", "$x - 1$ seulement", "$x^2$ seulement"], bonne: 0, explication: "Le signe de la différence $x^2 - x = x(x - 1)$ dit lequel est le plus grand : négatif sur $[0\\,;1]$ ($x^2 \\leqslant x$), positif après $1$ ($x^2 \\geqslant x$)." },
     { question: "Les solutions de $x^2 = 12$ sont :", choix: ["$-2\\sqrt{3}$ et $2\\sqrt{3}$", "$-6$ et $6$", "$2\\sqrt{3}$ seulement", "$-\\sqrt{6}$ et $\\sqrt{6}$"], bonne: 0, explication: "$12 > 0$ : deux solutions, $\\pm\\sqrt{12}$, et $\\sqrt{12} = \\sqrt{4 \\times 3} = 2\\sqrt{3}$. ($6$ vient de $\\dfrac{12}{2}$.)" },
-    { question: "L'ensemble des solutions de $x^2 \\geqslant 25$ est :", choix: ["$]-\\infty\\,;-5] \\cup [5\\,;+\\infty[$", "$[5\\,;+\\infty[$", "$[-5\\,;5]$", "$]-\\infty\\,;-5[ \\cup \\,]5\\,;+\\infty[$"], bonne: 0, explication: "La parabole est au-dessus de la droite $y = 25$ à l'extérieur de $-5$ et $5$. L'inégalité est large : $-5$ et $5$ sont inclus." },
-    { question: "L'inéquation $x^2 < -3$ a :", choix: ["aucune solution", "pour solutions tous les $x$ de $]-\\sqrt{3}\\,;\\sqrt{3}[$", "une seule solution : $0$", "pour solutions tous les réels"], bonne: 0, explication: "Un carré est toujours positif ou nul : il ne peut pas être inférieur à $-3$." },
+    { question: "L'ensemble des solutions de $x^2 \\geqslant 25$ est :", choix: ["$\\mathopen{]}-\\infty\\,;-5] \\cup [5\\,;+\\infty[$", "$[5\\,;+\\infty[$", "$[-5\\,;5]$", "$\\mathopen{]}-\\infty\\,;-5[ \\cup \\,]5\\,;+\\infty[$"], bonne: 0, explication: "La parabole est au-dessus de la droite $y = 25$ à l'extérieur de $-5$ et $5$. L'inégalité est large : $-5$ et $5$ sont inclus." },
+    { question: "L'inéquation $x^2 < -3$ a :", choix: ["aucune solution", "pour solutions tous les $x$ de $\\mathopen{]}-\\sqrt{3}\\,;\\sqrt{3}[$", "une seule solution : $0$", "pour solutions tous les réels"], bonne: 0, explication: "Un carré est toujours positif ou nul : il ne peut pas être inférieur à $-3$." },
     { question: "Pour $-2 \\leqslant x \\leqslant 5$, on a :", choix: ["$0 \\leqslant |x| \\leqslant 5$", "$2 \\leqslant |x| \\leqslant 5$", "$-2 \\leqslant |x| \\leqslant 5$", "$0 \\leqslant |x| \\leqslant 2$"], bonne: 0, explication: "$0$ est dans l'intervalle, donc le minimum de $|x|$ est $0$. Le maximum est atteint à l'extrémité la plus éloignée de $0$ : $|5| = 5$." },
     { question: "$A(x) = x(30 - x)$ pour $x \\in [0\\,;30]$. Le maximum de $A$ est atteint pour :", choix: ["$x = 15$", "$x = 30$", "$x = 225$", "$x = 0$"], bonne: 0, explication: "$A$ s'annule en $0$ et en $30$ : par symétrie de la parabole, le maximum est au milieu, en $x = 15$. Il vaut $15 \\times 15 = 225$." },
     { question: "Avec $f(x) = x(8 - x)$, que renvoie $\\texttt{balayage(f, 0, 8, 1)}$, avec la fonction Python du cours ?", choix: ["$4$", "$16$", "$8$", "$0$"], bonne: 0, explication: "La fonction renvoie la valeur de $x$ qui donne la plus grande image : $f(4) = 16$ est le maximum, atteint en $x = 4$. ($16$ est la valeur du maximum, pas l'abscisse.)" },
@@ -244,7 +313,8 @@ window.CHAPITRES["seconde-variations"] = {
         "Seconde ligne : une flèche qui monte ou qui descend entre deux abscisses.",
         "Au bout de chaque flèche, écris l'ordonnée du point correspondant."
       ],
-      exemple: "Une courbe qui descend de $(-3\\,;2)$ à $(1\\,;-4)$ puis monte jusqu'à $(4\\,;3)$ donne : $x$ : $-3$, $1$, $4$ ; flèche vers le bas de $2$ à $-4$, puis vers le haut jusqu'à $3$."
+      exemple: "Une courbe qui descend de $(-3\\,;2)$ à $(1\\,;-4)$ puis monte jusqu'à $(4\\,;3)$ donne : $x$ : $-3$, $1$, $4$ ; flèche vers le bas de $2$ à $-4$, puis vers le haut jusqu'à $3$.",
+      figure: "vx-meth-courbe"
     },
     {
       titre: "Comparer deux images sans calculer",
@@ -254,7 +324,18 @@ window.CHAPITRES["seconde-variations"] = {
         "Fonction croissante : les images sont dans le même ordre. Décroissante : dans l'ordre inverse.",
         "Conclus avec la bonne inégalité, en citant la fonction et l'intervalle."
       ],
-      exemple: "$-3 < -2 \\leqslant 0$ et le carré est décroissant sur $]-\\infty\\,;0]$ : $(-3)^2 > (-2)^2$."
+      exemple: "$-3 < -2 \\leqslant 0$ et le carré est décroissant sur $\\mathopen{]}-\\infty\\,;0]$ : $(-3)^2 > (-2)^2$.",
+      figure: "vx-meth-comparer"
+    },
+    {
+      titre: "Encadrer $x^2$ ou $|x|$ sur un intervalle",
+      etapes: [
+        "Regarde si $0$ est dans l'intervalle.",
+        "Si non : la fonction est monotone sur l'intervalle, le minimum et le maximum sont aux bornes (attention à l'ordre pour les nombres négatifs).",
+        "Si oui : le minimum est $0$, et le maximum est à la borne la plus éloignée de $0$."
+      ],
+      exemple: "$-2 \\leqslant x \\leqslant 3$ : $0$ est dans l'intervalle, donc $0 \\leqslant x^2 \\leqslant 9$ (car $3$ est plus loin de $0$ que $-2$).",
+      figure: "vx-meth-encadrer"
     },
     {
       titre: "Résoudre $x^2 < k$ ou $x^2 > k$",
@@ -264,7 +345,18 @@ window.CHAPITRES["seconde-variations"] = {
         "$x^2 < k$ : entre les deux. $x^2 > k$ : à l'extérieur (réunion de deux intervalles).",
         "Choisis les crochets selon que l'inégalité est stricte ou large."
       ],
-      exemple: "$x^2 \\geqslant 9 \\iff x \\in \\,]-\\infty\\,;-3] \\cup [3\\,;+\\infty[$."
+      exemple: "$x^2 \\geqslant 9 \\iff x \\in \\mathopen{]}-\\infty\\,;-3] \\cup [3\\,;+\\infty\\mathclose{[}$.",
+      figure: "vx-meth-inequation"
+    },
+    {
+      titre: "Résoudre $|x| = k$ et $|x| < k$",
+      etapes: [
+        "Si $k < 0$ : aucune solution (une distance n'est jamais négative). Si $k = 0$ : seulement $x = 0$.",
+        "Si $k > 0$ : $|x| = k$ pour $x = -k$ ou $x = k$.",
+        "$|x| < k$ : les nombres à moins de $k$ de $0$, soit $-k < x < k$."
+      ],
+      exemple: "$|x| = 3 \\iff x = -3$ ou $x = 3$ ; $|x| < 3 \\iff x \\in \\mathopen{]}-3\\,;3\\mathclose{[}$.",
+      figure: "vx-meth-abs"
     },
     {
       titre: "Résoudre un problème d'optimisation",
@@ -274,7 +366,8 @@ window.CHAPITRES["seconde-variations"] = {
         "Trouver le maximum : tableau de valeurs, courbe ou symétrie de la parabole.",
         "Répondre à la question posée, avec l'unité."
       ],
-      exemple: "$A(x) = x(20 - x)$ sur $[0\\,;20]$ : maximum $100$ m² pour $x = 10$ m."
+      exemple: "$A(x) = x(10 - x)$ sur $[0\\,;10]$ : maximum $25$ m² pour $x = 5$ m (point $S$ de la figure).",
+      figure: "enclos"
     }
   ],
   erreurs: [
@@ -283,6 +376,7 @@ window.CHAPITRES["seconde-variations"] = {
     "Oublier une solution : $x^2 = 9$ a deux solutions, $-3$ et $3$.",
     "Écrire $x^2 < 9 \\iff x < 3$ : il manque la condition $x > -3$.",
     "Comparer deux carrés de nombres négatifs comme s'ils étaient positifs : $-3 < -2$ mais $(-3)^2 > (-2)^2$.",
+    "Croire que $x^2 \\geqslant x$ pour tout $x$ positif : $0{,}5^2 = 0{,}25 < 0{,}5$.",
     "Encadrer $x^2$ en élevant seulement les bornes au carré quand $0$ est dans l'intervalle."
   ]
 };

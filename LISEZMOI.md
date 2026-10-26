@@ -73,7 +73,7 @@ Site statique : aucune base de données, aucun compte élève. Ouvrir `index.htm
   -   - `data/quatrieme/statistiques.js` : 4e, chapitre 14 (moyenne pondérée, médiane d'une liste ou d'un tableau, étendue, interprétation). Générateurs `sx4-`.
 - `data/seconde/ensembles.js` : chapitre 1 de Seconde (ensembles de nombres, intervalles, valeur absolue). Les générateurs d'exercices correspondants commencent par `ens-`, `int-` et `abs-` dans `assets/exercices.js`.
 - `data/seconde/information-chiffree.js` : chapitre 3 de Seconde.
-- `data/seconde/arithmetique.js` : chapitre 4 de Seconde (multiples, diviseurs, parité, nombres premiers, fractions irréductibles). Générateurs `ar-` dans `assets/exercices.js`.
+- `data/seconde/arithmetique.js` : chapitre 4 de Seconde (multiples, diviseurs, nombres pairs et impairs, fractions irréductibles, les deux démonstrations du programme ; les nombres premiers, hors programme 2026, restent seulement dans un paragraphe « Pour aller plus loin »). Générateurs `ar-` dans `assets/exercices.js`.
 - `data/seconde/calcul-litteral.js` : chapitre 5 de Seconde (puissances, racines, développer, factoriser, équations). Générateurs `cl-`.
 - `data/seconde/fonctions-affines.js` : chapitre 6 de Seconde (fonctions affines, inégalités, inéquations). Générateurs `fa-`.
 - `data/seconde/vecteurs.js` : chapitre 7 de Seconde (translation, coordonnées, milieu, distance). Générateurs `ve-` ; les figures de vecteurs utilisent l'option `fleches` de `graph()`.
@@ -85,10 +85,11 @@ Site statique : aucune base de données, aucun compte élève. Ouvrir `index.htm
 - `data/seconde/fonctions-reference.js` : chapitre 13 de Seconde (inverse, racine carrée, cube, √2 irrationnel). Générateurs `fr-`.
 - `data/seconde/signes.js` : chapitre 14 de Seconde (tableaux de signes, inéquations et équations quotients). Générateurs `sg-`.
 - `data/seconde/probabilites-conditionnelles.js` : chapitre 15 de Seconde (probabilités conditionnelles, arbres pondérés, dépistage). Générateurs `pc-` ; arbres dessinés par la fonction `arbre()`.
-- `data/seconde/statistiques-2.js` : chapitre 16 de Seconde (séries en classes, loi des grands nombres, fluctuation). Générateurs `ec-`.
+- `data/seconde/statistiques-2.js` : chapitre 16 de Seconde (séries en classes, histogrammes, polygone des fréquences cumulées, loi des grands nombres observée par simulation ; l'intervalle de fluctuation n'est plus au programme 2026). Générateurs `ec-`.
 - `data/seconde/synthese.js` : chapitre 17 de Seconde (problèmes de synthèse, bilan des raisonnements). Générateurs `sy-`.
 - `data/seconde/automatismes.js` : automatismes de Seconde (10 fiches, séries flash, test).
-- `data/automatismes/*.js` : partie Automatismes, un fichier par thème officiel de l'épreuve anticipée (calcul numérique, calcul algébrique, proportions, évolutions, fonctions, statistiques, probabilités). Les générateurs d'exercices correspondants commencent par `am-` dans `assets/exercices.js`.
+- `data/automatismes/*.js` : partie Automatismes, un fichier par thème des listes « Automatismes » des programmes 2026 de Seconde et de Première (calcul numérique, calcul algébrique, proportions, évolutions, fonctions, géométrie, statistiques, probabilités), pour l'épreuve anticipée de la session 2028 (note de service du 11-9-2026 : 2 h sans calculatrice, automatismes en questions à réponses courtes). Les générateurs d'exercices correspondants commencent par `am-` dans `assets/exercices.js` ; les séries « flash » d'un thème mélangent les générateurs de la liste `THEMES` (fin du fichier).
+- PDF des chapitres du lycée : le PDF du Drive quand il existe, sinon le cours d'Yvan Monka (maths-et-tiques.fr), à remplacer dans `pdfs` quand le PDF du Drive sera prêt.
 - Première spécialité, dans l'ordre de la progression spiralée 2026-2027 (un fichier par chapitre dans `data/premiere/`) :
   - `suites.js` : chapitre 1, suites (généralités). Générateurs `suite-` et `su-`.
   - `second-degre.js` : chapitre 2, second degré (forme factorisée). Générateurs `sd-` et `s2-`.
@@ -106,7 +107,7 @@ Site statique : aucune base de données, aucun compte élève. Ouvrir `index.htm
   - `produit-scalaire-2.js` : chapitre 14, produit scalaire (bilinéarité, identités, Al-Kashi, îlots du lagon, MA · MB = 0, contraposée). Générateurs `sc-`.
   - `geometrie-reperee.js` : chapitre 15, géométrie repérée (vecteur normal, projeté orthogonal, cercles, antenne relais). Générateurs `gr-`.
   - `echantillons.js` : chapitre 16, expérimentations sur les échantillons (simulation avec random() et un tableur, moyenne d'un échantillon, écart 2σ/√n, Monte-Carlo pour une aire et pour π, régimes de bananes). Générateurs `sm-` (et `ec-python`, `ec-lgn` de Seconde).
-  - `epreuve-anticipee.js` : chapitre 17, préparation à l'épreuve anticipée (format de l'épreuve, automatismes, rédaction, bilan des raisonnements, cinq sujets types à Mayotte, liens vers les sujets zéro d'Eduscol). Générateurs `ea-` : `ea-flash-1re`, `ea-partie1`, des séries par thème qui mélangent les générateurs des chapitres 1 à 15 (liste `EA_THEMES`), et `ea-redaction`, `ea-raisonnement`, `ea-cncs`, `ea-vrai-faux`.
+  - `epreuve-anticipee.js` : chapitre 17, préparation à l'épreuve anticipée (format de la note de service du 11-9-2026, session 2028 : 2 h sans calculatrice, partie 1 d'automatismes en questions à réponses courtes sur 6 points, partie 2 de deux ou trois exercices sur 14 points ; automatismes, rédaction, bilan des raisonnements, cinq sujets types à Mayotte, liens vers les sujets zéro d'Eduscol). Générateurs `ea-` : `ea-flash-1re`, `ea-partie1`, des séries par thème qui mélangent les générateurs des chapitres 1 à 15 (liste `EA_THEMES`), et `ea-redaction`, `ea-raisonnement`, `ea-cncs`, `ea-vrai-faux`.
 - `data/terminale-spe/denombrement.js` : chapitre 14 de Terminale spécialité (combinatoire et dénombrement). Les générateurs d'exercices correspondants commencent par `cd-` dans `assets/exercices.js`.
 - `data/terminale/` : Terminale maths complémentaires, d'après la progression spiralée 2026-2027 (programme de 2019, toujours en vigueur pour ce niveau).
   - `suites.js` : chapitre 1, suites et modèles discrets (récurrence, escalier, limites, gendarmes, suites et sommes géométriques, modèle de Malthus, Python). Générateurs `tsu-` (et `suite-`, `su-geo-limite`). `graph()` accepte une option `chemins` (lignes brisées pointillées, pour l'escalier).
@@ -130,12 +131,13 @@ Les niveaux du catalogue sont Seconde, Automatismes, Première spécialité, Ter
   Les règles d'écriture sont rappelées en haut du fichier.
 
 ## Le reste
-- `assets/exercices.js` : graphiques et générateurs d'exercices aléatoires (indices et solutions). `graph()` place seul les étiquettes (points, courbes, vecteurs, droites horizontales, nom de l'axe) là où elles ne se chevauchent pas, et n'écrit pas un nombre d'axe qui tomberait dessous.
+- `assets/exercices.js` : graphiques et générateurs d'exercices aléatoires (indices et solutions). `graph()` place seul les étiquettes (points, courbes, vecteurs, droites horizontales, nom de l'axe) là où elles ne se chevauchent pas et ne sont pas barrées par une courbe ; un nombre d'axe caché par une étiquette ou une courbe passe de l'autre côté de l'axe, sinon il n'est pas écrit ; les grands nombres d'axe ont l'espace des milliers. `deN`, `queN`, `leN`, `laN` font les élisions quand un prénom ou un lieu est inséré (« d'Anli », « qu'Awa »).
 - `assets/app.js` : navigation, QCM, points et étoiles.
   - Une série ne pose jamais deux fois la même question, et évite celles de l'essai précédent ; le Défi évite les 20 dernières questions.
   - Un QCM compte 12 questions : 9 tirées dans la banque du chapitre (en évitant celles de l'essai précédent) et 3 questions à choix fabriquées par les générateurs du chapitre, d'abord une par série. Une question à saisie sert aussi quand son générateur prévoit au moins deux erreurs typiques (`erreurs`, hors messages « valeur approchée ») : elle est transformée en question à choix (réponse exacte seulement, jamais une réponse arrondie). Les banques peuvent donc grandir sans allonger le QCM.
   - Le champ `figure` d'une section de cours, d'une question de QCM ou d'une fiche méthode (`methode[].figure`) donne le nom d'une figure de `FIGURES` (définie dans un fichier `assets/exercices*.js`), ou une liste de noms.
-  - Typographie sur téléphone : une formule n'est jamais séparée de la ponctuation qui la suit (pas de « . » seul en début de ligne), et « ? ! : ; » ainsi que l'intérieur des guillemets prennent une espace insécable.
+  - Typographie sur téléphone : une formule n'est jamais séparée de la ponctuation qui la suit (pas de « . » seul en début de ligne), ni un nombre de son unité (« 45 °C », « 12 km/h »), ni « ( » de la formule qui suit ; « ? ! : ; » ainsi que l'intérieur des guillemets prennent une espace insécable.
+  - `figureSolution` (figure de la correction) remplace la figure de l'énoncé, ou s'affiche sous la solution quand l'énoncé n'a pas de figure.
   - Une liste écrite dans une seule formule avec « ; » (`$3 ; 11 ; 19$`) est coupée en petites formules pour passer à la ligne sur téléphone : séparer les listes par « ; » plutôt que par `\,;\,`.
 - `assets/compte.js` : comptes élèves et sauvegarde de la progression.
 - `assets/style.css` : mise en page, thème clair et sombre.
@@ -146,10 +148,12 @@ Les niveaux du catalogue sont Seconde, Automatismes, Première spécialité, Ter
 - `firestore.rules` et `firebase.json` : règles de sécurité des comptes dans Firebase.
 
 ## Règles de qualité des exercices
-- Une même série ne repose jamais deux fois la même question, et chaque générateur doit produire au moins 29 questions différentes. Au collège, l'objectif est d'au moins 100 questions différentes, la question la plus fréquente ne dépassant pas 2 % des tirages, pour que les élèves s'entraînent sur des données différentes.
+- Une même série ne repose jamais deux fois la même question, et chaque générateur doit produire au moins 29 questions différentes. Au collège et au lycée, l'objectif est d'au moins 100 questions différentes, la question la plus fréquente ne dépassant pas 2 % des tirages, pour que les élèves s'entraînent sur des données différentes.
+- Une figure ne montre jamais la valeur demandée ; une réponse exacte non décimale est annoncée (« fraction », « valeur exacte ») et ses valeurs approchées sont des erreurs prévues ; aucune question à choix n'a moins de 3 choix (les vrai/faux passent par `vraiFaux4`).
+- Programmes suivis : Seconde et Première spécialité 2026 (BO n° 14 du 2 avril 2026), Terminale spécialité et maths complémentaires 2019 (jusqu'en 2027) ; ce qui sort du programme reste au plus dans un paragraphe « Pour aller plus loin (hors programme) », jamais dans les exercices, le QCM ou le Défi.
 - Chaque chapitre a au moins 3 séries capables de fournir une question au QCM (questions à choix, ou à saisie avec au moins deux erreurs typiques prévues).
 - Une question à deux réponses possibles (vrai/faux, oui/non) n'accorde pas de deuxième essai : une erreur affiche la solution et donne 0 point (`assets/app.js`). Les séries « vrai ou faux » de Terminale passent par `vraiFaux4` (`assets/exercices.js`) : une seule affirmation vraie (ou fausse) parmi quatre.
-- « Arrondi au millième / au centième / à l'unité / à la dizaine » : la tolérance n'accepte que le bon arrondi (0,0006 ; 0,006 ; 0,5 ; 5).
+- « Arrondi au millième / au centième / à l'unité / à la dizaine » : la tolérance n'accepte que le bon arrondi (par exemple 0,005 au centième, 0,5 à l'unité), et toute tolérance est annoncée dans l'énoncé.
 
 ## Ajouter un chapitre
 1. Copier `data/seconde/fonctions.js` sous un nouveau nom et remplacer le contenu.

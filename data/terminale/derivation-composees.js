@@ -4,18 +4,20 @@
   Chapitre 7 de la progression spiralée 2026-2027 (programme de maths complémentaires de 2019).
   Mêmes règles d'écriture que data/seconde/fonctions.js.
   Vidéos d'Yvan Monka (cours 20DerivC et vidéos de Première).
-  Figures : "tdc-gauss", "tdc-symetrie", "tdc-boite". Générateurs : tdc- (et d2-usuelles de Première).
+  Figures : "tdc-gauss", "tdc-symetrie", "tdc-boite", "tdc-cours-…", "tdc-qcm-…", "tdc-meth-volume". Générateurs : tdc- (et d2-usuelles de Première).
 */
 window.CHAPITRES = window.CHAPITRES || {};
 window.CHAPITRES["terminale-derivation-composees"] = {
   niveau: "Terminale maths complémentaires",
   numero: 7,
   titre: "Dérivation : fonctions composées et réciproques",
-  accroche: "Dériver f(ax + b), eᵘ et u², étudier une fonction composée, comprendre la racine carrée comme réciproque du carré, et optimiser une boîte ou un enclos.",
+  accroche: "Dériver $f(ax + b)$, $e^{u}$ et $u^2$, étudier une fonction composée, comprendre la racine carrée comme réciproque du carré, et optimiser une boîte ou un enclos.",
 
   playlist: "",
   drive: "",
-  pdfs: [],
+  pdfs: [
+    { titre: "Cours d'Yvan Monka : dérivation (PDF)", url: "https://www.maths-et-tiques.fr/telech/20DerivC.pdf" }
+  ],
   liens: [],
 
   /* ---------- 1. CAPSULE DE COURS ---------- */
@@ -41,7 +43,9 @@ window.CHAPITRES["terminale-derivation-composees"] = {
         "On dérive « l'extérieur » en gardant $ax + b$ à l'intérieur, puis on multiplie par $a$. Exemples :\n\n" +
         "- $\\left((3x - 1)^2\\right)' = 3 \\times 2(3x - 1) = 6(3x - 1)$ ;\n" +
         "- $\\left(e^{-2x}\\right)' = -2e^{-2x}$ ;\n" +
-        "- $\\left(\\sqrt{4x + 1}\\right)' = 4 \\times \\dfrac{1}{2\\sqrt{4x + 1}} = \\dfrac{2}{\\sqrt{4x + 1}}$.",
+        "- $\\left(\\sqrt{4x + 1}\\right)' = 4 \\times \\dfrac{1}{2\\sqrt{4x + 1}} = \\dfrac{2}{\\sqrt{4x + 1}}$.\n\n" +
+        "Sur la figure, les courbes de $e^x$, $e^{2x}$ et $e^{-x}$ passent par $(0\\,;1)$ : la pente en $0$ vaut $1$, $2$ et $-1$, c'est le facteur $a$.",
+      figure: "tdc-cours-affine",
       exemple: {
         enonce: "Dérive $f(x) = \\dfrac{1}{5x + 2}$ sur un intervalle où elle est définie.",
         solution: "$g(X) = \\dfrac{1}{X}$, $g'(X) = -\\dfrac{1}{X^2}$ et $a = 5$ : $f'(x) = -\\dfrac{5}{(5x + 2)^2}$."
@@ -54,7 +58,9 @@ window.CHAPITRES["terminale-derivation-composees"] = {
         "Si $u$ est dérivable sur un intervalle, $x \\mapsto e^{u(x)}$ l'est aussi et :\n\n" +
         "$\\left(e^{u}\\right)' = u'e^{u}$.\n\n" +
         "Comme $e^{u(x)} > 0$, **$e^u$ a le même sens de variation que $u$** : on étudie le signe de $u'$.\n\n" +
-        "Cas particulier : $u(x) = ax + b$ redonne $\\left(e^{ax + b}\\right)' = ae^{ax + b}$.",
+        "Cas particulier : $u(x) = ax + b$ redonne $\\left(e^{ax + b}\\right)' = ae^{ax + b}$.\n\n" +
+        "Sur la figure, $u(x) = -x^2 + 2x$ (en pointillés) et $e^{u}$ croissent toutes deux jusqu'à $x = 1$, puis décroissent.",
+      figure: "tdc-cours-expu",
       exemple: {
         enonce: "Dérive $f(x) = e^{x^2 - 4x}$.",
         solution: "$u(x) = x^2 - 4x$, $u'(x) = 2x - 4$ : $f'(x) = (2x - 4)e^{x^2 - 4x}$."
@@ -65,7 +71,10 @@ window.CHAPITRES["terminale-derivation-composees"] = {
       texte:
         "$u^2 = u \\times u$, donc avec la dérivée d'un produit : $(u^2)' = u'u + uu' = 2u'u$.\n\n" +
         "Exemple : $\\left((x^2 + 1)^2\\right)' = 2 \\times 2x \\times (x^2 + 1) = 4x(x^2 + 1)$.\n\n" +
-        "On peut vérifier en développant : $(x^2 + 1)^2 = x^4 + 2x^2 + 1$, de dérivée $4x^3 + 4x = 4x(x^2 + 1)$.",
+        "On peut vérifier en développant : $(x^2 + 1)^2 = x^4 + 2x^2 + 1$, de dérivée $4x^3 + 4x = 4x(x^2 + 1)$.\n\n" +
+        "Attention : $u^2$ n'a pas toujours les variations de $u$, car le signe de $2u'u$ dépend aussi du signe de $u$. Sur la figure, $u(x) = 0{,}5x - 1$ est croissante, mais $u^2$ décroît tant que $u$ est négatif.",
+      figure: "tdc-cours-carre",
+      video: { titre: "Vidéo d'Yvan Monka : dériver une fonction composée (cas général)", youtube: "https://youtu.be/lwcFgnbs0Ew" },
       exemple: {
         enonce: "Dérive $f(x) = (3x^2 - 2)^2$ et calcule $f'(1)$.",
         solution: "$f'(x) = 2 \\times 6x \\times (3x^2 - 2) = 12x(3x^2 - 2)$, donc $f'(1) = 12 \\times 1 = 12$."
@@ -89,6 +98,7 @@ window.CHAPITRES["terminale-derivation-composees"] = {
     {
       titre: "Fonction réciproque : carré et racine carrée",
       figure: "tdc-symetrie",
+      video: { titre: "Vidéo d'Yvan Monka : déterminer la fonction réciproque d'une fonction", youtube: "https://youtu.be/bgINubYekqo" },
       texte:
         "Sur $[0\\,;+\\infty[$, la fonction carré est continue et strictement croissante. Pour tout $y \\geqslant 0$, l'équation $x^2 = y$ a une unique solution positive : $\\sqrt{y}$.\n\n" +
         "Sur $[0\\,;+\\infty[$ : $y = x^2 \\iff x = \\sqrt{y}$. La racine carrée est la **fonction réciproque** du carré.\n\n" +
@@ -118,7 +128,8 @@ window.CHAPITRES["terminale-derivation-composees"] = {
       texte:
         "On trace la courbe de $x \\mapsto x^2$ sur $[0\\,;3]$ et sa symétrique par rapport à $y = x$, en échangeant les listes des abscisses et des ordonnées :\n\n" +
         "```python\nimport matplotlib.pyplot as plt\n\nX = [k / 10 for k in range(31)]\nY = [x**2 for x in X]\nplt.plot(X, Y)\nplt.plot(Y, X)\nplt.plot([0, 9], [0, 9], '--')\nplt.show()\n```\n\n" +
-        "La deuxième courbe tracée, avec les rôles de $X$ et $Y$ échangés, est celle de la racine carrée.",
+        "La deuxième courbe tracée, avec les rôles de $X$ et $Y$ échangés, est celle de la racine carrée : le programme affiche les deux courbes de la figure.",
+      figure: "tdc-symetrie",
       exemple: {
         enonce: "Quel point de la deuxième courbe correspond à $x = 2{,}5$ dans la liste X ?",
         solution: "$Y = 2{,}5^2 = 6{,}25$. La deuxième courbe contient le point $(6{,}25\\,;2{,}5)$, et $\\sqrt{6{,}25} = 2{,}5$."
@@ -136,9 +147,9 @@ window.CHAPITRES["terminale-derivation-composees"] = {
   /* ---------- 2. EXERCICES INTERACTIFS ---------- */
   exercices: [
     { type: "d2-usuelles", titre: "Rappels : dérivées usuelles", etape: "Dériver", nb: 4 },
-    { type: "tdc-affine", titre: "Dériver g(ax + b)", etape: "Dériver", nb: 5 },
-    { type: "tdc-exp-u", titre: "Dériver et étudier eᵘ", etape: "Dériver", nb: 5 },
-    { type: "tdc-carre-u", titre: "Dériver u²", etape: "Dériver", nb: 4 },
+    { type: "tdc-affine", titre: "Dériver $g(ax + b)$", etape: "Dériver", nb: 5 },
+    { type: "tdc-exp-u", titre: "Dériver et étudier $e^{u}$", etape: "Dériver", nb: 5 },
+    { type: "tdc-carre-u", titre: "Dériver $u^2$", etape: "Dériver", nb: 4 },
     { type: "tdc-reciproque", titre: "Carré et racine carrée", etape: "Réciproque", nb: 5 },
     { type: "tdc-logique", titre: "Équivalence et dérivées : vrai ou faux ?", etape: "Réciproque", nb: 5 },
     { type: "tdc-optimisation", titre: "La boîte et l'enclos", etape: "Optimiser", nb: 4 }
@@ -167,7 +178,11 @@ window.CHAPITRES["terminale-derivation-composees"] = {
     { question: "$\\left((5 - x)^2\\right)' =$", choix: ["$-2(5 - x)$", "$2(5 - x)$", "$2x$", "$-2x$"], bonne: 0, explication: "$a = -1$." },
     { question: "$\\left(3e^{2x}\\right)' =$", choix: ["$6e^{2x}$", "$3e^{2x}$", "$6xe^{2x}$", "$5e^{2x}$"], bonne: 0, explication: "$3 \\times 2e^{2x}$." },
     { question: "« $x = 4 \\Rightarrow x^2 = 16$ » : sa réciproque, sur $\\mathbb{R}$, est :", choix: ["fausse", "vraie", "une équivalence", "sans objet"], bonne: 0, explication: "$x = -4$ vérifie $x^2 = 16$." },
-    { question: "La racine carrée est définie comme réciproque du carré parce que, sur $[0\\,;+\\infty[$, le carré est :", choix: ["continu et strictement croissant", "pair", "positif", "dérivable en $0$ seulement"], bonne: 0, explication: "Chaque $y \\geqslant 0$ a alors un unique antécédent positif." }
+    { question: "La racine carrée est définie comme réciproque du carré parce que, sur $[0\\,;+\\infty[$, le carré est :", choix: ["continu et strictement croissant", "pair", "positif", "dérivable en $0$ seulement"], bonne: 0, explication: "Chaque $y \\geqslant 0$ a alors un unique antécédent positif." },
+    { question: "La courbe en pointillés est la symétrique de la courbe de $x \\mapsto x^2$ ($x \\geqslant 0$) par rapport à la droite $y = x$. C'est la courbe de :", figure: "tdc-qcm-sym", choix: ["$x \\mapsto \\sqrt{x}$", "$x \\mapsto x^2$", "$x \\mapsto \\dfrac{1}{x}$", "$x \\mapsto -x^2$"], bonne: 0, explication: "La racine carrée est la réciproque du carré sur $[0\\,;+\\infty[$ : leurs courbes sont symétriques par rapport à la droite $y = x$." },
+    { question: "La figure montre la courbe d'une fonction $u$. La fonction $f = e^{u}$ admet :", figure: "tdc-qcm-u", choix: ["un minimum en $x = 2$", "un maximum en $x = 2$", "un minimum en $x = -4$", "aucun extremum"], bonne: 0, explication: "$f' = u'e^{u}$ et $e^{u} > 0$ : $f$ a les mêmes variations que $u$, qui décroît puis croît avec un minimum en $x = 2$. Ce minimum vaut $e^{-4}$." },
+    { question: "Dans une feuille carrée de $30$ cm de côté, on découpe un carré de côté $x$ à chaque coin et on plie (figure). Le volume de la boîte est :", figure: "tdc-boite", choix: ["$V(x) = x(30 - 2x)^2$", "$V(x) = x(30 - x)^2$", "$V(x) = (30 - 2x)^3$", "$V(x) = x^2(30 - 2x)$"], bonne: 0, explication: "Le fond est un carré de côté $30 - 2x$ (on retire $x$ de chaque côté) et la hauteur vaut $x$ : $V(x) = x(30 - 2x)^2$." },
+    { question: "Un enclos rectangulaire est construit le long d'un mur avec $40$ m de grillage pour les trois autres côtés (figure). Son aire est :", figure: "tdc-qcm-enclos", choix: ["$A(x) = x(40 - 2x)$", "$A(x) = x(40 - x)$", "$A(x) = x(20 - x)$", "$A(x) = 40x$"], bonne: 0, explication: "Les deux largeurs utilisent $2x$ mètres de grillage : le côté parallèle au mur mesure $40 - 2x$, et $A(x) = x(40 - 2x)$." }
   ],
 
   /* ---------- 4. FICHE MÉTHODE ---------- */
@@ -175,17 +190,20 @@ window.CHAPITRES["terminale-derivation-composees"] = {
     {
       titre: "Dériver une fonction composée",
       etapes: ["Repérer la forme : $g(ax + b)$, $e^{u}$ ou $u^2$.", "Appliquer : $a \\times g'(ax + b)$ ; $u'e^{u}$ ; $2u'u$.", "Simplifier sans oublier le facteur $a$ ou $u'$."],
-      exemple: "$\\left(e^{x^2 - 4x}\\right)' = (2x - 4)e^{x^2 - 4x}$."
+      exemple: "$\\left(e^{x^2 - 4x}\\right)' = (2x - 4)e^{x^2 - 4x}$. Avec $g(ax + b)$, le facteur $a$ se voit sur la figure : les pentes en $0$ de $e^x$, $e^{2x}$ et $e^{-x}$ valent $1$, $2$ et $-1$.",
+      figure: "tdc-cours-affine"
     },
     {
       titre: "Étudier les variations de $e^{u}$",
       etapes: ["Calculer $u'(x)$.", "Comme $e^u > 0$, étudier seulement le signe de $u'$.", "Dresser le tableau de variations et calculer les extremums."],
-      exemple: "$e^{-x^2}$ : croissante puis décroissante, maximum $1$ en $0$."
+      exemple: "$e^{-x^2}$ : croissante puis décroissante, maximum $1$ en $0$ (figure).",
+      figure: "tdc-gauss"
     },
     {
       titre: "Optimiser une grandeur",
       etapes: ["Exprimer la grandeur en fonction de $x$ et préciser l'intervalle.", "Dériver (produit, $u^2$…), étudier le signe.", "Conclure : valeur de $x$ et valeur optimale, avec les unités."],
-      exemple: "Boîte : $V(x) = x(30 - 2x)^2$, maximum $2\\,000$ cm³ pour $x = 5$ cm."
+      exemple: "Boîte : $V(x) = x(30 - 2x)^2$, maximum $2\\,000$ cm³ pour $x = 5$ cm (courbe du volume sur la figure).",
+      figure: "tdc-meth-volume"
     }
   ],
   erreurs: [

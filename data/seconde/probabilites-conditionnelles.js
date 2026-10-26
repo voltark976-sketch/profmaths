@@ -3,11 +3,13 @@
   ---------------------------------------------------------------------
   Chapitre 15 de la progression spiralée 2026-2027 (programme de Seconde 2026).
   Les probabilités totales ne sont pas un attendu : on passe par un tableau d'effectifs
-  (population fictive de 10 000 personnes) pour inverser un conditionnement.
+  (population fictive de 10 000 personnes) pour inverser un conditionnement. Aucun exercice ne demande P(B)
+  par la formule des probabilités totales (am-proba-arbre, qui le fait, est remplacé par pc-ponderation).
   Mêmes règles d'écriture que data/seconde/fonctions.js.
-  Figure disponible : "arbre-depistage".
-  À ajouter quand elle sera publique : #26 « Raisonner avec les probabilités » (iliNfgwWyLM, encore privée le 07/10).
-  Les générateurs d'exercices commencent par « pc- » dans assets/exercices.js (et am-proba-arbre).
+  Figures : "arbre-depistage", "pc-cours-restriction", "pc-cours-tests", "pc-cours-10000",
+  "pc-qcm-barge", "pc-qcm-vaccin", "pc-qcm-tableau".
+  Les générateurs d'exercices commencent par « pc- » dans assets/exercices.js
+  (pc-traduire, pc-arbre et pc-python servent aussi en Première, chapitre 4).
 */
 window.CHAPITRES = window.CHAPITRES || {};
 window.CHAPITRES["seconde-probabilites-conditionnelles"] = {
@@ -18,7 +20,9 @@ window.CHAPITRES["seconde-probabilites-conditionnelles"] = {
 
   playlist: "",
   drive: "",
-  pdfs: [],
+  pdfs: [
+    { titre: "Cours d'Yvan Monka : probabilités, arbres et probabilités conditionnelles (PDF)", url: "https://www.maths-et-tiques.fr/telech/19ProbabilitesM.pdf" }
+  ],
   liens: [
     { titre: "Le cours sur les probabilités conditionnelles en vidéo (Yvan Monka)", url: "https://youtu.be/eE90_sgdCG0", type: "video" }
   ],
@@ -34,6 +38,7 @@ window.CHAPITRES["seconde-probabilites-conditionnelles"] = {
         "- C'est la probabilité de $B$ quand on sait que $A$ est réalisé : on se restreint aux issues de $A$.\n" +
         "- On en déduit $P(A \\cap B) = P(A) \\times P_A(B)$.\n" +
         "- $P_A(B)$ et $P_B(A)$ sont en général **différentes** (comme $f_A(B)$ et $f_B(A)$ au chapitre 10).",
+      figure: "pc-cours-restriction",
       exemple: {
         enonce: "Au lycée, $P(F) = 0{,}55$ (l'élève est une fille) et $P(F \\cap S) = 0{,}22$ (fille et fait du sport). Calculer $P_F(S)$.",
         solution: "$P_F(S) = \\dfrac{0{,}22}{0{,}55} = 0{,}4$ : $40\\,\\%$ des filles font du sport."
@@ -63,6 +68,7 @@ window.CHAPITRES["seconde-probabilites-conditionnelles"] = {
         "- la **spécificité** est $P_{\\overline{M}}(\\overline{T})$ : la probabilité que le test soit négatif pour une personne saine ;\n" +
         "- un **faux positif** est une personne saine avec un test positif ; un **faux négatif**, une personne malade avec un test négatif.\n\n" +
         "Passer de la langue naturelle aux notations : « sachant que… » ou « parmi les… » indique ce qui va **en indice**.",
+      figure: "pc-cours-tests",
       exemple: {
         enonce: "Comment note-t-on « la probabilité qu'une personne dont le test est positif soit malade » ?",
         solution: "On sait que le test est positif : $T$ va en indice. C'est $P_T(M)$, à ne pas confondre avec la sensibilité $P_M(T)$."
@@ -77,6 +83,7 @@ window.CHAPITRES["seconde-probabilites-conditionnelles"] = {
         "- malades : $10\\,000 \\times P(M)$, dont les positifs : $\\times P_M(T)$ ;\n" +
         "- sains : le reste, dont les positifs (faux positifs) : $\\times P_{\\overline{M}}(T)$ ;\n" +
         "- puis $P_T(M) = \\dfrac{\\text{malades positifs}}{\\text{total des positifs}}$.",
+      figure: "pc-cours-10000",
       exemple: {
         enonce: "Avec l'arbre du paragraphe 2 : une personne a un test positif. Quelle est la probabilité qu'elle soit malade ?",
         solution: "Sur $10\\,000$ personnes : $200$ malades, dont $190$ positifs ; $9\\,800$ saines, dont $980$ positifs (faux positifs).\n\nTotal des positifs : $1\\,170$. $P_T(M) = \\dfrac{190}{1\\,170} \\approx 0{,}16$.\n\nSeulement $16\\,\\%$ : la maladie est rare, les faux positifs sont plus nombreux que les vrais positifs. Un test positif se confirme par un second test."
@@ -109,17 +116,18 @@ window.CHAPITRES["seconde-probabilites-conditionnelles"] = {
 
   /* Exercices corrigés en vidéo */
   videos: [
+    { titre: "Exercice corrigé de ton prof : raisonner avec les probabilités", type: "Raisonner", youtube: "https://youtu.be/iliNfgwWyLM" },
     { titre: "Calculer une probabilité à l'aide d'un arbre pondéré", type: "Arbre", youtube: "https://youtu.be/dQPd9njK5ZA" },
     { titre: "Compléter un arbre pondéré", type: "Arbre", youtube: "https://youtu.be/o1HQ6xJ7o4U" }
   ],
-  videosNote: "Vidéos d'Yvan Monka : l'énoncé est donné au début de chaque vidéo.",
+  videosNote: "La vidéo de ton prof, puis celles d'Yvan Monka : l'énoncé est donné au début de chaque vidéo.",
 
   /* ---------- 2. EXERCICES ---------- */
   exercices: [
     { type: "pc-formule", titre: "La formule de $P_A(B)$", etape: "Probabilité conditionnelle", nb: 5 },
     { type: "pc-traduire", titre: "Traduire en notations", etape: "Probabilité conditionnelle", nb: 5 },
+    { type: "pc-ponderation", titre: "Interpréter un arbre pondéré", etape: "Arbres pondérés", nb: 5 },
     { type: "pc-arbre", titre: "Compléter et lire un arbre", etape: "Arbres pondérés", nb: 6 },
-    { type: "am-proba-arbre", titre: "Probabilité d'un chemin", etape: "Arbres pondérés", nb: 4 },
     { type: "pc-depistage", titre: "Test de dépistage : inverser le conditionnement", etape: "Inverser", nb: 4 },
     { type: "pc-python", titre: "Python : simulation à deux épreuves", etape: "Python", nb: 3 }
   ],
@@ -177,10 +185,15 @@ window.CHAPITRES["seconde-probabilites-conditionnelles"] = {
     { question: "Un faux négatif est :", choix: ["une personne malade dont le test est négatif", "une personne saine dont le test est négatif", "une personne saine dont le test est positif", "une personne malade dont le test est positif"], bonne: 0, explication: "Le test dit « négatif » à tort : la personne est malade, mais le test ne l'a pas détectée." },
     { question: "« Parmi les élèves qui prennent la barge ($B$), $30\\,\\%$ habitent à Pamandzi ($H$). » Cela s'écrit :", choix: ["$P_B(H) = 0{,}3$", "$P_H(B) = 0{,}3$", "$P(B \\cap H) = 0{,}3$", "$P(H) = 0{,}3$"], bonne: 0, explication: "« Parmi les élèves qui prennent la barge » : on se restreint à $B$, qui va en indice." },
     { question: "« $70\\,\\%$ des retards de la barge ont lieu les jours de forte houle. » Avec $R$ : « la barge est en retard » et $H$ : « il y a une forte houle », cette phrase donne :", choix: ["$P_R(H) = 0{,}7$", "$P_H(R) = 0{,}7$", "$P(R \\cap H) = 0{,}7$", "$P(H) = 0{,}7$"], bonne: 0, explication: "On se place parmi les retards : $R$ va en indice. Cela ne dit pas que la barge est en retard $70\\,\\%$ des jours de houle, ce qui serait $P_H(R)$." },
-    { question: "Vrai ou faux : pour tous événements $A$ et $B$ de probabilités non nulles, $P_A(B) = P_B(A)$.", choix: ["Faux", "Vrai"], bonne: 0, explication: "$P_A(B) = \\dfrac{P(A \\cap B)}{P(A)}$ et $P_B(A) = \\dfrac{P(A \\cap B)}{P(B)}$ : on ne divise pas par le même nombre. Elles ne sont égales que si $P(A) = P(B)$ (ou si $P(A \\cap B) = 0$)." },
+    { question: "Pour deux événements $A$ et $B$ de probabilités non nulles, que peut-on dire de $P_A(B)$ et $P_B(A)$ ?", choix: ["elles ont le même numérateur $P(A \\cap B)$ mais pas le même dénominateur : en général, elles sont différentes", "elles sont toujours égales", "leur somme vaut toujours $1$", "leur produit vaut toujours $P(A \\cap B)$"], bonne: 0, explication: "$P_A(B) = \\dfrac{P(A \\cap B)}{P(A)}$ et $P_B(A) = \\dfrac{P(A \\cap B)}{P(B)}$ : on ne divise pas par le même nombre. Elles ne sont égales que si $P(A) = P(B)$ (ou si $P(A \\cap B) = 0$)." },
     { question: "On imagine $10\\,000$ personnes, avec $P(M) = 0{,}03$ et $P_M(T) = 0{,}9$. Le nombre de malades dont le test est positif est :", choix: ["$270$", "$300$", "$9\\,000$", "$2\\,700$"], bonne: 0, explication: "$10\\,000 \\times 0{,}03 = 300$ malades, dont $300 \\times 0{,}9 = 270$ ont un test positif." },
     { question: "Sur $10\\,000$ personnes, $9\\,500$ sont saines et $P_{\\overline{M}}(T) = 0{,}02$. Le nombre de faux positifs est :", choix: ["$190$", "$200$", "$9\\,310$", "$19$"], bonne: 0, explication: "Les faux positifs sont les personnes saines au test positif : $9\\,500 \\times 0{,}02 = 190$." },
-    { question: "Sur $10\\,000$ personnes, le test est positif pour $90$ malades et pour $495$ personnes saines. La probabilité qu'une personne au test positif soit malade est :", choix: ["$\\dfrac{90}{585}$", "$\\dfrac{90}{100}$", "$\\dfrac{90}{10\\,000}$", "$\\dfrac{495}{585}$"], bonne: 0, explication: "On se restreint aux $90 + 495 = 585$ tests positifs, dont $90$ viennent de malades : $P_T(M) = \\dfrac{90}{585} \\approx 0{,}15$." },
+    { question: "D'après le tableau d'effectifs ci-dessous, portant sur $10\\,000$ personnes, la probabilité qu'une personne au test positif soit malade est :", figure: "pc-qcm-tableau", choix: ["$\\dfrac{90}{585}$", "$\\dfrac{90}{100}$", "$\\dfrac{90}{10\\,000}$", "$\\dfrac{495}{585}$"], bonne: 0, explication: "On se restreint à la colonne « Test positif » : $585$ personnes, dont $90$ malades. Donc $P_T(M) = \\dfrac{90}{585} \\approx 0{,}15$. Le quotient $\\dfrac{90}{100}$, lui, est la sensibilité $P_M(T)$." },
+    { question: "Dans l'arbre ci-dessous ($M$ : « la personne est malade », $T$ : « son test est positif »), que représente le nombre $0{,}95$ ?", figure: "arbre-depistage", choix: ["$P_M(T)$ : la probabilité que le test soit positif sachant que la personne est malade", "$P_T(M)$ : la probabilité d'être malade sachant que le test est positif", "$P(M \\cap T)$ : la probabilité d'être malade et d'avoir un test positif", "$P(T)$ : la probabilité d'avoir un test positif"], bonne: 0, explication: "La branche part du nœud $M$ : on sait que la personne est malade. C'est $P_M(T)$, la sensibilité du test. $P(M \\cap T) = 0{,}02 \\times 0{,}95 = 0{,}019$ est la probabilité du chemin." },
+    { question: "D'après l'arbre ci-dessous, $P(\\overline{M} \\cap \\overline{T})$ vaut :", figure: "arbre-depistage", choix: ["$0{,}882$", "$0{,}098$", "$1{,}88$", "$0{,}9$"], bonne: 0, explication: "On suit le chemin $\\overline{M}$ puis $\\overline{T}$ et on multiplie : $0{,}98 \\times 0{,}9 = 0{,}882$. ($0{,}098 = 0{,}98 \\times 0{,}1$ mène à $T$, et $1{,}88$ vient d'une addition.)" },
+    { question: "Arbre ci-dessous : $A$ : « il y a une averse », $R$ : « la barge est en retard ». La probabilité qu'il y ait une averse et que la barge soit en retard est :", figure: "pc-qcm-barge", choix: ["$0{,}18$", "$0{,}9$", "$0{,}6$", "$0{,}07$"], bonne: 0, explication: "Chemin $A$ puis $R$ : $0{,}3 \\times 0{,}6 = 0{,}18$. ($0{,}6$ est seulement $P_A(R)$, et $0{,}07 = 0{,}7 \\times 0{,}1$ est le chemin $\\overline{A}$ puis $R$.)" },
+    { question: "Dans l'arbre ci-dessous ($A$ : « il y a une averse », $R$ : « la barge est en retard »), le nombre $0{,}1$ signifie :", figure: "pc-qcm-barge", choix: ["un jour sans averse, la barge est en retard avec la probabilité $0{,}1$", "un jour de retard, la probabilité qu'il n'y ait pas eu d'averse est $0{,}1$", "la barge est en retard un jour sur dix dans l'année", "la probabilité qu'il n'y ait pas d'averse et que la barge soit en retard est $0{,}1$"], bonne: 0, explication: "La branche part du nœud $\\overline{A}$ : c'est $P_{\\overline{A}}(R) = 0{,}1$, une probabilité **sachant** qu'il n'y a pas d'averse. La probabilité du chemin, $P(\\overline{A} \\cap R)$, vaut $0{,}7 \\times 0{,}1 = 0{,}07$." },
+    { question: "Dans l'arbre ci-dessous ($V$ : « l'habitant est vacciné », $G$ : « il attrape la grippe »), la probabilité manquante, marquée d'un « ? », vaut :", figure: "pc-qcm-vaccin", choix: ["$0{,}2$", "$0{,}8$", "$0{,}6$", "$1{,}8$"], bonne: 0, explication: "C'est $P(\\overline{V})$ : les deux branches qui partent du début de l'arbre ont pour somme $1$, donc $P(\\overline{V}) = 1 - 0{,}8 = 0{,}2$." },
     { question: "Sur $50$ élèves, $20$ font de la natation et, parmi eux, $5$ font aussi du football. On choisit un nageur au hasard. La probabilité qu'il fasse du football est :", choix: ["$\\dfrac{5}{20}$", "$\\dfrac{5}{50}$", "$\\dfrac{20}{50}$", "$\\dfrac{5}{25}$"], bonne: 0, explication: "On sait que l'élève fait de la natation : on se restreint aux $20$ nageurs, dont $5$ font du football. $\\dfrac{5}{50}$ est la probabilité de « nageur et footballeur »." },
     { question: "En Python, le test $\\texttt{random() < 0.3}$ est vrai avec une probabilité de :", choix: ["$0{,}3$", "$0{,}7$", "$0{,}5$", "$0{,}03$"], bonne: 0, explication: "$\\texttt{random()}$ tire un nombre au hasard dans $[0\\,;1[$ : il tombe dans $[0\\,;0{,}3[$ avec la probabilité $0{,}3$." },
     { question: "Dans le programme $\\texttt{depistage}$ du cours, le nombre $\\texttt{0.1}$ représente :", choix: ["la probabilité qu'une personne saine ait un test positif", "la probabilité d'être malade", "la sensibilité du test", "la probabilité d'être malade quand le test est positif"], bonne: 0, explication: "La ligne $\\texttt{positif = random() < 0.1}$ est dans le cas $\\texttt{else}$, c'est-à-dire pour une personne saine : c'est $P_{\\overline{M}}(T)$." }
@@ -196,6 +209,7 @@ window.CHAPITRES["seconde-probabilites-conditionnelles"] = {
         "Vérifier que chaque nœud a des branches de somme $1$.",
         "Probabilité d'un chemin : produit des branches."
       ],
+      figure: "arbre-depistage",
       exemple: "$P(\\overline{M} \\cap T) = 0{,}98 \\times 0{,}1 = 0{,}098$."
     },
     {
@@ -206,6 +220,7 @@ window.CHAPITRES["seconde-probabilites-conditionnelles"] = {
         "Calculer le total de la colonne qui sert de condition (par exemple les tests positifs).",
         "Diviser : $P_T(M) = \\dfrac{\\text{effectif de } M \\cap T}{\\text{effectif de } T}$."
       ],
+      figure: "pc-cours-10000",
       exemple: "$P_T(M) = \\dfrac{190}{1\\,170} \\approx 0{,}16$."
     },
     {
@@ -215,6 +230,7 @@ window.CHAPITRES["seconde-probabilites-conditionnelles"] = {
         "« Sachant que », « parmi les », « si » : la condition va en indice.",
         "« Et » : intersection $\\cap$."
       ],
+      figure: "pc-cours-tests",
       exemple: "« Un malade a un test positif dans $95\\,\\%$ des cas » : $P_M(T) = 0{,}95$."
     }
   ],

@@ -4,7 +4,11 @@
   Chapitre 8 de la progression spiralée 2026-2027 (programme de maths complémentaires de 2019).
   Mêmes règles d'écriture que data/seconde/fonctions.js.
   Vidéos d'Yvan Monka (cours 20LogTC).
-  Figures : "tln-courbe", "tln-neper". Générateurs : tln-.
+  Figures : "tln-courbe", "tln-cours-equation", "tln-cours-seuil", "tln-cours-etude", "tln-cours-xlnx", "tln-neper", "tln-cours-hyperbole",
+  "tln-meth-etude", "tln-qcm-…". Générateurs : tln- (tln-proprietes sert aussi en Terminale spécialité).
+  Programme (BO spécial n° 8 du 25 juillet 2019) : ln réciproque de exp, limites, équation fonctionnelle, dérivée, dérivée de ln u,
+  seuil avec ln(qⁿ) = n ln q ; thème « Approche historique du logarithme » (Neper, Briggs, quadrature de l'hyperbole, Brouncker) ;
+  algorithmes de Briggs et de dichotomie.
 */
 window.CHAPITRES = window.CHAPITRES || {};
 window.CHAPITRES["terminale-logarithme"] = {
@@ -15,7 +19,9 @@ window.CHAPITRES["terminale-logarithme"] = {
 
   playlist: "",
   drive: "",
-  pdfs: [],
+  pdfs: [
+    { titre: "Cours d'Yvan Monka : fonction logarithme népérien (PDF)", url: "https://www.maths-et-tiques.fr/telech/20LogTC.pdf" }
+  ],
   liens: [
     { titre: "Le cours sur le logarithme népérien en vidéo (Yvan Monka)", url: "https://youtu.be/VJns0RfVWGg", type: "video" }
   ],
@@ -54,13 +60,15 @@ window.CHAPITRES["terminale-logarithme"] = {
     },
     {
       titre: "Équations et inéquations",
+      figure: "tln-cours-equation",
       video: { titre: "Vidéo d'Yvan Monka : résoudre une inéquation contenant des logarithmes", youtube: "https://youtu.be/_fpPphstjYw" },
       texte:
         "$\\ln$ est strictement croissante sur $]0\\,;+\\infty[$. Pour $a > 0$ et $b > 0$ :\n\n" +
         "- $\\ln a = \\ln b \\iff a = b$ ;\n" +
         "- $\\ln a < \\ln b \\iff a < b$ (**équivalence** : l'ordre est conservé dans les deux sens) ;\n" +
         "- $\\ln x = c \\iff x = e^c$ ; $e^x = k \\iff x = \\ln k$ (pour $k > 0$).\n\n" +
-        "Toujours vérifier que ce qui est dans le logarithme est **strictement positif**.",
+        "Toujours vérifier que ce qui est dans le logarithme est **strictement positif**.\n\n" +
+        "Graphiquement (figure), la solution de $\\ln x = 2$ est l'abscisse du point où la courbe de $\\ln$ coupe la droite $y = 2$ : $x = e^2 \\approx 7{,}39$ ; la courbe est sous la droite pour $0 < x < e^2$.",
       exemple: {
         enonce: "Résous $\\ln(2x - 1) = 3$ puis $\\ln x < 2$.",
         solution: "$2x - 1 = e^3 \\iff x = \\dfrac{e^3 + 1}{2} \\approx 10{,}54$ (et $2x - 1 = e^3 > 0$).\n\n$\\ln x < 2 \\iff 0 < x < e^2$ : $S = ]0\\,;e^2[$."
@@ -68,13 +76,14 @@ window.CHAPITRES["terminale-logarithme"] = {
     },
     {
       titre: "Seuil d'une suite géométrique : $\\ln(q^n) = n\\ln q$",
+      figure: "tln-cours-seuil",
       video: { titre: "Vidéo d'Yvan Monka : déterminer par le calcul un seuil pour une suite géométrique", youtube: "https://youtu.be/fm1YBGcix0E" },
       texte:
         "Pour trouver le premier $n$ tel que $q^n > A$ (ou $q^n < A$), on applique $\\ln$ :\n\n" +
         "$n\\ln q > \\ln A$.\n\n" +
         "- Si $q > 1$, $\\ln q > 0$ : $n > \\dfrac{\\ln A}{\\ln q}$.\n" +
         "- Si $0 < q < 1$, $\\ln q < 0$ : en divisant, **le sens de l'inégalité change**.\n\n" +
-        "Retour au modèle de Malthus (chapitre 1) : $320\\,000 \\times 1{,}03^n > 400\\,000 \\iff 1{,}03^n > 1{,}25 \\iff n > \\dfrac{\\ln 1{,}25}{\\ln 1{,}03} \\approx 7{,}55$ : à partir de $n = 8$, soit en 2032. Plus besoin de tâtonner !",
+        "Retour au modèle de Malthus (chapitre 1) : $320\\,000 \\times 1{,}03^n > 400\\,000 \\iff 1{,}03^n > 1{,}25 \\iff n > \\dfrac{\\ln 1{,}25}{\\ln 1{,}03} \\approx 7{,}55$ : à partir de $n = 8$, soit en 2032 (figure : les points $(n\\,;1{,}03^n)$ passent au-dessus de la droite $y = 1{,}25$ à partir de $n = 8$). Plus besoin de tâtonner !",
       exemple: {
         enonce: "Le plat du chapitre 3 : $T_n = 25 + 65 \\times 0{,}8^n$. À partir de quand $T_n < 40$ ?",
         solution: "$65 \\times 0{,}8^n < 15 \\iff 0{,}8^n < \\dfrac{3}{13} \\iff n\\ln 0{,}8 < \\ln\\dfrac{3}{13} \\iff n > \\dfrac{\\ln(3/13)}{\\ln 0{,}8} \\approx 6{,}57$ (on divise par $\\ln 0{,}8 < 0$) : à partir de $7$ minutes."
@@ -82,12 +91,14 @@ window.CHAPITRES["terminale-logarithme"] = {
     },
     {
       titre: "Étude de la fonction ln",
+      figure: "tln-cours-etude",
       video: { titre: "Vidéo d'Yvan Monka : étudier la fonction logarithme népérien", youtube: "https://youtu.be/3KLX-ScJmcI" },
       texte:
         "- **Dérivée** : $\\ln$ est dérivable sur $]0\\,;+\\infty[$ et $(\\ln x)' = \\dfrac{1}{x}$ (en dérivant $e^{\\ln x} = x$ : $(\\ln x)' e^{\\ln x} = 1$).\n" +
         "- $\\dfrac{1}{x} > 0$ : $\\ln$ est **strictement croissante**.\n" +
         "- **Limites** : $\\lim\\limits_{x \\to +\\infty} \\ln x = +\\infty$ (très lentement) et $\\lim\\limits_{x \\to 0,\\ x > 0} \\ln x = -\\infty$ : l'axe des ordonnées est asymptote verticale.\n" +
-        "- **Signe** : $\\ln x < 0$ sur $]0\\,;1[$, $\\ln 1 = 0$, $\\ln x > 0$ sur $]1\\,;+\\infty[$.",
+        "- **Signe** : $\\ln x < 0$ sur $]0\\,;1[$, $\\ln 1 = 0$, $\\ln x > 0$ sur $]1\\,;+\\infty[$.\n" +
+        "- **Tangente en $1$** : $y = x - 1$ (car $\\ln 1 = 0$ et $(\\ln)'(1) = 1$). La courbe reste sous cette tangente (figure) : $\\ln x \\leqslant x - 1$ pour tout $x > 0$ (chapitre 9).",
       exemple: {
         enonce: "Étudie les variations de $f(x) = 2x - \\ln x$ sur $]0\\,;+\\infty[$.",
         solution: "$f'(x) = 2 - \\dfrac{1}{x} = \\dfrac{2x - 1}{x}$ : négatif sur $\\left]0\\,;\\dfrac{1}{2}\\right[$, positif ensuite. Minimum $f\\left(\\dfrac{1}{2}\\right) = 1 - \\ln\\dfrac{1}{2} = 1 + \\ln 2$."
@@ -95,6 +106,7 @@ window.CHAPITRES["terminale-logarithme"] = {
     },
     {
       titre: "Dérivée de $\\ln u$",
+      figure: "tln-cours-xlnx",
       video: { titre: "Vidéo d'Yvan Monka : dériver une fonction du type ln(u)", youtube: "https://youtu.be/-zrhBc9xdRs" },
       texte:
         "Si $u$ est dérivable et **strictement positive** sur un intervalle :\n\n" +
@@ -103,16 +115,17 @@ window.CHAPITRES["terminale-logarithme"] = {
         "Exemples : $(\\ln(3x + 1))' = \\dfrac{3}{3x + 1}$ ; $(\\ln(x^2 + 4))' = \\dfrac{2x}{x^2 + 4}$.",
       exemple: {
         enonce: "Dérive $f(x) = x\\ln x$ sur $]0\\,;+\\infty[$ et trouve son minimum.",
-        solution: "$f'(x) = 1 \\times \\ln x + x \\times \\dfrac{1}{x} = \\ln x + 1$, nul pour $x = e^{-1}$, négatif avant, positif après. Minimum $f\\left(\\dfrac{1}{e}\\right) = -\\dfrac{1}{e}$."
+        solution: "$f'(x) = 1 \\times \\ln x + x \\times \\dfrac{1}{x} = \\ln x + 1$, nul pour $x = e^{-1}$, négatif avant, positif après. Minimum $f\\left(\\dfrac{1}{e}\\right) = -\\dfrac{1}{e}$ (figure)."
       }
     },
     {
       titre: "Un peu d'histoire : les tables de Neper et de Briggs",
-      figure: "tln-neper",
+      figure: ["tln-neper", "tln-cours-hyperbole"],
       texte:
         "Au début du XVIIe siècle, John Neper cherche à simplifier les calculs des astronomes et des navigateurs : multiplier de grands nombres est long, additionner est facile.\n\n" +
-        "Idée : mettre en face une suite **géométrique** ($1$, $2$, $4$, $8$…) et une suite **arithmétique** ($0$, $1$, $2$, $3$…). Multiplier en bas revient à additionner en haut : $4 \\times 8 = 32$ correspond à $2 + 3 = 5$.\n\n" +
-        "Le logarithme fait exactement cela : $\\ln(ab) = \\ln a + \\ln b$. Henry Briggs a ensuite calculé des tables très précises, en prenant des racines carrées successives.",
+        "Idée : mettre en face une suite **géométrique** ($1$, $2$, $4$, $8$…) et une suite **arithmétique** ($0$, $1$, $2$, $3$…). Multiplier en bas revient à additionner en haut : $4 \\times 8 = 32$ correspond à $2 + 3 = 5$ (première figure).\n\n" +
+        "Le logarithme fait exactement cela : $\\ln(ab) = \\ln a + \\ln b$. Henry Briggs a ensuite calculé des tables très précises, en prenant des racines carrées successives.\n\n" +
+        "Vers 1647, Grégoire de Saint-Vincent remarque que l'aire sous l'hyperbole $y = \\dfrac{1}{t}$ entre $1$ et $x$ se comporte comme un logarithme : c'est la **quadrature de l'hyperbole** (seconde figure). Aujourd'hui, on l'écrit $\\ln x = \\displaystyle\\int_1^x \\dfrac{1}{t}\\,\\mathrm{d}t$ (chapitre 12).",
       exemple: {
         enonce: "Avec la table, calcule $16 \\times 4$ en n'utilisant que des additions.",
         solution: "$16$ est sous $4$ et $4$ sous $2$ : $4 + 2 = 6$, et sous $6$ on lit $64$. Donc $16 \\times 4 = 64$."
@@ -125,7 +138,10 @@ window.CHAPITRES["terminale-logarithme"] = {
         "```python\ndef brouncker(n):\n    s = 0\n    for k in range(1, n + 1):\n        s = s + 1 / ((2*k - 1) * (2*k))\n    return s\n```\n\n" +
         "**Briggs** : après $k$ racines carrées, $a$ est proche de $1$, et $\\ln a \\approx 2^k(a^{1/2^k} - 1)$.\n\n" +
         "```python\nfrom math import sqrt\n\ndef briggs(a, k):\n    for i in range(k):\n        a = sqrt(a)\n    return 2**k * (a - 1)\n```\n\n" +
-        "brouncker(1000) et briggs(2, 20) donnent tous deux environ $0{,}693$.",
+        "brouncker(1000) et briggs(2, 20) donnent tous deux environ $0{,}693$.\n\n" +
+        "**Dichotomie** : pour résoudre $e^x = 2$ sans logarithme, on coupe l'intervalle $[0\\,;1]$ en deux, on garde la moitié qui contient la solution, et on recommence.\n\n" +
+        "```python\nfrom math import exp\n\ndef dicho(n):\n    a = 0\n    b = 1\n    for i in range(n):\n        m = (a + b) / 2\n        if exp(m) < 2:\n            a = m\n        else:\n            b = m\n    return a, b\n```\n\n" +
+        "Après $10$ étapes, l'intervalle a une longueur $\\dfrac{1}{2^{10}} < 0{,}001$ et contient $\\ln 2$.",
       exemple: {
         enonce: "Que renvoie brouncker(2) ?",
         solution: "$\\dfrac{1}{2} + \\dfrac{1}{12} = \\dfrac{7}{12} \\approx 0{,}583$."
@@ -171,7 +187,11 @@ window.CHAPITRES["terminale-logarithme"] = {
     { question: "$(\\ln(x^2 + 1))' =$", choix: ["$\\dfrac{2x}{x^2 + 1}$", "$\\dfrac{1}{x^2 + 1}$", "$2x\\ln(x^2 + 1)$", "$\\dfrac{2x}{x}$"], bonne: 0, explication: "$(\\ln u)' = \\dfrac{u'}{u}$." },
     { question: "$\\lim\\limits_{x \\to 0,\\ x > 0} \\ln x =$", choix: ["$-\\infty$", "$0$", "$1$", "$+\\infty$"], bonne: 0, explication: "Asymptote verticale $x = 0$." },
     { question: "$\\lim\\limits_{x \\to +\\infty} \\ln x =$", choix: ["$+\\infty$", "$0$", "$1$", "$e$"], bonne: 0, explication: "Croissance lente mais sans limite finie." },
-    { question: "Les courbes de $\\ln$ et $\\exp$ sont symétriques par rapport à :", choix: ["la droite $y = x$", "l'axe des abscisses", "l'axe des ordonnées", "l'origine"], bonne: 0, explication: "Fonctions réciproques." },
+    { question: "Les courbes de $\\ln$ et $\\exp$ (figure) sont symétriques par rapport à :", choix: ["la droite $y = x$", "l'axe des abscisses", "l'axe des ordonnées", "l'origine"], bonne: 0, explication: "Fonctions réciproques : le point $(a\\,;b)$ est sur une courbe quand $(b\\,;a)$ est sur l'autre.", figure: "tln-courbe" },
+    { question: "Sur la figure, la courbe de $\\ln$ coupe la droite $y = 1{,}5$ au point marqué « ? ». Son abscisse est :", choix: ["$e^{1{,}5}$", "$\\ln 1{,}5$", "$1{,}5$", "$\\dfrac{1{,}5}{e}$"], bonne: 0, explication: "$\\ln x = 1{,}5 \\iff x = e^{1{,}5} \\approx 4{,}48$.", figure: "tln-qcm-equation" },
+    { question: "La figure montre la courbe de $\\ln$ et sa tangente en $1$, $y = x - 1$. On en déduit, pour tout $x > 0$ :", choix: ["$\\ln x \\leqslant x - 1$", "$\\ln x \\geqslant x - 1$", "$\\ln x = x - 1$", "$\\ln x \\leqslant x - 2$"], bonne: 0, explication: "La courbe de $\\ln$ est sous sa tangente (la fonction est concave, chapitre 9).", figure: "tln-cours-etude" },
+    { question: "D'après la table de Neper (figure), le produit $8 \\times 16 = 128$ correspond en haut à :", choix: ["$3 + 4 = 7$", "$3 \\times 4 = 12$", "$8 + 16 = 24$", "$4 - 3 = 1$"], bonne: 0, explication: "$8 = 2^3$ et $16 = 2^4$ : multiplier en bas revient à additionner les exposants, $2^7 = 128$.", figure: "tln-neper" },
+    { question: "L'aire coloriée sous l'hyperbole $y = \\dfrac{1}{t}$, entre $1$ et $x$ (figure), vaut :", choix: ["$\\ln x$", "$\\dfrac{1}{x}$", "$x - 1$", "$e^x$"], bonne: 0, explication: "$\\displaystyle\\int_1^x \\dfrac{1}{t}\\,\\mathrm{d}t = \\ln x - \\ln 1 = \\ln x$ : la quadrature de l'hyperbole.", figure: "tln-cours-hyperbole" },
     { question: "Le premier $n$ tel que $2^n > 1\\,000$ est :", choix: ["$10$", "$9$", "$500$", "$100$"], bonne: 0, explication: "$n > \\dfrac{\\ln 1\\,000}{\\ln 2} \\approx 9{,}97$." },
     { question: "Pour résoudre $0{,}5^n < 0{,}01$, en divisant par $\\ln 0{,}5$ :", choix: ["on change le sens de l'inégalité", "on garde le sens", "on ne peut pas diviser", "on obtient $n < 0$"], bonne: 0, explication: "$\\ln 0{,}5 < 0$." },
     { question: "$\\ln(a + b) =$", choix: ["ne se simplifie pas en général", "$\\ln a + \\ln b$", "$\\ln a \\times \\ln b$", "$\\ln(ab)$"], bonne: 0, explication: "Contre-exemple : $\\ln 2 \\neq \\ln 1 + \\ln 1$." },
@@ -184,17 +204,20 @@ window.CHAPITRES["terminale-logarithme"] = {
     {
       titre: "Résoudre une équation ou une inéquation",
       etapes: ["Vérifier les conditions : ce qui est dans $\\ln$ doit être strictement positif.", "Isoler $\\ln(\\dots)$ ou $e^{\\dots}$.", "Appliquer $\\exp$ ou $\\ln$ (strictement croissantes : le sens est conservé)."],
-      exemple: "$\\ln(2x - 1) = 3 \\iff x = \\dfrac{e^3 + 1}{2}$."
+      exemple: "$\\ln(2x - 1) = 3 \\iff x = \\dfrac{e^3 + 1}{2}$. Graphiquement : l'intersection de la courbe et d'une droite horizontale (figure, pour $\\ln x = 2$).",
+      figure: "tln-cours-equation"
     },
     {
       titre: "Déterminer un seuil",
       etapes: ["Isoler la puissance : $q^n > A$ (ou $< A$).", "Appliquer $\\ln$ : $n\\ln q > \\ln A$.", "Diviser par $\\ln q$, en changeant le sens si $0 < q < 1$, puis prendre le premier entier."],
-      exemple: "$1{,}03^n > 1{,}25 \\iff n > 7{,}55$ : $n = 8$."
+      exemple: "$1{,}03^n > 1{,}25 \\iff n > 7{,}55$ : $n = 8$ (figure).",
+      figure: "tln-cours-seuil"
     },
     {
       titre: "Dériver et étudier une fonction avec ln",
       etapes: ["$(\\ln x)' = \\dfrac{1}{x}$, $(\\ln u)' = \\dfrac{u'}{u}$, produit et quotient si besoin.", "Réduire au même dénominateur pour étudier le signe.", "Dresser le tableau de variations sur $]0\\,;+\\infty[$ (ou là où $u > 0$)."],
-      exemple: "$2x - \\ln x$ : $f'(x) = \\dfrac{2x - 1}{x}$, minimum en $\\dfrac{1}{2}$."
+      exemple: "$2x - \\ln x$ : $f'(x) = \\dfrac{2x - 1}{x}$, minimum en $\\dfrac{1}{2}$, qui vaut $1 + \\ln 2$ (figure).",
+      figure: "tln-meth-etude"
     }
   ],
   erreurs: [

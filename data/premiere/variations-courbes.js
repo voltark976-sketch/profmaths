@@ -16,7 +16,9 @@ window.CHAPITRES["premiere-variations"] = {
 
   playlist: "",
   drive: "",
-  pdfs: [],
+  pdfs: [
+    { titre: "Cours d'Yvan Monka : dérivation, chapitre 3 (variations) (PDF)", url: "https://www.maths-et-tiques.fr/telech/19DeriP3M.pdf" }
+  ],
   liens: [
     { titre: "Le cours sur les variations en vidéo (Yvan Monka)", url: "https://youtu.be/uMSNllPBFhQ", type: "video" },
     { titre: "Le cours sur les fonctions paires et impaires (Yvan Monka)", url: "https://youtu.be/DUbAkwCX8O8", type: "video" }
@@ -84,12 +86,13 @@ window.CHAPITRES["premiere-variations"] = {
     },
     {
       titre: "Retour sur le second degré",
+      figure: "vr-cours-second-degre",
       video: { titre: "Vidéo d'Yvan Monka : étudier les variations d'une fonction (niveau 1)", youtube: "https://youtu.be/EXTobPZzORo" },
       texte:
         "Pour $f(x) = ax^2 + bx + c$ : $f'(x) = 2ax + b$, qui s'annule en $x = -\\dfrac{b}{2a}$ en changeant de signe.\n\n" +
         "- Si $a > 0$ : $f'$ est négative puis positive, $f$ décroît puis croît, avec un minimum en $-\\dfrac{b}{2a}$.\n" +
         "- Si $a < 0$ : $f$ croît puis décroît, avec un maximum en $-\\dfrac{b}{2a}$.\n\n" +
-        "On retrouve le sommet de la parabole du chapitre 5, sans passer par la forme canonique.",
+        "L'**allure** de la parabole dépend donc du signe de $a$ : « tournée vers le haut » si $a > 0$, « vers le bas » si $a < 0$. On retrouve le sommet de la parabole du chapitre 5, sans passer par la forme canonique. Sur le schéma, $f(x) = -2x^2 + 8x - 3$.",
       exemple: {
         enonce: "Étudie les variations de $f(x) = -2x^2 + 8x - 3$.",
         solution: "$f'(x) = -4x + 8$, positive pour $x < 2$ et négative pour $x > 2$. $f$ croît sur $]-\\infty\\,;2]$ et décroît sur $[2\\,;+\\infty[$ : maximum $f(2) = -8 + 16 - 3 = 5$."
@@ -140,6 +143,7 @@ window.CHAPITRES["premiere-variations"] = {
     },
     {
       titre: "Le bénéfice d'une distillerie d'ylang-ylang",
+      figure: "vr-cours-distillerie",
       texte:
         "Une distillerie d'ylang-ylang produit $x$ litres d'huile essentielle par mois, avec $0 \\leqslant x \\leqslant 20$. Son bénéfice, en euros, est $B(x) = -2x^3 + 45x^2 - 200$.\n\n" +
         "- $B'(x) = -6x^2 + 90x = -6x(x - 15)$.\n" +
@@ -202,17 +206,19 @@ window.CHAPITRES["premiere-variations"] = {
     { question: "$f(x) = x^2 + 2x$ est :", choix: ["ni paire ni impaire", "paire", "impaire", "à la fois paire et impaire"], bonne: 0, explication: "$f(-1) = -1$ et $f(1) = 3$ : ni égaux, ni opposés." },
     { question: "Pour montrer que $f(x) \\geqslant g(x)$ sur $I$, on peut :", choix: ["étudier les variations de $f - g$ et montrer que son minimum est positif ou nul", "comparer $f(0)$ et $g(0)$", "vérifier l'inégalité pour trois valeurs", "comparer $f'$ et $g'$ en un point"], bonne: 0, explication: "Quelques valeurs ne prouvent rien ; le minimum de la différence, si." },
     { question: "$d(x) = f(x) - g(x)$ a pour minimum $3$ sur $\\mathbb{R}$. Alors :", choix: ["la courbe de $f$ est au-dessus de celle de $g$", "les deux courbes se coupent", "la courbe de $f$ est en dessous de celle de $g$", "on ne peut pas savoir"], bonne: 0, explication: "$d(x) \\geqslant 3 > 0$ pour tout $x$, donc $f(x) > g(x)$." },
-    { question: "Pour la boîte $V(x) = x(30 - 2x)^2$, le volume est maximal pour $x =$", choix: ["$5$", "$15$", "$10$", "$7{,}5$"], bonne: 0, explication: "$V'(x) = (30 - 2x)(30 - 6x)$ s'annule en $5$ en passant de « + » à « − »." },
+    { question: "Pour la boîte $V(x) = x(30 - 2x)^2$, le volume est maximal pour $x =$", figure: "boite-patron", choix: ["$5$", "$15$", "$10$", "$7{,}5$"], bonne: 0, explication: "$V'(x) = (30 - 2x)(30 - 6x)$ s'annule en $5$ en passant de « + » à « − »." },
     { question: "$B'(x) = -6x(x - 15)$ sur $[0\\,;20]$. Le bénéfice est maximal pour :", choix: ["$x = 15$", "$x = 0$", "$x = 20$", "$x = -6$"], bonne: 0, explication: "$B'$ est positive sur $]0\\,;15[$ et négative sur $]15\\,;20]$." },
-    { question: "Dans la méthode de Newton, $x_1 = x_0 - \\dfrac{f(x_0)}{f'(x_0)}$ est :", choix: ["l'abscisse où la tangente en $x_0$ coupe l'axe des abscisses", "la valeur de $f$ en $x_0$", "la pente de la tangente en $x_0$", "l'ordonnée à l'origine de la tangente"], bonne: 0, explication: "On résout $f'(x_0)(x - x_0) + f(x_0) = 0$." },
+    { question: "Dans la méthode de Newton, $x_1 = x_0 - \\dfrac{f(x_0)}{f'(x_0)}$ est :", figure: "newton", choix: ["l'abscisse où la tangente en $x_0$ coupe l'axe des abscisses", "la valeur de $f$ en $x_0$", "la pente de la tangente en $x_0$", "l'ordonnée à l'origine de la tangente"], bonne: 0, explication: "On résout $f'(x_0)(x - x_0) + f(x_0) = 0$." },
     { question: "Avec $f(x) = x^2 - 2$ et $x_0 = 2$, on obtient $x_1 =$", choix: ["$1{,}5$", "$2{,}5$", "$1$", "$\\sqrt{2}$"], bonne: 0, explication: "$x_1 = 2 - \\dfrac{2}{4} = 1{,}5$." },
     { question: "Si $f'(x) = 0$ pour tout $x$ de $]0\\,;4[$, alors sur cet intervalle :", choix: ["$f$ est constante", "$f$ est nulle", "$f$ est croissante", "$f$ n'est pas dérivable"], bonne: 0, explication: "Une dérivée nulle sur un intervalle caractérise les fonctions constantes (pas forcément nulles)." },
     { question: "$f$ est dérivable sur $\\mathbb{R}$ avec $f'(x) = -2x + 6$. La fonction $f$ est croissante sur :", choix: ["$]-\\infty\\,;3]$", "$[3\\,;+\\infty[$", "$]-\\infty\\,;-3]$", "$[-3\\,;+\\infty[$"], bonne: 0, explication: "$f'(x) \\geqslant 0 \\iff -2x + 6 \\geqslant 0 \\iff x \\leqslant 3$. Le coefficient $-2$ est négatif : $f'$ est positive avant $3$, négative après." },
     { question: "$f(x) = x^3 - 3x^2$. La fonction $f$ admet un minimum local :", choix: ["en $x = 2$, égal à $-4$", "en $x = 0$, égal à $0$", "en $x = 2$, égal à $0$", "en $x = 3$, égal à $0$"], bonne: 0, explication: "$f'(x) = 3x^2 - 6x = 3x(x - 2)$ passe de « − » à « + » en $2$ : minimum local $f(2) = 8 - 12 = -4$. En $0$, $f'$ passe de « + » à « − » : c'est un maximum local." },
-    { question: "Sur $[0\\,;5]$, $f$ croît de $-1$ à $4$ sur $[0\\,;2]$, puis décroît de $4$ à $1$ sur $[2\\,;5]$. Le maximum de $f$ sur $[0\\,;5]$ est :", choix: ["$4$, atteint en $x = 2$", "$2$, atteint en $x = 4$", "$5$, atteint en $x = 1$", "$1$, atteint en $x = 5$"], bonne: 0, explication: "Le maximum est une valeur de $f$ : $4$. L'endroit où il est atteint est une valeur de $x$ : $2$. Il ne faut pas les confondre." },
-    { question: "Sur $[0\\,;5]$, $f$ croît de $-1$ à $4$ sur $[0\\,;2]$, puis décroît de $4$ à $1$ sur $[2\\,;5]$. Le minimum de $f$ sur $[0\\,;5]$ est :", choix: ["$-1$, atteint en $x = 0$", "$1$, atteint en $x = 5$", "$0$, atteint en $x = -1$", "$4$, atteint en $x = 2$"], bonne: 0, explication: "On compare les valeurs aux bornes : $f(0) = -1$ et $f(5) = 1$. La plus petite est $-1$, atteinte en $x = 0$. Un extremum peut être atteint à une borne." },
+    { question: "Voici le tableau de variations d'une fonction $f$ sur $[0\\,;5]$. Le maximum de $f$ sur $[0\\,;5]$ est :", figure: "vr-qcm-tab", choix: ["$4$, atteint en $x = 2$", "$2$, atteint en $x = 4$", "$5$, atteint en $x = 1$", "$1$, atteint en $x = 5$"], bonne: 0, explication: "Le maximum est une valeur de $f$ : $4$. L'endroit où il est atteint est une valeur de $x$ : $2$. Il ne faut pas les confondre." },
+    { question: "Voici le tableau de variations d'une fonction $f$ sur $[0\\,;5]$. Le minimum de $f$ sur $[0\\,;5]$ est :", figure: "vr-qcm-tab", choix: ["$-1$, atteint en $x = 0$", "$1$, atteint en $x = 5$", "$0$, atteint en $x = -1$", "$4$, atteint en $x = 2$"], bonne: 0, explication: "On compare les valeurs aux bornes : $f(0) = -1$ et $f(5) = 1$. La plus petite est $-1$, atteinte en $x = 0$. Un extremum peut être atteint à une borne." },
     { question: "$f(x) = -x^2 + 4x + 1$. Alors :", choix: ["$f$ admet un maximum $5$ en $x = 2$", "$f$ admet un minimum $5$ en $x = 2$", "$f$ admet un maximum $2$ en $x = 5$", "$f$ admet un maximum $1$ en $x = 0$"], bonne: 0, explication: "$f'(x) = -2x + 4$ s'annule en $2$ en passant de « + » à « − » : maximum $f(2) = -4 + 8 + 1 = 5$. Avec $a = -1 < 0$, la parabole est tournée vers le bas." },
-    { question: "Vrai ou faux : si $f$ est strictement croissante sur $\\mathbb{R}$, alors $f'(x) > 0$ pour tout réel $x$.", choix: ["Faux", "Vrai"], bonne: 0, explication: "Contre-exemple : $f(x) = x^3$ est strictement croissante sur $\\mathbb{R}$, mais $f'(0) = 0$. La dérivée peut s'annuler en des points isolés." },
+    { question: "$f$ est strictement croissante et dérivable sur $\\mathbb{R}$. Laquelle de ces affirmations est vraie ?", choix: ["$f'$ peut s'annuler en des points isolés, comme $x^3$ en $0$", "$f'(x) > 0$ pour tout réel $x$", "$f(x) > 0$ pour tout réel $x$", "$f'$ est croissante sur $\\mathbb{R}$"], bonne: 0, explication: "On sait seulement que $f'(x) \\geqslant 0$. Contre-exemple à « $f' > 0$ » : $f(x) = x^3$ est strictement croissante sur $\\mathbb{R}$, mais $f'(0) = 0$. Et $x^3$ prend aussi des valeurs négatives, avec une dérivée $3x^2$ qui n'est pas croissante sur $\\mathbb{R}$." },
+    { question: "On a tracé la courbe de la **dérivée** $f'$ d'une fonction $f$. Sur quel intervalle $f$ est-elle décroissante ?", figure: "vr-qcm-derivee", choix: ["$[-3\\,;2]$", "$]-\\infty\\,;-3]$ et $[2\\,;+\\infty[$", "$]-\\infty\\,;-0{,}5]$", "$[-0{,}5\\,;+\\infty[$"], bonne: 0, explication: "$f$ décroît là où $f'(x) \\leqslant 0$, c'est-à-dire là où la courbe de $f'$ est sous l'axe des abscisses : entre $-3$ et $2$. Que la courbe de $f'$ descende ou monte ne compte pas : c'est son **signe** qui donne les variations de $f$." },
+    { question: "Voici la courbe d'une fonction $f$ définie sur $\\mathbb{R}$. Que peut-on conjecturer ?", figure: "vr-qcm-parite", choix: ["$f$ est impaire", "$f$ est paire", "$f$ n'est ni paire ni impaire", "$f$ est à la fois paire et impaire"], bonne: 0, explication: "La courbe est symétrique par rapport à l'origine : $f(-x) = -f(x)$. C'est une conjecture, à démontrer par le calcul : ici $f(x) = 0{,}25x^3 - x$ et $f(-x) = -0{,}25x^3 + x = -f(x)$." },
     { question: "La fonction $f$ définie sur $\\mathbb{R}$ par $f(x) = \\dfrac{x}{x^2 + 1}$ est :", choix: ["impaire", "paire", "ni paire ni impaire", "à la fois paire et impaire"], bonne: 0, explication: "$\\mathbb{R}$ est symétrique par rapport à $0$ et $f(-x) = \\dfrac{-x}{(-x)^2 + 1} = -\\dfrac{x}{x^2 + 1} = -f(x)$ : sa courbe est symétrique par rapport à l'origine." },
     { question: "$d(x) = f(x) - g(x)$ admet pour maximum $-1$ sur $\\mathbb{R}$. Alors :", choix: ["la courbe de $f$ est en dessous de celle de $g$", "la courbe de $f$ est au-dessus de celle de $g$", "les deux courbes se coupent en un point", "on ne peut pas savoir"], bonne: 0, explication: "Pour tout $x$, $d(x) \\leqslant -1 < 0$, donc $f(x) < g(x)$ : la courbe de $f$ est strictement en dessous de celle de $g$." },
     { question: "Pour tout réel $x$, $x^2 + 4 \\geqslant 4x$, car :", choix: ["$x^2 + 4 - 4x = (x - 2)^2 \\geqslant 0$", "$x^2 \\geqslant x$ pour tout réel $x$", "c'est vrai pour $x = 0$, $x = 1$ et $x = 2$", "$4 \\geqslant 0$"], bonne: 0, explication: "On étudie la différence : $x^2 - 4x + 4 = (x - 2)^2$, un carré, toujours positif ou nul. Quelques valeurs ne prouvent rien, et $x^2 \\geqslant x$ est faux pour $x = 0{,}5$." },
@@ -225,26 +231,31 @@ window.CHAPITRES["premiere-variations"] = {
     {
       titre: "Étudier les variations d'une fonction",
       etapes: ["Calculer $f'(x)$.", "Étudier le signe de $f'(x)$ : factoriser, utiliser le signe d'un trinôme ou d'une fonction affine.", "Dresser le tableau : flèche montante si $f' > 0$, descendante si $f' < 0$.", "Calculer les valeurs de $f$ aux points où $f'$ s'annule."],
+      figure: "tabsv-cubique",
       exemple: "$f(x) = x^3 - 3x$ : $f'(x) = 3(x - 1)(x + 1)$, maximum local $2$ en $-1$ et minimum local $-2$ en $1$."
     },
     {
       titre: "Trouver un extremum",
-      etapes: ["Résoudre $f'(x) = 0$.", "Vérifier que $f'$ change de signe en ce point.", "« + » puis « − » : maximum ; « − » puis « + » : minimum. Calculer sa valeur."],
+      etapes: ["Résoudre $f'(x) = 0$.", "Vérifier que $f'$ change de signe en ce point (sinon, pas d'extremum : voir $x^3$ en $0$ sur le schéma).", "« + » puis « − » : maximum ; « − » puis « + » : minimum. Calculer sa valeur."],
+      figure: "x3-palier",
       exemple: "$f'(x) = -4x + 8$ s'annule en $2$ en passant de « + » à « − » : maximum $f(2)$."
     },
     {
       titre: "Étudier la parité",
-      etapes: ["Vérifier que l'ensemble de définition est symétrique par rapport à $0$.", "Calculer $f(-x)$ et le comparer à $f(x)$ et à $-f(x)$.", "Pour « ni paire ni impaire », donner un contre-exemple numérique."],
+      etapes: ["Vérifier que l'ensemble de définition est symétrique par rapport à $0$.", "Calculer $f(-x)$ et le comparer à $f(x)$ et à $-f(x)$.", "Pour « ni paire ni impaire », donner un contre-exemple numérique.", "Sur une courbe : symétrie par rapport à l'axe des ordonnées pour une fonction paire, par rapport à l'origine pour une fonction impaire."],
+      figure: "parite",
       exemple: "$f(x) = x^3 + 1$ : $f(-1) = 0$ et $f(1) = 2$, donc $f$ n'est ni paire ni impaire."
     },
     {
       titre: "Démontrer une inégalité",
       etapes: ["Écrire $d(x) = f(x) - g(x)$.", "Étudier les variations de $d$ et trouver son minimum.", "Si ce minimum est positif ou nul, $f(x) \\geqslant g(x)$ : la courbe de $f$ est au-dessus de celle de $g$."],
+      figure: "inegalite-cubique",
       exemple: "$x^2 + 1 - 2x = (x - 1)^2 \\geqslant 0$, donc $x^2 + 1 \\geqslant 2x$ pour tout réel $x$."
     },
     {
       titre: "Résoudre un problème d'optimisation",
       etapes: ["Choisir la variable $x$ et son intervalle, d'après les contraintes du problème.", "Exprimer la quantité à optimiser en fonction de $x$.", "Étudier les variations et conclure par une phrase dans le contexte."],
+      figure: "boite-patron",
       exemple: "Boîte : $V(x) = x(30 - 2x)^2$ sur $]0\\,;15[$, volume maximal $2\\,000$ cm³ pour $x = 5$ cm."
     }
   ],

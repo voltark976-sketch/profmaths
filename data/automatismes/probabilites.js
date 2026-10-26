@@ -1,7 +1,9 @@
 /*
-  AUTOMATISMES · PROBABILITÉS (PR01 à PR06)
-  -----------------------------------------
-  PR01 à PR04 : programme de Seconde. PR05 et PR06 : ajouts de Première.
+  AUTOMATISMES · PROBABILITÉS
+  ---------------------------
+  Seconde 2026 : une probabilité est entre 0 et 1, événement contraire, somme des probabilités des issues,
+  P(A) = Card(A) / Card(Ω) en situation d'équiprobabilité.
+  Première 2026 : probabilités conditionnelles avec un tableau croisé ou un arbre pondéré ; distinguer P(A ∩ B), P_A(B), P_B(A).
 */
 window.CHAPITRES = window.CHAPITRES || {};
 window.CHAPITRES["auto-probabilites"] = {
@@ -19,55 +21,60 @@ window.CHAPITRES["auto-probabilites"] = {
 
   cours: [
     {
-      titre: "Les règles de base (PR01, PR02, PR03)",
+      titre: "Les règles de base",
       video: { titre: "Vidéo de ton prof : les automatismes en probabilités", youtube: "https://youtu.be/hpiDv1RpXAg" },
       texte:
         "- Une probabilité est toujours comprise entre $0$ (événement impossible) et $1$ (événement certain).\n" +
         "- La somme des probabilités de toutes les issues vaut $1$.\n" +
         "- La probabilité d'un événement est la **somme** des probabilités des issues qui le réalisent.\n" +
         "- Événement contraire : $P(\\overline{A}) = 1 - P(A)$.",
+      figure: "am-cours-roue",
       exemple: {
-        enonce: "Une roue a quatre couleurs : $P(\\text{rouge}) = 0{,}3$, $P(\\text{vert}) = 0{,}25$, $P(\\text{bleu}) = 0{,}15$. Calculer $P(\\text{jaune})$ et la probabilité de ne pas obtenir rouge.",
-        solution: "$P(\\text{jaune}) = 1 - (0{,}3 + 0{,}25 + 0{,}15) = 0{,}3$.\n\n$P(\\overline{\\text{rouge}}) = 1 - 0{,}3 = 0{,}7$."
+        enonce: "La roue de loterie ci-contre est truquée : $P(\\text{Mangue}) = 0{,}3$, $P(\\text{Banane}) = 0{,}25$ et $P(\\text{Ananas}) = 0{,}15$. Calculer $P(\\text{Coco})$, puis la probabilité de ne pas obtenir Mangue.",
+        solution: "$P(\\text{Coco}) = 1 - (0{,}3 + 0{,}25 + 0{,}15) = 1 - 0{,}7 = 0{,}3$.\n\n$P(\\overline{\\text{Mangue}}) = 1 - 0{,}3 = 0{,}7$."
       }
     },
     {
-      titre: "Équiprobabilité (PR04)",
+      titre: "Équiprobabilité",
       video: { titre: "Vidéo de ton prof : urne, cartes, deux dés", youtube: "https://youtu.be/rkdNL-3Ih9Q" },
       texte:
         "- Quand toutes les issues ont la même probabilité (dé équilibré, tirage « au hasard »), on dit qu'il y a équiprobabilité.\n" +
-        "- Alors $P(A) = \\dfrac{\\text{nombre d'issues favorables}}{\\text{nombre d'issues possibles}}$.\n" +
+        "- Alors $P(A) = \\dfrac{\\text{nombre d'issues favorables}}{\\text{nombre d'issues possibles}} = \\dfrac{\\text{Card}(A)}{\\text{Card}(\\Omega)}$.\n" +
+        "- Sur la figure, « obtenir un multiple de $3$ » avec un dé équilibré est réalisé par $2$ issues sur $6$ : $P = \\dfrac{2}{6} = \\dfrac{1}{3}$.\n" +
         "- Deux dés : tableau à double entrée, $36$ issues équiprobables.",
+      figure: "am-cours-de",
       exemple: {
-        enonce: "On lance un dé équilibré à six faces. Probabilité d'obtenir un multiple de $3$ ?",
-        solution: "Issues favorables : $3$ et $6$. $P = \\dfrac{2}{6} = \\dfrac{1}{3}$."
+        enonce: "On lance un dé équilibré à six faces. Quelle est la probabilité d'obtenir un nombre premier ?",
+        solution: "Les nombres premiers parmi $1$ à $6$ sont $2$, $3$ et $5$. $P = \\dfrac{3}{6} = \\dfrac{1}{2}$."
       }
     },
     {
-      titre: "Tableau croisé et probabilité conditionnelle (PR05, Première)",
+      titre: "Tableau croisé et probabilité conditionnelle (Première)",
       video: { titre: "Vidéo d'Yvan Monka : probabilité conditionnelle à l'aide d'un tableau", youtube: "https://youtu.be/Shh5IdHwqqw" },
       texte:
         "- Avec un tableau d'effectifs, on choisit un individu au hasard : $P(A) = \\dfrac{\\text{effectif de } A}{\\text{effectif total}}$.\n" +
         "- $P(A \\cap B)$ : probabilité que $A$ **et** $B$ soient réalisés. On divise par l'effectif **total**.\n" +
         "- $P_A(B)$ : probabilité de $B$ **sachant** $A$. On se place **parmi** les individus de $A$ : $P_A(B) = \\dfrac{\\text{effectif de } A \\cap B}{\\text{effectif de } A}$.\n" +
         "- Formule : $P_A(B) = \\dfrac{P(A \\cap B)}{P(A)}$.",
+      figure: "am-cours-tableau-croise",
       exemple: {
-        enonce: "Sur $200$ élèves, $120$ sont des filles, dont $45$ demi-pensionnaires. On choisit un élève au hasard. Calculer $P(F \\cap D)$ et $P_F(D)$.",
+        enonce: "Le tableau ci-contre décrit les $200$ élèves d'un lycée ($F$ : fille, $G$ : garçon, $D$ : demi-pensionnaire, $E$ : externe). On choisit un élève au hasard. Calculer $P(F \\cap D)$ et $P_F(D)$.",
         solution: "$P(F \\cap D) = \\dfrac{45}{200} = 0{,}225$.\n\n$P_F(D) = \\dfrac{45}{120} = 0{,}375$ : parmi les filles, $37{,}5\\,\\%$ sont demi-pensionnaires."
       }
     },
     {
-      titre: "Arbre pondéré (PR05, PR06, Première)",
+      titre: "Arbre pondéré (Première)",
+      video: { titre: "Vidéo d'Yvan Monka : calculer une probabilité à l'aide d'un arbre pondéré", youtube: "https://youtu.be/dQPd9njK5ZA" },
       texte:
         "- Sur les branches du premier niveau : $P(A)$ et $P(\\overline{A})$. Sur celles du second niveau : des probabilités **conditionnelles** comme $P_A(B)$.\n" +
         "- La somme des probabilités des branches issues d'un même nœud vaut $1$.\n" +
         "- Le long d'un chemin, on **multiplie** : $P(A \\cap B) = P(A) \\times P_A(B)$.\n" +
         "- Probabilités totales : $P(B) = P(A \\cap B) + P(\\overline{A} \\cap B)$ (on additionne les chemins qui mènent à $B$).\n" +
         "- Ne pas confondre $P(A \\cap B)$, $P_A(B)$ et $P_B(A)$ : la condition « sachant… » se met en indice.",
-      video: { titre: "Vidéo d'Yvan Monka : construire un arbre de répétitions indépendantes", youtube: "https://youtu.be/e7jH8a1cDtg" },
+      figure: "am-cours-arbre",
       exemple: {
-        enonce: "$P(A) = 0{,}4$, $P_A(B) = 0{,}7$ et $P_{\\overline{A}}(B) = 0{,}2$. Calculer $P(B)$.",
-        solution: "$P(B) = 0{,}4 \\times 0{,}7 + 0{,}6 \\times 0{,}2 = 0{,}28 + 0{,}12 = 0{,}4$."
+        enonce: "D'après l'arbre ci-contre, calculer $P(A \\cap B)$ puis $P(B)$.",
+        solution: "$P(A \\cap B) = 0{,}4 \\times 0{,}7 = 0{,}28$.\n\n$P(B) = 0{,}4 \\times 0{,}7 + 0{,}6 \\times 0{,}2 = 0{,}28 + 0{,}12 = 0{,}4$."
       }
     }
   ],
@@ -80,39 +87,41 @@ window.CHAPITRES["auto-probabilites"] = {
   videosNote: "Vidéos de ton prof (playlist « Secondes : automatismes ») : les énoncés sont dans le dossier élève ci-dessus.",
 
   exercices: [
-    { type: "auto-probabilites", titre: "PR01 à PR04 · Dé, urne, événement contraire", etape: "Programme de Seconde", nb: 5 },
-    { type: "am-proba-loi", titre: "PR03 · Somme des probabilités", etape: "Programme de Seconde", nb: 5 },
-    { type: "am-proba-tableau", titre: "PR05 · Tableau croisé", etape: "Ajouts de Première", nb: 5 },
-    { type: "am-proba-arbre", titre: "PR05 · Arbre pondéré", etape: "Ajouts de Première", nb: 5 },
-    { type: "am-proba-notation", titre: "PR06 · $P(A \\cap B)$, $P_A(B)$ ou $P_B(A)$ ?", etape: "Ajouts de Première", nb: 5 },
+    { type: "auto-probabilites", titre: "Dé, urne, cartes, événement contraire", etape: "Automatismes de Seconde", nb: 5 },
+    { type: "am-proba-loi", titre: "Somme des probabilités des issues", etape: "Automatismes de Seconde", nb: 5 },
+    { type: "am-proba-tableau", titre: "Tableau croisé", etape: "Automatismes de Première", nb: 5 },
+    { type: "am-proba-arbre", titre: "Arbre pondéré", etape: "Automatismes de Première", nb: 5 },
+    { type: "am-proba-notation", titre: "$P(A \\cap B)$, $P_A(B)$ ou $P_B(A)$ ?", etape: "Automatismes de Première", nb: 5 },
     { type: "am-flash-pr", titre: "Flash : probabilités mélangées", etape: "Défi", nb: 8 }
   ],
 
   qcm: [
-    { question: "PR01 · Laquelle de ces valeurs peut être une probabilité ?", choix: ["$1{,}05$", "$-0{,}2$", "$0{,}97$", "$\\dfrac{5}{4}$"], bonne: 2, explication: "Une probabilité est entre $0$ et $1$." },
-    { question: "PR02 · $P(A) = 0{,}28$. $P(\\overline{A}) =$", choix: ["$0{,}28$", "$0{,}72$", "$0{,}82$", "$1{,}28$"], bonne: 1, explication: "$1 - 0{,}28 = 0{,}72$." },
-    { question: "PR03 · Trois issues ont pour probabilités $0{,}5$, $0{,}2$ et $p$. Alors $p =$", choix: ["$0{,}7$", "$0{,}3$", "$0{,}2$", "$1$"], bonne: 1, explication: "$p = 1 - 0{,}5 - 0{,}2 = 0{,}3$." },
-    { question: "PR04 · Une urne contient $3$ boules rouges et $5$ vertes. Probabilité de tirer une rouge :", choix: ["$\\dfrac{3}{5}$", "$\\dfrac{3}{8}$", "$\\dfrac{5}{8}$", "$\\dfrac{1}{3}$"], bonne: 1, explication: "$3$ issues favorables sur $8$." },
-    { question: "PR04 · On lance deux dés équilibrés. Combien y a-t-il d'issues ?", choix: ["$12$", "$36$", "$11$", "$6$"], bonne: 1, explication: "$6 \\times 6 = 36$ issues équiprobables." },
-    { question: "PR05 · Sur $50$ élèves, $20$ font du sport, dont $8$ filles. Parmi les sportifs, la probabilité de choisir une fille :", choix: ["$\\dfrac{8}{50}$", "$\\dfrac{8}{20}$", "$\\dfrac{20}{50}$", "$\\dfrac{12}{20}$"], bonne: 1, explication: "« Parmi les sportifs » : on divise par $20$." },
-    { question: "PR05 · $P(A) = 0{,}5$ et $P_A(B) = 0{,}4$. Alors $P(A \\cap B) =$", choix: ["$0{,}9$", "$0{,}2$", "$0{,}8$", "$0{,}1$"], bonne: 1, explication: "$0{,}5 \\times 0{,}4 = 0{,}2$." },
-    { question: "PR05 · Dans un arbre, les deux branches issues de $A$ portent $0{,}35$ et :", choix: ["$0{,}35$", "$0{,}65$", "$1{,}35$", "on ne peut pas savoir"], bonne: 1, explication: "La somme des branches issues d'un même nœud vaut $1$." },
-    { question: "PR06 · « La probabilité qu'un élève soit malade sachant qu'il est vacciné » se note ($M$ : malade, $V$ : vacciné) :", choix: ["$P(M \\cap V)$", "$P_V(M)$", "$P_M(V)$", "$P(M)$"], bonne: 1, explication: "On sait que l'élève est vacciné : $V$ est en indice." },
-    { question: "PR06 · $P(A \\cap B)$ correspond à :", choix: ["$A$ ou $B$", "$A$ et $B$", "$B$ sachant $A$", "ni $A$ ni $B$"], bonne: 1, explication: "$\\cap$ se lit « et » (intersection)." },
-    { question: "PR01 · Un événement de probabilité $0$ est :", choix: ["impossible", "certain", "très probable", "équiprobable"], bonne: 0, explication: "Probabilité $0$ : l'événement ne se réalise jamais. Un événement certain a pour probabilité $1$." },
-    { question: "PR02 · La probabilité qu'il pleuve demain à Mamoudzou est $0{,}65$. La probabilité qu'il ne pleuve pas est :", choix: ["$0{,}35$", "$0{,}65$", "$-0{,}65$", "$0{,}45$"], bonne: 0, explication: "Événement contraire : $1 - 0{,}65 = 0{,}35$." },
-    { question: "PR02 · $P(\\overline{A}) = \\dfrac{3}{8}$. Alors $P(A) =$", choix: ["$\\dfrac{5}{8}$", "$\\dfrac{3}{8}$", "$\\dfrac{8}{3}$", "$-\\dfrac{3}{8}$"], bonne: 0, explication: "$P(A) = 1 - P(\\overline{A}) = \\dfrac{8}{8} - \\dfrac{3}{8} = \\dfrac{5}{8}$." },
-    { question: "PR03 · Un dé truqué vérifie $P(1) = P(2) = P(3) = P(4) = P(5) = 0{,}1$. Alors $P(6) =$", choix: ["$0{,}5$", "$0{,}1$", "$0{,}6$", "$\\dfrac{1}{6}$"], bonne: 0, explication: "La somme des probabilités vaut $1$ : $P(6) = 1 - 5 \\times 0{,}1 = 0{,}5$. Le dé n'est pas équilibré, donc pas de $\\dfrac{1}{6}$." },
-    { question: "PR03 · Une loi de probabilité donne $P(1) = 0{,}2$, $P(2) = 0{,}3$ et $P(3) = 0{,}5$. La probabilité d'obtenir un nombre impair est :", choix: ["$0{,}7$", "$\\dfrac{2}{3}$", "$0{,}5$", "$0{,}1$"], bonne: 0, explication: "On additionne les probabilités des issues $1$ et $3$ : $0{,}2 + 0{,}5 = 0{,}7$. Les issues ne sont pas équiprobables : $\\dfrac{2}{3}$ est faux." },
-    { question: "PR04 · On tire une lettre au hasard parmi les $7$ lettres du mot MAYOTTE. Probabilité de tirer un T :", choix: ["$\\dfrac{2}{7}$", "$\\dfrac{1}{7}$", "$\\dfrac{1}{6}$", "$\\dfrac{2}{5}$"], bonne: 0, explication: "Il y a $7$ lettres équiprobables, dont $2$ T : $\\dfrac{2}{7}$." },
-    { question: "PR04 · On lance deux dés équilibrés. Probabilité que la somme fasse $12$ :", choix: ["$\\dfrac{1}{36}$", "$\\dfrac{1}{12}$", "$\\dfrac{1}{11}$", "$\\dfrac{1}{18}$"], bonne: 0, explication: "Une seule issue sur $36$ : $(6\\,;6)$. Les $11$ sommes possibles ne sont pas équiprobables." },
-    { question: "PR04 · On lance deux dés équilibrés. Probabilité d'obtenir un double :", choix: ["$\\dfrac{1}{6}$", "$\\dfrac{1}{36}$", "$\\dfrac{1}{12}$", "$\\dfrac{1}{3}$"], bonne: 0, explication: "$6$ doubles ($1$-$1$, …, $6$-$6$) sur $36$ issues : $\\dfrac{6}{36} = \\dfrac{1}{6}$." },
-    { question: "PR05 · Sur $40$ élèves, $25$ ont un téléphone ($T$), dont $10$ internes ($I$). On choisit un élève au hasard. $P(T \\cap I) =$", choix: ["$\\dfrac{10}{40}$", "$\\dfrac{10}{25}$", "$\\dfrac{25}{40}$", "$\\dfrac{15}{40}$"], bonne: 0, explication: "« $T$ et $I$ » : $10$ élèves, divisés par l'effectif total $40$. ($\\dfrac{10}{25}$ est $P_T(I)$.)" },
-    { question: "PR05 · $P(A) = 0{,}5$ et $P(A \\cap B) = 0{,}1$. Alors $P_A(B) =$", choix: ["$0{,}2$", "$0{,}05$", "$0{,}6$", "$5$"], bonne: 0, explication: "$P_A(B) = \\dfrac{P(A \\cap B)}{P(A)} = \\dfrac{0{,}1}{0{,}5} = 0{,}2$." },
-    { question: "PR05 · $P(\\overline{A}) = 0{,}3$ et $P_{\\overline{A}}(B) = 0{,}4$. Alors $P(\\overline{A} \\cap B) =$", choix: ["$0{,}12$", "$0{,}7$", "$0{,}28$", "$0{,}42$"], bonne: 0, explication: "On multiplie le long du chemin : $0{,}3 \\times 0{,}4 = 0{,}12$." },
-    { question: "PR05 · $P(A) = 0{,}2$, $P_A(B) = 0{,}5$ et $P_{\\overline{A}}(B) = 0{,}25$. Alors $P(B) =$", choix: ["$0{,}3$", "$0{,}75$", "$0{,}1$", "$0{,}2$"], bonne: 0, explication: "On additionne les deux chemins qui mènent à $B$ : $0{,}2 \\times 0{,}5 + 0{,}8 \\times 0{,}25 = 0{,}1 + 0{,}2 = 0{,}3$." },
-    { question: "PR06 · « La probabilité qu'un élève soit interne et ait un téléphone » se note ($I$ : interne, $T$ : téléphone) :", choix: ["$P(I \\cap T)$", "$P_I(T)$", "$P_T(I)$", "$P(I) + P(T)$"], bonne: 0, explication: "« Et » : intersection. Il n'y a pas de condition « sachant » ou « parmi » : rien en indice." },
-    { question: "PR06 · « Parmi les élèves qui ont un téléphone, la probabilité d'être interne » se note ($I$ : interne, $T$ : téléphone) :", choix: ["$P_T(I)$", "$P_I(T)$", "$P(I \\cap T)$", "$P(I)$"], bonne: 0, explication: "« Parmi les élèves qui ont un téléphone » : on se restreint à $T$, qui va en indice." }
+    { question: "Laquelle de ces valeurs peut être une probabilité ?", choix: ["$1{,}05$", "$-0{,}2$", "$0{,}97$", "$\\dfrac{5}{4}$"], bonne: 2, explication: "Une probabilité est entre $0$ et $1$." },
+    { question: "$P(A) = 0{,}28$. $P(\\overline{A}) =$", choix: ["$0{,}28$", "$0{,}72$", "$0{,}82$", "$1{,}28$"], bonne: 1, explication: "$1 - 0{,}28 = 0{,}72$." },
+    { question: "Trois issues ont pour probabilités $0{,}5$, $0{,}2$ et $p$. Alors $p =$", choix: ["$0{,}7$", "$0{,}3$", "$0{,}2$", "$1$"], bonne: 1, explication: "$p = 1 - 0{,}5 - 0{,}2 = 0{,}3$." },
+    { question: "On tire une boule au hasard dans l'urne ci-contre ($3$ boules R, $5$ boules V). La probabilité de tirer une boule R est :", figure: "am-cours-urne", choix: ["$\\dfrac{3}{5}$", "$\\dfrac{3}{8}$", "$\\dfrac{5}{8}$", "$\\dfrac{1}{3}$"], bonne: 1, explication: "$3$ issues favorables sur $8$ boules : $\\dfrac{3}{8}$. ($\\dfrac{3}{5}$ compare les rouges aux vertes, pas au total.)" },
+    { question: "On lance deux dés équilibrés. Combien y a-t-il d'issues ?", choix: ["$12$", "$36$", "$11$", "$6$"], bonne: 1, explication: "$6 \\times 6 = 36$ issues équiprobables." },
+    { question: "Sur $50$ élèves, $20$ font du sport, dont $8$ filles. Parmi les sportifs, la probabilité de choisir une fille est :", choix: ["$\\dfrac{8}{50}$", "$\\dfrac{8}{20}$", "$\\dfrac{20}{50}$", "$\\dfrac{12}{20}$"], bonne: 1, explication: "« Parmi les sportifs » : on divise par $20$." },
+    { question: "$P(A) = 0{,}5$ et $P_A(B) = 0{,}4$. Alors $P(A \\cap B) =$", choix: ["$0{,}9$", "$0{,}2$", "$0{,}8$", "$0{,}1$"], bonne: 1, explication: "$0{,}5 \\times 0{,}4 = 0{,}2$." },
+    { question: "Dans un arbre, les deux branches issues de $A$ portent $0{,}35$ et :", choix: ["$0{,}35$", "$0{,}65$", "$1{,}35$", "on ne peut pas savoir"], bonne: 1, explication: "La somme des branches issues d'un même nœud vaut $1$ : $1 - 0{,}35 = 0{,}65$." },
+    { question: "« La probabilité qu'un élève soit malade sachant qu'il est vacciné » se note ($M$ : malade, $V$ : vacciné) :", choix: ["$P(M \\cap V)$", "$P_V(M)$", "$P_M(V)$", "$P(M)$"], bonne: 1, explication: "On sait que l'élève est vacciné : $V$ est en indice." },
+    { question: "$P(A \\cap B)$ correspond à :", choix: ["$A$ ou $B$", "$A$ et $B$", "$B$ sachant $A$", "ni $A$ ni $B$"], bonne: 1, explication: "$\\cap$ se lit « et » (intersection)." },
+    { question: "Un événement de probabilité $0$ est :", choix: ["impossible", "certain", "très probable", "équiprobable"], bonne: 0, explication: "Probabilité $0$ : l'événement ne se réalise jamais. Un événement certain a pour probabilité $1$." },
+    { question: "La probabilité qu'il pleuve demain à Mamoudzou est $0{,}65$. La probabilité qu'il ne pleuve pas est :", choix: ["$0{,}35$", "$0{,}65$", "$-0{,}65$", "$0{,}45$"], bonne: 0, explication: "Événement contraire : $1 - 0{,}65 = 0{,}35$." },
+    { question: "$P(\\overline{A}) = \\dfrac{3}{8}$. Alors $P(A) =$", choix: ["$\\dfrac{5}{8}$", "$\\dfrac{3}{8}$", "$\\dfrac{8}{3}$", "$-\\dfrac{3}{8}$"], bonne: 0, explication: "$P(A) = 1 - P(\\overline{A}) = \\dfrac{8}{8} - \\dfrac{3}{8} = \\dfrac{5}{8}$." },
+    { question: "Un dé truqué vérifie $P(1) = P(2) = P(3) = P(4) = P(5) = 0{,}1$. Alors $P(6) =$", choix: ["$0{,}5$", "$0{,}1$", "$0{,}6$", "$\\dfrac{1}{6}$"], bonne: 0, explication: "La somme des probabilités vaut $1$ : $P(6) = 1 - 5 \\times 0{,}1 = 0{,}5$. Le dé n'est pas équilibré, donc pas de $\\dfrac{1}{6}$." },
+    { question: "Une loi de probabilité donne $P(1) = 0{,}2$, $P(2) = 0{,}3$ et $P(3) = 0{,}5$. La probabilité d'obtenir un nombre impair est :", choix: ["$0{,}7$", "$\\dfrac{2}{3}$", "$0{,}5$", "$0{,}1$"], bonne: 0, explication: "On additionne les probabilités des issues $1$ et $3$ : $0{,}2 + 0{,}5 = 0{,}7$. Les issues ne sont pas équiprobables : $\\dfrac{2}{3}$ est faux." },
+    { question: "On tire une lettre au hasard parmi les $7$ lettres du mot MAYOTTE. Probabilité de tirer un T :", choix: ["$\\dfrac{2}{7}$", "$\\dfrac{1}{7}$", "$\\dfrac{1}{6}$", "$\\dfrac{2}{5}$"], bonne: 0, explication: "Il y a $7$ lettres équiprobables, dont $2$ T : $\\dfrac{2}{7}$." },
+    { question: "On lance deux dés équilibrés. Probabilité que la somme fasse $12$ :", choix: ["$\\dfrac{1}{36}$", "$\\dfrac{1}{12}$", "$\\dfrac{1}{11}$", "$\\dfrac{1}{18}$"], bonne: 0, explication: "Une seule issue sur $36$ : $(6\\,;6)$. Les $11$ sommes possibles ne sont pas équiprobables." },
+    { question: "On lance deux dés équilibrés. Probabilité d'obtenir un double :", choix: ["$\\dfrac{1}{6}$", "$\\dfrac{1}{36}$", "$\\dfrac{1}{12}$", "$\\dfrac{1}{3}$"], bonne: 0, explication: "$6$ doubles ($1$-$1$, …, $6$-$6$) sur $36$ issues : $\\dfrac{6}{36} = \\dfrac{1}{6}$." },
+    { question: "Sur $40$ élèves, $25$ ont un téléphone ($T$), dont $10$ internes ($I$). On choisit un élève au hasard. $P(T \\cap I) =$", choix: ["$\\dfrac{10}{40}$", "$\\dfrac{10}{25}$", "$\\dfrac{25}{40}$", "$\\dfrac{15}{40}$"], bonne: 0, explication: "« $T$ et $I$ » : $10$ élèves, divisés par l'effectif total $40$. ($\\dfrac{10}{25}$ est $P_T(I)$.)" },
+    { question: "$P(A) = 0{,}5$ et $P(A \\cap B) = 0{,}1$. Alors $P_A(B) =$", choix: ["$0{,}2$", "$0{,}05$", "$0{,}6$", "$5$"], bonne: 0, explication: "$P_A(B) = \\dfrac{P(A \\cap B)}{P(A)} = \\dfrac{0{,}1}{0{,}5} = 0{,}2$." },
+    { question: "$P(\\overline{A}) = 0{,}3$ et $P_{\\overline{A}}(B) = 0{,}4$. Alors $P(\\overline{A} \\cap B) =$", choix: ["$0{,}12$", "$0{,}7$", "$0{,}28$", "$0{,}42$"], bonne: 0, explication: "On multiplie le long du chemin : $0{,}3 \\times 0{,}4 = 0{,}12$." },
+    { question: "$P(A) = 0{,}2$, $P_A(B) = 0{,}5$ et $P_{\\overline{A}}(B) = 0{,}25$. Alors $P(B) =$", choix: ["$0{,}3$", "$0{,}75$", "$0{,}1$", "$0{,}2$"], bonne: 0, explication: "On additionne les deux chemins qui mènent à $B$ : $0{,}2 \\times 0{,}5 + 0{,}8 \\times 0{,}25 = 0{,}1 + 0{,}2 = 0{,}3$." },
+    { question: "« La probabilité qu'un élève soit interne et ait un téléphone » se note ($I$ : interne, $T$ : téléphone) :", choix: ["$P(I \\cap T)$", "$P_I(T)$", "$P_T(I)$", "$P(I) + P(T)$"], bonne: 0, explication: "« Et » : intersection. Il n'y a pas de condition « sachant » ou « parmi » : rien en indice." },
+    { question: "« Parmi les élèves qui ont un téléphone, la probabilité d'être interne » se note ($I$ : interne, $T$ : téléphone) :", choix: ["$P_T(I)$", "$P_I(T)$", "$P(I \\cap T)$", "$P(I)$"], bonne: 0, explication: "« Parmi les élèves qui ont un téléphone » : on se restreint à $T$, qui va en indice." },
+    { question: "L'arbre ci-contre concerne un test de dépistage de la dengue à Mayotte ($M$ : être malade, $T$ : avoir un test positif). $P(M \\cap T) =$", figure: "am-qcm-arbre", choix: ["$0{,}08$", "$0{,}8$", "$0{,}9$", "$0{,}17$"], bonne: 0, explication: "On multiplie le long du chemin $M$ puis $T$ : $0{,}1 \\times 0{,}8 = 0{,}08$. ($0{,}8$ est $P_M(T)$ et $0{,}17$ est $P(T) = 0{,}08 + 0{,}9 \\times 0{,}1$.)" },
+    { question: "D'après le tableau ci-contre, on choisit un élève au hasard. La probabilité qu'il soit externe sachant que c'est un garçon est :", figure: "am-cours-tableau-croise", choix: ["$\\dfrac{30}{80}$", "$\\dfrac{30}{200}$", "$\\dfrac{30}{105}$", "$\\dfrac{80}{200}$"], bonne: 0, explication: "« Sachant que c'est un garçon » : on se place parmi les $80$ garçons, dont $30$ sont externes. $\\dfrac{30}{200}$ est $P(G \\cap E)$ et $\\dfrac{30}{105}$ est $P_E(G)$." }
   ],
 
   methode: [
@@ -134,7 +143,8 @@ window.CHAPITRES["auto-probabilites"] = {
         "Complète chaque nœud pour que la somme des branches fasse $1$.",
         "Écris sous chaque chemin le produit des probabilités."
       ],
-      exemple: "$P(A) = 0{,}3$ donne $P(\\overline{A}) = 0{,}7$ ; $P_A(B) = 0{,}6$ donne $P_A(\\overline{B}) = 0{,}4$."
+      figure: "am-meth-arbre",
+      exemple: "$P(A) = 0{,}3$ donne $P(\\overline{A}) = 0{,}7$ ; $P_A(B) = 0{,}6$ donne $P_A(\\overline{B}) = 0{,}4$ ; $P_{\\overline{A}}(B) = 0{,}1$ donne $P_{\\overline{A}}(\\overline{B}) = 0{,}9$."
     }
   ],
   erreurs: [

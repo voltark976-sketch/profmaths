@@ -4,21 +4,25 @@
   Chapitre 5 de la progression spiralée 2026-2027 (programme de Seconde 2026).
   Mêmes règles d'écriture que data/seconde/fonctions.js (formules entre $...$, antislash doublé,
   **gras**, "- " pour une puce, programme Python entre ```python et ```).
-  Vidéos : celles de la playlist « Secondes : automatismes » de la chaîne d'abord, Yvan Monka en complément.
-  Pas encore de PDF pour ce chapitre : ajouter les liens dans pdfs le moment venu.
-  Les générateurs d'exercices commencent par « cl- » dans assets/exercices.js
-  (le chapitre reprend aussi am-isoler et am-produit-nul de la partie Automatismes).
+  Vidéos : la playlist « Secondes : calcul littéral et équations » de la chaîne d'abord, Yvan Monka en complément.
+  PDF : cours d'Yvan Monka, à remplacer dans pdfs par le PDF du Drive quand il existera.
+  Les générateurs d'exercices commencent par « cl- » dans assets/exercices.js ; les figures cl-cours-…, cl-qcm-…
+  y sont aussi (identite-carre et carre-niveaux sont dans les schémas des cours de Seconde).
 */
 window.CHAPITRES = window.CHAPITRES || {};
 window.CHAPITRES["seconde-calcul-litteral"] = {
   niveau: "Seconde",
   numero: 5,
   titre: "Calcul littéral et équations",
-  accroche: "Puissances, racines carrées, développer, factoriser, résoudre : les outils de calcul dont tu auras besoin toute l'année.",
+  accroche: "Puissances, racines carrées, développer, factoriser, comparer, résoudre : les outils de calcul dont tu auras besoin toute l'année.",
 
-  playlist: "https://www.youtube.com/playlist?list=PLVTjofGlms14", // playlist « Secondes : automatismes »
+  playlist: "https://www.youtube.com/playlist?list=PLMzh8fgMNdro", // playlist « Secondes : calcul littéral et équations »
   drive: "",
-  pdfs: [],
+  pdfs: [
+    { titre: "Cours d'Yvan Monka : fractions, puissances, racines carrées (PDF)", url: "https://www.maths-et-tiques.fr/telech/19RacPuissM.pdf" },
+    { titre: "Cours d'Yvan Monka : calcul littéral (PDF)", url: "https://www.maths-et-tiques.fr/telech/19Calc_algebriqueM.pdf" },
+    { titre: "Cours d'Yvan Monka : équations (PDF)", url: "https://www.maths-et-tiques.fr/telech/19Equations_InequationsM.pdf" }
+  ],
   liens: [
     { titre: "Le cours sur les puissances en vidéo (Yvan Monka)", url: "https://youtu.be/XA-JkXirNz4", type: "video" },
     { titre: "Le cours sur les racines carrées en vidéo (Yvan Monka)", url: "https://youtu.be/8Atxa6iMVsw", type: "video" },
@@ -29,13 +33,14 @@ window.CHAPITRES["seconde-calcul-litteral"] = {
   cours: [
     {
       titre: "Puissances entières relatives",
-      video: { titre: "Vidéo de ton prof : puissances et écriture scientifique", youtube: "https://youtu.be/DKvTtv77YIw" },
+      video: { titre: "Vidéo de ton prof : puissances d'exposant négatif et écriture scientifique (cours)", youtube: "https://youtu.be/rdKDDPQjuSc" },
       texte:
         "Pour $a \\neq 0$ et $n$ entier positif : $a^n = a \\times a \\times \\ldots \\times a$ ($n$ facteurs), $a^0 = 1$ et $a^{-n} = \\dfrac{1}{a^n}$.\n\n" +
         "Règles de calcul, pour $n$ et $p$ entiers relatifs :\n" +
         "- $a^n \\times a^p = a^{n+p}$ et $\\dfrac{a^n}{a^p} = a^{n-p}$\n" +
         "- $(a^n)^p = a^{n \\times p}$ et $(a \\times b)^n = a^n \\times b^n$\n\n" +
-        "Attention aux signes : $(-3)^4 = 81$ mais $-3^4 = -81$ (sans parenthèses, la puissance ne porte que sur $3$).",
+        "Attention aux signes : $(-3)^4 = 81$ mais $-3^4 = -81$ (sans parenthèses, la puissance ne porte que sur $3$).\n\n" +
+        "**Écriture scientifique** : $a \\times 10^n$ avec $1 \\leqslant a < 10$. Par exemple, la superficie de Mayotte, environ $374\\,000\\,000$ m², s'écrit $3{,}74 \\times 10^{8}$ m².",
       exemple: {
         enonce: "Écrire sous la forme d'une seule puissance : $A = 4^5 \\times 4^7$ ; $B = \\dfrac{5^4}{5^6}$ ; $C = 7^3 \\times (7^2)^6$.",
         solution: "$A = 4^{5+7} = 4^{12}$.\n\n$B = 5^{4-6} = 5^{-2}$.\n\n$C = 7^3 \\times 7^{12} = 7^{15}$."
@@ -43,13 +48,13 @@ window.CHAPITRES["seconde-calcul-litteral"] = {
     },
     {
       titre: "Racines carrées",
-      video: { titre: "Vidéo d'Yvan Monka : extraire un carré parfait d'une racine carrée", youtube: "https://youtu.be/cz27kb_qTy4" },
+      video: { titre: "Vidéo de ton prof : racines carrées, racine d'un carré et produit de racines (cours)", youtube: "https://youtu.be/ODWMW3VUk1A" },
       texte:
         "Pour $a \\geqslant 0$, $\\sqrt{a}$ est le nombre **positif** dont le carré est $a$ : $\\sqrt{49} = 7$. La racine carrée d'un nombre négatif n'existe pas.\n\n" +
         "- $(\\sqrt{a})^2 = a$ pour $a \\geqslant 0$, et $\\sqrt{a^2} = |a|$ pour tout réel $a$ : $\\sqrt{(-5)^2} = \\sqrt{25} = 5$.\n" +
         "- Pour $a$ et $b$ positifs : $\\sqrt{a \\times b} = \\sqrt{a} \\times \\sqrt{b}$ et $\\sqrt{\\dfrac{a}{b}} = \\dfrac{\\sqrt{a}}{\\sqrt{b}}$ ($b \\neq 0$).\n" +
         "- Mais $\\sqrt{a + b} \\neq \\sqrt{a} + \\sqrt{b}$ : $\\sqrt{9 + 16} = 5$, alors que $\\sqrt{9} + \\sqrt{16} = 7$.\n\n" +
-        "**Extraire un carré parfait** : $\\sqrt{72} = \\sqrt{36 \\times 2} = 6\\sqrt{2}$.",
+        "**Extraire un carré parfait** : $\\sqrt{72} = \\sqrt{36 \\times 2} = 6\\sqrt{2}$. Par exemple, la diagonale d'un carré de côté $6$ cm mesure $\\sqrt{6^2 + 6^2} = \\sqrt{72} = 6\\sqrt{2}$ cm.",
       exemple: {
         enonce: "Écrire le plus simplement possible : $\\sqrt{3} \\times \\sqrt{27}$ ; $\\sqrt{45}$ ; $\\sqrt{12} + 7\\sqrt{3}$.",
         solution: "$\\sqrt{3} \\times \\sqrt{27} = \\sqrt{81} = 9$.\n\n$\\sqrt{45} = \\sqrt{9 \\times 5} = 3\\sqrt{5}$.\n\n$\\sqrt{12} + 7\\sqrt{3} = 2\\sqrt{3} + 7\\sqrt{3} = 9\\sqrt{3}$."
@@ -57,7 +62,7 @@ window.CHAPITRES["seconde-calcul-litteral"] = {
     },
     {
       titre: "Démonstration : $\\sqrt{ab} = \\sqrt{a} \\times \\sqrt{b}$",
-      video: { titre: "Vidéo d'Yvan Monka : démontrer que √a × √b = √(ab)", youtube: "https://youtu.be/gzp16wnchaU" },
+      video: { titre: "Vidéo d'Yvan Monka : démontrer que la racine d'un produit est le produit des racines", youtube: "https://youtu.be/gzp16wnchaU" },
       texte:
         "**Propriété** : pour tous réels positifs $a$ et $b$, $\\sqrt{ab} = \\sqrt{a} \\times \\sqrt{b}$.\n\n" +
         "**Démonstration**.\n" +
@@ -73,7 +78,7 @@ window.CHAPITRES["seconde-calcul-litteral"] = {
     {
       titre: "Développer : distributivité et identités remarquables",
       figure: "identite-carre",
-      video: { titre: "Vidéo de ton prof : identités remarquables, développer et factoriser", youtube: "https://youtu.be/zrIo7AksY5o" },
+      video: { titre: "Vidéo de ton prof : développer avec les identités remarquables (cours)", youtube: "https://youtu.be/YZQqSNhAI4M" },
       texte:
         "**Développer**, c'est transformer un produit en somme.\n" +
         "- Distributivité : $k(a + b) = ka + kb$.\n" +
@@ -82,6 +87,7 @@ window.CHAPITRES["seconde-calcul-litteral"] = {
         "- $(a + b)^2 = a^2 + 2ab + b^2$\n" +
         "- $(a - b)^2 = a^2 - 2ab + b^2$\n" +
         "- $(a + b)(a - b) = a^2 - b^2$\n\n" +
+        "Sur la figure, le carré de côté $a + b$ est formé d'un carré $a^2$, d'un carré $b^2$ et de deux rectangles $ab$ : c'est pourquoi $(a + b)^2 = a^2 + 2ab + b^2$.\n\n" +
         "Un signe moins devant une parenthèse change tous les signes à l'intérieur : $-(a - b) = -a + b = b - a$.",
       exemple: {
         enonce: "Développer et réduire $A = (2x - 3)^2$ et $B = (x + 4)(3x - 1)$.",
@@ -90,11 +96,13 @@ window.CHAPITRES["seconde-calcul-litteral"] = {
     },
     {
       titre: "Factoriser et choisir la bonne forme",
-      video: { titre: "Vidéo de ton prof : forme développée ou factorisée ?", youtube: "https://youtu.be/QcZ8u7ROq60" },
+      figure: "cl-cours-facteur",
+      video: { titre: "Vidéo de ton prof : factoriser et choisir la forme la plus adaptée (cours)", youtube: "https://youtu.be/Pmk3kvDQIkI" },
       texte:
         "**Factoriser**, c'est transformer une somme en produit.\n" +
         "- On cherche d'abord un **facteur commun** : $ka + kb = k(a + b)$, même quand $k$ est une parenthèse.\n" +
         "- Sinon, on reconnaît une identité remarquable lue de droite à gauche : $a^2 - b^2 = (a - b)(a + b)$.\n\n" +
+        "Sur la figure, $3x^2 + 6x$ est l'aire de deux rectangles de même hauteur $3x$, de largeurs $x$ et $2$ : ensemble, ils forment un rectangle de côtés $3x$ et $x + 2$. Donc $3x^2 + 6x = 3x(x + 2)$.\n\n" +
         "**Choisir la forme adaptée** :\n" +
         "- forme **développée** pour calculer une image ou comparer avec une autre expression ;\n" +
         "- forme **factorisée** pour résoudre une équation $= 0$ ou étudier un signe.",
@@ -110,20 +118,38 @@ window.CHAPITRES["seconde-calcul-litteral"] = {
         "Une expression comme $\\dfrac{7}{x - 2}$ n'existe que si son dénominateur n'est pas nul : ici $x \\neq 2$.\n\n" +
         "Pour additionner ou soustraire deux quotients, on les écrit avec le **même dénominateur** :\n\n" +
         "$\\dfrac{a}{b} + \\dfrac{c}{d} = \\dfrac{ad}{bd} + \\dfrac{cb}{bd} = \\dfrac{ad + cb}{bd}$.\n\n" +
-        "Un entier s'écrit aussi comme un quotient : $3 = \\dfrac{3(2x + 1)}{2x + 1}$.",
+        "Un entier s'écrit aussi comme un quotient : $3 = \\dfrac{3(2x + 1)}{2x + 1}$. On n'additionne jamais les dénominateurs.",
       exemple: {
         enonce: "Pour $x \\neq 2$, écrire $A = \\dfrac{7}{x - 2} - \\dfrac{5}{3}$ sous la forme d'un seul quotient.",
         solution: "$A = \\dfrac{7 \\times 3}{3(x - 2)} - \\dfrac{5(x - 2)}{3(x - 2)} = \\dfrac{21 - 5x + 10}{3(x - 2)} = \\dfrac{31 - 5x}{3(x - 2)}$."
       }
     },
     {
+      titre: "Comparer deux quantités : différence ou quotient",
+      figure: "cl-cours-comparer",
+      video: { titre: "Vidéo de ton prof : comparer deux nombres (exercice corrigé)", youtube: "https://youtu.be/qt6CzZFcV3s" },
+      texte:
+        "Pour comparer deux quantités $A$ et $B$, on peut calculer :\n" +
+        "- leur **différence** $A - B$ : c'est une comparaison **additive**. Si $A - B > 0$, alors $A > B$, et $A - B$ dit « de combien » $A$ dépasse $B$ ;\n" +
+        "- leur **quotient** (ou **rapport**) $\\dfrac{A}{B}$, pour des quantités strictement positives : c'est une comparaison **multiplicative**. Si $\\dfrac{A}{B} > 1$, alors $A > B$, et le quotient dit « combien de fois » $A$ est plus grand que $B$.\n\n" +
+        "Sur la figure, Anli a pêché $45$ kg de poissons et Saïd $30$ kg. Différence : $45 - 30 = 15$, Anli a pêché $15$ kg de plus. Quotient : $\\dfrac{45}{30} = 1{,}5$, Anli a pêché $1{,}5$ fois plus, c'est-à-dire $50\\,\\%$ de plus.\n\n" +
+        "En algèbre, on compare deux expressions en étudiant le **signe de leur différence**.",
+      exemple: {
+        enonce: "Pour tout réel $x$, comparer $A = x^2 + 9$ et $B = 6x$.",
+        solution: "$A - B = x^2 - 6x + 9 = (x - 3)^2$. Un carré est toujours positif ou nul, donc $A - B \\geqslant 0$ : $A \\geqslant B$ pour tout réel $x$, avec égalité seulement pour $x = 3$."
+      }
+    },
+    {
       titre: "Équations du premier degré",
-      video: { titre: "Vidéo de ton prof : équations et inéquations", youtube: "https://youtu.be/2Fv54-YT1lI" },
+      figure: "cl-cours-equation",
+      video: { titre: "Vidéo de ton prof : résoudre une équation, premier degré, produit nul et carré (cours)", youtube: "https://youtu.be/Nomu7XGq5YE" },
       texte:
         "Pour résoudre $ax + b = cx + d$, on transforme l'équation en une équation **équivalente** ($\\iff$), qui a les mêmes solutions :\n" +
         "- on peut ajouter ou soustraire un même nombre (ou un même terme en $x$) aux deux membres ;\n" +
         "- on peut multiplier ou diviser les deux membres par un même nombre **non nul**.\n\n" +
-        "Méthode : on regroupe les $x$ d'un côté, les nombres de l'autre, puis on divise par le coefficient de $x$.",
+        "Méthode : on regroupe les $x$ d'un côté, les nombres de l'autre, puis on divise par le coefficient de $x$.\n\n" +
+        "Si les $x$ disparaissent, il reste une égalité entre nombres : vraie ($0 = 0$), **tous les réels** sont solutions ; fausse ($0 = 3$), il n'y a **aucune** solution.\n\n" +
+        "Sur la figure, la solution $5$ de $5x - 7 = 2x + 8$ est l'abscisse du point d'intersection des droites $y = 5x - 7$ et $y = 2x + 8$.",
       exemple: {
         enonce: "Résoudre $5x - 7 = 2x + 8$.",
         solution: "$5x - 7 = 2x + 8 \\iff 5x - 2x = 8 + 7 \\iff 3x = 15 \\iff x = 5$.\n\nVérification : $5 \\times 5 - 7 = 18$ et $2 \\times 5 + 8 = 18$. La solution est $5$."
@@ -132,7 +158,7 @@ window.CHAPITRES["seconde-calcul-litteral"] = {
     {
       titre: "L'équation $x^2 = a$",
       figure: "carre-niveaux",
-      video: { titre: "Vidéo d'Yvan Monka : résoudre une équation du type x² = a", youtube: "https://youtu.be/ef15aeQRs6w" },
+      video: { titre: "Vidéo d'Yvan Monka : résoudre une équation du type « x au carré égale a »", youtube: "https://youtu.be/ef15aeQRs6w" },
       texte:
         "Le nombre de solutions de $x^2 = a$ dépend du signe de $a$ :\n" +
         "- si $a < 0$ : **aucune** solution (un carré n'est jamais négatif) ;\n" +
@@ -146,12 +172,14 @@ window.CHAPITRES["seconde-calcul-litteral"] = {
     },
     {
       titre: "Équation produit nul",
-      video: { titre: "Vidéo d'Yvan Monka : résoudre une équation-produit", youtube: "https://youtu.be/EFgwA5f6-40" },
+      figure: "cl-cours-produit",
+      video: { titre: "Vidéo de ton prof : équation produit nul, factoriser d'abord (exercice corrigé)", youtube: "https://youtu.be/bJDw4N-DeGo" },
       texte:
         "**Propriété** : un produit est nul si et seulement si l'un au moins de ses facteurs est nul.\n\n" +
         "$A \\times B = 0 \\iff A = 0$ **ou** $B = 0$.\n\n" +
         "Le « ou » veut dire : l'un, l'autre, ou les deux. On résout chaque petite équation, et on rassemble toutes les solutions.\n\n" +
-        "Si l'équation n'est pas sous la forme « produit $= 0$ », on passe tout du même côté, puis on **factorise**.",
+        "Si l'équation n'est pas sous la forme « produit $= 0$ », on passe tout du même côté, puis on **factorise**.\n\n" +
+        "Sur la figure, la courbe de $y = x(x - 3)$ coupe l'axe des abscisses en $0$ et en $3$ : ce sont les solutions de $x(x - 3) = 0$.",
       exemple: {
         enonce: "Résoudre $(2x - 6)(x + 5) = 0$, puis $x^2 = 3x$.",
         solution: "$2x - 6 = 0$ ou $x + 5 = 0$, donc $x = 3$ ou $x = -5$. Deux solutions : $-5$ et $3$.\n\n$x^2 = 3x \\iff x^2 - 3x = 0 \\iff x(x - 3) = 0 \\iff x = 0$ ou $x = 3$."
@@ -159,25 +187,30 @@ window.CHAPITRES["seconde-calcul-litteral"] = {
     },
     {
       titre: "Isoler une variable dans une formule",
-      video: { titre: "Vidéo de ton prof : isoler une variable dans une formule", youtube: "https://youtu.be/4h0pTjSfrdE" },
+      figure: "cl-cours-cylindre",
+      video: { titre: "Vidéo de ton prof : isoler une variable dans une formule (cours)", youtube: "https://youtu.be/9t2gKeI4AFg" },
       texte:
         "Une formule de physique ou de géométrie se manipule comme une équation : on fait la même opération des deux côtés.\n\n" +
         "- $U = RI \\iff I = \\dfrac{U}{R}$ (on divise par $R$).\n" +
         "- $d = vt \\iff t = \\dfrac{d}{v}$.\n" +
-        "- $V = \\pi r^2 h \\iff h = \\dfrac{V}{\\pi r^2}$.\n" +
+        "- $V = abc \\iff c = \\dfrac{V}{ab}$.\n" +
+        "- $V = \\pi r^2 h \\iff h = \\dfrac{V}{\\pi r^2}$ : c'est le volume de la citerne de la figure.\n" +
+        "- $S = \\pi r^2 \\iff r = \\sqrt{\\dfrac{S}{\\pi}}$ (on divise par $\\pi$, puis on prend la racine carrée car $r > 0$).\n" +
         "- $ax + by = c \\iff y = \\dfrac{c - ax}{b}$ (pour $b \\neq 0$).",
       exemple: {
-        enonce: "La barge parcourt $d = 2{,}5$ km à la vitesse moyenne $v = 15$ km/h. Exprimer $t$ en fonction de $d$ et $v$, puis calculer la durée en minutes.",
+        enonce: "Une barge parcourt $d = 2{,}5$ km à la vitesse moyenne $v = 15$ km/h. Exprimer $t$ en fonction de $d$ et $v$, puis calculer la durée en minutes.",
         solution: "$d = vt \\iff t = \\dfrac{d}{v}$. Donc $t = \\dfrac{2{,}5}{15} = \\dfrac{1}{6}$ h, soit $10$ minutes."
       }
     },
     {
       titre: "Python : la boucle while",
+      video: { titre: "Vidéo d'Yvan Monka : utiliser les boucles en Python", youtube: "https://youtu.be/i_imOJ9Vw0U" },
       texte:
         "La boucle $\\texttt{while}$ (« tant que ») répète des instructions **tant qu'une condition est vraie**. On l'utilise quand on ne sait pas à l'avance combien de tours il faudra.\n\n" +
         "Première puissance de $a$ qui dépasse $s$ :\n\n" +
         "```python\ndef premiere_puissance(a, s):\n    n = 0\n    p = 1\n    while p <= s:\n        p = p * a\n        n = n + 1\n    return n\n```\n\n" +
-        "À chaque tour, $p$ est multiplié par $a$ et $n$ augmente de $1$ : à la fin, $p = a^n$ est la première puissance strictement supérieure à $s$.",
+        "À chaque tour, $p$ est multiplié par $a$ et $n$ augmente de $1$ : à la fin, $p = a^n$ est la première puissance strictement supérieure à $s$.\n\n" +
+        "Avec un nombre $a$ compris entre $0$ et $1$, les puissances diminuent : en écrivant $\\texttt{while p >= s}$, on obtient la première puissance **inférieure** à $s$.",
       exemple: {
         enonce: "Que renvoie $\\texttt{premiere\\_puissance(2, 100)}$ ?",
         solution: "$p$ prend les valeurs $1$, $2$, $4$, $8$, $16$, $32$, $64$, puis $128 > 100$ : la boucle s'arrête. $128 = 2^7$, la fonction renvoie $7$."
@@ -185,12 +218,22 @@ window.CHAPITRES["seconde-calcul-litteral"] = {
     }
   ],
 
-  /* Exercices corrigés en vidéo (playlist « Secondes : automatismes ») */
+  /* Exercices corrigés en vidéo (playlist « Secondes : calcul littéral et équations ») */
   videos: [
-    { titre: "#07 Supprimer les parenthèses", type: "Développer", youtube: "https://youtu.be/FX8UOq0J7uM" },
-    { titre: "#12 Applications numériques et modélisation", type: "Formules", youtube: "https://youtu.be/WOSEvJv7GwQ" }
+    { titre: "#02 Écrire sous la forme d'une seule puissance", type: "Puissances", youtube: "https://youtu.be/UOBF7k2gCGM" },
+    { titre: "#03 Écriture scientifique, la surface de Mayotte", type: "Puissances", youtube: "https://youtu.be/75_PWZsRmSY" },
+    { titre: "#05 Simplifier une racine carrée", type: "Racines", youtube: "https://youtu.be/picHv6xNWHE" },
+    { titre: "#07 Identités remarquables : 6 développements pas à pas", type: "Développer", youtube: "https://youtu.be/ET6bP_vCqT4" },
+    { titre: "#09 Factoriser : facteur commun et parenthèses", type: "Factoriser", youtube: "https://youtu.be/SBARImfYm78" },
+    { titre: "#10 Forme développée ou factorisée : laquelle choisir ?", type: "Factoriser", youtube: "https://youtu.be/kIH2KS83XDQ" },
+    { titre: "#12 Équations du premier degré, aucune ou toutes les solutions", type: "Équations", youtube: "https://youtu.be/V210HvqGfqg" },
+    { titre: "#14 Retrouver le côté d'une parcelle avec une équation", type: "Problème", youtube: "https://youtu.be/00qncTt7DQo" },
+    { titre: "#16 Formules de physique : vitesse, loi d'Ohm, énergie cinétique", type: "Formules", youtube: "https://youtu.be/D4Qce1Pahu8" },
+    { titre: "#17 Synthèse : le faré et sa terrasse", type: "Synthèse", youtube: "https://youtu.be/q61T4vpU5fM" },
+    { titre: "Automatismes #07 : supprimer les parenthèses", type: "Développer", youtube: "https://youtu.be/FX8UOq0J7uM" },
+    { titre: "Automatismes #12 : applications numériques et modélisation", type: "Formules", youtube: "https://youtu.be/WOSEvJv7GwQ" }
   ],
-  videosNote: "Énoncés dans le dossier élève des automatismes (Drive de la chaîne).",
+  videosNote: "Vidéos de ton prof : playlist « Secondes : calcul littéral et équations » ; les deux dernières viennent de la playlist « Secondes : automatismes » (énoncés dans le dossier élève des automatismes).",
 
   /* ---------- 2. EXERCICES INTERACTIFS ----------
      Chaque série tire des nombres au hasard : on peut la refaire autant qu'on veut.
@@ -201,10 +244,11 @@ window.CHAPITRES["seconde-calcul-litteral"] = {
     { type: "cl-developper", titre: "Développer et réduire", etape: "Développer, factoriser", nb: 6 },
     { type: "cl-factoriser", titre: "Factoriser", etape: "Développer, factoriser", nb: 6 },
     { type: "cl-fraction", titre: "Réduire au même dénominateur", etape: "Développer, factoriser", nb: 4 },
-    { type: "cl-equation", titre: "Résoudre ax + b = cx + d", etape: "Équations", nb: 6 },
-    { type: "cl-carre", titre: "Résoudre x² = a", etape: "Équations", nb: 5 },
-    { type: "am-produit-nul", titre: "Équation produit nul", etape: "Équations", nb: 5 },
-    { type: "am-isoler", titre: "Isoler une variable dans une formule", etape: "Équations", nb: 5 },
+    { type: "cl-comparer", titre: "Comparer : différence ou quotient", etape: "Comparer", nb: 5 },
+    { type: "cl-equation", titre: "Résoudre $ax + b = cx + d$ et mettre en équation", etape: "Équations", nb: 6 },
+    { type: "cl-carre", titre: "Résoudre $x^2 = a$", etape: "Équations", nb: 5 },
+    { type: "cl-produit-nul", titre: "Équation produit nul", etape: "Équations", nb: 5 },
+    { type: "cl-isoler", titre: "Isoler une variable dans une formule", etape: "Formules", nb: 5 },
     { type: "cl-python", titre: "Python : la boucle while", etape: "Python", nb: 4 }
   ],
 
@@ -289,7 +333,7 @@ window.CHAPITRES["seconde-calcul-litteral"] = {
     { question: "$(2x)^3$ est égal à :", choix: ["$8x^3$", "$2x^3$", "$6x^3$", "$6x$"], bonne: 0, explication: "$(a \\times b)^n = a^n \\times b^n$ : $(2x)^3 = 2^3 \\times x^3 = 8x^3$. La puissance porte sur les deux facteurs." },
     { question: "$\\sqrt{12} \\times \\sqrt{3}$ est égal à :", choix: ["$6$", "$\\sqrt{15}$", "$36$", "$3\\sqrt{2}$"], bonne: 0, explication: "$\\sqrt{12} \\times \\sqrt{3} = \\sqrt{12 \\times 3} = \\sqrt{36} = 6$." },
     { question: "$\\sqrt{18} + \\sqrt{8}$ est égal à :", choix: ["$5\\sqrt{2}$", "$\\sqrt{26}$", "$5\\sqrt{4}$", "$6\\sqrt{2}$"], bonne: 0, explication: "$\\sqrt{18} = \\sqrt{9 \\times 2} = 3\\sqrt{2}$ et $\\sqrt{8} = \\sqrt{4 \\times 2} = 2\\sqrt{2}$ : la somme vaut $5\\sqrt{2}$. Attention, $\\sqrt{18 + 8} \\neq \\sqrt{18} + \\sqrt{8}$." },
-    { question: "Vrai ou faux : pour tout réel $a$, $\\sqrt{a^2} = a$.", choix: ["Faux", "Vrai"], bonne: 0, explication: "Contre-exemple : $\\sqrt{(-5)^2} = \\sqrt{25} = 5 \\neq -5$. Une racine carrée est toujours positive : $\\sqrt{a^2} = |a|$." },
+    { question: "Pour tout réel $a$, $\\sqrt{a^2}$ est égal à :", choix: ["$|a|$", "$a$", "$-a$", "$a^2$"], bonne: 0, explication: "Une racine carrée est toujours positive : $\\sqrt{a^2} = |a|$. Contre-exemple pour « $a$ » : $\\sqrt{(-5)^2} = \\sqrt{25} = 5 \\neq -5$." },
     { question: "La forme développée de $(3x + 2)^2$ est :", choix: ["$9x^2 + 12x + 4$", "$9x^2 + 4$", "$3x^2 + 12x + 4$", "$9x^2 + 6x + 4$"], bonne: 0, explication: "$(a + b)^2 = a^2 + 2ab + b^2$ avec $a = 3x$ et $b = 2$ : $(3x)^2 + 2 \\times 3x \\times 2 + 2^2 = 9x^2 + 12x + 4$." },
     { question: "La forme développée de $(2x - 1)(x + 3)$ est :", choix: ["$2x^2 + 5x - 3$", "$2x^2 - 3$", "$2x^2 + 7x - 3$", "$2x^2 + 5x + 3$"], bonne: 0, explication: "Double distributivité : $2x \\times x + 2x \\times 3 - 1 \\times x - 1 \\times 3 = 2x^2 + 6x - x - 3 = 2x^2 + 5x - 3$." },
     { question: "$5 - (2x - 3)$ est égal à :", choix: ["$8 - 2x$", "$2 - 2x$", "$8 + 2x$", "$2 + 2x$"], bonne: 0, explication: "Le signe moins devant la parenthèse change tous les signes : $5 - (2x - 3) = 5 - 2x + 3 = 8 - 2x$." },
@@ -301,7 +345,17 @@ window.CHAPITRES["seconde-calcul-litteral"] = {
     { question: "Pour $x \\neq 0$, $\\dfrac{1}{x} + \\dfrac{1}{3}$ est égal à :", choix: ["$\\dfrac{x + 3}{3x}$", "$\\dfrac{2}{x + 3}$", "$\\dfrac{2}{3x}$", "$\\dfrac{1}{x + 3}$"], bonne: 0, explication: "Même dénominateur $3x$ : $\\dfrac{1}{x} + \\dfrac{1}{3} = \\dfrac{3}{3x} + \\dfrac{x}{3x} = \\dfrac{x + 3}{3x}$. On n'additionne jamais les dénominateurs." },
     { question: "L'expression $\\dfrac{4}{2x + 6}$ existe pour :", choix: ["tout réel $x \\neq -3$", "tout réel $x \\neq 3$", "tout réel $x \\neq -6$", "tout réel $x$"], bonne: 0, explication: "Le dénominateur ne doit pas être nul : $2x + 6 = 0 \\iff x = -3$. Seule la valeur $-3$ est interdite." },
     { question: "Le périmètre d'un rectangle vaut $P = 2(L + \\ell)$. On en tire :", choix: ["$L = \\dfrac{P}{2} - \\ell$", "$L = \\dfrac{P - \\ell}{2}$", "$L = 2P - \\ell$", "$L = \\dfrac{P}{2\\ell}$"], bonne: 0, explication: "On divise par $2$ : $\\dfrac{P}{2} = L + \\ell$, puis on soustrait $\\ell$ : $L = \\dfrac{P}{2} - \\ell$." },
-    { question: "Avec la fonction $\\texttt{premiere\\_puissance}$ du cours, que renvoie $\\texttt{premiere\\_puissance(2, 20)}$ ?", choix: ["$5$", "$4$", "$32$", "$16$"], bonne: 0, explication: "$p$ prend les valeurs $1$, $2$, $4$, $8$, $16$, puis $32$. La boucle s'arrête quand $p = 32 > 20$, après $5$ tours : la fonction renvoie $n = 5$, car $2^5 = 32$." }
+    { question: "Avec la fonction $\\texttt{premiere\\_puissance}$ du cours, que renvoie $\\texttt{premiere\\_puissance(2, 20)}$ ?", choix: ["$5$", "$4$", "$32$", "$16$"], bonne: 0, explication: "$p$ prend les valeurs $1$, $2$, $4$, $8$, $16$, puis $32$. La boucle s'arrête quand $p = 32 > 20$, après $5$ tours : la fonction renvoie $n = 5$, car $2^5 = 32$." },
+    { question: "Le rectangle de la figure a pour côtés $x + 5$ et $x + 2$. Son aire, développée et réduite, est :", figure: "cl-qcm-aire", choix: ["$x^2 + 7x + 10$", "$x^2 + 10$", "$x^2 + 10x + 7$", "$2x + 7$"], bonne: 0, explication: "Les quatre parties ont pour aires $x^2$, $5x$, $2x$ et $10$ : $(x + 5)(x + 2) = x^2 + 7x + 10$. $2x + 7$ est la moitié du périmètre, pas l'aire." },
+    { question: "Sur la figure, la droite d'équation $y = k$ coupe la parabole $y = x^2$ en deux points d'abscisses $-2{,}5$ et $2{,}5$. Que vaut $k$ ?", figure: "cl-qcm-parabole", choix: ["$6{,}25$", "$5$", "$2{,}5$", "$-6{,}25$"], bonne: 0, explication: "Les points sont sur la parabole : $k = 2{,}5^2 = (-2{,}5)^2 = 6{,}25$. Les solutions de $x^2 = 6{,}25$ sont bien $-2{,}5$ et $2{,}5$." },
+    { question: "Cette citerne cylindrique a un rayon de $0{,}5$ m et un volume $V$. Comme $V = \\pi r^2 h$, sa hauteur vaut :", figure: "cl-qcm-cylindre", choix: ["$h = \\dfrac{V}{\\pi \\times 0{,}5^2}$", "$h = V - \\pi \\times 0{,}5^2$", "$h = \\dfrac{V}{2\\pi \\times 0{,}5}$", "$h = V \\times \\pi \\times 0{,}5^2$"], bonne: 0, explication: "On divise les deux membres par $\\pi r^2$, l'aire du disque de base. $2\\pi r$ est le périmètre du cercle, pas l'aire du disque." },
+    { question: "Le lycée A compte $1\\,200$ élèves et le lycée B $800$ élèves. Quelle phrase est juste ?", figure: "cl-qcm-barres", choix: ["Le lycée A a $1{,}5$ fois plus d'élèves que le lycée B.", "Le lycée A a $400$ fois plus d'élèves que le lycée B.", "Le lycée A a $150\\,\\%$ d'élèves de plus que le lycée B.", "Le lycée B a $1{,}5$ fois plus d'élèves que le lycée A."], bonne: 0, explication: "Quotient : $\\dfrac{1\\,200}{800} = 1{,}5$ (comparaison multiplicative), soit $50\\,\\%$ de plus. Différence : $1\\,200 - 800 = 400$ élèves de plus (comparaison additive)." },
+    { question: "D'après la figure, combien de solutions l'équation $x^2 = -2$ a-t-elle ?", figure: "carre-niveaux", choix: ["Aucune", "Une seule", "Deux", "Une infinité"], bonne: 0, explication: "La droite $y = -2$ est sous l'axe des abscisses : elle ne coupe pas la parabole $y = x^2$. Un carré n'est jamais négatif." },
+    { question: "Soit $x > 0$. Pour comparer $A = (x + 3)^2$ et $B = x^2 + 9$, on calcule $A - B$, qui vaut :", choix: ["$6x$", "$0$", "$-6x$", "$18$"], bonne: 0, explication: "$A - B = x^2 + 6x + 9 - x^2 - 9 = 6x$, strictement positif car $x > 0$ : donc $A > B$." },
+    { question: "De $S = \\pi r^2$ (avec $r > 0$), on tire :", choix: ["$r = \\sqrt{\\dfrac{S}{\\pi}}$", "$r = \\dfrac{S}{\\pi}$", "$r = \\dfrac{S}{2\\pi}$", "$r = \\sqrt{S - \\pi}$"], bonne: 0, explication: "On divise par $\\pi$ : $r^2 = \\dfrac{S}{\\pi}$ ; comme $r > 0$, $r = \\sqrt{\\dfrac{S}{\\pi}}$." },
+    { question: "La relation $3x + 2y = 12$ s'écrit aussi :", choix: ["$y = \\dfrac{12 - 3x}{2}$", "$y = 12 - 3x - 2$", "$y = \\dfrac{12 + 3x}{2}$", "$y = 6 - 3x$"], bonne: 0, explication: "$3x + 2y = 12 \\iff 2y = 12 - 3x \\iff y = \\dfrac{12 - 3x}{2}$. On divise **tout** le membre de droite par $2$." },
+    { question: "L'écriture scientifique de $0{,}00052$ est :", choix: ["$5{,}2 \\times 10^{-4}$", "$5{,}2 \\times 10^{4}$", "$52 \\times 10^{-5}$", "$5{,}2 \\times 10^{-3}$"], bonne: 0, explication: "On place la virgule après le premier chiffre non nul : $5{,}2$. Elle s'est déplacée de $4$ rangs vers la droite, donc $0{,}00052 = 5{,}2 \\times 10^{-4}$. $52 \\times 10^{-5}$ est juste, mais ce n'est pas une écriture scientifique." },
+    { question: "La première puissance de $3$ strictement supérieure à $100$ est :", choix: ["$3^5 = 243$", "$3^4 = 81$", "$3^3 = 27$", "$3^{100}$"], bonne: 0, explication: "$3^4 = 81 \\leqslant 100$ et $3^5 = 243 > 100$ : c'est $3^5$. C'est ce que calcule la fonction $\\texttt{premiere\\_puissance(3, 100)}$, qui renvoie $5$." }
   ],
 
   /* ---------- 4. FICHE MÉTHODE ---------- */
@@ -326,15 +380,17 @@ window.CHAPITRES["seconde-calcul-litteral"] = {
     },
     {
       titre: "Développer avec une identité remarquable",
+      figure: "identite-carre",
       etapes: [
         "Repérer $a$ et $b$ (avec leur coefficient : $a = 2x$).",
-        "Appliquer la formule, sans oublier le double produit $2ab$.",
+        "Appliquer la formule, sans oublier le double produit $2ab$ (les deux rectangles de la figure).",
         "Calculer chaque terme : $(2x)^2 = 4x^2$."
       ],
       exemple: "$(3x + 1)^2 = 9x^2 + 6x + 1$."
     },
     {
       titre: "Factoriser",
+      figure: "cl-cours-facteur",
       etapes: [
         "Chercher un facteur commun (un nombre, $x$, ou une parenthèse entière).",
         "Sinon, reconnaître $a^2 - b^2$, $a^2 + 2ab + b^2$ ou $a^2 - 2ab + b^2$.",
@@ -343,14 +399,35 @@ window.CHAPITRES["seconde-calcul-litteral"] = {
       exemple: "$x^2 - 6x + 9 = (x - 3)^2$ ; $3x^2 + 6x = 3x(x + 2)$."
     },
     {
+      titre: "Comparer deux quantités",
+      figure: "cl-cours-comparer",
+      etapes: [
+        "Différence $A - B$ : elle dit « de combien » (comparaison additive) ; son signe donne l'ordre.",
+        "Quotient $\\dfrac{A}{B}$, si $A$ et $B$ sont strictement positifs : il dit « combien de fois » (comparaison multiplicative) ; on le compare à $1$.",
+        "Conclure par une phrase, avec l'unité."
+      ],
+      exemple: "$45$ kg et $30$ kg : $45 - 30 = 15$ kg de plus ; $\\dfrac{45}{30} = 1{,}5$ fois plus."
+    },
+    {
       titre: "Résoudre une équation",
+      figure: "carre-niveaux",
       etapes: [
         "Premier degré : regrouper les $x$ d'un côté, les nombres de l'autre, puis diviser.",
         "Avec un $x^2$ : tout passer du même côté, factoriser, puis utiliser le produit nul.",
-        "$x^2 = a$ : regarder le signe de $a$ (0, 1 ou 2 solutions).",
+        "$x^2 = a$ : regarder le signe de $a$ ($0$, $1$ ou $2$ solutions, comme sur la figure).",
         "Vérifier les solutions en les remplaçant dans l'équation de départ."
       ],
       exemple: "$x^2 = 4x \\iff x(x - 4) = 0 \\iff x = 0$ ou $x = 4$."
+    },
+    {
+      titre: "Isoler une variable dans une formule",
+      figure: "cl-cours-cylindre",
+      etapes: [
+        "Repérer l'opération qui « accroche » la variable aux autres lettres (produit, somme, carré).",
+        "Faire l'opération inverse sur les deux membres, en commençant par la plus « extérieure ».",
+        "Pour un carré, diviser d'abord, puis prendre la racine carrée (une longueur est positive)."
+      ],
+      exemple: "$V = \\pi r^2 h \\iff h = \\dfrac{V}{\\pi r^2}$ ; $S = \\pi r^2 \\iff r = \\sqrt{\\dfrac{S}{\\pi}}$."
     }
   ],
   erreurs: [
@@ -361,6 +438,8 @@ window.CHAPITRES["seconde-calcul-litteral"] = {
     "Oublier de changer les signes après un moins : $-(x - 4) = -x + 4$.",
     "Oublier la solution négative de $x^2 = 9$ : il y a $-3$ **et** $3$.",
     "Diviser par $x$ dans $x^2 = 5x$ : on perd la solution $0$. Il faut factoriser.",
-    "Additionner les dénominateurs : $\\dfrac{1}{2} + \\dfrac{1}{3} \\neq \\dfrac{2}{5}$."
+    "Additionner les dénominateurs : $\\dfrac{1}{2} + \\dfrac{1}{3} \\neq \\dfrac{2}{5}$.",
+    "Confondre « $3$ fois plus » (quotient) et « $3$ de plus » (différence).",
+    "Écrire $r = \\dfrac{S}{\\pi}$ au lieu de $r = \\sqrt{\\dfrac{S}{\\pi}}$ : il manque la racine carrée."
   ]
 };

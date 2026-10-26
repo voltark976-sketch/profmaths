@@ -15,7 +15,9 @@ window.CHAPITRES["premiere-exponentielle"] = {
 
   playlist: "",
   drive: "",
-  pdfs: [],
+  pdfs: [
+    { titre: "Cours d'Yvan Monka : fonction exponentielle (PDF)", url: "https://www.maths-et-tiques.fr/telech/19ExpoPM.pdf" }
+  ],
   liens: [
     { titre: "Le cours sur la fonction exponentielle en vidéo (Yvan Monka)", url: "https://youtu.be/aD03wqgxexk", type: "video" }
   ],
@@ -40,7 +42,7 @@ window.CHAPITRES["premiere-exponentielle"] = {
       titre: "Logique : $\\exp$ ne s'annule jamais (par l'absurde)",
       texte:
         "**Propriété** : pour tout réel $x$, $\\exp(x) \\times \\exp(-x) = 1$.\n\n" +
-        "**Démonstration**. Soit $\\varphi(x) = \\exp(x)\\exp(-x)$. Par la formule du produit et la dérivée de $g(ax + b)$ : $\\varphi'(x) = \\exp(x)\\exp(-x) - \\exp(x)\\exp(-x) = 0$. Donc $\\varphi$ est constante, égale à $\\varphi(0) = 1$.\n\n" +
+        "**Démonstration**. Soit $\\varphi(x) = \\exp(x)\\exp(-x)$. On admet que $x \\mapsto \\exp(-x)$ a pour dérivée $x \\mapsto -\\exp(-x)$ (c'est le cas $a = -1$ de la formule $\\left(e^{at}\\right)' = ae^{at}$ vue plus loin). Par la formule du produit : $\\varphi'(x) = \\exp(x)\\exp(-x) + \\exp(x) \\times \\left(-\\exp(-x)\\right) = 0$. Donc $\\varphi$ est constante, égale à $\\varphi(0) = 1$.\n\n" +
         "**Conséquence, par l'absurde** : supposons qu'il existe un réel $a$ tel que $\\exp(a) = 0$. Alors $\\exp(a)\\exp(-a) = 0$, alors que ce produit vaut $1$ : c'est **absurde**. Donc l'exponentielle ne s'annule jamais.\n\n" +
         "Le **raisonnement par l'absurde** consiste à supposer le contraire de ce qu'on veut démontrer, puis à aboutir à une contradiction.",
       exemple: {
@@ -94,12 +96,14 @@ window.CHAPITRES["premiere-exponentielle"] = {
     },
     {
       titre: "Dériver $t \\mapsto e^{at}$",
+      figure: "ex-cours-derivee",
       video: { titre: "Vidéo d'Yvan Monka : dériver une fonction de la forme exponentielle de kt", youtube: "https://youtu.be/RlyFEcx5Y3E" },
       texte:
-        "Avec la règle de $g(ax + b)$ du chapitre 9 : pour tout réel $a$,\n\n" +
-        "$\\left(e^{at}\\right)' = a\\,e^{at}$, et plus généralement $\\left(e^{at + b}\\right)' = a\\,e^{at + b}$.\n\n" +
+        "**Propriété** (admise) : pour tout réel $a$, la fonction $t \\mapsto e^{at}$ est dérivable sur $\\mathbb{R}$ et\n\n" +
+        "$\\left(e^{at}\\right)' = a\\,e^{at}$.\n\n" +
+        "Plus généralement, $e^{at + b} = e^{b} \\times e^{at}$, avec $e^{b}$ constant : $\\left(e^{at + b}\\right)' = e^{b} \\times a\\,e^{at} = a\\,e^{at + b}$.\n\n" +
         "Avec la formule du produit : $\\left(t\\,e^{t}\\right)' = e^{t} + t\\,e^{t} = (1 + t)e^{t}$.\n\n" +
-        "Comme $e^{at} > 0$, le signe de la dérivée se lit souvent sur un seul facteur.",
+        "Comme $e^{at} > 0$, le signe de la dérivée se lit souvent sur un seul facteur. Sur le schéma, $f(t) = 5e^{-2t}$ : $f'(t) = -10e^{-2t} < 0$, la courbe descend toujours, et la tangente $T$ en $0$ a pour pente $f'(0) = -10$.",
       exemple: {
         enonce: "Dérive $f(t) = 5e^{-2t}$ et $g(x) = (x - 3)e^{x}$, puis donne le signe de $g'(x)$.",
         solution: "$f'(t) = 5 \\times (-2)e^{-2t} = -10e^{-2t}$.\n\n$g'(x) = e^{x} + (x - 3)e^{x} = (x - 2)e^{x}$, du signe de $x - 2$ : négatif avant $2$, positif après."
@@ -121,6 +125,7 @@ window.CHAPITRES["premiere-exponentielle"] = {
     },
     {
       titre: "Lien avec les suites géométriques",
+      figure: "ex-cours-suite",
       video: { titre: "Vidéo d'Yvan Monka : déterminer une suite géométrique comprenant une exponentielle", youtube: "https://youtu.be/hKh-ry9AAO0" },
       texte:
         "Pour un réel $a$, posons $u_n = e^{an}$. Alors $u_{n+1} = e^{an + a} = e^{an} \\times e^{a} = u_n \\times e^{a}$.\n\n" +
@@ -135,9 +140,10 @@ window.CHAPITRES["premiere-exponentielle"] = {
     },
     {
       titre: "Modéliser : l'élimination d'un médicament",
+      figure: "ex-cours-medicament",
       video: { titre: "Vidéo d'Yvan Monka : étudier une fonction exponentielle dans une situation concrète", youtube: "https://youtu.be/lsLQwiB9Nrg" },
       texte:
-        "Au dispensaire, après une injection, la concentration d'un médicament dans le sang (en mg/L) est modélisée par $C(t) = 20e^{-0{,}3t}$, avec $t$ en heures.\n\n" +
+        "À l'hôpital de Mamoudzou, après une injection, la concentration d'un médicament dans le sang (en mg/L) est modélisée par $C(t) = 20e^{-0{,}3t}$, avec $t$ en heures.\n\n" +
         "- $C(0) = 20$ mg/L au moment de l'injection.\n" +
         "- $C'(t) = -6e^{-0{,}3t} = -0{,}3\\,C(t)$ : la concentration diminue, et la vitesse d'élimination est **proportionnelle** à la quantité présente.\n" +
         "- Au bout de $5$ heures : $C(5) = 20e^{-1{,}5} \\approx 4{,}46$ mg/L.\n\n" +
@@ -162,13 +168,14 @@ window.CHAPITRES["premiere-exponentielle"] = {
     },
     {
       titre: "Python : méthode d'Euler et valeur approchée de $e$",
+      figure: "ex-cours-euler",
       texte:
         "La **méthode d'Euler** construit pas à pas une valeur approchée de la fonction $f$ telle que $f' = f$ et $f(0) = 1$. Sur un petit pas $h$, on suit la tangente : $f(x + h) \\approx f(x) + h f'(x) = f(x) + h f(x)$.\n\n" +
         "```python\ndef euler(h):\n    x, y = 0, 1\n    while x < 1 - h / 2:\n        y = y + h * y\n        x = x + h\n    return y\n\nprint(euler(0.1), euler(0.01), euler(0.001))\n```\n\n" +
         "Le programme affiche environ $2{,}594$ ; $2{,}705$ ; $2{,}717$ : des valeurs approchées de $f(1) = e \\approx 2{,}71828$, de plus en plus précises quand $h$ diminue.\n\n" +
-        "Chaque pas multiplie $y$ par $1 + h$ : avec $h = \\dfrac{1}{n}$, on obtient $\\left(1 + \\dfrac{1}{n}\\right)^n$, qui se rapproche de $e$.",
+        "Chaque pas multiplie $y$ par $1 + h$ : avec $h = \\dfrac{1}{n}$, on obtient $\\left(1 + \\dfrac{1}{n}\\right)^n$, qui se rapproche de $e$. Sur le schéma, avec $h = 0{,}25$, la ligne brisée d'Euler arrive à $1{,}25^4 \\approx 2{,}44$, sous la courbe.",
       exemple: {
-        enonce: "Que renvoie euler(0.5) ?",
+        enonce: "Que renvoie $\\texttt{euler(0.5)}$ ?",
         solution: "Deux pas : $y = 1 \\times 1{,}5 = 1{,}5$, puis $1{,}5 \\times 1{,}5 = 2{,}25$. La fonction renvoie $2{,}25$, une valeur approchée grossière de $e$."
       }
     }
@@ -209,7 +216,9 @@ window.CHAPITRES["premiere-exponentielle"] = {
     { question: "La suite $u_n = e^{0{,}1n}$ est :", choix: ["géométrique de raison $e^{0{,}1}$", "arithmétique de raison $0{,}1$", "géométrique de raison $0{,}1$", "ni arithmétique ni géométrique"], bonne: 0, explication: "$u_{n+1} = u_n \\times e^{0{,}1}$." },
     { question: "$T(t) = 28 + 62e^{-0{,}08t}$ : quand $t$ devient très grand, $T(t)$ se rapproche de :", choix: ["$28$", "$90$", "$0$", "$62$"], bonne: 0, explication: "$e^{-0{,}08t}$ se rapproche de $0$." },
     { question: "Dans la méthode d'Euler pour $f' = f$, chaque pas de longueur $h$ :", choix: ["multiplie $y$ par $1 + h$", "ajoute $h$ à $y$", "multiplie $y$ par $h$", "remplace $y$ par $e^{h}$"], bonne: 0, explication: "$y + hy = (1 + h)y$." },
-    { question: "Vrai ou faux : « pour tous réels $a$ et $b$, $e^{a + b} = e^{a} + e^{b}$ ».", choix: ["Vrai", "Faux"], bonne: 1, explication: "Faux : avec $a = b = 0$, on trouve $1$ d'un côté et $2$ de l'autre." },
+    { question: "Laquelle de ces égalités est vraie pour tous réels $a$ et $b$ ?", choix: ["$e^{a + b} = e^{a} \\times e^{b}$", "$e^{a + b} = e^{a} + e^{b}$", "$e^{ab} = e^{a} \\times e^{b}$", "$e^{a - b} = e^{a} - e^{b}$"], bonne: 0, explication: "C'est la relation fonctionnelle : une somme d'exposants donne un **produit**. Avec $a = b = 0$, $e^{a} + e^{b} = 2$ alors que $e^{a + b} = 1$." },
+    { question: "La courbe $C$ ci-dessous est celle de la fonction $t \\mapsto 3e^{kt}$. Que peut-on dire de $k$ ?", figure: "ex-qcm-kt", choix: ["$k < 0$", "$k > 0$", "$k = 0$", "$k = 3$"], bonne: 0, explication: "La fonction est décroissante, donc sa dérivée $3k\\,e^{kt}$ est négative : comme $3e^{kt} > 0$, il faut $k < 0$. Le $3$ est la valeur en $0$, pas $k$." },
+    { question: "Sur la figure, la ligne brisée est construite par la méthode d'Euler pour $f' = f$ et $f(0) = 1$, avec un pas $h = 0{,}25$. Quelle est l'ordonnée du point d'abscisse $0{,}5$ ?", figure: "ex-cours-euler", choix: ["$1{,}5625$", "$1{,}5$", "$1{,}25$", "$e^{0{,}5}$"], bonne: 0, explication: "Chaque pas multiplie l'ordonnée par $1 + h = 1{,}25$ : $1 \\to 1{,}25 \\to 1{,}25^2 = 1{,}5625$. La valeur exacte $f(0{,}5) = e^{0{,}5} \\approx 1{,}65$ est un peu plus grande." },
     { question: "$e^{2} \\times e^{3} \\times e^{-5} =$", choix: ["$1$", "$0$", "$e^{-30}$", "$e$"], bonne: 0, explication: "On ajoute les exposants : $2 + 3 - 5 = 0$, et $e^{0} = 1$. Une exponentielle n'est jamais nulle." },
     { question: "Pour tout réel $x$, $\\dfrac{\\left(e^{x}\\right)^2}{e^{2x - 3}} =$", choix: ["$e^{3}$", "$e^{-3}$", "$e^{x^2 - 2x + 3}$", "$e^{4x - 3}$"], bonne: 0, explication: "$\\left(e^{x}\\right)^2 = e^{2x}$, puis $\\dfrac{e^{2x}}{e^{2x - 3}} = e^{2x - (2x - 3)} = e^{3}$ : le résultat ne dépend pas de $x$." },
     { question: "Le signe de $(x - 2)e^{x}$ est :", choix: ["négatif pour $x < 2$ et positif pour $x > 2$", "toujours positif, car $e^{x} > 0$", "positif pour $x < 2$ et négatif pour $x > 2$", "toujours négatif"], bonne: 0, explication: "$e^{x} > 0$ pour tout $x$ : le produit a le signe de l'autre facteur, $x - 2$, qui est négatif avant $2$ et positif après." },
@@ -219,9 +228,9 @@ window.CHAPITRES["premiere-exponentielle"] = {
     { question: "La dérivée de $f(x) = 3e^{2x + 1}$ est :", choix: ["$6e^{2x + 1}$", "$3e^{2x + 1}$", "$3(2x + 1)e^{2x}$", "$6xe^{2x + 1}$"], bonne: 0, explication: "$\\left(e^{ax + b}\\right)' = ae^{ax + b}$ avec $a = 2$ : $f'(x) = 3 \\times 2e^{2x + 1} = 6e^{2x + 1}$." },
     { question: "Soit $g(x) = e^{x} - x$, de dérivée $g'(x) = e^{x} - 1$. La fonction $g$ admet un minimum :", choix: ["en $x = 0$, égal à $1$", "en $x = 1$, égal à $e - 1$", "en $x = 0$, égal à $0$", "nulle part : $g$ n'a pas de minimum"], bonne: 0, explication: "$e^{x} - 1 < 0 \\iff e^{x} < e^{0} \\iff x < 0$ : $g$ décroît puis croît, avec un minimum $g(0) = e^{0} - 0 = 1$." },
     { question: "La tangente à la courbe de la fonction exponentielle au point d'abscisse $0$ a pour équation :", choix: ["$y = x + 1$", "$y = x$", "$y = ex$", "$y = 1$"], bonne: 0, explication: "$y = \\exp'(0)(x - 0) + \\exp(0)$, avec $\\exp'(0) = \\exp(0) = 1$ : $y = x + 1$." },
-    { question: "Une valeur approchée de $e^{0{,}02}$ est :", choix: ["$1{,}02$", "$0{,}02$", "$1{,}2$", "$2{,}02$"], bonne: 0, explication: "Pour $h$ proche de $0$, $e^{h} \\approx 1 + h$ (approximation par la tangente en $0$) : $e^{0{,}02} \\approx 1{,}02$." },
+    { question: "Une valeur approchée de $e^{0{,}02}$ est :", figure: "exp-courbe", choix: ["$1{,}02$", "$0{,}02$", "$1{,}2$", "$2{,}02$"], bonne: 0, explication: "Pour $h$ proche de $0$, $e^{h} \\approx 1 + h$ (approximation par la tangente en $0$) : $e^{0{,}02} \\approx 1{,}02$." },
     { question: "La suite définie par $u_n = 5e^{-0{,}5n}$ est géométrique de raison :", choix: ["$e^{-0{,}5}$", "$-0{,}5$", "$5$", "$5e^{-0{,}5}$"], bonne: 0, explication: "$u_{n+1} = 5e^{-0{,}5n - 0{,}5} = 5e^{-0{,}5n} \\times e^{-0{,}5} = u_n \\times e^{-0{,}5}$. Le premier terme est $u_0 = 5$." },
-    { question: "La concentration d'un médicament vaut $C(t) = 20e^{-0{,}3t}$. Vrai ou faux : elle finit par devenir nulle.", choix: ["Faux", "Vrai"], bonne: 0, explication: "Pour tout $t$, $e^{-0{,}3t} > 0$, donc $C(t) > 0$ : la concentration se rapproche de $0$ sans jamais l'atteindre." },
+    { question: "La concentration d'un médicament vaut $C(t) = 20e^{-0{,}3t}$ ($t$ en heures). Que se passe-t-il quand $t$ devient très grand ?", choix: ["Elle se rapproche de $0$ sans jamais être nulle", "Elle devient nulle au bout de $20$ heures", "Elle se rapproche de $20$", "Elle devient négative"], bonne: 0, explication: "Pour tout $t$, $e^{-0{,}3t} > 0$, donc $C(t) > 0$ : la concentration diminue et se rapproche de $0$ sans jamais l'atteindre. $20$ est la concentration de départ." },
     { question: "Laquelle de ces fonctions est strictement décroissante sur $\\mathbb{R}$ ?", choix: ["$t \\mapsto e^{-2t}$", "$t \\mapsto e^{2t}$", "$t \\mapsto e^{0{,}5t}$", "$t \\mapsto -e^{-t}$"], bonne: 0, explication: "La dérivée de $e^{-2t}$ est $-2e^{-2t} < 0$. Attention : la dérivée de $-e^{-t}$ est $e^{-t} > 0$, elle est donc croissante." },
     { question: "Dans la fonction $\\texttt{euler(h)}$ du cours, quelle valeur est renvoyée avec $h = 0{,}5$ ?", choix: ["$2{,}25$", "$2$", "$1{,}5$", "$2{,}718$"], bonne: 0, explication: "Chaque pas multiplie $y$ par $1 + h = 1{,}5$. Il faut deux pas pour aller de $0$ à $1$ : $y = 1{,}5^2 = 2{,}25$, une valeur approchée grossière de $e$." },
     { question: "Pour démontrer par l'absurde que l'exponentielle ne s'annule jamais, on commence par :", choix: ["supposer qu'il existe un réel $a$ tel que $e^{a} = 0$", "supposer que $e^{x} > 0$ pour tout réel $x$", "calculer $e^{0} = 1$", "tracer la courbe à la calculatrice"], bonne: 0, explication: "On suppose le contraire de ce qu'on veut démontrer, puis on aboutit à une contradiction : ici $e^{a} \\times e^{-a} = 0$, alors que ce produit vaut $1$." }
@@ -236,17 +245,20 @@ window.CHAPITRES["premiere-exponentielle"] = {
     },
     {
       titre: "Résoudre une équation ou une inéquation",
-      etapes: ["Se ramener à $e^{A} = e^{B}$ ou $e^{A} < e^{B}$.", "Comparer les exposants : $A = B$ ou $A < B$ (même sens).", "Résoudre l'équation ou l'inéquation obtenue."],
+      etapes: ["Se ramener à $e^{A} = e^{B}$ ou $e^{A} < e^{B}$.", "Comparer les exposants : $A = B$ ou $A < B$ (même sens, car l'exponentielle est strictement croissante).", "Résoudre l'équation ou l'inéquation obtenue."],
+      figure: "exp-courbe",
       exemple: "$e^{3x} \\geqslant e^{x + 4} \\iff 3x \\geqslant x + 4 \\iff x \\geqslant 2$."
     },
     {
       titre: "Étudier une fonction avec une exponentielle",
       etapes: ["Dériver : $\\left(e^{at}\\right)' = ae^{at}$, formule du produit si besoin.", "Factoriser par l'exponentielle, qui est strictement positive.", "Le signe de $f'$ est celui de l'autre facteur : dresser le tableau de variations."],
+      figure: "ex-meth-tab",
       exemple: "$g(x) = (x - 3)e^{x}$ : $g'(x) = (x - 2)e^{x}$, minimum en $2$."
     },
     {
       titre: "Modéliser une évolution exponentielle",
       etapes: ["Repérer la valeur de départ et le signe de l'exposant : croissance ou décroissance.", "Calculer des valeurs à la calculatrice.", "Interpréter : valeur limite, baisse en pourcentage par unité de temps."],
+      figure: "ex-cours-medicament",
       exemple: "$C(t) = 20e^{-0{,}3t}$ : la concentration est multipliée par $e^{-0{,}3} \\approx 0{,}741$ chaque heure."
     }
   ],

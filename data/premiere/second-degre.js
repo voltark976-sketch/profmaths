@@ -7,7 +7,7 @@
   Mêmes règles d'écriture que data/seconde/fonctions.js (formules entre $...$, antislash doublé,
   **gras**, "- " pour une puce). Dans les formules, la virgule décimale s'écrit {,} : $0{,}35$.
   Les corrigés du Drive sont réservés au professeur (Pronote) : ils ne sont pas liés ici.
-  Figures : "parabole-factorisee", "jardin-allee". Générateurs : sd- et s2-.
+  Figures : "parabole-factorisee", "jardin-allee", "sd-cours-…", "sd-qcm-…", "sd-meth-…" (fragment 031). Générateurs : sd- et s2-.
 */
 window.CHAPITRES = window.CHAPITRES || {};
 window.CHAPITRES["premiere-second-degre"] = {
@@ -38,9 +38,10 @@ window.CHAPITRES["premiere-second-degre"] = {
   cours: [
     {
       titre: "Fonction du second degré sous forme factorisée",
+      figure: "sd-cours-paraboles",
       video: { titre: "Vidéo de ton prof : second degré, forme factorisée (cours complet)", youtube: "https://youtu.be/p4GJqFX6bMk" },
       texte:
-        "Une **fonction polynôme du second degré** est définie sur $\\mathbb{R}$ par $f(x) = ax^2 + bx + c$ avec $a \\neq 0$ : c'est la **forme développée**. Sa courbe est une **parabole**, tournée vers le haut si $a > 0$, vers le bas si $a < 0$.\n\n" +
+        "Une **fonction polynôme du second degré** est définie sur $\\mathbb{R}$ par $f(x) = ax^2 + bx + c$ avec $a \\neq 0$ : c'est la **forme développée**. Sa courbe est une **parabole**, tournée vers le haut si $a > 0$, vers le bas si $a < 0$ (schéma).\n\n" +
         "Quand elle s'annule en $x_1$ et $x_2$, elle s'écrit aussi $f(x) = a(x - x_1)(x - x_2)$ : c'est la **forme factorisée**.\n\n" +
         "- $x_1$ et $x_2$ sont les **racines** de $f$ : les solutions de $f(x) = 0$, abscisses des points d'intersection de la parabole avec l'axe des abscisses.\n" +
         "- Elles se lisent directement : dans $(x + 3)$, la racine est $-3$.\n" +
@@ -68,6 +69,7 @@ window.CHAPITRES["premiere-second-degre"] = {
     },
     {
       titre: "Somme et produit des racines",
+      figure: "sd-cours-trouver-a",
       video: { titre: "Vidéo d'Yvan Monka : déterminer une fonction à partir de ses racines", youtube: "https://youtu.be/JiokX41_2nw" },
       texte:
         "En développant $a(x - x_1)(x - x_2) = ax^2 - a(x_1 + x_2)x + ax_1x_2$ et en comparant avec $ax^2 + bx + c$ :\n\n" +
@@ -112,6 +114,7 @@ window.CHAPITRES["premiere-second-degre"] = {
     {
       titre: "Modéliser : l'allée du jardin",
       figure: "jardin-allee",
+      video: { titre: "Vidéo de Galilée : exprimer une aire en fonction de x", youtube: "https://youtu.be/w29IvxvTBEg" },
       texte:
         "Un jardin créole de $10$ m sur $6$ m est bordé d'une allée de largeur $x$ m. Le grand rectangle mesure $10 + 2x$ sur $6 + 2x$.\n\n" +
         "Aire de l'allée : $A(x) = (10 + 2x)(6 + 2x) - 60 = 4x^2 + 32x = 4x(x + 8)$.\n\n" +
@@ -123,6 +126,7 @@ window.CHAPITRES["premiere-second-degre"] = {
     },
     {
       titre: "Python : tester si un nombre est racine",
+      video: { titre: "Vidéo d'Yvan Monka : créer une liste en compréhension en Python", youtube: "https://youtu.be/TzVQgK6RSXc" },
       texte:
         "Un nombre $x$ est racine de $ax^2 + bx + c$ quand $ax^2 + bx + c = 0$ :\n\n" +
         "```python\ndef est_racine(a, b, c, x):\n    return a * x**2 + b * x + c == 0\n```\n\n" +
@@ -152,7 +156,7 @@ window.CHAPITRES["premiere-second-degre"] = {
     { type: "s2-factoriser", titre: "Factoriser sans discriminant", etape: "Factoriser", nb: 5 },
     { type: "sd-trouver-a", titre: "Retrouver la fonction", etape: "Factoriser", nb: 4 },
     { type: "s2-jardin", titre: "L'allée du jardin créole", etape: "Modéliser", nb: 3 },
-    { type: "s2-python", titre: "Python : est-ce une racine ?", etape: "Modéliser", nb: 3 }
+    { type: "s2-python", titre: "Python : racines et listes", etape: "Modéliser", nb: 3 }
   ],
 
   /* ---------- 3. QCM DE RÉVISION ---------- */
@@ -230,7 +234,11 @@ window.CHAPITRES["premiere-second-degre"] = {
     { question: "$f$ est du second degré, s'annule en $1$ et en $3$, et $f(0) = 6$. Alors $f(x)$ est égal à :", choix: ["$2(x - 1)(x - 3)$", "$6(x - 1)(x - 3)$", "$-2(x - 1)(x - 3)$", "$2(x + 1)(x + 3)$"], bonne: 0, explication: "$f(x) = a(x - 1)(x - 3)$ et $f(0) = a \\times (-1) \\times (-3) = 3a = 6$, donc $a = 2$." },
     { question: "Pour montrer que « $(x - 3)^2 = x^2 - 9$ » n'est pas une identité, il suffit :", choix: ["de trouver une valeur de $x$ qui la rend fausse, par exemple $x = 0$", "de vérifier qu'elle est vraie pour $x = 3$", "de résoudre l'équation $x^2 - 9 = 0$", "de regarder deux courbes à la calculatrice"], bonne: 0, explication: "Pour $x = 0$ : $9$ à gauche, $-9$ à droite. Un contre-exemple suffit ; un exemple où elle est vraie ne prouve rien." },
     { question: "Dans « $(x - 3)(x + 3) = x^2 - 9$ pour tout réel $x$ », la lettre $x$ est :", choix: ["une variable : l'égalité est une identité", "une inconnue : l'égalité est une équation", "un paramètre", "une racine"], bonne: 0, explication: "L'égalité est vraie pour toutes les valeurs de $x$ : c'est une identité, et $x$ y joue le rôle d'une variable." },
-    { question: "Que renvoie $\\texttt{est\\_racine(1, -5, 6, 2)}$, avec la fonction Python du cours ?", choix: ["$\\texttt{True}$", "$\\texttt{False}$", "$\\texttt{0}$", "$\\texttt{2}$"], bonne: 0, explication: "$2^2 - 5 \\times 2 + 6 = 4 - 10 + 6 = 0$ : le test $\\texttt{== 0}$ est vrai, $2$ est racine de $x^2 - 5x + 6$." }
+    { question: "Que renvoie $\\texttt{est\\_racine(1, -5, 6, 2)}$, avec la fonction Python du cours ?", choix: ["$\\texttt{True}$", "$\\texttt{False}$", "$\\texttt{0}$", "$\\texttt{2}$"], bonne: 0, explication: "$2^2 - 5 \\times 2 + 6 = 4 - 10 + 6 = 0$ : le test $\\texttt{== 0}$ est vrai, $2$ est racine de $x^2 - 5x + 6$." },
+    { question: "La parabole ci-dessous représente une fonction $f$ du second degré. Quelle est son expression ?", figure: "sd-qcm-parabole", choix: ["$f(x) = -(x + 2)(x - 3)$", "$f(x) = (x + 2)(x - 3)$", "$f(x) = -(x - 2)(x + 3)$", "$f(x) = (x - 2)(x + 3)$"], bonne: 0, explication: "On lit les racines sur l'axe des abscisses : $-2$ et $3$, d'où les facteurs $(x + 2)$ et $(x - 3)$. La parabole est tournée vers le bas : $a < 0$. Vérification : $f(0) = -(2)(-3) = 6$, comme sur la figure." },
+    { question: "D'après la courbe de $f$ ci-dessous, quel est l'ensemble des solutions de $f(x) < 0$ ?", figure: "sd-qcm-signe", choix: ["$]-1\\,;4[$", "$]-\\infty\\,;-1[ \\cup ]4\\,;+\\infty[$", "$[-1\\,;4]$", "$]-2\\,;3[$"], bonne: 0, explication: "$f(x) < 0$ quand la courbe est **sous** l'axe des abscisses : entre les racines $-1$ et $4$, bornes exclues puisque l'inégalité est stricte." },
+    { question: "Le tableau de signes ci-dessous est celui de :", figure: "sd-qcm-tabsigne", choix: ["$2(x - 1)(x + 3)$", "$-2(x - 1)(x + 3)$", "$2(x + 1)(x - 3)$", "$(1 - x)(x + 3)$"], bonne: 0, explication: "Les facteurs s'annulent en $-3$ et en $1$ : ce sont $(x + 3)$ et $(x - 1)$. Le produit est positif à l'extérieur des racines, donc le coefficient est positif : c'est $2(x - 1)(x + 3)$." },
+    { question: "La parabole de $f(x) = a(x + 1)(x - 4)$ passe par le point $(0\\,;8)$ (figure). Que vaut $a$ ?", figure: "sd-cours-trouver-a", choix: ["$-2$", "$2$", "$8$", "$-4$"], bonne: 0, explication: "$f(0) = a \\times 1 \\times (-4) = -4a$, et $f(0) = 8$, donc $a = -2$. Cohérent avec la figure : la parabole est tournée vers le bas." }
   ],
 
   /* ---------- 4. FICHE MÉTHODE ---------- */
@@ -246,6 +254,7 @@ window.CHAPITRES["premiere-second-degre"] = {
     },
     {
       titre: "Étudier le signe d'une forme factorisée",
+      figure: "sd-meth-tabsigne",
       etapes: [
         "Lire les racines $x_1 < x_2$ et le signe de $a$.",
         "Signe de $a$ à l'extérieur des racines, signe contraire entre, $0$ en chaque racine.",
@@ -265,6 +274,7 @@ window.CHAPITRES["premiere-second-degre"] = {
     },
     {
       titre: "Déterminer une fonction connaissant ses racines",
+      figure: "sd-meth-trouver-a",
       etapes: [
         "Écrire $f(x) = a(x - x_1)(x - x_2)$ avec $a$ inconnu.",
         "Utiliser le point connu $(x_0\\,;y_0)$ : $f(x_0) = y_0$.",

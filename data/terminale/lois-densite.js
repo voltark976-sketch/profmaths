@@ -5,7 +5,10 @@
   Densité, probabilité comme aire, fonction de répartition, espérance et variance, loi uniforme sur [0 ; 1] puis [a ; b],
   loi exponentielle et absence de mémoire (retour sur le ch. 10), Python (exponentielle à partir d'une uniforme, sommes),
   attente de la barge, durée de vie d'un atome radioactif.
-  Figures : "tld-densite", "tld-uniforme", "tld-exponentielle". Générateurs : tld-.
+  Figures : "tld-densite", "tld-cours-repartition", "tld-cours-esperance", "tld-uniforme", "tld-exponentielle", "tld-cours-memoire",
+  "tld-cours-demivie", "tld-cours-somme", "tld-meth-…", "tld-qcm-…". Générateurs : tld-.
+  Programme (BO spécial n° 8 du 25 juillet 2019) : densité, probabilité comme aire, fonction de répartition, espérance et variance
+  (intégrales), lois uniformes et exponentielle, absence de mémoire ; thème « Temps d'attente » (atome radioactif, discrétisation).
 */
 window.CHAPITRES = window.CHAPITRES || {};
 window.CHAPITRES["terminale-lois-densite"] = {
@@ -16,7 +19,9 @@ window.CHAPITRES["terminale-lois-densite"] = {
 
   playlist: "",
   drive: "",
-  pdfs: [],
+  pdfs: [
+    { titre: "Cours d'Yvan Monka : lois à densité (PDF)", url: "https://www.maths-et-tiques.fr/telech/20LoisC.pdf" }
+  ],
   liens: [],
 
   /* ---------- 1. CAPSULE DE COURS ---------- */
@@ -38,6 +43,7 @@ window.CHAPITRES["terminale-lois-densite"] = {
     },
     {
       titre: "Fonction de répartition",
+      figure: "tld-cours-repartition",
       video: { titre: "Vidéo d'Yvan Monka : utiliser une loi à densité", youtube: "https://youtu.be/0Ry-2yLsANA" },
       texte:
         "La **fonction de répartition** de $X$ est $F(x) = P(X \\leqslant x)$. Pour une densité $f$ sur $[a\\,;b]$ :\n\n" +
@@ -47,11 +53,12 @@ window.CHAPITRES["terminale-lois-densite"] = {
         "**Discret / continu** : la somme $\\sum P(X = k)$ devient l'intégrale $\\displaystyle\\int f$.",
       exemple: {
         enonce: "Avec $f(x) = 2x$ sur $[0\\,;1]$, donne $F(x)$ puis $P(X \\leqslant 0{,}3)$.",
-        solution: "$F(x) = \\displaystyle\\int_0^x 2t\\,\\mathrm{d}t = x^2$ et $P(X \\leqslant 0{,}3) = 0{,}09$."
+        solution: "$F(x) = \\displaystyle\\int_0^x 2t\\,\\mathrm{d}t = x^2$ et $P(X \\leqslant 0{,}3) = 0{,}09$ (figure : $F$ vaut $0$ avant $0$, $x^2$ sur $[0\\,;1]$, puis $1$)."
       }
     },
     {
       titre: "Espérance et variance",
+      figure: "tld-cours-esperance",
       video: { titre: "Vidéo d'Yvan Monka : calculer l'espérance d'une loi à densité", youtube: "https://youtu.be/oI-tbf9sP6M" },
       texte:
         "Pour $X$ de densité $f$ sur $[a\\,;b]$ :\n\n" +
@@ -60,7 +67,7 @@ window.CHAPITRES["terminale-lois-densite"] = {
         "Comme pour les lois discrètes, $E(X)$ est la valeur moyenne obtenue en répétant l'expérience un grand nombre de fois.",
       exemple: {
         enonce: "Calcule $E(X)$ pour $f(x) = 2x$ sur $[0\\,;1]$.",
-        solution: "$E(X) = \\displaystyle\\int_0^1 2x^2\\,\\mathrm{d}x = \\left[\\dfrac{2x^3}{3}\\right]_0^1 = \\dfrac{2}{3}$ : les grandes valeurs sont plus probables, la moyenne dépasse $0{,}5$."
+        solution: "$E(X) = \\displaystyle\\int_0^1 2x^2\\,\\mathrm{d}x = \\left[\\dfrac{2x^3}{3}\\right]_0^1 = \\dfrac{2}{3}$ : les grandes valeurs sont plus probables, la moyenne dépasse $0{,}5$ (figure : le triangle « tient en équilibre » en $x = \\dfrac{2}{3}$)."
       }
     },
     {
@@ -95,11 +102,13 @@ window.CHAPITRES["terminale-lois-densite"] = {
     },
     {
       titre: "Absence de mémoire",
+      figure: "tld-cours-memoire",
       video: { titre: "Vidéo d'Yvan Monka : durée de vie sans vieillissement", youtube: "https://youtu.be/ZS_sW8yq-94" },
       texte:
         "Pour tous $s, t \\geqslant 0$ : $P_{X > s}(X > s + t) = P(X > t)$.\n\n" +
         "**Démonstration** : $P_{X > s}(X > s + t) = \\dfrac{P(X > s + t)}{P(X > s)} = \\dfrac{e^{-\\lambda(s + t)}}{e^{-\\lambda s}} = e^{-\\lambda t}$.\n\n" +
-        "Un composant qui a déjà fonctionné $s$ années n'est pas « usé » : c'est une **durée de vie sans vieillissement**. On retrouve la propriété de la loi géométrique (chapitre 10), dont la loi exponentielle est la version continue.",
+        "Un composant qui a déjà fonctionné $s$ années n'est pas « usé » : c'est une **durée de vie sans vieillissement**. Sur la figure ($\\lambda = 0{,}1$), le quotient de l'aire à droite de $8$ par l'aire à droite de $5$ vaut $e^{-0{,}3}$, comme l'aire à droite de $3$.\n\n" +
+        "On retrouve la propriété de la loi géométrique (chapitre 10), dont la loi exponentielle est la version continue. **Discrétisation** : si $N$ est l'année de la panne ($N = n$ quand $n - 1 < X \\leqslant n$), alors $P(N > n) = P(X > n) = \\left(e^{-\\lambda}\\right)^n$ : $N$ suit la loi géométrique de paramètre $p = 1 - e^{-\\lambda}$.",
       exemple: {
         enonce: "$\\lambda = 0{,}1$ (en années). Un composant a $5$ ans. Probabilité qu'il dure encore $3$ ans ?",
         solution: "$P_{X > 5}(X > 8) = P(X > 3) = e^{-0{,}3} \\approx 0{,}741$."
@@ -107,10 +116,11 @@ window.CHAPITRES["terminale-lois-densite"] = {
     },
     {
       titre: "Durée de vie d'un atome radioactif",
+      figure: "tld-cours-demivie",
       texte:
         "La durée de vie d'un atome radioactif suit une loi exponentielle. La **demi-vie** $T$ vérifie $P(X \\leqslant T) = 0{,}5$ :\n\n" +
         "$1 - e^{-\\lambda T} = 0{,}5 \\iff e^{-\\lambda T} = 0{,}5 \\iff T = \\dfrac{\\ln 2}{\\lambda}$.\n\n" +
-        "Sur un grand nombre d'atomes, la moitié s'est désintégrée au bout du temps $T$ : c'est le principe de la datation au carbone 14 ($T \\approx 5\\,730$ ans). On retrouve l'équation $y' = -\\lambda y$ du chapitre 11.",
+        "Sur un grand nombre d'atomes, la moitié s'est désintégrée au bout du temps $T$, puis la moitié de ce qui reste au bout de $2T$, etc. : il reste $\\dfrac{1}{2}$, puis $\\dfrac{1}{4}$, puis $\\dfrac{1}{8}$ des atomes (figure, pour l'iode 131). C'est le principe de la datation au carbone 14 ($T \\approx 5\\,730$ ans). On retrouve l'équation $y' = -\\lambda y$ du chapitre 11.",
       exemple: {
         enonce: "Pour l'iode 131, $\\lambda \\approx 0{,}0866$ (en jours). Calcule sa demi-vie.",
         solution: "$T = \\dfrac{\\ln 2}{0{,}0866} \\approx 8$ jours."
@@ -118,11 +128,12 @@ window.CHAPITRES["terminale-lois-densite"] = {
     },
     {
       titre: "Python : simuler des lois à densité",
+      figure: "tld-cours-somme",
       texte:
-        "```python\nfrom random import random\nfrom math import log\n\ndef expo(lam):\n    u = random()\n    return -log(1 - u) / lam\n\ndef somme(n):\n    s = 0\n    for i in range(n):\n        s = s + random()\n    return s\n```\n\n" +
-        "- random() suit la loi uniforme sur $[0\\,;1]$.\n" +
+        "```python\nfrom random import random\nfrom math import log\n\ndef de():\n    return int(6 * random()) + 1\n\ndef expo(lam):\n    u = random()\n    return -log(1 - u) / lam\n\ndef somme(n):\n    s = 0\n    for i in range(n):\n        s = s + random()\n    return s\n```\n\n" +
+        "- random() suit la loi uniforme sur $[0\\,;1]$ ; de() simule un dé équilibré (int garde la partie entière).\n" +
         "- expo(lam) résout $1 - e^{-\\lambda x} = u$ : on obtient une simulation de la loi exponentielle à partir d'une loi uniforme.\n" +
-        "- somme(n) additionne $n$ variables uniformes indépendantes : son espérance est $\\dfrac{n}{2}$, et l'histogramme de nombreuses sommes prend une forme de cloche.",
+        "- somme(n) additionne $n$ variables uniformes indépendantes : son espérance est $\\dfrac{n}{2}$, et l'histogramme de nombreuses sommes prend une forme de cloche (la figure montre la densité de la somme de trois random(), déjà en cloche).",
       exemple: {
         enonce: "Si random() renvoie $0{,}5$, que renvoie expo(2) ?",
         solution: "$-\\dfrac{\\ln 0{,}5}{2} = \\dfrac{\\ln 2}{2} \\approx 0{,}35$ : c'est la demi-vie pour $\\lambda = 2$."
@@ -157,7 +168,11 @@ window.CHAPITRES["terminale-lois-densite"] = {
 
   /* ---------- 3. QCM DE RÉVISION ---------- */
   qcm: [
-    { question: "Pour une loi de densité $f$, $P(a \\leqslant X \\leqslant b) =$", choix: ["$\\displaystyle\\int_a^b f(x)\\,\\mathrm{d}x$", "$f(b) - f(a)$", "$f(b)$", "$\\dfrac{f(a) + f(b)}{2}$"], bonne: 0, explication: "Une probabilité est une aire sous la densité." },
+    { question: "Pour une loi de densité $f$, $P(a \\leqslant X \\leqslant b) =$", choix: ["$\\displaystyle\\int_a^b f(x)\\,\\mathrm{d}x$", "$f(b) - f(a)$", "$f(b)$", "$\\dfrac{f(a) + f(b)}{2}$"], bonne: 0, explication: "Une probabilité est une aire sous la densité (aire coloriée de la figure).", figure: "tld-densite" },
+    { question: "La figure montre la densité de la loi uniforme sur $[0\\,;30]$ (attente de la barge). L'aire coloriée vaut :", choix: ["$\\dfrac{2}{3}$", "$\\dfrac{1}{30}$", "$20$", "$\\dfrac{1}{3}$"], bonne: 0, explication: "Rectangle de largeur $30 - 10 = 20$ et de hauteur $\\dfrac{1}{30}$ : $\\dfrac{20}{30} = \\dfrac{2}{3}$. C'est $P(X \\geqslant 10)$.", figure: "tld-uniforme" },
+    { question: "La courbe de la figure (croissante, partant de $0$ et se rapprochant de $1$) peut être :", choix: ["la fonction de répartition d'une loi exponentielle", "la densité d'une loi exponentielle", "la densité d'une loi uniforme", "la fonction de répartition d'une loi uniforme"], bonne: 0, explication: "$F(t) = 1 - e^{-\\lambda t}$ croît de $0$ vers $1$ sans l'atteindre ; la densité exponentielle, elle, décroît.", figure: "tld-qcm-repartition" },
+    { question: "La fonction $f(x) = 2x$ sur $[0\\,;2]$ (figure) est-elle une densité de probabilité ?", choix: ["non : l'aire sous la courbe vaut $4$", "oui : elle est positive", "oui : elle est continue", "non : elle dépasse $1$"], bonne: 0, explication: "$\\displaystyle\\int_0^2 2x\\,\\mathrm{d}x = 4 \\neq 1$. Une densité peut dépasser $1$ : c'est l'aire totale qui doit valoir $1$.", figure: "tld-qcm-pasdensite" },
+    { question: "Sur la figure (iode 131, demi-vie $8$ jours), quelle part des atomes reste-t-il au bout de $16$ jours ?", choix: ["un quart", "la moitié", "aucune", "un huitième"], bonne: 0, explication: "$16$ jours, ce sont deux demi-vies : $\\dfrac{1}{2} \\times \\dfrac{1}{2} = \\dfrac{1}{4}$.", figure: "tld-cours-demivie" },
     { question: "Une densité sur $I$ doit vérifier :", choix: ["$f \\geqslant 0$ et $\\displaystyle\\int_I f = 1$", "$0 \\leqslant f \\leqslant 1$", "$f(0) = 1$", "$f$ croissante"], bonne: 0, explication: "Positive, continue, aire totale $1$." },
     { question: "$f(x) = k$ sur $[0\\,;4]$ est une densité si $k =$", choix: ["$0{,}25$", "$4$", "$1$", "$0{,}5$"], bonne: 0, explication: "$4k = 1$." },
     { question: "Pour une loi à densité, $P(X = 3) =$", choix: ["$0$", "$f(3)$", "$F(3)$", "$\\dfrac{1}{3}$"], bonne: 0, explication: "Aire d'un segment." },
@@ -167,7 +182,7 @@ window.CHAPITRES["terminale-lois-densite"] = {
     { question: "$X$ uniforme sur $[2\\,;10]$. $E(X) =$", choix: ["$6$", "$8$", "$5$", "$4$"], bonne: 0, explication: "Milieu de l'intervalle." },
     { question: "La barge part toutes les $20$ min. Attente moyenne en arrivant au hasard :", choix: ["$10$ min", "$20$ min", "$5$ min", "$15$ min"], bonne: 0, explication: "$E(X) = \\dfrac{0 + 20}{2}$." },
     { question: "random() en Python suit :", choix: ["la loi uniforme sur $[0\\,;1]$", "la loi exponentielle", "la loi binomiale", "la loi géométrique"], bonne: 0, explication: "Densité constante égale à $1$." },
-    { question: "Loi exponentielle de paramètre $\\lambda$ : $P(X > t) =$", choix: ["$e^{-\\lambda t}$", "$1 - e^{-\\lambda t}$", "$\\lambda e^{-\\lambda t}$", "$e^{\\lambda t}$"], bonne: 0, explication: "$1 - P(X \\leqslant t)$." },
+    { question: "Loi exponentielle de paramètre $\\lambda$ : $P(X > t)$, l'aire coloriée de la figure, vaut :", choix: ["$e^{-\\lambda t}$", "$1 - e^{-\\lambda t}$", "$\\lambda e^{-\\lambda t}$", "$e^{\\lambda t}$"], bonne: 0, explication: "$1 - P(X \\leqslant t) = 1 - (1 - e^{-\\lambda t})$. Sur la figure ($\\lambda = 0{,}5$, $t = 2$) : $e^{-1} \\approx 0{,}37$.", figure: "tld-exponentielle" },
     { question: "Loi exponentielle de paramètre $\\lambda$ : $E(X) =$", choix: ["$\\dfrac{1}{\\lambda}$", "$\\lambda$", "$e^{-\\lambda}$", "$\\ln \\lambda$"], bonne: 0, explication: "Admis." },
     { question: "Durée de vie moyenne $5$ ans (loi exponentielle). Alors $\\lambda =$", choix: ["$0{,}2$", "$5$", "$0{,}5$", "$e^{-5}$"], bonne: 0, explication: "$\\dfrac{1}{5}$." },
     { question: "$\\lambda = 0{,}5$. $P(X \\leqslant 2) \\approx$", choix: ["$0{,}632$", "$0{,}368$", "$0{,}5$", "$1$"], bonne: 0, explication: "$1 - e^{-1}$." },
@@ -186,17 +201,20 @@ window.CHAPITRES["terminale-lois-densite"] = {
     {
       titre: "Montrer qu'une fonction est une densité",
       etapes: ["Vérifier que $f$ est continue et positive sur l'intervalle.", "Calculer $\\displaystyle\\int_I f(x)\\,\\mathrm{d}x$ avec une primitive.", "Conclure si l'intégrale vaut $1$ (ou trouver $k$ pour qu'elle vaille $1$)."],
-      exemple: "$kx^2$ sur $[0\\,;1]$ : $\\dfrac{k}{3} = 1$, donc $k = 3$."
+      exemple: "$kx^2$ sur $[0\\,;1]$ : $\\dfrac{k}{3} = 1$, donc $k = 3$ (figure : l'aire sous $3x^2$ vaut $1$).",
+      figure: "tld-meth-densite"
     },
     {
       titre: "Calculer avec la loi exponentielle",
       etapes: ["Trouver $\\lambda$ (éventuellement $\\lambda = \\dfrac{1}{E(X)}$).", "Utiliser $P(X \\leqslant t) = 1 - e^{-\\lambda t}$ ou $P(X > t) = e^{-\\lambda t}$.", "Pour une condition « sachant que », utiliser l'absence de mémoire."],
-      exemple: "$E(X) = 4$ : $\\lambda = 0{,}25$ et $P(X > 8) = e^{-2} \\approx 0{,}135$."
+      exemple: "$E(X) = 4$ : $\\lambda = 0{,}25$ et $P(X > 8) = e^{-2} \\approx 0{,}135$ (aire coloriée).",
+      figure: "tld-meth-expo"
     },
     {
-      titre: "Résoudre P(X ⩽ t) = p",
+      titre: "Résoudre $P(X \\leqslant t) = p$",
       etapes: ["Écrire $1 - e^{-\\lambda t} = p$, soit $e^{-\\lambda t} = 1 - p$.", "Appliquer $\\ln$ : $-\\lambda t = \\ln(1 - p)$.", "Conclure : $t = -\\dfrac{\\ln(1 - p)}{\\lambda}$."],
-      exemple: "Demi-vie : $p = 0{,}5$, $t = \\dfrac{\\ln 2}{\\lambda}$."
+      exemple: "Demi-vie : $p = 0{,}5$, $t = \\dfrac{\\ln 2}{\\lambda}$ (figure, pour $\\lambda = 0{,}5$ : $t \\approx 1{,}39$).",
+      figure: "tld-meth-demivie"
     }
   ],
   erreurs: [

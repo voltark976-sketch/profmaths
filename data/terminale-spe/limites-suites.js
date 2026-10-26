@@ -5,7 +5,8 @@
   définition des limites, limites et opérations, limites et comparaison, suites géométriques, suites monotones.
   Mêmes règles d'écriture que data/seconde/fonctions.js.
   Vidéos : celle de la chaîne (rappel de Première) d'abord, puis Yvan Monka (cours 20SuitesTS2).
-  Figure : "lsu-limite". Générateurs : lsu- dans assets/exercices.js.
+  Figures : "lsu-limite", "lsu-cours-…" (gendarmes, géométriques, monotone, escalier), "lsu-meth-…", "lsu-qcm-…".
+  Générateurs : lsu- dans assets/exercices.js (lsu-point-fixe sert aussi au chapitre 7).
 */
 window.CHAPITRES = window.CHAPITRES || {};
 window.CHAPITRES["terminale-spe-limites-suites"] = {
@@ -16,7 +17,10 @@ window.CHAPITRES["terminale-spe-limites-suites"] = {
 
   playlist: "",
   drive: "",
-  pdfs: [],
+  pdfs: [
+    { titre: "Cours d'Yvan Monka : suites, chapitre 1 (limites) (PDF)", url: "https://www.maths-et-tiques.fr/telech/20SuitesTS1.pdf" },
+    { titre: "Cours d'Yvan Monka : suites, chapitre 2 (PDF)", url: "https://www.maths-et-tiques.fr/telech/20SuitesTS2.pdf" }
+  ],
   liens: [
     { titre: "Démonstration : limite de qⁿ (Yvan Monka)", url: "https://youtu.be/aSBGk_GEEew", type: "video" },
     { titre: "Démonstration : une suite croissante non majorée tend vers +∞ (Yvan Monka)", url: "https://youtu.be/rttQIYOKCRQ", type: "video" }
@@ -69,12 +73,14 @@ window.CHAPITRES["terminale-spe-limites-suites"] = {
     },
     {
       titre: "Limites et comparaison",
+      figure: "lsu-cours-gendarmes",
       video: { titre: "Vidéo d'Yvan Monka : calculer une limite à l'aide du théorème de comparaison", youtube: "https://youtu.be/iQhh46LupN4" },
       texte:
         "- **Comparaison** : si $u_n \\geqslant v_n$ à partir d'un certain rang et $\\lim v_n = +\\infty$, alors $\\lim u_n = +\\infty$ (démonstration au programme). De même, si $u_n \\leqslant w_n$ et $\\lim w_n = -\\infty$, alors $\\lim u_n = -\\infty$.\n" +
         "- **Théorème des gendarmes** (ou d'encadrement) : si $v_n \\leqslant u_n \\leqslant w_n$ à partir d'un certain rang et si $(v_n)$ et $(w_n)$ convergent vers le **même** réel $\\ell$, alors $(u_n)$ converge vers $\\ell$.\n" +
         "- **Passage à la limite** : si $u_n \\leqslant v_n$ et que les deux convergent, alors $\\lim u_n \\leqslant \\lim v_n$ (les inégalités strictes deviennent larges).\n\n" +
-        "Ces théorèmes servent quand la suite contient un terme sans limite mais **borné**, comme $(-1)^n$, $\\cos(n)$ ou $\\sin(n)$, compris entre $-1$ et $1$.",
+        "Ces théorèmes servent quand la suite contient un terme sans limite mais **borné**, comme $(-1)^n$, $\\cos(n)$ ou $\\sin(n)$, compris entre $-1$ et $1$.\n\n" +
+        "Sur la figure, les points $u_n$ restent coincés entre $v_n = 2 - \\dfrac{1{,}5}{n}$ et $w_n = 2 + \\dfrac{1{,}5}{n}$, qui tendent toutes les deux vers $2$ : $u_n$ est obligée de tendre vers $2$.",
       exemple: {
         enonce: "Détermine la limite de $u_n = \\dfrac{\\sin(n)}{n} + 2$ et de $v_n = n^2 - \\cos(n)$.",
         solution: "$-\\dfrac{1}{n} \\leqslant \\dfrac{\\sin(n)}{n} \\leqslant \\dfrac{1}{n}$, donc $2 - \\dfrac{1}{n} \\leqslant u_n \\leqslant 2 + \\dfrac{1}{n}$ : par les gendarmes, $u_n \\to 2$.\n\n$-\\cos(n) \\geqslant -1$, donc $v_n \\geqslant n^2 - 1$, qui tend vers $+\\infty$ : par comparaison, $v_n \\to +\\infty$."
@@ -82,6 +88,7 @@ window.CHAPITRES["terminale-spe-limites-suites"] = {
     },
     {
       titre: "Suites géométriques",
+      figure: "lsu-cours-geometrique",
       video: { titre: "Vidéo d'Yvan Monka : calculer la limite d'une suite géométrique", youtube: "https://youtu.be/F-PGmIK5Ypg" },
       texte:
         "**Limite de $q^n$** :\n\n" +
@@ -89,7 +96,7 @@ window.CHAPITRES["terminale-spe-limites-suites"] = {
         "- si $q = 1$, $q^n = 1$ ;\n" +
         "- si $-1 < q < 1$, $\\lim q^n = 0$ ;\n" +
         "- si $q \\leqslant -1$, $(q^n)$ n'a pas de limite.\n\n" +
-        "Pour $u_n = u_0 \\times q^n$, on multiplie par $u_0$ (attention à son signe).\n\n" +
+        "Pour $u_n = u_0 \\times q^n$, on multiplie par $u_0$ (attention à son signe). Sur la figure : $1{,}15^n$ s'envole vers $+\\infty$, tandis que $(-0{,}8)^n$ change de signe à chaque rang en se rapprochant de $0$.\n\n" +
         "**Somme** : si $-1 < q < 1$, $1 + q + \\dots + q^n = \\dfrac{1 - q^{n+1}}{1 - q} \\to \\dfrac{1}{1 - q}$.",
       exemple: {
         enonce: "Détermine les limites de $u_n = 5 - 3 \\times 0{,}8^n$ et de $S_n = 1 + \\dfrac{1}{2} + \\dfrac{1}{4} + \\dots + \\dfrac{1}{2^n}$.",
@@ -98,12 +105,13 @@ window.CHAPITRES["terminale-spe-limites-suites"] = {
     },
     {
       titre: "Suites monotones",
+      figure: "lsu-cours-monotone",
       video: { titre: "Vidéo d'Yvan Monka : appliquer le théorème de convergence monotone", youtube: "https://youtu.be/gO-MQUlBAfo" },
       texte:
         "**Théorème de convergence monotone** (admis) :\n\n" +
         "- une suite **croissante et majorée** converge ;\n" +
         "- une suite **décroissante et minorée** converge.\n\n" +
-        "Le théorème dit que la limite **existe**, sans la donner : si $(u_n)$ est croissante et majorée par $M$, sa limite $\\ell$ vérifie $\\ell \\leqslant M$, mais n'est pas forcément égale à $M$.\n\n" +
+        "Le théorème dit que la limite **existe**, sans la donner : si $(u_n)$ est croissante et majorée par $M$, sa limite $\\ell$ vérifie $\\ell \\leqslant M$, mais n'est pas forcément égale à $M$. Sur la figure, la suite est majorée par $4$ et converge vers $3$.\n\n" +
         "**Suites non bornées** (démonstration au programme) : une suite croissante non majorée tend vers $+\\infty$ ; une suite décroissante non minorée tend vers $-\\infty$.\n\n" +
         "Être seulement bornée ne suffit pas : $(-1)^n$ est bornée et n'a pas de limite.",
       exemple: {
@@ -113,11 +121,13 @@ window.CHAPITRES["terminale-spe-limites-suites"] = {
     },
     {
       titre: "Trouver la limite d'une suite $u_{n+1} = f(u_n)$",
+      figure: "lsu-cours-escalier",
       video: { titre: "Vidéo d'Yvan Monka : étudier une suite définie par une relation de récurrence à l'aide d'une fonction", youtube: "https://youtu.be/L7bBL4z-r90" },
       texte:
         "Si $(u_n)$ converge vers $\\ell$ et si $f$ est **continue** (notion du chapitre 7 ; c'est le cas des fonctions usuelles sur leur ensemble de définition), alors, en passant à la limite dans $u_{n+1} = f(u_n)$ :\n\n" +
         "$\\ell = f(\\ell)$.\n\n" +
         "La limite est donc une solution de l'équation $f(x) = x$ (un **point fixe** de $f$). S'il y a plusieurs solutions, on choisit grâce aux encadrements connus.\n\n" +
+        "Graphiquement, on construit l'**escalier** de la suite entre la courbe de $f$ et la droite $y = x$ : il se dirige vers leur point d'intersection (figure, avec $f(x) = \\sqrt{x + 6}$ et $u_0 = 1$).\n\n" +
         "Attention : il faut d'abord **savoir** que la suite converge (par exemple avec le théorème de convergence monotone). L'équation $\\ell = f(\\ell)$ ne prouve pas la convergence.",
       exemple: {
         enonce: "Termine l'étude : $u_{n+1} = \\sqrt{u_n + 6}$ converge vers $\\ell$ avec $0 \\leqslant \\ell \\leqslant 3$. Calcule $\\ell$.",
@@ -187,6 +197,10 @@ window.CHAPITRES["terminale-spe-limites-suites"] = {
     { question: "Si $u_n < 3$ pour tout $n$ et $u_n \\to \\ell$, alors :", choix: ["$\\ell \\leqslant 3$", "$\\ell < 3$", "$\\ell = 3$", "$\\ell \\geqslant 3$"], bonne: 0, explication: "Par passage à la limite, l'inégalité stricte devient large : $3 - \\dfrac{1}{n} < 3$ mais tend vers $3$." },
     { question: "À partir de quel rang a-t-on $\\dfrac{1}{n} < 0{,}001$ ?", choix: ["$1\\,001$", "$1\\,000$", "$100$", "$999$"], bonne: 0, explication: "$\\dfrac{1}{n} < 0{,}001 \\iff n > 1\\,000$." },
     { question: "La boucle $\\texttt{while u <= A}$ d'un programme de seuil s'arrête toujours si :", choix: ["$u_n \\to +\\infty$", "$u_n \\to 0$", "$(u_n)$ est décroissante", "$(u_n)$ est bornée"], bonne: 0, explication: "Si $u_n \\to +\\infty$, les termes finissent par dépasser tout réel $A$." },
+    { question: "Les points représentent les termes $u_0$ à $u_{12}$ d'une suite. Quelle conjecture peut-on faire ?", figure: "lsu-qcm-nuage", choix: ["$(u_n)$ semble converger vers $2$", "$(u_n)$ semble converger vers $0$", "$(u_n)$ semble tendre vers $+\\infty$", "$(u_n)$ semble ne pas avoir de limite"], bonne: 0, explication: "Les points alternent autour de la droite $y = 2$ en s'en rapprochant : on conjecture que la limite vaut $2$ (ici $u_n = 2 + 3 \\times (-0{,}6)^n$). Une conjecture se démontre ensuite par le calcul." },
+    { question: "Les points représentent les premiers termes d'une suite $(u_n)$. Que peut-on conjecturer ?", figure: "lsu-qcm-alterne", choix: ["Elle n'a pas de limite", "Elle converge vers $1$", "Elle converge vers $3$", "Elle tend vers $+\\infty$"], bonne: 0, explication: "Les termes valent alternativement $3$ et $-1$ : ils ne se rapprochent d'aucun nombre. La suite est bornée, mais elle n'a pas de limite." },
+    { question: "Cette suite est croissante et tous ses termes sont sous la droite d'équation $y = 5$. On peut affirmer que :", figure: "lsu-qcm-majoree", choix: ["elle converge vers une limite $\\ell \\leqslant 5$", "elle converge vers $5$", "elle tend vers $+\\infty$", "elle n'a pas forcément de limite"], bonne: 0, explication: "Croissante et majorée par $5$ : elle converge (théorème de convergence monotone), vers une limite inférieure ou égale à $5$. Sur la figure, elle semble tendre vers environ $3{,}6$, pas vers $5$." },
+    { question: "Voici l'escalier de la suite $u_{n+1} = 0{,}6u_n + 2$, avec $u_0 = 1$. Vers quelle valeur semble-t-elle converger ?", figure: "lsu-qcm-escalier", choix: ["$5$", "$2$", "$0{,}6$", "$+\\infty$"], bonne: 0, explication: "L'escalier se dirige vers le point où la droite $y = 0{,}6x + 2$ coupe la droite $y = x$ : $\\ell = 0{,}6\\ell + 2$ donne $0{,}4\\ell = 2$, soit $\\ell = 5$." },
     { question: "Quelle est la limite de $u_n = 3 \\times 2^n - 5^n$ ?", choix: ["$-\\infty$", "$+\\infty$", "$0$", "$3$"], bonne: 0, explication: "Forme « $+\\infty - \\infty$ ». $u_n = 5^n\\left(3 \\times 0{,}4^n - 1\\right)$, la parenthèse tend vers $-1$." }
   ],
 
@@ -204,6 +218,7 @@ window.CHAPITRES["terminale-spe-limites-suites"] = {
     },
     {
       titre: "Utiliser un encadrement",
+      figure: "lsu-cours-gendarmes",
       etapes: [
         "Repérer le terme borné sans limite : $(-1)^n$, $\\cos(n)$, $\\sin(n)$, compris entre $-1$ et $1$.",
         "Partir de cet encadrement et reconstruire $u_n$ (multiplier, ajouter, diviser par un positif).",
@@ -214,6 +229,7 @@ window.CHAPITRES["terminale-spe-limites-suites"] = {
     },
     {
       titre: "Étudier une suite récurrente $u_{n+1} = f(u_n)$",
+      figure: "lsu-meth-escalier",
       etapes: [
         "Démontrer par récurrence que la suite est bornée (par exemple $0 \\leqslant u_n \\leqslant b$).",
         "Démontrer par récurrence qu'elle est monotone ($u_n \\leqslant u_{n+1}$ ou l'inverse).",
@@ -224,6 +240,7 @@ window.CHAPITRES["terminale-spe-limites-suites"] = {
     },
     {
       titre: "Déterminer un seuil",
+      figure: "lsu-meth-seuil",
       etapes: [
         "Écrire l'inégalité cherchée ($u_n > A$ ou $|u_n - \\ell| < e$).",
         "Si on sait la résoudre (puissances, racines, inverses) : résoudre et prendre le premier entier qui convient.",

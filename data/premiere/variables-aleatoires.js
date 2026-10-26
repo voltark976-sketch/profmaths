@@ -15,7 +15,9 @@ window.CHAPITRES["premiere-variables-aleatoires"] = {
 
   playlist: "",
   drive: "",
-  pdfs: [],
+  pdfs: [
+    { titre: "Cours d'Yvan Monka : variables aléatoires (PDF)", url: "https://www.maths-et-tiques.fr/telech/19vaPM.pdf" }
+  ],
   liens: [
     { titre: "Le cours sur les variables aléatoires en vidéo (Yvan Monka)", url: "https://youtu.be/krbtyBDeRqQ", type: "video" }
   ],
@@ -24,6 +26,7 @@ window.CHAPITRES["premiere-variables-aleatoires"] = {
   cours: [
     {
       titre: "Variable aléatoire et loi de probabilité",
+      figure: "va-cours-loi",
       video: { titre: "Vidéo de ton prof : variable aléatoire (cours de Terminale, partie 1/4)", youtube: "https://youtu.be/gQhLo-TDi9Q" },
       texte:
         "Une expérience aléatoire a un **univers** $\\Omega$ fini (l'ensemble des issues). Une **variable aléatoire** $X$ associe un **nombre réel** à chaque issue : un gain, un nombre de succès, une somme…\n\n" +
@@ -31,7 +34,7 @@ window.CHAPITRES["premiere-variables-aleatoires"] = {
         "Exemple : la maison des lycéens vend $200$ billets de tombola à $2$ €, avec $1$ lot de $100$ €, $5$ lots de $20$ € et $20$ lots de $5$ €. Le gain algébrique $X$ d'un acheteur (lot moins prix du billet) peut valoir $98$, $18$, $3$ ou $-2$, avec les probabilités $\\dfrac{1}{200}$, $\\dfrac{5}{200}$, $\\dfrac{20}{200}$ et $\\dfrac{174}{200}$.",
       exemple: {
         enonce: "On lance deux pièces et $X$ est le nombre de « pile ». Donne la loi de $X$.",
-        solution: "Quatre issues équiprobables : PP, PF, FP, FF. $P(X = 0) = \\dfrac{1}{4}$, $P(X = 1) = \\dfrac{2}{4} = \\dfrac{1}{2}$, $P(X = 2) = \\dfrac{1}{4}$, et la somme vaut bien $1$."
+        solution: "Quatre issues équiprobables : PP, PF, FP, FF. $P(X = 0) = \\dfrac{1}{4}$, $P(X = 1) = \\dfrac{2}{4} = \\dfrac{1}{2}$, $P(X = 2) = \\dfrac{1}{4}$, et la somme vaut bien $1$. Le schéma représente cette loi par un diagramme en bâtons."
       }
     },
     {
@@ -78,12 +81,14 @@ window.CHAPITRES["premiere-variables-aleatoires"] = {
     },
     {
       titre: "Variance et écart type",
+      figure: ["va-cours-disp1", "va-cours-disp2"],
       video: { titre: "Vidéo d'Yvan Monka : calculer une variance et un écart type", youtube: "https://youtu.be/elpgMDSU5t8" },
       texte:
         "La **variance** mesure la dispersion de $X$ autour de son espérance :\n\n" +
         "$V(X) = p_1(x_1 - E(X))^2 + \\dots + p_n(x_n - E(X))^2$.\n\n" +
         "**Formule de König-Huygens** : $V(X) = E(X^2) - E(X)^2$, avec $E(X^2) = p_1x_1^2 + \\dots + p_nx_n^2$.\n\n" +
-        "L'**écart type** est $\\sigma(X) = \\sqrt{V(X)}$ : il s'exprime dans la même unité que $X$. Plus il est grand, plus les valeurs sont dispersées.",
+        "L'**écart type** est $\\sigma(X) = \\sqrt{V(X)}$ : il s'exprime dans la même unité que $X$. Plus il est grand, plus les valeurs sont dispersées.\n\n" +
+        "Sur les deux schémas, les lois ont la même espérance $2$, mais la seconde est plus dispersée : $V = 0{,}5$ pour la première et $V = 4$ pour la seconde.",
       exemple: {
         enonce: "Calcule $V(X)$ et $\\sigma(X)$ pour la tombola, sachant que $E(X) = -0{,}5$.",
         solution: "$E(X^2) = \\dfrac{98^2 + 5 \\times 18^2 + 20 \\times 3^2 + 174 \\times 4}{200} = \\dfrac{12\\,100}{200} = 60{,}5$.\n\n$V(X) = 60{,}5 - (-0{,}5)^2 = 60{,}25$ et $\\sigma(X) \\approx 7{,}76$ € : les gains sont très dispersés (beaucoup de petites pertes, un gros lot)."
@@ -96,7 +101,8 @@ window.CHAPITRES["premiere-variables-aleatoires"] = {
         "Pour tous réels $a$ et $b$ :\n\n" +
         "- $E(aX + b) = aE(X) + b$ ;\n" +
         "- $V(aX + b) = a^2\\,V(X)$, donc $\\sigma(aX + b) = |a|\\,\\sigma(X)$.\n\n" +
-        "Ajouter une constante $b$ décale toutes les valeurs, sans changer leur dispersion. Multiplier par $a$ multiplie les écarts par $|a|$.",
+        "Ajouter une constante $b$ décale toutes les valeurs, sans changer leur dispersion. Multiplier par $a$ multiplie les écarts par $|a|$.\n\n" +
+        "**Pourquoi** $V(aX + b) = a^2V(X)$ : les valeurs de $aX + b$ sont les $ax_i + b$, et leur espérance est $aE(X) + b$ ; chaque écart vaut donc $(ax_i + b) - (aE(X) + b) = a(x_i - E(X))$, et son carré est multiplié par $a^2$.",
       exemple: {
         enonce: "Un vendeur de brochettes gagne $X$ euros par heure, avec $E(X) = 12$ et $V(X) = 4$. Il reverse $10\\,\\%$ et paie $2$ € de charbon par heure : $Y = 0{,}9X - 2$. Calcule $E(Y)$ et $V(Y)$.",
         solution: "$E(Y) = 0{,}9 \\times 12 - 2 = 8{,}8$ € et $V(Y) = 0{,}9^2 \\times 4 = 3{,}24$."
@@ -126,7 +132,7 @@ window.CHAPITRES["premiere-variables-aleatoires"] = {
         "Pour construire une loi à partir de données, on compte des fréquences, par exemple celle d'une lettre dans un texte :\n\n" +
         "```python\ndef frequence(lettre, texte):\n    return texte.count(lettre) / len(texte)\n```",
       exemple: {
-        enonce: "Que renvoie frequence(\"o\", \"mamoudzou\") ?",
+        enonce: "Que renvoie $\\texttt{frequence(\"o\", \"mamoudzou\")}$ ?",
         solution: "Le mot a $9$ lettres, dont $2$ « o » : la fonction renvoie $\\dfrac{2}{9} \\approx 0{,}222$."
       }
     }
@@ -157,7 +163,7 @@ window.CHAPITRES["premiere-variables-aleatoires"] = {
     { question: "Dans une loi de probabilité, la somme des $P(X = x_i)$ vaut :", choix: ["$1$", "$0$", "$E(X)$", "le nombre de valeurs"], bonne: 0, explication: "Les événements $\\{X = x_i\\}$ se partagent toutes les issues." },
     { question: "Le contraire de $\\{X \\leqslant 2\\}$ est :", choix: ["$\\{X > 2\\}$", "$\\{X \\geqslant 2\\}$", "$\\{X < 2\\}$", "$\\{X = 2\\}$"], bonne: 0, explication: "La valeur $2$ est dans $\\{X \\leqslant 2\\}$, donc pas dans son contraire." },
     { question: "$P(X \\leqslant 3) = 0{,}7$. Alors $P(X > 3) =$", choix: ["$0{,}3$", "$0{,}7$", "$1{,}7$", "on ne peut pas savoir"], bonne: 0, explication: "Événements contraires : $1 - 0{,}7$." },
-    { question: "$X$ prend les valeurs $-1$, $2$ et $5$ avec les probabilités $0{,}5$, $0{,}3$ et $0{,}2$. $E(X) =$", choix: ["$1{,}1$", "$2$", "$1{,}5$", "$0{,}6$"], bonne: 0, explication: "$-0{,}5 + 0{,}6 + 1 = 1{,}1$." },
+    { question: "$X$ prend les valeurs $-1$, $2$ et $5$ avec les probabilités $0{,}5$, $0{,}3$ et $0{,}2$ (diagramme ci-dessous). $E(X) =$", figure: "va-qcm-loi", choix: ["$1{,}1$", "$2$", "$1{,}5$", "$0{,}6$"], bonne: 0, explication: "$-0{,}5 + 0{,}6 + 1 = 1{,}1$." },
     { question: "Pour un dé équilibré à $6$ faces, l'espérance du résultat vaut :", choix: ["$3{,}5$", "$3$", "$6$", "$\\dfrac{1}{6}$"], bonne: 0, explication: "$\\dfrac{1 + 2 + 3 + 4 + 5 + 6}{6} = 3{,}5$, qui n'est pas un résultat possible." },
     { question: "Un jeu est équitable lorsque :", choix: ["l'espérance du gain est nulle", "on gagne une fois sur deux", "la mise est égale au gros lot", "la variance est nulle"], bonne: 0, explication: "En moyenne, on ne gagne ni ne perd." },
     { question: "$100$ billets, lots d'une valeur totale de $150$ €. Le prix équitable d'un billet est :", choix: ["$1{,}50$ €", "$150$ €", "$1$ €", "$15$ €"], bonne: 0, explication: "$\\dfrac{150}{100} = 1{,}50$ €." },
@@ -165,10 +171,10 @@ window.CHAPITRES["premiere-variables-aleatoires"] = {
     { question: "$V(X) = 9$. L'écart type vaut :", choix: ["$3$", "$81$", "$4{,}5$", "$9$"], bonne: 0, explication: "$\\sigma(X) = \\sqrt{9} = 3$." },
     { question: "$E(X) = 5$. Alors $E(2X - 3) =$", choix: ["$7$", "$10$", "$13$", "$4$"], bonne: 0, explication: "$2 \\times 5 - 3 = 7$." },
     { question: "$V(X) = 4$. Alors $V(3X + 7) =$", choix: ["$36$", "$12$", "$19$", "$43$"], bonne: 0, explication: "$V(aX + b) = a^2V(X) = 9 \\times 4$." },
-    { question: "On répète $3$ fois une épreuve de Bernoulli de paramètre $p$, de façon indépendante. Combien de chemins de l'arbre ont exactement $1$ succès ?", choix: ["$3$", "$1$", "$2$", "$8$"], bonne: 0, explication: "$SEE$, $ESE$, $EES$." },
+    { question: "On répète $3$ fois une épreuve de Bernoulli, de façon indépendante (arbre ci-dessous). Combien de chemins de l'arbre ont exactement $1$ succès ?", figure: "arbre-bernoulli", choix: ["$3$", "$1$", "$2$", "$8$"], bonne: 0, explication: "$SEE$, $ESE$, $EES$." },
     { question: "Avec $p = 0{,}5$ et $3$ épreuves, $P(X = 0) =$", choix: ["$0{,}125$", "$0{,}5$", "$0$", "$0{,}375$"], bonne: 0, explication: "Un seul chemin $EEE$ : $0{,}5^3 = 0{,}125$." },
     { question: "« Au moins un succès » en $n$ épreuves a pour probabilité :", choix: ["$1 - (1 - p)^n$", "$np$", "$p^n$", "$1 - p^n$"], bonne: 0, explication: "Son contraire, « aucun succès », a pour probabilité $(1 - p)^n$." },
-    { question: "Que renvoie esperance([0, 10], [0.9, 0.1]) (programme du cours) ?", choix: ["$1$", "$10$", "$5$", "$0{,}1$"], bonne: 0, explication: "$0 \\times 0{,}9 + 10 \\times 0{,}1 = 1$." },
+    { question: "Que renvoie $\\texttt{esperance([0, 10], [0.9, 0.1])}$ (programme du cours) ?", choix: ["$1$", "$10$", "$5$", "$0{,}1$"], bonne: 0, explication: "$0 \\times 0{,}9 + 10 \\times 0{,}1 = 1$." },
     { question: "Une loi de probabilité est donnée par $P(X = 0) = 0{,}2$, $P(X = 1) = 0{,}5$ et $P(X = 2) = a$. Alors $a =$", choix: ["$0{,}3$", "$0{,}7$", "$0{,}5$", "$1$"], bonne: 0, explication: "La somme des probabilités vaut $1$ : $a = 1 - 0{,}2 - 0{,}5 = 0{,}3$." },
     { question: "$X$ prend les valeurs $1$, $2$, $3$, $4$ avec les probabilités $0{,}1$ ; $0{,}2$ ; $0{,}3$ ; $0{,}4$. $P(X < 3) =$", choix: ["$0{,}3$", "$0{,}6$", "$0{,}7$", "$0{,}4$"], bonne: 0, explication: "$\\{X < 3\\}$ ne contient pas la valeur $3$ : $P(X < 3) = P(X = 1) + P(X = 2) = 0{,}1 + 0{,}2 = 0{,}3$. $0{,}6$ serait $P(X \\leqslant 3)$." },
     { question: "L'événement $\\{X \\geqslant 2\\} \\cap \\{X \\leqslant 4\\}$ s'écrit aussi :", choix: ["$\\{2 \\leqslant X \\leqslant 4\\}$", "$\\{X < 2\\} \\cup \\{X > 4\\}$", "$\\{X = 2\\} \\cap \\{X = 4\\}$", "$\\{X \\geqslant 4\\}$"], bonne: 0, explication: "L'intersection traduit « et » : $X$ doit être à la fois supérieur ou égal à $2$ et inférieur ou égal à $4$." },
@@ -178,7 +184,7 @@ window.CHAPITRES["premiere-variables-aleatoires"] = {
     { question: "$E(X) = 3$ et $E(X^2) = 13$. Alors $\\sigma(X) =$", choix: ["$2$", "$4$", "$\\sqrt{10}$", "$\\sqrt{13}$"], bonne: 0, explication: "$V(X) = E(X^2) - E(X)^2 = 13 - 9 = 4$, donc $\\sigma(X) = \\sqrt{4} = 2$. Il ne faut pas oublier le carré de $E(X)$." },
     { question: "$\\sigma(X) = 2$. Alors $\\sigma(-3X + 1) =$", choix: ["$6$", "$-6$", "$-5$", "$18$"], bonne: 0, explication: "$\\sigma(aX + b) = |a|\\,\\sigma(X) = 3 \\times 2 = 6$. Un écart type n'est jamais négatif, et la constante $1$ ne change pas la dispersion." },
     { question: "Le nombre $X$ de régimes de bananes récoltés en une semaine a pour espérance $40$. Le revenu, en euros, vaut $R = 15X - 100$. $E(R) =$", choix: ["$500$ €", "$600$ €", "$-85$ €", "$40$ €"], bonne: 0, explication: "Linéarité : $E(15X - 100) = 15E(X) - 100 = 600 - 100 = 500$ €." },
-    { question: "On lance $2$ fois une pièce truquée qui donne « pile » avec la probabilité $0{,}6$. La probabilité d'obtenir exactement un « pile » est :", choix: ["$0{,}48$", "$0{,}24$", "$0{,}6$", "$0{,}36$"], bonne: 0, explication: "Deux chemins réalisent l'événement, $PF$ et $FP$, chacun de probabilité $0{,}6 \\times 0{,}4 = 0{,}24$. Au total : $2 \\times 0{,}24 = 0{,}48$." },
+    { question: "On lance $2$ fois une pièce truquée qui donne « pile » ($S$) avec la probabilité $0{,}6$ (arbre ci-dessous). La probabilité d'obtenir exactement un « pile » est :", figure: "va-qcm-arbre2", choix: ["$0{,}48$", "$0{,}24$", "$0{,}6$", "$0{,}36$"], bonne: 0, explication: "Deux chemins réalisent l'événement, $PF$ et $FP$, chacun de probabilité $0{,}6 \\times 0{,}4 = 0{,}24$. Au total : $2 \\times 0{,}24 = 0{,}48$." },
     { question: "Un élève répond au hasard à $4$ questions de type Vrai/Faux, de façon indépendante. La probabilité qu'il réponde juste à tout est :", choix: ["$\\dfrac{1}{16}$", "$\\dfrac{1}{8}$", "$\\dfrac{1}{2}$", "$\\dfrac{1}{4}$"], bonne: 0, explication: "Un seul chemin $SSSS$, de probabilité $\\left(\\dfrac{1}{2}\\right)^4 = \\dfrac{1}{16}$." },
     { question: "On répète $3$ fois, de façon indépendante, une épreuve de Bernoulli de paramètre $p = 0{,}1$. La probabilité d'au moins un succès vaut :", choix: ["$0{,}271$", "$0{,}3$", "$0{,}001$", "$0{,}729$"], bonne: 0, explication: "Le contraire, « aucun succès », a pour probabilité $0{,}9^3 = 0{,}729$. Donc $P = 1 - 0{,}729 = 0{,}271$. Additionner $0{,}1$ trois fois est faux : les chemins se chevauchent." },
     { question: "Avec les fonctions du cours, que renvoie $\\texttt{variance([0, 10], [0.5, 0.5])}$ ?", choix: ["$25$", "$5$", "$50$", "$0$"], bonne: 0, explication: "L'espérance vaut $5$, puis $V = 0{,}5 \\times (0 - 5)^2 + 0{,}5 \\times (10 - 5)^2 = 12{,}5 + 12{,}5 = 25$. L'écart type vaut $5$." },
@@ -189,12 +195,14 @@ window.CHAPITRES["premiere-variables-aleatoires"] = {
   methode: [
     {
       titre: "Déterminer une loi de probabilité",
-      etapes: ["Lister les valeurs possibles de $X$.", "Pour chaque valeur, calculer $P(X = x_i)$ (dénombrement, arbre…).", "Présenter dans un tableau et vérifier que la somme vaut $1$."],
+      etapes: ["Lister les valeurs possibles de $X$.", "Pour chaque valeur, calculer $P(X = x_i)$ (dénombrement, arbre…).", "Présenter dans un tableau (ou un diagramme en bâtons) et vérifier que la somme vaut $1$."],
+      figure: "va-cours-loi",
       exemple: "Deux pièces, $X$ nombre de « pile » : $P(X = 0) = \\dfrac{1}{4}$, $P(X = 1) = \\dfrac{1}{2}$, $P(X = 2) = \\dfrac{1}{4}$."
     },
     {
       titre: "Calculer espérance, variance, écart type",
       etapes: ["$E(X) = \\sum p_ix_i$.", "$E(X^2) = \\sum p_ix_i^2$, puis $V(X) = E(X^2) - E(X)^2$.", "$\\sigma(X) = \\sqrt{V(X)}$, dans l'unité de $X$."],
+      figure: "va-batons",
       exemple: "Valeurs $0$ et $10$, probabilités $0{,}9$ et $0{,}1$ : $E(X) = 1$, $E(X^2) = 10$, $V(X) = 9$, $\\sigma(X) = 3$."
     },
     {
@@ -205,6 +213,7 @@ window.CHAPITRES["premiere-variables-aleatoires"] = {
     {
       titre: "Calculer une probabilité dans des épreuves répétées",
       etapes: ["Dessiner l'arbre des $n$ épreuves (succès $p$, échec $1 - p$).", "Repérer les chemins qui réalisent l'événement.", "Additionner les probabilités de ces chemins (chacune est un produit)."],
+      figure: "arbre-bernoulli",
       exemple: "$3$ questions, $p = 0{,}25$ : $P(X = 2) = 3 \\times 0{,}25^2 \\times 0{,}75 \\approx 0{,}141$."
     }
   ],

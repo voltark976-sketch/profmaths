@@ -4,7 +4,7 @@
   Chapitre 1 de la progression spiralée 2026-2027 (programme de maths complémentaires de 2019, toujours en vigueur).
   Mêmes règles d'écriture que data/seconde/fonctions.js.
   Pas encore de vidéo de la chaîne pour ce chapitre : vidéos d'Yvan Monka (cours de maths complémentaires 20SuitesTC1 et TC2).
-  Figures : "tsu-escalier", "tsu-limite", "tsu-malthus". Générateurs : tsu- (et suite-, su-geo-limite).
+  Figures : "tsu-escalier", "tsu-limite", "tsu-malthus", "tsu-cours-…", "tsu-qcm-…". Générateurs : tsu- (et suite-, su-geo-limite).
 */
 window.CHAPITRES = window.CHAPITRES || {};
 window.CHAPITRES["terminale-suites"] = {
@@ -15,7 +15,10 @@ window.CHAPITRES["terminale-suites"] = {
 
   playlist: "",
   drive: "",
-  pdfs: [],
+  pdfs: [
+    { titre: "Cours d'Yvan Monka : suites, chapitre 1 (PDF)", url: "https://www.maths-et-tiques.fr/telech/20SuitesTC1.pdf" },
+    { titre: "Cours d'Yvan Monka : suites, chapitre 2 (PDF)", url: "https://www.maths-et-tiques.fr/telech/20SuitesTC2.pdf" }
+  ],
   liens: [],
 
   /* ---------- 1. CAPSULE DE COURS ---------- */
@@ -69,7 +72,9 @@ window.CHAPITRES["terminale-suites"] = {
       texte:
         "- **Comparaison** : si $u_n \\geqslant v_n$ à partir d'un certain rang et $v_n \\to +\\infty$, alors $u_n \\to +\\infty$ (de même vers $-\\infty$ avec $u_n \\leqslant v_n$).\n" +
         "- **Gendarmes** : si $v_n \\leqslant u_n \\leqslant w_n$ à partir d'un certain rang et si $(v_n)$ et $(w_n)$ tendent vers le même réel $\\ell$, alors $u_n \\to \\ell$.\n" +
-        "- **Passage à la limite** : si $u_n \\leqslant 5$ pour tout $n$ et $u_n \\to \\ell$, alors $\\ell \\leqslant 5$. Attention, une inégalité stricte devient large : $5 - \\dfrac{1}{n} < 5$ mais sa limite vaut $5$.",
+        "- **Passage à la limite** : si $u_n \\leqslant 5$ pour tout $n$ et $u_n \\to \\ell$, alors $\\ell \\leqslant 5$. Attention, une inégalité stricte devient large : $5 - \\dfrac{1}{n} < 5$ mais sa limite vaut $5$.\n\n" +
+        "Sur la figure, les termes de $u_n = 2 + \\dfrac{(-1)^n}{n}$ (points) sont coincés entre $v_n = 2 - \\dfrac{1}{n}$ et $w_n = 2 + \\dfrac{1}{n}$ : c'est l'exemple ci-dessous.",
+      figure: "tsu-cours-gendarmes",
       exemple: {
         enonce: "Détermine la limite de $u_n = 2 + \\dfrac{(-1)^n}{n}$ pour $n \\geqslant 1$.",
         solution: "$-1 \\leqslant (-1)^n \\leqslant 1$, donc $2 - \\dfrac{1}{n} \\leqslant u_n \\leqslant 2 + \\dfrac{1}{n}$.\n\nLes deux suites qui encadrent tendent vers $2$ : d'après le théorème des gendarmes, $u_n \\to 2$."
@@ -83,7 +88,9 @@ window.CHAPITRES["terminale-suites"] = {
         "- si $q > 1$, $q^n \\to +\\infty$ (même $1{,}001^n$, lentement) ;\n" +
         "- si $q = 1$, $q^n = 1$ ;\n" +
         "- si $0 < q < 1$, $q^n \\to 0$.\n\n" +
-        "Pour une suite géométrique $u_n = u_0 \\times q^n$ : si $q > 1$, elle tend vers $+\\infty$ quand $u_0 > 0$ (et vers $-\\infty$ quand $u_0 < 0$) ; si $0 < q < 1$, elle tend vers $0$.",
+        "Pour une suite géométrique $u_n = u_0 \\times q^n$ : si $q > 1$, elle tend vers $+\\infty$ quand $u_0 > 0$ (et vers $-\\infty$ quand $u_0 < 0$) ; si $0 < q < 1$, elle tend vers $0$.\n\n" +
+        "La figure compare $1{,}15^n$, qui grandit sans fin, et $0{,}8^n$, qui se rapproche de $0$.",
+      figure: "tsu-cours-geo",
       exemple: {
         enonce: "Détermine la limite de $u_n = 200 \\times 0{,}8^n + 50$, puis celle de $v_n = -3 \\times 1{,}05^n$.",
         solution: "$0 < 0{,}8 < 1$, donc $0{,}8^n \\to 0$ et $u_n \\to 50$.\n\n$1{,}05 > 1$, donc $1{,}05^n \\to +\\infty$ ; multiplié par $-3$ : $v_n \\to -\\infty$."
@@ -96,7 +103,8 @@ window.CHAPITRES["terminale-suites"] = {
         "Pour $q \\neq 1$ : $1 + q + q^2 + \\dots + q^n = \\dfrac{1 - q^{n+1}}{1 - q}$. On l'écrit aussi $\\sum\\limits_{k=0}^{n} q^k$ (la notation $\\Sigma$ sert à écrire la somme, pas à la calculer).\n\n" +
         "Si $0 < q < 1$, $q^{n+1} \\to 0$, donc :\n\n" +
         "$\\lim\\limits_{n \\to +\\infty} \\left(1 + q + \\dots + q^n\\right) = \\dfrac{1}{1 - q}$.\n\n" +
-        "On additionne une infinité de termes positifs, et pourtant le total reste fini : les termes deviennent très vite minuscules.",
+        "On additionne une infinité de termes positifs, et pourtant le total reste fini : les termes deviennent très vite minuscules. Sur la figure, les sommes $1$ ; $1{,}5$ ; $1{,}75$ ; $1{,}875$… se rapprochent de $2$.",
+      figure: "tsu-cours-somme",
       exemple: {
         enonce: "Démontre que $1 + 0{,}5 + 0{,}5^2 + \\dots + 0{,}5^n$ tend vers $2$.",
         solution: "$S_n = \\dfrac{1 - 0{,}5^{n+1}}{1 - 0{,}5} = 2\\left(1 - 0{,}5^{n+1}\\right)$.\n\nComme $0 < 0{,}5 < 1$, $0{,}5^{n+1} \\to 0$, donc $S_n \\to 2$."
@@ -105,10 +113,12 @@ window.CHAPITRES["terminale-suites"] = {
     {
       titre: "Modèle de Malthus : la population de Mayotte",
       figure: "tsu-malthus",
+      video: { titre: "Vidéo de ton prof : limite d'une suite et recherche de seuil (cours de Première)", youtube: "https://youtu.be/ug71_j3MXlo" },
       texte:
         "Le **modèle de Malthus** suppose que la population augmente chaque année du même pourcentage : $P_{n+1} = (1 + t)P_n$, donc $P_n = P_0 \\times (1 + t)^n$, une suite géométrique.\n\n" +
         "Hypothèse de travail : environ $320\\,000$ habitants à Mayotte en 2024 et $+3\\,\\%$ par an. Alors $P_n = 320\\,000 \\times 1{,}03^n$ ; la figure montre environ $430\\,000$ habitants au bout de $10$ ans.\n\n" +
-        "Comme $1{,}03 > 1$, $P_n \\to +\\infty$ : le modèle prédit une croissance sans fin, ce qui n'est pas réaliste à long terme (place, ressources, migrations). Un modèle se **critique** : il est utile sur une courte durée.",
+        "Comme $1{,}03 > 1$, $P_n \\to +\\infty$ : le modèle prédit une croissance sans fin, ce qui n'est pas réaliste à long terme (place, ressources, migrations). Un modèle se **critique** : il est utile sur une courte durée.\n\n" +
+        "Le **modèle de Verhulst** tient compte de la place disponible : $u_{n+1} = u_n + ru_n\\left(1 - \\dfrac{u_n}{K}\\right)$. Quand $u_n$ approche la capacité $K$ du milieu, la croissance ralentit et la population se stabilise vers $K$.",
       exemple: {
         enonce: "Avec ce modèle, en quelle année la population dépasse-t-elle $400\\,000$ habitants ?",
         solution: "À la calculatrice : $P_7 = 320\\,000 \\times 1{,}03^7 \\approx 393\\,560$ et $P_8 \\approx 405\\,370$.\n\nLe seuil est dépassé pour $n = 8$, soit en $2032$, selon ce modèle."
@@ -116,15 +126,17 @@ window.CHAPITRES["terminale-suites"] = {
     },
     {
       titre: "Python : termes d'une suite et recherche de seuil",
+      video: { titre: "Vidéo d'Yvan Monka : déterminer un seuil pour une suite (algorithme en Python)", youtube: "https://youtu.be/vJmpzwhaka8" },
+      figure: "tsu-malthus",
       texte:
         "Les termes d'une suite récurrente se calculent avec une boucle :\n\n" +
         "```python\ndef terme(n):\n    u = 320000\n    for i in range(n):\n        u = 1.03 * u\n    return u\n```\n\n" +
         "Pour trouver à partir de quel rang la suite dépasse un seuil, on utilise une boucle while :\n\n" +
         "```python\ndef seuil(S):\n    n = 0\n    u = 320000\n    while u <= S:\n        u = 1.03 * u\n        n = n + 1\n    return n\n```\n\n" +
-        "seuil(400000) renvoie $8$. On peut aussi comparer avec la formule explicite $320\\,000 \\times 1{,}03^n$ : les deux donnent les mêmes valeurs.",
+        "$\\texttt{seuil(400000)}$ renvoie $8$ (voir la figure). On peut aussi comparer avec la formule explicite $320\\,000 \\times 1{,}03^n$ : les deux donnent les mêmes valeurs.",
       exemple: {
-        enonce: "Que renvoie terme(2) ?",
-        solution: "$u$ vaut $320\\,000$, puis $329\\,600$, puis $339\\,488$ : terme(2) renvoie $339\\,488$ (à l'arrondi près des calculs de l'ordinateur)."
+        enonce: "Que renvoie $\\texttt{terme(2)}$ ?",
+        solution: "$u$ vaut $320\\,000$, puis $329\\,600$, puis $339\\,488$ : $\\texttt{terme(2)}$ renvoie $339\\,488$ (à l'arrondi près des calculs de l'ordinateur)."
       }
     }
   ],
@@ -142,7 +154,7 @@ window.CHAPITRES["terminale-suites"] = {
   exercices: [
     { type: "suite-recurrence", titre: "Calculer des termes d'une suite récurrente", etape: "Modéliser", nb: 4 },
     { type: "tsu-escalier", titre: "L'escalier d'une suite", etape: "Modéliser", nb: 4 },
-    { type: "tsu-modele", titre: "Malthus, épargne : modéliser une évolution", etape: "Modéliser", nb: 4 },
+    { type: "tsu-modele", titre: "Malthus, Verhulst : modéliser une évolution", etape: "Modéliser", nb: 4 },
     { type: "tsu-limite", titre: "Limites par opérations", etape: "Limites", nb: 5 },
     { type: "tsu-comparaison", titre: "Comparaison et gendarmes", etape: "Limites", nb: 4 },
     { type: "tsu-logique", titre: "À partir d'un certain rang : vrai ou faux ?", etape: "Limites", nb: 5 },
@@ -177,7 +189,11 @@ window.CHAPITRES["terminale-suites"] = {
     { question: "Modèle de Malthus : $P_n = 320\\,000 \\times 1{,}03^n$. La limite de $(P_n)$ est :", choix: ["$+\\infty$", "$320\\,000$", "$1{,}03$", "$0$"], bonne: 0, explication: "$1{,}03 > 1$ : croissance sans fin, irréaliste à long terme." },
     { question: "Dans le programme seuil(S) du cours, la boucle while s'arrête quand :", choix: ["$u$ dépasse $S$", "$n$ dépasse $S$", "$u$ vaut $0$", "$n$ vaut $100$"], bonne: 0, explication: "On répète tant que $u \\leqslant S$ ; on sort dès que $u > S$." },
     { question: "« À partir d'un certain rang, $\\dfrac{1}{n} < 0{,}01$ ». Ce rang est :", choix: ["$101$", "$100$", "$10$", "$1$"], bonne: 0, explication: "$\\dfrac{1}{n} < 0{,}01 \\iff n > 100$." },
-    { question: "La notation $\\sum\\limits_{k=0}^{n} 2^k$ désigne :", choix: ["$1 + 2 + 4 + \\dots + 2^n$", "$2^n$", "$2 + 4 + \\dots + 2n$", "$n \\times 2^n$"], bonne: 0, explication: "On additionne les $2^k$ pour $k$ allant de $0$ à $n$." }
+    { question: "La notation $\\sum\\limits_{k=0}^{n} 2^k$ désigne :", choix: ["$1 + 2 + 4 + \\dots + 2^n$", "$2^n$", "$2 + 4 + \\dots + 2n$", "$n \\times 2^n$"], bonne: 0, explication: "On additionne les $2^k$ pour $k$ allant de $0$ à $n$." },
+    { question: "La figure montre l'escalier de la suite $u_0 = 0{,}5$, $u_{n+1} = 0{,}5u_n + 2$. Quelle limite peut-on conjecturer ?", figure: "tsu-escalier", choix: ["$4$", "$2$", "$0{,}5$", "$+\\infty$"], bonne: 0, explication: "Les marches se resserrent vers le point d'intersection de la courbe et de la droite $y = x$, d'abscisse $4$ : $0{,}5\\ell + 2 = \\ell \\iff \\ell = 4$." },
+    { question: "Les termes d'une suite $(u_n)$ (points) sont encadrés par $v_n = -1 - \\dfrac{2}{n}$ et $w_n = -1 + \\dfrac{2}{n}$ (figure). Alors :", figure: "tsu-qcm-gendarmes", choix: ["$u_n \\to -1$", "$u_n \\to 0$", "$u_n \\to 2$", "on ne peut rien dire"], bonne: 0, explication: "$v_n$ et $w_n$ tendent toutes deux vers $-1$ : d'après le théorème des gendarmes, $u_n$ tend aussi vers $-1$." },
+    { question: "La figure montre les termes de deux suites, $1{,}15^n$ et $0{,}8^n$. Laquelle tend vers $0$ ?", figure: "tsu-cours-geo", choix: ["$0{,}8^n$", "$1{,}15^n$", "les deux", "aucune des deux"], bonne: 0, explication: "$0 < 0{,}8 < 1$, donc $0{,}8^n \\to 0$ ; $1{,}15 > 1$, donc $1{,}15^n \\to +\\infty$." },
+    { question: "La figure montre les sommes $S_n = 1 + 0{,}5 + 0{,}5^2 + \\dots + 0{,}5^n$. Leur limite est :", figure: "tsu-qcm-somme", choix: ["$2$", "$1{,}5$", "$+\\infty$", "$1$"], bonne: 0, explication: "$S_n = \\dfrac{1 - 0{,}5^{n+1}}{1 - 0{,}5}$ tend vers $\\dfrac{1}{0{,}5} = 2$ : les points se rapprochent de $2$ sans le dépasser." }
   ],
 
   /* ---------- 4. FICHE MÉTHODE ---------- */
@@ -185,22 +201,26 @@ window.CHAPITRES["terminale-suites"] = {
     {
       titre: "Modéliser une évolution par une suite",
       etapes: ["Repérer ce qui se passe d'une étape à la suivante (on ajoute ? on multiplie ?).", "Écrire $u_0$ et la relation $u_{n+1} = \\dots$", "Si on multiplie toujours par $q$ : suite géométrique, $u_n = u_0 \\times q^n$."],
-      exemple: "$+3\\,\\%$ par an : $P_{n+1} = 1{,}03P_n$, donc $P_n = P_0 \\times 1{,}03^n$."
+      exemple: "$+3\\,\\%$ par an : $P_{n+1} = 1{,}03P_n$, donc $P_n = P_0 \\times 1{,}03^n$ (points de la figure).",
+      figure: "tsu-malthus"
     },
     {
       titre: "Conjecturer avec l'escalier",
       etapes: ["Tracer la courbe de $f$ et la droite $y = x$.", "Partir de $u_0$, monter à la courbe, aller à la droite, recommencer.", "Observer : les termes montent, descendent, se rapprochent d'un point d'intersection ?"],
-      exemple: "$u_{n+1} = 0{,}5u_n + 2$ : l'escalier se resserre vers $4$, solution de $0{,}5x + 2 = x$."
+      exemple: "$u_{n+1} = 0{,}5u_n + 2$ : l'escalier se resserre vers $4$, solution de $0{,}5x + 2 = x$ (figure).",
+      figure: "tsu-escalier"
     },
     {
       titre: "Calculer une limite",
       etapes: ["Chercher la limite de chaque morceau (limites de référence, $q^n$).", "Combiner par somme, produit, quotient.", "Si c'est impossible directement : encadrer (gendarmes) ou comparer."],
-      exemple: "$3 + \\dfrac{(-1)^n}{n}$ : encadrée par $3 \\pm \\dfrac{1}{n}$, elle tend vers $3$."
+      exemple: "$3 + \\dfrac{(-1)^n}{n}$ : encadrée par $3 \\pm \\dfrac{1}{n}$, elle tend vers $3$ (même situation que sur la figure, autour de $2$).",
+      figure: "tsu-cours-gendarmes"
     },
     {
       titre: "Limite d'une somme géométrique ($0 < q < 1$)",
       etapes: ["Écrire $S_n = $ premier terme $\\times \\dfrac{1 - q^{\\text{nombre de termes}}}{1 - q}$.", "Utiliser $q^n \\to 0$.", "Conclure : $S_n \\to \\dfrac{\\text{premier terme}}{1 - q}$."],
-      exemple: "$4 + 2 + 1 + \\dots$ : premier terme $4$, $q = 0{,}5$, limite $\\dfrac{4}{0{,}5} = 8$."
+      exemple: "$4 + 2 + 1 + \\dots$ : premier terme $4$, $q = 0{,}5$, limite $\\dfrac{4}{0{,}5} = 8$. La figure montre le cas $1 + 0{,}5 + 0{,}5^2 + \\dots$, de limite $2$.",
+      figure: "tsu-cours-somme"
     }
   ],
   erreurs: [

@@ -4,10 +4,12 @@
   Chapitre 10 de la progression spiralée 2026-2027 (programme de Seconde 2026).
   Mêmes règles d'écriture que data/seconde/fonctions.js (formules entre $...$, antislash doublé,
   **gras**, "- " pour une puce, programme Python entre ```python et ```).
-  figure : "tableau-transport" (l'enquête du premier paragraphe).
+  Figures : "tableau-transport" (l'enquête du premier paragraphe), "tc-cours-colonne", "tc-cours-ligne" (le même
+  tableau, une colonne ou une ligne surlignée), "tc-cours-de", "venn", "tc-venn-inter", "tc-venn-union",
+  "tc-venn-nonA", "tc-venn-AnonB", "tc-qcm-urne", "tc-qcm-roue".
   Vidéos : celles de la chaîne d'abord, Yvan Monka en complément.
   Les générateurs d'exercices commencent par « tc- » dans assets/exercices.js
-  (le chapitre reprend aussi auto-probabilites, am-proba-tableau et am-proba-notation).
+  (le chapitre reprend aussi am-proba-tableau et am-proba-notation).
   Arbres pondérés et inversion des conditionnements : chapitre 15.
 */
 window.CHAPITRES = window.CHAPITRES || {};
@@ -19,7 +21,10 @@ window.CHAPITRES["seconde-tableaux-croises"] = {
 
   playlist: "",
   drive: "",
-  pdfs: [],
+  pdfs: [
+    { titre: "Cours d'Yvan Monka : statistiques (partie 5 : fréquences marginales et conditionnelles) (PDF)", url: "https://www.maths-et-tiques.fr/telech/19StatistiquesM.pdf" },
+    { titre: "Cours d'Yvan Monka : probabilités (PDF)", url: "https://www.maths-et-tiques.fr/telech/19ProbabilitesM.pdf" }
+  ],
   liens: [
     { titre: "Le cours sur les probabilités en vidéo (Yvan Monka)", url: "https://youtu.be/dvx_O37gfyY", type: "video" }
   ],
@@ -47,6 +52,7 @@ window.CHAPITRES["seconde-tableaux-croises"] = {
         "- **Fréquence conditionnelle** : on se restreint à une **sous-population** (une ligne ou une colonne) et on divise par **son** total. On note $f_A(B)$ la fréquence de $B$ parmi les $A$.\n\n" +
         "Les médias utilisent souvent des fréquences conditionnelles : « $40\\,\\%$ **des** filles font du sport » se traduit par $f_F(S) = 0{,}4$. La population de référence est celle qui suit « des » ou « parmi les ».\n\n" +
         "Attention : $f_A(B)$ et $f_B(A)$ sont en général **différentes**.",
+      figure: "tc-cours-colonne",
       exemple: {
         enonce: "Avec le tableau précédent : fréquence des élèves de Seconde ; fréquence des élèves de Seconde parmi ceux qui viennent en bus ; fréquence des élèves venant en bus parmi ceux de Seconde.",
         solution: "Marginale : $\\dfrac{100}{200} = 0{,}5$.\n\nParmi les élèves en bus : $\\dfrac{70}{120} \\approx 0{,}58$.\n\nParmi les élèves de Seconde : $\\dfrac{70}{100} = 0{,}7$. Ce n'est pas la même chose !"
@@ -60,6 +66,7 @@ window.CHAPITRES["seconde-tableaux-croises"] = {
         "- Une loi de probabilité donne la probabilité de chaque issue ; la somme vaut $1$.\n" +
         "- En situation d'**équiprobabilité** (tirage au hasard) : $P(A) = \\dfrac{\\text{Card}(A)}{\\text{Card}(\\Omega)}$, où $\\text{Card}$ désigne le nombre d'éléments.\n" +
         "- Événement **contraire** : $\\overline{A}$ (« non $A$ »), et $P(\\overline{A}) = 1 - P(A)$.",
+      figure: "tc-cours-de",
       exemple: {
         enonce: "On lance un dé équilibré à $6$ faces. $A$ : « obtenir un multiple de $3$ ». Calculer $P(A)$ et $P(\\overline{A})$.",
         solution: "$A = \\{3\\,;6\\}$ : $P(A) = \\dfrac{2}{6} = \\dfrac{1}{3}$. Et $P(\\overline{A}) = 1 - \\dfrac{1}{3} = \\dfrac{2}{3}$."
@@ -86,6 +93,7 @@ window.CHAPITRES["seconde-tableaux-croises"] = {
         "On tire au sort un individu dans la population. La probabilité de $A$ **sachant** $B$ est la fréquence de $A$ parmi les individus de $B$ :\n\n" +
         "$P_B(A) = \\dfrac{\\text{Card}(A \\cap B)}{\\text{Card}(B)}$.\n\n" +
         "On se place dans la ligne (ou la colonne) de $B$, et on divise par **son** total, pas par l'effectif total.",
+      figure: "tc-cours-ligne",
       exemple: {
         enonce: "Toujours avec le même tableau : on choisit un élève qui vient en bus. Quelle est la probabilité qu'il soit en Seconde ?",
         solution: "$P_B(S) = \\dfrac{\\text{Card}(B \\cap S)}{\\text{Card}(B)} = \\dfrac{70}{120} = \\dfrac{7}{12} \\approx 0{,}58$."
@@ -94,8 +102,8 @@ window.CHAPITRES["seconde-tableaux-croises"] = {
     {
       titre: "Python : filtrer avec and, or, not",
       texte:
-        "Pour compter les individus qui vérifient un critère, on parcourt la liste et on teste une condition avec $\\texttt{and}$ (et), $\\texttt{or}$ (ou), $\\texttt{not}$ (non).\n\n" +
-        "```python\neleves = [(\"bus\", \"2de\"), (\"pied\", \"1re\"), (\"bus\", \"1re\")]\nc = 0\nfor (transport, niveau) in eleves:\n    if transport == \"bus\" and niveau == \"1re\":\n        c = c + 1\nprint(c)\n```\n\n" +
+        "Pour compter les individus qui vérifient un critère, on parcourt la liste et on teste une condition avec $\\texttt{and}$ (et), $\\texttt{or}$ (ou), $\\texttt{not}$ (non). Ici, chaque élève est un couple (moyen de transport, niveau) :\n\n" +
+        "```python\neleves = [\n    (\"bus\", \"2de\"),\n    (\"pied\", \"1re\"),\n    (\"bus\", \"1re\")\n]\nc = 0\nfor (mode, niv) in eleves:\n    if mode == \"bus\" and niv == \"1re\":\n        c = c + 1\nprint(c)\n```\n\n" +
         "Avec deux listes de même longueur, on peut aussi construire tout un tableau croisé en comptant chaque couple de modalités.",
       exemple: {
         enonce: "Qu'affiche ce programme ? Et si on remplace $\\texttt{and}$ par $\\texttt{or}$ ?",
@@ -115,10 +123,10 @@ window.CHAPITRES["seconde-tableaux-croises"] = {
      Chaque série tire des nombres au hasard : on peut la refaire autant qu'on veut.
      type : nom du générateur (voir assets/exercices.js). nb : nombre de questions. */
   exercices: [
-    { type: "tc-completer", titre: "Compléter un tableau croisé", etape: "Tableaux croisés", nb: 4 },
+    { type: "tc-completer", titre: "Compléter un tableau croisé", etape: "Tableaux croisés", nb: 5 },
     { type: "tc-frequence", titre: "Fréquences marginales et conditionnelles", etape: "Tableaux croisés", nb: 6 },
     { type: "tc-medias", titre: "Traduire une phrase des médias", etape: "Tableaux croisés", nb: 4 },
-    { type: "auto-probabilites", titre: "Calculer une probabilité", etape: "Probabilités", nb: 5 },
+    { type: "tc-proba", titre: "Calculer une probabilité : urne, roue, dé, cartes", etape: "Probabilités", nb: 5 },
     { type: "tc-evenement", titre: "Et, ou, non dans un tableau", etape: "Probabilités", nb: 6 },
     { type: "am-proba-tableau", titre: "Probabilité conditionnelle avec un tableau", etape: "Probabilités", nb: 5 },
     { type: "am-proba-notation", titre: "Notations : $P(A \\cap B)$, $P_A(B)$…", etape: "Probabilités", nb: 4 },
@@ -147,10 +155,11 @@ window.CHAPITRES["seconde-tableaux-croises"] = {
       explication: "La population de référence (les Terminales) va en indice : parmi les $T$, la part de $P$."
     },
     {
-      question: "$200$ élèves, dont $120$ viennent en bus ; $70$ élèves de Seconde viennent en bus. Parmi les élèves en bus, la fréquence des Secondes est :",
+      question: "D'après le tableau ci-dessous ($200$ élèves), parmi les élèves qui viennent en bus, la fréquence des élèves de Seconde est :",
+      figure: "tc-cours-ligne",
       choix: ["$\\dfrac{70}{120}$", "$\\dfrac{70}{200}$", "$\\dfrac{120}{200}$", "$\\dfrac{70}{100}$"],
       bonne: 0,
-      explication: "« Parmi les élèves en bus » : on divise par le nombre d'élèves en bus, $120$."
+      explication: "« Parmi les élèves en bus » : on se restreint à la ligne « Bus » et on divise par son total, $120$. Le quotient $\\dfrac{70}{100}$ serait la fréquence des élèves en bus parmi ceux de Seconde."
     },
     {
       question: "$P(A) = 0{,}35$. Alors $P(\\overline{A})$ vaut :",
@@ -188,11 +197,17 @@ window.CHAPITRES["seconde-tableaux-croises"] = {
     { question: "Sur $300$ élèves, $180$ sont des filles et $90$ filles font du sport. Parmi les filles, la fréquence des sportives est :", choix: ["$0{,}5$", "$0{,}3$", "$0{,}6$", "$2$"], bonne: 0, explication: "« Parmi les filles » : on divise par le nombre de filles, $\\dfrac{90}{180} = 0{,}5$. ($0{,}3 = \\dfrac{90}{300}$ divise par l'effectif total.)" },
     { question: "Sur $300$ élèves : $180$ filles, $120$ sportifs, dont $90$ filles. La fréquence des filles parmi les sportifs est :", choix: ["$0{,}75$", "$0{,}5$", "$0{,}3$", "$0{,}4$"], bonne: 0, explication: "On se restreint aux $120$ sportifs : $f_S(F) = \\dfrac{90}{120} = 0{,}75$. C'est différent de $f_F(S) = \\dfrac{90}{180} = 0{,}5$." },
     { question: "« Un quart des sportifs du lycée sont en Terminale » se note :", choix: ["$f_S(T) = 0{,}25$", "$f_T(S) = 0{,}25$", "$f(S \\cap T) = 0{,}25$", "$f(T) = 0{,}25$"], bonne: 0, explication: "La population de référence est celle des sportifs : $S$ va en indice. On regarde la part des Terminales parmi eux." },
-    { question: "Vrai ou faux : dans un tableau croisé, $f_A(B)$ et $f_B(A)$ sont toujours égales.", choix: ["Faux", "Vrai"], bonne: 0, explication: "Elles ont le même numérateur (la case $A \\cap B$) mais pas le même dénominateur : le total de $A$ pour l'une, celui de $B$ pour l'autre." },
+    { question: "Dans un tableau croisé, que peut-on dire des fréquences conditionnelles $f_A(B)$ et $f_B(A)$ ?", choix: ["elles ont le même numérateur (la case $A \\cap B$) mais pas le même dénominateur", "elles sont toujours égales", "leur somme vaut toujours $1$", "$f_A(B)$ est toujours la plus grande des deux"], bonne: 0, explication: "Elles ont le même numérateur (la case $A \\cap B$) mais pas le même dénominateur : le total de $A$ pour l'une, celui de $B$ pour l'autre. Elles sont donc en général différentes." },
+    { question: "La zone coloriée de la figure ci-dessous représente l'événement :", figure: "tc-venn-AnonB", choix: ["$A \\cap \\overline{B}$", "$A \\cap B$", "$\\overline{A} \\cap B$", "$A \\cup B$"], bonne: 0, explication: "La zone coloriée est dans $A$, mais en dehors de $B$ : c'est « $A$ et non $B$ », soit $A \\cap \\overline{B}$." },
+    { question: "Sur la figure ci-dessous, quel événement correspond à la zone coloriée ?", figure: "tc-venn-nonA", choix: ["$\\overline{A}$", "$\\overline{B}$", "$A \\cup B$", "$\\overline{A} \\cap \\overline{B}$"], bonne: 0, explication: "Tout ce qui n'est pas dans $A$ est colorié (y compris la partie de $B$ hors de $A$) : c'est l'événement contraire $\\overline{A}$." },
+    { question: "On tire une boule au hasard dans l'urne ci-dessous. La probabilité de tirer une boule verte (V) est :", figure: "tc-qcm-urne", choix: ["$\\dfrac{1}{2}$", "$\\dfrac{1}{3}$", "$\\dfrac{1}{5}$", "$1$"], bonne: 0, explication: "Il y a $5$ boules vertes sur $10$ boules, toutes équiprobables : $\\dfrac{5}{10} = \\dfrac{1}{2}$. Les trois couleurs ne sont pas équiprobables, d'où l'erreur $\\dfrac{1}{3}$." },
+    { question: "On tire une boule au hasard dans l'urne ci-dessous. La probabilité de **ne pas** tirer de boule rouge (R) est :", figure: "tc-qcm-urne", choix: ["$\\dfrac{7}{10}$", "$\\dfrac{3}{10}$", "$\\dfrac{2}{3}$", "$\\dfrac{7}{3}$"], bonne: 0, explication: "$P(R) = \\dfrac{3}{10}$, donc la probabilité de l'événement contraire est $1 - \\dfrac{3}{10} = \\dfrac{7}{10}$ : les $5$ vertes et les $2$ jaunes." },
+    { question: "On fait tourner la roue ci-dessous, partagée en $8$ secteurs identiques. La probabilité que la flèche indique un multiple de $3$ est :", figure: "tc-qcm-roue", choix: ["$\\dfrac{1}{4}$", "$\\dfrac{1}{3}$", "$\\dfrac{3}{8}$", "$\\dfrac{1}{8}$"], bonne: 0, explication: "Les multiples de $3$ entre $1$ et $8$ sont $3$ et $6$ : $2$ secteurs sur $8$, soit $\\dfrac{2}{8} = \\dfrac{1}{4}$." },
+    { question: "Dans le tableau croisé ci-dessous, l'effectif manquant « ? » vaut :", figure: "tableau-transport", choix: ["$50$", "$70$", "$100$", "$190$"], bonne: 0, explication: "Ligne « Bus » : $120 - 70 = 50$. On vérifie avec la colonne « 1re » : $50 + 50 = 100$. ($190 = 120 + 70$ : il fallait soustraire.)" },
     { question: "Dans un tableau croisé, l'événement $A \\cap B$ correspond à :", choix: ["une seule case du tableau", "une ligne entière", "la case de l'effectif total", "une ligne et une colonne réunies"], bonne: 0, explication: "« $A$ et $B$ » : c'est la case à l'intersection de la ligne $A$ et de la colonne $B$. Une ligne et une colonne réunies, c'est $A \\cup B$." },
     { question: "On tire une carte au hasard dans un jeu de $32$ cartes. La probabilité de tirer un as est :", choix: ["$\\dfrac{1}{8}$", "$\\dfrac{1}{32}$", "$\\dfrac{1}{4}$", "$\\dfrac{4}{52}$"], bonne: 0, explication: "Il y a $4$ as parmi $32$ cartes équiprobables : $\\dfrac{4}{32} = \\dfrac{1}{8}$." },
     { question: "On lance un dé équilibré à $6$ faces. La probabilité d'obtenir un nombre pair ou un multiple de $3$ est :", choix: ["$\\dfrac{2}{3}$", "$\\dfrac{5}{6}$", "$\\dfrac{1}{6}$", "$\\dfrac{1}{2}$"], bonne: 0, explication: "Les issues favorables sont $2$, $3$, $4$, $6$ : $\\dfrac{4}{6} = \\dfrac{2}{3}$. Le $6$ est à la fois pair et multiple de $3$ : il ne faut pas le compter deux fois." },
-    { question: "$P(A) = 0{,}5$, $P(B) = 0{,}4$ et $P(A \\cap B) = 0{,}2$. Alors $P(A \\cup B)$ vaut :", choix: ["$0{,}7$", "$0{,}9$", "$1{,}1$", "$0{,}2$"], bonne: 0, explication: "$P(A \\cup B) = P(A) + P(B) - P(A \\cap B) = 0{,}5 + 0{,}4 - 0{,}2 = 0{,}7$. La partie commune ne doit être comptée qu'une fois." },
+    { question: "$P(A) = 0{,}5$ ; $P(B) = 0{,}4$ et $P(A \\cap B) = 0{,}2$. Alors $P(A \\cup B)$ vaut :", choix: ["$0{,}7$", "$0{,}9$", "$1{,}1$", "$0{,}2$"], bonne: 0, explication: "$P(A \\cup B) = P(A) + P(B) - P(A \\cap B) = 0{,}5 + 0{,}4 - 0{,}2 = 0{,}7$. La partie commune ne doit être comptée qu'une fois." },
     { question: "Une loi de probabilité sur $\\{1\\,;2\\,;3\\}$ donne $P(1) = 0{,}2$ et $P(2) = 0{,}5$. Alors $P(3)$ vaut :", choix: ["$0{,}3$", "$0{,}7$", "$0{,}5$", "$1$"], bonne: 0, explication: "La somme des probabilités de toutes les issues vaut $1$ : $P(3) = 1 - 0{,}2 - 0{,}5 = 0{,}3$." },
     { question: "On lance un dé à $6$ faces. L'événement contraire de « obtenir au moins $5$ » est :", choix: ["obtenir au plus $4$", "obtenir au plus $5$", "obtenir moins de $4$", "obtenir $6$"], bonne: 0, explication: "« Au moins $5$ » regroupe $5$ et $6$ ; son contraire regroupe les autres issues : $1$, $2$, $3$, $4$." },
     { question: "Avec la liste $\\texttt{eleves}$ du cours, combien d'élèves vérifient $\\texttt{transport == \"pied\"}$ $\\texttt{or}$ $\\texttt{niveau == \"2de\"}$ ?", choix: ["$2$", "$0$", "$1$", "$3$"], bonne: 0, explication: "Le 1er élève est en 2de, le 2e vient à pied : ils conviennent. Le 3e vient en bus et est en 1re : il ne convient pas." },
@@ -208,6 +223,7 @@ window.CHAPITRES["seconde-tableaux-croises"] = {
         "Calculer la valeur manquante avec le total : total $-$ autres valeurs.",
         "Recommencer, puis vérifier que l'effectif total est cohérent."
       ],
+      figure: "tableau-transport",
       exemple: "Ligne « Bus » : $120 - 70 = 50$."
     },
     {
@@ -217,6 +233,7 @@ window.CHAPITRES["seconde-tableaux-croises"] = {
         "Prendre l'effectif de la case qui croise les deux critères.",
         "Diviser par le **total** de la population de référence."
       ],
+      figure: "tc-cours-ligne",
       exemple: "Parmi les élèves en bus, part des Secondes : $\\dfrac{70}{120} \\approx 0{,}58$."
     },
     {
@@ -226,6 +243,7 @@ window.CHAPITRES["seconde-tableaux-croises"] = {
         "$A \\cup B$ : $\\text{Card}(A) + \\text{Card}(B) - \\text{Card}(A \\cap B)$, divisé par l'effectif total.",
         "$\\overline{A}$ : $1 - P(A)$."
       ],
+      figure: "tc-venn-union",
       exemple: "$P(B \\cup S) = \\dfrac{120 + 100 - 70}{200} = 0{,}75$."
     }
   ],

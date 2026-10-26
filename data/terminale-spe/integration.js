@@ -7,7 +7,7 @@
   Mêmes règles d'écriture que data/seconde/fonctions.js.
   Pas de vidéo de la chaîne sur ce thème : vidéos d'Yvan Monka (cours 20IntegT1 et 20IntegT2).
   Figures : "tin-aire", "tin-signe", "tin-entre", "tin-moyenne", "tin-rectangles" (définies avec le chapitre
-  d'intégration de Terminale maths complémentaires). Générateurs : itg- dans assets/exercices.js.
+  d'intégration de Terminale maths complémentaires) et "itg-…" (cours, méthode, QCM). Générateurs : itg- dans assets/exercices.js.
 */
 window.CHAPITRES = window.CHAPITRES || {};
 window.CHAPITRES["terminale-spe-integration"] = {
@@ -18,7 +18,10 @@ window.CHAPITRES["terminale-spe-integration"] = {
 
   playlist: "",
   drive: "",
-  pdfs: [],
+  pdfs: [
+    { titre: "Cours d'Yvan Monka : calcul intégral, chapitre 1 (PDF)", url: "https://www.maths-et-tiques.fr/telech/20IntegT1.pdf" },
+    { titre: "Cours d'Yvan Monka : calcul intégral, chapitre 2 (PDF)", url: "https://www.maths-et-tiques.fr/telech/20IntegT2.pdf" }
+  ],
   liens: [
     { titre: "Le cours complet sur l'intégration en vidéo (Yvan Monka)", url: "https://youtu.be/pFKzXZrMVxs", type: "video" },
     { titre: "Démonstration : x ↦ ∫ f(t) dt est une primitive de f (Yvan Monka)", url: "https://youtu.be/p2W6FYBxTlo", type: "video" },
@@ -36,6 +39,7 @@ window.CHAPITRES["terminale-spe-integration"] = {
         "Soit $f$ continue et **positive** sur $[a\\,;b]$. L'**intégrale** de $f$ de $a$ à $b$, notée $\\displaystyle\\int_a^b f(x)\\,\\mathrm{d}x$, est l'**aire** (en u.a.) du domaine compris entre la courbe de $f$, l'axe des abscisses et les droites $x = a$ et $x = b$.\n\n" +
         "- La variable $x$ est **muette** : $\\displaystyle\\int_a^b f(x)\\,\\mathrm{d}x = \\int_a^b f(t)\\,\\mathrm{d}t$.\n" +
         "- Pour une fonction affine, on calcule l'aire d'un rectangle, d'un triangle ou d'un trapèze.\n" +
+        "- On peut **estimer graphiquement** une intégrale en comptant les carreaux du quadrillage : ceux qui sont entièrement sous la courbe donnent un minorant, ceux qui touchent le domaine un majorant.\n" +
         "- Pour les autres fonctions, on utilise une primitive (notion 2), ou on approche l'aire par des rectangles (notion 7).",
       exemple: {
         enonce: "Calcule $\\displaystyle\\int_0^3 (x + 1)\\,\\mathrm{d}x$ par un calcul d'aire.",
@@ -44,9 +48,10 @@ window.CHAPITRES["terminale-spe-integration"] = {
     },
     {
       titre: "Intégrale et primitive",
+      figure: "itg-cours-primitive",
       video: { titre: "Vidéo d'Yvan Monka : calculer une intégrale", youtube: "https://youtu.be/Z3vKJJE57Uw" },
       texte:
-        "**Théorème** (démonstration au programme dans le cas d'une fonction croissante) : si $f$ est continue et positive sur $[a\\,;b]$, la fonction $F : x \\mapsto \\displaystyle\\int_a^x f(t)\\,\\mathrm{d}t$ est dérivable et $F' = f$. C'est la **primitive de $f$ qui s'annule en $a$**.\n\n" +
+        "**Théorème** (démonstration au programme dans le cas d'une fonction croissante) : si $f$ est continue et positive sur $[a\\,;b]$, la fonction $F : x \\mapsto \\displaystyle\\int_a^x f(t)\\,\\mathrm{d}t$ (l'aire colorée sur la figure) est dérivable et $F' = f$. C'est la **primitive de $f$ qui s'annule en $a$**.\n\n" +
         "On en déduit que toute fonction continue a des primitives, et :\n\n" +
         "$\\displaystyle\\int_a^b f(x)\\,\\mathrm{d}x = F(b) - F(a)$, où $F$ est **n'importe quelle** primitive de $f$.\n\n" +
         "On note $\\left[F(x)\\right]_a^b = F(b) - F(a)$.\n\n" +
@@ -75,6 +80,7 @@ window.CHAPITRES["terminale-spe-integration"] = {
     },
     {
       titre: "Intégration par parties",
+      figure: "itg-cours-ipp",
       video: { titre: "Vidéo d'Yvan Monka : effectuer une intégration par parties", youtube: "https://youtu.be/uNIpYeaNfsg" },
       texte:
         "Si $u$ et $v$ sont dérivables, à dérivées continues sur $[a\\,;b]$ :\n\n" +
@@ -94,7 +100,10 @@ window.CHAPITRES["terminale-spe-integration"] = {
         "La **valeur moyenne** de $f$ continue sur $[a\\,;b]$ (avec $a < b$) est :\n\n" +
         "$\\mu = \\dfrac{1}{b - a}\\displaystyle\\int_a^b f(x)\\,\\mathrm{d}x$.\n\n" +
         "Pour $f$ positive : le rectangle de base $[a\\,;b]$ et de hauteur $\\mu$ a la même aire que le domaine sous la courbe.\n\n" +
-        "Exemples : température moyenne sur une journée, vitesse moyenne quand $f$ est une vitesse.",
+        "**Interpréter une intégrale** dans une autre discipline :\n\n" +
+        "- l'intégrale d'une **vitesse** sur une durée est la **distance** parcourue ;\n" +
+        "- l'intégrale d'un **débit** (en m³/h) est un **volume** ; celle d'une **puissance** (en kW) est une **énergie** (en kWh) ;\n" +
+        "- la valeur moyenne d'une température sur une journée est la température moyenne.",
       exemple: {
         enonce: "Calcule la valeur moyenne de $f(x) = x(4 - x)$ sur $[0\\,;4]$.",
         solution: "$\\displaystyle\\int_0^4 (4x - x^2)\\,\\mathrm{d}x = \\left[2x^2 - \\dfrac{x^3}{3}\\right]_0^4 = 32 - \\dfrac{64}{3} = \\dfrac{32}{3}$.\n\n$\\mu = \\dfrac{1}{4} \\times \\dfrac{32}{3} = \\dfrac{8}{3} \\approx 2{,}67$."
@@ -120,7 +129,10 @@ window.CHAPITRES["terminale-spe-integration"] = {
       texte:
         "Quand on ne connaît pas de primitive, on **approche** l'intégrale : on découpe $[a\\,;b]$ en $n$ intervalles de largeur $h = \\dfrac{b - a}{n}$ et on additionne les aires de rectangles.\n\n" +
         "```python\ndef rectangles(f, a, b, n):\n    h = (b - a) / n\n    s = 0\n    for i in range(n):\n        s = s + h * f(a + i * h)\n    return s\n```\n\n" +
-        "Pour une fonction **croissante**, les rectangles « à gauche » donnent une valeur par défaut et ceux « à droite » une valeur par excès : on obtient un **encadrement** de l'intégrale, d'autant plus précis que $n$ est grand.",
+        "Pour une fonction **croissante**, les rectangles « à gauche » donnent une valeur par défaut et ceux « à droite » une valeur par excès : on obtient un **encadrement** de l'intégrale, d'autant plus précis que $n$ est grand.\n\n" +
+        "- **Point milieu** : la hauteur de chaque rectangle est la valeur au milieu de l'intervalle, $\\texttt{f(a + (i + 0.5) * h)}$.\n" +
+        "- **Trapèzes** : on relie les points de la courbe par des segments, chaque trapèze a pour aire $h \\times \\dfrac{f(x_i) + f(x_{i+1})}{2}$.\n" +
+        "- **Monte-Carlo** : on tire au hasard un grand nombre de points dans un rectangle ; la proportion de points sous la courbe, multipliée par l'aire du rectangle, approche l'intégrale.",
       exemple: {
         enonce: "Que donne $\\texttt{rectangles(f, 0, 1, 4)}$ pour $f(x) = x^2$ ? Compare à la valeur exacte.",
         solution: "$h = 0{,}25$ : $0{,}25 \\times (0 + 0{,}0625 + 0{,}25 + 0{,}5625) = 0{,}21875$.\n\nValeur exacte : $\\displaystyle\\int_0^1 x^2\\,\\mathrm{d}x = \\dfrac{1}{3} \\approx 0{,}333$. Les rectangles à gauche donnent une valeur par défaut (figure)."
@@ -149,7 +161,8 @@ window.CHAPITRES["terminale-spe-integration"] = {
     { type: "itg-fonction", titre: "Fonction définie par une intégrale", etape: "Appliquer", nb: 4 },
     { type: "itg-moyenne", titre: "Valeur moyenne", etape: "Appliquer", nb: 4 },
     { type: "itg-entre", titre: "Aire entre deux courbes", etape: "Appliquer", nb: 4 },
-    { type: "itg-python", titre: "Méthode des rectangles", etape: "Algorithmique", nb: 4 }
+    { type: "itg-contexte", titre: "Distance, volume, énergie : interpréter une intégrale", etape: "Appliquer", nb: 4 },
+    { type: "itg-python", titre: "Rectangles, trapèzes, Monte-Carlo", etape: "Algorithmique", nb: 4 }
   ],
 
   /* ---------- 3. QCM DE RÉVISION ---------- */
@@ -175,7 +188,14 @@ window.CHAPITRES["terminale-spe-integration"] = {
     { question: "Si $g \\leqslant f$ sur $[a\\,;b]$, l'aire entre les courbes vaut :", choix: ["$\\displaystyle\\int_a^b (f - g)$", "$\\displaystyle\\int_a^b (g - f)$", "$\\displaystyle\\int_a^b f \\times g$", "$\\displaystyle\\int_a^b f + \\int_a^b g$"], bonne: 0, explication: "On intègre la différence « haut moins bas », positive." },
     { question: "Avec la méthode des rectangles, augmenter $n$ :", choix: ["améliore l'approximation de l'intégrale", "ne change rien", "donne une valeur exacte pour toute fonction", "rend le calcul faux"], bonne: 0, explication: "Les rectangles épousent mieux la courbe quand leur largeur diminue." },
     { question: "Pour une fonction croissante, les rectangles « à gauche » donnent :", choix: ["une valeur par défaut de l'intégrale", "une valeur par excès", "la valeur exacte", "une valeur négative"], bonne: 0, explication: "Chaque rectangle prend la hauteur la plus basse de son intervalle." },
-    { question: "$\\displaystyle\\int_0^1 2xe^{x^2}\\,\\mathrm{d}x$ vaut :", choix: ["$e - 1$", "$e$", "$2e$", "$\\dfrac{e - 1}{2}$"], bonne: 0, explication: "Forme $u'e^u$ : primitive $e^{x^2}$, et $e^1 - e^0 = e - 1$." }
+    { question: "$\\displaystyle\\int_0^1 2xe^{x^2}\\,\\mathrm{d}x$ vaut :", choix: ["$e - 1$", "$e$", "$2e$", "$\\dfrac{e - 1}{2}$"], bonne: 0, explication: "Forme $u'e^u$ : primitive $e^{x^2}$, et $e^1 - e^0 = e - 1$." },
+    { question: "D'après la figure, l'intégrale de $f$ entre $0$ et $4$ vaut :", figure: "itg-qcm-trapeze", choix: ["$8$", "$4$", "$12$", "$6$"], bonne: 0, explication: "Le domaine est un trapèze de bases $f(0) = 1$ et $f(4) = 3$, de hauteur $4$ : $\\dfrac{(1 + 3) \\times 4}{2} = 8$ u.a." },
+    { question: "La droite représente $f(x) = 2 - x$. Que valent $\\displaystyle\\int_0^4 f(x)\\,\\mathrm{d}x$ et l'aire du domaine colorié ?", figure: "itg-qcm-signe", choix: ["L'intégrale vaut $0$ et l'aire $4$ u.a.", "L'intégrale et l'aire valent $4$", "L'intégrale et l'aire valent $0$", "L'intégrale vaut $4$ et l'aire $0$ u.a."], bonne: 0, explication: "Deux triangles d'aire $2$ : celui au-dessus de l'axe compte positivement dans l'intégrale, celui en dessous négativement, d'où $2 - 2 = 0$. L'aire, elle, vaut $2 + 2 = 4$ u.a." },
+    { question: "Les quatre rectangles de la figure, de hauteur $f$ au bord droit, donnent pour $\\displaystyle\\int_0^2 x^2\\,\\mathrm{d}x$ :", figure: "itg-qcm-rectangles", choix: ["une valeur par excès", "une valeur par défaut", "la valeur exacte", "une valeur négative"], bonne: 0, explication: "La fonction est croissante sur $[0\\,;2]$ : chaque rectangle dépasse la courbe, la somme ($0{,}5 \\times (0{,}25 + 1 + 2{,}25 + 4) = 3{,}75$) est supérieure à $\\dfrac{8}{3}$." },
+    { question: "L'aire du domaine colorié entre les deux courbes est égale à :", figure: "itg-qcm-entre", choix: ["$\\displaystyle\\int_0^3 \\left(x(4 - x) - x\\right)\\mathrm{d}x$", "$\\displaystyle\\int_0^3 \\left(x - x(4 - x)\\right)\\mathrm{d}x$", "$\\displaystyle\\int_0^4 x(4 - x)\\,\\mathrm{d}x$", "$\\displaystyle\\int_0^3 x(4 - x)\\,\\mathrm{d}x$"], bonne: 0, explication: "Entre $0$ et $3$, la parabole est au-dessus de la droite : on intègre « haut moins bas », ce qui donne $\\dfrac{9}{2}$ u.a." },
+    { question: "En comptant les carreaux (unité $1$), l'aire colorée sous la courbe, entre $1$ et $4$, est comprise entre :", figure: "itg-qcm-carreaux", choix: ["$4$ et $8$", "$1$ et $3$", "$8$ et $12$", "$3$ et $4$"], bonne: 0, explication: "Colonne par colonne, $1 + 1 + 2 = 4$ carreaux sont entièrement sous la courbe et $2 + 3 + 3 = 8$ carreaux recouvrent le domaine. (La valeur exacte est $5{,}52$.)" },
+    { question: "Une pirogue avance à la vitesse $v(t)$ (en km/h). Que représente $\\displaystyle\\int_0^2 v(t)\\,\\mathrm{d}t$ ?", choix: ["la distance parcourue (en km) en $2$ heures", "la vitesse moyenne", "la vitesse au bout de $2$ heures", "l'accélération"], bonne: 0, explication: "L'intégrale d'une vitesse sur une durée est une distance ; la vitesse moyenne serait $\\dfrac{1}{2}\\displaystyle\\int_0^2 v(t)\\,\\mathrm{d}t$." },
+    { question: "Si $1 \\leqslant f(x) \\leqslant 3$ pour tout $x \\in [2\\,;5]$, alors :", choix: ["$3 \\leqslant \\displaystyle\\int_2^5 f(x)\\,\\mathrm{d}x \\leqslant 9$", "$1 \\leqslant \\displaystyle\\int_2^5 f(x)\\,\\mathrm{d}x \\leqslant 3$", "$2 \\leqslant \\displaystyle\\int_2^5 f(x)\\,\\mathrm{d}x \\leqslant 15$", "$\\displaystyle\\int_2^5 f(x)\\,\\mathrm{d}x = 6$"], bonne: 0, explication: "On intègre l'encadrement sur un intervalle de longueur $3$ : $1 \\times 3 \\leqslant \\displaystyle\\int_2^5 f \\leqslant 3 \\times 3$." }
   ],
 
   /* ---------- 4. FICHE MÉTHODE ---------- */
@@ -188,6 +208,7 @@ window.CHAPITRES["terminale-spe-integration"] = {
         "Calculer $F(b) - F(a)$ avec soin (parenthèses autour de $F(a)$).",
         "Contrôler le signe : si $f \\geqslant 0$ et $a < b$, le résultat doit être positif."
       ],
+      figure: "itg-meth-calcul",
       exemple: "$\\displaystyle\\int_0^2 (x^2 + 1)\\,\\mathrm{d}x = \\left[\\dfrac{x^3}{3} + x\\right]_0^2 = \\dfrac{8}{3} + 2 = \\dfrac{14}{3}$."
     },
     {
@@ -198,6 +219,7 @@ window.CHAPITRES["terminale-spe-integration"] = {
         "Sur chaque morceau : intégrer $f$ si $f \\geqslant 0$, $-f$ si $f \\leqslant 0$ (ou « haut moins bas »).",
         "Additionner, et donner le résultat en unités d'aire (convertir si les unités sont en cm)."
       ],
+      figure: "itg-meth-aire",
       exemple: "Aire entre $y = x^2$ et l'axe pour $x \\in [-1\\,;2]$ : $\\displaystyle\\int_{-1}^2 x^2\\,\\mathrm{d}x = \\dfrac{8}{3} + \\dfrac{1}{3} = 3$ u.a."
     },
     {
@@ -208,6 +230,7 @@ window.CHAPITRES["terminale-spe-integration"] = {
         "Calculer $u'$ et $v$, puis appliquer la formule.",
         "Calculer le crochet et la nouvelle intégrale ; vérifier en dérivant une primitive obtenue si possible."
       ],
+      figure: "itg-cours-ipp",
       exemple: "$\\displaystyle\\int_1^e \\ln x\\,\\mathrm{d}x$ : $u = \\ln x$, $v' = 1$, d'où $\\left[x\\ln x\\right]_1^e - \\int_1^e 1\\,\\mathrm{d}x = e - (e - 1) = 1$."
     },
     {
@@ -218,6 +241,7 @@ window.CHAPITRES["terminale-spe-integration"] = {
         "Conclure : $m(b - a) \\leqslant \\displaystyle\\int_a^b f \\leqslant M(b - a)$.",
         "Numériquement : méthode des rectangles à gauche et à droite pour une fonction monotone."
       ],
+      figure: "itg-meth-encadrer",
       exemple: "Sur $[0\\,;1]$, $1 \\leqslant e^{x^2} \\leqslant e$, donc $1 \\leqslant \\displaystyle\\int_0^1 e^{x^2}\\,\\mathrm{d}x \\leqslant e$."
     }
   ],

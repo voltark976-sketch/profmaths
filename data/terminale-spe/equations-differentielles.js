@@ -6,7 +6,7 @@
   modélisation (refroidissement, radioactivité, croissance), méthode d'Euler.
   Mêmes règles d'écriture que data/seconde/fonctions.js.
   Pas de vidéo de la chaîne sur ce thème : vidéos d'Yvan Monka (cours 20Prim-EdT).
-  Figure : "edo-courbes". Générateurs : edo- dans assets/exercices.js.
+  Figures : "edo-courbes", "edo-cours-…", "edo-meth-…", "edo-qcm-…". Générateurs : edo- dans assets/exercices.js.
 */
 window.CHAPITRES = window.CHAPITRES || {};
 window.CHAPITRES["terminale-spe-equations-differentielles"] = {
@@ -17,7 +17,9 @@ window.CHAPITRES["terminale-spe-equations-differentielles"] = {
 
   playlist: "",
   drive: "",
-  pdfs: [],
+  pdfs: [
+    { titre: "Cours d'Yvan Monka : primitives et équations différentielles (PDF)", url: "https://www.maths-et-tiques.fr/telech/20Prim-EdT.pdf" }
+  ],
   liens: [
     { titre: "Le cours complet sur les équations différentielles en vidéo (Yvan Monka)", url: "https://youtu.be/qHF5kiDFkW8", type: "video" },
     { titre: "Démonstration : solutions de y' = ay (Yvan Monka)", url: "https://youtu.be/FQlxi8JKmg4", type: "video" }
@@ -27,11 +29,12 @@ window.CHAPITRES["terminale-spe-equations-differentielles"] = {
   cours: [
     {
       titre: "Équation différentielle et solution",
+      figure: "edo-cours-solution",
       video: { titre: "Vidéo d'Yvan Monka : vérifier si une fonction est solution d'une équation différentielle", youtube: "https://youtu.be/LX8PxR-ScfM" },
       texte:
         "Une **équation différentielle** relie une fonction inconnue $y$ et sa dérivée $y'$ (par exemple $y' = 2y$). Une **solution** sur un intervalle $I$ est une fonction $f$ dérivable sur $I$ telle que, pour tout $x$ de $I$, $f'(x) = 2f(x)$.\n\n" +
         "- Pour **vérifier** qu'une fonction est solution : on calcule $f'$, et on remplace dans l'équation.\n" +
-        "- Une équation différentielle a en général une **infinité** de solutions ; une **condition initiale** ($f(0) = 3$, par exemple) en sélectionne une seule.\n\n" +
+        "- Une équation différentielle a en général une **infinité** de solutions ; une **condition initiale** ($f(0) = 5$, par exemple) en sélectionne une seule : sur la figure, une seule courbe passe par le point $A(0 ; 5)$.\n\n" +
         "Au chapitre 10, on a résolu $y' = f$ : les solutions sont les primitives de $f$.",
       exemple: {
         enonce: "Vérifie que $f(x) = 5e^{-3x}$ est solution de $y' + 3y = 0$.",
@@ -40,12 +43,14 @@ window.CHAPITRES["terminale-spe-equations-differentielles"] = {
     },
     {
       titre: "L'équation $y' = ay$",
+      figure: ["edo-cours-yay-pos", "edo-cours-yay-neg"],
       video: { titre: "Vidéo d'Yvan Monka : résoudre une équation différentielle du type y' = ay", youtube: "https://youtu.be/YJNHTq85tJA" },
       texte:
         "Soit $a$ un réel. Les solutions sur $\\mathbb{R}$ de l'équation $y' = ay$ sont les fonctions\n\n" +
         "$x \\mapsto Ce^{ax}$, où $C$ est un réel quelconque (démonstration au programme).\n\n" +
         "- Pour tout $x_0$ et $y_0$, il existe une **unique** solution telle que $y(x_0) = y_0$.\n" +
         "- Avec $y(0) = y_0$ : la solution est $y = y_0e^{ax}$.\n\n" +
+        "**Allure des courbes** (figures) : une solution non nulle ne s'annule jamais, elle a le signe de $C$. Si $a > 0$, elle est monotone et sa valeur absolue tend vers $+\\infty$ en $+\\infty$ ; si $a < 0$, elle tend vers $0$ en $+\\infty$. La tangente au point d'abscisse $0$ a pour coefficient directeur $f'(0) = aC$.\n\n" +
         "C'est le modèle des évolutions **proportionnelles à la quantité présente** : radioactivité ($a < 0$), croissance d'une population sans contrainte ($a > 0$), capitalisation continue.",
       exemple: {
         enonce: "Résous $2y' - 6y = 0$, puis trouve la solution telle que $y(0) = 4$.",
@@ -54,14 +59,15 @@ window.CHAPITRES["terminale-spe-equations-differentielles"] = {
     },
     {
       titre: "L'équation $y' = ay + b$",
-      figure: "edo-courbes",
+      figure: ["edo-courbes", "edo-cours-instable"],
       video: { titre: "Vidéo d'Yvan Monka : résoudre une équation différentielle du type y' = ay + b", youtube: "https://youtu.be/F_LQLZ8rUhg" },
       texte:
         "Soit $a \\neq 0$ et $b$ deux réels.\n\n" +
         "- L'équation $y' = ay + b$ a une **solution constante** : $y = -\\dfrac{b}{a}$ (on cherche $y$ constante, donc $y' = 0$).\n" +
         "- Ses solutions sont les fonctions $x \\mapsto Ce^{ax} - \\dfrac{b}{a}$, avec $C$ réel.\n\n" +
         "Autrement dit : **solution constante + solutions de $y' = ay$**.\n\n" +
-        "Si $a < 0$, $Ce^{ax} \\to 0$ quand $x \\to +\\infty$ : toutes les solutions tendent vers la solution constante (figure). C'est un **équilibre**, comme la température de la pièce pour un café qui refroidit.",
+        "Si $a < 0$, $Ce^{ax} \\to 0$ quand $x \\to +\\infty$ : toutes les solutions tendent vers la solution constante (première figure). C'est un **équilibre**, comme la température de la pièce pour un café qui refroidit.\n\n" +
+        "Si $a > 0$, au contraire, les solutions non constantes s'éloignent de la solution constante et tendent vers $+\\infty$ ou $-\\infty$ selon le signe de $C$ (seconde figure).",
       exemple: {
         enonce: "Résous $y' = -0{,}5y + 3$, puis trouve la solution telle que $y(0) = 10$.",
         solution: "Solution constante : $y = -\\dfrac{3}{-0{,}5} = 6$. Solutions : $y = Ce^{-0{,}5x} + 6$.\n\n$y(0) = C + 6 = 10$, donc $C = 4$ : $y = 4e^{-0{,}5x} + 6$, qui tend vers $6$ en $+\\infty$."
@@ -69,37 +75,42 @@ window.CHAPITRES["terminale-spe-equations-differentielles"] = {
     },
     {
       titre: "L'équation $y' = ay + f$",
+      figure: "edo-cours-particuliere",
       video: { titre: "Vidéo d'Yvan Monka : résoudre une équation différentielle du type y' = ay + f", youtube: "https://youtu.be/QeGvVncvyLc" },
       texte:
         "Quand le second membre est une fonction $f$, on ne sait pas toujours trouver une solution, mais si l'on connaît **une solution particulière** $p$ :\n\n" +
         "les solutions de $y' = ay + f$ sont les fonctions $p + h$, où $h$ est solution de $y' = ay$, c'est-à-dire $x \\mapsto p(x) + Ce^{ax}$.\n\n" +
-        "**Pourquoi ?** $y$ est solution si et seulement si $y - p$ vérifie $(y - p)' = a(y - p)$.\n\n" +
-        "En pratique, l'énoncé donne la forme de $p$ (par exemple $p(x) = \\alpha x + \\beta$) et on trouve $\\alpha$ et $\\beta$ en identifiant.",
+        "**Pourquoi ?** Si $f_1$ et $f_2$ sont deux solutions de $y' = ay + f$, alors $(f_1 - f_2)' = af_1 + f - (af_2 + f) = a(f_1 - f_2)$ : la différence de deux solutions est solution de $y' = ay$. Donc $y$ est solution si et seulement si $y - p$ est solution de $y' = ay$.\n\n" +
+        "En pratique, l'énoncé donne la forme de $p$ (par exemple $p(x) = \\alpha x + \\beta$, ou $p(x) = \\lambda e^{cx}$) et on trouve les coefficients **en identifiant**.",
       exemple: {
         enonce: "Montre que $p(x) = x + 1$ est solution de $y' = 2y - 2x - 1$, puis donne toutes les solutions.",
-        solution: "$p'(x) = 1$ et $2p(x) - 2x - 1 = 2x + 2 - 2x - 1 = 1$ : $p$ est solution.\n\nLes solutions sont $y = x + 1 + Ce^{2x}$, $C$ réel."
+        solution: "$p'(x) = 1$ et $2p(x) - 2x - 1 = 2x + 2 - 2x - 1 = 1$ : $p$ est solution.\n\nLes solutions sont $y = x + 1 + Ce^{2x}$, $C$ réel. Sur la figure, leurs courbes se rapprochent de la droite $y = x + 1$ en $-\\infty$."
       }
     },
     {
       titre: "Modéliser avec une équation différentielle",
+      figure: "edo-cours-refroid",
       video: { titre: "Vidéo d'Yvan Monka : résoudre y' = ay + b (exemple 2)", youtube: "https://youtu.be/CFZr44vny3w" },
       texte:
         "- **Refroidissement (loi de Newton)** : la température $T$ d'un objet dans une pièce à $T_a$ vérifie $T' = -k(T - T_a)$, avec $k > 0$. Solutions : $T(t) = T_a + (T_0 - T_a)e^{-kt}$.\n" +
         "- **Radioactivité** : $N' = -\\lambda N$, donc $N(t) = N_0e^{-\\lambda t}$. La **demi-vie** $t_{1/2}$ vérifie $e^{-\\lambda t_{1/2}} = \\dfrac{1}{2}$, soit $t_{1/2} = \\dfrac{\\ln 2}{\\lambda}$.\n" +
-        "- **Croissance** : $P' = kP$ donne $P(t) = P_0e^{kt}$.\n\n" +
+        "- **Croissance** : $P' = kP$ donne $P(t) = P_0e^{kt}$.\n" +
+        "- **Perfusion** : un médicament apporté au débit $d$ et éliminé au taux $k$ vérifie $Q' = -kQ + d$ ; la quantité se stabilise vers $\\dfrac{d}{k}$.\n" +
+        "- **Chute avec frottements** : $v' = -kv + g$ ; la vitesse tend vers la **vitesse limite** $\\dfrac{g}{k}$.\n\n" +
         "Le logarithme permet ensuite de trouver **quand** une valeur est atteinte.",
       exemple: {
-        enonce: "Un café à $80$ °C refroidit dans une pièce à $20$ °C selon $T' = -0{,}1(T - 20)$ ($t$ en minutes). Quand sera-t-il à $40$ °C ?",
-        solution: "$T(t) = 20 + 60e^{-0{,}1t}$. $T(t) = 40 \\iff e^{-0{,}1t} = \\dfrac{1}{3} \\iff -0{,}1t = -\\ln 3 \\iff t = 10\\ln 3 \\approx 11$ minutes."
+        enonce: "À Mamoudzou, un café à $90$ °C refroidit dans une pièce à $30$ °C selon $T' = -0{,}1(T - 30)$ ($t$ en minutes). Quand sera-t-il à $50$ °C ?",
+        solution: "$T(t) = 30 + 60e^{-0{,}1t}$. $T(t) = 50 \\iff e^{-0{,}1t} = \\dfrac{1}{3} \\iff -0{,}1t = -\\ln 3 \\iff t = 10\\ln 3 \\approx 11$ minutes (figure)."
       }
     },
     {
       titre: "Algorithmique : la méthode d'Euler",
+      figure: "edo-cours-euler",
       texte:
         "La **méthode d'Euler** construit une approximation de la solution de $y' = F(y)$ avec $y(0) = y_0$, pas à pas, avec un petit pas $h$ :\n\n" +
         "$y(x + h) \\approx y(x) + h \\times y'(x)$ : on suit la tangente sur chaque petit intervalle.\n\n" +
         "```python\ndef euler(y0, h, n):\n    y = y0\n    for i in range(n):\n        y = y + h * (-0.5 * y + 3)   # y' = -0,5y + 3\n    return y\n```\n\n" +
-        "Plus $h$ est petit, plus l'approximation est bonne (et plus il faut de pas pour aller loin).",
+        "Plus $h$ est petit, plus l'approximation est bonne (et plus il faut de pas pour aller loin). La figure montre la ligne brisée obtenue avec $h = 0{,}5$ : elle reste un peu sous la courbe de la solution exacte.",
       exemple: {
         enonce: "Calcule $\\texttt{euler(10, 0.5, 2)}$ et compare à la solution exacte $y(1) = 4e^{-0{,}5} + 6$.",
         solution: "Pas 1 : $10 + 0{,}5 \\times (-5 + 3) = 9$. Pas 2 : $9 + 0{,}5 \\times (-4{,}5 + 3) = 8{,}25$.\n\nValeur exacte : $y(1) \\approx 8{,}43$. L'écart vient du pas assez grand."
@@ -119,8 +130,9 @@ window.CHAPITRES["terminale-spe-equations-differentielles"] = {
     { type: "edo-yay", titre: "Résoudre $y' = ay$", etape: "Résoudre", nb: 5 },
     { type: "edo-yayb", titre: "Résoudre $y' = ay + b$", etape: "Résoudre", nb: 5 },
     { type: "edo-condition", titre: "Condition initiale et limite", etape: "Résoudre", nb: 5 },
+    { type: "edo-graphique", titre: "Lire les courbes des solutions", etape: "Résoudre", nb: 4 },
     { type: "edo-particuliere", titre: "Avec une solution particulière", etape: "Résoudre", nb: 4 },
-    { type: "edo-modele", titre: "Refroidissement, demi-vie, croissance", etape: "Modéliser", nb: 5 },
+    { type: "edo-modele", titre: "Modéliser : refroidissement, médicaments, radioactivité", etape: "Modéliser", nb: 5 },
     { type: "edo-euler", titre: "Python : la méthode d'Euler", etape: "Algorithmique", nb: 4 }
   ],
 
@@ -148,7 +160,19 @@ window.CHAPITRES["terminale-spe-equations-differentielles"] = {
     { question: "Le modèle $y' = ay$ convient quand la vitesse d'évolution est :", choix: ["proportionnelle à la quantité présente", "constante", "proportionnelle au temps", "nulle"], bonne: 0, explication: "$y'$ (vitesse) $= a \\times y$ (quantité)." },
     { question: "Les solutions de $y' = 0$ sont :", choix: ["les fonctions constantes", "la fonction nulle seulement", "les fonctions $Ce^x$", "les fonctions affines"], bonne: 0, explication: "Une dérivée nulle sur un intervalle : fonction constante (c'est le cas $a = 0$)." },
     { question: "La solution de $y' = -0{,}3y$ telle que $y(0) = 5$ :", choix: ["décroît et tend vers $0$", "croît vers $+\\infty$", "est constante", "tend vers $5$"], bonne: 0, explication: "$y = 5e^{-0{,}3x}$ : $a < 0$, la fonction décroît et tend vers $0$." },
-    { question: "La fonction $f(x) = e^{2x} + 1$ est solution de :", choix: ["$y' = 2y - 2$", "$y' = 2y + 1$", "$y' = y + 1$", "$y' = 2y$"], bonne: 0, explication: "$f'(x) = 2e^{2x}$ et $2f(x) - 2 = 2e^{2x} + 2 - 2 = 2e^{2x}$." }
+    { question: "La fonction $f(x) = e^{2x} + 1$ est solution de :", choix: ["$y' = 2y - 2$", "$y' = 2y + 1$", "$y' = y + 1$", "$y' = 2y$"], bonne: 0, explication: "$f'(x) = 2e^{2x}$ et $2f(x) - 2 = 2e^{2x} + 2 - 2 = 2e^{2x}$." },
+    { question: "La courbe ci-dessous est celle d'une solution de $y' = ay$. Que peut-on dire de $a$ ?", figure: "edo-qcm-yay", choix: ["$a < 0$", "$a > 0$", "$a = 0$", "$a = 3$"], bonne: 0, explication: "La solution est $3e^{ax}$ ; elle décroît et tend vers $0$ en $+\\infty$, donc $a < 0$ (si $a = 0$, elle serait constante)." },
+    { question: "Les courbes ci-dessous représentent des solutions de $y' = -0{,}5y + b$. Que vaut $b$ ?", figure: "edo-qcm-equilibre", choix: ["$-1$", "$-2$", "$1$", "$0{,}5$"], bonne: 0, explication: "Elles se rapprochent de la solution constante $-2$. Or la solution constante vaut $-\\dfrac{b}{a} = \\dfrac{b}{0{,}5} = 2b$, donc $2b = -2$ et $b = -1$." },
+    { question: "Laquelle de ces courbes représente la solution de $y' = -y + 3$ telle que $y(0) = 1$ ?", figure: "edo-qcm-laquelle", choix: ["$\\mathcal{C}_1$", "$\\mathcal{C}_2$", "$\\mathcal{C}_3$", "Aucune des trois"], bonne: 0, explication: "La solution $y = 3 - 2e^{-x}$ part de $(0 ; 1)$ et se rapproche de la solution constante $3$ : c'est $\\mathcal{C}_1$ ($\\mathcal{C}_2$ tend vers $-1$, $\\mathcal{C}_3$ part de $(0 ; 2)$)." },
+    { question: "On applique la méthode d'Euler à $y' = y$, $y(0) = 1$, avec un pas de $0{,}5$ (ligne brisée). Quelle valeur approchée de $e = y(1)$ obtient-on ?", figure: "edo-qcm-euler", choix: ["$2{,}25$", "$2$", "$2{,}5$", "$2{,}72$"], bonne: 0, explication: "$y(0{,}5) \\approx 1 + 0{,}5 \\times 1 = 1{,}5$, puis $y(1) \\approx 1{,}5 + 0{,}5 \\times 1{,}5 = 2{,}25$ ; la vraie valeur est $e \\approx 2{,}72$." },
+    { question: "La courbe donne la température $T$ (en °C) d'un café posé sur une table à Mamoudzou, en fonction du temps $t$ (en minutes) ; elle vérifie $T' = -0{,}08(T - T_a)$. Que vaut $T_a$, la température de la pièce ?", figure: "edo-qcm-refroid", choix: ["$30$ °C", "$90$ °C", "$60$ °C", "$0$ °C"], bonne: 0, explication: "La température tend vers la solution constante $T_a$ : la courbe se rapproche de $30$ °C." },
+    { question: "$f$ est solution de $y' = ay$. Sa courbe passe par $A(0 ; 2)$ et sa tangente en $A$ passe par $B(1 ; 5)$. Que vaut $a$ ?", figure: "edo-qcm-tangente", choix: ["$1{,}5$", "$3$", "$5$", "$2$"], bonne: 0, explication: "La tangente a pour coefficient directeur $f'(0) = \\dfrac{5 - 2}{1 - 0} = 3$, et $f'(0) = a \\times f(0) = 2a$, donc $a = 1{,}5$." },
+    { question: "Si $f_1$ et $f_2$ sont deux solutions de $y' = 3y + x^2$, alors $f_1 - f_2$ est solution de :", choix: ["$y' = 3y$", "$y' = 3y + x^2$", "$y' = 3y + 2x^2$", "$y' = x^2$"], bonne: 0, explication: "$(f_1 - f_2)' = 3f_1 + x^2 - (3f_2 + x^2) = 3(f_1 - f_2)$." },
+    { question: "La fonction $f(x) = xe^{2x}$ est solution de :", choix: ["$y' = 2y + e^{2x}$", "$y' = 2y$", "$y' = y + e^{2x}$", "$y' = 2y + x$"], bonne: 0, explication: "$f'(x) = e^{2x} + 2xe^{2x} = 2f(x) + e^{2x}$." },
+    { question: "Pendant un orage à Mayotte, la vitesse d'une goutte de pluie vérifie $v' = -0{,}98v + 9{,}8$ (en m/s). Sa vitesse limite est :", choix: ["$10$ m/s", "$9{,}8$ m/s", "$0{,}98$ m/s", "elle n'a pas de limite"], bonne: 0, explication: "Solution constante : $-\\dfrac{9{,}8}{-0{,}98} = 10$, et $e^{-0{,}98t} \\to 0$." },
+    { question: "Au centre hospitalier de Mamoudzou, une perfusion donne $Q' = -0{,}2Q + 4$ ($Q$ en mg, $t$ en heures). Quand $t \\to +\\infty$, $Q(t)$ tend vers :", choix: ["$20$ mg", "$4$ mg", "$0{,}8$ mg", "$+\\infty$"], bonne: 0, explication: "Solution constante : $\\dfrac{4}{0{,}2} = 20$ ; comme $a = -0{,}2 < 0$, toutes les solutions tendent vers $20$." },
+    { question: "Une solution non nulle de $y' = ay$ :", choix: ["ne s'annule jamais", "s'annule en $x = 0$", "s'annule une fois si $a < 0$", "est toujours positive"], bonne: 0, explication: "Elle s'écrit $Ce^{ax}$ avec $C \\neq 0$, et $e^{ax} > 0$ : elle garde le signe de $C$." },
+    { question: "$f$ est solution de $y' = -2y$ et $f(0) = 5$. Alors $f'(0)$ vaut :", choix: ["$-10$", "$5$", "$-2$", "$10$"], bonne: 0, explication: "$f'(0) = -2f(0) = -10$." }
   ],
 
   /* ---------- 4. FICHE MÉTHODE ---------- */
@@ -161,6 +185,7 @@ window.CHAPITRES["terminale-spe-equations-differentielles"] = {
         "Écrire les solutions : $y = Ce^{ax} - \\dfrac{b}{a}$.",
         "Utiliser la condition $y(x_0) = y_0$ pour trouver $C$, puis écrire la solution."
       ],
+      figure: "edo-meth-ayb",
       exemple: "$y' - 2y = 4$, $y(0) = 1$ : $y' = 2y + 4$, solution constante $-2$, $y = Ce^{2x} - 2$, $C - 2 = 1$, donc $y = 3e^{2x} - 2$."
     },
     {
@@ -171,7 +196,8 @@ window.CHAPITRES["terminale-spe-equations-differentielles"] = {
         "Écrire les solutions : $y = p(x) + Ce^{ax}$.",
         "Utiliser la condition initiale si besoin."
       ],
-      exemple: "$p(x) = 2x$ solution de $y' = y - 2x + 2$ ; solutions : $y = 2x + Ce^{x}$."
+      figure: "edo-meth-particuliere",
+      exemple: "$p(x) = 2x$ solution de $y' = y - 2x + 2$ ($p'(x) = 2$ et $2x - 2x + 2 = 2$) ; solutions : $y = 2x + Ce^{x}$."
     },
     {
       titre: "Exploiter un modèle",
@@ -181,7 +207,19 @@ window.CHAPITRES["terminale-spe-equations-differentielles"] = {
         "Calculer une valeur (remplacer $t$), ou résoudre $y(t) = k$ avec le logarithme.",
         "Interpréter la limite en $+\\infty$ (équilibre) si $a < 0$."
       ],
+      figure: "edo-meth-modele",
       exemple: "$N(t) = N_0e^{-0{,}2t}$ : $N(t) = 0{,}1N_0 \\iff t = \\dfrac{\\ln 10}{0{,}2} \\approx 11{,}5$."
+    },
+    {
+      titre: "Lire la courbe d'une solution",
+      etapes: [
+        "Repérer la droite horizontale dont la courbe se rapproche (si $a < 0$) : c'est la solution constante $-\\dfrac{b}{a}$.",
+        "Lire $f(0)$ : l'ordonnée du point d'abscisse $0$.",
+        "Lire le coefficient directeur de la tangente en ce point : c'est $f'(0)$.",
+        "Écrire $f'(0) = af(0) + b$ (l'équation en $x = 0$) et résoudre."
+      ],
+      figure: "edo-meth-lecture",
+      exemple: "Figure : solution constante $1$ et $f(0) = 4$, tangente en $A$ de coefficient directeur $-1{,}5$. Donc $-\\dfrac{b}{a} = 1$ et $4a + b = -1{,}5$ : $b = -a$, $3a = -1{,}5$, d'où $a = -0{,}5$ et $b = 0{,}5$."
     }
   ],
   erreurs: [
@@ -191,6 +229,8 @@ window.CHAPITRES["terminale-spe-equations-differentielles"] = {
     "Oublier la solution constante dans les solutions de $y' = ay + b$.",
     "Utiliser la condition initiale avant d'avoir écrit la forme générale complète.",
     "Croire que $e^0 = 0$ en utilisant $y(0)$.",
-    "Confondre $e^{-kt}$ (décroissance) et $e^{kt}$ (croissance)."
+    "Confondre $e^{-kt}$ (décroissance) et $e^{kt}$ (croissance).",
+    "Prendre le coefficient directeur de la tangente en $0$ pour $a$ : c'est $f'(0) = af(0)$ (ou $af(0) + b$).",
+    "Croire que la somme de deux solutions de $y' = ay + f$ est encore une solution : c'est la différence qui est solution de $y' = ay$."
   ]
 };

@@ -176,6 +176,8 @@
     return parts;
   }
   function tex(src, display) {
+    const tt = !display && String(src).match(/^\s*\\texttt\{((?:[^{}\\]|\\.)*)\}\s*$/); // code Python en ligne : du texte qui peut passer à la ligne
+    if (tt) return `<code class="tt">${esc(tt[1].replace(/\\([_{}#%&$ ])/g, "$1"))}</code>`;
     if (!display && src.includes(" ; ") && !/\\left|\\right|\\begin/.test(src)) {
       const parts = decoupeListe(src);
       if (parts.length > 1) return parts.map((p) => tex(p)).join(" ; ");
@@ -194,7 +196,10 @@
     // et aucune coupure de ligne entre une formule et la ponctuation qui la suit (pas de « . » seul en début de ligne)
     const t = String(s).replace(/\$([^$]+)\$/g, (_, m) => "\u0000" + (maths.push(m) - 1) + "\u0000")
       .replace(/ ([?!:;»])/g, " $1").replace(/« /g, "« ")
-      .replace(/\u0000(\d+)\u0000(?=[.,;:!?)%» ])/g, "\u0000$1\u0000⁠");
+      .replace(/\u0000(\d+)\u0000(?=[.,;:!?)%» ])/g, "\u0000$1\u0000⁠")
+      // ni coupure entre un nombre (ou une formule) et son unité : « 45 °C », « 12 km/h », « 30 élèves »
+      .replace(/(\d|\u0000) (?=(?:°C|°|%|€|[kcmd]?m[²³]?|[kmc]?g|[mcd]?L|h|min|s|ha|m\/s|km\/h|mg\/L|ans?|jours?|mois|heures?|minutes?|secondes?)(?![A-Za-zÀ-ÿ0-9]))/g, "$1\u00a0")
+      .replace(/\((?=\u0000)/g, "(\u2060"); // ni entre « ( » et la formule qui suit
     return esc(t).replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>").replace(/\u0000(\d+)\u0000/g, (_, i) => tex(maths[+i]));
   }
   // Étiquette devant la case réponse : « x_I = », « P(Ā ∩ B) ≈ », « Q₃ − Q₁ = » sont écrits en maths (KaTeX),
@@ -1183,7 +1188,8 @@
           : `<strong>Voici la solution.</strong> Lis-la bien, la prochaine sera pour toi.`;
         if (montrer || !gagne) {
           fb.innerHTML += `<div class="solution">${md(q.solution)}</div>`;
-          if (q.figureSolution && p.querySelector("#fig")) p.querySelector("#fig").innerHTML = q.figureSolution;
+          // Figure de la solution : à la place de celle de l'énoncé, ou sous la solution quand l'énoncé n'en a pas
+          if (q.figureSolution) { const f = p.querySelector("#fig"); if (f) f.innerHTML = q.figureSolution; else fb.insertAdjacentHTML("beforeend", `<figure class="fig">${q.figureSolution}</figure>`); }
         } else {
           fb.innerHTML += `<details><summary>Voir la rédaction</summary><div class="solution">${md(q.solution)}</div></details>`;
         }

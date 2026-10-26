@@ -9,7 +9,8 @@
   video : vidéo d'aide affichée sous une notion (cours de ta chaîne, sinon vidéo d'Yvan Monka).
   videos : exercices corrigés en vidéo (playlist de la chaîne), avec le numéro de l'exercice du dossier élève.
   Le corrigé détaillé du Drive est réservé au professeur : il n'est pas lié ici.
-  Figures : "suite-nuage", "motif-galets", "motif-allumettes". Générateurs : suite- et su-.
+  Figures : "suite-nuage", "motif-galets", "motif-allumettes", "su-cours-…", "su-qcm-…", "su-meth-…" (fragments 004 et 029).
+  Générateurs : suite- et su-.
 */
 window.CHAPITRES = window.CHAPITRES || {};
 window.CHAPITRES["premiere-suites"] = {
@@ -31,12 +32,13 @@ window.CHAPITRES["premiere-suites"] = {
   cours: [
     {
       titre: "Qu'est-ce qu'une suite ?",
+      figure: "su-cours-chaine",
       video: { titre: "Vidéo de ton prof : notion de suite, formule explicite et récurrence (cours 1/6)", youtube: "https://youtu.be/sVkYEQQWvDo" },
       texte:
         "Une **suite** $(u_n)$ associe à chaque entier naturel $n$ un nombre $u_n$, appelé **terme de rang $n$**. On note aussi $u(n)$ : une suite est une fonction définie sur $\\mathbb{N}$.\n\n" +
         "Plusieurs **modes de génération** :\n" +
         "- **Formule explicite** : $u_n = f(n)$, par exemple $u_n = 3n^2 - 1$. On calcule n'importe quel terme d'un coup.\n" +
-        "- **Relation de récurrence** : on donne le premier terme et le moyen de passer d'un terme au suivant, $u_{n+1} = f(u_n)$, par exemple $u_0 = 5$ et $u_{n+1} = 2u_n - 3$. On calcule **de proche en proche**.\n" +
+        "- **Relation de récurrence** : on donne le premier terme et le moyen de passer d'un terme au suivant, $u_{n+1} = f(u_n)$, par exemple $u_0 = 5$ et $u_{n+1} = 2u_n - 3$. On calcule **de proche en proche** (schéma).\n" +
         "- Un **algorithme** ou un **motif géométrique** qui se répète.\n\n" +
         "Attention à ne pas confondre $u_{n+1}$ (le terme suivant) et $u_n + 1$ (le terme plus un).",
       exemple: {
@@ -47,6 +49,7 @@ window.CHAPITRES["premiere-suites"] = {
     {
       titre: "Motifs et dénombrements",
       figure: "motif-galets",
+      video: { titre: "Vidéo de ton prof : un motif d'allumettes, récurrence et formule (exercice corrigé)", youtube: "https://youtu.be/8xREkcpiSrg" },
       texte:
         "Pour un motif qui grandit d'étape en étape (galets, allumettes, carreaux), on note $u_n$ le nombre d'objets à l'étape $n$.\n\n" +
         "- On **compte** les premiers termes.\n" +
@@ -75,9 +78,10 @@ window.CHAPITRES["premiere-suites"] = {
     },
     {
       titre: "Idée de limite",
+      figure: "su-cours-limite",
       video: { titre: "Vidéo d'Yvan Monka : conjecturer la limite d'une suite", youtube: "https://youtu.be/0CC-EqOH92c" },
       texte:
-        "On regarde ce que deviennent les termes quand $n$ devient très grand (tableau de valeurs, nuage de points) :\n" +
+        "On regarde ce que deviennent les termes quand $n$ devient très grand (tableau de valeurs, nuage de points ci-contre) :\n" +
         "- ils se rapprochent d'un nombre $\\ell$ : la suite a une **limite finie** $\\ell$ ($u_n = 3 + \\dfrac{1}{n}$ se rapproche de $3$) ;\n" +
         "- ils dépassent n'importe quel nombre : la limite est **infinie** ($u_n = n^2$ tend vers $+\\infty$) ;\n" +
         "- ils ne se stabilisent pas : **pas de limite** ($u_n = (-1)^n$ vaut $1$, $-1$, $1$…).\n\n" +
@@ -89,10 +93,15 @@ window.CHAPITRES["premiere-suites"] = {
     },
     {
       titre: "Python : les listes",
+      figure: "su-cours-liste",
+      video: { titre: "Vidéo d'Yvan Monka : créer une liste en Python", youtube: "https://youtu.be/vVTdlibPu1Y" },
       texte:
-        "Une **liste** Python range plusieurs valeurs : $\\texttt{L[0]}$ est la première, $\\texttt{L[-1]}$ la dernière, $\\texttt{len(L)}$ le nombre d'éléments.\n\n" +
+        "Une **liste** Python range plusieurs valeurs : $\\texttt{L[0]}$ est la première, $\\texttt{L[-1]}$ la dernière, $\\texttt{len(L)}$ le nombre d'éléments. Les indices commencent à $0$ (schéma).\n\n" +
         "Trois façons de construire la liste des premiers termes :\n\n" +
         "```python\nL = [1, 3, 6, 10]                     # en extension\nL = []\nfor n in range(5):\n    L.append(n * n)                   # par ajouts successifs\nL = [3 * n + 1 for n in range(5)]     # en compréhension\n```\n\n" +
+        "On peut **modifier** une liste, la **parcourir**, ou ne garder que les éléments qui vérifient une **condition** :\n\n" +
+        "```python\nL = [1, 4, 7, 10, 13]\nL.append(16)   # ajoute 16 à la fin\nL.pop()        # enlève le dernier\nL.remove(7)    # enlève la valeur 7\nL[0] = 2       # L vaut [2, 4, 10, 13]\nfor x in L:    # x prend chaque valeur\n    print(x)\nM = [k for k in range(20) if k % 3 == 0]\n```\n\n" +
+        "La dernière ligne garde les $k$ de $0$ à $19$ qui sont multiples de $3$ : $\\texttt{M}$ vaut $\\texttt{[0, 3, 6, 9, 12, 15, 18]}$.\n\n" +
         "Suite de **Fibonacci** : chaque terme est la somme des deux précédents.\n\n" +
         "```python\nF = [1, 1]\nfor i in range(8):\n    F.append(F[-1] + F[-2])\n```",
       exemple: {
@@ -196,13 +205,19 @@ window.CHAPITRES["premiere-suites"] = {
     { question: "$u_{10} = 0{,}9$, $u_{100} = 0{,}99$, $u_{1\\,000} = 0{,}999$. On conjecture que :", choix: ["la limite de $(u_n)$ est $1$", "la limite de $(u_n)$ est $0{,}999$", "$(u_n)$ tend vers $+\\infty$", "$(u_n)$ n'a pas de limite"], bonne: 0, explication: "Les termes se rapprochent de $1$ sans le dépasser. C'est une conjecture : on la démontrera en Terminale." },
     { question: "En Python, $\\texttt{L = [5, 8, 13, 21]}$. Que vaut $\\texttt{L[1]}$ ?", choix: ["$8$", "$5$", "$13$", "$21$"], bonne: 0, explication: "Les indices commencent à $0$ : $\\texttt{L[0]}$ vaut $5$ et $\\texttt{L[1]}$ vaut $8$." },
     { question: "Que contient $\\texttt{L}$ après $\\texttt{L = []}$ puis $\\texttt{for n in range(4): L.append(n + 1)}$ ?", choix: ["$\\texttt{[1, 2, 3, 4]}$", "$\\texttt{[0, 1, 2, 3]}$", "$\\texttt{[1, 2, 3, 4, 5]}$", "$\\texttt{[4]}$"], bonne: 0, explication: "$n$ prend les valeurs $0$, $1$, $2$, $3$, et on ajoute $n + 1$ à chaque tour : $1$, $2$, $3$, $4$." },
-    { question: "Programme de Fibonacci : $\\texttt{F = [1, 1]}$, puis une boucle qui tourne $5$ fois et ajoute un terme à chaque tour. Combien d'éléments contient $\\texttt{F}$ à la fin ?", choix: ["$7$", "$5$", "$6$", "$8$"], bonne: 0, explication: "On part de $2$ éléments et on en ajoute $5$ : $\\texttt{[1, 1, 2, 3, 5, 8, 13]}$, soit $7$ éléments." }
+    { question: "Programme de Fibonacci : $\\texttt{F = [1, 1]}$, puis une boucle qui tourne $5$ fois et ajoute un terme à chaque tour. Combien d'éléments contient $\\texttt{F}$ à la fin ?", choix: ["$7$", "$5$", "$6$", "$8$"], bonne: 0, explication: "On part de $2$ éléments et on en ajoute $5$ : $\\texttt{[1, 1, 2, 3, 5, 8, 13]}$, soit $7$ éléments." },
+    { question: "Le schéma montre comment on passe d'un terme au suivant. Combien vaut $u_2$ ?", figure: "su-qcm-chaine", choix: ["$15$", "$7$", "$14$", "$16$"], bonne: 0, explication: "$u_1 = 2 \\times 3 + 1 = 7$, puis $u_2 = 2 \\times 7 + 1 = 15$. ($7$, c'est $u_1$ ; $14$ oublie le $+ 1$ ; $16$ ajoute $1$ avant de multiplier.)" },
+    { question: "Le nuage ci-dessous représente les premiers termes d'une suite $(u_n)$. Que peut-on affirmer ?", figure: "su-qcm-variation", choix: ["$(u_n)$ n'est ni croissante ni décroissante", "$(u_n)$ est croissante", "$(u_n)$ est décroissante", "$(u_n)$ est constante"], bonne: 0, explication: "Les points descendent jusqu'au rang $3$ ($u_1 < u_0$), puis remontent ($u_4 > u_3$) : ces deux contre-exemples prouvent que la suite n'est ni croissante ni décroissante." },
+    { question: "Le nuage représente les premiers termes d'une suite $(u_n)$. Quelle conjecture peut-on faire ?", figure: "su-qcm-limite", choix: ["La limite de $(u_n)$ semble être $4$", "La limite de $(u_n)$ semble être $7$", "$(u_n)$ semble n'avoir aucune limite", "La limite de $(u_n)$ semble être $0$"], bonne: 0, explication: "Les points sont tantôt au-dessus, tantôt au-dessous de la hauteur $4$, mais de plus en plus près : on conjecture que la limite est $4$. Changer de côté n'empêche pas d'avoir une limite." },
+    { question: "Avec la liste $\\texttt{L}$ représentée ci-dessous, que vaut $\\texttt{L[-2]}$ ?", figure: "su-qcm-liste", choix: ["$13$", "$8$", "$21$", "$5$"], bonne: 0, explication: "Les indices négatifs comptent depuis la fin : $\\texttt{L[-1]}$ est le dernier élément ($21$), $\\texttt{L[-2]}$ l'avant-dernier, $13$." },
+    { question: "Combien d'allumettes faut-il pour l'étape $10$ de ce motif ?", figure: "motif-allumettes", choix: ["$31$", "$40$", "$30$", "$34$"], bonne: 0, explication: "On compte $4$, $7$, $10$ : on ajoute $3$ allumettes à chaque étape, donc $u_n = 3n + 1$ et $u_{10} = 31$. ($40 = 4 \\times 10$ compte deux fois les allumettes communes à deux carrés ; $34$ est $u_{11}$.)" }
   ],
 
   /* ---------- 4. FICHE MÉTHODE ---------- */
   methode: [
     {
       titre: "Calculer des termes",
+      figure: "su-meth-chaine",
       etapes: [
         "Repérer le type de définition : formule explicite ($u_n$ en fonction de $n$) ou récurrence ($u_{n+1}$ en fonction de $u_n$).",
         "Explicite : remplacer $n$ par la valeur voulue, avec des parenthèses autour des nombres négatifs.",
@@ -212,6 +227,7 @@ window.CHAPITRES["premiere-suites"] = {
     },
     {
       titre: "Traduire un énoncé par une suite",
+      figure: "su-meth-traduire",
       etapes: [
         "Dire ce que représente $u_n$ (avec l'unité) et le rang de départ.",
         "Passer d'une étape à la suivante : on ajoute ($+$), on multiplie ($\\times$), ou les deux, dans l'ordre de l'énoncé.",
@@ -221,6 +237,7 @@ window.CHAPITRES["premiere-suites"] = {
     },
     {
       titre: "Étudier le sens de variation",
+      figure: "su-meth-variation",
       etapes: [
         "Calculer et simplifier $u_{n+1} - u_n$.",
         "Étudier son signe pour tout $n \\in \\mathbb{N}$ (ou à partir d'un rang).",
@@ -231,6 +248,7 @@ window.CHAPITRES["premiere-suites"] = {
     },
     {
       titre: "Conjecturer une limite",
+      figure: "su-meth-limite",
       etapes: [
         "Calculer des termes de rang $10$, $100$, $1\\,000$ (calculatrice, tableur, Python).",
         "Regarder si les termes se stabilisent, grandissent sans fin ou oscillent.",
@@ -245,6 +263,7 @@ window.CHAPITRES["premiere-suites"] = {
     "Relier les points du nuage d'une suite comme pour une courbe de fonction.",
     "Conclure qu'une suite est croissante en regardant seulement deux termes.",
     "Croire que « pas croissante » veut dire « décroissante ».",
-    "Oublier que les indices d'une liste Python commencent à $0$."
+    "Oublier que les indices d'une liste Python commencent à $0$, et que $\\texttt{range(n)}$ s'arrête à $n - 1$.",
+    "Vérifier une relation de récurrence sur une seule étape : elle doit marcher à **toutes** les étapes."
   ]
 };

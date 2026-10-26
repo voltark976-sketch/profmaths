@@ -4,7 +4,7 @@
   Chapitre 3 de la progression spiralée 2026-2027 (programme de maths complémentaires de 2019).
   Mêmes règles d'écriture que data/seconde/fonctions.js.
   Vidéos d'Yvan Monka (cours de maths complémentaires 20SuitesTC2).
-  Figures : "tsu-escalier", "tag-refroidissement", "tag-dette". Générateurs : tag- (et tsu-escalier).
+  Figures : "tsu-escalier", "tag-refroidissement", "tag-dette", "tag-cours-…", "tag-qcm-…". Générateurs : tag- (et tsu-escalier).
 */
 window.CHAPITRES = window.CHAPITRES || {};
 window.CHAPITRES["terminale-arithmetico-geometriques"] = {
@@ -15,7 +15,9 @@ window.CHAPITRES["terminale-arithmetico-geometriques"] = {
 
   playlist: "",
   drive: "",
-  pdfs: [],
+  pdfs: [
+    { titre: "Cours d'Yvan Monka : suites, chapitre 2 (suites arithmético-géométriques) (PDF)", url: "https://www.maths-et-tiques.fr/telech/20SuitesTC2.pdf" }
+  ],
   liens: [],
 
   /* ---------- 1. CAPSULE DE COURS ---------- */
@@ -23,6 +25,7 @@ window.CHAPITRES["terminale-arithmetico-geometriques"] = {
     {
       titre: "Une suite qui multiplie puis ajoute",
       figure: "tsu-escalier",
+      video: { titre: "Vidéo d'Yvan Monka : étudier graphiquement le comportement d'une suite (escalier)", youtube: "https://youtu.be/LDRx7aS9JsA" },
       texte:
         "Une suite **arithmético-géométrique** vérifie, pour tout $n$ : $u_{n+1} = au_n + b$, avec $a$ et $b$ deux réels.\n\n" +
         "- Si $a = 1$ : $u_{n+1} = u_n + b$, suite **arithmétique**.\n" +
@@ -35,10 +38,11 @@ window.CHAPITRES["terminale-arithmetico-geometriques"] = {
     },
     {
       titre: "La suite constante solution",
+      figure: "tag-cours-pointfixe",
       texte:
         "On cherche un réel $\\ell$ tel que la suite constante égale à $\\ell$ vérifie la relation : $\\ell = a\\ell + b$.\n\n" +
         "Si $a \\neq 1$ : $\\ell - a\\ell = b$, donc $\\ell = \\dfrac{b}{1 - a}$.\n\n" +
-        "Sur l'escalier, $\\ell$ est l'abscisse du point d'intersection de la droite $y = ax + b$ avec la droite $y = x$. C'est souvent la **valeur d'équilibre** du phénomène (température de la pièce, population stable…).",
+        "Sur l'escalier, $\\ell$ est l'abscisse du point d'intersection de la droite $y = ax + b$ avec la droite $y = x$ (figure, pour l'exemple ci-dessous). C'est souvent la **valeur d'équilibre** du phénomène (température de la pièce, population stable…).",
       exemple: {
         enonce: "Trouve la suite constante solution de $u_{n+1} = 0{,}8u_n + 5$.",
         solution: "$\\ell = 0{,}8\\ell + 5 \\iff 0{,}2\\ell = 5 \\iff \\ell = 25$. Si $u_0 = 25$, alors $u_1 = 0{,}8 \\times 25 + 5 = 25$, et ainsi de suite."
@@ -59,6 +63,7 @@ window.CHAPITRES["terminale-arithmetico-geometriques"] = {
     },
     {
       titre: "Sens de variation",
+      figure: "tag-cours-sens",
       video: { titre: "Vidéo d'Yvan Monka : déterminer le sens de variation d'une suite arithmético-géométrique", youtube: "https://youtu.be/0CNt_fUuwEY" },
       texte:
         "Avec $u_n = \\ell + (u_0 - \\ell) \\times a^n$ et $a > 0$ :\n\n" +
@@ -73,6 +78,7 @@ window.CHAPITRES["terminale-arithmetico-geometriques"] = {
     },
     {
       titre: "Limite et seuil",
+      figure: "tag-cours-seuil",
       video: { titre: "Vidéo d'Yvan Monka : déterminer la limite d'une suite arithmético-géométrique", youtube: "https://youtu.be/EgYTH79sDfw" },
       texte:
         "- Si $0 < a < 1$ : $a^n \\to 0$, donc $u_n \\to \\ell$. La suite se rapproche de son équilibre.\n" +
@@ -108,22 +114,24 @@ window.CHAPITRES["terminale-arithmetico-geometriques"] = {
     },
     {
       titre: "Python : le seuil d'une suite arithmético-géométrique",
+      figure: "tag-refroidissement",
+      video: { titre: "Vidéo d'Yvan Monka : déterminer un seuil pour une suite (algorithme en Python)", youtube: "https://youtu.be/vJmpzwhaka8" },
       texte:
         "```python\ndef seuil(S):\n    n = 0\n    T = 90\n    while T >= S:\n        T = 0.8 * T + 5\n        n = n + 1\n    return n\n```\n\n" +
-        "seuil(40) renvoie $7$ : c'est le nombre de minutes pour que le plat passe sous $40$ °C.\n\n" +
-        "Attention à la condition : si on demandait seuil(20), la boucle ne s'arrêterait jamais, car $T_n$ reste toujours au-dessus de $25$.",
+        "$\\texttt{seuil(40)}$ renvoie $7$ : c'est le nombre de minutes pour que le plat passe sous $40$ °C (figure).\n\n" +
+        "Attention à la condition : si on demandait $\\texttt{seuil(20)}$, la boucle ne s'arrêterait jamais, car $T_n$ reste toujours au-dessus de $25$.",
       exemple: {
-        enonce: "Que renvoie seuil(60) ?",
+        enonce: "Que renvoie $\\texttt{seuil(60)}$ ?",
         solution: "$T_1 = 77$, $T_2 = 66{,}6$, $T_3 = 58{,}28 < 60$ : la fonction renvoie $3$."
       }
     }
   ],
 
   videos: [
-    { titre: "Étudier graphiquement le comportement d'une suite (escalier)", type: "Escalier", youtube: "https://youtu.be/LDRx7aS9JsA" },
+    { titre: "Ton prof : une suite auxiliaire géométrique, la plage (exercice corrigé de Première)", type: "Exercice", youtube: "https://youtu.be/9a9eqhi2VxE" },
     { titre: "Calculer la somme des termes d'une suite géométrique (rappel)", type: "Rappel", youtube: "https://youtu.be/rIaYMXPbWE8" }
   ],
-  videosNote: "Vidéos d'Yvan Monka : l'énoncé est donné au début de chaque vidéo.",
+  videosNote: "Vidéo de ton prof, puis d'Yvan Monka : l'énoncé est donné au début de chaque vidéo.",
 
   /* ---------- 2. EXERCICES INTERACTIFS ---------- */
   exercices: [
@@ -158,7 +166,11 @@ window.CHAPITRES["terminale-arithmetico-geometriques"] = {
     { question: "$\\ell = \\dfrac{b}{1 - a}$ est l'abscisse du point d'intersection de :", choix: ["la droite $y = ax + b$ et la droite $y = x$", "la droite $y = ax + b$ et l'axe des abscisses", "la droite $y = x$ et l'axe des ordonnées", "deux paraboles"], bonne: 0, explication: "$\\ell$ vérifie $a\\ell + b = \\ell$." },
     { question: "$u_n = 5 + 3 \\times 2^n$. Alors $u_3 =$", choix: ["$29$", "$53$", "$11$", "$64$"], bonne: 0, explication: "$5 + 3 \\times 8 = 29$." },
     { question: "$v_n = u_n - 10$ est géométrique de raison $0{,}5$ et $v_0 = 8$. Alors $u_2 =$", choix: ["$12$", "$2$", "$4$", "$18$"], bonne: 0, explication: "$v_2 = 8 \\times 0{,}25 = 2$, donc $u_2 = 12$." },
-    { question: "Pour une suite arithmético-géométrique avec $a > 1$ et $u_0 > \\ell$, la limite est :", choix: ["$+\\infty$", "$-\\infty$", "$\\ell$", "$0$"], bonne: 0, explication: "$(u_0 - \\ell)a^n \\to +\\infty$." }
+    { question: "Pour une suite arithmético-géométrique avec $a > 1$ et $u_0 > \\ell$, la limite est :", choix: ["$+\\infty$", "$-\\infty$", "$\\ell$", "$0$"], bonne: 0, explication: "$(u_0 - \\ell)a^n \\to +\\infty$." },
+    { question: "La figure montre les droites $y = 0{,}5x + 3$ et $y = x$. La suite constante solution de $u_{n+1} = 0{,}5u_n + 3$ vaut :", figure: "tag-qcm-droites", choix: ["$6$", "$3$", "$0{,}5$", "$1{,}5$"], bonne: 0, explication: "Les droites se coupent au point $(6\\,;6)$ : $\\ell = 0{,}5\\ell + 3 \\iff 0{,}5\\ell = 3 \\iff \\ell = 6$." },
+    { question: "La figure montre les termes de la suite $u_0 = 10$, $u_{n+1} = 0{,}6u_n + 12$. Vers quelle valeur semble-t-elle tendre ?", figure: "tag-qcm-points", choix: ["$30$", "$12$", "$10$", "$+\\infty$"], bonne: 0, explication: "$\\ell = 0{,}6\\ell + 12 \\iff 0{,}4\\ell = 12 \\iff \\ell = 30$, et $0 < 0{,}6 < 1$ : la suite tend vers $30$." },
+    { question: "D'après la figure (plat qui refroidit, $T_{n+1} = 0{,}8T_n + 5$), au bout de combien de minutes la température passe-t-elle sous $40$ °C ?", figure: "tag-refroidissement", choix: ["$7$ minutes", "$6$ minutes", "$12$ minutes", "jamais"], bonne: 0, explication: "$T_6 \\approx 42{,}0$ °C et $T_7 \\approx 38{,}6$ °C : il faut $7$ minutes. La température ne passera jamais sous $25$ °C." },
+    { question: "La figure montre une dette de $3\\,000$ € à $1\\,\\%$ par mois, remboursée $200$ € par mois. Au bout de combien de mois est-elle soldée ?", figure: "tag-dette", choix: ["$17$ mois", "$15$ mois", "$20$ mois", "jamais"], bonne: 0, explication: "$D_{16} \\approx 66$ € et $D_{17} \\leqslant 0$ : $17$ mois. Sans les intérêts, il aurait fallu $15$ mois." }
   ],
 
   /* ---------- 4. FICHE MÉTHODE ---------- */
@@ -166,17 +178,20 @@ window.CHAPITRES["terminale-arithmetico-geometriques"] = {
     {
       titre: "Étudier $u_{n+1} = au_n + b$ ($a \\neq 1$)",
       etapes: ["Chercher $\\ell$ : $\\ell = a\\ell + b$, donc $\\ell = \\dfrac{b}{1 - a}$.", "Poser $v_n = u_n - \\ell$ et montrer que $v_{n+1} = av_n$.", "Écrire $v_n = (u_0 - \\ell)a^n$, puis $u_n = \\ell + (u_0 - \\ell)a^n$."],
-      exemple: "$u_0 = 90$, $u_{n+1} = 0{,}8u_n + 5$ : $\\ell = 25$, $u_n = 25 + 65 \\times 0{,}8^n$."
+      exemple: "$u_0 = 90$, $u_{n+1} = 0{,}8u_n + 5$ : $\\ell = 25$ (intersection des droites de la figure), $u_n = 25 + 65 \\times 0{,}8^n$.",
+      figure: "tag-cours-pointfixe"
     },
     {
       titre: "Limite et sens de variation",
       etapes: ["Regarder $a^n$ : vers $0$ si $0 < a < 1$, vers $+\\infty$ si $a > 1$.", "Tenir compte du signe de $u_0 - \\ell$.", "Ajouter $\\ell$ ne change ni le sens de variation ni le type de limite."],
-      exemple: "$40 - 20 \\times 0{,}5^n$ : croissante, limite $40$."
+      exemple: "$40 - 20 \\times 0{,}5^n$ : croissante, limite $40$ (points de la figure).",
+      figure: "tag-cours-sens"
     },
     {
       titre: "Modéliser une situation",
       etapes: ["Traduire l'énoncé : « on multiplie par… puis on ajoute (ou retire)… ».", "Interpréter $\\ell$ : l'équilibre du phénomène.", "Répondre à la question (limite, seuil) par une phrase dans le contexte."],
-      exemple: "Plat : $T_{n+1} = 0{,}8T_n + 5$, équilibre à $25$ °C, sous $40$ °C après $7$ minutes."
+      exemple: "Plat : $T_{n+1} = 0{,}8T_n + 5$, équilibre à $25$ °C, sous $40$ °C après $7$ minutes (figure).",
+      figure: "tag-refroidissement"
     }
   ],
   erreurs: [

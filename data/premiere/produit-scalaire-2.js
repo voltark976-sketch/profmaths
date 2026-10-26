@@ -5,7 +5,7 @@
   Suite du chapitre 11 : bilinéarité, identités, Al-Kashi, ensemble des points M tels que MA · MB = 0.
   Mêmes règles d'écriture que data/seconde/fonctions.js.
   Pas encore de vidéo de la chaîne ni de PDF pour ce chapitre : les vidéos sont celles d'Yvan Monka.
-  Figures : "al-kashi", "ilots", "cercle-diametre". Générateurs : sc-.
+  Figures : "al-kashi", "ilots", "cercle-diametre", "sc-cours-…", "sc-qcm-…", "sc-meth-…" (assets/exercices.js). Générateurs : sc-.
 */
 window.CHAPITRES = window.CHAPITRES || {};
 window.CHAPITRES["premiere-produit-scalaire-2"] = {
@@ -16,7 +16,9 @@ window.CHAPITRES["premiere-produit-scalaire-2"] = {
 
   playlist: "",
   drive: "",
-  pdfs: [],
+  pdfs: [
+    { titre: "Cours d'Yvan Monka : produit scalaire, chapitre 2 (PDF)", url: "https://www.maths-et-tiques.fr/telech/19Prodscal2M.pdf" }
+  ],
   liens: [
     { titre: "Le cours sur le produit scalaire en vidéo (Yvan Monka)", url: "https://youtu.be/dII7myZuLvo", type: "video" }
   ],
@@ -25,11 +27,13 @@ window.CHAPITRES["premiere-produit-scalaire-2"] = {
   cours: [
     {
       titre: "Symétrie et bilinéarité",
+      figure: "sc-cours-bilinearite",
       video: { titre: "Vidéo d'Yvan Monka : utiliser les formules du produit scalaire (symétrie, bilinéarité)", youtube: "https://youtu.be/_SDj-fG1S18" },
       texte:
         "Pour tous vecteurs $\\vec{u}$, $\\vec{v}$, $\\vec{w}$ et tout réel $k$ :\n\n" +
         "- **symétrie** : $\\vec{u} \\cdot \\vec{v} = \\vec{v} \\cdot \\vec{u}$ ;\n" +
         "- **bilinéarité** : $\\vec{u} \\cdot (\\vec{v} + \\vec{w}) = \\vec{u} \\cdot \\vec{v} + \\vec{u} \\cdot \\vec{w}$ et $(k\\vec{u}) \\cdot \\vec{v} = k\\,(\\vec{u} \\cdot \\vec{v})$.\n\n" +
+        "Sur la figure, avec la projection orthogonale sur la droite qui porte $\\vec{u}$ : le projeté de $\\vec{v} + \\vec{w}$ est la somme des projetés de $\\vec{v}$ et de $\\vec{w}$.\n\n" +
         "On développe donc un produit scalaire comme un produit de nombres, en remplaçant $\\vec{u} \\cdot \\vec{u}$ par $\\|\\vec{u}\\|^2$.",
       exemple: {
         enonce: "$\\|\\vec{u}\\| = 2$, $\\|\\vec{v}\\| = 3$ et $\\vec{u} \\cdot \\vec{v} = -1$. Calcule $(3\\vec{u} + \\vec{v}) \\cdot \\vec{u}$.",
@@ -38,9 +42,10 @@ window.CHAPITRES["premiere-produit-scalaire-2"] = {
     },
     {
       titre: "Identités remarquables",
+      figure: "sc-cours-identites",
       video: { titre: "Vidéo d'Yvan Monka : calculer un produit scalaire avec les normes", youtube: "https://youtu.be/iNsm05JimgA" },
       texte:
-        "En développant par bilinéarité :\n\n" +
+        "Dans le parallélogramme construit sur $\\vec{u}$ et $\\vec{v}$, les deux diagonales représentent $\\vec{u} + \\vec{v}$ et $\\vec{u} - \\vec{v}$. En développant par bilinéarité :\n\n" +
         "- $\\|\\vec{u} + \\vec{v}\\|^2 = \\|\\vec{u}\\|^2 + 2\\,\\vec{u} \\cdot \\vec{v} + \\|\\vec{v}\\|^2$ ;\n" +
         "- $\\|\\vec{u} - \\vec{v}\\|^2 = \\|\\vec{u}\\|^2 - 2\\,\\vec{u} \\cdot \\vec{v} + \\|\\vec{v}\\|^2$ ;\n" +
         "- $(\\vec{u} + \\vec{v}) \\cdot (\\vec{u} - \\vec{v}) = \\|\\vec{u}\\|^2 - \\|\\vec{v}\\|^2$.\n\n" +
@@ -70,6 +75,7 @@ window.CHAPITRES["premiere-produit-scalaire-2"] = {
     },
     {
       titre: "Calculer une longueur ou un angle",
+      figure: "sc-cours-calcul",
       video: { titre: "Vidéo d'Yvan Monka : appliquer le théorème d'Al-Kashi", youtube: "https://youtu.be/SeFjmbOGhVc" },
       texte:
         "- Deux côtés et l'angle entre eux sont connus : Al-Kashi donne le **troisième côté**.\n" +
@@ -85,6 +91,7 @@ window.CHAPITRES["premiere-produit-scalaire-2"] = {
     {
       titre: "La distance entre deux îlots du lagon",
       figure: "ilots",
+      video: { titre: "Vidéo d'Yvan Monka : calculer une longueur à l'aide du produit scalaire", youtube: "https://youtu.be/K4Izn5xB_Qk" },
       texte:
         "On ne peut pas mesurer directement la distance entre deux îlots, mais depuis une pirogue $P$ on peut mesurer les distances $PA$ et $PB$ (par exemple avec un GPS) et l'angle entre les deux visées (avec une boussole).\n\n" +
         "Sur le schéma : $PA = 2{,}4$ km, $PB = 3{,}1$ km et $\\widehat{APB} = 52°$. Par Al-Kashi :\n\n" +
@@ -112,11 +119,15 @@ window.CHAPITRES["premiere-produit-scalaire-2"] = {
     },
     {
       titre: "Transformer $\\overrightarrow{MA} \\cdot \\overrightarrow{MB}$",
+      figure: "sc-cours-transformer",
       video: { titre: "Vidéo d'Yvan Monka : appliquer l'égalité MA · MB = 0", youtube: "https://youtu.be/bUARS-dthLM" },
       texte:
         "La démonstration précédente donne, pour tout point $M$, avec $I$ milieu de $[AB]$ :\n\n" +
         "$\\overrightarrow{MA} \\cdot \\overrightarrow{MB} = MI^2 - \\dfrac{AB^2}{4}$.\n\n" +
-        "On en déduit l'ensemble des points $M$ tels que $\\overrightarrow{MA} \\cdot \\overrightarrow{MB} = k$ : c'est un cercle de centre $I$ si $k + \\dfrac{AB^2}{4} > 0$, de rayon $\\sqrt{k + \\dfrac{AB^2}{4}}$.",
+        "On en déduit l'ensemble des points $M$ tels que $\\overrightarrow{MA} \\cdot \\overrightarrow{MB} = k$, car il équivaut à $MI^2 = k + \\dfrac{AB^2}{4}$ :\n\n" +
+        "- si $k + \\dfrac{AB^2}{4} > 0$, c'est le cercle de centre $I$ et de rayon $\\sqrt{k + \\dfrac{AB^2}{4}}$ ;\n" +
+        "- si $k + \\dfrac{AB^2}{4} = 0$, c'est le seul point $I$ ;\n" +
+        "- si $k + \\dfrac{AB^2}{4} < 0$, c'est l'ensemble vide (un carré n'est jamais négatif).",
       exemple: {
         enonce: "$AB = 6$. Quel est l'ensemble des points $M$ tels que $\\overrightarrow{MA} \\cdot \\overrightarrow{MB} = 7$ ?",
         solution: "$MI^2 - 9 = 7 \\iff MI^2 = 16 \\iff MI = 4$ : c'est le cercle de centre $I$ et de rayon $4$."
@@ -124,12 +135,14 @@ window.CHAPITRES["premiere-produit-scalaire-2"] = {
     },
     {
       titre: "Logique : la contraposée",
+      figure: "sc-cours-contraposee",
       texte:
         "À partir de l'implication « si P, alors Q » :\n\n" +
         "- sa **réciproque** est « si Q, alors P » : elle peut être fausse ;\n" +
         "- sa **contraposée** est « si non Q, alors non P » : elle est **toujours équivalente** à l'implication de départ.\n\n" +
         "Exemple avec Pythagore : « si $ABC$ est rectangle en $A$, alors $BC^2 = AB^2 + AC^2$ ». Sa contraposée, « si $BC^2 \\neq AB^2 + AC^2$, alors $ABC$ n'est pas rectangle en $A$ », sert à **démontrer** qu'un triangle n'est pas rectangle.\n\n" +
-        "Al-Kashi précise même la nature de l'angle : si $BC^2 > AB^2 + AC^2$, alors $\\cos \\widehat{A} < 0$ et l'angle est obtus.",
+        "Al-Kashi précise même la nature de l'angle : si $BC^2 > AB^2 + AC^2$, alors $\\cos \\widehat{A} < 0$ et l'angle est obtus.\n\n" +
+        "Sur la figure, le triangle de côtés $5$, $6$ et $8$ semble rectangle : seul le calcul permet de conclure.",
       exemple: {
         enonce: "Un triangle a pour côtés $5$, $6$ et $8$. Est-il rectangle ?",
         solution: "$8^2 = 64$ et $5^2 + 6^2 = 61 \\neq 64$. Par la contraposée de Pythagore, il n'est pas rectangle ; comme $64 > 61$, l'angle opposé au côté $8$ est obtus (environ $92{,}9°$)."
@@ -137,10 +150,11 @@ window.CHAPITRES["premiere-produit-scalaire-2"] = {
     },
     {
       titre: "Python : un angle à partir de trois points",
+      figure: "sc-cours-python",
       texte:
         "Avec les coordonnées de trois points $A$, $B$, $C$, on calcule l'angle $\\widehat{BAC}$ :\n\n" +
         "```python\nfrom math import sqrt, acos, degrees\n\ndef angle(A, B, C):\n    u = (B[0] - A[0], B[1] - A[1])\n    v = (C[0] - A[0], C[1] - A[1])\n    ps = u[0] * v[0] + u[1] * v[1]\n    nu = sqrt(u[0]**2 + u[1]**2)\n    nv = sqrt(v[0]**2 + v[1]**2)\n    return degrees(acos(ps / (nu * nv)))\n\nprint(angle((0, 0), (4, 0), (2, 2)))\n```\n\n" +
-        "acos est la fonction $\\cos^{-1}$ (elle renvoie un angle en radians) et degrees le convertit en degrés. Le programme affiche environ $45$.",
+        "Les vecteurs u et v partent tous les deux du **premier** point : c'est le sommet de l'angle calculé. acos est la fonction $\\cos^{-1}$ (elle renvoie un angle en radians) et degrees le convertit en degrés. Le programme affiche environ $45$.",
       exemple: {
         enonce: "Que renvoie angle((1, 1), (4, 1), (1, 6)) ?",
         solution: "$\\overrightarrow{AB}\\begin{pmatrix} 3 \\\\ 0 \\end{pmatrix}$ et $\\overrightarrow{AC}\\begin{pmatrix} 0 \\\\ 5 \\end{pmatrix}$ : le produit scalaire est nul, la fonction renvoie $90$ (à un arrondi près)."
@@ -150,8 +164,7 @@ window.CHAPITRES["premiere-produit-scalaire-2"] = {
 
   videos: [
     { titre: "Calculer un produit scalaire à l'aide de la bilinéarité", type: "Bilinéarité", youtube: "https://youtu.be/P0nKS-cTEO0" },
-    { titre: "Appliquer le théorème d'Al-Kashi (2) : calculer un angle", type: "Al-Kashi", youtube: "https://youtu.be/-cQQAjHJ0Kc" },
-    { titre: "Calculer une longueur à l'aide du produit scalaire", type: "Longueur", youtube: "https://youtu.be/K4Izn5xB_Qk" }
+    { titre: "Appliquer le théorème d'Al-Kashi (2) : calculer un angle", type: "Al-Kashi", youtube: "https://youtu.be/-cQQAjHJ0Kc" }
   ],
   videosNote: "Vidéos d'Yvan Monka : l'énoncé est donné au début de chaque vidéo.",
 
@@ -171,32 +184,34 @@ window.CHAPITRES["premiere-produit-scalaire-2"] = {
     { question: "$\\vec{u} \\cdot (\\vec{v} + \\vec{w})$ est égal à :", choix: ["$\\vec{u} \\cdot \\vec{v} + \\vec{u} \\cdot \\vec{w}$", "$\\vec{u} \\cdot \\vec{v} \\times \\vec{u} \\cdot \\vec{w}$", "$\\|\\vec{u}\\| + \\vec{v} \\cdot \\vec{w}$", "$(\\vec{u} \\cdot \\vec{v}) + \\vec{w}$"], bonne: 0, explication: "Bilinéarité : on distribue comme avec des nombres." },
     { question: "$\\|\\vec{u} + \\vec{v}\\|^2 =$", choix: ["$\\|\\vec{u}\\|^2 + 2\\,\\vec{u} \\cdot \\vec{v} + \\|\\vec{v}\\|^2$", "$\\|\\vec{u}\\|^2 + \\|\\vec{v}\\|^2$", "$(\\|\\vec{u}\\| + \\|\\vec{v}\\|)^2$", "$2\\,\\vec{u} \\cdot \\vec{v}$"], bonne: 0, explication: "Identité remarquable du produit scalaire." },
     { question: "$\\|\\vec{u}\\| = 4$ et $\\|\\vec{v}\\| = 3$. $(\\vec{u} + \\vec{v}) \\cdot (\\vec{u} - \\vec{v}) =$", choix: ["$7$", "$25$", "$1$", "$12$"], bonne: 0, explication: "$\\|\\vec{u}\\|^2 - \\|\\vec{v}\\|^2 = 16 - 9$." },
-    { question: "$\\|\\vec{u}\\| = 2$, $\\|\\vec{v}\\| = 3$ et $\\|\\vec{u} + \\vec{v}\\| = 4$. $\\vec{u} \\cdot \\vec{v} =$", choix: ["$1{,}5$", "$3$", "$-1{,}5$", "$12$"], bonne: 0, explication: "$\\dfrac{16 - 4 - 9}{2} = 1{,}5$." },
+    { figure: "sc-qcm-normes", question: "$\\|\\vec{u}\\| = 2$, $\\|\\vec{v}\\| = 3$ et $\\|\\vec{u} + \\vec{v}\\| = 4$. $\\vec{u} \\cdot \\vec{v} =$", choix: ["$1{,}5$", "$3$", "$-1{,}5$", "$12$"], bonne: 0, explication: "$\\dfrac{16 - 4 - 9}{2} = 1{,}5$." },
     { question: "La formule d'Al-Kashi dans le triangle $ABC$ s'écrit :", choix: ["$BC^2 = AB^2 + AC^2 - 2\\,AB \\times AC \\cos \\widehat{A}$", "$BC^2 = AB^2 + AC^2$", "$BC^2 = AB^2 + AC^2 + 2\\,AB \\times AC \\cos \\widehat{A}$", "$BC = AB + AC - 2\\cos \\widehat{A}$"], bonne: 0, explication: "Elle généralise Pythagore (cas $\\widehat{A} = 90°$)." },
-    { question: "$AB = 3$, $AC = 4$ et $\\widehat{A} = 60°$. $BC^2 =$", choix: ["$13$", "$25$", "$37$", "$7$"], bonne: 0, explication: "$9 + 16 - 2 \\times 3 \\times 4 \\times \\dfrac{1}{2} = 13$." },
-    { question: "$AB = 3$, $AC = 5$, $BC = 7$. $\\cos \\widehat{A} =$", choix: ["$-\\dfrac{1}{2}$", "$\\dfrac{1}{2}$", "$\\dfrac{7}{15}$", "$0$"], bonne: 0, explication: "$\\dfrac{9 + 25 - 49}{30} = -\\dfrac{1}{2}$ : l'angle mesure $120°$." },
+    { figure: "sc-qcm-60", question: "$AB = 3$, $AC = 4$ et $\\widehat{A} = 60°$. $BC^2 =$", choix: ["$13$", "$25$", "$37$", "$7$"], bonne: 0, explication: "$9 + 16 - 2 \\times 3 \\times 4 \\times \\dfrac{1}{2} = 13$." },
+    { figure: "sc-cours-calcul", question: "$AB = 3$, $AC = 5$, $BC = 7$. $\\cos \\widehat{A} =$", choix: ["$-\\dfrac{1}{2}$", "$\\dfrac{1}{2}$", "$\\dfrac{7}{15}$", "$0$"], bonne: 0, explication: "$\\dfrac{9 + 25 - 49}{30} = -\\dfrac{1}{2}$ : l'angle mesure $120°$." },
     { question: "Si $BC^2 > AB^2 + AC^2$, l'angle $\\widehat{A}$ est :", choix: ["obtus", "aigu", "droit", "nul"], bonne: 0, explication: "Alors $\\cos \\widehat{A} < 0$." },
     { question: "L'ensemble des points $M$ tels que $\\overrightarrow{MA} \\cdot \\overrightarrow{MB} = 0$ est :", choix: ["le cercle de diamètre $[AB]$", "la médiatrice de $[AB]$", "la droite $(AB)$", "le cercle de centre $A$ et de rayon $AB$"], bonne: 0, explication: "Démontré dans le cours avec le milieu $I$ de $[AB]$." },
     { question: "$A(0\\,;0)$ et $B(6\\,;0)$. Le cercle de diamètre $[AB]$ a pour rayon :", choix: ["$3$", "$6$", "$9$", "$36$"], bonne: 0, explication: "$\\dfrac{AB}{2} = 3$." },
     { question: "$I$ est le milieu de $[AB]$. $\\overrightarrow{MA} \\cdot \\overrightarrow{MB} =$", choix: ["$MI^2 - \\dfrac{AB^2}{4}$", "$MI^2 + \\dfrac{AB^2}{4}$", "$MA \\times MB$", "$MI^2$"], bonne: 0, explication: "$(\\overrightarrow{MI} + \\overrightarrow{IA}) \\cdot (\\overrightarrow{MI} - \\overrightarrow{IA}) = MI^2 - IA^2$." },
     { question: "La contraposée de « si P, alors Q » est :", choix: ["« si non Q, alors non P »", "« si Q, alors P »", "« si non P, alors non Q »", "« P et non Q »"], bonne: 0, explication: "« si Q, alors P » est la réciproque." },
     { question: "Un triangle de côtés $6$, $8$ et $11$ est-il rectangle ?", choix: ["Non, car $11^2 \\neq 6^2 + 8^2$", "Oui, car $6 + 8 > 11$", "Oui, car $11$ est le plus grand côté", "On ne peut pas savoir"], bonne: 0, explication: "$121 \\neq 100$ : contraposée de Pythagore." },
-    { question: "Depuis une pirogue, $PA = 2$ km, $PB = 2$ km et $\\widehat{APB} = 60°$. $AB =$", choix: ["$2$ km", "$4$ km", "$2\\sqrt{2}$ km", "$1$ km"], bonne: 0, explication: "$AB^2 = 4 + 4 - 2 \\times 4 \\times \\dfrac{1}{2} = 4$ : le triangle est équilatéral." },
+    { figure: "sc-qcm-pirogue", question: "Depuis une pirogue, $PA = 2$ km, $PB = 2$ km et $\\widehat{APB} = 60°$. $AB =$", choix: ["$2$ km", "$4$ km", "$2\\sqrt{2}$ km", "$1$ km"], bonne: 0, explication: "$AB^2 = 4 + 4 - 2 \\times 4 \\times \\dfrac{1}{2} = 4$ : le triangle est équilatéral." },
     { question: "$(2\\vec{u}) \\cdot (3\\vec{v})$ est égal à :", choix: ["$6\\,\\vec{u} \\cdot \\vec{v}$", "$5\\,\\vec{u} \\cdot \\vec{v}$", "$\\vec{u} \\cdot \\vec{v}$", "$36\\,\\vec{u} \\cdot \\vec{v}$"], bonne: 0, explication: "Bilinéarité : les réels sortent du produit scalaire en se multipliant, $(2\\vec{u}) \\cdot (3\\vec{v}) = 2 \\times 3 \\times \\vec{u} \\cdot \\vec{v}$." },
     { question: "$\\|\\vec{u}\\| = 3$, $\\|\\vec{v}\\| = 2$ et $\\vec{u} \\cdot \\vec{v} = 1$. Alors $\\|\\vec{u} - \\vec{v}\\|^2 =$", choix: ["$11$", "$13$", "$15$", "$1$"], bonne: 0, explication: "$\\|\\vec{u} - \\vec{v}\\|^2 = \\|\\vec{u}\\|^2 - 2\\,\\vec{u} \\cdot \\vec{v} + \\|\\vec{v}\\|^2 = 9 - 2 + 4 = 11$. Oublier le terme $-2\\,\\vec{u} \\cdot \\vec{v}$ donne $13$." },
     { question: "$\\|\\vec{u}\\| = 2$, $\\|\\vec{v}\\| = 1$ et $\\vec{u} \\cdot \\vec{v} = -1$. Alors $(\\vec{u} + 2\\vec{v}) \\cdot \\vec{u} =$", choix: ["$2$", "$6$", "$3$", "$4$"], bonne: 0, explication: "$(\\vec{u} + 2\\vec{v}) \\cdot \\vec{u} = \\vec{u} \\cdot \\vec{u} + 2\\,\\vec{v} \\cdot \\vec{u} = \\|\\vec{u}\\|^2 + 2\\,\\vec{u} \\cdot \\vec{v} = 4 - 2 = 2$." },
     { question: "$(\\vec{u} + \\vec{v}) \\cdot (\\vec{u} - \\vec{v}) = 0$ signifie que :", choix: ["$\\vec{u}$ et $\\vec{v}$ ont la même norme", "$\\vec{u} = \\vec{v}$", "$\\vec{u}$ et $\\vec{v}$ sont orthogonaux", "$\\vec{u}$ ou $\\vec{v}$ est nul"], bonne: 0, explication: "$(\\vec{u} + \\vec{v}) \\cdot (\\vec{u} - \\vec{v}) = \\|\\vec{u}\\|^2 - \\|\\vec{v}\\|^2$, nul si et seulement si $\\|\\vec{u}\\| = \\|\\vec{v}\\|$. Deux vecteurs de même norme ne sont pas forcément égaux." },
     { question: "On sait que $\\|\\vec{u} + \\vec{v}\\|^2 = \\|\\vec{u}\\|^2 + \\|\\vec{v}\\|^2$. Alors :", choix: ["$\\vec{u}$ et $\\vec{v}$ sont orthogonaux", "$\\vec{u}$ et $\\vec{v}$ sont colinéaires", "$\\vec{u} = \\vec{v}$", "c'est vrai pour tous vecteurs"], bonne: 0, explication: "En comparant avec $\\|\\vec{u} + \\vec{v}\\|^2 = \\|\\vec{u}\\|^2 + 2\\,\\vec{u} \\cdot \\vec{v} + \\|\\vec{v}\\|^2$, on obtient $\\vec{u} \\cdot \\vec{v} = 0$ : c'est Pythagore version vecteurs." },
-    { question: "Dans le triangle $ABC$, $AB = 2$, $AC = 3$ et $\\widehat{A} = 120°$, avec $\\cos 120° = -\\dfrac{1}{2}$. Alors $BC =$", choix: ["$\\sqrt{19}$", "$\\sqrt{7}$", "$\\sqrt{13}$", "$5$"], bonne: 0, explication: "Al-Kashi : $BC^2 = 4 + 9 - 2 \\times 2 \\times 3 \\times \\left(-\\dfrac{1}{2}\\right) = 13 + 6 = 19$. Le cosinus négatif fait ajouter $6$ : l'angle est obtus." },
-    { question: "Dans le triangle $ABC$, $AB = 5$, $AC = 3$ et $BC = 4$. Alors :", choix: ["$\\cos \\widehat{A} = \\dfrac{3}{5}$", "$\\cos \\widehat{A} = 0$", "$\\cos \\widehat{A} = \\dfrac{4}{5}$", "$\\cos \\widehat{A} = -\\dfrac{3}{5}$"], bonne: 0, explication: "$\\cos \\widehat{A} = \\dfrac{AB^2 + AC^2 - BC^2}{2 \\times AB \\times AC} = \\dfrac{25 + 9 - 16}{30} = \\dfrac{18}{30} = \\dfrac{3}{5}$. Le triangle est rectangle en $C$, pas en $A$." },
+    { figure: "sc-qcm-120", question: "Dans le triangle $ABC$, $AB = 2$, $AC = 3$ et $\\widehat{A} = 120°$, avec $\\cos 120° = -\\dfrac{1}{2}$. Alors $BC =$", choix: ["$\\sqrt{19}$", "$\\sqrt{7}$", "$\\sqrt{13}$", "$5$"], bonne: 0, explication: "Al-Kashi : $BC^2 = 4 + 9 - 2 \\times 2 \\times 3 \\times \\left(-\\dfrac{1}{2}\\right) = 13 + 6 = 19$. Le cosinus négatif fait ajouter $6$ : l'angle est obtus." },
+    { figure: "sc-qcm-534", question: "Dans le triangle $ABC$, $AB = 5$, $AC = 3$ et $BC = 4$. Alors :", choix: ["$\\cos \\widehat{A} = \\dfrac{3}{5}$", "$\\cos \\widehat{A} = 0$", "$\\cos \\widehat{A} = \\dfrac{4}{5}$", "$\\cos \\widehat{A} = -\\dfrac{3}{5}$"], bonne: 0, explication: "$\\cos \\widehat{A} = \\dfrac{AB^2 + AC^2 - BC^2}{2 \\times AB \\times AC} = \\dfrac{25 + 9 - 16}{30} = \\dfrac{18}{30} = \\dfrac{3}{5}$. Le triangle est rectangle en $C$, pas en $A$." },
     { question: "Dans la formule d'Al-Kashi $a^2 = b^2 + c^2 - 2bc\\cos \\widehat{A}$ pour le triangle $ABC$, le côté $a$ est :", choix: ["le côté $[BC]$, opposé à l'angle $\\widehat{A}$", "le côté $[AB]$", "toujours le plus grand côté", "le côté $[AC]$"], bonne: 0, explication: "$b$ et $c$ sont les deux côtés qui encadrent l'angle $\\widehat{A}$, et $a = BC$ est le côté qui lui fait face." },
     { question: "Un triangle a pour côtés $4$, $5$ et $6$. Son plus grand angle est :", choix: ["aigu", "droit", "obtus", "impossible à déterminer"], bonne: 0, explication: "Le plus grand angle fait face au plus grand côté. $6^2 = 36 < 4^2 + 5^2 = 41$ : son cosinus est positif, l'angle est aigu." },
     { question: "$A$ et $B$ sont distincts, et le point $M$, distinct de $A$ et de $B$, vérifie $\\overrightarrow{MA} \\cdot \\overrightarrow{MB} = 0$. Alors :", choix: ["le triangle $AMB$ est rectangle en $M$", "le triangle $AMB$ est isocèle en $M$", "$M$ est le milieu de $[AB]$", "$M$ est sur la droite $(AB)$"], bonne: 0, explication: "Les vecteurs $\\overrightarrow{MA}$ et $\\overrightarrow{MB}$ sont orthogonaux : l'angle en $M$ est droit, et $M$ est sur le cercle de diamètre $[AB]$." },
-    { question: "Dans un repère orthonormé, $A(1\\,;2)$ et $B(5\\,;-2)$. Le cercle de diamètre $[AB]$ a pour centre $I$ et pour rayon :", choix: ["$I(3\\,;0)$ et $2\\sqrt{2}$", "$I(3\\,;0)$ et $4\\sqrt{2}$", "$I(2\\,;-2)$ et $2\\sqrt{2}$", "$I(3\\,;0)$ et $8$"], bonne: 0, explication: "Le centre est le milieu $I\\left(\\dfrac{1 + 5}{2}\\,;\\dfrac{2 - 2}{2}\\right) = (3\\,;0)$. $AB = \\sqrt{16 + 16} = 4\\sqrt{2}$, donc le rayon vaut $\\dfrac{AB}{2} = 2\\sqrt{2}$." },
+    { figure: "sc-qcm-repere", question: "Dans un repère orthonormé, $A(1\\,;2)$ et $B(5\\,;-2)$. Le cercle de diamètre $[AB]$ a pour centre $I$ et pour rayon :", choix: ["$I(3\\,;0)$ et $2\\sqrt{2}$", "$I(3\\,;0)$ et $4\\sqrt{2}$", "$I(2\\,;-2)$ et $2\\sqrt{2}$", "$I(3\\,;0)$ et $8$"], bonne: 0, explication: "Le centre est le milieu $I\\left(\\dfrac{1 + 5}{2}\\,;\\dfrac{2 - 2}{2}\\right) = (3\\,;0)$. $AB = \\sqrt{16 + 16} = 4\\sqrt{2}$, donc le rayon vaut $\\dfrac{AB}{2} = 2\\sqrt{2}$." },
     { question: "$AB = 4$ et $I$ est le milieu de $[AB]$. L'ensemble des points $M$ tels que $\\overrightarrow{MA} \\cdot \\overrightarrow{MB} = 5$ est :", choix: ["le cercle de centre $I$ et de rayon $3$", "le cercle de centre $I$ et de rayon $\\sqrt{5}$", "le cercle de diamètre $[AB]$", "l'ensemble vide"], bonne: 0, explication: "$\\overrightarrow{MA} \\cdot \\overrightarrow{MB} = MI^2 - \\dfrac{AB^2}{4} = MI^2 - 4$. Donc $MI^2 - 4 = 5 \\iff MI^2 = 9 \\iff MI = 3$." },
     { question: "$AB = 4$ et $I$ est le milieu de $[AB]$. L'ensemble des points $M$ tels que $\\overrightarrow{MA} \\cdot \\overrightarrow{MB} = -4$ est :", choix: ["le seul point $I$", "le cercle de diamètre $[AB]$", "l'ensemble vide", "le cercle de centre $I$ et de rayon $2$"], bonne: 0, explication: "$MI^2 - \\dfrac{16}{4} = -4 \\iff MI^2 = 0 \\iff M = I$. Un produit scalaire négatif n'empêche pas l'ensemble d'exister." },
     { question: "La contraposée de « si $\\widehat{A}$ est obtus, alors $BC^2 > AB^2 + AC^2$ » est :", choix: ["« si $BC^2 \\leqslant AB^2 + AC^2$, alors $\\widehat{A}$ n'est pas obtus »", "« si $BC^2 > AB^2 + AC^2$, alors $\\widehat{A}$ est obtus »", "« si $\\widehat{A}$ n'est pas obtus, alors $BC^2 \\leqslant AB^2 + AC^2$ »", "« si $BC^2 < AB^2 + AC^2$, alors $\\widehat{A}$ est aigu »"], bonne: 0, explication: "Contraposée : « si non Q, alors non P ». La négation de $BC^2 > AB^2 + AC^2$ est $BC^2 \\leqslant AB^2 + AC^2$. La deuxième proposition est la réciproque." },
-    { question: "Avec la fonction $\\texttt{angle}$ du cours, que renvoie $\\texttt{angle((0, 0), (1, 0), (0, 3))}$ ?", choix: ["$\\texttt{90.0}$", "$\\texttt{0.0}$", "$\\texttt{3.0}$", "$\\texttt{45.0}$"], bonne: 0, explication: "$\\vec{u}\\begin{pmatrix} 1 \\\\ 0 \\end{pmatrix}$ et $\\vec{v}\\begin{pmatrix} 0 \\\\ 3 \\end{pmatrix}$ ont un produit scalaire nul : le cosinus vaut $0$ et l'angle mesure $90°$." }
+    { question: "Avec la fonction $\\texttt{angle}$ du cours, que renvoie $\\texttt{angle((0, 0), (1, 0), (0, 3))}$ ?", choix: ["$\\texttt{90.0}$", "$\\texttt{0.0}$", "$\\texttt{3.0}$", "$\\texttt{45.0}$"], bonne: 0, explication: "$\\vec{u}\\begin{pmatrix} 1 \\\\ 0 \\end{pmatrix}$ et $\\vec{v}\\begin{pmatrix} 0 \\\\ 3 \\end{pmatrix}$ ont un produit scalaire nul : le cosinus vaut $0$ et l'angle mesure $90°$." },
+    { figure: "sc-qcm-para", question: "$ABCD$ est un parallélogramme avec $AB = 5$, $AD = 3$ et $AC = 7$. Alors $\\overrightarrow{AB} \\cdot \\overrightarrow{AD} =$", choix: ["$7{,}5$", "$15$", "$-7{,}5$", "$24{,}5$"], bonne: 0, explication: "$\\overrightarrow{AC} = \\overrightarrow{AB} + \\overrightarrow{AD}$, donc $AC^2 = AB^2 + 2\\,\\overrightarrow{AB} \\cdot \\overrightarrow{AD} + AD^2$ : $49 = 25 + 2\\,\\overrightarrow{AB} \\cdot \\overrightarrow{AD} + 9$, d'où $\\overrightarrow{AB} \\cdot \\overrightarrow{AD} = \\dfrac{15}{2} = 7{,}5$. Oublier de diviser par $2$ donne $15$." },
+    { figure: "sc-qcm-para-bd", question: "$ABCD$ est un parallélogramme avec $AB = 5$, $AD = 3$ et $AC = 7$. Alors $BD =$", choix: ["$\\sqrt{19}$", "$7$", "$\\sqrt{34}$", "$\\sqrt{15}$"], bonne: 0, explication: "$\\overrightarrow{DB} = \\overrightarrow{AB} - \\overrightarrow{AD}$, donc $BD^2 = AB^2 - 2\\,\\overrightarrow{AB} \\cdot \\overrightarrow{AD} + AD^2 = 25 - 15 + 9 = 19$ (avec $\\overrightarrow{AB} \\cdot \\overrightarrow{AD} = 7{,}5$). Les diagonales n'ont la même longueur que dans un rectangle, et $\\sqrt{34}$ serait la réponse si $ABCD$ était un rectangle." }
   ],
 
   /* ---------- 4. FICHE MÉTHODE ---------- */
@@ -208,16 +223,19 @@ window.CHAPITRES["premiere-produit-scalaire-2"] = {
     },
     {
       titre: "Utiliser Al-Kashi",
+      figure: "sc-meth-alkashi",
       etapes: ["Repérer l'angle connu (ou cherché) et les deux côtés qui l'encadrent.", "Écrire $a^2 = b^2 + c^2 - 2bc\\cos \\widehat{A}$, $a$ étant le côté opposé.", "Isoler l'inconnue : la longueur (racine carrée) ou le cosinus (puis l'angle)."],
       exemple: "$b = 8$, $c = 5$, $\\widehat{A} = 60°$ : $a^2 = 64 + 25 - 40 = 49$, $a = 7$."
     },
     {
       titre: "Déterminer un ensemble de points",
+      figure: "cercle-diametre",
       etapes: ["Introduire le milieu $I$ de $[AB]$.", "Transformer : $\\overrightarrow{MA} \\cdot \\overrightarrow{MB} = MI^2 - \\dfrac{AB^2}{4}$.", "Conclure : cercle de centre $I$ (de diamètre $[AB]$ si le produit est nul)."],
       exemple: "$\\overrightarrow{MA} \\cdot \\overrightarrow{MB} = 0$ : cercle de diamètre $[AB]$."
     },
     {
       titre: "Démontrer qu'un triangle n'est pas rectangle",
+      figure: "sc-cours-contraposee",
       etapes: ["Repérer le plus grand côté.", "Comparer son carré à la somme des carrés des deux autres.", "S'ils sont différents, conclure par la contraposée de Pythagore (angle obtus si le carré est plus grand)."],
       exemple: "$5$, $6$, $8$ : $64 \\neq 61$, pas rectangle, angle obtus en face du côté $8$."
     }

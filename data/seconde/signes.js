@@ -6,7 +6,8 @@
   **gras**, "- " pour une puce, programme Python entre ```python et ```).
   Pas encore de vidéo de la chaîne ni de PDF pour ce chapitre : les vidéos sont celles d'Yvan Monka.
   Les générateurs d'exercices commencent par « sg- » dans assets/exercices.js
-  (le chapitre reprend aussi am-signe et fa-signe).
+  (le chapitre reprend aussi am-signe ; sg-affine remplace fa-signe, qui n'avait que deux choix).
+  Figures : "signe-affine", "tabsigne-produit", "tabsigne-quotient", "sg-cours-x2-3x".
 */
 window.CHAPITRES = window.CHAPITRES || {};
 window.CHAPITRES["seconde-signes"] = {
@@ -17,7 +18,10 @@ window.CHAPITRES["seconde-signes"] = {
 
   playlist: "",
   drive: "",
-  pdfs: [],
+  pdfs: [
+    { titre: "Cours d'Yvan Monka : inéquations et tableaux de signes (PDF)", url: "https://www.maths-et-tiques.fr/telech/19Equations_InequationsM2.pdf" },
+    { titre: "Cours d'Yvan Monka : équations (équation-quotient) (PDF)", url: "https://www.maths-et-tiques.fr/telech/19Equations_InequationsM.pdf" }
+  ],
   liens: [
     { titre: "Le cours sur les inéquations et les tableaux de signes en vidéo (Yvan Monka)", url: "https://youtu.be/kbTWwWQ9tYo", type: "video" }
   ],
@@ -31,7 +35,8 @@ window.CHAPITRES["seconde-signes"] = {
         "- $mx + p$ ($m \\neq 0$) change de signe en $-\\dfrac{p}{m}$ : « signe de $-m$, puis signe de $m$ » (chapitre 6).\n" +
         "- $x^2$, $|x|$ et $\\sqrt{x}$ sont **positifs** (nuls seulement en $0$).\n" +
         "- $\\dfrac{1}{x}$ et $x^3$ ont le **signe de $x$**.\n\n" +
-        "Graphiquement, $f(x) > 0$ là où la courbe est **au-dessus** de l'axe des abscisses, $f(x) < 0$ là où elle est en dessous.",
+        "Graphiquement, $f(x) > 0$ là où la courbe est **au-dessus** de l'axe des abscisses, $f(x) < 0$ là où elle est en dessous (figure : $f(x) = -2x + 6$, positive avant $3$, négative après).",
+      figure: "signe-affine",
       exemple: {
         enonce: "Quel est le signe de $-3x^2$ ? De $\\dfrac{5}{x}$ pour $x < 0$ ?",
         solution: "$x^2 \\geqslant 0$, donc $-3x^2 \\leqslant 0$ : négatif (nul en $0$).\n\n$\\dfrac{1}{x} < 0$ pour $x < 0$, donc $\\dfrac{5}{x} < 0$."
@@ -84,7 +89,9 @@ window.CHAPITRES["seconde-signes"] = {
       texte:
         "- Pour résoudre $f(x) > 0$ : on factorise $f(x)$, on dresse son tableau de signes, on lit les intervalles où il y a $+$.\n" +
         "- Pour résoudre $f(x) \\leqslant g(x)$ : on étudie le signe de la **différence** $f(x) - g(x)$, car $f(x) \\leqslant g(x) \\iff f(x) - g(x) \\leqslant 0$.\n" +
-        "- Pour **comparer deux quantités** $A$ et $B$, on étudie le signe de $A - B$.",
+        "- Pour **comparer deux quantités** $A$ et $B$, on étudie le signe de $A - B$.\n\n" +
+        "Sur la figure, $x^2 \\leqslant 3x$ là où la parabole est sous la droite : entre $0$ et $3$.",
+      figure: "sg-cours-x2-3x",
       exemple: {
         enonce: "Résoudre $x^2 \\leqslant 3x$.",
         solution: "$x^2 \\leqslant 3x \\iff x^2 - 3x \\leqslant 0 \\iff x(x - 3) \\leqslant 0$.\n\nLe produit est négatif ou nul entre ses racines : $S = [0\\,;3]$. (Diviser par $x$ aurait fait perdre des solutions.)"
@@ -114,8 +121,8 @@ window.CHAPITRES["seconde-signes"] = {
      Chaque série tire des nombres au hasard : on peut la refaire autant qu'on veut.
      type : nom du générateur (voir assets/exercices.js). nb : nombre de questions. */
   exercices: [
-    { type: "fa-signe", titre: "Rappel : signe d'une fonction affine", etape: "Tableaux de signes", nb: 3 },
-    { type: "sg-tableau", titre: "Lire un tableau de signes", etape: "Tableaux de signes", nb: 5 },
+    { type: "sg-affine", titre: "Rappel : signe d'une fonction affine", etape: "Tableaux de signes", nb: 4 },
+    { type: "sg-tableau", titre: "Tableaux de signes : lire, compléter, résoudre", etape: "Tableaux de signes", nb: 5 },
     { type: "am-signe", titre: "Signe d'un produit", etape: "Tableaux de signes", nb: 5 },
     { type: "sg-quotient", titre: "Inéquation quotient", etape: "Quotients", nb: 5 },
     { type: "sg-eq-quotient", titre: "Équation quotient", etape: "Quotients", nb: 5 },
@@ -182,7 +189,11 @@ window.CHAPITRES["seconde-signes"] = {
     { question: "Pour résoudre $x^2 \\geqslant 5x$, Zaïna divise par $x$ et trouve $x \\geqslant 5$. Que penser de sa réponse ?", choix: ["Elle perd des solutions : tous les $x \\leqslant 0$ conviennent aussi", "Elle est juste", "Il fallait trouver $x \\geqslant 25$", "Il fallait trouver $x \\leqslant 5$"], bonne: 0, explication: "$x^2 - 5x = x(x - 5) \\geqslant 0$ donne $S = \\,]-\\infty\\,;0] \\cup [5\\,;+\\infty[$. On ne divise pas par $x$ sans connaître son signe." },
     { question: "Avec la fonction $\\texttt{signe}$ du cours, que renvoie $\\texttt{signe((x - 1) * (x + 4))}$ pour $x = 0$ ?", choix: ["$\\texttt{\"-\"}$", "$\\texttt{\"+\"}$", "$\\texttt{\"0\"}$", "$\\texttt{-4}$"], bonne: 0, explication: "$(0 - 1) \\times (0 + 4) = -4 < 0$ : la fonction renvoie le texte $\\texttt{\"-\"}$, pas la valeur $-4$." },
     { question: "Sur un graphique, les solutions de $f(x) < 0$ se lisent là où la courbe de $f$ est :", choix: ["strictement en dessous de l'axe des abscisses", "au-dessus de l'axe des abscisses", "en train de descendre", "sur l'axe des ordonnées"], bonne: 0, explication: "$f(x) < 0$ : l'ordonnée du point est négative, donc le point est sous l'axe des abscisses. Une courbe qui descend peut très bien être au-dessus de l'axe." },
-    { question: "Vrai ou faux : si $x > 3$, alors $\\dfrac{x - 3}{x + 1} > 0$.", choix: ["Vrai", "Faux"], bonne: 0, explication: "Pour $x > 3$, $x - 3 > 0$ et $x + 1 > 0$ : le quotient de deux nombres positifs est positif." }
+    { question: "Si $x > 3$, alors le quotient $\\dfrac{x - 3}{x + 1}$ est :", choix: ["strictement positif", "strictement négatif", "nul", "parfois positif, parfois négatif"], bonne: 0, explication: "Pour $x > 3$, $x - 3 > 0$ et $x + 1 > 0$ : le quotient de deux nombres positifs est positif." },
+    { question: "D'après le tableau de signes ci-dessous, les solutions de $(x + 2)(3 - x) > 0$ sont :", figure: "tabsigne-produit", choix: ["$]-2\\,;3[$", "$[-2\\,;3]$", "$]-\\infty\\,;-2[ \\cup \\,]3\\,;+\\infty[$", "$]-\\infty\\,;3[$"], bonne: 0, explication: "La dernière ligne porte $+$ entre $-2$ et $3$. L'inégalité est stricte : $-2$ et $3$, où le produit est nul, sont exclus." },
+    { question: "Dans le tableau de signes ci-dessous, que signifie la double barre sous $3$ ?", figure: "tabsigne-quotient", choix: ["$3$ est une valeur interdite : le dénominateur $x - 3$ s'y annule", "le quotient vaut $0$ en $3$", "le quotient change de signe deux fois en $3$", "$3$ est solution de l'inéquation quotient $\\geqslant 0$"], bonne: 0, explication: "En $3$, le dénominateur s'annule : le quotient n'existe pas. Le $0$ est en $-4$, là où le numérateur s'annule." },
+    { question: "D'après la figure ci-dessous, l'ensemble des solutions de $x^2 \\leqslant 3x$ est :", figure: "sg-cours-x2-3x", choix: ["$[0\\,;3]$", "$]-\\infty\\,;3]$", "$[3\\,;+\\infty[$", "$]-\\infty\\,;0] \\cup [3\\,;+\\infty[$"], bonne: 0, explication: "La parabole est sous la droite (ou la touche) pour $x$ entre $0$ et $3$. Par le calcul : $x^2 - 3x = x(x - 3) \\leqslant 0 \\iff 0 \\leqslant x \\leqslant 3$." },
+    { question: "La droite ci-dessous représente $f(x) = -2x + 6$. Pour quelles valeurs de $x$ a-t-on $f(x) < 0$ ?", figure: "signe-affine", choix: ["$x > 3$", "$x < 3$", "$x > 6$", "$x < -2$"], bonne: 0, explication: "La droite est sous l'axe des abscisses après $3$, là où elle le coupe. Par le calcul : $-2x + 6 < 0 \\iff x > 3$." }
   ],
 
   /* ---------- 4. FICHE MÉTHODE ---------- */
@@ -195,6 +206,7 @@ window.CHAPITRES["seconde-signes"] = {
         "Une ligne par facteur affine : « signe de $-m$, $0$, signe de $m$ ».",
         "Dernière ligne : règle des signes ; $0$ là où le numérateur s'annule, double barre aux valeurs interdites."
       ],
+      figure: "tabsigne-produit",
       exemple: "$(x + 2)(3 - x)$ : $-$, $0$, $+$, $0$, $-$."
     },
     {
@@ -205,6 +217,7 @@ window.CHAPITRES["seconde-signes"] = {
         "Dresser le tableau de signes.",
         "Lire les intervalles, avec les bons crochets (valeurs interdites toujours exclues)."
       ],
+      figure: "tabsigne-quotient",
       exemple: "$\\dfrac{x + 4}{x - 3} \\geqslant 0$ : $S = \\,]-\\infty\\,;-4] \\cup \\,]3\\,;+\\infty[$."
     },
     {

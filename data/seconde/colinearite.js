@@ -5,7 +5,8 @@
   Mêmes règles d'écriture que data/seconde/fonctions.js (formules entre $...$, antislash doublé,
   **gras**, "- " pour une puce, programme Python entre ```python et ```).
   Pas encore de vidéo de la chaîne ni de PDF pour ce chapitre : les vidéos sont celles d'Yvan Monka.
-  Les générateurs d'exercices commencent par « co- » dans assets/exercices.js.
+  Figures : "co-cours-produit", "colineaires", "alignes", "co-cours-decomposer", "co-meth-parallele".
+  Les générateurs d'exercices commencent par « co- » dans assets/exercices.js (co-alignes sert aussi au chapitre 17).
 */
 window.CHAPITRES = window.CHAPITRES || {};
 window.CHAPITRES["seconde-colinearite"] = {
@@ -16,7 +17,10 @@ window.CHAPITRES["seconde-colinearite"] = {
 
   playlist: "",
   drive: "",
-  pdfs: [],
+  pdfs: [
+    { titre: "Cours d'Yvan Monka : vecteurs, chapitre 2 (colinéarité) (PDF)", url: "https://www.maths-et-tiques.fr/telech/19vecteurs2M.pdf" },
+    { titre: "Cours d'Yvan Monka : vecteurs et repérage (PDF)", url: "https://www.maths-et-tiques.fr/telech/19vecteurs3M.pdf" }
+  ],
   liens: [
     { titre: "Le cours « vecteurs et repérage » en vidéo (Yvan Monka)", url: "https://youtu.be/9OB3hct6gak", type: "video" }
   ],
@@ -31,7 +35,9 @@ window.CHAPITRES["seconde-colinearite"] = {
         "- la **même direction** que $\\vec{u}$ ;\n" +
         "- le **même sens** si $k > 0$, le **sens contraire** si $k < 0$ ;\n" +
         "- une norme multipliée par $|k|$ : $\\|k\\vec{u}\\| = |k| \\times \\|\\vec{u}\\|$.\n\n" +
-        "En coordonnées : si $\\vec{u}\\begin{pmatrix} x \\\\ y \\end{pmatrix}$, alors $k\\vec{u}\\begin{pmatrix} kx \\\\ ky \\end{pmatrix}$. Et $0\\vec{u} = \\vec{0}$.",
+        "En coordonnées : si $\\vec{u}\\begin{pmatrix} x \\\\ y \\end{pmatrix}$, alors $k\\vec{u}\\begin{pmatrix} kx \\\\ ky \\end{pmatrix}$. Et $0\\vec{u} = \\vec{0}$.\n\n" +
+        "Sur la figure, $\\vec{v} = 2\\vec{u}$ (même sens, deux fois plus long) et $\\vec{w} = -1{,}5\\vec{u}$ (sens contraire).",
+      figure: "co-cours-produit",
       exemple: {
         enonce: "$\\vec{u}\\begin{pmatrix} 2 \\\\ -1 \\end{pmatrix}$ et $\\vec{v}\\begin{pmatrix} -3 \\\\ 4 \\end{pmatrix}$. Calculer les coordonnées de $\\vec{w} = 3\\vec{u} - 2\\vec{v}$.",
         solution: "$3\\vec{u}\\begin{pmatrix} 6 \\\\ -3 \\end{pmatrix}$ et $-2\\vec{v}\\begin{pmatrix} 6 \\\\ -8 \\end{pmatrix}$, donc $\\vec{w}\\begin{pmatrix} 12 \\\\ -11 \\end{pmatrix}$."
@@ -97,7 +103,8 @@ window.CHAPITRES["seconde-colinearite"] = {
       texte:
         "Si $\\vec{u}$ et $\\vec{v}$ ne sont **pas** colinéaires, tout vecteur $\\vec{w}$ s'écrit de façon **unique** $\\vec{w} = a\\vec{u} + b\\vec{v}$ ($a$ et $b$ réels) : c'est une **combinaison linéaire** de $\\vec{u}$ et $\\vec{v}$.\n\n" +
         "Pour trouver $a$ et $b$ : par lecture sur un quadrillage, ou en écrivant l'égalité coordonnée par coordonnée.\n\n" +
-        "Choisir la méthode la plus adaptée : figure, relation de Chasles, coordonnées…",
+        "Choisir la méthode la plus adaptée : figure, relation de Chasles, coordonnées… Sur la figure, on met bout à bout deux fois $\\vec{u}$ puis $\\vec{v}$ : on arrive au bout de $\\vec{w}$, donc $\\vec{w} = 2\\vec{u} + \\vec{v}$.",
+      figure: "co-cours-decomposer",
       exemple: {
         enonce: "$\\vec{u}\\begin{pmatrix} 1 \\\\ 2 \\end{pmatrix}$, $\\vec{v}\\begin{pmatrix} 3 \\\\ -1 \\end{pmatrix}$, $\\vec{w}\\begin{pmatrix} 5 \\\\ 3 \\end{pmatrix}$. Trouver $a$ et $b$ tels que $\\vec{w} = a\\vec{u} + b\\vec{v}$.",
         solution: "$a + 3b = 5$ et $2a - b = 3$. De la seconde, $b = 2a - 3$ ; dans la première : $a + 6a - 9 = 5$, donc $a = 2$ et $b = 1$. Ainsi $\\vec{w} = 2\\vec{u} + \\vec{v}$."
@@ -184,16 +191,20 @@ window.CHAPITRES["seconde-colinearite"] = {
     },
     {
       question: "La contraposée de « si $\\vec{u}$ et $\\vec{v}$ sont colinéaires, alors $\\det(\\vec{u}, \\vec{v}) = 0$ » est :",
-      choix: ["si $\\det(\\vec{u}, \\vec{v}) \\neq 0$, alors $\\vec{u}$ et $\\vec{v}$ ne sont pas colinéaires", "si $\\det(\\vec{u}, \\vec{v}) = 0$, alors ils sont colinéaires", "si ils ne sont pas colinéaires, alors $\\det \\neq 0$", "$\\det(\\vec{u}, \\vec{v}) = 0$"],
+      choix: ["si $\\det(\\vec{u}, \\vec{v}) \\neq 0$, alors $\\vec{u}$ et $\\vec{v}$ ne sont pas colinéaires", "si $\\det(\\vec{u}, \\vec{v}) = 0$, alors $\\vec{u}$ et $\\vec{v}$ sont colinéaires", "s'ils ne sont pas colinéaires, alors $\\det(\\vec{u}, \\vec{v}) \\neq 0$", "si $\\det(\\vec{u}, \\vec{v}) \\neq 0$, alors $\\vec{u}$ et $\\vec{v}$ sont colinéaires"],
       bonne: 0,
-      explication: "Contraposée de « $P \\Rightarrow Q$ » : « non $Q \\Rightarrow$ non $P$ ». La 2e proposition est la réciproque."
+      explication: "Contraposée de « si $P$, alors $Q$ » : « si non $Q$, alors non $P$ » (on échange **et** on nie). « Si $\\det = 0$, alors ils sont colinéaires » est la réciproque (on échange sans nier) ; « s'ils ne sont pas colinéaires, alors $\\det \\neq 0$ » nie sans échanger."
     },
     { question: "$\\vec{u}\\begin{pmatrix} 1 \\\\ -2 \\end{pmatrix}$ et $\\vec{v}\\begin{pmatrix} 3 \\\\ 1 \\end{pmatrix}$. Les coordonnées de $3\\vec{u} - 2\\vec{v}$ sont :", choix: ["$\\begin{pmatrix} -3 \\\\ -8 \\end{pmatrix}$", "$\\begin{pmatrix} 9 \\\\ -4 \\end{pmatrix}$", "$\\begin{pmatrix} -3 \\\\ -4 \\end{pmatrix}$", "$\\begin{pmatrix} 3 \\\\ 8 \\end{pmatrix}$"], bonne: 0, explication: "$3\\vec{u}\\begin{pmatrix} 3 \\\\ -6 \\end{pmatrix}$ et $-2\\vec{v}\\begin{pmatrix} -6 \\\\ -2 \\end{pmatrix}$, donc $3 - 6 = -3$ et $-6 - 2 = -8$." },
     { question: "$\\|\\vec{u}\\| = 2$. La norme de $-3\\vec{u}$ vaut :", choix: ["$6$", "$-6$", "$2$", "$\\dfrac{2}{3}$"], bonne: 0, explication: "$\\|k\\vec{u}\\| = |k| \\times \\|\\vec{u}\\| = 3 \\times 2 = 6$. Une norme n'est jamais négative." },
     { question: "$\\vec{v} = 0{,}5\\vec{u}$ avec $\\vec{u} \\neq \\vec{0}$. Alors $\\vec{u}$ et $\\vec{v}$ :", choix: ["ont la même direction et le même sens", "ont la même direction et des sens contraires", "ont la même norme", "ne sont pas colinéaires"], bonne: 0, explication: "$k = 0{,}5 > 0$ : même direction, même sens, et la norme est divisée par $2$." },
     { question: "$\\det(\\vec{u}, \\vec{v})$ avec $\\vec{u}\\begin{pmatrix} -1 \\\\ 2 \\end{pmatrix}$ et $\\vec{v}\\begin{pmatrix} 3 \\\\ 4 \\end{pmatrix}$ vaut :", choix: ["$-10$", "$2$", "$10$", "$5$"], bonne: 0, explication: "$xy' - yx' = (-1) \\times 4 - 2 \\times 3 = -4 - 6 = -10$. ($2$ vient d'une somme au lieu d'une différence.)" },
     { question: "$\\vec{u}\\begin{pmatrix} 4 \\\\ -6 \\end{pmatrix}$ et $\\vec{v}\\begin{pmatrix} -6 \\\\ 9 \\end{pmatrix}$ :", choix: ["sont colinéaires, avec $\\vec{v} = -\\dfrac{3}{2}\\vec{u}$", "ne sont pas colinéaires, car leur déterminant vaut $72$", "sont colinéaires, avec $\\vec{v} = \\dfrac{3}{2}\\vec{u}$", "ne sont pas colinéaires, car leurs coordonnées n'ont pas les mêmes signes"], bonne: 0, explication: "$\\det = 4 \\times 9 - (-6) \\times (-6) = 36 - 36 = 0$ : colinéaires. Et $-\\dfrac{3}{2} \\times 4 = -6$, $-\\dfrac{3}{2} \\times (-6) = 9$." },
-    { question: "Vrai ou faux : le vecteur nul est colinéaire à tous les vecteurs.", choix: ["Vrai", "Faux"], bonne: 0, explication: "Pour tout $\\vec{u}$, $\\vec{0} = 0\\vec{u}$. D'ailleurs $\\det(\\vec{u}, \\vec{0}) = x \\times 0 - y \\times 0 = 0$." },
+    { question: "Le vecteur nul $\\vec{0}$ est :", choix: ["colinéaire à tous les vecteurs", "colinéaire à aucun vecteur", "colinéaire seulement à lui-même", "colinéaire seulement aux vecteurs de même norme que lui"], bonne: 0, explication: "Pour tout $\\vec{u}$, $\\vec{0} = 0\\vec{u}$. D'ailleurs $\\det(\\vec{u}, \\vec{0}) = x \\times 0 - y \\times 0 = 0$." },
+    { question: "Sur la figure ci-dessous, quel vecteur est colinéaire à $\\vec{u}$ ?", figure: "colineaires", choix: ["$\\vec{v}$, car $\\vec{v} = -2\\vec{u}$", "$\\vec{w}$, car il est plus long", "les deux", "aucun des deux"], bonne: 0, explication: "$\\vec{v}$ a la même direction que $\\vec{u}$ (sens contraire, deux fois plus long) : $\\vec{v} = -2\\vec{u}$. $\\vec{w}$ n'a pas la même direction." },
+    { question: "D'après la figure ci-dessous, le vecteur $\\vec{w}$ est égal à :", figure: "co-cours-decomposer", choix: ["$2\\vec{u} + \\vec{v}$", "$\\vec{u} + 2\\vec{v}$", "$\\vec{u} + \\vec{v}$", "$2\\vec{u} - \\vec{v}$"], bonne: 0, explication: "On met bout à bout deux fois $\\vec{u}$ puis $\\vec{v}$ et on arrive au bout de $\\vec{w}$. En coordonnées : $2\\begin{pmatrix} 1 \\\\ 2 \\end{pmatrix} + \\begin{pmatrix} 3 \\\\ -1 \\end{pmatrix} = \\begin{pmatrix} 5 \\\\ 3 \\end{pmatrix}$." },
+    { question: "Sur la figure ci-dessous, le vecteur $\\vec{w}$ est égal à :", figure: "co-cours-produit", choix: ["$-1{,}5\\vec{u}$", "$1{,}5\\vec{u}$", "$-2\\vec{u}$", "$2\\vec{u}$"], bonne: 0, explication: "$\\vec{w}$ a la même direction que $\\vec{u}$, le sens contraire, et il est $1{,}5$ fois plus long : $\\vec{w} = -1{,}5\\vec{u}$. C'est $\\vec{v}$ qui vaut $2\\vec{u}$." },
+    { question: "Les bouées $A(1\\,;2)$, $B(3\\,;5)$ et $C(7\\,;11)$ de la figure ci-dessous semblent alignées. Pour le démontrer, on calcule :", figure: "alignes", choix: ["$\\det(\\overrightarrow{AB}, \\overrightarrow{AC}) = 2 \\times 9 - 3 \\times 6 = 0$", "$AB = AC$", "$\\det(\\overrightarrow{AB}, \\overrightarrow{AC}) = 2 \\times 9 + 3 \\times 6 = 36$", "les coordonnées du milieu de $[AC]$"], bonne: 0, explication: "$\\overrightarrow{AB}\\begin{pmatrix} 2 \\\\ 3 \\end{pmatrix}$ et $\\overrightarrow{AC}\\begin{pmatrix} 6 \\\\ 9 \\end{pmatrix}$ ont un déterminant nul : ils sont colinéaires, et $A$, $B$, $C$ sont alignés. Une figure ne suffit pas à démontrer." },
     { question: "$\\vec{u}\\begin{pmatrix} m \\\\ 2 \\end{pmatrix}$ et $\\vec{v}\\begin{pmatrix} 6 \\\\ 3 \\end{pmatrix}$ sont colinéaires pour :", choix: ["$m = 4$", "$m = 9$", "$m = 1$", "$m = -4$"], bonne: 0, explication: "$\\det = 3m - 2 \\times 6 = 3m - 12 = 0 \\iff m = 4$. On vérifie : $\\vec{v} = \\dfrac{3}{2}\\vec{u}$ avec $\\vec{u}\\begin{pmatrix} 4 \\\\ 2 \\end{pmatrix}$." },
     { question: "$A(1\\,;1)$, $B(2\\,;3)$ et $C(4\\,;6)$. Les points $A$, $B$, $C$ :", choix: ["ne sont pas alignés, car $\\det(\\overrightarrow{AB}, \\overrightarrow{AC}) = -1$", "sont alignés, car $\\det(\\overrightarrow{AB}, \\overrightarrow{AC}) = -1$", "sont alignés, car sur une figure ils semblent sur une même droite", "sont alignés, car $\\det(\\overrightarrow{AB}, \\overrightarrow{AC}) = 11$"], bonne: 0, explication: "$\\overrightarrow{AB}\\begin{pmatrix} 1 \\\\ 2 \\end{pmatrix}$, $\\overrightarrow{AC}\\begin{pmatrix} 3 \\\\ 5 \\end{pmatrix}$ : $1 \\times 5 - 2 \\times 3 = -1 \\neq 0$. Ils sont presque alignés, d'où le piège de la figure." },
     { question: "$A(1\\,;2)$ et $B(3\\,;6)$. Le point $C(5\\,;y)$ est aligné avec $A$ et $B$ pour :", choix: ["$y = 10$", "$y = 8$", "$y = 12$", "$y = 6$"], bonne: 0, explication: "$\\overrightarrow{AB}\\begin{pmatrix} 2 \\\\ 4 \\end{pmatrix}$ et $\\overrightarrow{AC}\\begin{pmatrix} 4 \\\\ y - 2 \\end{pmatrix}$ : $2(y - 2) - 4 \\times 4 = 0 \\iff y - 2 = 8 \\iff y = 10$." },
@@ -214,6 +225,7 @@ window.CHAPITRES["seconde-colinearite"] = {
         "Calculer $\\det(\\vec{u}, \\vec{v}) = xy' - yx'$.",
         "Nul : colinéaires. Non nul : pas colinéaires."
       ],
+      figure: "colineaires",
       exemple: "$\\begin{pmatrix} 4 \\\\ -6 \\end{pmatrix}$ et $\\begin{pmatrix} -2 \\\\ 3 \\end{pmatrix}$ : $4 \\times 3 - (-6) \\times (-2) = 0$, colinéaires."
     },
     {
@@ -223,6 +235,7 @@ window.CHAPITRES["seconde-colinearite"] = {
         "Calculer leur déterminant.",
         "Conclure : nul $\\iff$ $A$, $B$, $C$ alignés."
       ],
+      figure: "alignes",
       exemple: "$A(1\\,;2)$, $B(3\\,;5)$, $C(7\\,;11)$ : $\\det = 2 \\times 9 - 3 \\times 6 = 0$, alignés."
     },
     {
@@ -232,6 +245,7 @@ window.CHAPITRES["seconde-colinearite"] = {
         "Calculer leur déterminant.",
         "Nul : $(AB) \\parallel (CD)$. Sinon, les droites sont sécantes."
       ],
+      figure: "co-meth-parallele",
       exemple: "$\\overrightarrow{AB}\\begin{pmatrix} 2 \\\\ 1 \\end{pmatrix}$, $\\overrightarrow{CD}\\begin{pmatrix} -4 \\\\ -2 \\end{pmatrix}$ : $\\det = -4 + 4 = 0$, parallèles."
     },
     {

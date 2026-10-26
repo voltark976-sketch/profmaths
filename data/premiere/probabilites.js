@@ -5,7 +5,7 @@
   Reprise de Seconde (chapitres 10 et 15) puis indépendance, partition, probabilités totales.
   Mêmes règles d'écriture que data/seconde/fonctions.js.
   Pas encore de vidéo de la chaîne ni de PDF pour ce chapitre : les vidéos sont celles d'Yvan Monka.
-  Figures : "arbre-depistage", "arbre-partition", "arbre-independance". Générateurs : pc- (Seconde) et pi-.
+  Figures : "arbre-depistage", "arbre-partition", "arbre-independance", "pi-cours-…", "pi-qcm-…" (fragment 033). Générateurs : pc- (Seconde) et pi-.
 */
 window.CHAPITRES = window.CHAPITRES || {};
 window.CHAPITRES["premiere-probabilites"] = {
@@ -16,7 +16,9 @@ window.CHAPITRES["premiere-probabilites"] = {
 
   playlist: "",
   drive: "",
-  pdfs: [],
+  pdfs: [
+    { titre: "Cours d'Yvan Monka : probabilités conditionnelles et indépendance (PDF)", url: "https://www.maths-et-tiques.fr/telech/19CondPM.pdf" }
+  ],
   liens: [
     { titre: "Le cours sur les probabilités conditionnelles en vidéo (Yvan Monka)", url: "https://youtu.be/5oBnmZVrOXE", type: "video" }
   ],
@@ -55,6 +57,7 @@ window.CHAPITRES["premiere-probabilites"] = {
     },
     {
       titre: "Inverser un conditionnement",
+      video: { titre: "Vidéo de Galilée : inverser un arbre pondéré", youtube: "https://youtu.be/pYotGt7LXpQ" },
       texte:
         "On connaît $P_M(T)$ sur l'arbre, et on cherche $P_T(M)$ :\n\n" +
         "$P_T(M) = \\dfrac{P(M \\cap T)}{P(T)}$, où $P(T)$ se calcule avec les probabilités totales.\n\n" +
@@ -81,10 +84,12 @@ window.CHAPITRES["premiere-probabilites"] = {
     },
     {
       titre: "Succession de deux épreuves indépendantes",
+      figure: "pi-cours-epreuves",
       video: { titre: "Vidéo d'Yvan Monka : calculer une probabilité sur une répétition d'expériences", youtube: "https://youtu.be/e7jH8a1cDtg" },
       texte:
         "Quand deux épreuves sont **indépendantes** (lancer un dé puis une pièce, tirer **avec remise**), la probabilité d'une issue $(x\\,;y)$ est le **produit** des probabilités : $P(x\\,;y) = P(x) \\times P(y)$.\n\n" +
-        "On représente l'expérience par un arbre (les branches du second niveau sont les mêmes partout) ou par un tableau à double entrée.\n\n" +
+        "On représente l'expérience par un arbre (les branches du second niveau sont les mêmes partout, schéma) ou par un tableau à double entrée.\n\n" +
+        "Pour **trois ou quatre** épreuves identiques et indépendantes à deux issues (succès $S$ ou échec $E$), on prolonge l'arbre : chaque chemin a pour probabilité le produit de ses branches, et on additionne les chemins qui réalisent l'événement. Exemple avec trois tirs : $P(SSS) = 0{,}8^3 = 0{,}512$. On y reviendra au chapitre 13.\n\n" +
         "Attention : un tirage **sans remise** n'est pas une succession d'épreuves indépendantes.",
       exemple: {
         enonce: "Un tireur atteint la cible avec la probabilité $0{,}8$, indépendamment d'un tir à l'autre. Il tire deux fois. Probabilité d'au moins une réussite ?",
@@ -93,6 +98,7 @@ window.CHAPITRES["premiere-probabilites"] = {
     },
     {
       titre: "Python : simuler deux épreuves indépendantes",
+      video: { titre: "Vidéo de jaicompris : simuler deux lancers de dé en Python", youtube: "https://youtu.be/jipJ4GqVtAI" },
       texte:
         "$\\texttt{random()}$ renvoie un nombre au hasard dans $[0\\,;1[$ : $\\texttt{random() < p}$ est vrai avec la probabilité $p$. Deux appels successifs sont indépendants.\n\n" +
         "```python\nfrom random import random\n\ndef deux_tirs(p):\n    return random() < p, random() < p\n\ndef freq_deux(p, n):\n    c = 0\n    for i in range(n):\n        a, b = deux_tirs(p)\n        if a and b:\n            c = c + 1\n    return c / n\n```",
@@ -119,14 +125,15 @@ window.CHAPITRES["premiere-probabilites"] = {
     { type: "pi-partition", titre: "Probabilités totales (trois villages)", etape: "Probabilités totales", nb: 3 },
     { type: "pi-inverser", titre: "Inverser le conditionnement", etape: "Probabilités totales", nb: 4 },
     { type: "pi-independance", titre: "Indépendants ou pas ?", etape: "Indépendance", nb: 5 },
-    { type: "pi-epreuves", titre: "Deux épreuves indépendantes", etape: "Indépendance", nb: 5 },
+    { type: "pi-epreuves", titre: "Épreuves indépendantes (deux ou trois)", etape: "Indépendance", nb: 5 },
     { type: "pc-python", titre: "Python : simulation à deux épreuves", etape: "Indépendance", nb: 3 }
   ],
 
   /* ---------- 3. QCM ---------- */
   qcm: [
     {
-      question: "Sur un arbre, $P(A) = 0{,}3$, $P_A(B) = 0{,}6$, $P_{\\overline{A}}(B) = 0{,}2$. Alors $P(B)$ vaut :",
+      question: "Sur l'arbre ci-dessous, $P(A) = 0{,}3$, $P_A(B) = 0{,}6$, $P_{\\overline{A}}(B) = 0{,}2$. Alors $P(B)$ vaut :",
+      figure: "pi-qcm-arbre",
       choix: ["$0{,}32$", "$0{,}8$", "$0{,}18$", "$0{,}4$"],
       bonne: 0,
       explication: "$P(B) = 0{,}3 \\times 0{,}6 + 0{,}7 \\times 0{,}2 = 0{,}18 + 0{,}14 = 0{,}32$."
@@ -179,21 +186,25 @@ window.CHAPITRES["premiere-probabilites"] = {
     { question: "$P(A) = 0{,}4$, $P_A(B) = 0{,}5$ et $P_{\\overline{A}}(B) = 0{,}1$. Alors $P(B)$ vaut :", choix: ["$0{,}26$", "$0{,}6$", "$0{,}2$", "$0{,}3$"], bonne: 0, explication: "Probabilités totales : $P(B) = 0{,}4 \\times 0{,}5 + 0{,}6 \\times 0{,}1 = 0{,}2 + 0{,}06 = 0{,}26$. On additionne les chemins, pas les branches." },
     { question: "Des événements $A_1$, $A_2$, $A_3$ forment une partition de l'univers $\\Omega$ si :", choix: ["ils sont deux à deux disjoints et leur réunion est $\\Omega$", "ils sont indépendants deux à deux", "ils ont tous la même probabilité", "leur intersection est $\\Omega$"], bonne: 0, explication: "Chaque issue doit appartenir à un et un seul des $A_i$ : pas de recouvrement, et aucune issue oubliée." },
     { question: "Une coopérative achète ses régimes de bananes à trois producteurs : $50\\,\\%$, $25\\,\\%$ et $25\\,\\%$, avec respectivement $4\\,\\%$, $8\\,\\%$ et $8\\,\\%$ de régimes abîmés. La probabilité qu'un régime soit abîmé est :", choix: ["$0{,}06$", "$0{,}20$", "$0{,}08$", "$0{,}04$"], bonne: 0, explication: "$0{,}5 \\times 0{,}04 + 0{,}25 \\times 0{,}08 + 0{,}25 \\times 0{,}08 = 0{,}02 + 0{,}02 + 0{,}02 = 0{,}06$." },
-    { question: "$P(M) = 0{,}1$, $P_M(T) = 0{,}9$ et $P_{\\overline{M}}(T) = 0{,}1$. Alors $P_T(M)$ vaut :", choix: ["$0{,}5$", "$0{,}9$", "$0{,}09$", "$0{,}18$"], bonne: 0, explication: "$P(M \\cap T) = 0{,}09$ et $P(T) = 0{,}09 + 0{,}9 \\times 0{,}1 = 0{,}18$, donc $P_T(M) = \\dfrac{0{,}09}{0{,}18} = 0{,}5$. Un test positif sur deux seulement vient d'un malade." },
+    { question: "$P(M) = 0{,}1$, $P_M(T) = 0{,}9$ et $P_{\\overline{M}}(T) = 0{,}1$ (arbre ci-dessous). Alors $P_T(M)$ vaut :", figure: "pi-qcm-bayes", choix: ["$0{,}5$", "$0{,}9$", "$0{,}09$", "$0{,}18$"], bonne: 0, explication: "$P(M \\cap T) = 0{,}09$ et $P(T) = 0{,}09 + 0{,}9 \\times 0{,}1 = 0{,}18$, donc $P_T(M) = \\dfrac{0{,}09}{0{,}18} = 0{,}5$. Un test positif sur deux seulement vient d'un malade." },
     { question: "$P(A) = 0{,}5$, $P(B) = 0{,}6$ et $P(A \\cap B) = 0{,}35$. Alors :", choix: ["$A$ et $B$ ne sont pas indépendants", "$A$ et $B$ sont indépendants", "$A$ et $B$ sont incompatibles", "$A$ et $B$ forment une partition de l'univers"], bonne: 0, explication: "$P(A) \\times P(B) = 0{,}3 \\neq 0{,}35 = P(A \\cap B)$. Ils ne sont pas incompatibles non plus, puisque $P(A \\cap B) \\neq 0$." },
-    { question: "Sur un arbre, $P_A(B) = 0{,}3$ et $P_{\\overline{A}}(B) = 0{,}3$. Alors :", choix: ["$A$ et $B$ sont indépendants et $P(B) = 0{,}3$", "$A$ et $B$ sont incompatibles", "$P(B) = 0{,}6$", "$P(A) = 0{,}3$"], bonne: 0, explication: "Que $A$ soit réalisé ou non, $B$ a la probabilité $0{,}3$ : $P(B) = 0{,}3 \\times P(A) + 0{,}3 \\times P(\\overline{A}) = 0{,}3 = P_A(B)$." },
+    { question: "Sur l'arbre ci-dessous, $P_A(B) = 0{,}3$ et $P_{\\overline{A}}(B) = 0{,}3$. Alors :", figure: "arbre-independance", choix: ["$A$ et $B$ sont indépendants et $P(B) = 0{,}3$", "$A$ et $B$ sont incompatibles", "$P(B) = 0{,}6$", "$P(A) = 0{,}3$"], bonne: 0, explication: "Que $A$ soit réalisé ou non, $B$ a la probabilité $0{,}3$ : $P(B) = 0{,}3 \\times P(A) + 0{,}3 \\times P(\\overline{A}) = 0{,}3 = P_A(B)$." },
     { question: "$A$ et $B$ sont indépendants, avec $P(A) = 0{,}2$ et $P(B) = 0{,}5$. Alors $P(\\overline{A} \\cap B)$ vaut :", choix: ["$0{,}4$", "$0{,}1$", "$0{,}3$", "$0{,}5$"], bonne: 0, explication: "$\\overline{A}$ et $B$ sont aussi indépendants : $P(\\overline{A} \\cap B) = 0{,}8 \\times 0{,}5 = 0{,}4$. ($0{,}1$ est $P(A \\cap B)$.)" },
     { question: "$A$ et $B$ sont indépendants, avec $P(A) = 0{,}5$ et $P(B) = 0{,}4$. Alors $P(A \\cup B)$ vaut :", choix: ["$0{,}7$", "$0{,}9$", "$0{,}2$", "$0{,}5$"], bonne: 0, explication: "$P(A \\cap B) = 0{,}5 \\times 0{,}4 = 0{,}2$, puis $P(A \\cup B) = 0{,}5 + 0{,}4 - 0{,}2 = 0{,}7$." },
     { question: "Un tireur réussit avec la probabilité $0{,}7$, indépendamment d'un tir à l'autre. Il tire deux fois. La probabilité d'au moins une réussite est :", choix: ["$0{,}91$", "$0{,}49$", "$1{,}4$", "$0{,}42$"], bonne: 0, explication: "Contraire : deux échecs, $0{,}3 \\times 0{,}3 = 0{,}09$, donc $1 - 0{,}09 = 0{,}91$. ($0{,}42$ est la probabilité d'exactement une réussite.)" },
     { question: "On lance un dé équilibré à $6$ faces, puis une pièce équilibrée. La probabilité d'obtenir « $6$ et pile » est :", choix: ["$\\dfrac{1}{12}$", "$\\dfrac{2}{3}$", "$\\dfrac{1}{8}$", "$\\dfrac{1}{6}$"], bonne: 0, explication: "Épreuves indépendantes : on multiplie, $\\dfrac{1}{6} \\times \\dfrac{1}{2} = \\dfrac{1}{12}$. ($\\dfrac{2}{3}$ vient d'une addition.)" },
     { question: "Une urne contient $3$ boules rouges et $2$ vertes. On tire deux boules sans remise. La probabilité d'obtenir deux rouges est :", choix: ["$\\dfrac{3}{10}$", "$\\dfrac{9}{25}$", "$\\dfrac{3}{5}$", "$\\dfrac{1}{2}$"], bonne: 0, explication: "$\\dfrac{3}{5} \\times \\dfrac{2}{4} = \\dfrac{6}{20} = \\dfrac{3}{10}$ : au second tirage, il reste $2$ rouges sur $4$ boules. ($\\dfrac{9}{25}$ correspond à un tirage avec remise.)" },
-    { question: "Avec le programme Python du cours, vers quelle valeur se rapproche $\\texttt{freq\\_deux(0.5, 100000)}$ ?", choix: ["$0{,}25$", "$0{,}5$", "$1$", "$0{,}75$"], bonne: 0, explication: "La fonction compte les cas où les deux tirs réussissent : $0{,}5 \\times 0{,}5 = 0{,}25$ (épreuves indépendantes, loi des grands nombres)." }
+    { question: "Avec le programme Python du cours, vers quelle valeur se rapproche $\\texttt{freq\\_deux(0.5, 100000)}$ ?", choix: ["$0{,}25$", "$0{,}5$", "$1$", "$0{,}75$"], bonne: 0, explication: "La fonction compte les cas où les deux tirs réussissent : $0{,}5 \\times 0{,}5 = 0{,}25$ (épreuves indépendantes, loi des grands nombres)." },
+    { question: "On lance trois fois une pièce équilibrée (arbre ci-dessous, $S$ : « pile »). Quelle est la probabilité d'obtenir exactement deux fois « pile » ?", figure: "pi-qcm-trois", choix: ["$\\dfrac{3}{8}$", "$\\dfrac{1}{8}$", "$\\dfrac{2}{3}$", "$\\dfrac{1}{2}$"], bonne: 0, explication: "Trois chemins réalisent l'événement : $SSE$, $SES$ et $ESS$. Chacun a pour probabilité $\\dfrac{1}{2} \\times \\dfrac{1}{2} \\times \\dfrac{1}{2} = \\dfrac{1}{8}$, d'où $\\dfrac{3}{8}$." },
+    { question: "Au lycée, on a croisé deux caractères chez $200$ élèves ($F$ : « fille », $C$ : « vient en car »). Que peut-on dire des événements $F$ et $C$ pour un élève choisi au hasard ?", tableau: { lignes: [["", "C", "\\overline{C}", "\\text{Total}"], ["F", "30", "90", "120"], ["\\overline{F}", "20", "60", "80"], ["\\text{Total}", "50", "150", "200"]] }, choix: ["$F$ et $C$ sont indépendants", "$F$ et $C$ ne sont pas indépendants", "$F$ et $C$ sont incompatibles", "On ne peut pas conclure"], bonne: 0, explication: "$P(F) \\times P(C) = 0{,}6 \\times 0{,}25 = 0{,}15$ et $P(F \\cap C) = \\dfrac{30}{200} = 0{,}15$ : ils sont égaux, donc $F$ et $C$ sont indépendants. Un quart des filles et un quart des garçons viennent en car." },
+    { question: "D'après l'arbre ci-dessous, la probabilité de l'événement $D$ vaut :", figure: "arbre-partition", choix: ["$0{,}034$", "$0{,}12$", "$0{,}04$", "$0{,}02$"], bonne: 0, explication: "Probabilités totales : $0{,}5 \\times 0{,}02 + 0{,}3 \\times 0{,}04 + 0{,}2 \\times 0{,}06 = 0{,}01 + 0{,}012 + 0{,}012 = 0{,}034$. ($0{,}12$ additionne les branches au lieu des chemins ; $0{,}04$ est la moyenne des trois taux.)" }
   ],
 
   /* ---------- 4. FICHE MÉTHODE ---------- */
   methode: [
     {
       titre: "Calculer $P(B)$ avec un arbre",
+      figure: "pi-qcm-arbre",
       etapes: [
         "Repérer tous les chemins qui mènent à $B$.",
         "Calculer la probabilité de chaque chemin : produit des branches.",
@@ -203,6 +214,7 @@ window.CHAPITRES["premiere-probabilites"] = {
     },
     {
       titre: "Inverser un conditionnement",
+      figure: "arbre-depistage",
       etapes: [
         "Calculer $P(A \\cap B)$ : un chemin de l'arbre.",
         "Calculer $P(B)$ : probabilités totales.",
@@ -212,6 +224,7 @@ window.CHAPITRES["premiere-probabilites"] = {
     },
     {
       titre: "Montrer que deux événements sont indépendants (ou non)",
+      figure: "arbre-independance",
       etapes: [
         "Calculer $P(A) \\times P(B)$.",
         "Calculer $P(A \\cap B)$ (tableau, arbre ou énoncé).",

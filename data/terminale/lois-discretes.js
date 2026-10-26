@@ -3,8 +3,10 @@
   -----------------------------------------------------------
   Mêmes règles d'écriture que data/seconde/fonctions.js (formules entre $...$, antislash doublé,
   **gras**, "- " pour une puce). Dans les formules, la virgule décimale s'écrit {,} : $0{,}35$.
-  video : vidéo d'aide affichée sous une notion (vidéos d'Yvan Monka citées dans le livret).
+  video : vidéo d'aide affichée sous une notion (vidéos du prof, playlist « Tle Maths comp – Lois discrètes », et d'Yvan Monka).
   Le corrigé détaillé du Drive est réservé au professeur (Pronote) : il n'est pas lié ici.
+  Figures : "ld-cours-…", "ld-qcm-…", "ld-meth-…" (fragment « lois discrètes » de exercices.js), "batons-binomiale", "batons-geometrique".
+  ld-geometrique et ld-sans-memoire servent aussi au chapitre 10, ld-traduire et ld-cumul en Terminale spécialité, ld-loi-esperance en Première.
 */
 window.CHAPITRES = window.CHAPITRES || {};
 window.CHAPITRES["terminale-lois-discretes"] = {
@@ -13,7 +15,7 @@ window.CHAPITRES["terminale-lois-discretes"] = {
   titre: "Lois discrètes",
   accroche: "Un résultat tiré au sort, un nombre de réussites, une attente : reconnaître la situation avant de choisir une formule.",
 
-  playlist: "",
+  playlist: "https://www.youtube.com/playlist?list=PLWqYEdzXrOlI", // playlist « Tle Maths comp – Lois discrètes » de la chaîne du prof
   drive: "https://drive.google.com/drive/folders/1Ocg_jAIkBcx1ZyeAMo7RfSITirsgvD59",
   pdfs: [
     {
@@ -31,7 +33,9 @@ window.CHAPITRES["terminale-lois-discretes"] = {
         "Associer un nombre au résultat d'une expérience aléatoire, c'est définir une **variable aléatoire** $X$. Sa **loi de probabilité** associe à chaque valeur possible sa probabilité ; la somme des probabilités vaut $1$.\n\n" +
         "- **Espérance** : $E(X) = x_1 p_1 + x_2 p_2 + \\dots + x_n p_n$, la moyenne à long terme sur de nombreuses répétitions.\n" +
         "- **Loi uniforme** sur $\\{1\\,;2\\,;\\dots\\,;n\\}$ : chaque valeur a la probabilité $\\dfrac{1}{n}$ et $E(X) = \\dfrac{n + 1}{2}$.\n\n" +
-        "L'espérance n'est pas forcément une valeur possible : c'est une moyenne, pas l'annonce du prochain résultat.",
+        "L'espérance n'est pas forcément une valeur possible : c'est une moyenne, pas l'annonce du prochain résultat.\n\n" +
+        "La figure représente la loi uniforme sur $\\{1\\,;2\\,;3\\,;4\\}$ par un **diagramme en bâtons** : quatre bâtons de même hauteur $0{,}25$ ; ceux de l'exemple ci-dessous sont en couleur.",
+      figure: "ld-cours-uniforme",
       exemple: {
         enonce: "Un sac contient $4$ jetons numérotés de $1$ à $4$. On en tire un au hasard ; $X$ est son numéro. Calcule $P(X \\geqslant 3)$ et $E(X)$.",
         solution: "$P(X \\geqslant 3) = P(X = 3) + P(X = 4) = \\dfrac{1}{4} + \\dfrac{1}{4} = \\dfrac{1}{2}$.\n\n$E(X) = \\dfrac{4 + 1}{2} = 2{,}5$. On ne tire jamais le numéro $2{,}5$ : c'est le numéro moyen sur de nombreux tirages."
@@ -43,8 +47,10 @@ window.CHAPITRES["terminale-lois-discretes"] = {
         "- Une **épreuve de Bernoulli** a deux issues : succès (probabilité $p$) ou échec ($1 - p$). La variable qui vaut $1$ en cas de succès et $0$ sinon suit la **loi de Bernoulli** : $E(X) = p$, $V(X) = p(1 - p)$, $\\sigma(X) = \\sqrt{p(1 - p)}$.\n" +
         "- Un **schéma de Bernoulli** répète $n$ fois la même épreuve, de façon **indépendante**. Dans l'arbre, on garde les mêmes probabilités à chaque étape.\n" +
         "- Sur un chemin, on **multiplie** ; entre des chemins incompatibles, on **additionne**.\n\n" +
-        "Contre-exemple : un tirage **sans remise** change la composition de l'urne, les essais ne sont plus indépendants.",
-      video: { titre: "Vidéo d'Yvan Monka : construire un arbre de répétitions indépendantes", youtube: "https://youtu.be/e7jH8a1cDtg" },
+        "Contre-exemple : un tirage **sans remise** change la composition de l'urne, les essais ne sont plus indépendants.\n\n" +
+        "La figure montre l'arbre de deux épreuves indépendantes de l'exemple : $S$ (succès) a la probabilité $0{,}7$, $E$ (échec) la probabilité $0{,}3$, à chaque étape.",
+      figure: "ld-cours-arbre",
+      video: { titre: "Vidéo de ton prof : schéma de Bernoulli et loi binomiale (cours 2/4)", youtube: "https://youtu.be/CZvdNX3NMP0" },
       exemple: {
         enonce: "Un message est transmis correctement avec la probabilité $0{,}7$. On fait deux envois indépendants. Quelle est la probabilité d'avoir exactement un succès ?",
         solution: "Deux chemins : $P(S\\bar{S}) = 0{,}7 \\times 0{,}3 = 0{,}21$ et $P(\\bar{S}S) = 0{,}3 \\times 0{,}7 = 0{,}21$. Donc $P = 0{,}21 + 0{,}21 = 0{,}42$."
@@ -56,7 +62,8 @@ window.CHAPITRES["terminale-lois-discretes"] = {
         "Le coefficient $\\dbinom{n}{k}$ compte les façons de placer $k$ succès parmi $n$ essais, c'est-à-dire le nombre de chemins à $k$ succès dans l'arbre.\n\n" +
         "- $\\dbinom{n}{0} = \\dbinom{n}{n} = 1$, $\\dbinom{n}{1} = n$ et $\\dbinom{n}{k} = \\dbinom{n}{n - k}$.\n" +
         "- **Triangle de Pascal** : $\\dbinom{n}{k} = \\dbinom{n - 1}{k - 1} + \\dbinom{n - 1}{k}$. Chaque nombre intérieur est la somme des deux nombres au-dessus.\n\n" +
-        "Lignes $0$ à $4$ : $1$ ; $1\\;1$ ; $1\\;2\\;1$ ; $1\\;3\\;3\\;1$ ; $1\\;4\\;6\\;4\\;1$.",
+        "Sur la figure (lignes $0$ à $5$, numéros de ligne à gauche), les cases en couleur montrent $\\dbinom{4}{1} + \\dbinom{4}{2} = 4 + 6 = 10 = \\dbinom{5}{2}$.",
+      figure: "ld-cours-pascal",
       video: { titre: "Vidéo d'Yvan Monka : utiliser le triangle de Pascal", youtube: "https://youtu.be/6JGrHD5nAoc" },
       exemple: {
         enonce: "Que vaut $\\dbinom{5}{2}$ et que signifie ce nombre ?",
@@ -87,7 +94,9 @@ window.CHAPITRES["terminale-lois-discretes"] = {
         "- $P(X \\geqslant k) = 1 - P(X \\leqslant k - 1)$.\n" +
         "- $P(a \\leqslant X \\leqslant b) = P(X \\leqslant b) - P(X \\leqslant a - 1)$.\n" +
         "- Pour $[0\\,;b]$ au seuil $95\\,\\%$ : le plus petit entier $b$ tel que $P(X \\leqslant b) \\geqslant 0{,}95$. On le justifie avec les deux cumuls voisins.\n\n" +
-        "Avant de taper sur la calculatrice, écrire la liste des entiers que l'on garde. Une observation hors de l'intervalle est inhabituelle, mais pas impossible.",
+        "Avant de taper sur la calculatrice, écrire la liste des entiers que l'on garde. Une observation hors de l'intervalle est inhabituelle, mais pas impossible.\n\n" +
+        "Sur la figure ($X$ suit $\\mathcal{B}(10\\,;0{,}2)$), le cumul $P(X \\leqslant 4)$ est la somme des bâtons en couleur, de $0$ à $4$.",
+      figure: "ld-cours-cumul",
       exemple: {
         enonce: "$10$ personnes réservent ; chacune annule avec la probabilité $0{,}2$, indépendamment. $X$ compte les annulations. Calcule $P(X \\geqslant 2)$, $P(2 \\leqslant X \\leqslant 4)$ et le plus petit $b$ tel que $P(X \\leqslant b) \\geqslant 0{,}95$.",
         solution: "$P(X \\geqslant 2) = 1 - F(1) \\approx 0{,}6242$ ; $P(2 \\leqslant X \\leqslant 4) = F(4) - F(1) \\approx 0{,}5914$. Comme $F(3) \\approx 0{,}8791 < 0{,}95$ et $F(4) \\approx 0{,}9672 \\geqslant 0{,}95$, $b = 4$.",
@@ -101,7 +110,8 @@ window.CHAPITRES["terminale-lois-discretes"] = {
         "- $P(T = k) = (1 - p)^{k - 1} p$ : $k - 1$ échecs, puis un succès.\n" +
         "- $P(T > k) = (1 - p)^k$ : $k$ échecs de suite. Et $P(T \\leqslant k) = 1 - (1 - p)^k$.\n" +
         "- $E(T) = \\dfrac{1}{p}$, le rang moyen du premier succès.\n\n" +
-        "Ne pas confondre « exactement au $4^\\text{e}$ essai » et « au plus tard au $4^\\text{e}$ essai ».",
+        "Ne pas confondre « exactement au $4^\\text{e}$ essai » et « au plus tard au $4^\\text{e}$ essai ».\n\n" +
+        "Pour aller plus loin (temps d'attente, crues et période de retour, seuils avec le logarithme, simulation), le **chapitre 10** approfondit la loi géométrique.",
       figure: "batons-geometrique",
       video: { titre: "Vidéo d'Yvan Monka : calculer avec une loi géométrique", youtube: "https://youtu.be/hg7V5cj2QYE" },
       exemple: {
@@ -120,7 +130,9 @@ window.CHAPITRES["terminale-lois-discretes"] = {
         "- une valeur parmi des entiers équiprobables : **uniforme** ;\n" +
         "- le codage $0$ ou $1$ d'un seul essai : **Bernoulli** ;\n" +
         "- le nombre de succès dans un nombre fixé d'essais : **binomiale** ;\n" +
-        "- le rang du premier succès : **géométrique**.",
+        "- le rang du premier succès : **géométrique**.\n\n" +
+        "La figure illustre l'exemple : deux échecs déjà observés, puis les trois prochains essais, qui « repartent de zéro ».",
+      figure: "ld-cours-memoire",
       exemple: {
         enonce: "Au jeu précédent ($p = 0{,}25$), les deux premiers essais ont échoué. Quelle est la probabilité de réussir dans les trois prochains essais ?",
         solution: "Ne pas réussir dans ces trois essais, c'est trois nouveaux échecs : $P_{T > 2}(T > 5) = 0{,}75^3 = 0{,}421875$. Donc la probabilité cherchée est $1 - 0{,}421875 = 0{,}578125$."
@@ -128,7 +140,15 @@ window.CHAPITRES["terminale-lois-discretes"] = {
     }
   ],
 
-  videos: [],
+  videos: [
+    { titre: "Inégalités et événements contraires", type: "Exercice", youtube: "https://youtu.be/3xOFNEgLDio" },
+    { titre: "Loi de Bernoulli, schéma de Bernoulli", type: "Exercices", youtube: "https://youtu.be/YZEA5ey_CxI" },
+    { titre: "De l'arbre au triangle de Pascal", type: "Exercices", youtube: "https://youtu.be/UpH1L-svSIQ" },
+    { titre: "Loi binomiale à la main", type: "Exercices", youtube: "https://youtu.be/Uf6KzBy5h5c" },
+    { titre: "Loi binomiale : risque et seuil", type: "Exercices", youtube: "https://youtu.be/CfnvKi1-IVQ" },
+    { titre: "Intervalle de fluctuation bilatéral", type: "Exercice", youtube: "https://youtu.be/4VGkpUq8hCo" }
+  ],
+  videosNote: "Vidéos de ton prof (playlist « Tle Maths comp – Lois discrètes ») : l'énoncé est donné dans la vidéo.",
 
   /* ---------- 2. EXERCICES INTERACTIFS ---------- */
   exercices: [
@@ -136,7 +156,7 @@ window.CHAPITRES["terminale-lois-discretes"] = {
     { type: "ld-loi-esperance", titre: "Lire une loi, calculer une espérance", etape: "Premières lois", nb: 5 },
     { type: "ld-bernoulli", titre: "Loi de Bernoulli", etape: "Premières lois", nb: 4 },
     { type: "ld-coef-binomial", titre: "Coefficients binomiaux", etape: "Loi binomiale", nb: 5 },
-    { type: "ld-binomiale-egal", titre: "Calculer P(X = k)", etape: "Loi binomiale", nb: 5 },
+    { type: "ld-binomiale-egal", titre: "Calculer $P(X = k)$", etape: "Loi binomiale", nb: 5 },
     { type: "ld-binomiale-esperance", titre: "Espérance, variance, écart type", etape: "Loi binomiale", nb: 5 },
     { type: "ld-traduire", titre: "Traduire avec le cumul", etape: "Cumul et fluctuation", nb: 5 },
     { type: "ld-cumul", titre: "Utiliser un tableau de cumuls", etape: "Cumul et fluctuation", nb: 5 },
@@ -173,9 +193,9 @@ window.CHAPITRES["terminale-lois-discretes"] = {
     },
     {
       question: "Laquelle de ces situations relève d'une loi binomiale ?",
-      choix: ["On lance un dé jusqu'au premier six et on compte les lancers", "On tire 3 boules sans remise et on compte les rouges", "On répond au hasard à 5 questions à 4 choix et on compte les bonnes réponses", "On choisit un numéro entre 1 et 20"],
+      choix: ["On lance un dé jusqu'au premier six et on compte les lancers", "On tire $3$ boules sans remise et on compte les rouges", "On répond au hasard à $5$ questions à $4$ choix et on compte les bonnes réponses", "On choisit un numéro entre $1$ et $20$"],
       bonne: 2,
-      explication: "5 essais indépendants, deux issues, même probabilité $\\dfrac{1}{4}$ : $\\mathcal{B}(5\\,;0{,}25)$. Le premier cas est géométrique, le deuxième n'est pas indépendant, le dernier est uniforme."
+      explication: "$5$ essais indépendants, deux issues, même probabilité $\\dfrac{1}{4}$ : $\\mathcal{B}(5\\,;0{,}25)$. Le premier cas est géométrique, le deuxième n'est pas indépendant, le dernier est uniforme."
     },
     {
       question: "Que vaut $\\dbinom{6}{2}$ ?",
@@ -185,7 +205,7 @@ window.CHAPITRES["terminale-lois-discretes"] = {
     },
     {
       question: "Pourquoi $\\dbinom{6}{2} = \\dbinom{6}{4}$ ?",
-      choix: ["C'est un hasard", "Placer 2 succès revient à placer 4 échecs", "Parce que $2 + 4 = 6$ est pair", "Parce que $2 \\times 2 = 4$"],
+      choix: ["C'est un hasard", "Placer $2$ succès revient à placer $4$ échecs", "Parce que $2 + 4 = 6$ est pair", "Parce que $2 \\times 2 = 4$"],
       bonne: 1,
       explication: "Choisir les positions des $2$ succès, c'est choisir les positions des $4$ échecs : $\\dbinom{n}{k} = \\dbinom{n}{n - k}$."
     },
@@ -276,7 +296,13 @@ window.CHAPITRES["terminale-lois-discretes"] = {
     { question: "On lance un dé équilibré jusqu'à obtenir un $6$. En moyenne, combien de lancers faut-il ?", choix: ["$6$", "$3{,}5$", "$\\dfrac{1}{6}$", "$3$"], bonne: 0, explication: "Le rang du premier $6$ suit la loi géométrique $\\mathcal{G}\\left(\\dfrac{1}{6}\\right)$, d'espérance $\\dfrac{1}{p} = 6$. $3{,}5$ est la moyenne des résultats d'un lancer." },
     { question: "$T$ suit $\\mathcal{G}(0{,}5)$. Que vaut $P(T > 3)$ ?", choix: ["$0{,}125$", "$0{,}0625$", "$0{,}875$", "$0{,}5$"], bonne: 0, explication: "$T > 3$ signifie trois échecs de suite : $P(T > 3) = 0{,}5^3 = 0{,}125$. $0{,}875 = 1 - 0{,}5^3$ est $P(T \\leqslant 3)$." },
     { question: "À la pêche dans le lagon, chaque lancer de ligne prend un poisson avec la probabilité $0{,}15$, de façon indépendante. Le nombre $N$ de lancers jusqu'au premier poisson suit :", choix: ["la loi géométrique $\\mathcal{G}(0{,}15)$", "la loi binomiale $\\mathcal{B}(10\\,;0{,}15)$", "une loi uniforme", "la loi de Bernoulli de paramètre $0{,}15$"], bonne: 0, explication: "$N$ est le rang du premier succès dans des essais indépendants de même probabilité : c'est la loi géométrique. Le nombre d'essais n'est pas fixé à l'avance." },
-    { question: "$\\dbinom{4}{1} + \\dbinom{4}{2}$ est égal à :", choix: ["$\\dbinom{5}{2}$", "$\\dbinom{8}{3}$", "$\\dbinom{4}{3}$", "$\\dbinom{5}{1}$"], bonne: 0, explication: "Triangle de Pascal : $\\dbinom{n - 1}{k - 1} + \\dbinom{n - 1}{k} = \\dbinom{n}{k}$ avec $n = 5$ et $k = 2$. Vérification : $4 + 6 = 10 = \\dbinom{5}{2}$." }
+    { question: "$\\dbinom{4}{1} + \\dbinom{4}{2}$ est égal à :", choix: ["$\\dbinom{5}{2}$", "$\\dbinom{8}{3}$", "$\\dbinom{4}{3}$", "$\\dbinom{5}{1}$"], bonne: 0, explication: "Triangle de Pascal : $\\dbinom{n - 1}{k - 1} + \\dbinom{n - 1}{k} = \\dbinom{n}{k}$ avec $n = 5$ et $k = 2$. Vérification : $4 + 6 = 10 = \\dbinom{5}{2}$." },
+    { question: "Le diagramme en bâtons ci-dessous représente la loi d'une variable aléatoire $X$. Quelle loi suit $X$ ?", figure: "ld-qcm-uniforme", choix: ["La loi uniforme sur $\\{1\\,;2\\,;\\dots\\,;8\\}$", "La loi binomiale $\\mathcal{B}(8\\,;0{,}5)$", "La loi géométrique $\\mathcal{G}(0{,}125)$", "La loi de Bernoulli de paramètre $0{,}125$"], bonne: 0, explication: "Les $8$ valeurs ont toutes la même probabilité $0{,}125 = \\dfrac{1}{8}$ : c'est la loi uniforme. Une loi binomiale a des bâtons de hauteurs différentes, une loi de Bernoulli n'a que deux valeurs." },
+    { question: "Le diagramme ci-dessous représente la loi de $T$, rang du premier succès dans des épreuves indépendantes. Quelle est la loi de $T$ ?", figure: "ld-qcm-geometrique", choix: ["$\\mathcal{G}(0{,}4)$", "$\\mathcal{G}(0{,}6)$", "$\\mathcal{B}(8\\,;0{,}4)$", "La loi uniforme sur $\\{1\\,;\\dots\\,;8\\}$"], bonne: 0, explication: "Le premier bâton donne $P(T = 1) = p = 0{,}4$, puis chaque bâton vaut $0{,}6$ fois le précédent : $T$ suit la loi géométrique $\\mathcal{G}(0{,}4)$. $0{,}6$ est la probabilité de l'échec." },
+    { question: "Quel nombre remplace le point d'interrogation dans ce triangle de Pascal (ligne $6$) ?", figure: "ld-qcm-pascal", choix: ["$15$", "$10$", "$20$", "$6$"], bonne: 0, explication: "On additionne les deux nombres situés au-dessus, dans la ligne $5$ : $5 + 10 = 15$. Donc $\\dbinom{6}{2} = 15$." },
+    { question: "L'arbre représente trois épreuves de Bernoulli indépendantes ($S$ : succès, $E$ : échec). Combien de chemins comportent exactement deux succès ?", figure: "ld-qcm-arbre", choix: ["$3$", "$2$", "$6$", "$8$"], bonne: 0, explication: "Les chemins $SSE$, $SES$ et $ESS$ : il y en a $\\dbinom{3}{2} = 3$. $8$ est le nombre total de chemins." },
+    { question: "$X$ suit $\\mathcal{B}(10\\,;0{,}2)$ (diagramme ci-dessous). Pour quelle valeur de $k$ la probabilité $P(X = k)$ est-elle la plus grande ?", figure: "batons-binomiale", choix: ["$k = 2$", "$k = 0$", "$k = 5$", "$k = 10$"], bonne: 0, explication: "Le plus haut bâton est en $k = 2$, qui est aussi l'espérance $E(X) = 10 \\times 0{,}2 = 2$. Le diagramme d'une loi binomiale n'est pas forcément symétrique." },
+    { question: "Les quatre premiers essais ont échoué (figure). Chaque essai réussit avec la probabilité $0{,}3$, indépendamment. Quelle est la probabilité que le prochain essai réussisse ?", figure: "ld-qcm-frise", choix: ["$0{,}3$", "$0{,}7^4 \\times 0{,}3$", "$1 - 0{,}7^5$", "$0{,}7$"], bonne: 0, explication: "Les essais sont indépendants : la loi géométrique est sans mémoire, la probabilité reste $0{,}3$. $0{,}7^4 \\times 0{,}3$ est $P(T = 5)$ calculée **avant** de connaître les échecs." }
   ],
 
   /* ---------- 4. FICHE MÉTHODE ---------- */
@@ -288,7 +314,8 @@ window.CHAPITRES["terminale-lois-discretes"] = {
         "Vérifier : $n$ répétitions identiques et **indépendantes**, nombre fixé à l'avance.",
         "Dire que $X$ compte les succès : $X$ suit $\\mathcal{B}(n\\,;p)$."
       ],
-      exemple: "On répond au hasard à $5$ QCM à $4$ choix : $5$ épreuves indépendantes, succès « bonne réponse » de probabilité $0{,}25$. $X$ suit $\\mathcal{B}(5\\,;0{,}25)$."
+      exemple: "On répond au hasard à $5$ QCM à $4$ choix : $5$ épreuves indépendantes, succès « bonne réponse » de probabilité $0{,}25$. $X$ suit $\\mathcal{B}(5\\,;0{,}25)$. La figure montre le début de l'arbre (trois épreuves) : les mêmes probabilités à chaque étape.",
+      figure: "ld-meth-arbre"
     },
     {
       titre: "Calculer une probabilité binomiale",
@@ -297,7 +324,8 @@ window.CHAPITRES["terminale-lois-discretes"] = {
         "Obtenir $\\dbinom{n}{k}$ avec le triangle de Pascal ou la calculatrice.",
         "Calculer et arrondir seulement à la fin."
       ],
-      exemple: "$\\mathcal{B}(4\\,;0{,}1)$ : $P(X = 1) = 4 \\times 0{,}1 \\times 0{,}9^3 \\approx 0{,}292$."
+      exemple: "$\\mathcal{B}(4\\,;0{,}1)$ : $P(X = 1) = 4 \\times 0{,}1 \\times 0{,}9^3 \\approx 0{,}292$ (bâton en couleur sur la figure).",
+      figure: "ld-meth-binomiale"
     },
     {
       titre: "Traduire un événement avec le cumul",
@@ -307,7 +335,8 @@ window.CHAPITRES["terminale-lois-discretes"] = {
         "« Entre $a$ et $b$ inclus » : $P(X \\leqslant b) - P(X \\leqslant a - 1)$.",
         "Inégalité stricte : décaler d'une unité ($X < k$ équivaut à $X \\leqslant k - 1$)."
       ],
-      exemple: "$P(X > 6) = 1 - P(X \\leqslant 6)$ et $P(X \\geqslant 6) = 1 - P(X \\leqslant 5)$ : ce ne sont pas les mêmes."
+      exemple: "$P(X > 6) = 1 - P(X \\leqslant 6)$ et $P(X \\geqslant 6) = 1 - P(X \\leqslant 5)$ : ce ne sont pas les mêmes. Sur la figure, les entiers gardés pour $X \\geqslant 6$ (avec $X$ de $0$ à $12$) : $6$ en fait partie.",
+      figure: "ld-meth-traduire"
     },
     {
       titre: "Déterminer un intervalle de fluctuation",
@@ -317,7 +346,8 @@ window.CHAPITRES["terminale-lois-discretes"] = {
         "Justifier en citant les deux cumuls qui encadrent le seuil.",
         "Pour un intervalle bilatéral, limiter chaque queue à $\\dfrac{\\alpha}{2}$. Pour une fréquence, diviser les bornes par $n$."
       ],
-      exemple: "$\\mathcal{B}(10\\,;0{,}2)$ : $F(3) \\approx 0{,}879$ et $F(4) \\approx 0{,}967$, donc $[0\\,;4]$ au seuil $95\\,\\%$."
+      exemple: "$\\mathcal{B}(10\\,;0{,}2)$ : $F(3) \\approx 0{,}879$ et $F(4) \\approx 0{,}967$, donc $[0\\,;4]$ au seuil $95\\,\\%$ (bâtons en couleur sur la figure).",
+      figure: "ld-cours-cumul"
     },
     {
       titre: "Calculer avec une loi géométrique",
@@ -327,7 +357,8 @@ window.CHAPITRES["terminale-lois-discretes"] = {
         "Appliquer $P(T = k) = (1 - p)^{k - 1} p$, $P(T > k) = (1 - p)^k$, $P(T \\leqslant k) = 1 - (1 - p)^k$.",
         "Avec une condition « sachant que $T > s$ », utiliser l'absence de mémoire."
       ],
-      exemple: "$p = 0{,}12$ : $P(T > 4) = 0{,}88^4 \\approx 0{,}600$ et $P(T = 5) = 0{,}88^4 \\times 0{,}12 \\approx 0{,}072$."
+      exemple: "$p = 0{,}12$ : $P(T > 4) = 0{,}88^4 \\approx 0{,}600$ et $P(T = 5) = 0{,}88^4 \\times 0{,}12 \\approx 0{,}072$ (figure : quatre échecs puis un succès).",
+      figure: "ld-meth-geometrique"
     }
   ],
   erreurs: [

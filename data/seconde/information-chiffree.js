@@ -12,7 +12,7 @@ window.CHAPITRES["seconde-information-chiffree"] = {
   titre: "Information chiffrée",
   accroche: "Proportions, pourcentages, taux d'évolution et coefficients multiplicateurs, avec la population de Mayotte en fil rouge.",
 
-  playlist: "",
+  playlist: "https://www.youtube.com/playlist?list=PLWCU8NgTj158", // playlist « Secondes : information chiffrée »
   drive: "https://drive.google.com/drive/folders/153RvVVumMoWU_bPz6w6RypIZVkocK6Pb",
   pdfs: [
     {
@@ -32,9 +32,10 @@ window.CHAPITRES["seconde-information-chiffree"] = {
       texte:
         "Dans une population $E$ d'effectif $n_E$, une partie $A$ a pour effectif $n_A$. La **proportion** de $A$ dans $E$ est\n\n" +
         "$p = \\dfrac{n_A}{n_E}$, avec toujours $0 \\leqslant p \\leqslant 1$.\n\n" +
-        "- Elle s'écrit en fraction, en décimal ou en pourcentage : $\\dfrac{3}{8} = 0{,}375 = 37{,}5\\,\\%$.\n" +
+        "- Elle s'écrit en fraction, en décimal ou en pourcentage, par exemple $\\dfrac{3}{8} = 0{,}375 = 37{,}5\\,\\%$\n" +
         "- Pour trouver la partie : $n_A = p \\times n_E$. Pour trouver le tout : $n_E = \\dfrac{n_A}{p}$.\n\n" +
         "Une proportion n'a de sens qu'avec sa **population de référence**, souvent introduite par « parmi », « des » ou « sur ».",
+      figure: "ic-cours-proportion",
       video: { titre: "Vidéo d'Yvan Monka : passer d'un effectif à une proportion", youtube: "https://youtu.be/r8S46rk9x9k" },
       exemple: {
         enonce: "Au marché de Mamoudzou, une commerçante a 240 mangues et en vend 84 le matin. Quelle proportion a-t-elle vendue ?",
@@ -47,6 +48,7 @@ window.CHAPITRES["seconde-information-chiffree"] = {
         "Si $p_1$ des $E$ sont des $A$, et $p_2$ des $A$ sont des $C$, alors la proportion de $C$ dans $E$ est\n\n" +
         "$p = p_1 \\times p_2$.\n\n" +
         "On **multiplie**, on n'additionne pas : $30\\,\\%$ de $58\\,\\%$, c'est $0{,}30 \\times 0{,}58 = 0{,}174 = 17{,}4\\,\\%$.",
+      figure: "ic-cours-emboites",
       video: { titre: "Vidéo d'Yvan Monka : calculer un pourcentage de pourcentage", youtube: "https://youtu.be/nPPRsOW2veU" },
       exemple: {
         enonce: "À N'Gouja, $65\\,\\%$ des tortues observées sont des tortues vertes, et $40\\,\\%$ des tortues vertes sont des femelles. Quelle proportion des tortues observées sont des tortues vertes femelles ?",
@@ -57,9 +59,10 @@ window.CHAPITRES["seconde-information-chiffree"] = {
       titre: "Variation absolue et taux d'évolution",
       texte:
         "Une quantité passe d'une valeur initiale $V_1$ à une valeur finale $V_2$.\n\n" +
-        "- **Variation absolue** : $V_2 - V_1$, dans l'unité de la quantité.\n" +
-        "- **Taux d'évolution** : $t = \\dfrac{V_2 - V_1}{V_1}$, sans unité, souvent en pourcentage.\n\n" +
-        "Si $t > 0$, c'est une hausse ; si $t < 0$, c'est une baisse.",
+        "- **Variation absolue** (ou variation additive) : $V_2 - V_1$, dans l'unité de la quantité.\n" +
+        "- **Taux d'évolution** (ou variation relative) : $t = \\dfrac{V_2 - V_1}{V_1}$, sans unité, souvent en pourcentage.\n\n" +
+        "Si $t > 0$, c'est une hausse ; si $t < 0$, c'est une baisse. On divise toujours par la valeur **de départ** $V_1$.",
+      figure: "ic-cours-population",
       video: { titre: "Vidéo d'Yvan Monka : déterminer un taux d'évolution", youtube: "https://youtu.be/Y48-iK7Cp20" },
       exemple: {
         enonce: "Mayotte comptait $256\\,518$ habitants en 2017 et $323\\,153$ au 1er janvier 2026 (Insee). Calculer la variation absolue et le taux d'évolution.",
@@ -69,13 +72,13 @@ window.CHAPITRES["seconde-information-chiffree"] = {
     {
       titre: "Le coefficient multiplicateur",
       texte:
-        "Le **coefficient multiplicateur** est $CM = \\dfrac{V_2}{V_1}$, de sorte que $V_2 = V_1 \\times CM$.\n\n" +
+        "Le **coefficient multiplicateur** (ou variation multiplicative) est $CM = \\dfrac{V_2}{V_1}$ : on passe de $V_1$ à $V_2$ en multipliant, $V_2 = V_1 \\times CM$.\n\n" +
         "- Augmenter de $t\\,\\%$, c'est multiplier par $1 + \\dfrac{t}{100}$ : $+5\\,\\%$ donne $\\times 1{,}05$.\n" +
         "- Diminuer de $t\\,\\%$, c'est multiplier par $1 - \\dfrac{t}{100}$ : $-5\\,\\%$ donne $\\times 0{,}95$.\n" +
         "- Dans l'autre sens : $t = CM - 1$.\n\n" +
         "Pour retrouver une valeur initiale, on **divise** par le coefficient : $V_1 = \\dfrac{V_2}{CM}$.",
-      figure: "prix-evolution",
-      video: { titre: "Vidéo d'Yvan Monka : appliquer une hausse ou une baisse", youtube: "https://youtu.be/-5QmcMuzy5I" },
+      figure: "ic-cours-coefficient",
+      video: { titre: "Vidéo d'Yvan Monka : calculer un coefficient multiplicateur", youtube: "https://youtu.be/-5QmcMuzy5I" },
       exemple: {
         enonce: "Après une hausse de $8\\,\\%$, un loyer vaut $540$ €. Quel était le loyer avant la hausse ?",
         solution: "$CM = 1{,}08$ donc $V_1 = \\dfrac{540}{1{,}08} = 500$ €.\n\nAttention : retirer $8\\,\\%$ de $540$ donne $496{,}80$ €, ce qui est faux, car les $8\\,\\%$ portaient sur l'ancien loyer."
@@ -86,6 +89,7 @@ window.CHAPITRES["seconde-information-chiffree"] = {
       texte:
         "- **Successives** : on multiplie les coefficients, $CM = CM_1 \\times CM_2$, puis $t = CM - 1$. Les taux ne s'additionnent pas.\n" +
         "- **Réciproque** (pour revenir à la valeur de départ) : $CM' = \\dfrac{1}{CM}$, puis $t' = CM' - 1$.",
+      figure: "ic-cours-successives",
       video: { titre: "Vidéo d'Yvan Monka : taux d'évolution successifs", youtube: "https://youtu.be/qOg2eXd8Hv0" },
       exemple: {
         enonce: "Le kilo de tomates coûte 4 € en octobre. Il augmente de $35\\,\\%$ en décembre, puis baisse de $20\\,\\%$ en février. Quel est le taux global ? Quel taux ramènerait le prix à 4 € ?",
@@ -98,6 +102,7 @@ window.CHAPITRES["seconde-information-chiffree"] = {
       texte:
         "« $80\\,\\%$ des élèves sont externes » est un pourcentage de **proportion**. « Le prix a baissé de $20\\,\\%$ » est un pourcentage d'**évolution**.\n\n" +
         "Quand une proportion évolue, l'écart se compte en **points**, et le taux d'évolution en **%**.",
+      figure: "ic-cours-points",
       exemple: {
         enonce: "Le taux de réussite au bac d'un lycée passe de $75\\,\\%$ à $81\\,\\%$. Un journal titre « +6 % ». Est-ce correct ?",
         solution: "Non. Le taux a gagné $81 - 75 = 6$ **points**. Son taux d'évolution est $\\dfrac{81 - 75}{75} = 0{,}08$, soit $+8\\,\\%$."
@@ -117,11 +122,12 @@ window.CHAPITRES["seconde-information-chiffree"] = {
     { type: "proportion-pourcentage", titre: "Calculer une proportion", etape: "Proportions", nb: 5 },
     { type: "partie-tout", titre: "Retrouver la partie ou le tout", etape: "Proportions", nb: 5 },
     { type: "proportion-de-proportion", titre: "Pourcentage de pourcentage", etape: "Proportions", nb: 4 },
-    { type: "taux-evolution", titre: "Calculer un taux d'évolution", etape: "Évolutions", nb: 5 },
+    { type: "taux-evolution", titre: "Variation absolue et taux d'évolution", etape: "Évolutions", nb: 5 },
     { type: "coefficient", titre: "Taux et coefficient multiplicateur", etape: "Évolutions", nb: 5 },
     { type: "appliquer-evolution", titre: "Appliquer une évolution, retrouver le prix initial", etape: "Évolutions", nb: 5 },
-    { type: "evolutions-successives", titre: "Évolutions successives", etape: "Défi", nb: 5 },
-    { type: "taux-reciproque", titre: "Taux réciproque", etape: "Défi", nb: 4 }
+    { type: "evolutions-successives", titre: "Évolutions successives", etape: "Évolutions successives et réciproques", nb: 5 },
+    { type: "taux-reciproque", titre: "Taux réciproque", etape: "Évolutions successives et réciproques", nb: 4 },
+    { type: "ic-points", titre: "Proportion, évolution ou points ?", etape: "Points de pourcentage", nb: 4 }
   ],
 
   /* ---------- 3. QCM DE RÉVISION ---------- */
@@ -187,7 +193,7 @@ window.CHAPITRES["seconde-information-chiffree"] = {
       explication: "Écart : $45 - 40 = 5$ points. Taux d'évolution : $\\dfrac{5}{40} = 0{,}125 = +12{,}5\\,\\%$."
     },
     { question: "La proportion $\\dfrac{7}{20}$ s'écrit en pourcentage :", choix: ["$35\\,\\%$", "$0{,}35\\,\\%$", "$7\\,\\%$", "$27\\,\\%$"], bonne: 0, explication: "$\\dfrac{7}{20} = \\dfrac{35}{100} = 0{,}35 = 35\\,\\%$." },
-    { question: "Vrai ou faux : une proportion peut valoir $120\\,\\%$.", choix: ["Faux", "Vrai"], bonne: 0, explication: "Une partie ne peut pas être plus grande que le tout : $0 \\leqslant p \\leqslant 1$. En revanche, un taux d'évolution peut dépasser $100\\,\\%$." },
+    { question: "Laquelle de ces valeurs ne peut pas être une proportion ?", choix: ["$120\\,\\%$", "$0{,}5$", "$\\dfrac{3}{4}$", "$100\\,\\%$"], bonne: 0, explication: "Une partie ne peut pas être plus grande que le tout : $0 \\leqslant p \\leqslant 1$, c'est-à-dire entre $0\\,\\%$ et $100\\,\\%$. En revanche, un taux d'évolution peut dépasser $100\\,\\%$." },
     { question: "« $12\\,\\%$ des élèves de Seconde sont internes. » La population de référence est :", choix: ["les élèves de Seconde", "les internes", "tous les élèves du lycée", "les internes de Seconde"], bonne: 0, explication: "La population de référence suit « des » : on prend $12\\,\\%$ des élèves de Seconde." },
     { question: "$15\\,\\%$ des $320$ élèves de Seconde sont internes. Cela fait :", choix: ["$48$ élèves", "$21$ élèves environ", "$305$ élèves", "$4\\,800$ élèves"], bonne: 0, explication: "On cherche la partie : $n_A = 0{,}15 \\times 320 = 48$." },
     { question: "$60\\,\\%$ des élèves mangent à la cantine, et $25\\,\\%$ d'entre eux sont en Seconde. La proportion d'élèves de Seconde qui mangent à la cantine, parmi tous les élèves, est :", choix: ["$15\\,\\%$", "$85\\,\\%$", "$35\\,\\%$", "$1\\,500\\,\\%$"], bonne: 0, explication: "Proportion de proportion : on multiplie, $0{,}60 \\times 0{,}25 = 0{,}15 = 15\\,\\%$." },
@@ -200,7 +206,12 @@ window.CHAPITRES["seconde-information-chiffree"] = {
     { question: "Après une hausse de $25\\,\\%$, un prix vaut $50$ €. Le prix initial était :", choix: ["$40$ €", "$37{,}50$ €", "$62{,}50$ €", "$45$ €"], bonne: 0, explication: "On divise par le coefficient : $V_1 = \\dfrac{50}{1{,}25} = 40$ €. Retirer $25\\,\\%$ de $50$ € ($37{,}50$ €) est faux : les $25\\,\\%$ portaient sur l'ancien prix." },
     { question: "Trois hausses successives de $10\\,\\%$ donnent une hausse globale de :", choix: ["$33{,}1\\,\\%$", "$30\\,\\%$", "$31\\,\\%$", "$1{,}331\\,\\%$"], bonne: 0, explication: "$CM = 1{,}1 \\times 1{,}1 \\times 1{,}1 = 1{,}21 \\times 1{,}1 = 1{,}331$, donc $t = 0{,}331 = 33{,}1\\,\\%$. Les taux ne s'additionnent pas." },
     { question: "Quel taux d'évolution annule une baisse de $20\\,\\%$ ?", choix: ["$+25\\,\\%$", "$+20\\,\\%$", "$+80\\,\\%$", "$-25\\,\\%$"], bonne: 0, explication: "$CM' = \\dfrac{1}{0{,}8} = 1{,}25$, soit $+25\\,\\%$. Vérification : $100 \\times 0{,}8 \\times 1{,}25 = 100$." },
-    { question: "Le taux de chômage passe de $30\\,\\%$ à $27\\,\\%$. Il a :", choix: ["baissé de $3$ points, soit une baisse de $10\\,\\%$", "baissé de $3\\,\\%$", "baissé de $10$ points", "baissé de $3$ points, soit une baisse de $3\\,\\%$"], bonne: 0, explication: "Écart : $30 - 27 = 3$ points. Taux d'évolution : $\\dfrac{27 - 30}{30} = -0{,}1$, soit $-10\\,\\%$." }
+    { question: "Le taux de chômage passe de $30\\,\\%$ à $27\\,\\%$. Il a :", choix: ["baissé de $3$ points, soit une baisse de $10\\,\\%$", "baissé de $3\\,\\%$", "baissé de $10$ points", "baissé de $3$ points, soit une baisse de $3\\,\\%$"], bonne: 0, explication: "Écart : $30 - 27 = 3$ points. Taux d'évolution : $\\dfrac{27 - 30}{30} = -0{,}1$, soit $-10\\,\\%$." },
+    { question: "D'après le schéma, combien d'élèves la partie coloriée représente-t-elle ?", figure: "ic-qcm-barre", choix: ["$30$", "$15$", "$185$", "$3\\,000$"], bonne: 0, explication: "On cherche la partie : $0{,}15 \\times 200 = 30$ élèves. ($15$ est le pourcentage, pas l'effectif.)" },
+    { question: "Un salouva coûte $80$ € en janvier. Son prix augmente de $25\\,\\%$ en février, puis baisse de $20\\,\\%$ en mars. Son prix en mars est :", figure: "ic-qcm-chaine", choix: ["$80$ €", "$84$ €", "$76$ €", "$100$ €"], bonne: 0, explication: "$80 \\times 1{,}25 = 100$ € en février, puis $100 \\times 0{,}8 = 80$ € en mars. En effet, $1{,}25 \\times 0{,}8 = 1$ : le prix revient à sa valeur de départ." },
+    { question: "La part des élèves qui viennent en bus passe de $40\\,\\%$ à $50\\,\\%$. Quel est le taux d'évolution de cette part ?", figure: "ic-qcm-points", choix: ["$+25\\,\\%$", "$+10\\,\\%$", "$+20\\,\\%$", "$+50\\,\\%$"], bonne: 0, explication: "L'écart est de $10$ points, mais le taux d'évolution est $\\dfrac{50 - 40}{40} = 0{,}25$, soit $+25\\,\\%$. ($+20\\,\\%$ vient d'une division par la valeur finale.)" },
+    { question: "D'après le schéma, quelle part de tous les élèves les filles de Seconde représentent-elles ?", figure: "ic-qcm-emboites", choix: ["$15\\,\\%$", "$80\\,\\%$", "$20\\,\\%$", "$50\\,\\%$"], bonne: 0, explication: "Proportion de proportion : $0{,}3 \\times 0{,}5 = 0{,}15$, soit $15\\,\\%$ de tous les élèves. On n'additionne pas $30\\,\\%$ et $50\\,\\%$." },
+    { question: "D'après le schéma, par quel nombre faut-il multiplier $125$ € pour revenir à $100$ € ?", figure: "ic-qcm-retour", choix: ["$0{,}8$", "$0{,}75$", "$1{,}25$", "$0{,}25$"], bonne: 0, explication: "$CM' = \\dfrac{1}{1{,}25} = 0{,}8$ : c'est une baisse de $20\\,\\%$, et non de $25\\,\\%$. Vérification : $125 \\times 0{,}8 = 100$." }
   ],
 
   /* ---------- 4. FICHE MÉTHODE ---------- */
@@ -211,9 +222,10 @@ window.CHAPITRES["seconde-information-chiffree"] = {
         "Identifier la population de référence $E$ et la partie $A$.",
         "Repérer les deux nombres connus parmi $n_A$, $n_E$ et $p$.",
         "Calculer le troisième : $p = \\dfrac{n_A}{n_E}$, $n_A = p \\times n_E$ ou $n_E = \\dfrac{n_A}{p}$.",
-        "Pour un pourcentage, écrire d'abord $t\\,\\% = \\dfrac{t}{100}$ (par exemple $45\\,\\% = 0{,}45$)."
+        "Pour un pourcentage, écrire d'abord $t\\,\\% = \\dfrac{t}{100}$ : par exemple, $45\\,\\% = 0{,}45$."
       ],
-      exemple: "$42$ filles représentent $35\\,\\%$ des adhérents : $n_E = \\dfrac{42}{0{,}35} = 120$ adhérents."
+      exemple: "$42$ filles représentent $35\\,\\%$ des adhérents : $n_E = \\dfrac{42}{0{,}35} = 120$ adhérents.",
+      figure: "ic-meth-tout"
     },
     {
       titre: "Calculer une proportion de proportion",
@@ -222,7 +234,8 @@ window.CHAPITRES["seconde-information-chiffree"] = {
         "Écrire chaque proportion avec sa référence : « $p_1$ des $E$ », « $p_2$ des $A$ ».",
         "Multiplier : $p = p_1 \\times p_2$, puis conclure par une phrase."
       ],
-      exemple: "$32\\,\\%$ des élèves sont en Seconde, $55\\,\\%$ d'entre eux sont des filles : $0{,}32 \\times 0{,}55 = 17{,}6\\,\\%$."
+      exemple: "$32\\,\\%$ des élèves sont en Seconde, $55\\,\\%$ d'entre eux sont des filles : $0{,}32 \\times 0{,}55 = 0{,}176$, soit $17{,}6\\,\\%$ de tous les élèves.",
+      figure: "ic-meth-emboites"
     },
     {
       titre: "Calculer un taux d'évolution",
@@ -231,7 +244,8 @@ window.CHAPITRES["seconde-information-chiffree"] = {
         "Calculer $t = \\dfrac{V_2 - V_1}{V_1}$ (ou $CM = \\dfrac{V_2}{V_1}$ puis $t = CM - 1$).",
         "Écrire $t$ en pourcentage et conclure : hausse ou baisse de … %."
       ],
-      exemple: "Bananes : de $2{,}50$ € à $2$ €, $t = \\dfrac{-0{,}50}{2{,}50} = -0{,}2$, soit une baisse de $20\\,\\%$."
+      exemple: "Bananes : de $2{,}50$ € à $2$ €, $t = \\dfrac{-0{,}50}{2{,}50} = -0{,}2$, soit une baisse de $20\\,\\%$.",
+      figure: "ic-meth-taux"
     },
     {
       titre: "Appliquer une évolution ou retrouver la valeur initiale",
@@ -240,7 +254,8 @@ window.CHAPITRES["seconde-information-chiffree"] = {
         "Valeur finale : $V_2 = V_1 \\times CM$.",
         "Valeur initiale : $V_1 = \\dfrac{V_2}{CM}$ (on divise, on n'applique pas l'évolution contraire)."
       ],
-      exemple: "Kayak à $450$ € soldé à $-30\\,\\%$ : $450 \\times 0{,}7 = 315$ €."
+      exemple: "Kayak à $450$ € soldé à $-30\\,\\%$ : $450 \\times 0{,}7 = 315$ €.",
+      figure: "ic-meth-solde"
     },
     {
       titre: "Taux global et taux réciproque",
@@ -250,7 +265,18 @@ window.CHAPITRES["seconde-information-chiffree"] = {
         "Taux réciproque : calculer $\\dfrac{1}{CM}$, puis retrancher $1$.",
         "Donner la valeur exacte si possible, sinon un arrondi en pourcentage."
       ],
-      exemple: "$+20\\,\\%$ puis $-10\\,\\%$ : $1{,}2 \\times 0{,}9 = 1{,}08$, soit $+8\\,\\%$. Réciproque de $+25\\,\\%$ : $\\dfrac{1}{1{,}25} = 0{,}8$, soit $-20\\,\\%$."
+      exemple: "$+20\\,\\%$ puis $-10\\,\\%$ : $1{,}2 \\times 0{,}9 = 1{,}08$, soit $+8\\,\\%$. Réciproque de $+25\\,\\%$ : $\\dfrac{1}{1{,}25} = 0{,}8$, soit $-20\\,\\%$.",
+      figure: "ic-meth-global"
+    },
+    {
+      titre: "Proportion, évolution ou points de pourcentage ?",
+      etapes: [
+        "« $p\\,\\%$ des … », « parmi … » : c'est une **proportion** d'un ensemble de référence, entre $0\\,\\%$ et $100\\,\\%$.",
+        "« augmente de », « baisse de », « remise de » : c'est un **taux d'évolution**, calculé par rapport à la valeur de départ.",
+        "Une proportion passe de $a\\,\\%$ à $b\\,\\%$ : l'écart $b - a$ se compte en **points**, le taux d'évolution vaut $\\dfrac{b - a}{a}$."
+      ],
+      exemple: "La part des élèves qui viennent en bus passe de $40\\,\\%$ à $50\\,\\%$ : $+10$ points, soit une hausse de $\\dfrac{10}{40} = 25\\,\\%$.",
+      figure: "ic-meth-points"
     }
   ],
   erreurs: [

@@ -7,6 +7,8 @@
   Vidéos : celles de la chaîne d'abord, Yvan Monka en complément.
   Les générateurs d'exercices commencent par « dr- » dans assets/exercices.js
   (le chapitre reprend aussi am-droite-point et am-lire-droite de la partie Automatismes).
+  Figures : "dr-cours-directeur", "droite-directeur", "dr-cours-pente", "dr-cours-trace", "deux-droites".
+  Programme 2026 : intersection de deux droites données par leurs équations réduites (pas de chapitre « systèmes »).
 */
 window.CHAPITRES = window.CHAPITRES || {};
 window.CHAPITRES["seconde-droites"] = {
@@ -17,7 +19,9 @@ window.CHAPITRES["seconde-droites"] = {
 
   playlist: "",
   drive: "",
-  pdfs: [],
+  pdfs: [
+    { titre: "Cours d'Yvan Monka : droites du plan (PDF)", url: "https://www.maths-et-tiques.fr/telech/19DroitesM.pdf" }
+  ],
   liens: [
     { titre: "Le cours sur les équations de droites en vidéo (Yvan Monka)", url: "https://youtu.be/d-rUnClmcCY", type: "video" }
   ],
@@ -31,6 +35,7 @@ window.CHAPITRES["seconde-droites"] = {
         "Un **vecteur directeur** d'une droite $d$ est un vecteur non nul $\\vec{u}$ qui a la même direction que $d$ : si $A$ et $B$ sont deux points distincts de $d$, $\\overrightarrow{AB}$ est un vecteur directeur.\n\n" +
         "- Tout vecteur non nul colinéaire à $\\vec{u}$ est aussi un vecteur directeur de $d$.\n" +
         "- Un point $M$ est sur la droite passant par $A$ et dirigée par $\\vec{u}$ si et seulement si $\\overrightarrow{AM}$ et $\\vec{u}$ sont **colinéaires** (chapitre 11).",
+      figure: "dr-cours-directeur",
       exemple: {
         enonce: "La droite $d$ passe par $A(1\\,;3)$ et $B(4\\,;-3)$. Donner deux vecteurs directeurs de $d$.",
         solution: "$\\overrightarrow{AB}\\begin{pmatrix} 3 \\\\ -6 \\end{pmatrix}$ en est un. En le divisant par $3$ : $\\vec{u}\\begin{pmatrix} 1 \\\\ -2 \\end{pmatrix}$ en est un autre."
@@ -52,7 +57,7 @@ window.CHAPITRES["seconde-droites"] = {
     },
     {
       titre: "Démonstration : forme générale d'une équation de droite",
-      video: { titre: "Vidéo d'Yvan Monka : démontrer qu'une équation de droite est de la forme ax + by + c = 0", youtube: "https://youtu.be/GVDUrdsRUdA" },
+      video: { titre: "Vidéo d'Yvan Monka : démontrer la forme générale d'une équation de droite", youtube: "https://youtu.be/GVDUrdsRUdA" },
       texte:
         "Soit $d$ la droite passant par $A(x_A\\,;y_A)$ et dirigée par $\\vec{u}\\begin{pmatrix} \\alpha \\\\ \\beta \\end{pmatrix}$ (non nul).\n\n" +
         "$M(x\\,;y) \\in d \\iff \\overrightarrow{AM}$ et $\\vec{u}$ colinéaires $\\iff \\det(\\overrightarrow{AM}, \\vec{u}) = 0$\n\n" +
@@ -71,6 +76,7 @@ window.CHAPITRES["seconde-droites"] = {
         "- $m$ est la **pente** (coefficient directeur) : $m = \\dfrac{y_B - y_A}{x_B - x_A}$ pour deux points de la droite. Un vecteur directeur est $\\vec{u}\\begin{pmatrix} 1 \\\\ m \\end{pmatrix}$.\n" +
         "- $p$ est l'**ordonnée à l'origine**.\n\n" +
         "Si $b = 0$, la droite est **verticale**, d'équation $x = k$ : elle n'a pas d'équation réduite de la forme $y = mx + p$.",
+      figure: "dr-cours-pente",
       exemple: {
         enonce: "Équation réduite de la droite $(AB)$ avec $A(-1\\,;-1)$ et $B(1\\,;3)$, puis de la droite $6x + 2y - 4 = 0$.",
         solution: "$m = \\dfrac{3 - (-1)}{1 - (-1)} = 2$ ; $-1 = 2 \\times (-1) + p$ donne $p = 1$. $(AB) : y = 2x + 1$.\n\n$6x + 2y - 4 = 0 \\iff 2y = -6x + 4 \\iff y = -3x + 2$."
@@ -83,6 +89,7 @@ window.CHAPITRES["seconde-droites"] = {
         "- Pour savoir si $M(x_M\\,;y_M)$ est sur $d$, on remplace $x$ et $y$ par ses coordonnées dans l'équation : l'égalité doit être vraie.\n" +
         "- Pour **tracer** une droite, deux points suffisent : on choisit deux valeurs de $x$ et on calcule $y$.\n" +
         "- Avec l'équation réduite : on part du point $(0\\,;p)$, puis on avance de $1$ vers la droite et de $m$ vers le haut (ou vers le bas si $m < 0$).",
+      figure: "dr-cours-trace",
       exemple: {
         enonce: "Le point $M(2\\,;5)$ est-il sur la droite $d : y = 3x - 1$ ? Et $N(-1\\,;-3)$ ?",
         solution: "$3 \\times 2 - 1 = 5$ : oui, $M \\in d$.\n\n$3 \\times (-1) - 1 = -4 \\neq -3$ : non, $N \\notin d$."
@@ -118,7 +125,7 @@ window.CHAPITRES["seconde-droites"] = {
   videos: [
     { titre: "Démontrer que deux droites sont parallèles", type: "Position relative", youtube: "https://youtu.be/NjsVdVolhvU" },
     { titre: "Tracer une droite à partir de l'équation cartésienne", type: "Tracé", youtube: "https://youtu.be/EchUv2cGtzo" },
-    { titre: "Interpréter graphiquement les solutions d'un système", type: "Intersection", youtube: "https://youtu.be/-LV_5rkW0RY" }
+    { titre: "Déterminer une équation cartésienne d'une droite", type: "Équation cartésienne", youtube: "https://youtu.be/NosYmlLLFB4" }
   ],
   videosNote: "Vidéos d'Yvan Monka : l'énoncé est donné au début de chaque vidéo.",
 
@@ -126,12 +133,12 @@ window.CHAPITRES["seconde-droites"] = {
      Chaque série tire des nombres au hasard : on peut la refaire autant qu'on veut.
      type : nom du générateur (voir assets/exercices.js). nb : nombre de questions. */
   exercices: [
-    { type: "dr-vecteur-directeur", titre: "Vecteur directeur", etape: "Équation cartésienne", nb: 4 },
+    { type: "dr-vecteur-directeur", titre: "Vecteur directeur (équation ou graphique)", etape: "Équation cartésienne", nb: 5 },
     { type: "dr-cartesienne", titre: "Trouver une équation cartésienne", etape: "Équation cartésienne", nb: 4 },
     { type: "am-droite-point", titre: "Le point est-il sur la droite ?", etape: "Équation cartésienne", nb: 4 },
     { type: "dr-reduite", titre: "De l'équation cartésienne à la réduite", etape: "Équation réduite", nb: 4 },
     { type: "dr-reduite-2pts", titre: "Équation réduite par deux points", etape: "Équation réduite", nb: 5 },
-    { type: "am-lire-droite", titre: "Lire l'équation réduite sur un graphique", etape: "Équation réduite", nb: 4 },
+    { type: "dr-lire", titre: "Lire l'équation réduite sur un graphique", etape: "Équation réduite", nb: 4 },
     { type: "dr-position", titre: "Parallèles ou sécantes ? Intersection", etape: "Position relative", nb: 5 },
     { type: "dr-python", titre: "Python : équation de (AB)", etape: "Python", nb: 3 }
   ],
@@ -188,7 +195,11 @@ window.CHAPITRES["seconde-droites"] = {
       explication: "On a multiplié tous les coefficients par $-2$ : c'est la même droite."
     },
     { question: "$A(1\\,;2)$ et $B(3\\,;8)$. Un vecteur directeur de la droite $(AB)$ est :", choix: ["$\\begin{pmatrix} 1 \\\\ 3 \\end{pmatrix}$", "$\\begin{pmatrix} 3 \\\\ 1 \\end{pmatrix}$", "$\\begin{pmatrix} 4 \\\\ 10 \\end{pmatrix}$", "$\\begin{pmatrix} 2 \\\\ 8 \\end{pmatrix}$"], bonne: 0, explication: "$\\overrightarrow{AB}\\begin{pmatrix} 2 \\\\ 6 \\end{pmatrix}$ est un vecteur directeur, et $\\begin{pmatrix} 1 \\\\ 3 \\end{pmatrix} = \\dfrac{1}{2}\\overrightarrow{AB}$ lui est colinéaire." },
-    { question: "Vrai ou faux : si $\\vec{u}\\begin{pmatrix} 1 \\\\ 3 \\end{pmatrix}$ dirige la droite $d$, alors $\\vec{v}\\begin{pmatrix} -2 \\\\ -6 \\end{pmatrix}$ dirige aussi $d$.", choix: ["Vrai", "Faux"], bonne: 0, explication: "$\\vec{v} = -2\\vec{u}$ : il est non nul et colinéaire à $\\vec{u}$, donc c'est aussi un vecteur directeur de $d$. Le sens n'a pas d'importance." },
+    { question: "$\\vec{u}\\begin{pmatrix} 1 \\\\ 3 \\end{pmatrix}$ dirige la droite $d$. Lequel de ces vecteurs dirige aussi $d$ ?", choix: ["$\\begin{pmatrix} -2 \\\\ -6 \\end{pmatrix}$", "$\\begin{pmatrix} 3 \\\\ 1 \\end{pmatrix}$", "$\\begin{pmatrix} -1 \\\\ 3 \\end{pmatrix}$", "$\\begin{pmatrix} 2 \\\\ 3 \\end{pmatrix}$"], bonne: 0, explication: "$\\begin{pmatrix} -2 \\\\ -6 \\end{pmatrix} = -2\\vec{u}$ : il est non nul et colinéaire à $\\vec{u}$, donc c'est aussi un vecteur directeur de $d$. Le sens n'a pas d'importance." },
+    { question: "Un vecteur directeur de la droite tracée ci-dessous, d'équation $x + 2y + 1 = 0$, est :", figure: "droite-directeur", choix: ["$\\begin{pmatrix} -2 \\\\ 1 \\end{pmatrix}$", "$\\begin{pmatrix} 1 \\\\ 2 \\end{pmatrix}$", "$\\begin{pmatrix} 2 \\\\ 1 \\end{pmatrix}$", "$\\begin{pmatrix} 1 \\\\ 1 \\end{pmatrix}$"], bonne: 0, explication: "$a = 1$ et $b = 2$ : $\\vec{u}\\begin{pmatrix} -b \\\\ a \\end{pmatrix} = \\begin{pmatrix} -2 \\\\ 1 \\end{pmatrix}$. Sur la figure, en partant de $A$, on recule de $2$ et on monte de $1$ : on reste sur la droite." },
+    { question: "D'après la figure ci-dessous, la pente de la droite $(AB)$ est :", figure: "dr-cours-pente", choix: ["$2$", "$\\dfrac{1}{2}$", "$4$", "$1$"], bonne: 0, explication: "De $A$ à $B$, $x$ augmente de $2$ et $y$ de $4$ : pente $= \\dfrac{4}{2} = 2$. ($1$ est l'ordonnée à l'origine $p$.)" },
+    { question: "Sur la figure ci-dessous, la droite $d$ a pour équation $y = 3x - 1$. Que peut-on dire des points $M(2\\,;5)$ et $N(-1\\,;-3)$ ?", figure: "dr-cours-trace", choix: ["$M$ est sur $d$, mais pas $N$", "$N$ est sur $d$, mais pas $M$", "les deux sont sur $d$", "aucun n'est sur $d$"], bonne: 0, explication: "$3 \\times 2 - 1 = 5$ : $M \\in d$. $3 \\times (-1) - 1 = -4 \\neq -3$ : $N \\notin d$ (il est juste au-dessus de la droite)." },
+    { question: "D'après la figure ci-dessous, les droites $d_1 : y = 2x - 3$ et $d_2 : y = -x + 6$ se coupent au point :", figure: "deux-droites", choix: ["$(3\\,;3)$", "$(3\\,;0)$", "$(0\\,;6)$", "$(6\\,;0)$"], bonne: 0, explication: "Par le calcul : $2x - 3 = -x + 6 \\iff 3x = 9 \\iff x = 3$, puis $y = 2 \\times 3 - 3 = 3$. La figure confirme : $(3\\,;3)$." },
     { question: "Un vecteur directeur de la droite $y = -2x + 5$ est :", choix: ["$\\begin{pmatrix} 1 \\\\ -2 \\end{pmatrix}$", "$\\begin{pmatrix} -2 \\\\ 1 \\end{pmatrix}$", "$\\begin{pmatrix} 1 \\\\ 5 \\end{pmatrix}$", "$\\begin{pmatrix} -2 \\\\ 5 \\end{pmatrix}$"], bonne: 0, explication: "Pour $y = mx + p$, $\\vec{u}\\begin{pmatrix} 1 \\\\ m \\end{pmatrix}$ est un vecteur directeur : ici $\\begin{pmatrix} 1 \\\\ -2 \\end{pmatrix}$." },
     { question: "Une équation cartésienne de la droite passant par $A(1\\,;1)$ et dirigée par $\\vec{u}\\begin{pmatrix} 2 \\\\ 3 \\end{pmatrix}$ est :", choix: ["$3x - 2y - 1 = 0$", "$2x + 3y - 5 = 0$", "$3x + 2y - 5 = 0$", "$2x - 3y + 1 = 0$"], bonne: 0, explication: "$\\vec{u}\\begin{pmatrix} -b \\\\ a \\end{pmatrix}$ donne $a = 3$ et $b = -2$ : $3x - 2y + c = 0$, et $A$ donne $3 - 2 + c = 0$, soit $c = -1$. Les autres équations passent aussi par $A$, mais n'ont pas la bonne direction." },
     { question: "Pour quelle valeur de $k$ le point $M(2\\,;k)$ est-il sur la droite $3x + y - 4 = 0$ ?", choix: ["$k = -2$", "$k = 2$", "$k = 10$", "$k = -10$"], bonne: 0, explication: "On remplace : $3 \\times 2 + k - 4 = 0 \\iff 2 + k = 0 \\iff k = -2$." },
@@ -213,6 +224,7 @@ window.CHAPITRES["seconde-droites"] = {
         "Écrire $\\det(\\overrightarrow{AM}, \\vec{u}) = 0$.",
         "Développer et réduire pour obtenir $ax + by + c = 0$."
       ],
+      figure: "droite-directeur",
       exemple: "$A(3\\,;-2)$, $\\vec{u}(-2\\,;1)$ : $x + 2y + 1 = 0$."
     },
     {
@@ -231,6 +243,7 @@ window.CHAPITRES["seconde-droites"] = {
         "Remplacer les coordonnées de $A$ dans $y = mx + p$ pour trouver $p$.",
         "Vérifier avec $B$."
       ],
+      figure: "dr-cours-pente",
       exemple: "$A(-1\\,;-1)$, $B(1\\,;3)$ : $m = 2$, $p = 1$, $y = 2x + 1$."
     },
     {
@@ -240,6 +253,7 @@ window.CHAPITRES["seconde-droites"] = {
         "Sinon, résoudre $mx + p = m'x + p'$.",
         "Calculer $y$ avec l'une des deux équations, puis vérifier avec l'autre."
       ],
+      figure: "deux-droites",
       exemple: "$2x - 3 = -x + 6$ : $x = 3$, $y = 3$."
     }
   ],

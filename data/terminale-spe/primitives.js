@@ -5,7 +5,8 @@
   équation différentielle y' = f et primitive, primitives des fonctions usuelles, primitives et opérations.
   Mêmes règles d'écriture que data/seconde/fonctions.js.
   Pas de vidéo de la chaîne sur ce thème : vidéos d'Yvan Monka (cours 20Prim-EdT).
-  Générateurs : pri- (et tpe-condition).
+  Figures : "pri-…" (cours, méthode, QCM). Générateurs : pri- (et tpe-condition). Méthode d'Euler pour y' = f
+  (exemple d'algorithme du programme) dans la partie Python.
 */
 window.CHAPITRES = window.CHAPITRES || {};
 window.CHAPITRES["terminale-spe-primitives"] = {
@@ -16,7 +17,9 @@ window.CHAPITRES["terminale-spe-primitives"] = {
 
   playlist: "",
   drive: "",
-  pdfs: [],
+  pdfs: [
+    { titre: "Cours d'Yvan Monka : primitives et équations différentielles (PDF)", url: "https://www.maths-et-tiques.fr/telech/20Prim-EdT.pdf" }
+  ],
   liens: [
     { titre: "Le cours complet sur les primitives en vidéo (Yvan Monka)", url: "https://youtu.be/bQ-eS1zZCdw", type: "video" },
     { titre: "Démonstration : deux primitives diffèrent d'une constante (Yvan Monka)", url: "https://youtu.be/oloWk2F4bI8", type: "video" }
@@ -26,12 +29,14 @@ window.CHAPITRES["terminale-spe-primitives"] = {
   cours: [
     {
       titre: "Équation $y' = f$ et primitive",
+      figure: "pri-cours-signe",
       video: { titre: "Vidéo d'Yvan Monka : vérifier si une fonction est une primitive d'une autre", youtube: "https://youtu.be/7tQqY9Vkmss" },
       texte:
         "Une **équation différentielle** est une équation dont l'inconnue est une **fonction** $y$, et qui fait intervenir ses dérivées. La plus simple est $y' = f$, où $f$ est une fonction donnée.\n\n" +
         "Une solution de $y' = f$ sur un intervalle $I$ s'appelle une **primitive** de $f$ sur $I$ : c'est une fonction $F$ dérivable sur $I$ telle que $F' = f$.\n\n" +
         "- Pour **vérifier** que $F$ est une primitive de $f$, il suffit de dériver $F$.\n" +
-        "- Exemple : $F(x) = x^3 + 5$ est une primitive de $f(x) = 3x^2$, et $G(x) = x^3 - 2$ aussi.",
+        "- Exemple : $F(x) = x^3 + 5$ est une primitive de $f(x) = 3x^2$, et $G(x) = x^3 - 2$ aussi.\n" +
+        "- Comme $F' = f$, le **signe de $f$** donne les **variations de $F$** : $F$ croît là où $f$ est positive, décroît là où $f$ est négative, et a un extremum là où $f$ s'annule en changeant de signe (figure : $f(x) = x^2 - 1$ et $F(x) = \\dfrac{x^3}{3} - x$).",
       exemple: {
         enonce: "Vérifie que $F(x) = (x - 1)e^x$ est une primitive de $f(x) = xe^x$ sur $\\mathbb{R}$.",
         solution: "$F'(x) = 1 \\times e^x + (x - 1)e^x = xe^x = f(x)$ : $F$ est bien une primitive de $f$."
@@ -39,12 +44,13 @@ window.CHAPITRES["terminale-spe-primitives"] = {
     },
     {
       titre: "Toutes les primitives d'une fonction",
+      figure: "pri-cours-famille",
       video: { titre: "Vidéo d'Yvan Monka : calculer LA primitive d'une fonction", youtube: "https://youtu.be/-q9M7oJ9gkI" },
       texte:
         "- **Toute fonction continue** sur un intervalle admet des primitives sur cet intervalle (admis ; ce sera justifié au chapitre 13).\n" +
         "- Si $F$ est une primitive de $f$ sur $I$, les primitives de $f$ sur $I$ sont exactement les fonctions $F + C$, avec $C$ réel (démonstration au programme : deux primitives ont la même dérivée, leur différence est constante).\n" +
         "- Pour tous réels $x_0 \\in I$ et $y_0$, il existe une **unique** primitive $F$ de $f$ telle que $F(x_0) = y_0$.\n\n" +
-        "Autrement dit, l'équation $y' = f$ a une infinité de solutions, mais une seule vérifie une **condition initiale** donnée.",
+        "Autrement dit, l'équation $y' = f$ a une infinité de solutions, mais une seule vérifie une **condition initiale** donnée. Graphiquement, les courbes des primitives se déduisent l'une de l'autre par **translation verticale**, et une seule passe par un point donné (figure).",
       exemple: {
         enonce: "Détermine la primitive $F$ de $f(x) = 2x - 3$ telle que $F(2) = 5$.",
         solution: "Les primitives sont $F(x) = x^2 - 3x + C$. Alors $F(2) = 4 - 6 + C = -2 + C = 5$, donc $C = 7$.\n\n$F(x) = x^2 - 3x + 7$."
@@ -101,11 +107,14 @@ window.CHAPITRES["terminale-spe-primitives"] = {
     },
     {
       titre: "Algorithmique : primitive et calcul",
+      figure: "pri-cours-euler",
       texte:
         "Une primitive permet de calculer la différence $F(b) - F(a)$, qui ne dépend **pas** de la primitive choisie : la constante $C$ s'élimine.\n\n" +
         "```python\ndef F(x):\n    return x**3 + x      # une primitive de 3x² + 1\n\nprint(F(2) - F(0))\n```\n\n" +
         "Ce nombre, $F(b) - F(a)$, sera au chapitre 13 l'**intégrale** de $f$ entre $a$ et $b$, qui mesure une aire.\n\n" +
-        "On peut aussi vérifier numériquement que $F' = f$ : pour $h$ petit, $\\dfrac{F(x + h) - F(x)}{h}$ doit être proche de $f(x)$.",
+        "On peut aussi vérifier numériquement que $F' = f$ : pour $h$ petit, $\\dfrac{F(x + h) - F(x)}{h}$ doit être proche de $f(x)$.\n\n" +
+        "**Méthode d'Euler pour $y' = f$** : sans connaître de primitive, on construit pas à pas une solution approchée avec $y(x + h) \\approx y(x) + h \\times f(x)$ (on suit la tangente sur un petit intervalle). La figure montre la ligne brisée obtenue pour $y' = 2x$, $y(0) = 0$, avec $h = 0{,}5$, à côté de la solution exacte $y = x^2$.\n\n" +
+        "```python\ndef f(x):\n    return 2 * x\n\nx, y = 0, 0\nh = 0.5\nfor i in range(6):\n    y = y + h * f(x)\n    x = x + h\nprint(y)\n```",
       exemple: {
         enonce: "Que renvoie le programme ? Change $F$ en $x^3 + x + 7$ : que renvoie-t-il alors ?",
         solution: "$F(2) - F(0) = (8 + 2) - 0 = 10$.\n\nAvec $x^3 + x + 7$ : $(10 + 7) - 7 = 10$ aussi. La constante s'élimine."
@@ -127,7 +136,8 @@ window.CHAPITRES["terminale-spe-primitives"] = {
     { type: "pri-composees", titre: "Formes $u'u^n$, $\\dfrac{u'}{u}$, $u'e^u$…", etape: "Opérations", nb: 6 },
     { type: "pri-condition", titre: "Conditions initiales", etape: "Opérations", nb: 5 },
     { type: "pri-equation", titre: "Résoudre $y' = f$", etape: "Opérations", nb: 4 },
-    { type: "pri-python", titre: "Primitives en Python", etape: "Algorithmique", nb: 4 }
+    { type: "pri-graphique", titre: "Signe de $f$ et variations de $F$ (lecture graphique)", etape: "Opérations", nb: 4 },
+    { type: "pri-python", titre: "Primitives en Python (calcul, méthode d'Euler)", etape: "Algorithmique", nb: 4 }
   ],
 
   /* ---------- 3. QCM DE RÉVISION ---------- */
@@ -153,7 +163,12 @@ window.CHAPITRES["terminale-spe-primitives"] = {
     { question: "Si $F$ est une primitive de $f$, la valeur de $F(3) - F(1)$ :", choix: ["ne dépend pas de la primitive choisie", "dépend de la constante $C$", "vaut toujours $0$", "vaut $f(3) - f(1)$"], bonne: 0, explication: "$(F(3) + C) - (F(1) + C) = F(3) - F(1)$." },
     { question: "Toute fonction continue sur un intervalle :", choix: ["admet des primitives sur cet intervalle", "est dérivable", "admet une seule primitive", "est une primitive"], bonne: 0, explication: "C'est une propriété admise, justifiée au chapitre 13 avec l'intégrale." },
     { question: "Une primitive de $f(x) = \\dfrac{3}{(x + 1)^2}$ sur $]-1\\,;+\\infty[$ est :", choix: ["$-\\dfrac{3}{x + 1}$", "$\\dfrac{3}{x + 1}$", "$3\\ln(x + 1)^2$", "$-\\dfrac{6}{(x + 1)^3}$"], bonne: 0, explication: "Forme $3 \\times \\dfrac{u'}{u^2}$ avec $u = x + 1$." },
-    { question: "Une primitive de $f(x) = 4x^3 - 2x + 1$ est :", choix: ["$x^4 - x^2 + x$", "$12x^2 - 2$", "$4x^4 - 2x^2 + x$", "$x^4 - 2x^2 + 1$"], bonne: 0, explication: "Terme à terme : $x^4$, $-x^2$ et $x$." }
+    { question: "Une primitive de $f(x) = 4x^3 - 2x + 1$ est :", choix: ["$x^4 - x^2 + x$", "$12x^2 - 2$", "$4x^4 - 2x^2 + x$", "$x^4 - 2x^2 + 1$"], bonne: 0, explication: "Terme à terme : $x^4$, $-x^2$ et $x$." },
+    { question: "La courbe de $f$ est tracée ci-dessous et $F$ est une primitive de $f$. Sur $[-2\\,;3]$, la fonction $F$ est :", figure: "pri-qcm-signe", choix: ["décroissante", "croissante", "positive", "constante"], bonne: 0, explication: "Sur $[-2\\,;3]$, la courbe de $f$ est sous l'axe : $F' = f \\leqslant 0$, donc $F$ est décroissante. On ne connaît pas le signe de $F$ (constante près)." },
+    { question: "Avec la courbe de $f$ ci-dessous, $F$ (primitive de $f$) admet un minimum local en :", figure: "pri-qcm-signe", choix: ["$3$", "$-2$", "$\\dfrac{1}{2}$", "$0$"], bonne: 0, explication: "$F' = f$ passe de négative à positive en $3$ : minimum local de $F$ en $3$ (et maximum local en $-2$)." },
+    { question: "Les courbes de la figure représentent des primitives d'une même fonction. Elles se déduisent l'une de l'autre par :", figure: "pri-cours-famille", choix: ["une translation verticale", "une translation horizontale", "une symétrie par rapport à l'axe des abscisses", "une homothétie"], bonne: 0, explication: "Deux primitives diffèrent d'une constante : $G(x) = F(x) + C$, ce qui décale la courbe verticalement de $C$." },
+    { question: "Sur la figure, une seule primitive de $f$ passe par le point $A(0\\,;1)$. On a donc :", figure: "pri-cours-famille", choix: ["une unique primitive vérifie $F(0) = 1$", "aucune primitive ne vérifie $F(0) = 1$", "toutes les primitives vérifient $F(0) = 1$", "deux primitives vérifient $F(0) = 1$"], bonne: 0, explication: "La condition initiale $F(x_0) = y_0$ fixe la constante $C$ : la solution est unique." },
+    { question: "La méthode d'Euler pour $y' = f$ (pas $h$) calcule les valeurs successives avec :", choix: ["$y \\leftarrow y + h \\times f(x)$", "$y \\leftarrow y \\times h$", "$y \\leftarrow f(x)$", "$y \\leftarrow y + f(x + h)$"], bonne: 0, explication: "On suit la tangente : sur un pas de longueur $h$, $y$ augmente d'environ $h \\times y'(x) = h \\times f(x)$." }
   ],
 
   /* ---------- 4. FICHE MÉTHODE ---------- */
@@ -166,6 +181,7 @@ window.CHAPITRES["terminale-spe-primitives"] = {
         "Ajuster la constante multiplicative si $u'$ n'apparaît pas exactement.",
         "Vérifier en dérivant le résultat."
       ],
+      figure: "pri-cours-signe",
       exemple: "$f(x) = e^{-x} + \\dfrac{1}{x}$ sur $]0\\,;+\\infty[$ : $F(x) = -e^{-x} + \\ln x$."
     },
     {
@@ -176,6 +192,7 @@ window.CHAPITRES["terminale-spe-primitives"] = {
         "Résoudre l'équation en $C$.",
         "Écrire $F$ avec la valeur de $C$ trouvée."
       ],
+      figure: "pri-cours-famille",
       exemple: "$f(x) = e^{2x}$, $F(0) = 1$ : $F(x) = \\dfrac{1}{2}e^{2x} + C$, $\\dfrac{1}{2} + C = 1$, donc $F(x) = \\dfrac{1}{2}e^{2x} + \\dfrac{1}{2}$."
     },
     {
@@ -186,6 +203,7 @@ window.CHAPITRES["terminale-spe-primitives"] = {
         "Comparer avec $f(x)$ : si $F' = f$ sur l'intervalle, c'est une primitive.",
         "Bon réflexe pour les formes qu'on ne sait pas « intégrer » directement : l'énoncé donne souvent $F$, il reste à vérifier."
       ],
+      figure: "pri-qcm-signe",
       exemple: "$F(x) = (2x - 1)e^{x}$ : $F'(x) = 2e^x + (2x - 1)e^x = (2x + 1)e^x$, primitive de $(2x + 1)e^x$."
     }
   ],

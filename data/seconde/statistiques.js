@@ -4,10 +4,10 @@
   Chapitre 8 de la progression spiralée 2026-2027 (programme de Seconde 2026).
   Mêmes règles d'écriture que data/seconde/fonctions.js (formules entre $...$, antislash doublé,
   **gras**, "- " pour une puce, programme Python entre ```python et ```).
-  Vidéos : celles de la chaîne d'abord, Yvan Monka en complément.
-  À ajouter quand elle sera publique : #23 « Comparer deux séries » (ZuVX12i3Wp4, encore privée le 07/10).
+  Vidéos : celles de la chaîne d'abord, Yvan Monka en complément (#23 « Comparer deux séries » est publique depuis octobre).
   Les générateurs d'exercices commencent par « st- » dans assets/exercices.js
-  (le chapitre reprend aussi auto-statistiques, am-quartiles et am-boites de la partie Automatismes).
+  (le chapitre reprend aussi am-moyenne-ponderee de la partie Automatismes).
+  Figures : « st-cours-… », « st-meth-… », « st-qcm-… » (diagrammes en points, en boîte, en bâtons) dans assets/exercices.js.
   Séries regroupées en classes et échantillonnage : chapitre 16 (Statistiques 2).
 */
 window.CHAPITRES = window.CHAPITRES || {};
@@ -19,7 +19,9 @@ window.CHAPITRES["seconde-statistiques"] = {
 
   playlist: "",
   drive: "",
-  pdfs: [],
+  pdfs: [
+    { titre: "Cours d'Yvan Monka : statistiques (PDF)", url: "https://www.maths-et-tiques.fr/telech/19StatistiquesM.pdf" }
+  ],
   liens: [
     { titre: "Le cours sur les statistiques en vidéo (Yvan Monka)", url: "https://youtu.be/dZ1arqz41Bg", type: "video" }
   ],
@@ -33,6 +35,7 @@ window.CHAPITRES["seconde-statistiques"] = {
         "La **moyenne** d'une série $x_1$, $x_2$, …, $x_n$ est $\\bar{x} = \\dfrac{x_1 + x_2 + \\ldots + x_n}{n}$.\n\n" +
         "Avec des effectifs $n_1$, $n_2$… (ou des coefficients), on calcule une **moyenne pondérée** : $\\bar{x} = \\dfrac{n_1x_1 + n_2x_2 + \\ldots}{n_1 + n_2 + \\ldots}$.\n\n" +
         "**Linéarité** : si chaque valeur $x$ est remplacée par $ax + b$, la moyenne devient $a\\bar{x} + b$. Ajouter $2$ points à toutes les notes ajoute $2$ points à la moyenne.",
+      figure: "st-cours-moyenne",
       exemple: {
         enonce: "La moyenne des températures relevées à Mamoudzou une semaine est $28$ °C. On convertit en degrés Fahrenheit avec $F = 1{,}8C + 32$. Quelle est la moyenne en °F ?",
         solution: "Par linéarité : $1{,}8 \\times 28 + 32 = 82{,}4$ °F. Inutile de convertir chaque valeur."
@@ -46,10 +49,12 @@ window.CHAPITRES["seconde-statistiques"] = {
         "- La **médiane** $Me$ partage la série en deux groupes de même effectif : au moins la moitié des valeurs sont inférieures ou égales à $Me$, au moins la moitié supérieures ou égales.\n" +
         "- Le **premier quartile** $Q_1$ est la plus petite valeur telle qu'au moins $25\\,\\%$ des valeurs lui soient inférieures ou égales : rang $\\dfrac{n}{4}$, arrondi à l'entier supérieur.\n" +
         "- Le **troisième quartile** $Q_3$ : même chose avec $75\\,\\%$, rang $\\dfrac{3n}{4}$ arrondi à l'entier supérieur.\n\n" +
-        "L'**écart interquartile** $Q_3 - Q_1$ mesure la dispersion des valeurs « centrales ». L'**étendue** est max $-$ min.",
+        "L'**écart interquartile** $Q_3 - Q_1$ mesure la dispersion des valeurs « centrales ». L'**étendue** est max $-$ min.\n\n" +
+        "Le **diagramme en boîte** résume la série : la boîte va de $Q_1$ à $Q_3$, un trait marque la médiane, les moustaches vont jusqu'au minimum et au maximum.",
+      figure: "st-cours-quartiles",
       exemple: {
         enonce: "Pluviométrie (en mm) de $8$ mois : $45\\,;\\,120\\,;\\,30\\,;\\,210\\,;\\,95\\,;\\,60\\,;\\,180\\,;\\,15$. Calculer la médiane, $Q_1$ et $Q_3$.",
-        solution: "Rangée : $15\\,;\\,30\\,;\\,45\\,;\\,60\\,;\\,95\\,;\\,120\\,;\\,180\\,;\\,210$.\n\n$n = 8$ est pair : $Me = \\dfrac{60 + 95}{2} = 77{,}5$ mm.\n\n$\\dfrac{8}{4} = 2$ : $Q_1 = 30$ (2e valeur). $\\dfrac{3 \\times 8}{4} = 6$ : $Q_3 = 120$ (6e valeur). Écart interquartile : $90$ mm."
+        solution: "Rangée : $15\\,;\\,30\\,;\\,45\\,;\\,60\\,;\\,95\\,;\\,120\\,;\\,180\\,;\\,210$.\n\n$n = 8$ est pair : $Me = \\dfrac{60 + 95}{2} = 77{,}5$ mm.\n\n$\\dfrac{8}{4} = 2$ : $Q_1 = 30$ (2e valeur).\n\n$\\dfrac{3 \\times 8}{4} = 6$ : $Q_3 = 120$ (6e valeur). Écart interquartile : $120 - 30 = 90$ mm."
       }
     },
     {
@@ -58,30 +63,33 @@ window.CHAPITRES["seconde-statistiques"] = {
       texte:
         "L'**écart type** $\\sigma$ mesure la dispersion des valeurs autour de la **moyenne** : plus il est petit, plus les valeurs sont regroupées.\n\n" +
         "$\\sigma = \\sqrt{V}$, où la **variance** $V$ est la moyenne des carrés des écarts à la moyenne :\n\n" +
-        "$V = \\dfrac{(x_1 - \\bar{x})^2 + (x_2 - \\bar{x})^2 + \\ldots + (x_n - \\bar{x})^2}{n}$.\n\n" +
-        "En pratique, on l'obtient avec la **calculatrice** (mode statistiques, valeur $\\sigma$ ou $\\sigma_x$).",
+        "$V = \\dfrac{(x_1 - \\bar{x})^2 + \\ldots + (x_n - \\bar{x})^2}{n}$\n\n" +
+        "En pratique, on l'obtient avec la **calculatrice** (mode statistiques, valeur $\\sigma$ ou $\\sigma_x$).\n\n" +
+        "Sur la figure, les séries A et B ont la même moyenne $10$, mais les valeurs de B sont plus éloignées de $10$ : $\\sigma_A \\approx 1{,}29$ et $\\sigma_B \\approx 4{,}20$.",
+      figure: "st-cours-ecart-type",
       exemple: {
         enonce: "Calculer l'écart type de la série $4\\,;\\,8\\,;\\,6\\,;\\,10$.",
-        solution: "$\\bar{x} = \\dfrac{28}{4} = 7$. Écarts : $-3$, $1$, $-1$, $3$. $V = \\dfrac{9 + 1 + 1 + 9}{4} = 5$.\n\n$\\sigma = \\sqrt{5} \\approx 2{,}24$."
+        solution: "$\\bar{x} = \\dfrac{28}{4} = 7$. Écarts à la moyenne : $-3$, $1$, $-1$, $3$.\n\n$V = \\dfrac{9 + 1 + 1 + 9}{4} = 5$, donc $\\sigma = \\sqrt{5} \\approx 2{,}24$."
       }
     },
     {
       titre: "Influence d'une valeur, comparer deux séries",
-      figure: "boites-exemple",
-      video: { titre: "Vidéo d'Yvan Monka : construire un diagramme en boîte", youtube: "https://youtu.be/la7c0Yf8VyM" },
+      figure: ["st-cours-influence", "boites-exemple"],
+      video: { titre: "Vidéo de ton prof : comparer deux séries avec des boîtes à moustaches", youtube: "https://youtu.be/ZuVX12i3Wp4" },
       texte:
-        "Ajouter ou supprimer une valeur **extrême** change beaucoup la moyenne, mais peu la médiane : la médiane est plus « robuste ».\n\n" +
+        "Ajouter ou supprimer une valeur **extrême** change beaucoup la moyenne, mais peu la médiane : la médiane est plus « robuste ». Pour la nouvelle moyenne, on repasse par la **somme** des valeurs ; pour la nouvelle médiane, on range la nouvelle série.\n\n" +
         "Pour **comparer deux séries**, on utilise un couple d'indicateurs :\n" +
         "- (moyenne ; écart type) ;\n" +
         "- (médiane ; écart interquartile), représenté par un **diagramme en boîte**.\n\n" +
         "On compare d'abord la position (quelle série a les plus grandes valeurs ?), puis la dispersion (quelle série est la plus homogène ?). On évite les conclusions sur **chaque** valeur : les indicateurs résument, ils ne disent pas tout.",
       exemple: {
-        enonce: "Un élève a $5$ notes de moyenne $12$. Il a $2$ à un devoir supplémentaire. Nouvelle moyenne ?",
-        solution: "Somme : $5 \\times 12 + 2 = 62$ pour $6$ notes. Moyenne : $\\dfrac{62}{6} \\approx 10{,}33$. Une seule note très basse fait perdre presque $2$ points de moyenne."
+        enonce: "Les notes de Kamal sont $10\\,;\\,11\\,;\\,12\\,;\\,13\\,;\\,14$ : moyenne $12$, médiane $12$. Il obtient $2$ à un devoir supplémentaire. Que deviennent la moyenne et la médiane ?",
+        solution: "Somme : $5 \\times 12 + 2 = 62$ pour $6$ notes. Moyenne : $\\dfrac{62}{6} \\approx 10{,}33$.\n\nSérie rangée : $2\\,;\\,10\\,;\\,11\\,;\\,12\\,;\\,13\\,;\\,14$. Médiane : $\\dfrac{11 + 12}{2} = 11{,}5$.\n\nUne seule note très basse fait perdre presque $2$ points à la moyenne, mais seulement $0{,}5$ point à la médiane."
       }
     },
     {
       titre: "Python : lire une fonction statistique",
+      video: { titre: "Vidéo d'Yvan Monka : utiliser les boucles en Python", youtube: "https://youtu.be/i_imOJ9Vw0U" },
       texte:
         "La fonction ci-dessous calcule la moyenne d'une liste $\\texttt{L}$ : la boucle additionne les valeurs, puis on divise par le nombre de valeurs $\\texttt{len(L)}$.\n\n" +
         "```python\ndef moyenne(L):\n    s = 0\n    for x in L:\n        s = s + x\n    return s / len(L)\n```\n\n" +
@@ -98,7 +106,8 @@ window.CHAPITRES["seconde-statistiques"] = {
   videos: [
     { titre: "Appliquer la linéarité de la moyenne", type: "Moyenne", youtube: "https://youtu.be/Z4bwDyrtO8A" },
     { titre: "Calculer l'écart interquartile", type: "Quartiles", youtube: "https://youtu.be/IjsDK0ODwlw" },
-    { titre: "Calculer une moyenne pondérée", type: "Moyenne", youtube: "https://youtu.be/88_16UbkdZM" }
+    { titre: "Calculer une moyenne pondérée", type: "Moyenne", youtube: "https://youtu.be/88_16UbkdZM" },
+    { titre: "Construire un diagramme en boîte", type: "Quartiles", youtube: "https://youtu.be/la7c0Yf8VyM" }
   ],
   videosNote: "Vidéos d'Yvan Monka : l'énoncé est donné au début de chaque vidéo.",
 
@@ -106,17 +115,16 @@ window.CHAPITRES["seconde-statistiques"] = {
      Chaque série tire des nombres au hasard : on peut la refaire autant qu'on veut.
      type : nom du générateur (voir assets/exercices.js). nb : nombre de questions. */
   exercices: [
-    { type: "st-moyenne", titre: "Calculer une moyenne", etape: "Moyenne", nb: 4 },
+    { type: "st-moyenne", titre: "Calculer une moyenne", etape: "Moyenne", nb: 5 },
     { type: "am-moyenne-ponderee", titre: "Moyenne pondérée", etape: "Moyenne", nb: 4 },
     { type: "st-linearite", titre: "Linéarité de la moyenne", etape: "Moyenne", nb: 5 },
-    { type: "st-influence", titre: "Ajouter ou retirer une valeur", etape: "Moyenne", nb: 4 },
-    { type: "auto-statistiques", titre: "Médiane", etape: "Médiane et quartiles", nb: 5 },
-    { type: "am-quartiles", titre: "Quartiles", etape: "Médiane et quartiles", nb: 5 },
-    { type: "st-interquartile", titre: "Écart interquartile", etape: "Médiane et quartiles", nb: 4 },
-    { type: "st-ecart-type", titre: "Écart type à la calculatrice", etape: "Dispersion et comparaison", nb: 3 },
+    { type: "st-influence", titre: "Ajouter ou retirer une valeur", etape: "Moyenne et médiane", nb: 5 },
+    { type: "st-mediane", titre: "Médiane", etape: "Médiane et quartiles", nb: 5 },
+    { type: "st-interquartile", titre: "Quartiles et écart interquartile", etape: "Médiane et quartiles", nb: 5 },
+    { type: "st-boites", titre: "Lire des diagrammes en boîte", etape: "Médiane et quartiles", nb: 4 },
+    { type: "st-ecart-type", titre: "Écart type", etape: "Dispersion et comparaison", nb: 4 },
     { type: "st-comparer", titre: "Comparer deux séries", etape: "Dispersion et comparaison", nb: 4 },
-    { type: "am-boites", titre: "Lire des diagrammes en boîte", etape: "Dispersion et comparaison", nb: 3 },
-    { type: "st-python", titre: "Python : lire une fonction", etape: "Python", nb: 3 }
+    { type: "st-python", titre: "Python : lire une fonction", etape: "Python", nb: 4 }
   ],
 
   /* ---------- 3. QCM DE RÉVISION ----------
@@ -192,11 +200,16 @@ window.CHAPITRES["seconde-statistiques"] = {
     { question: "L'écart type de la série $5\\,;\\,5\\,;\\,5\\,;\\,5$ est :", choix: ["$0$", "$5$", "$1$", "$20$"], bonne: 0, explication: "Toutes les valeurs sont égales à la moyenne $5$ : les écarts sont nuls, il n'y a aucune dispersion." },
     { question: "La variance d'une série vaut $16$. Son écart type vaut :", choix: ["$4$", "$16$", "$256$", "$8$"], bonne: 0, explication: "$\\sigma = \\sqrt{V} = \\sqrt{16} = 4$." },
     { question: "Un élève a $4$ notes de moyenne $11$. Il obtient $16$ au 5e devoir. Sa nouvelle moyenne est :", choix: ["$12$", "$13{,}5$", "$11{,}5$", "$15$"], bonne: 0, explication: "Somme : $4 \\times 11 + 16 = 60$ pour $5$ notes, donc $\\dfrac{60}{5} = 12$. Faire la moyenne de $11$ et $16$ ($13{,}5$) est faux." },
-    { question: "Vrai ou faux : si on remplace la plus grande valeur d'une série de $9$ valeurs par une valeur encore plus grande, la médiane ne change pas.", choix: ["Vrai", "Faux"], bonne: 0, explication: "La médiane est la 5e valeur rangée : elle ne dépend pas de la valeur maximale. La moyenne, elle, augmente." },
+    { question: "On remplace la plus grande valeur d'une série de $9$ valeurs par une valeur encore plus grande. Que peut-on dire ?", choix: ["la moyenne augmente et la médiane ne change pas", "la moyenne et la médiane augmentent", "la médiane augmente et la moyenne ne change pas", "ni la moyenne ni la médiane ne changent"], bonne: 0, explication: "La médiane est la 5e valeur rangée : elle ne dépend pas de la valeur maximale. La moyenne, elle, augmente, car la somme des valeurs augmente." },
     { question: "Diagramme en boîte : min $2$, $Q_1 = 6$, $Me = 9$, $Q_3 = 12$, max $18$. On peut affirmer qu'au moins $75\\,\\%$ des valeurs sont :", choix: ["inférieures ou égales à $12$", "supérieures ou égales à $12$", "comprises entre $9$ et $18$", "égales à $12$"], bonne: 0, explication: "Par définition de $Q_3$, au moins $75\\,\\%$ des valeurs lui sont inférieures ou égales." },
     { question: "Classe A : moyenne $12$. Classe B : moyenne $10$. On peut affirmer que :", choix: ["en moyenne, les notes de A sont meilleures", "tous les élèves de A ont de meilleures notes que ceux de B", "la classe A est plus homogène", "la médiane de la classe A vaut $12$"], bonne: 0, explication: "La moyenne résume la position de la série, pas chaque note. Pour l'homogénéité, il faudrait un indicateur de dispersion." },
     { question: "Que renvoie $\\texttt{moyenne([2, 7, 9])}$, avec la fonction Python du cours ?", choix: ["$6{,}0$", "$18$", "$3$", "$7$"], bonne: 0, explication: "La boucle calcule $s = 2 + 7 + 9 = 18$, puis la fonction renvoie $\\dfrac{18}{3} = 6{,}0$. ($7$ est la médiane.)" },
-    { question: "Dans la fonction $\\texttt{ecart\\_type}$ du cours, la ligne $\\texttt{v = v + (x - m)**2}$ ajoute à $\\texttt{v}$ :", choix: ["le carré de l'écart entre $x$ et la moyenne", "l'écart entre $x$ et la moyenne", "le carré de $x$", "le carré de la moyenne"], bonne: 0, explication: "$\\texttt{m}$ est la moyenne et $\\texttt{**2}$ le carré : on additionne les $(x - \\bar{x})^2$, comme dans la formule de la variance." }
+    { question: "Dans la fonction $\\texttt{ecart\\_type}$ du cours, la ligne $\\texttt{v = v + (x - m)**2}$ ajoute à $\\texttt{v}$ :", choix: ["le carré de l'écart entre $x$ et la moyenne", "l'écart entre $x$ et la moyenne", "le carré de $x$", "le carré de la moyenne"], bonne: 0, explication: "$\\texttt{m}$ est la moyenne et $\\texttt{**2}$ le carré : on additionne les $(x - \\bar{x})^2$, comme dans la formule de la variance." },
+    { question: "Le diagramme en bâtons donne les notes d'une classe. Quelle est la médiane de cette série ?", figure: "st-qcm-batons", choix: ["$11$", "$10$", "$12$", "$5$"], bonne: 0, explication: "Effectif total : $2 + 3 + 4 + 5 + 3 + 2 + 2 = 21$ (impair) : la médiane est la 11e valeur. Effectifs cumulés : $2\\,;\\,5\\,;\\,9\\,;\\,14$ : la 11e valeur est $11$. ($5$ est l'effectif le plus grand, pas une note.)" },
+    { question: "Le diagramme en boîte résume les hauteurs de pluie quotidiennes (en mm) à Chirongui en janvier. Quelle affirmation peut-on en déduire ?", figure: "st-qcm-boite", choix: ["au moins la moitié des jours ont reçu au plus $15$ mm", "la moyenne des hauteurs de pluie vaut $15$ mm", "au moins $75\\,\\%$ des jours ont reçu au moins $15$ mm", "au moins la moitié des jours ont reçu au moins $30$ mm"], bonne: 0, explication: "La médiane vaut $15$ : au moins la moitié des valeurs lui sont inférieures ou égales. Un diagramme en boîte ne donne pas la moyenne, et $Q_3 = 30$ n'assure que $25\\,\\%$ au moins des jours au-dessus." },
+    { question: "Les trois séries A, B et C représentées ont la même moyenne, $10$. Laquelle a le plus grand écart type ?", figure: "st-qcm-points", choix: ["la série C", "la série A", "la série B", "les trois ont le même écart type"], bonne: 0, explication: "Les valeurs de C sont les plus éloignées de la moyenne $10$ : son écart type est le plus grand ($\\sigma_C \\approx 5{,}10$, contre $\\sigma_A = 2$ et $\\sigma_B \\approx 0{,}63$)." },
+    { question: "Les diagrammes en boîte résument les notes de deux classes A et B. Quelle classe a le plus petit écart interquartile ?", figure: "st-qcm-boites", choix: ["la classe A", "la classe B", "les deux classes à égalité", "on ne peut pas le savoir avec ces diagrammes"], bonne: 0, explication: "Écart interquartile : $13 - 9 = 4$ pour A et $16 - 8 = 8$ pour B. Les notes « centrales » de la classe A sont les moins dispersées." },
+    { question: "On ajoute la note $2$ à la série $10\\,;\\,11\\,;\\,12\\,;\\,13\\,;\\,14$. La nouvelle médiane est :", choix: ["$11{,}5$", "$12$", "$11$", "$10{,}33$"], bonne: 0, explication: "Nouvelle série rangée : $2\\,;\\,10\\,;\\,11\\,;\\,12\\,;\\,13\\,;\\,14$ ($6$ valeurs). Médiane : $\\dfrac{11 + 12}{2} = 11{,}5$. ($10{,}33$ est environ la nouvelle moyenne.)" }
   ],
 
   /* ---------- 4. FICHE MÉTHODE ---------- */
@@ -208,7 +221,8 @@ window.CHAPITRES["seconde-statistiques"] = {
         "Médiane : si $n$ est impair, la valeur du milieu ; si $n$ est pair, la moyenne des deux valeurs du milieu.",
         "$Q_1$ : rang $\\dfrac{n}{4}$ arrondi à l'entier supérieur. $Q_3$ : rang $\\dfrac{3n}{4}$ arrondi à l'entier supérieur."
       ],
-      exemple: "$n = 11$ : $Me$ = 6e valeur, $Q_1$ = 3e, $Q_3$ = 9e."
+      exemple: "$n = 11$ : $Me$ = 6e valeur, $Q_1$ = 3e, $Q_3$ = 9e.",
+      figure: "st-meth-quartiles"
     },
     {
       titre: "Utiliser la linéarité de la moyenne",
@@ -217,7 +231,7 @@ window.CHAPITRES["seconde-statistiques"] = {
         "Appliquer la même transformation à la moyenne : $a\\bar{x} + b$.",
         "Vérifier l'unité."
       ],
-      exemple: "$\\bar{x} = 28$ °C, $F = 1{,}8C + 32$ : moyenne $82{,}4$ °F."
+      exemple: "$\\bar{x} = 28$ °C et $F = 1{,}8C + 32$ : la moyenne vaut $1{,}8 \\times 28 + 32 = 82{,}4$ °F."
     },
     {
       titre: "Obtenir l'écart type à la calculatrice",
@@ -236,7 +250,28 @@ window.CHAPITRES["seconde-statistiques"] = {
         "Comparer la dispersion : quelle série est la plus homogène ?",
         "Conclure avec prudence, sans parler de chaque valeur."
       ],
-      exemple: "Même moyenne, $\\sigma_A = 2 < \\sigma_B = 4{,}5$ : les notes de A sont plus homogènes."
+      exemple: "Masses des tortues : médianes $120$ kg à N'Gouja (N) et $110$ kg à Saziley (S), écarts interquartiles $30$ kg et $45$ kg. Les tortues de N'Gouja sont en général plus lourdes et leurs masses plus homogènes.",
+      figure: "st-meth-comparer"
+    },
+    {
+      titre: "Ajouter ou retirer une valeur",
+      etapes: [
+        "Moyenne : calculer l'ancienne somme $n \\times \\bar{x}$, ajouter ou retirer la valeur, puis diviser par le **nouvel** effectif.",
+        "Médiane : écrire la nouvelle série, la ranger, puis chercher la (ou les) valeur(s) du milieu.",
+        "Comparer : une valeur extrême déplace beaucoup la moyenne, peu la médiane."
+      ],
+      exemple: "$5$ notes de moyenne $12$, puis une note de $2$ : $\\dfrac{5 \\times 12 + 2}{6} \\approx 10{,}33$.",
+      figure: "st-cours-influence"
+    },
+    {
+      titre: "Lire un diagramme en boîte",
+      etapes: [
+        "De gauche à droite : minimum, $Q_1$, médiane, $Q_3$, maximum.",
+        "Écart interquartile : largeur de la boîte, $Q_3 - Q_1$. Étendue : maximum $-$ minimum.",
+        "Interpréter : au moins $25\\,\\%$ des valeurs sont inférieures ou égales à $Q_1$, au moins la moitié à la médiane, au moins $75\\,\\%$ à $Q_3$."
+      ],
+      exemple: "Notes : $Q_1 = 8$, $Me = 11$ et $Q_3 = 14$. Au moins la moitié des élèves ont au plus $11$, et l'écart interquartile vaut $14 - 8 = 6$.",
+      figure: "st-meth-boite"
     }
   ],
   erreurs: [
@@ -246,6 +281,8 @@ window.CHAPITRES["seconde-statistiques"] = {
     "Confondre écart interquartile ($Q_3 - Q_1$) et étendue (max $-$ min).",
     "Lire $s$ au lieu de $\\sigma$ sur la calculatrice, ou donner la variance au lieu de l'écart type.",
     "Conclure « tous les élèves de A ont de meilleures notes » à partir de la seule moyenne.",
-    "Mélanger les couples : médiane avec écart type."
+    "Mélanger les couples : médiane avec écart type.",
+    "Pour une série donnée par ses effectifs, prendre la valeur la plus fréquente, ou la médiane des valeurs sans tenir compte des effectifs.",
+    "Oublier de ranger la nouvelle série après avoir ajouté ou retiré une valeur."
   ]
 };

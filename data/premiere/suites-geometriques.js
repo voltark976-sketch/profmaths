@@ -5,7 +5,7 @@
   Mêmes règles d'écriture que data/seconde/fonctions.js.
   Vidéos : playlist « 1SPE – Suites numériques » de la chaîne d'abord (#09 à #15), Yvan Monka en complément.
   Les exemples du cours évitent les exercices du dossier élève (scooter, plage, abonnés…), corrigés en vidéo ou en classe.
-  Figures : "suite-geo", "prix-evolution", "suite-geo-alterne", "medicament", "lineaire-exponentiel".
+  Figures : "suite-geo" (chapitre 3), "suite-geo-alterne", "medicament", "lineaire-exponentiel" et les figures sg- (cours, QCM, méthode).
   Générateurs : suite- (suite-geometrique, suite-nature, suite-variation, suite-seuil) et su-geo-.
 */
 window.CHAPITRES = window.CHAPITRES || {};
@@ -47,6 +47,7 @@ window.CHAPITRES["premiere-suites-geometriques"] = {
     },
     {
       titre: "Démonstration : le terme général",
+      figure: "sg-cours-terme",
       video: { titre: "Vidéo d'Yvan Monka : déterminer l'expression générale d'une suite géométrique", youtube: "https://youtu.be/WTmdtbQpa0c" },
       texte:
         "**Propriété** : si $(u_n)$ est géométrique de raison $q$, alors $u_n = u_0 \\times q^n$ pour tout $n$.\n\n" +
@@ -60,7 +61,7 @@ window.CHAPITRES["premiere-suites-geometriques"] = {
     },
     {
       titre: "Évolutions à taux constant",
-      figure: "prix-evolution",
+      figure: "sg-cours-prix",
       video: { titre: "Vidéo de ton prof : évolution à taux constant, la valeur d'un scooter (exercice corrigé)", youtube: "https://youtu.be/l5z9ZUXsDFA" },
       texte:
         "Augmenter une quantité de $t\\,\\%$, c'est la multiplier par $1 + \\dfrac{t}{100}$ ; la diminuer de $t\\,\\%$, c'est la multiplier par $1 - \\dfrac{t}{100}$.\n\n" +
@@ -90,6 +91,7 @@ window.CHAPITRES["premiere-suites-geometriques"] = {
     },
     {
       titre: "Somme $1 + q + \\dots + q^n$",
+      figure: "sg-cours-somme",
       video: { titre: "Vidéo de ton prof : sommes de termes consécutifs (cours 5/6)", youtube: "https://youtu.be/vP3Ts0VRPd4" },
       texte:
         "**Propriété** : pour tout réel $q \\neq 1$ et tout entier $n$,\n\n" +
@@ -106,6 +108,7 @@ window.CHAPITRES["premiere-suites-geometriques"] = {
     {
       titre: "Modéliser : la dose de médicament",
       figure: "medicament",
+      video: { titre: "Vidéo d'Hedacademy : modéliser une situation par une suite géométrique", youtube: "https://youtu.be/yCx9ZUDFo0Y" },
       texte:
         "Au dispensaire, on injecte $500$ mg d'un médicament. Chaque heure, le corps en élimine $20\\,\\%$ : il en reste $80\\,\\%$. Avec $u_n$ la quantité (en mg) au bout de $n$ heures :\n\n" +
         "$u_0 = 500$ et $u_{n+1} = 0{,}8\\,u_n$, donc $u_n = 500 \\times 0{,}8^n$.\n\n" +
@@ -119,6 +122,7 @@ window.CHAPITRES["premiere-suites-geometriques"] = {
     },
     {
       titre: "Une suite auxiliaire géométrique",
+      figure: "sg-cours-auxiliaire",
       video: { titre: "Vidéo de ton prof : une suite auxiliaire géométrique, la plage (exercice corrigé)", youtube: "https://youtu.be/9a9eqhi2VxE" },
       texte:
         "Une suite définie par $u_{n+1} = a\\,u_n + b$ n'est en général ni arithmétique ni géométrique. On l'étudie avec une **suite auxiliaire** $v_n = u_n - c$, avec $c$ bien choisi, qui elle est géométrique.\n\n" +
@@ -134,6 +138,7 @@ window.CHAPITRES["premiere-suites-geometriques"] = {
     },
     {
       titre: "Limite et seuil",
+      figure: "sg-cours-seuil",
       video: { titre: "Vidéo de ton prof : limite d'une suite et recherche de seuil (cours 6/6)", youtube: "https://youtu.be/ug71_j3MXlo" },
       texte:
         "Comportement de $q^n$ quand $n$ devient très grand (observé ici, démontré en Terminale) :\n\n" +
@@ -149,6 +154,8 @@ window.CHAPITRES["premiere-suites-geometriques"] = {
     },
     {
       titre: "Python : l'algorithme de seuil",
+      figure: "sg-cours-boucle",
+      video: { titre: "Vidéo d'Yvan Monka : déterminer un seuil avec un algorithme en Python", youtube: "https://youtu.be/vJmpzwhaka8" },
       texte:
         "Pour trouver le premier rang où la quantité de médicament passe sous $A$ mg, on répète le calcul **tant que** le seuil n'est pas atteint : c'est une boucle $\\texttt{while}$.\n\n" +
         "```python\ndef heures(A):\n    u = 500\n    n = 0\n    while u >= A:\n        u = 0.8 * u\n        n = n + 1\n    return n\n```\n\n" +
@@ -163,6 +170,8 @@ window.CHAPITRES["premiere-suites-geometriques"] = {
     },
     {
       titre: "Logique : négation et contre-exemple",
+      figure: "sg-cours-majoree",
+      video: { titre: "Vidéo d'Hedacademy : la puissance du contre-exemple", youtube: "https://youtu.be/s7qntK4nynY" },
       texte:
         "Une suite $(u_n)$ est **majorée** s'il existe un réel $M$ tel que, pour tout $n$, $u_n \\leqslant M$.\n\n" +
         "Pour écrire la **négation**, on échange « il existe » et « pour tout », puis on nie la fin :\n\n" +
@@ -339,10 +348,10 @@ window.CHAPITRES["premiere-suites-geometriques"] = {
       explication: "Négation de « il existe $M$, pour tout $n$, $u_n \\leqslant M$ » : on échange les quantificateurs et on nie la fin."
     },
     {
-      question: "Vrai ou faux : « une suite géométrique de raison $q > 1$ est toujours croissante ».",
-      choix: ["Vrai", "Faux"],
-      bonne: 1,
-      explication: "Faux. Contre-exemple : $u_0 = -1$ et $q = 2$ donnent $-1$, $-2$, $-4$… Il faut aussi $u_0 > 0$."
+      question: "L'affirmation « une suite géométrique de raison $q > 1$ est toujours croissante » est :",
+      choix: ["fausse : avec $u_0 = -1$ et $q = 2$, on obtient $-1$, $-2$, $-4$…", "vraie : on multiplie toujours par un nombre plus grand que $1$", "vraie seulement si $q$ est un entier", "fausse : une suite géométrique n'est jamais croissante"],
+      bonne: 0,
+      explication: "Un contre-exemple suffit : $u_0 = -1$ et $q = 2$ donnent $-1$, $-2$, $-4$…, une suite décroissante. Il faut aussi $u_0 > 0$. (Et $u_n = 2^n$ est bien croissante : « jamais croissante » est faux aussi.)"
     },
     {
       question: "$u_{n+1} = 0{,}5\\,u_n + 10$ et $v_n = u_n - 20$. Alors $(v_n)$ est :",
@@ -355,6 +364,34 @@ window.CHAPITRES["premiere-suites-geometriques"] = {
       choix: ["Une population qui augmente de $2\\,\\%$ par an", "Un salaire qui augmente de $50$ € par an", "Un réservoir qui perd $3$ L par heure", "Des gradins qui gagnent $4$ places par rang"],
       bonne: 0,
       explication: "Un pourcentage constant revient à multiplier par le même nombre ($1{,}02$). Les trois autres ajoutent ou retirent une quantité fixe : suites arithmétiques."
+    },
+    {
+      question: "Le graphique représente les premiers termes d'une suite géométrique. Quelle est sa raison ?",
+      figure: "sg-qcm-nuage",
+      choix: ["$0{,}5$", "$2$", "$-4$", "$8$"],
+      bonne: 0,
+      explication: "On lit $u_0 = 8$ et $u_1 = 4$ : $q = \\dfrac{4}{8} = 0{,}5$ (puis $u_2 = 2$, $u_3 = 1$). $-4$ est la différence $u_1 - u_0$ : c'est une raison d'arithmétique ; $8$ est le premier terme."
+    },
+    {
+      question: "Le graphique représente les premiers termes d'une suite. Laquelle de ces expressions peut la définir ?",
+      figure: "sg-qcm-alterne",
+      choix: ["$u_n = 3 \\times (-0{,}6)^n$", "$u_n = 3 \\times 0{,}6^n$", "$u_n = -3 \\times 0{,}6^n$", "$u_n = 3 - 0{,}6n$"],
+      bonne: 0,
+      explication: "Les termes changent de signe à chaque rang : la raison est négative. Ils se rapprochent de $0$ et $u_0 = 3$ : $u_n = 3 \\times (-0{,}6)^n$. Avec $0{,}6^n$, tous les termes seraient positifs."
+    },
+    {
+      question: "Un téléphone coûte $200$ €. Son prix augmente de $10\\,\\%$, puis baisse de $10\\,\\%$. Quel est son prix final ?",
+      figure: "sg-qcm-chaine",
+      choix: ["$198$ €", "$200$ €", "$180$ €", "$220$ €"],
+      bonne: 0,
+      explication: "$200 \\times 1{,}1 = 220$ €, puis $220 \\times 0{,}9 = 198$ € : le coefficient global $1{,}1 \\times 0{,}9 = 0{,}99$ donne une baisse de $1\\,\\%$. La baisse porte sur le prix **déjà augmenté**."
+    },
+    {
+      question: "L'une des suites $A$ et $B$ représentées est arithmétique, l'autre géométrique. Laquelle est géométrique ?",
+      figure: "sg-qcm-deux",
+      choix: ["La suite $B$ (les carrés)", "La suite $A$ (les ronds)", "Les deux", "On ne peut pas le savoir"],
+      bonne: 0,
+      explication: "Les points de $A$ sont alignés : on ajoute toujours la même quantité ($+4$), elle est arithmétique. Ceux de $B$ montent de plus en plus vite : on multiplie toujours par le même nombre ($1{,}6$), c'est une croissance exponentielle."
     }
   ],
 
@@ -362,6 +399,7 @@ window.CHAPITRES["premiere-suites-geometriques"] = {
   methode: [
     {
       titre: "Démontrer qu'une suite est (ou n'est pas) géométrique",
+      figure: "sg-meth-chaine",
       etapes: [
         "Exprimer $u_{n+1}$, puis faire apparaître $u_{n+1} = q \\times u_n$ avec $q$ indépendant de $n$.",
         "Si les termes sont non nuls, on peut aussi montrer que $\\dfrac{u_{n+1}}{u_n}$ est constant.",
@@ -371,6 +409,7 @@ window.CHAPITRES["premiere-suites-geometriques"] = {
     },
     {
       titre: "Trouver le terme général à partir de deux termes",
+      figure: "sg-meth-deux",
       etapes: [
         "Écrire $u_n = u_p \\times q^{n-p}$, donc $q^{n-p} = \\dfrac{u_n}{u_p}$.",
         "En déduire $q$ (si l'exposant est pair, il faut savoir si la raison est positive).",
@@ -380,6 +419,7 @@ window.CHAPITRES["premiere-suites-geometriques"] = {
     },
     {
       titre: "Traduire des évolutions en pourcentage",
+      figure: "sg-meth-taux",
       etapes: [
         "Hausse de $t\\,\\%$ : coefficient $1 + \\dfrac{t}{100}$ ; baisse de $t\\,\\%$ : coefficient $1 - \\dfrac{t}{100}$.",
         "Évolutions successives : multiplier les coefficients.",
@@ -389,6 +429,7 @@ window.CHAPITRES["premiere-suites-geometriques"] = {
     },
     {
       titre: "Étudier le sens de variation",
+      figure: "sg-meth-variation",
       etapes: [
         "Écrire $u_n = u_0 \\times q^n$.",
         "Si $q < 0$ : la suite n'est ni croissante ni décroissante.",
@@ -398,6 +439,7 @@ window.CHAPITRES["premiere-suites-geometriques"] = {
     },
     {
       titre: "Calculer une somme de termes consécutifs",
+      figure: "sg-cours-somme",
       etapes: [
         "Repérer le premier terme et la raison $q \\neq 1$.",
         "Compter les termes : de $u_0$ à $u_n$, il y en a $n + 1$.",
@@ -407,6 +449,7 @@ window.CHAPITRES["premiere-suites-geometriques"] = {
     },
     {
       titre: "Déterminer un seuil",
+      figure: "sg-cours-seuil",
       etapes: [
         "Vérifier le sens de variation, pour être sûr que le seuil reste franchi ensuite.",
         "Calculer les termes avec le tableau de valeurs de la calculatrice, ou programmer une boucle $\\texttt{while}$.",
@@ -416,6 +459,7 @@ window.CHAPITRES["premiere-suites-geometriques"] = {
     },
     {
       titre: "Nier une phrase, réfuter avec un contre-exemple",
+      figure: "sg-cours-majoree",
       etapes: [
         "Repérer les « pour tout » et les « il existe ».",
         "Pour nier : « pour tout » devient « il existe », « il existe » devient « pour tout », et on nie la conclusion.",

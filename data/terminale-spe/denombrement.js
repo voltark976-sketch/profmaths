@@ -7,6 +7,8 @@
   Programme officiel de Terminale spécialité (Algèbre et géométrie : combinatoire et dénombrement).
   video : vidéo d'aide sous une notion (vidéos d'Yvan Monka, en attendant celles de la chaîne).
   Les générateurs d'exercices de ce chapitre commencent par cd- dans assets/exercices.js.
+  Figures : "cd-cours-…" (Venn, arbre des parties, podium, quadrillage, choix de l'outil), "arbre-produit",
+  "triangle-pascal", "cd-meth-…" et "cd-qcm-…" (diagrammes de Venn, quadrillages, urnes et triangles de Pascal paramétrés).
 */
 window.CHAPITRES = window.CHAPITRES || {};
 window.CHAPITRES["terminale-spe-denombrement"] = {
@@ -17,12 +19,15 @@ window.CHAPITRES["terminale-spe-denombrement"] = {
 
   playlist: "",
   drive: "",
-  pdfs: [],
+  pdfs: [
+    { titre: "Cours d'Yvan Monka : combinatoire et dénombrement (PDF)", url: "https://www.maths-et-tiques.fr/telech/20Combi.pdf" }
+  ],
 
   /* ---------- 1. CAPSULE DE COURS ---------- */
   cours: [
     {
       titre: "Cardinal et principe additif",
+      figure: "cd-cours-venn",
       video: { titre: "Vidéo d'Yvan Monka : dénombrer en utilisant un diagramme", youtube: "https://youtu.be/xwRvGbbu7PY" },
       texte:
         "Le nombre d'éléments d'un ensemble fini $E$ s'appelle son **cardinal**, noté $\\text{Card}(E)$.\n\n" +
@@ -52,6 +57,7 @@ window.CHAPITRES["terminale-spe-denombrement"] = {
     },
     {
       titre: "Les parties d'un ensemble",
+      figure: "cd-cours-parties",
       video: { titre: "Vidéo d'Yvan Monka : démonstration du nombre de parties d'un ensemble", youtube: "https://youtu.be/8MVCbhQF2ak" },
       texte:
         "Une **partie** (ou sous-ensemble) de $E$ est un ensemble d'éléments pris dans $E$ : **sans ordre** et **sans répétition**. L'ensemble vide $\\varnothing$ et $E$ lui-même sont des parties de $E$.\n\n" +
@@ -64,6 +70,7 @@ window.CHAPITRES["terminale-spe-denombrement"] = {
     },
     {
       titre: "Factorielle, arrangements et permutations",
+      figure: "cd-cours-podium",
       video: { titre: "Vidéo d'Yvan Monka : utiliser les arrangements pour dénombrer", youtube: "https://youtu.be/2fKdO9t8wfo" },
       texte:
         "Pour un entier $n \\geqslant 1$, **factorielle** $n$ vaut $n! = 1 \\times 2 \\times \\dots \\times n$, et par convention $0! = 1$.\n\n" +
@@ -78,10 +85,12 @@ window.CHAPITRES["terminale-spe-denombrement"] = {
     },
     {
       titre: "Combinaisons",
+      figure: "cd-cours-chemins",
       video: { titre: "Vidéo d'Yvan Monka : utiliser les combinaisons pour dénombrer", youtube: "https://youtu.be/_ip2dV_BUTM" },
       texte:
         "Une **combinaison** de $k$ éléments de $E$ est une **partie** de $E$ à $k$ éléments : **pas d'ordre**, **pas de répétition**. Leur nombre est le coefficient binomial $\\dbinom{n}{k}$ (« $k$ parmi $n$ »).\n\n" +
-        "$\\dbinom{n}{k} = \\dfrac{n!}{k!\\,(n - k)!} = \\dfrac{n \\times (n - 1) \\times \\dots \\times (n - k + 1)}{k!}$\n\n" +
+        "$\\dbinom{n}{k} = \\dfrac{n!}{k!\\,(n - k)!}$, c'est-à-dire :\n\n" +
+        "$\\dbinom{n}{k} = \\dfrac{n \\times (n - 1) \\times \\dots \\times (n - k + 1)}{k!}$\n\n" +
         "- Pourquoi diviser par $k!$ ? Chaque groupe de $k$ éléments peut être rangé de $k!$ façons : les k-uplets distincts comptent chaque groupe $k!$ fois.\n" +
         "- $\\dbinom{n}{0} = 1$, $\\dbinom{n}{1} = n$ et $\\dbinom{n}{2} = \\dfrac{n(n - 1)}{2}$.\n" +
         "- $\\dbinom{n}{k}$ compte aussi les **mots** de $n$ lettres formés de $k$ lettres A et $n - k$ lettres B, ou les **chemins** d'un arbre à $k$ succès (comme pour la loi binomiale).",
@@ -109,6 +118,7 @@ window.CHAPITRES["terminale-spe-denombrement"] = {
     },
     {
       titre: "Choisir le bon outil",
+      figure: "cd-cours-outil",
       video: { titre: "Vidéo d'Yvan Monka : arrangement, permutation, combinaison : lequel choisir ?", youtube: "https://youtu.be/hWkIwXXEECc" },
       texte:
         "Avant de calculer, deux questions : **l'ordre compte-t-il ?** **Les répétitions sont-elles possibles ?**\n\n" +
@@ -273,6 +283,10 @@ window.CHAPITRES["terminale-spe-denombrement"] = {
     { question: "Combien de mots de passe de $3$ lettres (parmi les $26$ lettres) contiennent au moins une voyelle (A, E, I, O, U, Y) ?", choix: ["$26^3 - 20^3$", "$6 \\times 26^2$", "$6^3$", "$26^3 - 6^3$"], bonne: 0, explication: "On passe par le complémentaire : $26^3$ mots en tout, dont $20^3$ sans voyelle (avec les $20$ consonnes). $6 \\times 26^2$ compte plusieurs fois les mots à plusieurs voyelles." },
     { question: "On tire simultanément $3$ cartes dans un jeu de $32$ cartes, qui contient $4$ as. La probabilité d'obtenir $3$ as est :", choix: ["$\\dfrac{\\binom{4}{3}}{\\binom{32}{3}}$", "$\\dfrac{4 \\times 3 \\times 2}{\\binom{32}{3}}$", "$\\dfrac{3}{32}$", "$\\left(\\dfrac{4}{32}\\right)^3$"], bonne: 0, explication: "Les issues sont les mains de $3$ cartes, sans ordre : $\\binom{32}{3}$. Les mains favorables : $\\binom{4}{3} = 4$. Le deuxième choix compte le numérateur avec ordre et le dénominateur sans ordre." },
     { question: "La ligne $n = 4$ du triangle de Pascal est $1$ ; $4$ ; $6$ ; $4$ ; $1$. La ligne $n = 5$ est :", choix: ["$1$ ; $5$ ; $10$ ; $10$ ; $5$ ; $1$", "$1$ ; $5$ ; $6$ ; $6$ ; $5$ ; $1$", "$1$ ; $5$ ; $10$ ; $5$ ; $1$", "$1$ ; $4$ ; $6$ ; $4$ ; $1$ ; $1$"], bonne: 0, explication: "Relation de Pascal : chaque coefficient est la somme des deux coefficients au-dessus. $1 + 4 = 5$, $4 + 6 = 10$, $6 + 4 = 10$, $4 + 1 = 5$. La somme vaut bien $2^5 = 32$." },
+    { question: "D'après le diagramme, combien d'élèves du groupe pratiquent **au moins une** des deux activités ?", figure: "cd-qcm-venn", choix: ["$25$", "$30$", "$20$", "$32$"], bonne: 0, explication: "$12 + 5 + 8 = 25$, ou bien $32 - 7 = 25$. Le choix $30 = 17 + 13$ compte deux fois les $5$ élèves qui font les deux activités." },
+    { question: "On va de $A$ à $B$ par des pas d'une case vers la droite ou vers le haut. Combien de chemins différents ?", figure: "cd-qcm-grille", choix: ["$10$", "$6$", "$32$", "$5$"], bonne: 0, explication: "Un chemin est un mot de $5$ lettres avec $3$ D et $2$ H : $\\dbinom{5}{2} = 10$. $32 = 2^5$ oublie que le nombre de D et de H est imposé." },
+    { question: "On tire simultanément $2$ boules de cette urne. Quelle est la probabilité d'obtenir $2$ boules rouges ?", figure: "cd-qcm-urne", choix: ["$\\dfrac{3}{28}$", "$\\dfrac{9}{64}$", "$\\dfrac{3}{8}$", "$\\dfrac{6}{28}$"], bonne: 0, explication: "$\\dfrac{\\binom{3}{2}}{\\binom{8}{2}} = \\dfrac{3}{28}$. $\\dfrac{9}{64} = \\left(\\dfrac{3}{8}\\right)^2$ correspondrait à des tirages avec remise, et $\\dfrac{6}{28}$ compte l'ordre au numérateur seulement." },
+    { question: "Quel nombre remplace le point d'interrogation dans ce triangle de Pascal ?", figure: "cd-qcm-pascal", choix: ["$20$", "$100$", "$15$", "$10$"], bonne: 0, explication: "Relation de Pascal : on additionne les deux nombres au-dessus, $\\dbinom{6}{3} = \\dbinom{5}{2} + \\dbinom{5}{3} = 10 + 10 = 20$." },
     { question: "Avec la fonction $\\texttt{pascal}$ du cours, que renvoie $\\texttt{pascal(3)}$ ?", choix: ["$\\texttt{[1, 3, 3, 1]}$", "$\\texttt{[1, 2, 1]}$", "$\\texttt{[1, 4, 6, 4, 1]}$", "$\\texttt{[1, 3, 1]}$"], bonne: 0, explication: "En partant de $\\texttt{[1]}$, la boucle fait $3$ tours : $\\texttt{[1, 1]}$, puis $\\texttt{[1, 2, 1]}$, puis $\\texttt{[1, 3, 3, 1]}$, les coefficients $\\dbinom{3}{k}$." }
   ],
 
@@ -280,6 +294,7 @@ window.CHAPITRES["terminale-spe-denombrement"] = {
   methode: [
     {
       titre: "Reconnaître la situation",
+      figure: "cd-cours-outil",
       etapes: [
         "Décrire un résultat possible par un exemple concret (un code, un groupe, un classement…).",
         "Se demander : **l'ordre compte-t-il ?** Échanger deux éléments donne-t-il un autre résultat ?",
@@ -290,6 +305,7 @@ window.CHAPITRES["terminale-spe-denombrement"] = {
     },
     {
       titre: "Utiliser le principe multiplicatif",
+      figure: "arbre-produit",
       etapes: [
         "Découper le choix en étapes successives.",
         "Compter le nombre de possibilités à chaque étape, en tenant compte des choix déjà faits.",
@@ -299,6 +315,7 @@ window.CHAPITRES["terminale-spe-denombrement"] = {
     },
     {
       titre: "Compter par le complémentaire",
+      figure: "cd-meth-complement",
       etapes: [
         "Repérer les expressions « au moins un », « pas tous » : le contraire est souvent plus simple.",
         "Compter tous les cas, puis ceux qui ne conviennent pas.",
@@ -308,6 +325,7 @@ window.CHAPITRES["terminale-spe-denombrement"] = {
     },
     {
       titre: "Calculer un coefficient binomial",
+      figure: "triangle-pascal",
       etapes: [
         "Utiliser $\\dbinom{n}{k} = \\dfrac{n \\times (n - 1) \\times \\dots \\times (n - k + 1)}{k!}$ : $k$ facteurs en haut, $k!$ en bas.",
         "Si $k$ est grand, utiliser d'abord la symétrie $\\dbinom{n}{k} = \\dbinom{n}{n - k}$.",
@@ -317,6 +335,7 @@ window.CHAPITRES["terminale-spe-denombrement"] = {
     },
     {
       titre: "Calculer une probabilité par dénombrement",
+      figure: "cd-meth-urne",
       etapes: [
         "Justifier l'équiprobabilité (tirage au hasard, pièce ou dé équilibré…).",
         "Choisir **un** modèle (ordonné ou non) et compter $\\text{Card}(\\Omega)$.",

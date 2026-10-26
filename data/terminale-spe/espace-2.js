@@ -17,7 +17,10 @@ window.CHAPITRES["terminale-spe-espace-2"] = {
 
   playlist: "",
   drive: "",
-  pdfs: [],
+  pdfs: [
+    { titre: "Cours d'Yvan Monka : orthogonalité dans l'espace (PDF)", url: "https://www.maths-et-tiques.fr/telech/20Esp2.pdf" },
+    { titre: "Cours d'Yvan Monka : représentations paramétriques et équations cartésiennes (PDF)", url: "https://www.maths-et-tiques.fr/telech/20Esp3.pdf" }
+  ],
   liens: [
     { titre: "Le cours sur le produit scalaire de l'espace (Yvan Monka)", url: "https://youtu.be/pMQBaCqLPsQ", type: "video" },
     { titre: "Démonstration : équation cartésienne d'un plan (Yvan Monka)", url: "https://youtu.be/GKsHtrImI_o", type: "video" }
@@ -98,12 +101,13 @@ window.CHAPITRES["terminale-spe-espace-2"] = {
     },
     {
       titre: "Projeté orthogonal et distances",
+      figure: "pse-cours-projete",
       video: { titre: "Vidéo d'Yvan Monka : déterminer la distance d'un point à un plan (projection orthogonale)", youtube: "https://youtu.be/1b9FtX4sCmQ" },
       texte:
         "Le **projeté orthogonal** du point $M$ sur le plan $\\mathcal{P}$ est le point $H$ de $\\mathcal{P}$ tel que $(MH)$ soit orthogonale à $\\mathcal{P}$ (ou $H = M$ si $M \\in \\mathcal{P}$).\n\n" +
         "- $H$ est le point de $\\mathcal{P}$ **le plus proche** de $M$ (démonstration au programme, avec Pythagore) : la **distance de $M$ au plan** est $MH$.\n" +
         "- Pour calculer $H$ : on écrit la droite passant par $M$ de vecteur directeur $\\vec{n}$, puis on cherche son intersection avec $\\mathcal{P}$.\n\n" +
-        "On définit de même le projeté orthogonal d'un point sur une droite : on cherche le point $H$ de la droite tel que $\\overrightarrow{MH}$ soit orthogonal au vecteur directeur.",
+        "On définit de même le **projeté orthogonal d'un point sur une droite** $\\Delta$ passant par $A$, de vecteur directeur $\\vec{u}$ : c'est le point $H = A + t\\vec{u}$ de $\\Delta$ tel que $\\overrightarrow{MH} \\cdot \\vec{u} = 0$, ce qui donne $t = \\dfrac{\\overrightarrow{AM} \\cdot \\vec{u}}{\\|\\vec{u}\\|^2}$. C'est encore le point de $\\Delta$ le plus proche de $M$, et $MH$ est la distance de $M$ à $\\Delta$.",
       exemple: {
         enonce: "$\\mathcal{P} : x + 2y + 2z - 1 = 0$ et $M(3\\,;4\\,;4)$. Trouve le projeté orthogonal $H$ de $M$ sur $\\mathcal{P}$ et la distance de $M$ au plan.",
         solution: "La droite $(MH)$, de vecteur directeur $\\vec{n}(1\\,;2\\,;2)$ : $x = 3 + t$, $y = 4 + 2t$, $z = 4 + 2t$.\n\nDans l'équation : $(3 + t) + 2(4 + 2t) + 2(4 + 2t) - 1 = 0$, soit $9t + 18 = 0$ et $t = -2$. Donc $H(1\\,;0\\,;0)$ et $MH = \\sqrt{4 + 16 + 16} = 6$."
@@ -142,7 +146,7 @@ window.CHAPITRES["terminale-spe-espace-2"] = {
     { type: "pse-equation", titre: "Équation cartésienne d'un plan", etape: "Plans", nb: 5 },
     { type: "pse-positions", titre: "Positions relatives avec les vecteurs normaux", etape: "Plans", nb: 5 },
     { type: "pse-intersection", titre: "Intersection d'une droite et d'un plan", etape: "Intersections et distances", nb: 4 },
-    { type: "pse-projete", titre: "Projeté orthogonal et distance", etape: "Intersections et distances", nb: 4 },
+    { type: "pse-projete", titre: "Projeté orthogonal sur un plan ou une droite, distance", etape: "Intersections et distances", nb: 4 },
     { type: "pse-python", titre: "L'espace en Python", etape: "Algorithmique", nb: 4 }
   ],
 

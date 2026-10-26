@@ -2,31 +2,38 @@
   CHAPITRE : Terminale maths complémentaires — Primitives et équations différentielles
   ------------------------------------------------------------------------------------
   Chapitre 11 de la progression spiralée 2026-2027 (programme de maths complémentaires de 2019).
-  Équation différentielle, primitive, deux primitives diffèrent d'une constante, y' = ay et y' = ay + b,
-  formes 2uu' et u'e^u, condition initiale, méthode d'Euler en Python, élimination d'un médicament.
-  Figures : "tpe-famille", "tpe-euler". Générateurs : tpe-.
+  Équation différentielle (champ de pentes), primitive, deux primitives diffèrent d'une constante, lien entre le signe de f
+  et les variations de ses primitives, y' = ay et y' = ay + b (allure des courbes, démonstration), formes 2uu', u'e^u et u'/u,
+  condition initiale, méthode d'Euler en Python, médicament (demi-vie, perfusion) et refroidissement à Mayotte.
+  Figures : "tpe-cours-champ", "tpe-cours-primitives", "tpe-cours-condition", "tpe-cours-yay-plus", "tpe-cours-yay-moins",
+  "tpe-famille", "tpe-cours-yayb-plus", "tpe-cours-medicament", "tpe-cours-refroidissement", "tpe-euler", "tpe-meth-…",
+  "tpe-qcm-…". Générateurs : tpe-.
 */
 window.CHAPITRES = window.CHAPITRES || {};
 window.CHAPITRES["terminale-primitives-ed"] = {
   niveau: "Terminale maths complémentaires",
   numero: 11,
   titre: "Primitives et équations différentielles",
-  accroche: "Retrouver une fonction à partir de sa dérivée : primitives, équations y' = ay et y' = ay + b, condition initiale, médicament dans le sang et méthode d'Euler en Python.",
+  accroche: "Retrouver une fonction à partir de sa dérivée : primitives, équations $y' = ay$ et $y' = ay + b$, condition initiale, médicament dans le sang et méthode d'Euler en Python.",
 
   playlist: "",
   drive: "",
-  pdfs: [],
+  pdfs: [
+    { titre: "Cours d'Yvan Monka : primitives et équations différentielles (PDF)", url: "https://www.maths-et-tiques.fr/telech/20Prim-EdTC.pdf" }
+  ],
   liens: [],
 
   /* ---------- 1. CAPSULE DE COURS ---------- */
   cours: [
     {
       titre: "Qu'est-ce qu'une équation différentielle ?",
+      figure: "tpe-cours-champ",
       video: { titre: "Vidéo d'Yvan Monka : vérifier qu'une fonction est solution", youtube: "https://youtu.be/LX8PxR-ScfM" },
       texte:
         "Une **équation différentielle** est une égalité qui relie une fonction inconnue $y$ et sa dérivée $y'$. Par exemple $y' = 2y$.\n\n" +
         "Une **solution** sur un intervalle $I$ est une fonction $f$ dérivable sur $I$ telle que l'égalité est vraie pour tout $x$ de $I$ : ici $f'(x) = 2f(x)$.\n\n" +
-        "Pour **vérifier** qu'une fonction est solution, on calcule $f'(x)$, on calcule l'autre membre, et on compare.",
+        "Pour **vérifier** qu'une fonction est solution, on calcule $f'(x)$, on calcule l'autre membre, et on compare.\n\n" +
+        "**Lecture graphique** : l'équation $y' = 2y$ donne, en chaque point $(x\\,;y)$, la pente $2y$ de la tangente à la courbe de la solution qui passe par ce point. Sur la figure, ces pentes sont dessinées par de petits segments (c'est le **champ de pentes**) : les courbes des solutions les suivent, comme celle de $3e^{2x}$.",
       exemple: {
         enonce: "La fonction $f(x) = 3e^{2x}$ est-elle solution de $y' = 2y$ ?",
         solution: "$f'(x) = 6e^{2x}$ et $2f(x) = 6e^{2x}$ : les deux sont égaux pour tout $x$, donc $f$ est solution."
@@ -34,11 +41,14 @@ window.CHAPITRES["terminale-primitives-ed"] = {
     },
     {
       titre: "Primitive d'une fonction",
+      figure: "tpe-cours-primitives",
       video: { titre: "Vidéo d'Yvan Monka : cours sur les primitives", youtube: "https://youtu.be/LIm3DN63bxQ" },
       texte:
         "$F$ est une **primitive** de $f$ sur $I$ si $F'(x) = f(x)$ pour tout $x$ de $I$. Autrement dit, $F$ est une solution de l'équation différentielle $y' = f$.\n\n" +
         "**Propriété** : deux primitives d'une même fonction sur un intervalle diffèrent d'une constante. Si $F$ est une primitive, toutes les primitives sont les $F(x) + C$, $C$ réel.\n\n" +
-        "**Démonstration** : si $F' = G' = f$, alors $(G - F)' = 0$, donc $G - F$ est constante sur l'intervalle.",
+        "**Démonstration** : si $F' = G' = f$, alors $(G - F)' = 0$, donc $G - F$ est constante sur l'intervalle.\n\n" +
+        "**Graphiquement**, les courbes des primitives se déduisent l'une de l'autre par une translation verticale : en une même abscisse, elles ont la même pente $f(x)$ (sur la figure, les primitives $x^2 + C$ de $2x$, de pente $2$ en $x = 1$).\n\n" +
+        "**Signe et variations** : comme $F' = f$, une primitive $F$ est croissante là où $f$ est positive et décroissante là où $f$ est négative. C'est le **signe** de $f$ qui compte, pas ses variations.",
       exemple: {
         enonce: "Donne deux primitives de $f(x) = 2x$.",
         solution: "$F(x) = x^2$ et $G(x) = x^2 + 5$ : leurs dérivées valent toutes deux $2x$."
@@ -77,37 +87,42 @@ window.CHAPITRES["terminale-primitives-ed"] = {
     },
     {
       titre: "Primitive vérifiant une condition",
+      figure: "tpe-cours-condition",
       video: { titre: "Vidéo d'Yvan Monka : LA primitive vérifiant une condition", youtube: "https://youtu.be/-q9M7oJ9gkI" },
       texte:
         "Parmi toutes les primitives $F + C$, **une seule** prend une valeur donnée $y_0$ en un point $x_0$ : on écrit $F(x_0) + C = y_0$ et on trouve $C$.\n\n" +
-        "C'est un premier exemple d'**existence et unicité** : la condition initiale choisit une solution parmi une infinité.",
+        "C'est un premier exemple d'**existence et unicité** : la condition initiale choisit une solution parmi une infinité. Sur la figure, une seule courbe de la famille passe par le point $A(1\\,;2)$.",
       exemple: {
         enonce: "Détermine la primitive $F$ de $f(x) = 6x + 1$ telle que $F(1) = 2$.",
         solution: "$F(x) = 3x^2 + x + C$ et $F(1) = 4 + C = 2$, donc $C = -2$ : $F(x) = 3x^2 + x - 2$."
       }
     },
     {
-      titre: "L'équation y' = ay",
-      video: { titre: "Vidéo d'Yvan Monka : résoudre y' = ay", youtube: "https://youtu.be/YJNHTq85tJA" },
+      titre: "L'équation $y' = ay$",
+      figure: ["tpe-cours-yay-plus", "tpe-cours-yay-moins"],
+      video: { titre: "Vidéo d'Yvan Monka : résoudre une équation différentielle homogène", youtube: "https://youtu.be/YJNHTq85tJA" },
       texte:
         "$a$ est un réel. Les solutions de $y' = ay$ sur $\\mathbb{R}$ sont les fonctions $x \\mapsto Ce^{ax}$, où $C$ est un réel.\n\n" +
+        "**Démonstration** : $(Ce^{ax})' = aCe^{ax}$, donc ces fonctions sont solutions. Réciproquement, si $y$ est solution, posons $g(x) = y(x)e^{-ax}$ : $g'(x) = y'(x)e^{-ax} - ay(x)e^{-ax} = (y' - ay)(x)\\,e^{-ax} = 0$. Donc $g$ est constante, égale à un réel $C$, et $y(x) = Ce^{ax}$.\n\n" +
         "Avec une condition initiale $y(0) = y_0$, il y a une **unique** solution : $y(x) = y_0e^{ax}$.\n\n" +
-        "C'est la version continue de la suite géométrique : une grandeur dont la vitesse de variation est proportionnelle à elle-même (croissance d'une population, désintégration radioactive, refroidissement…).",
+        "**Allure des courbes** (figures avec $a = 0{,}5$ puis $a = -0{,}5$) : si $a > 0$, les solutions non nulles s'éloignent de l'axe des abscisses, vers $+\\infty$ si $C > 0$ et vers $-\\infty$ si $C < 0$ ; si $a < 0$, elles tendent toutes vers $0$. Deux courbes de solutions ne se coupent jamais.\n\n" +
+        "C'est la version continue de la suite géométrique : une grandeur dont la vitesse de variation est proportionnelle à elle-même (croissance d'une population, désintégration radioactive, élimination d'un médicament…).",
       exemple: {
         enonce: "Résous $y' = -0{,}3y$ avec $y(0) = 50$, puis calcule $y(2)$.",
         solution: "$y(x) = 50e^{-0{,}3x}$ et $y(2) = 50e^{-0{,}6} \\approx 27{,}44$."
       }
     },
     {
-      titre: "L'équation y' = ay + b",
-      figure: "tpe-famille",
-      video: { titre: "Vidéo d'Yvan Monka : résoudre y' = ay + b", youtube: "https://youtu.be/F_LQLZ8rUhg" },
+      titre: "L'équation $y' = ay + b$",
+      figure: ["tpe-famille", "tpe-cours-yayb-plus"],
+      video: { titre: "Vidéo d'Yvan Monka : résoudre une équation avec second membre constant", youtube: "https://youtu.be/F_LQLZ8rUhg" },
       texte:
         "$a \\neq 0$ et $b$ sont des réels.\n\n" +
         "1. **Solution constante** : $y' = 0$ donne $0 = ay + b$, soit $y = -\\dfrac{b}{a}$ (l'équilibre, comme la suite constante du chapitre 3).\n" +
         "2. **Solutions** : $y(x) = Ce^{ax} - \\dfrac{b}{a}$, $C$ réel.\n" +
         "3. Avec une condition initiale, on calcule $C$ : la solution est unique.\n\n" +
-        "Si $a < 0$, $e^{ax} \\to 0$ : toutes les courbes se rapprochent de la droite $y = -\\dfrac{b}{a}$. La figure montre plusieurs solutions de $y' = -0{,}5y + 2$ : elles tendent toutes vers $4$.",
+        "**Pourquoi ?** Notons $\\ell = -\\dfrac{b}{a}$. Si $y$ est solution, $z = y - \\ell$ vérifie $z' = y' = ay + b = a(z + \\ell) + b = az$ : $z$ est solution de $z' = az$, donc $z = Ce^{ax}$ et $y = Ce^{ax} + \\ell$.\n\n" +
+        "**Allure des courbes** : si $a < 0$, $e^{ax} \\to 0$ : toutes les courbes se rapprochent de la droite $y = -\\dfrac{b}{a}$ (première figure : solutions de $y' = -0{,}5y + 2$, qui tendent toutes vers $4$). Si $a > 0$, $e^{ax} \\to +\\infty$ : les solutions non constantes s'éloignent de cette droite (seconde figure : $y' = 0{,}5y - 2$).",
       exemple: {
         enonce: "Résous $y' = -0{,}5y + 2$ avec $y(0) = 10$.",
         solution: "Solution constante : $y = \\dfrac{2}{0{,}5} = 4$. Donc $y(x) = Ce^{-0{,}5x} + 4$, et $y(0) = C + 4 = 10$ donne $C = 6$ : $y(x) = 6e^{-0{,}5x} + 4$."
@@ -115,11 +130,13 @@ window.CHAPITRES["terminale-primitives-ed"] = {
     },
     {
       titre: "Modéliser : médicament, plat qui refroidit",
-      video: { titre: "Vidéo d'Yvan Monka : résoudre y' = ay + b (2)", youtube: "https://youtu.be/CFZr44vny3w" },
+      figure: ["tpe-cours-medicament", "tpe-cours-refroidissement"],
+      video: { titre: "Vidéo d'Yvan Monka : résoudre une équation avec second membre constant (2)", youtube: "https://youtu.be/CFZr44vny3w" },
       texte:
-        "- **Élimination d'un médicament** : le corps élimine chaque heure une part proportionnelle à la quantité présente, donc $Q' = -kQ$ et $Q(t) = Q_0e^{-kt}$. La **demi-vie** $t_{1/2} = \\dfrac{\\ln 2}{k}$ ne dépend pas de la dose.\n" +
-        "- **Refroidissement** (loi de Newton) : un plat à $90\\,°\\text{C}$ dans une pièce à $28\\,°\\text{C}$ vérifie $T' = -k(T - 28)$, soit $T' = -kT + 28k$. Sa solution constante est $28$ : le plat tend vers la température de la pièce. C'est la version continue de la suite arithmético-géométrique du chapitre 3.\n" +
-        "- **Pour aller plus loin** (sans attendu) : le modèle de Verhulst $y' = ay(1 - y/M)$ décrit une population limitée par les ressources.",
+        "- **Élimination d'un médicament** : le corps élimine chaque heure une part proportionnelle à la quantité présente, donc $Q' = -kQ$ et $Q(t) = Q_0e^{-kt}$. La **demi-vie** $t_{1/2} = \\dfrac{\\ln 2}{k}$ ne dépend pas de la dose (première figure : $500$ mg avec $k = 0{,}2$, la quantité est divisée par $2$ toutes les $3{,}5$ h environ).\n" +
+        "- **Perfusion** : si le médicament arrive en continu, $d$ mg par heure, alors $Q' = -kQ + d$ : la quantité se stabilise vers la solution constante $\\dfrac{d}{k}$.\n" +
+        "- **Refroidissement** (loi de Newton) : un plat à $90\\,°\\text{C}$ dans une pièce à $28\\,°\\text{C}$, température courante à Mayotte, vérifie $T' = -k(T - 28)$, soit $T' = -kT + 28k$. Sa solution constante est $28$ : le plat tend vers la température de la pièce (seconde figure, avec $k = 0{,}1$ et $t$ en minutes). Une boisson fraîche se réchauffe de la même façon. C'est la version continue de la suite arithmético-géométrique du chapitre 3.\n" +
+        "- **Pour aller plus loin** (sans attendu) : le modèle de Verhulst $y' = ay\\left(1 - \\dfrac{y}{M}\\right)$ décrit une population limitée par les ressources.",
       exemple: {
         enonce: "Un médicament vérifie $Q' = -0{,}2Q$. Quelle est sa demi-vie ?",
         solution: "$t_{1/2} = \\dfrac{\\ln 2}{0{,}2} \\approx 3{,}5$ heures."
@@ -128,12 +145,13 @@ window.CHAPITRES["terminale-primitives-ed"] = {
     {
       titre: "Python : la méthode d'Euler",
       figure: "tpe-euler",
+      video: { titre: "Vidéo de jaicompris Maths : la méthode d'Euler en Python pour tracer la courbe de l'exponentielle", youtube: "https://youtu.be/6yslVB9-nR4" },
       texte:
         "Quand on ne sait pas résoudre une équation, on construit une solution approchée pas à pas : on avance de $h$ en suivant la tangente, car $y(x + h) \\approx y(x) + h \\times y'(x)$.\n\n" +
         "```python\ndef euler(a, h, n):\n    x = 0\n    y = 1\n    for i in range(n):\n        y = y + h * a * y\n        x = x + h\n    return y\n```\n\n" +
         "Pour $y' = y$, $y(0) = 1$, chaque pas multiplie $y$ par $1 + h$. La figure compare la ligne brisée obtenue avec $h = 0{,}25$ et la vraie courbe de l'exponentielle : plus le pas est petit, meilleure est l'approximation.",
       exemple: {
-        enonce: "Que renvoie euler(1, 0.5, 2) ? Compare avec $e$.",
+        enonce: "Que renvoie euler(a, h, n) pour $a = 1$, $h = 0{,}5$ et $n = 2$ ? Compare avec $e$.",
         solution: "$1{,}5^2 = 2{,}25$, alors que $e^1 \\approx 2{,}72$ : l'approximation est grossière avec un grand pas."
       }
     }
@@ -148,20 +166,22 @@ window.CHAPITRES["terminale-primitives-ed"] = {
     { titre: "Chercher une primitive (3)", type: "Calcul", youtube: "https://youtu.be/gxRpmHWnoGQ" },
     { titre: "Chercher une primitive (4)", type: "Calcul", youtube: "https://youtu.be/iiq6eUQee9g" },
     { titre: "LA primitive vérifiant une condition", type: "Méthode", youtube: "https://youtu.be/-q9M7oJ9gkI" },
-    { titre: "Résoudre y' = ay", type: "Méthode", youtube: "https://youtu.be/YJNHTq85tJA" },
-    { titre: "Résoudre y' = ay + b (1)", type: "Méthode", youtube: "https://youtu.be/F_LQLZ8rUhg" },
-    { titre: "Résoudre y' = ay + b (2)", type: "Méthode", youtube: "https://youtu.be/CFZr44vny3w" }
+    { titre: "Résoudre une équation différentielle homogène", type: "Méthode", youtube: "https://youtu.be/YJNHTq85tJA" },
+    { titre: "Résoudre une équation avec second membre constant (1)", type: "Méthode", youtube: "https://youtu.be/F_LQLZ8rUhg" },
+    { titre: "Résoudre une équation avec second membre constant (2)", type: "Méthode", youtube: "https://youtu.be/CFZr44vny3w" },
+    { titre: "La méthode d'Euler en Python (jaicompris Maths)", type: "Python", youtube: "https://youtu.be/6yslVB9-nR4" }
   ],
-  videosNote: "Vidéos d'Yvan Monka (maths complémentaires), en attendant les vidéos de ton prof sur ce chapitre.",
+  videosNote: "Vidéos d'Yvan Monka (maths complémentaires) et de jaicompris Maths, en attendant les vidéos de ton prof sur ce chapitre.",
 
   /* ---------- 2. EXERCICES INTERACTIFS ---------- */
   exercices: [
     { type: "tpe-verifier", titre: "Vérifier qu'une fonction est solution", etape: "Primitives", nb: 4 },
     { type: "tpe-primitive", titre: "Trouver une primitive", etape: "Primitives", nb: 6 },
+    { type: "tpe-signe", titre: "Signe de $f$ et variations de $F$", etape: "Primitives", nb: 4 },
     { type: "tpe-condition", titre: "Primitive vérifiant une condition", etape: "Primitives", nb: 4 },
-    { type: "tpe-yay", titre: "Résoudre y' = ay", etape: "Équations différentielles", nb: 4 },
-    { type: "tpe-yayb", titre: "Résoudre y' = ay + b", etape: "Équations différentielles", nb: 6 },
-    { type: "tpe-medicament", titre: "Élimination d'un médicament", etape: "Modéliser", nb: 4 },
+    { type: "tpe-yay", titre: "Résoudre $y' = ay$", etape: "Équations différentielles", nb: 5 },
+    { type: "tpe-yayb", titre: "Résoudre $y' = ay + b$", etape: "Équations différentielles", nb: 6 },
+    { type: "tpe-medicament", titre: "Modéliser : médicament, température", etape: "Modéliser", nb: 5 },
     { type: "tpe-euler", titre: "Python : méthode d'Euler", etape: "Raisonner", nb: 3 },
     { type: "tpe-logique", titre: "Vrai ou faux", etape: "Raisonner", nb: 5 }
   ],
@@ -188,24 +208,32 @@ window.CHAPITRES["terminale-primitives-ed"] = {
     { question: "Un plat refroidit dans une pièce à $28\\,°\\text{C}$. Sa température tend vers :", choix: ["$28\\,°\\text{C}$", "$0\\,°\\text{C}$", "sa température initiale", "$-\\infty$"], bonne: 0, explication: "Solution constante de $T' = -k(T - 28)$." },
     { question: "Dans la méthode d'Euler, on approche $y(x + h)$ par :", choix: ["$y(x) + h \\times y'(x)$", "$y(x) \\times h$", "$y'(x) + h$", "$y(x + h)^2$"], bonne: 0, explication: "On suit la tangente." },
     { question: "Pour améliorer la méthode d'Euler, on :", choix: ["diminue le pas $h$", "augmente le pas $h$", "change $y(0)$", "arrondit plus"], bonne: 0, explication: "Plus le pas est petit, meilleure est l'approximation." },
-    { question: "euler(1, 0.1, 10) approche :", choix: ["$e \\approx 2{,}72$", "$1$", "$10$", "$0{,}1$"], bonne: 0, explication: "$1{,}1^{10} \\approx 2{,}59$, proche de $e^1$." },
-    { question: "Une équation différentielle relie :", choix: ["une fonction et sa dérivée", "deux nombres", "deux suites", "deux probabilités"], bonne: 0, explication: "L'inconnue est une fonction." }
+    { question: "Avec $a = 1$, $h = 0{,}1$ et $n = 10$, euler(a, h, n) renvoie $1{,}1^{10} \\approx 2{,}59$. Cette valeur approche :", choix: ["$e \\approx 2{,}72$", "$1$", "$10$", "$0{,}1$"], bonne: 0, explication: "Dix pas de $0{,}1$ mènent en $x = 1$ : on approche $y(1) = e^1$ pour $y' = y$, $y(0) = 1$." },
+    { question: "Une équation différentielle relie :", choix: ["une fonction et sa dérivée", "deux nombres", "deux suites", "deux probabilités"], bonne: 0, explication: "L'inconnue est une fonction." },
+    { question: "Les petits segments donnent, en chaque point $(x\\,;y)$, la pente $y'$ imposée par une équation différentielle. Laquelle ?", figure: "tpe-qcm-champ", choix: ["$y' = 2y$", "$y' = 2x$", "$y' = -2y$", "$y' = 2$"], bonne: 0, explication: "Les segments sont horizontaux sur l'axe des abscisses ($y = 0$), montent au-dessus et descendent en dessous, de plus en plus raides quand on s'éloigne de l'axe : la pente vaut $2y$." },
+    { question: "La figure montre quatre solutions d'une équation $y' = ay + b$. Que peut-on dire ?", figure: "tpe-qcm-famille", choix: ["$a < 0$ et $-\\dfrac{b}{a} = 3$", "$a > 0$ et $-\\dfrac{b}{a} = 3$", "$a < 0$ et $b = 3$", "$a > 0$ et $b = 3$"], bonne: 0, explication: "Les courbes se rapprochent de la solution constante $y = -\\dfrac{b}{a}$, ici $3$ : c'est le cas $a < 0$, où $e^{ax} \\to 0$." },
+    { question: "La courbe de $f$ est tracée sur $[-2\\,;3]$. Toute primitive $F$ de $f$ est :", figure: "tpe-qcm-signe", choix: ["croissante sur $[-2\\,;1]$, puis décroissante sur $[1\\,;3]$", "décroissante sur $[-2\\,;1]$, puis croissante sur $[1\\,;3]$", "décroissante sur $[-2\\,;3]$", "positive sur $[-2\\,;1]$, puis négative sur $[1\\,;3]$"], bonne: 0, explication: "$F' = f$ : $F$ croît là où $f$ est positive (avant $1$) et décroît là où $f$ est négative (après $1$)." },
+    { question: "La figure compare la méthode d'Euler (pas $h = 0{,}25$) et la courbe de $y = e^x$, solution de $y' = y$ avec $y(0) = 1$. En $x = 1$, la ligne brisée donne environ :", figure: "tpe-euler", choix: ["$2{,}44$", "$2{,}72$", "$1{,}25$", "$4$"], bonne: 0, explication: "Chaque pas multiplie $y$ par $1 + h = 1{,}25$ : $1{,}25^4 \\approx 2{,}44$, un peu moins que $e \\approx 2{,}72$." },
+    { question: "La figure montre la quantité $Q(t)$ (en mg) d'un médicament dans le sang, $t$ en heures. Sa demi-vie est d'environ :", figure: "tpe-qcm-medicament", choix: ["$3{,}5$ h", "$7$ h", "$1{,}5$ h", "$5$ h"], bonne: 0, explication: "La quantité passe de $500$ à $250$ mg (la moitié) en $3{,}5$ h environ : c'est $\\dfrac{\\ln 2}{0{,}2} \\approx 3{,}47$ h. En $7$ h, elle est divisée par $4$." }
   ],
 
   /* ---------- 4. FICHE MÉTHODE ---------- */
   methode: [
     {
       titre: "Vérifier qu'une fonction est solution",
+      figure: "tpe-meth-verifier",
       etapes: ["Calculer $f'(x)$.", "Calculer l'autre membre en remplaçant $y$ par $f(x)$.", "Comparer : solution si l'égalité est vraie pour tout $x$."],
-      exemple: "$f(x) = 2e^{-x} + 3$ et $y' = -y + 3$ : $f'(x) = -2e^{-x}$ et $-f(x) + 3 = -2e^{-x}$. C'est une solution."
+      exemple: "$f(x) = 2e^{-x} + 3$ et $y' = -y + 3$ : $f'(x) = -2e^{-x}$ et $-f(x) + 3 = -2e^{-x}$. C'est une solution : sa courbe suit le champ de pentes."
     },
     {
       titre: "Trouver une primitive",
+      figure: "tpe-meth-primitive",
       etapes: ["Reconnaître une forme du tableau (puissance, $\\dfrac{1}{x}$, $e^{kx}$) ou composée ($2uu'$, $u'e^u$, $\\dfrac{u'}{u}$).", "Ajuster la constante multiplicative si besoin.", "Vérifier en dérivant ; ajouter $C$ si on veut toutes les primitives."],
-      exemple: "$xe^{x^2}$ : primitive $\\dfrac{1}{2}e^{x^2}$."
+      exemple: "$xe^{x^2}$ : primitive $\\dfrac{1}{2}e^{x^2}$. Contrôle sur la figure : $F$ décroît où $f < 0$ et croît où $f > 0$."
     },
     {
-      titre: "Résoudre y' = ay + b avec une condition",
+      titre: "Résoudre $y' = ay + b$ avec une condition",
+      figure: "tpe-meth-yayb",
       etapes: ["Solution constante : $-\\dfrac{b}{a}$.", "Solutions : $y(x) = Ce^{ax} - \\dfrac{b}{a}$.", "Condition initiale : calculer $C$, puis conclure (limite si demandé)."],
       exemple: "$y' = -0{,}5y + 2$, $y(0) = 10$ : $y(x) = 6e^{-0{,}5x} + 4$, qui tend vers $4$."
     }

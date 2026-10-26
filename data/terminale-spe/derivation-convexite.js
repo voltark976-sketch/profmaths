@@ -6,7 +6,8 @@
   convexité des fonctions dérivables, point d'inflexion, inégalités).
   Mêmes règles d'écriture que data/seconde/fonctions.js.
   Pas de vidéo de la chaîne sur ce thème : vidéos d'Yvan Monka (cours 20DerivT et 20ConvexiteT).
-  Figures : "dvx-convexe", "dvx-inflexion". Générateurs : dvx- (et d2-produit, tcv-graphique).
+  Figures : "dvx-convexe", "dvx-inflexion", "dvx-cours-…" (tangente, schéma de composée, cloche, pentes),
+  "lfo-cours-exp" (eˣ ≥ x + 1), "dvx-meth-…", "dvx-qcm-…". Générateurs : dvx- (et d2-produit, tcv-graphique).
 */
 window.CHAPITRES = window.CHAPITRES || {};
 window.CHAPITRES["terminale-spe-derivation-convexite"] = {
@@ -17,7 +18,10 @@ window.CHAPITRES["terminale-spe-derivation-convexite"] = {
 
   playlist: "",
   drive: "",
-  pdfs: [],
+  pdfs: [
+    { titre: "Cours d'Yvan Monka : dérivation (PDF)", url: "https://www.maths-et-tiques.fr/telech/20DerivT.pdf" },
+    { titre: "Cours d'Yvan Monka : convexité (PDF)", url: "https://www.maths-et-tiques.fr/telech/20ConvexiteT.pdf" }
+  ],
   liens: [
     { titre: "Le cours complet sur la convexité en vidéo (Yvan Monka)", url: "https://youtu.be/gge4xdn6cFA", type: "video" },
     { titre: "Démonstration : si f'' ≥ 0, alors f est convexe (Yvan Monka)", url: "https://youtu.be/-OG8l5Batuo", type: "video" }
@@ -27,6 +31,7 @@ window.CHAPITRES["terminale-spe-derivation-convexite"] = {
   cours: [
     {
       titre: "Rappels : dérivées usuelles et opérations",
+      figure: "dvx-cours-tangente",
       video: { titre: "Vidéo d'Yvan Monka : le cours de dérivation (rappels de Première)", youtube: "https://youtu.be/XAgdHblbajE" },
       texte:
         "**Dérivées usuelles** : $(x^n)' = nx^{n-1}$ ; $\\left(\\dfrac{1}{x}\\right)' = -\\dfrac{1}{x^2}$ ; $(\\sqrt{x})' = \\dfrac{1}{2\\sqrt{x}}$ (pour $x > 0$) ; $(e^x)' = e^x$.\n\n" +
@@ -38,11 +43,12 @@ window.CHAPITRES["terminale-spe-derivation-convexite"] = {
         "**Utilité** : le signe de $f'$ donne les variations de $f$, et $f'(a)$ est le coefficient directeur de la tangente en $a$ : $y = f'(a)(x - a) + f(a)$.",
       exemple: {
         enonce: "Dérive $f(x) = (2x - 1)e^x$.",
-        solution: "Produit avec $u(x) = 2x - 1$ et $v(x) = e^x$ : $u'(x) = 2$, $v'(x) = e^x$.\n\n$f'(x) = 2e^x + (2x - 1)e^x = (2x + 1)e^x$."
+        solution: "Produit avec $u(x) = 2x - 1$ et $v(x) = e^x$ : $u'(x) = 2$, $v'(x) = e^x$.\n\n$f'(x) = 2e^x + (2x - 1)e^x = (2x + 1)e^x$. Par exemple $f'(0) = 1$ et $f(0) = -1$ : la tangente en $0$ a pour équation $y = x - 1$ (figure)."
       }
     },
     {
       titre: "Composée de deux fonctions",
+      figure: "dvx-cours-composee",
       video: { titre: "Vidéo d'Yvan Monka : identifier la composée de deux fonctions", youtube: "https://youtu.be/08HgDgD6XL8" },
       texte:
         "La **composée** de $u$ suivie de $v$ est la fonction $v \\circ u$ (« $v$ rond $u$ ») définie par $(v \\circ u)(x) = v(u(x))$ : on applique **d'abord** $u$, **puis** $v$ au résultat.\n\n" +
@@ -56,6 +62,7 @@ window.CHAPITRES["terminale-spe-derivation-convexite"] = {
     },
     {
       titre: "Dériver une fonction composée",
+      figure: "dvx-cours-gauss",
       video: { titre: "Vidéo d'Yvan Monka : dériver une fonction composée (cas général)", youtube: "https://youtu.be/lwcFgnbs0Ew" },
       texte:
         "Si $u$ est dérivable sur $I$ et $v$ dérivable sur un intervalle contenant $u(I)$, alors $v \\circ u$ est dérivable sur $I$ et :\n\n" +
@@ -68,7 +75,7 @@ window.CHAPITRES["terminale-spe-derivation-convexite"] = {
         "L'erreur la plus fréquente : oublier de multiplier par $u'$.",
       exemple: {
         enonce: "Dérive $f(x) = (x^2 + 1)^3$ et $g(x) = e^{-x^2}$, puis étudie les variations de $g$.",
-        solution: "$f'(x) = 3 \\times 2x \\times (x^2 + 1)^2 = 6x(x^2 + 1)^2$.\n\n$g'(x) = -2x \\, e^{-x^2}$. Comme $e^{-x^2} > 0$, $g'$ a le signe de $-2x$ : $g$ est croissante sur $]-\\infty\\,;0]$ et décroissante sur $[0\\,;+\\infty[$, avec un maximum $g(0) = 1$."
+        solution: "$f'(x) = 3 \\times 2x \\times (x^2 + 1)^2 = 6x(x^2 + 1)^2$.\n\n$g'(x) = -2x \\, e^{-x^2}$. Comme $e^{-x^2} > 0$, $g'$ a le signe de $-2x$ : $g$ est croissante sur $]-\\infty\\,;0]$ et décroissante sur $[0\\,;+\\infty[$, avec un maximum $g(0) = 1$ (figure)."
       }
     },
     {
@@ -100,11 +107,12 @@ window.CHAPITRES["terminale-spe-derivation-convexite"] = {
     },
     {
       titre: "Convexité des fonctions dérivables",
+      figure: "dvx-cours-pentes",
       video: { titre: "Vidéo d'Yvan Monka : étudier la convexité d'une fonction", youtube: "https://youtu.be/8H2aYKN8NGE" },
       texte:
         "Soit $f$ deux fois dérivable sur un intervalle $I$. Les trois affirmations suivantes sont équivalentes :\n\n" +
         "- $f$ est convexe sur $I$ ;\n" +
-        "- $f'$ est **croissante** sur $I$ (les pentes des tangentes augmentent) ;\n" +
+        "- $f'$ est **croissante** sur $I$ (les pentes des tangentes augmentent : $-2$, puis $0$, puis $2$ sur la figure) ;\n" +
         "- $f'' \\geqslant 0$ sur $I$.\n\n" +
         "De même, $f$ est concave sur $I$ si et seulement si $f'$ est décroissante sur $I$, si et seulement si $f'' \\leqslant 0$ sur $I$.\n\n" +
         "**Méthode** : on calcule $f''$, on étudie son signe, et on conclut intervalle par intervalle. Attention à ne pas confondre : le signe de $f'$ donne les **variations** de $f$, le signe de $f''$ donne sa **convexité**.",
@@ -130,6 +138,7 @@ window.CHAPITRES["terminale-spe-derivation-convexite"] = {
     },
     {
       titre: "Inégalités de convexité",
+      figure: "lfo-cours-exp",
       video: { titre: "Vidéo d'Yvan Monka : démontrer une inégalité à l'aide de la convexité", youtube: "https://youtu.be/AaxQHlsxZkg" },
       texte:
         "La position d'une courbe par rapport à ses tangentes donne des **inégalités** valables sur tout un intervalle.\n\n" +
@@ -171,7 +180,7 @@ window.CHAPITRES["terminale-spe-derivation-convexite"] = {
     { type: "dvx-variations", titre: "Variations d'une fonction composée", etape: "Dériver", nb: 4 },
     { type: "dvx-seconde", titre: "Calculer une dérivée seconde", etape: "Convexité", nb: 5 },
     { type: "tcv-graphique", titre: "Lire la convexité sur une courbe", etape: "Convexité", nb: 4 },
-    { type: "dvx-fprime", titre: "Convexité et courbe de $f'$", etape: "Convexité", nb: 4 },
+    { type: "dvx-fprime", titre: "Convexité : courbes de $f'$ et de $f''$", etape: "Convexité", nb: 4 },
     { type: "dvx-tangente", titre: "Tangentes, cordes, inégalités", etape: "Convexité", nb: 5 },
     { type: "dvx-python", titre: "Dérivées approchées en Python", etape: "Algorithmique", nb: 4 }
   ],
@@ -202,7 +211,10 @@ window.CHAPITRES["terminale-spe-derivation-convexite"] = {
     { question: "Sur $[0\\,;3]$, la fonction carré est sous sa corde $y = 3x$. Cela traduit le fait qu'elle est :", choix: ["convexe", "concave", "croissante", "positive"], bonne: 0, explication: "Une fonction convexe a sa courbe en dessous de ses cordes." },
     { question: "La fonction $f(x) = x^3 - 3x^2$ est convexe sur :", choix: ["$[1\\,;+\\infty[$", "$]-\\infty\\,;1]$", "$[0\\,;2]$", "$\\mathbb{R}$"], bonne: 0, explication: "$f''(x) = 6x - 6 \\geqslant 0 \\iff x \\geqslant 1$." },
     { question: "Pour $f(x) = x^2$, que renvoie à peu près $\\texttt{(f(3 + 0.001) - f(3)) / 0.001}$ ?", choix: ["$6{,}001$", "$9$", "$3$", "$0{,}001$"], bonne: 0, explication: "C'est un taux de variation proche de $f'(3) = 6$ ; exactement $\\dfrac{9{,}006001 - 9}{0{,}001} = 6{,}001$." },
-    { question: "Une voiture a pour position $x(t) = t^3 - 6t^2 + 12t$ (en mètres, $t$ en secondes). Son accélération à $t = 3$ s vaut :", choix: ["$6$ m/s²", "$3$ m/s²", "$9$ m/s²", "$0$ m/s²"], bonne: 0, explication: "L'accélération est $x''(t) = 6t - 12$, donc $x''(3) = 6$." },
+    { question: "Sur la route de Sada, un taxi-brousse a pour position $x(t) = t^3 - 6t^2 + 12t$ (en mètres, $t$ en secondes). Son accélération à $t = 3$ s vaut :", choix: ["$6\\ \\text{m/s}^2$", "$3\\ \\text{m/s}^2$", "$9\\ \\text{m/s}^2$", "$0\\ \\text{m/s}^2$"], bonne: 0, explication: "L'accélération est $x''(t) = 6t - 12$, donc $x''(3) = 6$." },
+    { question: "On a tracé la courbe de la **dérivée** $f'$ d'une fonction $f$. Sur quel intervalle $f$ est-elle convexe ?", figure: "dvx-qcm-fprime", choix: ["$[2\\,;5]$", "$[-1\\,;2]$", "$[-1\\,;5]$", "$[0\\,;4]$"], bonne: 0, explication: "$f$ est convexe là où $f'$ est **croissante** : la courbe de $f'$ descend jusqu'en $2$, puis monte. Le signe de $f'$ (ici négatif entre environ $0{,}6$ et $3{,}4$) donne les variations de $f$, pas sa convexité." },
+    { question: "On a tracé la courbe de la **dérivée seconde** $f''$ d'une fonction $f$. La courbe de $f$ a un point d'inflexion d'abscisse :", figure: "dvx-qcm-fseconde", choix: ["$-1$", "$0$", "$0{,}8$", "il n'y en a pas"], bonne: 0, explication: "$f''$ s'annule en $x = -1$ en changeant de signe (négative avant, positive après) : $f$ passe de concave à convexe, il y a un point d'inflexion d'abscisse $-1$." },
+    { question: "Voici la courbe d'une fonction $f$. Sur quel intervalle semble-t-elle concave ?", figure: "dvx-qcm-courbe", choix: ["$[1\\,;3{,}5]$", "$[-1{,}5\\,;1]$", "$[0\\,;2]$", "sur tout l'intervalle tracé"], bonne: 0, explication: "À gauche de $1$, la courbe a une forme de « U » (convexe) ; à droite, une forme de « cloche » (concave). Le point d'abscisse $1$ est un point d'inflexion : ici $f(x) = -0{,}3x^3 + 0{,}9x^2 + 0{,}5$ et $f''(x) = -1{,}8x + 1{,}8$." },
     { question: "Si $f(x) = (x + 1)e^x$, alors $f''(x)$ vaut :", choix: ["$(x + 3)e^x$", "$(x + 2)e^x$", "$e^x$", "$(x + 1)e^x$"], bonne: 0, explication: "$f'(x) = e^x + (x + 1)e^x = (x + 2)e^x$, puis $f''(x) = e^x + (x + 2)e^x = (x + 3)e^x$." }
   ],
 
@@ -210,6 +222,7 @@ window.CHAPITRES["terminale-spe-derivation-convexite"] = {
   methode: [
     {
       titre: "Dériver une fonction composée",
+      figure: "dvx-meth-chaine",
       etapes: [
         "Repérer la fonction « intérieure » $u$ (ce qu'on calcule en premier) et la fonction « extérieure » $v$.",
         "Calculer $u'(x)$.",
@@ -220,6 +233,7 @@ window.CHAPITRES["terminale-spe-derivation-convexite"] = {
     },
     {
       titre: "Étudier la convexité",
+      figure: "dvx-meth-xex",
       etapes: [
         "Calculer $f'$, puis $f''$ (en simplifiant $f'$ d'abord).",
         "Étudier le signe de $f''$ : factoriser, utiliser $e^u > 0$, faire un tableau de signes.",
@@ -230,6 +244,7 @@ window.CHAPITRES["terminale-spe-derivation-convexite"] = {
     },
     {
       titre: "Lire la convexité sur un graphique",
+      figure: "dvx-meth-fprime",
       etapes: [
         "Courbe de $f$ : forme en « U » = convexe ; forme en « cloche » = concave ; changement de forme = point d'inflexion.",
         "Courbe de $f'$ : $f$ est convexe là où $f'$ **monte**, concave là où elle descend.",
@@ -240,6 +255,7 @@ window.CHAPITRES["terminale-spe-derivation-convexite"] = {
     },
     {
       titre: "Démontrer une inégalité par convexité",
+      figure: "dvx-meth-ex",
       etapes: [
         "Choisir la fonction $f$ dont la courbe intervient (souvent le membre « compliqué »).",
         "Montrer que $f$ est convexe (ou concave) avec le signe de $f''$.",

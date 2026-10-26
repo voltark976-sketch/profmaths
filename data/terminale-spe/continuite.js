@@ -6,7 +6,8 @@
   application aux suites u(n+1) = f(u(n)).
   Mêmes règles d'écriture que data/seconde/fonctions.js.
   Pas de vidéo de la chaîne sur ce thème : vidéos d'Yvan Monka (cours 20Cont).
-  Figures : "cnt-saut", "cnt-tvi". Générateurs : cnt- (et tlf-tvi, lsu-point-fixe).
+  Figures : "cnt-saut", "cnt-tvi", "cnt-cours-…" (partie entière, tableau de variations, balayage, escalier,
+  dichotomie), "cnt-meth-…", "cnt-qcm-…". Générateurs : cnt- (et tlf-tvi, lsu-point-fixe).
 */
 window.CHAPITRES = window.CHAPITRES || {};
 window.CHAPITRES["terminale-spe-continuite"] = {
@@ -17,7 +18,9 @@ window.CHAPITRES["terminale-spe-continuite"] = {
 
   playlist: "",
   drive: "",
-  pdfs: [],
+  pdfs: [
+    { titre: "Cours d'Yvan Monka : continuité des fonctions (PDF)", url: "https://www.maths-et-tiques.fr/telech/20Cont.pdf" }
+  ],
   liens: [
     { titre: "Le cours complet sur la continuité en vidéo (Yvan Monka)", url: "https://youtu.be/9SSEUoyHh2s", type: "video" }
   ],
@@ -42,6 +45,7 @@ window.CHAPITRES["terminale-spe-continuite"] = {
     },
     {
       titre: "Fonctions continues usuelles",
+      figure: "cnt-cours-partie-entiere",
       video: { titre: "Vidéo d'Yvan Monka : étudier la continuité d'une fonction", youtube: "https://youtu.be/03WMLyc7rLE" },
       texte:
         "- Les fonctions polynômes, la fonction exponentielle, les fonctions sinus et cosinus sont continues sur $\\mathbb{R}$.\n" +
@@ -49,7 +53,7 @@ window.CHAPITRES["terminale-spe-continuite"] = {
         "- Les sommes, produits, quotients (là où le dénominateur ne s'annule pas) et composées de fonctions continues sont continues.\n\n" +
         "**Propriété** : une fonction **dérivable** en $a$ est **continue** en $a$.\n\n" +
         "La réciproque est fausse : $x \\mapsto |x|$ est continue en $0$ mais pas dérivable (la courbe a un « coin ») ; $x \\mapsto \\sqrt{x}$ est continue en $0$ mais sa tangente y est verticale.\n\n" +
-        "Exemple de fonction non continue : la **partie entière**, qui saute d'une unité à chaque entier.",
+        "Exemple de fonction non continue : la **partie entière** (figure), qui saute d'une unité à chaque entier.",
       exemple: {
         enonce: "La fonction $f(x) = \\dfrac{e^x}{x^2 + 1}$ est-elle continue sur $\\mathbb{R}$ ?",
         solution: "$e^x$ et $x^2 + 1$ sont continues sur $\\mathbb{R}$, et $x^2 + 1 \\geqslant 1$ ne s'annule jamais.\n\nLe quotient est donc continu sur $\\mathbb{R}$ (il est même dérivable)."
@@ -72,6 +76,7 @@ window.CHAPITRES["terminale-spe-continuite"] = {
     },
     {
       titre: "Cas d'une fonction strictement monotone",
+      figure: "cnt-cours-tabvar",
       video: { titre: "Vidéo d'Yvan Monka : appliquer le théorème des valeurs intermédiaires (cas strictement monotone)", youtube: "https://youtu.be/UmGQf7gkvLg" },
       texte:
         "**Corollaire du TVI** (ou théorème de la bijection) : si $f$ est **continue** et **strictement monotone** sur $[a\\,;b]$, alors pour tout $k$ compris entre $f(a)$ et $f(b)$, l'équation $f(x) = k$ a une **unique** solution dans $[a\\,;b]$.\n\n" +
@@ -84,6 +89,7 @@ window.CHAPITRES["terminale-spe-continuite"] = {
     },
     {
       titre: "Encadrer une solution",
+      figure: "cnt-cours-balayage",
       video: { titre: "Vidéo d'Yvan Monka : déterminer un encadrement de la solution d'une équation (calculatrice TI)", youtube: "https://youtu.be/MEkh0fxPakk" },
       texte:
         "Le corollaire du TVI garantit une solution unique $\\alpha$, mais pas sa valeur. On l'encadre par **balayage** :\n\n" +
@@ -97,6 +103,7 @@ window.CHAPITRES["terminale-spe-continuite"] = {
     },
     {
       titre: "Continuité et suites",
+      figure: "cnt-cours-escalier",
       video: { titre: "Vidéo d'Yvan Monka : étudier graphiquement le comportement d'une suite (escalier)", youtube: "https://youtu.be/LDRx7aS9JsA" },
       texte:
         "**Propriété** : si $(u_n)$ converge vers $\\ell$ et si $f$ est **continue** en $\\ell$, alors $(f(u_n))$ converge vers $f(\\ell)$.\n\n" +
@@ -109,6 +116,7 @@ window.CHAPITRES["terminale-spe-continuite"] = {
     },
     {
       titre: "Algorithmique : la dichotomie",
+      figure: "cnt-cours-dicho",
       video: { titre: "Vidéo d'Yvan Monka : comprendre l'algorithme de dichotomie", youtube: "https://youtu.be/V7mlMCSrq1U" },
       texte:
         "La **dichotomie** encadre une solution en coupant l'intervalle en deux à chaque étape :\n\n" +
@@ -165,6 +173,9 @@ window.CHAPITRES["terminale-spe-continuite"] = {
     { question: "L'équation $e^x = 3 - x$ a une unique solution, car $g(x) = e^x + x - 3$ est :", choix: ["continue et strictement croissante, avec des limites $-\\infty$ et $+\\infty$", "positive", "décroissante", "dérivable seulement sur $[0\\,;1]$"], bonne: 0, explication: "$g'(x) = e^x + 1 > 0$ ; $g \\to -\\infty$ en $-\\infty$ et $+\\infty$ en $+\\infty$ ; corollaire du TVI avec $k = 0$." },
     { question: "$f$ est continue sur $[-1\\,;3]$ avec $f(-1) = 4$ et $f(3) = 4$. Alors :", choix: ["on ne peut pas affirmer que $f(x) = 0$ a une solution", "$f(x) = 0$ a au moins une solution", "$f$ est constante", "$f(x) = 4$ n'a que deux solutions"], bonne: 0, explication: "$0$ n'est pas entre $f(-1)$ et $f(3)$ : le TVI ne dit rien. La courbe peut rester au-dessus de l'axe ou descendre en dessous." },
     { question: "Le TVI permet d'affirmer qu'une solution existe. Il permet aussi :", choix: ["de l'encadrer, en l'appliquant sur des intervalles de plus en plus petits", "de calculer sa valeur exacte", "de savoir qu'elle est entière", "de la trouver sans calcul"], bonne: 0, explication: "C'est le principe du balayage et de la dichotomie." },
+    { question: "Voici la courbe d'une fonction $f$ formée de deux morceaux. $f$ est-elle continue en $x = -1$ ?", figure: "cnt-qcm-saut", choix: ["Non : la courbe fait un saut en $x = -1$", "Oui : chaque morceau est continu", "Oui : $f(-1)$ existe", "On ne peut pas le savoir sur un graphique"], bonne: 0, explication: "Juste à gauche de $-1$, $f(x)$ se rapproche de $1{,}5$, mais $f(-1) = -0{,}5$ : il faut lever le crayon. Que $f(-1)$ existe ne suffit pas." },
+    { question: "La fonction $f$ est continue sur $[-3\\,;3]$ (figure). Combien de solutions l'équation $f(x) = 0{,}5$ a-t-elle sur cet intervalle ?", figure: "cnt-qcm-trois", choix: ["$3$", "$1$", "$2$", "$0$"], bonne: 0, explication: "La courbe coupe trois fois la droite $y = 0{,}5$ : une fois quand elle monte, une fois quand elle descend, une fois quand elle remonte. Le TVI s'applique sur chacun de ces intervalles." },
+    { question: "Voici le tableau de variations d'une fonction $f$ continue sur $[-4\\,;5]$. Combien de solutions l'équation $f(x) = 2$ a-t-elle ?", figure: "cnt-qcm-tabvar", choix: ["$3$", "$2$", "$1$", "$0$"], bonne: 0, explication: "Sur $[-4\\,;-1]$, $2$ est entre $-3$ et $4$ ; sur $[-1\\,;2]$, entre $4$ et $1$ ; sur $[2\\,;5]$, entre $1$ et $6$. Sur chaque intervalle, $f$ est continue et strictement monotone : une solution chacun, soit $3$." },
     { question: "La fonction $f(x) = \\sqrt{x}$ en $0$ est :", choix: ["continue mais pas dérivable", "dérivable mais pas continue", "ni continue ni dérivable", "continue et dérivable"], bonne: 0, explication: "$\\lim\\limits_{x \\to 0} \\sqrt{x} = 0 = f(0)$, mais le taux $\\dfrac{\\sqrt{h}}{h} = \\dfrac{1}{\\sqrt{h}}$ tend vers $+\\infty$ : tangente verticale." }
   ],
 
@@ -172,6 +183,7 @@ window.CHAPITRES["terminale-spe-continuite"] = {
   methode: [
     {
       titre: "Montrer qu'une équation a une unique solution",
+      figure: "cnt-meth-unique",
       etapes: [
         "Écrire l'équation sous la forme $f(x) = k$ (souvent $k = 0$).",
         "Justifier que $f$ est continue (fonction usuelle, ou dérivable).",
@@ -183,6 +195,7 @@ window.CHAPITRES["terminale-spe-continuite"] = {
     },
     {
       titre: "Compter les solutions avec un tableau de variations",
+      figure: "cnt-meth-tabvar",
       etapes: [
         "Découper l'ensemble en intervalles où $f$ est strictement monotone.",
         "Sur chaque intervalle, regarder si $k$ est entre les deux valeurs extrêmes.",
@@ -193,6 +206,7 @@ window.CHAPITRES["terminale-spe-continuite"] = {
     },
     {
       titre: "Rendre continue une fonction définie par morceaux",
+      figure: "cnt-meth-raccord",
       etapes: [
         "Vérifier que chaque morceau est continu sur son intervalle.",
         "Au point de raccord $a$, calculer la limite à gauche et la limite à droite.",
@@ -203,6 +217,7 @@ window.CHAPITRES["terminale-spe-continuite"] = {
     },
     {
       titre: "Encadrer une solution",
+      figure: "cnt-cours-balayage",
       etapes: [
         "Trouver deux entiers consécutifs où $f$ change de signe.",
         "Balayer avec un pas de $0{,}1$, puis $0{,}01$ (tableau de valeurs).",

@@ -4,7 +4,7 @@
   Chapitre 5 de la progression spiralée 2026-2027 (programme de maths complémentaires de 2019).
   Mêmes règles d'écriture que data/seconde/fonctions.js.
   Vidéos d'Yvan Monka (probabilités conditionnelles, Première/Terminale).
-  Figures : "tcb-dengue", "tcb-vpp". Générateurs : tcb- (et pi-totales, pi-inverser de Première).
+  Figures : "tcb-dengue", "tcb-vpp", "tcb-cours-…", "tcb-qcm-…", "tcb-meth-arbre". Générateurs : tcb- (et pi-totales de Première).
 */
 window.CHAPITRES = window.CHAPITRES || {};
 window.CHAPITRES["terminale-inference-bayesienne"] = {
@@ -15,7 +15,9 @@ window.CHAPITRES["terminale-inference-bayesienne"] = {
 
   playlist: "",
   drive: "",
-  pdfs: [],
+  pdfs: [
+    { titre: "Cours d'Yvan Monka : probabilités conditionnelles (cours de Première) (PDF)", url: "https://www.maths-et-tiques.fr/telech/19CondPM.pdf" }
+  ],
   liens: [
     { titre: "Le cours sur les probabilités conditionnelles en vidéo (Yvan Monka)", url: "https://youtu.be/5oBnmZVrOXE", type: "video" }
   ],
@@ -57,7 +59,8 @@ window.CHAPITRES["terminale-inference-bayesienne"] = {
         "- La probabilité **a priori** $P(A)$ est ce que l'on sait **avant** l'observation (ici, la prévalence : $5\\,\\%$ de malades).\n" +
         "- La probabilité **a posteriori** $P_B(A)$ est la probabilité de $A$ **après** avoir appris que $B$ est réalisé.\n\n" +
         "L'**inférence bayésienne** consiste à mettre à jour une probabilité grâce à une information : avec un test positif, la probabilité d'être malade passe de $0{,}05$ à environ $0{,}49$.\n\n" +
-        "On peut recommencer : un deuxième test positif (indépendant) part de la nouvelle probabilité $0{,}49$ comme probabilité a priori.",
+        "On peut recommencer : un deuxième test positif (indépendant) part de la nouvelle probabilité $0{,}49$ comme probabilité a priori. La figure montre ces mises à jour successives.",
+      figure: "tcb-cours-maj",
       exemple: {
         enonce: "Un deuxième test indépendant est positif. Avec l'a priori $0{,}49$, que devient la probabilité d'être malade ?",
         solution: "$P = \\dfrac{0{,}49 \\times 0{,}9}{0{,}49 \\times 0{,}9 + 0{,}51 \\times 0{,}05} = \\dfrac{0{,}441}{0{,}4665} \\approx 0{,}95$. Deux tests positifs rendent le diagnostic presque sûr."
@@ -71,7 +74,10 @@ window.CHAPITRES["terminale-inference-bayesienne"] = {
         "- **spécificité** $= P_{\\overline{M}}(\\overline{T})$ : parmi les personnes saines, la part de tests négatifs ;\n" +
         "- **valeur prédictive positive** (VPP) $= P_T(M)$ : parmi les tests positifs, la part de vrais malades ;\n" +
         "- **valeur prédictive négative** (VPN) $= P_{\\overline{T}}(\\overline{M})$ : parmi les tests négatifs, la part de personnes vraiment saines.\n\n" +
-        "Le laboratoire mesure la sensibilité et la spécificité ; le patient s'intéresse aux valeurs prédictives, qu'on obtient avec la formule de Bayes.",
+        "Le laboratoire mesure la sensibilité et la spécificité ; le patient s'intéresse aux valeurs prédictives, qu'on obtient avec la formule de Bayes.\n\n" +
+        "**Avec des effectifs**, c'est plus parlant : sur $2\\,000$ personnes (figure), $100$ sont malades et $90$ d'entre elles ont un test positif ; parmi les $1\\,900$ personnes saines, $95$ ont aussi un test positif. Sur les $185$ tests positifs, seuls $90$ viennent de malades : VPP $= \\dfrac{90}{185} \\approx 0{,}49$.",
+      figure: "tcb-cours-effectifs",
+      video: { titre: "Vidéo d'Yvan Monka : calculer une probabilité conditionnelle avec un tableau", youtube: "https://youtu.be/JEL4hxtnw0Q" },
       exemple: {
         enonce: "Pour le test de la dengue (prévalence $0{,}05$, sensibilité $0{,}9$, spécificité $0{,}95$), calcule la VPN.",
         solution: "$P(\\overline{T}) = 1 - 0{,}0925 = 0{,}9075$ et $P(\\overline{M} \\cap \\overline{T}) = 0{,}95 \\times 0{,}95 = 0{,}9025$.\n\nVPN $= \\dfrac{0{,}9025}{0{,}9075} \\approx 0{,}994$ : un test négatif est très rassurant."
@@ -96,6 +102,7 @@ window.CHAPITRES["terminale-inference-bayesienne"] = {
         "« Si une personne est malade, son test est (presque toujours) positif » et « si le test est positif, la personne est (presque toujours) malade » sont une implication et sa **réciproque** : l'une peut être vraie sans l'autre.\n\n" +
         "En probabilités, c'est la différence entre $P_M(T)$ (sensibilité, $0{,}9$) et $P_T(M)$ (VPP, environ $0{,}49$).\n\n" +
         "Même raisonnement au tribunal ou en météo : « s'il pleut, le match est souvent annulé » ne veut pas dire « si le match est annulé, il a sûrement plu ».",
+      figure: "tcb-cours-logique",
       exemple: {
         enonce: "$P(A) = 0{,}2$, $P_A(B) = 0{,}6$ et $P_{\\overline{A}}(B) = 0{,}05$. Compare $P_A(B)$ et $P_B(A)$.",
         solution: "$P(B) = 0{,}12 + 0{,}04 = 0{,}16$ et $P_B(A) = \\dfrac{0{,}12}{0{,}16} = 0{,}75$. Ici $P_A(B) = 0{,}6$ et $P_B(A) = 0{,}75$ : deux nombres différents."
@@ -105,10 +112,11 @@ window.CHAPITRES["terminale-inference-bayesienne"] = {
       titre: "Python : une fonction qui renvoie la VPP",
       texte:
         "```python\ndef vpp(p, s, e):\n    vrais = p * s\n    faux = (1 - p) * (1 - e)\n    return vrais / (vrais + faux)\n```\n\n" +
-        "vpp(0.05, 0.9, 0.95) renvoie environ $0{,}486$. Une boucle permet d'afficher la VPP pour plusieurs prévalences et de retrouver la courbe du cours :\n\n" +
+        "$\\texttt{vpp(0.05, 0.9, 0.95)}$ renvoie environ $0{,}486$. Une boucle permet d'afficher la VPP pour plusieurs prévalences et de retrouver la courbe du cours (figure) :\n\n" +
         "```python\nfor p in [0.01, 0.05, 0.1, 0.3, 0.5]:\n    print(p, round(vpp(p, 0.9, 0.95), 3))\n```",
+      figure: "tcb-vpp",
       exemple: {
-        enonce: "Que renvoie vpp(0.5, 0.9, 0.95) ?",
+        enonce: "Que renvoie $\\texttt{vpp(0.5, 0.9, 0.95)}$ ?",
         solution: "vrais $= 0{,}45$, faux $= 0{,}025$ : $\\dfrac{0{,}45}{0{,}475} \\approx 0{,}947$."
       }
     }
@@ -124,12 +132,12 @@ window.CHAPITRES["terminale-inference-bayesienne"] = {
   /* ---------- 2. EXERCICES INTERACTIFS ---------- */
   exercices: [
     { type: "pi-totales", titre: "Probabilités totales", etape: "Arbres", nb: 4 },
-    { type: "pi-inverser", titre: "Inverser le conditionnement", etape: "Arbres", nb: 4 },
+    { type: "tcb-tableau", titre: "Tableau d'effectifs : sensibilité, spécificité, VPP", etape: "Arbres", nb: 4 },
     { type: "tcb-bayes", titre: "A priori, a posteriori : formule de Bayes", etape: "Inférence bayésienne", nb: 4 },
     { type: "tcb-vocabulaire", titre: "Sensibilité, spécificité, valeurs prédictives", etape: "Dépistage", nb: 5 },
     { type: "tcb-depistage", titre: "Dépistage de la dengue ou de la leptospirose", etape: "Dépistage", nb: 5 },
     { type: "tcb-prevalence", titre: "La VPP en fonction de la prévalence", etape: "Dépistage", nb: 4 },
-    { type: "tcb-logique", titre: "P(A sachant B) ou P(B sachant A) ?", etape: "Raisonner", nb: 5 },
+    { type: "tcb-logique", titre: "$P_A(B)$ ou $P_B(A)$ ?", etape: "Raisonner", nb: 5 },
     { type: "tcb-python", titre: "Python : la fonction vpp", etape: "Raisonner", nb: 3 }
   ],
 
@@ -156,7 +164,11 @@ window.CHAPITRES["terminale-inference-bayesienne"] = {
     { question: "« $90\\,\\%$ des malades ont un test positif » traduit :", choix: ["$P_M(T) = 0{,}9$", "$P_T(M) = 0{,}9$", "$P(M \\cap T) = 0{,}9$", "$P(T) = 0{,}9$"], bonne: 0, explication: "La population de référence est celle des malades." },
     { question: "« $90\\,\\%$ des tests positifs viennent de malades » traduit :", choix: ["$P_T(M) = 0{,}9$", "$P_M(T) = 0{,}9$", "$P(M) = 0{,}9$", "$P_{\\overline{T}}(M) = 0{,}9$"], bonne: 0, explication: "La population de référence est celle des tests positifs." },
     { question: "Dans la fonction vpp(p, s, e) du cours, la variable faux vaut :", choix: ["$(1 - p)(1 - e)$", "$p(1 - s)$", "$(1 - p)e$", "$ps$"], bonne: 0, explication: "Personnes saines dont le test est positif." },
-    { question: "Prévalence $0{,}5$, sensibilité $0{,}9$, spécificité $0{,}9$. La VPP vaut :", choix: ["$0{,}9$", "$0{,}5$", "$0{,}81$", "$0{,}45$"], bonne: 0, explication: "$\\dfrac{0{,}45}{0{,}45 + 0{,}05} = 0{,}9$." }
+    { question: "Prévalence $0{,}5$, sensibilité $0{,}9$, spécificité $0{,}9$. La VPP vaut :", choix: ["$0{,}9$", "$0{,}5$", "$0{,}81$", "$0{,}45$"], bonne: 0, explication: "$\\dfrac{0{,}45}{0{,}45 + 0{,}05} = 0{,}9$." },
+    { question: "Avec l'arbre ci-dessous, $P(B) =$", figure: "tcb-qcm-arbre", choix: ["$0{,}31$", "$0{,}9$", "$0{,}24$", "$0{,}8$"], bonne: 0, explication: "Probabilités totales : $P(B) = 0{,}3 \\times 0{,}8 + 0{,}7 \\times 0{,}1 = 0{,}24 + 0{,}07 = 0{,}31$." },
+    { question: "Avec le même arbre, la probabilité a posteriori $P_B(A)$ vaut environ :", figure: "tcb-qcm-arbre", choix: ["$0{,}77$", "$0{,}8$", "$0{,}3$", "$0{,}24$"], bonne: 0, explication: "$P_B(A) = \\dfrac{0{,}3 \\times 0{,}8}{0{,}31} = \\dfrac{0{,}24}{0{,}31} \\approx 0{,}77$ : savoir que $B$ est réalisé fait passer la probabilité de $A$ de $0{,}3$ à environ $0{,}77$." },
+    { question: "D'après l'arbre des effectifs ci-dessous, quelle part des tests positifs vient de personnes malades ?", figure: "tcb-cours-effectifs", choix: ["environ $49\\,\\%$", "$90\\,\\%$", "$5\\,\\%$", "$95\\,\\%$"], bonne: 0, explication: "Il y a $90 + 95 = 185$ tests positifs, dont $90$ de malades : $\\dfrac{90}{185} \\approx 0{,}49$. $90\\,\\%$ est la sensibilité, la part des malades testés positifs." },
+    { question: "D'après la courbe ci-dessous (sensibilité $0{,}9$, spécificité $0{,}95$), la VPP pour une prévalence de $30\\,\\%$ vaut environ :", figure: "tcb-qcm-vpp", choix: ["$0{,}89$", "$0{,}3$", "$0{,}49$", "$0{,}95$"], bonne: 0, explication: "On lit le point d'abscisse $0{,}3$ : la VPP vaut environ $0{,}89$. Pour $5\\,\\%$ seulement, elle tombe à environ $0{,}49$." }
   ],
 
   /* ---------- 4. FICHE MÉTHODE ---------- */
@@ -164,17 +176,20 @@ window.CHAPITRES["terminale-inference-bayesienne"] = {
     {
       titre: "Inverser un conditionnement (Bayes)",
       etapes: ["Construire l'arbre avec $P(A)$, $P_A(B)$, $P_{\\overline{A}}(B)$.", "Calculer $P(B)$ par les probabilités totales.", "Conclure : $P_B(A) = \\dfrac{P(A) \\times P_A(B)}{P(B)}$."],
-      exemple: "$P(A) = 0{,}2$, $P_A(B) = 0{,}6$, $P_{\\overline{A}}(B) = 0{,}05$ : $P(B) = 0{,}16$, $P_B(A) = 0{,}75$."
+      exemple: "$P(A) = 0{,}2$, $P_A(B) = 0{,}6$, $P_{\\overline{A}}(B) = 0{,}05$ : $P(B) = 0{,}16$, $P_B(A) = 0{,}75$. La figure rappelle où se lit chaque probabilité sur l'arbre.",
+      figure: "tcb-meth-arbre"
     },
     {
       titre: "Étudier un test de dépistage",
       etapes: ["Traduire : prévalence $P(M)$, sensibilité $P_M(T)$, spécificité $P_{\\overline{M}}(\\overline{T})$.", "Compléter l'arbre (les branches d'un même nœud font $1$).", "VPP $= P_T(M)$ et VPN $= P_{\\overline{T}}(\\overline{M})$ par la formule de Bayes."],
-      exemple: "Dengue : $0{,}05$ ; $0{,}9$ ; $0{,}95$. VPP $\\approx 0{,}49$, VPN $\\approx 0{,}994$."
+      exemple: "Dengue : $0{,}05$ ; $0{,}9$ ; $0{,}95$ (arbre de la figure). VPP $\\approx 0{,}49$, VPN $\\approx 0{,}994$.",
+      figure: "tcb-dengue"
     },
     {
       titre: "Lire la bonne probabilité dans un énoncé",
       etapes: ["Repérer la population de référence (« parmi les… », « sachant que… »).", "Elle se met en indice : $P_{\\text{référence}}(\\dots)$.", "« Et » sans population de référence : c'est une intersection."],
-      exemple: "« Parmi les tests positifs, $49\\,\\%$ de malades » : $P_T(M) = 0{,}49$."
+      exemple: "« Parmi les tests positifs, $49\\,\\%$ de malades » : $P_T(M) = 0{,}49$. Avec des effectifs (figure) : $\\dfrac{90}{185} \\approx 0{,}49$.",
+      figure: "tcb-cours-effectifs"
     }
   ],
   erreurs: [

@@ -5,7 +5,11 @@
   Intégrale d'une fonction positive comme aire, Chasles, valeur moyenne, méthode des rectangles,
   signe quelconque, x ↦ ∫ₐˣ f(t) dt dérivable de dérivée f, calcul par primitives, aire entre deux courbes,
   Python (rectangles, trapèzes, Monte-Carlo), parcelle au bord du lagon, quadrature de la parabole.
-  Figures : "tin-aire", "tin-rectangles", "tin-moyenne", "tin-entre", "tin-signe". Générateurs : tin-.
+  Figures : "tin-aire", "tin-cours-chasles", "tin-rectangles", "tin-cours-F", "tin-signe", "tin-entre", "tin-moyenne", "tin-cours-parcelle",
+  "tin-cours-trapezes", "tin-meth-calcul", "tin-qcm-…". Générateurs : tin-.
+  Programme (BO spécial n° 8 du 25 juillet 2019) : intégrale d'une fonction positive comme aire, Chasles, valeur moyenne (comprise entre
+  les bornes de f), rectangles, signe quelconque, F' = f, calcul par primitives, aire entre deux courbes, interprétation en contexte ;
+  thème « Calculs d'aires » (quadrature de la parabole, rectangles et trapèzes, Monte-Carlo).
 */
 window.CHAPITRES = window.CHAPITRES || {};
 window.CHAPITRES["terminale-integration"] = {
@@ -16,7 +20,10 @@ window.CHAPITRES["terminale-integration"] = {
 
   playlist: "",
   drive: "",
-  pdfs: [],
+  pdfs: [
+    { titre: "Cours d'Yvan Monka : calcul intégral, chapitre 1 (PDF)", url: "https://www.maths-et-tiques.fr/telech/20IntegTC1.pdf" },
+    { titre: "Cours d'Yvan Monka : calcul intégral, chapitre 2 (PDF)", url: "https://www.maths-et-tiques.fr/telech/20IntegTC2.pdf" }
+  ],
   liens: [],
 
   /* ---------- 1. CAPSULE DE COURS ---------- */
@@ -37,9 +44,10 @@ window.CHAPITRES["terminale-integration"] = {
     },
     {
       titre: "Relation de Chasles et propriétés",
-      video: { titre: "Vidéo d'Yvan Monka : intégrale et calculs d'aire", youtube: "https://youtu.be/jkxNKkmEXZA" },
+      figure: "tin-cours-chasles",
+      video: { titre: "Vidéo d'Yvan Monka : calculer une intégrale à l'aide de la linéarité", youtube: "https://youtu.be/9oZuouz32I4" },
       texte:
-        "- **Chasles** : pour $a \\leqslant c \\leqslant b$, $\\displaystyle\\int_a^b f(x)\\,\\mathrm{d}x = \\int_a^c f(x)\\,\\mathrm{d}x + \\int_c^b f(x)\\,\\mathrm{d}x$ (on découpe le domaine).\n" +
+        "- **Chasles** : pour $a \\leqslant c \\leqslant b$, $\\displaystyle\\int_a^b f(x)\\,\\mathrm{d}x = \\int_a^c f(x)\\,\\mathrm{d}x + \\int_c^b f(x)\\,\\mathrm{d}x$ (on découpe le domaine : $\\mathcal{A} = \\mathcal{A}_1 + \\mathcal{A}_2$ sur la figure).\n" +
         "- $\\displaystyle\\int_a^a f(x)\\,\\mathrm{d}x = 0$.\n" +
         "- **Linéarité** : $\\displaystyle\\int_a^b \\big(f + g\\big) = \\int_a^b f + \\int_a^b g$ et $\\displaystyle\\int_a^b kf = k\\int_a^b f$.\n" +
         "- **Positivité et ordre** : si $f \\leqslant g$ sur $[a\\,;b]$, alors $\\displaystyle\\int_a^b f \\leqslant \\int_a^b g$. On peut ainsi **encadrer** une intégrale.",
@@ -63,9 +71,10 @@ window.CHAPITRES["terminale-integration"] = {
     },
     {
       titre: "Fonction définie par une intégrale",
+      figure: "tin-cours-F",
       video: { titre: "Vidéo d'Yvan Monka : étudier une fonction définie par une intégrale", youtube: "https://youtu.be/6DHXw5TRzN4" },
       texte:
-        "**Théorème** : si $f$ est continue sur $[a\\,;b]$, la fonction $F(x) = \\displaystyle\\int_a^x f(t)\\,\\mathrm{d}t$ est dérivable et $F' = f$. C'est la primitive de $f$ qui s'annule en $a$.\n\n" +
+        "**Théorème** : si $f$ est continue sur $[a\\,;b]$, la fonction $F(x) = \\displaystyle\\int_a^x f(t)\\,\\mathrm{d}t$ (l'aire coloriée de la figure, pour $f$ positive) est dérivable et $F' = f$. C'est la primitive de $f$ qui s'annule en $a$.\n\n" +
         "**Idée de la démonstration** ($f$ positive et croissante) : pour $h > 0$, l'aire $F(x + h) - F(x)$ est comprise entre deux rectangles : $h f(x) \\leqslant F(x + h) - F(x) \\leqslant h f(x + h)$. On divise par $h$ et on fait tendre $h$ vers $0$ : le taux d'accroissement tend vers $f(x)$.\n\n" +
         "Conséquence : toute fonction continue sur un intervalle admet des primitives.",
       exemple: {
@@ -119,7 +128,9 @@ window.CHAPITRES["terminale-integration"] = {
       texte:
         "La **valeur moyenne** de $f$ sur $[a\\,;b]$ ($a < b$) est :\n\n" +
         "$\\mu = \\dfrac{1}{b - a}\\displaystyle\\int_a^b f(x)\\,\\mathrm{d}x$.\n\n" +
-        "Interprétation : le rectangle de largeur $b - a$ et de hauteur $\\mu$ a la même aire que le domaine sous la courbe (figure). C'est la version continue de la moyenne d'une liste de valeurs (température moyenne d'une journée, vitesse moyenne…).",
+        "Interprétation : le rectangle de largeur $b - a$ et de hauteur $\\mu$ a la même aire que le domaine sous la courbe (figure). C'est la version continue de la moyenne d'une liste de valeurs (température moyenne d'une journée, vitesse moyenne…).\n\n" +
+        "- Si $m \\leqslant f(x) \\leqslant M$ sur $[a\\,;b]$, alors $m \\leqslant \\mu \\leqslant M$ : la valeur moyenne est comprise entre les bornes de $f$.\n" +
+        "- En physique, si $v(t)$ est une vitesse, $\\displaystyle\\int_0^T v(t)\\,\\mathrm{d}t$ est la distance parcourue et $\\mu$ la vitesse moyenne ; si $d(t)$ est un débit, l'intégrale est un volume.",
       exemple: {
         enonce: "Valeur moyenne de $f(x) = x(4 - x)$ sur $[0\\,;4]$.",
         solution: "$\\displaystyle\\int_0^4 (4x - x^2)\\,\\mathrm{d}x = \\left[2x^2 - \\dfrac{x^3}{3}\\right]_0^4 = 32 - \\dfrac{64}{3} = \\dfrac{32}{3}$, donc $\\mu = \\dfrac{1}{4} \\times \\dfrac{32}{3} = \\dfrac{8}{3} \\approx 2{,}67$."
@@ -127,11 +138,12 @@ window.CHAPITRES["terminale-integration"] = {
     },
     {
       titre: "Une parcelle au bord du lagon",
+      figure: "tin-cours-parcelle",
       video: { titre: "Vidéo d'Yvan Monka : calculer une intégrale (3)", youtube: "https://youtu.be/uVMRZSmYcQE" },
       texte:
         "Une parcelle est limitée par une route droite et par la plage, modélisée par $y = 0{,}1x(30 - x)$ pour $x$ entre $0$ et $30$ (en mètres). Son aire est :\n\n" +
         "$\\displaystyle\\int_0^{30} 0{,}1(30x - x^2)\\,\\mathrm{d}x = 0{,}1\\left[15x^2 - \\dfrac{x^3}{3}\\right]_0^{30} = 0{,}1 \\times 4\\,500 = 450$ m².\n\n" +
-        "**Quadrature de la parabole** (Archimède, IIIe siècle av. J.-C.) : l'aire sous un arc de parabole vaut les $\\dfrac{2}{3}$ du rectangle qui l'entoure. Ici le rectangle mesure $30 \\times 22{,}5 = 675$ m², et $\\dfrac{2}{3} \\times 675 = 450$ m².",
+        "**Quadrature de la parabole** (Archimède, IIIe siècle av. J.-C.) : l'aire sous un arc de parabole vaut les $\\dfrac{2}{3}$ du rectangle qui l'entoure (en pointillés sur la figure). Ici le rectangle mesure $30 \\times 22{,}5 = 675$ m², et $\\dfrac{2}{3} \\times 675 = 450$ m².",
       exemple: {
         enonce: "Même question avec $y = 0{,}1x(20 - x)$ sur $[0\\,;20]$.",
         solution: "$0{,}1 \\times \\dfrac{20^3}{6} \\approx 133$ m² (rectangle $20 \\times 10 = 200$ m², dont les $\\dfrac{2}{3}$)."
@@ -139,9 +151,11 @@ window.CHAPITRES["terminale-integration"] = {
     },
     {
       titre: "Python : rectangles, trapèzes, Monte-Carlo",
+      figure: "tin-cours-trapezes",
+      video: { titre: "Vidéo de mathsetmethodes : la méthode des rectangles pour estimer une intégrale", youtube: "https://youtu.be/S4JIdrEKESE" },
       texte:
         "```python\ndef rectangles(f, a, b, n):\n    h = (b - a) / n\n    s = 0\n    for k in range(n):\n        s = s + h * f(a + k * h)\n    return s\n\ndef trapezes(f, a, b, n):\n    h = (b - a) / n\n    s = 0\n    for k in range(n):\n        s = s + h * (f(a + k * h) + f(a + (k + 1) * h)) / 2\n    return s\n```\n\n" +
-        "Les trapèzes donnent une bien meilleure approximation pour le même $n$.\n\n" +
+        "Les trapèzes donnent une bien meilleure approximation pour le même $n$ : leur haut suit la corde, très près de la courbe (figure, avec $4$ trapèzes sous $y = x^2$).\n\n" +
         "**Monte-Carlo** : on tire $N$ points au hasard dans un rectangle d'aire $R$ qui contient le domaine. Si $k$ points tombent sous la courbe, l'intégrale vaut environ $\\dfrac{k}{N} \\times R$.\n\n" +
         "```python\nfrom random import random\n\ndef montecarlo(N):\n    k = 0\n    for i in range(N):\n        x = random()\n        y = random()\n        if y <= x ** 2:\n            k = k + 1\n    return k / N\n```",
       exemple: {
@@ -154,6 +168,7 @@ window.CHAPITRES["terminale-integration"] = {
   videos: [
     { titre: "Le cours : intégration", type: "Cours", youtube: "https://youtu.be/pFKzXZrMVxs" },
     { titre: "Intégrale par calculs d'aire (1)", type: "Méthode", youtube: "https://youtu.be/jkxNKkmEXZA" },
+    { titre: "Calculer une intégrale avec la linéarité", type: "Calcul", youtube: "https://youtu.be/9oZuouz32I4" },
     { titre: "Intégrale par calculs d'aire (2)", type: "Méthode", youtube: "https://youtu.be/l2zuaZukc0g" },
     { titre: "Encadrer une intégrale", type: "Méthode", youtube: "https://youtu.be/VK0PvzWBIso" },
     { titre: "Fonction définie par une intégrale", type: "Méthode", youtube: "https://youtu.be/6DHXw5TRzN4" },
@@ -184,7 +199,7 @@ window.CHAPITRES["terminale-integration"] = {
   /* ---------- 3. QCM DE RÉVISION ---------- */
   qcm: [
     { question: "Pour $f$ positive, $\\displaystyle\\int_a^b f(x)\\,\\mathrm{d}x$ représente :", choix: ["l'aire sous la courbe entre $a$ et $b$", "la pente de la courbe", "la valeur maximale de $f$", "la longueur de la courbe"], bonne: 0, explication: "En unités d'aire." },
-    { question: "$\\displaystyle\\int_0^4 3\\,\\mathrm{d}x =$", choix: ["$12$", "$3$", "$7$", "$0$"], bonne: 0, explication: "Rectangle $4 \\times 3$." },
+    { question: "$\\displaystyle\\int_0^4 3\\,\\mathrm{d}x =$ (domaine colorié de la figure)", choix: ["$12$", "$3$", "$7$", "$0$"], bonne: 0, explication: "Rectangle $4 \\times 3$.", figure: "tin-qcm-rectangle" },
     { question: "$\\displaystyle\\int_0^2 x\\,\\mathrm{d}x =$", choix: ["$2$", "$4$", "$1$", "$0{,}5$"], bonne: 0, explication: "Triangle $\\dfrac{2 \\times 2}{2}$." },
     { question: "$\\displaystyle\\int_1^3 f = 5$ et $\\displaystyle\\int_3^6 f = 2$. Alors $\\displaystyle\\int_1^6 f =$", choix: ["$7$", "$3$", "$10$", "$-3$"], bonne: 0, explication: "Chasles." },
     { question: "$\\displaystyle\\int_2^2 f(x)\\,\\mathrm{d}x =$", choix: ["$0$", "$f(2)$", "$2$", "$1$"], bonne: 0, explication: "Bornes égales." },
@@ -192,18 +207,20 @@ window.CHAPITRES["terminale-integration"] = {
     { question: "$\\displaystyle\\int_0^1 3x^2\\,\\mathrm{d}x =$", choix: ["$1$", "$3$", "$6$", "$\\dfrac{1}{3}$"], bonne: 0, explication: "$\\big[x^3\\big]_0^1$." },
     { question: "$\\displaystyle\\int_0^1 e^x\\,\\mathrm{d}x =$", choix: ["$e - 1$", "$e$", "$1$", "$e + 1$"], bonne: 0, explication: "$\\big[e^x\\big]_0^1$." },
     { question: "$\\displaystyle\\int_1^e \\dfrac{1}{x}\\,\\mathrm{d}x =$", choix: ["$1$", "$e$", "$0$", "$e - 1$"], bonne: 0, explication: "$\\ln e - \\ln 1$." },
-    { question: "$\\displaystyle\\int_{-1}^1 x\\,\\mathrm{d}x =$", choix: ["$0$", "$1$", "$2$", "$-1$"], bonne: 0, explication: "Deux triangles de même aire, de signes opposés." },
+    { question: "$\\displaystyle\\int_{-1}^1 x\\,\\mathrm{d}x =$", choix: ["$0$", "$1$", "$2$", "$-1$"], bonne: 0, explication: "Deux triangles de même aire, l'un sous l'axe (compté négativement), l'autre au-dessus.", figure: "tin-qcm-impaire" },
     { question: "Si $f \\leqslant 0$ sur $[a\\,;b]$ ($a < b$), alors $\\displaystyle\\int_a^b f$ est :", choix: ["négative ou nulle", "positive", "nulle", "impossible à calculer"], bonne: 0, explication: "L'aire compte négativement." },
     { question: "$F(x) = \\displaystyle\\int_2^x f(t)\\,\\mathrm{d}t$. Alors $F'(x) =$", choix: ["$f(x)$", "$f'(x)$", "$f(x) - f(2)$", "$F(x)$"], bonne: 0, explication: "Théorème fondamental." },
     { question: "$F(x) = \\displaystyle\\int_2^x f(t)\\,\\mathrm{d}t$. Alors $F(2) =$", choix: ["$0$", "$f(2)$", "$2$", "on ne peut pas savoir"], bonne: 0, explication: "Bornes égales." },
     { question: "La valeur moyenne de $f$ sur $[a\\,;b]$ est :", choix: ["$\\dfrac{1}{b - a}\\displaystyle\\int_a^b f$", "$\\dfrac{f(a) + f(b)}{2}$", "$\\displaystyle\\int_a^b f$", "$f\\left(\\dfrac{a + b}{2}\\right)$"], bonne: 0, explication: "Intégrale divisée par la longueur." },
     { question: "La valeur moyenne de $f(x) = 2x$ sur $[0\\,;3]$ est :", choix: ["$3$", "$9$", "$6$", "$1{,}5$"], bonne: 0, explication: "$\\dfrac{1}{3} \\times 9$." },
-    { question: "Si $f \\geqslant g$ sur $[a\\,;b]$, l'aire entre les courbes est :", choix: ["$\\displaystyle\\int_a^b (f - g)$", "$\\displaystyle\\int_a^b (g - f)$", "$\\displaystyle\\int_a^b f \\times g$", "$\\displaystyle\\int_a^b (f + g)$"], bonne: 0, explication: "Dessus moins dessous." },
+    { question: "Si $f \\geqslant g$ sur $[a\\,;b]$, l'aire entre les courbes est :", choix: ["$\\displaystyle\\int_a^b (f - g)$", "$\\displaystyle\\int_a^b (g - f)$", "$\\displaystyle\\int_a^b f \\times g$", "$\\displaystyle\\int_a^b (f + g)$"], bonne: 0, explication: "Dessus moins dessous (figure : $f(x) = 2x$ au-dessus de $g(x) = x^2$ sur $[0\\,;2]$).", figure: "tin-entre" },
     { question: "Aire entre $y = x$ et $y = x^2$ sur $[0\\,;1]$ :", choix: ["$\\dfrac{1}{6}$", "$\\dfrac{1}{2}$", "$\\dfrac{1}{3}$", "$1$"], bonne: 0, explication: "$\\dfrac{1}{2} - \\dfrac{1}{3}$." },
     { question: "Pour améliorer la méthode des rectangles, on :", choix: ["augmente le nombre de rectangles", "diminue le nombre de rectangles", "change les bornes", "arrondit"], bonne: 0, explication: "Les sommes tendent vers l'intégrale." },
-    { question: "Pour $f$ croissante, les rectangles « à gauche » donnent une valeur :", choix: ["par défaut", "par excès", "exacte", "négative"], bonne: 0, explication: "Les rectangles restent sous la courbe." },
+    { question: "Pour $f$ croissante, les rectangles « à gauche » (figure) donnent une valeur :", choix: ["par défaut", "par excès", "exacte", "négative"], bonne: 0, explication: "Les rectangles restent sous la courbe.", figure: "tin-rectangles" },
     { question: "Monte-Carlo : $7\\,000$ points sur $10\\,000$ sous la courbe, rectangle d'aire $2$. Estimation :", choix: ["$1{,}4$", "$0{,}7$", "$7$", "$2$"], bonne: 0, explication: "$0{,}7 \\times 2$." },
-    { question: "L'aire sous un arc de parabole vaut, du rectangle qui l'entoure :", choix: ["les $\\dfrac{2}{3}$", "la moitié", "le tiers", "les $\\dfrac{3}{4}$"], bonne: 0, explication: "Quadrature de la parabole d'Archimède." },
+    { question: "Sur la figure, $80$ points ont été tirés au hasard dans le carré de côté $1$ ; $28$ sont sous la parabole $y = x^2$ (en couleur). Quelle estimation de $\\displaystyle\\int_0^1 x^2\\,\\mathrm{d}x$ obtient-on ?", choix: ["$0{,}35$", "$0{,}65$", "$28$", "$\\dfrac{1}{80}$"], bonne: 0, explication: "$\\dfrac{28}{80} = 0{,}35$ (le carré a une aire $1$), proche de la valeur exacte $\\dfrac{1}{3}$.", figure: "tin-qcm-montecarlo" },
+    { question: "L'aire sous un arc de parabole vaut, du rectangle qui l'entoure (figure) :", choix: ["les $\\dfrac{2}{3}$", "la moitié", "le tiers", "les $\\dfrac{3}{4}$"], bonne: 0, explication: "Quadrature de la parabole d'Archimède : $450$ m² sur $675$ m².", figure: "tin-cours-parcelle" },
+    { question: "La valeur moyenne de $f$ sur $[a\\,;b]$, avec $2 \\leqslant f(x) \\leqslant 5$, peut valoir :", choix: ["$3{,}5$", "$1$", "$6$", "$7$"], bonne: 0, explication: "La valeur moyenne est comprise entre les bornes de $f$ : $2 \\leqslant \\mu \\leqslant 5$." },
     { question: "Le symbole $\\displaystyle\\int$ vient de la lettre :", choix: ["S, pour somme", "I, pour intégrale", "F, pour fonction", "A, pour aire"], bonne: 0, explication: "Notation de Leibniz." }
   ],
 
@@ -212,17 +229,20 @@ window.CHAPITRES["terminale-integration"] = {
     {
       titre: "Calculer une intégrale",
       etapes: ["Si la fonction est simple (constante, affine positive), une aire de rectangle, triangle ou trapèze suffit.", "Sinon, chercher une primitive $F$.", "Calculer $F(b) - F(a)$, la borne du haut d'abord."],
-      exemple: "$\\displaystyle\\int_0^2 (3x^2 + 1)\\,\\mathrm{d}x = \\big[x^3 + x\\big]_0^2 = 10$."
+      exemple: "$\\displaystyle\\int_0^2 (3x^2 + 1)\\,\\mathrm{d}x = \\big[x^3 + x\\big]_0^2 = 10$ : l'aire coloriée de la figure.",
+      figure: "tin-meth-calcul"
     },
     {
       titre: "Calculer une aire entre deux courbes",
       etapes: ["Étudier le signe de $f - g$ pour savoir quelle courbe est au-dessus.", "Écrire l'aire $\\displaystyle\\int_a^b (\\text{dessus} - \\text{dessous})$.", "Calculer avec une primitive ; l'aire est positive, en u.a."],
-      exemple: "Entre $y = 2x$ et $y = x^2$ sur $[0\\,;2]$ : $\\dfrac{4}{3}$ u.a."
+      exemple: "Entre $y = 2x$ et $y = x^2$ sur $[0\\,;2]$ : $\\dfrac{4}{3}$ u.a. (figure).",
+      figure: "tin-entre"
     },
     {
       titre: "Valeur moyenne",
       etapes: ["Calculer $\\displaystyle\\int_a^b f(x)\\,\\mathrm{d}x$.", "Diviser par $b - a$.", "Interpréter dans le contexte (température moyenne, vitesse moyenne…)."],
-      exemple: "$x(4 - x)$ sur $[0\\,;4]$ : $\\mu = \\dfrac{8}{3}$."
+      exemple: "$x(4 - x)$ sur $[0\\,;4]$ : $\\mu = \\dfrac{8}{3}$ ; le rectangle de hauteur $\\mu$ a la même aire que le domaine (figure).",
+      figure: "tin-moyenne"
     }
   ],
   erreurs: [

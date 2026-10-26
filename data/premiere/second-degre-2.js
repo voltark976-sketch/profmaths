@@ -8,7 +8,10 @@
   **gras**, "- " pour une puce). Dans les formules, la virgule décimale s'écrit {,} : $0{,}35$.
   Les vidéos d'exercices corrigés (#06 à #09) correspondent aux exercices 5 à 8 du livret élève.
   Les corrigés du Drive sont réservés au professeur (Pronote) : ils ne sont pas liés ici.
-  Figures : "parabole-canonique", "completer-carre", "carre-niveaux", "signe-trinome", "parabole-translation", "ballon".
+  Figures : "parabole-canonique", "completer-carre", "carre-niveaux", "signe-trinome", "parabole-translation", "ballon",
+  "sd-cours-…", "sd-qcm-…", "sd-meth-…" (fragments 006 et 034).
+  Programme 2026 : « sommet » et « axe de symétrie » ne sont plus nommés ; on les garde comme lecture graphique de l'extremum
+  (le point où il est atteint), sans exercice qui porte sur l'axe de symétrie lui-même.
   Générateurs : sd- et s5-.
 */
 window.CHAPITRES = window.CHAPITRES || {};
@@ -41,7 +44,7 @@ window.CHAPITRES["premiere-second-degre-2"] = {
       texte:
         "Toute fonction polynôme du second degré $f(x) = ax^2 + bx + c$ (avec $a \\neq 0$) peut s'écrire sous **forme canonique** :\n\n" +
         "$f(x) = a(x - \\alpha)^2 + \\beta$.\n\n" +
-        "- La parabole a pour **sommet** $S(\\alpha\\,;\\beta)$ et pour **axe de symétrie** la droite d'équation $x = \\alpha$.\n" +
+        "- Sur le graphique, l'extremum se lit au **sommet** $S(\\alpha\\,;\\beta)$ de la parabole, son point le plus bas ou le plus haut ; la parabole est symétrique par rapport à la droite verticale d'équation $x = \\alpha$.\n" +
         "- Si $a > 0$ : $f$ décroît sur $]-\\infty\\,;\\alpha]$ puis croît sur $[\\alpha\\,;+\\infty[$ ; $\\beta$ est le **minimum**.\n" +
         "- Si $a < 0$ : $f$ croît puis décroît ; $\\beta$ est le **maximum**.\n\n" +
         "Pourquoi ? Un carré est toujours positif ou nul. Si $a > 0$, alors $a(x - \\alpha)^2 \\geqslant 0$, donc $f(x) \\geqslant \\beta$, avec égalité seulement pour $x = \\alpha$.\n\n" +
@@ -102,6 +105,7 @@ window.CHAPITRES["premiere-second-degre-2"] = {
     },
     {
       titre: "Discriminant : résoudre et factoriser",
+      figure: "sd-cours-discriminant",
       video: { titre: "Vidéo d'Yvan Monka : résoudre une équation du second degré", youtube: "https://youtu.be/youUIZ-wsYk" },
       texte:
         "Pour $ax^2 + bx + c$ (avec $a \\neq 0$), on calcule le **discriminant** $\\Delta = b^2 - 4ac$, après avoir tout ramené dans le membre de gauche.\n\n" +
@@ -151,6 +155,7 @@ window.CHAPITRES["premiere-second-degre-2"] = {
     {
       titre: "Courbe de $x \\mapsto f(x - m)$",
       figure: "parabole-translation",
+      video: { titre: "Vidéo de CommeUnJeu : glisser une courbe, pourquoi « moins » décale vers la droite", youtube: "https://youtu.be/guZMIChdfmw" },
       texte:
         "Soit $m$ un réel et $g(x) = f(x - m)$. La courbe de $g$ est celle de $f$ **décalée horizontalement** de $m$ unités :\n\n" +
         "- vers la **droite** si $m > 0$ ;\n" +
@@ -165,6 +170,7 @@ window.CHAPITRES["premiere-second-degre-2"] = {
     },
     {
       titre: "Choisir la forme adaptée",
+      figure: "sd-cours-formes",
       video: { titre: "Vidéo de ton prof : développée, canonique ou factorisée ? (exercice corrigé)", youtube: "https://youtu.be/um5vzSymAr4" },
       texte:
         "Une même fonction peut s'écrire de trois façons. On choisit la plus pratique selon la question :\n\n" +
@@ -179,6 +185,7 @@ window.CHAPITRES["premiere-second-degre-2"] = {
     },
     {
       titre: "Position de deux courbes",
+      figure: "sd-cours-position",
       video: { titre: "Vidéo d'Yvan Monka : étudier la position relative de deux courbes", youtube: "https://youtu.be/OWoaJjL9Hy4" },
       texte:
         "Pour comparer les courbes de $f$ et $g$ :\n\n" +
@@ -193,6 +200,7 @@ window.CHAPITRES["premiere-second-degre-2"] = {
     {
       titre: "Modéliser : la trajectoire d'un ballon",
       figure: "ballon",
+      video: { titre: "Vidéo de jaicompris : trouver la hauteur maximale d'un lancer", youtube: "https://youtu.be/SSOVZDZA2BA" },
       texte:
         "Au stade de Cavani, Faïza dégage le ballon depuis le sol. Sa hauteur en mètres, au bout de $t$ secondes, est modélisée par $h(t) = -5t^2 + 15t$ (on néglige les frottements de l'air).\n\n" +
         "- **Hauteur maximale** : $a = -5 < 0$, le sommet est un maximum. $\\alpha = -\\dfrac{15}{2 \\times (-5)} = 1{,}5$ et $h(1{,}5) = -11{,}25 + 22{,}5 = 11{,}25$. Le ballon monte à $11{,}25$ m au bout de $1{,}5$ s.\n" +
@@ -205,6 +213,7 @@ window.CHAPITRES["premiere-second-degre-2"] = {
     },
     {
       titre: "Python : la liste des solutions",
+      video: { titre: "Vidéo de jaicompris : une fonction Python qui renvoie le discriminant et les racines", youtube: "https://youtu.be/ro1xB5trwO0" },
       texte:
         "Cette fonction suit la disjonction des cas sur $\\Delta$ et renvoie la **liste** des solutions de $ax^2 + bx + c = 0$ :\n\n" +
         "```python\nfrom math import sqrt\n\ndef solutions(a, b, c):\n    d = b**2 - 4*a*c\n    if d > 0:\n        return [(-b - sqrt(d)) / (2*a), (-b + sqrt(d)) / (2*a)]\n    elif d == 0:\n        return [-b / (2*a)]\n    else:\n        return []\n```\n\n" +
@@ -330,10 +339,10 @@ window.CHAPITRES["premiere-second-degre-2"] = {
       explication: "$-x^2 + 4x - 4 = -(x - 2)^2$ : toujours négatif, nul seulement en $2$."
     },
     {
-      question: "Vrai ou faux : « si le discriminant est positif, le trinôme est positif ».",
-      choix: ["Vrai", "Faux"],
-      bonne: 1,
-      explication: "Faux : $\\Delta > 0$ indique seulement deux racines. Contre-exemple : $x^2 - 1$ ($\\Delta = 4$) vaut $-1$ en $0$."
+      question: "L'affirmation « si le discriminant d'un trinôme est positif, alors ce trinôme est positif pour tout réel $x$ » est :",
+      choix: ["fausse : $x^2 - 1$ a pour discriminant $4 > 0$, mais vaut $-1$ en $0$", "vraie : un discriminant positif donne deux racines", "vraie : c'est la règle du signe du trinôme", "fausse : un discriminant positif donne toujours un trinôme négatif"],
+      bonne: 0,
+      explication: "$\\Delta > 0$ indique seulement qu'il y a deux racines ; le trinôme change alors de signe. Le contre-exemple $x^2 - 1$ suffit. Et $x^2 - 1$ est positif pour $x = 5$ : il n'est pas toujours négatif non plus."
     },
     {
       question: "Pour montrer que « pour tout réel $x$, $x^2 - 4x + 3 > 0$ » est faux, il suffit de…",
@@ -342,10 +351,10 @@ window.CHAPITRES["premiere-second-degre-2"] = {
       explication: "Un seul contre-exemple suffit : en $x = 2$, $4 - 8 + 3 = -1$ n'est pas strictement positif. Vérifier des cas où c'est vrai ne prouve rien."
     },
     {
-      question: "Vrai ou faux : « si un trinôme a un minimum strictement positif, il n'a aucune racine réelle ».",
-      choix: ["Vrai", "Faux"],
+      question: "L'affirmation « si un trinôme a un minimum strictement positif, alors il n'a aucune racine réelle » est :",
+      choix: ["vraie : toutes ses valeurs sont au moins égales à ce minimum, donc strictement positives", "fausse : contre-exemple $x^2 - 1$", "fausse : un trinôme a toujours au moins une racine", "vraie seulement si $a < 0$"],
       bonne: 0,
-      explication: "Vrai : toutes ses valeurs sont supérieures ou égales au minimum, donc strictement positives ; il ne s'annule jamais."
+      explication: "Toutes les valeurs du trinôme sont supérieures ou égales à son minimum, qui est strictement positif : il ne s'annule jamais. ($x^2 - 1$ a pour minimum $-1$ : ce n'est pas un contre-exemple. Et un trinôme qui a un minimum a $a > 0$.)"
     },
     {
       question: "La courbe de $g(x) = f(x + 2)$ s'obtient à partir de celle de $f$ par un décalage…",
@@ -378,6 +387,20 @@ window.CHAPITRES["premiere-second-degre-2"] = {
       explication: "$\\Delta = 16 - 16 = 0$ : la fonction renvoie une liste d'un seul élément, $-\\dfrac{b}{2a} = 2$."
     },
     {
+      question: "La parabole ci-dessous représente $f(x) = ax^2 + bx + c$. Que peut-on dire ?",
+      figure: "sd-qcm-a-delta",
+      choix: ["$a < 0$ et $\\Delta > 0$", "$a > 0$ et $\\Delta > 0$", "$a < 0$ et $\\Delta < 0$", "$a > 0$ et $\\Delta < 0$"],
+      bonne: 0,
+      explication: "La parabole est tournée vers le bas : $a < 0$. Elle coupe l'axe des abscisses en deux points : deux racines, donc $\\Delta > 0$."
+    },
+    {
+      question: "Voici le tableau de variations d'une fonction $f$ du second degré. Laquelle de ces fonctions peut-elle être $f$ ?",
+      figure: "sd-qcm-tabvar",
+      choix: ["$f(x) = (x - 3)^2 - 2$", "$f(x) = -(x - 3)^2 - 2$", "$f(x) = (x + 3)^2 - 2$", "$f(x) = (x - 2)^2 - 3$"],
+      bonne: 0,
+      explication: "Minimum $-2$ atteint en $3$ : $\\alpha = 3$, $\\beta = -2$ et $a > 0$. Seule $(x - 3)^2 - 2$ convient ; $(x + 3)^2$ correspondrait à $\\alpha = -3$."
+    },
+    {
       question: "Dans la forme canonique $a(x - \\alpha)^2 + \\beta$ de $ax^2 + bx + c$, on a $\\beta =$ :",
       choix: ["$-\\dfrac{\\Delta}{4a}$", "$-\\dfrac{b}{2a}$", "$\\dfrac{\\Delta}{4a}$", "$b^2 - 4ac$"],
       bonne: 0,
@@ -389,6 +412,7 @@ window.CHAPITRES["premiere-second-degre-2"] = {
   methode: [
     {
       titre: "Obtenir la forme canonique",
+      figure: "completer-carre",
       etapes: [
         "Cas simple $x^2 + bx + c$ : compléter le carré avec la moitié de $b$, puis compenser.",
         "Cas général : calculer $\\alpha = -\\dfrac{b}{2a}$, puis $\\beta = f(\\alpha)$.",
@@ -398,6 +422,7 @@ window.CHAPITRES["premiere-second-degre-2"] = {
     },
     {
       titre: "Dresser le tableau de variations",
+      figure: "sd-meth-tabvar",
       etapes: [
         "Trouver $\\alpha$ et $\\beta$ (forme canonique, ou $\\alpha = -\\dfrac{b}{2a}$).",
         "Regarder le signe de $a$ : si $a > 0$, la flèche descend puis monte ; si $a < 0$, elle monte puis descend.",
@@ -407,6 +432,7 @@ window.CHAPITRES["premiere-second-degre-2"] = {
     },
     {
       titre: "Résoudre une équation du second degré",
+      figure: "sd-meth-resoudre",
       etapes: [
         "Tout ramener dans le membre de gauche pour obtenir $ax^2 + bx + c = 0$.",
         "Chercher d'abord une factorisation simple (facteur commun, identité remarquable).",
@@ -427,6 +453,7 @@ window.CHAPITRES["premiere-second-degre-2"] = {
     },
     {
       titre: "Résoudre une inéquation du second degré",
+      figure: "sd-meth-inequation",
       etapes: [
         "Tout passer d'un côté pour comparer à $0$.",
         "Trouver les racines (factorisation ou $\\Delta$) et le signe de $a$.",
@@ -437,6 +464,7 @@ window.CHAPITRES["premiere-second-degre-2"] = {
     },
     {
       titre: "Choisir la forme adaptée",
+      figure: "sd-cours-formes",
       etapes: [
         "Repérer ce qu'on cherche : une image, un extremum, des racines, un signe.",
         "Forme développée pour $f(0)$ et $f(x) = c$ ; canonique pour le sommet et les variations ; factorisée pour les racines et le signe.",
@@ -446,6 +474,7 @@ window.CHAPITRES["premiere-second-degre-2"] = {
     },
     {
       titre: "Réfuter une affirmation : le contre-exemple",
+      figure: "sd-meth-contre-exemple",
       etapes: [
         "Repérer le « pour tout » (parfois sous-entendu).",
         "Chercher une valeur où l'affirmation est fausse : une racine, le sommet, une valeur entre les racines.",

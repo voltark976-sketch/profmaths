@@ -7,7 +7,9 @@
   Le produit scalaire, les vecteurs normaux et les équations cartésiennes viennent au chapitre 8.
   Mêmes règles d'écriture que data/seconde/fonctions.js.
   Pas de vidéo de la chaîne sur ce thème : vidéos d'Yvan Monka (cours 20Esp1 et 20Esp3).
-  Figure : "esp-cube". Générateurs : esp- dans assets/exercices.js.
+  Figures : "esp-cube", "esp-cours-…" (Chasles dans le cube, plan, plans parallèles, repère, points alignés,
+  représentation paramétrique), "esp-qcm-…" (cubes avec droites et faces en couleur). Arêtes cachées en classe g-cache.
+  Générateurs : esp- dans assets/exercices.js.
 */
 window.CHAPITRES = window.CHAPITRES || {};
 window.CHAPITRES["terminale-spe-espace-1"] = {
@@ -18,7 +20,10 @@ window.CHAPITRES["terminale-spe-espace-1"] = {
 
   playlist: "",
   drive: "",
-  pdfs: [],
+  pdfs: [
+    { titre: "Cours d'Yvan Monka : vecteurs, droites et plans de l'espace (PDF)", url: "https://www.maths-et-tiques.fr/telech/20Esp1.pdf" },
+    { titre: "Cours d'Yvan Monka : représentations paramétriques et équations cartésiennes (PDF)", url: "https://www.maths-et-tiques.fr/telech/20Esp3.pdf" }
+  ],
   liens: [
     { titre: "Le cours : vecteurs, droites et plans de l'espace (Yvan Monka)", url: "https://youtu.be/EoT48VtnUJ4", type: "video" },
     { titre: "Le cours : positions relatives et parallélisme (Yvan Monka)", url: "https://youtu.be/aostYZK5jkE", type: "video" }
@@ -28,6 +33,7 @@ window.CHAPITRES["terminale-spe-espace-1"] = {
   cours: [
     {
       titre: "Vecteurs de l'espace",
+      figure: "esp-cours-chasles",
       video: { titre: "Vidéo d'Yvan Monka : représenter une combinaison linéaire de vecteurs dans l'espace", youtube: "https://youtu.be/Z83z54pkGqA" },
       texte:
         "Les vecteurs de l'espace se définissent et se manipulent comme dans le plan : un vecteur $\\overrightarrow{AB}$ a une direction, un sens et une longueur ; il correspond à la translation qui envoie $A$ sur $B$.\n\n" +
@@ -43,6 +49,7 @@ window.CHAPITRES["terminale-spe-espace-1"] = {
     },
     {
       titre: "Droites et plans de l'espace",
+      figure: "esp-cours-plan",
       video: { titre: "Vidéo d'Yvan Monka : démontrer que 4 points sont coplanaires", youtube: "https://youtu.be/9baU60ZNioo" },
       texte:
         "- Une **droite** est déterminée par un point $A$ et un **vecteur directeur** $\\vec{u}$ non nul : $M \\in d$ si et seulement si $\\overrightarrow{AM} = t\\vec{u}$ pour un réel $t$.\n" +
@@ -73,6 +80,7 @@ window.CHAPITRES["terminale-spe-espace-1"] = {
     },
     {
       titre: "Parallélisme dans l'espace",
+      figure: "esp-cours-plans-paralleles",
       video: { titre: "Vidéo d'Yvan Monka : démontrer que deux plans sont parallèles (avec des vecteurs)", youtube: "https://youtu.be/6B1liGkQL8E" },
       texte:
         "- Deux droites sont parallèles si et seulement si leurs vecteurs directeurs sont **colinéaires**.\n" +
@@ -87,6 +95,7 @@ window.CHAPITRES["terminale-spe-espace-1"] = {
     },
     {
       titre: "Bases et repères de l'espace",
+      figure: "esp-cours-repere",
       video: { titre: "Vidéo d'Yvan Monka : lire les coordonnées dans l'espace", youtube: "https://youtu.be/PZeBXIhNBAk" },
       texte:
         "Trois vecteurs $\\vec{i}$, $\\vec{j}$, $\\vec{k}$ **non coplanaires** forment une **base** de l'espace : tout vecteur $\\vec{u}$ s'écrit de façon **unique** $\\vec{u} = x\\vec{i} + y\\vec{j} + z\\vec{k}$. Les réels $(x\\,;y\\,;z)$ sont les **coordonnées** de $\\vec{u}$.\n\n" +
@@ -99,6 +108,7 @@ window.CHAPITRES["terminale-spe-espace-1"] = {
     },
     {
       titre: "Calculer avec des coordonnées",
+      figure: "esp-cours-alignes",
       video: { titre: "Vidéo d'Yvan Monka : décomposer un vecteur dans une base pour démontrer l'alignement", youtube: "https://youtu.be/i4jDkJNtzZg" },
       texte:
         "Dans un repère de l'espace, avec $A(x_A\\,;y_A\\,;z_A)$ et $B(x_B\\,;y_B\\,;z_B)$ :\n\n" +
@@ -113,6 +123,7 @@ window.CHAPITRES["terminale-spe-espace-1"] = {
     },
     {
       titre: "Représentation paramétrique d'une droite",
+      figure: "esp-cours-param",
       video: { titre: "Vidéo d'Yvan Monka : utiliser la représentation paramétrique d'une droite", youtube: "https://youtu.be/smCUbzJs9xo" },
       texte:
         "La droite $d$ passant par $A(x_A\\,;y_A\\,;z_A)$, de vecteur directeur $\\vec{u}(a\\,;b\\,;c)$, est l'ensemble des points $M$ tels que $\\overrightarrow{AM} = t\\vec{u}$, $t \\in \\mathbb{R}$, c'est-à-dire :\n\n" +
@@ -155,7 +166,8 @@ window.CHAPITRES["terminale-spe-espace-1"] = {
     { type: "esp-colineaires", titre: "Vecteurs colinéaires", etape: "Vecteurs et coordonnées", nb: 4 },
     { type: "esp-alignes", titre: "Points alignés", etape: "Vecteurs et coordonnées", nb: 4 },
     { type: "esp-decomposition", titre: "Vecteurs coplanaires", etape: "Vecteurs et coordonnées", nb: 4 },
-    { type: "esp-repere", titre: "Coordonnées dans un cube", etape: "Droites et plans", nb: 5 },
+    { type: "esp-repere", titre: "Coordonnées dans un cube ou un pavé", etape: "Droites et plans", nb: 5 },
+    { type: "esp-chasles", titre: "Décomposer un vecteur, reconnaître une base", etape: "Droites et plans", nb: 5 },
     { type: "esp-cube", titre: "Positions relatives dans un cube", etape: "Droites et plans", nb: 6 },
     { type: "esp-param-point", titre: "Utiliser une représentation paramétrique", etape: "Représentations paramétriques", nb: 5 },
     { type: "esp-param-ecrire", titre: "Écrire une représentation paramétrique", etape: "Représentations paramétriques", nb: 4 },
@@ -167,9 +179,9 @@ window.CHAPITRES["terminale-spe-espace-1"] = {
   qcm: [
     { question: "Dans le cube $ABCDEFGH$, $\\overrightarrow{AB} + \\overrightarrow{AD} + \\overrightarrow{AE}$ est égal à :", choix: ["$\\overrightarrow{AG}$", "$\\overrightarrow{AC}$", "$\\overrightarrow{AH}$", "$\\overrightarrow{AF}$"], bonne: 0, explication: "$\\overrightarrow{AB} + \\overrightarrow{BC} + \\overrightarrow{CG} = \\overrightarrow{AG}$, avec $\\overrightarrow{BC} = \\overrightarrow{AD}$ et $\\overrightarrow{CG} = \\overrightarrow{AE}$." },
     { question: "Deux droites de l'espace qui n'ont aucun point commun sont :", choix: ["strictement parallèles ou non coplanaires", "forcément parallèles", "forcément non coplanaires", "sécantes"], bonne: 0, explication: "Dans l'espace, pas de point commun ne veut pas dire parallèles : elles peuvent être non coplanaires." },
-    { question: "Dans le cube $ABCDEFGH$, les droites $(AB)$ et $(CG)$ sont :", choix: ["non coplanaires", "sécantes", "strictement parallèles", "confondues"], bonne: 0, explication: "Elles n'ont pas la même direction et aucun plan ne les contient toutes les deux." },
-    { question: "Dans le cube $ABCDEFGH$, les droites $(AB)$ et $(HG)$ sont :", choix: ["strictement parallèles", "sécantes", "non coplanaires", "confondues"], bonne: 0, explication: "$\\overrightarrow{HG} = \\overrightarrow{AB}$ : même direction, et $H \\notin (AB)$." },
-    { question: "Dans le cube $ABCDEFGH$, la droite $(EG)$ et le plan $(ABC)$ sont :", choix: ["strictement parallèles", "sécants", "la droite est contenue dans le plan", "on ne peut pas savoir"], bonne: 0, explication: "$(EG)$ est parallèle à $(AC)$, qui est dans le plan $(ABC)$, et elle est dans le plan du haut." },
+    { question: "Dans le cube $ABCDEFGH$, les droites $(AB)$ et $(CG)$ sont :", figure: "esp-qcm-ab-cg", choix: ["non coplanaires", "sécantes", "strictement parallèles", "confondues"], bonne: 0, explication: "Elles n'ont pas la même direction et aucun plan ne les contient toutes les deux." },
+    { question: "Dans le cube $ABCDEFGH$, les droites $(AB)$ et $(HG)$ sont :", figure: "esp-qcm-ab-hg", choix: ["strictement parallèles", "sécantes", "non coplanaires", "confondues"], bonne: 0, explication: "$\\overrightarrow{HG} = \\overrightarrow{AB}$ : même direction, et $H \\notin (AB)$." },
+    { question: "Dans le cube $ABCDEFGH$, la droite $(EG)$ et le plan $(ABC)$ sont :", figure: "esp-qcm-eg-abc", choix: ["strictement parallèles", "sécants", "la droite est contenue dans le plan", "on ne peut pas savoir"], bonne: 0, explication: "$(EG)$ est parallèle à $(AC)$, qui est dans le plan $(ABC)$, et elle est dans le plan du haut." },
     { question: "Deux plans distincts et non parallèles se coupent selon :", choix: ["une droite", "un point", "deux droites", "un plan"], bonne: 0, explication: "L'intersection de deux plans sécants est une droite." },
     { question: "Un plan est déterminé par un point et :", choix: ["deux vecteurs non colinéaires", "un vecteur non nul", "deux vecteurs colinéaires", "trois vecteurs coplanaires quelconques"], bonne: 0, explication: "Il faut deux directions différentes : deux vecteurs non colinéaires." },
     { question: "On donne $A(2\\,;-1\\,;4)$ et $B(-1\\,;3\\,;4)$. Les coordonnées de $\\overrightarrow{AB}$ sont :", choix: ["$(-3\\,;4\\,;0)$", "$(3\\,;-4\\,;0)$", "$(1\\,;2\\,;8)$", "$(-3\\,;4\\,;8)$"], bonne: 0, explication: "Arrivée moins départ : $(-1 - 2\\,;3 - (-1)\\,;4 - 4)$." },
@@ -188,14 +200,15 @@ window.CHAPITRES["terminale-spe-espace-1"] = {
     { question: "Pour chercher le point commun de $d_1$ (paramètre $t$) et $d_2$ (paramètre $s$), on :", choix: ["résout un système d'inconnues $t$ et $s$", "pose $t = s$", "compare leurs vecteurs directeurs", "additionne les deux représentations"], bonne: 0, explication: "Un point commun n'a pas forcément le même paramètre sur les deux droites : on garde deux inconnues." },
     { question: "Les points $A(0\\,;1\\,;2)$, $B(1\\,;3\\,;3)$ et $C(3\\,;7\\,;5)$ sont :", choix: ["alignés", "non alignés", "confondus", "coplanaires mais non alignés"], bonne: 0, explication: "$\\overrightarrow{AB}(1\\,;2\\,;1)$ et $\\overrightarrow{AC}(3\\,;6\\,;3) = 3\\overrightarrow{AB}$." },
     { question: "Que renvoie $\\texttt{[2 * x for x in [1, -3, 4]]}$ ?", choix: ["$\\texttt{[2, -6, 8]}$", "$\\texttt{[1, -3, 4, 1, -3, 4]}$", "$\\texttt{[3, -1, 6]}$", "$\\texttt{4}$"], bonne: 0, explication: "On multiplie chaque élément de la liste par $2$ : c'est le vecteur $2\\vec{u}$." },
-    { question: "Dans le cube $ABCDEFGH$, les plans $(ABC)$ et $(EFG)$ sont :", choix: ["strictement parallèles", "sécants", "confondus", "perpendiculaires"], bonne: 0, explication: "Ce sont les faces du bas et du haut : même direction, aucun point commun." },
-    { question: "Dans le cube $ABCDEFGH$, les plans $(ABF)$ et $(BCG)$ se coupent selon la droite :", choix: ["$(BF)$", "$(AB)$", "$(BC)$", "$(FG)$"], bonne: 0, explication: "$B$ et $F$ sont dans les deux plans (faces de devant et de droite)." }
+    { question: "Dans le cube $ABCDEFGH$, les plans $(ABC)$ et $(EFG)$ sont :", figure: "esp-qcm-abc-efg", choix: ["strictement parallèles", "sécants", "confondus", "perpendiculaires"], bonne: 0, explication: "Ce sont les faces du bas et du haut : même direction, aucun point commun." },
+    { question: "Dans le cube $ABCDEFGH$, les plans $(ABF)$ et $(BCG)$ se coupent selon la droite :", figure: "esp-qcm-abf-bcg", choix: ["$(BF)$", "$(AB)$", "$(BC)$", "$(FG)$"], bonne: 0, explication: "$B$ et $F$ sont dans les deux plans (faces de devant et de droite)." }
   ],
 
   /* ---------- 4. FICHE MÉTHODE ---------- */
   methode: [
     {
       titre: "Étudier la position relative de deux droites",
+      figure: "esp-qcm-ab-cg",
       etapes: [
         "Lire un vecteur directeur de chaque droite (coefficients du paramètre).",
         "S'ils sont colinéaires : les droites sont parallèles. Tester un point de l'une sur l'autre : confondues ou strictement parallèles.",
@@ -206,6 +219,7 @@ window.CHAPITRES["terminale-spe-espace-1"] = {
     },
     {
       titre: "Démontrer que des vecteurs sont coplanaires",
+      figure: "esp-cours-plan",
       etapes: [
         "Chercher $a$ et $b$ tels que $\\vec{w} = a\\vec{u} + b\\vec{v}$.",
         "Écrire l'égalité coordonnée par coordonnée : trois équations, deux inconnues.",
@@ -216,6 +230,7 @@ window.CHAPITRES["terminale-spe-espace-1"] = {
     },
     {
       titre: "Écrire et utiliser une représentation paramétrique",
+      figure: "esp-cours-param",
       etapes: [
         "Trouver un point $A$ de la droite et un vecteur directeur $\\vec{u}(a\\,;b\\,;c)$ (par exemple $\\overrightarrow{AB}$).",
         "Écrire $x = x_A + at$, $y = y_A + bt$, $z = z_A + ct$, $t \\in \\mathbb{R}$.",
@@ -226,6 +241,7 @@ window.CHAPITRES["terminale-spe-espace-1"] = {
     },
     {
       titre: "Raisonner dans un cube",
+      figure: "esp-cours-chasles",
       etapes: [
         "Repérer les faces : deux droites d'une même face sont coplanaires.",
         "Utiliser les égalités de vecteurs : $\\overrightarrow{AB} = \\overrightarrow{DC} = \\overrightarrow{EF} = \\overrightarrow{HG}$, etc.",

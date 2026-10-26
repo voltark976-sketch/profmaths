@@ -118,6 +118,7 @@ table.valeurs { border-collapse: collapse; background: var(--surface); font-vari
 /* Programmes Python */
 pre.code { margin: 10px 0; padding: 10px 12px; background: var(--fond); border: 1px solid var(--trait); border-left: 4px solid var(--lagon); border-radius: 8px; overflow-x: auto; font: 0.9rem/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: var(--encre); tab-size: 4; }
 pre.code code { font: inherit; }
+code.tt { font: 0.92em/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; overflow-wrap: anywhere; }
 
 /* Graphiques */
 .graph { display: block; width: 100%; height: auto; }
@@ -139,6 +140,8 @@ pre.code code { font: inherit; }
 .g-end { fill: var(--lagon); }
 .g-curve-1.g-curve { stroke: var(--courbe2); }
 .g-curve-1.g-end, .g-curve-1.g-clabel { fill: var(--courbe2); }
+.g-curve-2.g-curve { stroke: var(--ylang); }
+.g-curve-2.g-end, .g-curve-2.g-clabel { fill: var(--ylang); }
 .g-curve-0.g-clabel { fill: var(--lagon); }
 .g-hline { stroke: var(--ylang); stroke-width: 1.8; stroke-dasharray: 5 4; }
 .g-hlabel { fill: var(--ylang); }

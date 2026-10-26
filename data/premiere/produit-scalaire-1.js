@@ -16,7 +16,9 @@ window.CHAPITRES["premiere-produit-scalaire-1"] = {
 
   playlist: "",
   drive: "",
-  pdfs: [],
+  pdfs: [
+    { titre: "Cours d'Yvan Monka : produit scalaire, chapitre 1 (PDF)", url: "https://www.maths-et-tiques.fr/telech/19Prodscal1M.pdf" }
+  ],
   liens: [
     { titre: "Le cours sur le produit scalaire en vidéo (Yvan Monka)", url: "https://youtu.be/dII7myZuLvo", type: "video" }
   ],
@@ -57,6 +59,7 @@ window.CHAPITRES["premiere-produit-scalaire-1"] = {
     },
     {
       titre: "Orthogonalité : une équivalence",
+      figure: "ps-cours-carre",
       video: { titre: "Vidéo d'Yvan Monka : appliquer la propriété d'orthogonalité des vecteurs", youtube: "https://youtu.be/cTtV4DsoMLQ" },
       texte:
         "Par convention, le vecteur nul est orthogonal à tout vecteur.\n\n" +
@@ -71,13 +74,15 @@ window.CHAPITRES["premiere-produit-scalaire-1"] = {
     },
     {
       titre: "Dans un repère orthonormé",
+      figure: ["ps-cours-coord", "ps-cours-base"],
       video: { titre: "Vidéo d'Yvan Monka : calculer un produit scalaire à partir des coordonnées", youtube: "https://youtu.be/aOLRbG0IibY" },
       texte:
         "Dans un repère **orthonormé**, avec $\\vec{u}\\begin{pmatrix} x \\\\ y \\end{pmatrix}$ et $\\vec{v}\\begin{pmatrix} x' \\\\ y' \\end{pmatrix}$ :\n\n" +
         "- $\\vec{u} \\cdot \\vec{v} = xx' + yy'$ (admis ici, démontré au chapitre 14) ;\n" +
         "- $\\|\\vec{u}\\| = \\sqrt{x^2 + y^2}$ ;\n" +
         "- $\\vec{u}$ et $\\vec{v}$ sont orthogonaux $\\iff xx' + yy' = 0$.\n\n" +
-        "Ces formules ne valent que dans un repère orthonormé : axes perpendiculaires et même unité sur les deux axes.",
+        "Ces formules ne valent que dans un repère orthonormé : axes perpendiculaires et même unité sur les deux axes.\n\n" +
+        "**Coordonnées et produit scalaire** : dans une base orthonormée $(\\vec{i}, \\vec{j})$, l'abscisse de $\\vec{u}$ est $x = \\vec{u} \\cdot \\vec{i}$ et son ordonnée est $y = \\vec{u} \\cdot \\vec{j}$. En effet, le projeté orthogonal de $\\vec{u}$ sur la direction de $\\vec{i}$ est $x\\vec{i}$, et $\\vec{i} \\cdot \\vec{i} = 1$ (second schéma).",
       exemple: {
         enonce: "$\\vec{u}\\begin{pmatrix} 5 \\\\ -2 \\end{pmatrix}$ et $\\vec{v}\\begin{pmatrix} 2 \\\\ 5 \\end{pmatrix}$. Calcule $\\vec{u} \\cdot \\vec{v}$ et $\\|\\vec{u}\\|$.",
         solution: "$\\vec{u} \\cdot \\vec{v} = 5 \\times 2 + (-2) \\times 5 = 0$ : les vecteurs sont orthogonaux.\n\n$\\|\\vec{u}\\| = \\sqrt{25 + 4} = \\sqrt{29}$."
@@ -100,11 +105,12 @@ window.CHAPITRES["premiere-produit-scalaire-1"] = {
     },
     {
       titre: "Calculer un angle",
+      figure: "ps-meth-angle",
       video: { titre: "Vidéo d'Yvan Monka : appliquer plusieurs formules du produit scalaire", youtube: "https://youtu.be/Ok6dZG8WIL8" },
       texte:
         "Si $\\vec{u}$ et $\\vec{v}$ sont non nuls, les deux expressions du produit scalaire donnent\n\n" +
         "$\\cos(\\vec{u}, \\vec{v}) = \\dfrac{\\vec{u} \\cdot \\vec{v}}{\\|\\vec{u}\\| \\times \\|\\vec{v}\\|}$.\n\n" +
-        "On calcule le produit scalaire avec les coordonnées, puis les normes, puis le cosinus. Une valeur remarquable, ou la touche $\\cos^{-1}$ de la calculatrice en mode degrés, donne l'angle.",
+        "On calcule le produit scalaire avec les coordonnées, puis les normes, puis le cosinus. Une valeur remarquable ($\\dfrac{1}{2}$, $\\dfrac{\\sqrt{2}}{2}$, $\\dfrac{\\sqrt{3}}{2}$, $0$…) donne l'angle ; sinon, en classe, la touche $\\cos^{-1}$ de la calculatrice en mode degrés en donne une valeur approchée (à l'épreuve anticipée, sans calculatrice, on reste sur les valeurs remarquables).",
       exemple: {
         enonce: "$\\vec{u}\\begin{pmatrix} 1 \\\\ 2 \\end{pmatrix}$ et $\\vec{v}\\begin{pmatrix} 3 \\\\ 1 \\end{pmatrix}$. Mesure l'angle entre $\\vec{u}$ et $\\vec{v}$.",
         solution: "$\\vec{u} \\cdot \\vec{v} = 3 + 2 = 5$, $\\|\\vec{u}\\| = \\sqrt{5}$ et $\\|\\vec{v}\\| = \\sqrt{10}$.\n\n$\\cos(\\vec{u}, \\vec{v}) = \\dfrac{5}{\\sqrt{50}} = \\dfrac{5}{5\\sqrt{2}} = \\dfrac{\\sqrt{2}}{2}$ : l'angle mesure $45°$."
@@ -130,10 +136,11 @@ window.CHAPITRES["premiere-produit-scalaire-1"] = {
         "Avec des couples de coordonnées :\n\n" +
         "```python\nfrom math import sqrt\n\ndef prodscal(u, v):\n    return u[0] * v[0] + u[1] * v[1]\n\ndef norme(u):\n    return sqrt(prodscal(u, u))\n\nprint(prodscal((3, 1), (-1, 3)))\nprint(norme((3, 4)))\n```\n\n" +
         "Le programme affiche $0$ (les vecteurs sont orthogonaux), puis $\\texttt{5.0}$.\n\n" +
-        "Pour tester l'orthogonalité, on compare le produit scalaire à $0$. Avec des coordonnées décimales, on vérifie plutôt que sa valeur absolue est très petite, à cause des arrondis.",
+        "Pour tester l'orthogonalité, on compare le produit scalaire à $0$. Avec des coordonnées décimales, on vérifie plutôt que sa valeur absolue est très petite, à cause des arrondis.\n\n" +
+        "Avec une **liste** de vecteurs $\\texttt{L}$, la liste en compréhension $\\texttt{[v for v in L if prodscal(u, v) == 0]}$ contient ceux qui sont orthogonaux à $\\texttt{u}$.",
       exemple: {
         enonce: "Comment tester avec ces fonctions si un triangle $ABC$ est rectangle en $A$ ?",
-        solution: "On calcule les coordonnées des vecteurs $\\overrightarrow{AB}$ et $\\overrightarrow{AC}$, par exemple $\\texttt{(B[0] - A[0], B[1] - A[1])}$, puis on teste si prodscal(AB, AC) vaut $0$."
+        solution: "On calcule les coordonnées des vecteurs $\\overrightarrow{AB}$ et $\\overrightarrow{AC}$, par exemple $\\texttt{(B[0] - A[0], B[1] - A[1])}$, puis on teste si $\\texttt{prodscal(AB, AC)}$ vaut $0$."
       }
     }
   ],
@@ -161,9 +168,9 @@ window.CHAPITRES["premiere-produit-scalaire-1"] = {
     { question: "Le produit scalaire de deux vecteurs est :", choix: ["un nombre réel", "un vecteur", "une longueur toujours positive", "un angle"], bonne: 0, explication: "$\\vec{u} \\cdot \\vec{v} = \\|\\vec{u}\\| \\times \\|\\vec{v}\\| \\times \\cos(\\vec{u}, \\vec{v})$ est un nombre, qui peut être négatif." },
     { question: "$\\|\\vec{u}\\| = 3$, $\\|\\vec{v}\\| = 4$ et l'angle $(\\vec{u}, \\vec{v})$ mesure $\\dfrac{\\pi}{3}$. Alors $\\vec{u} \\cdot \\vec{v} =$", choix: ["$6$", "$12$", "$6\\sqrt{3}$", "$0$"], bonne: 0, explication: "$3 \\times 4 \\times \\dfrac{1}{2} = 6$." },
     { question: "$\\vec{u}$ et $\\vec{v}$ sont non nuls et $\\vec{u} \\cdot \\vec{v} < 0$. Cela signifie que :", choix: ["l'angle entre $\\vec{u}$ et $\\vec{v}$ est obtus", "$\\vec{u}$ et $\\vec{v}$ sont de sens contraires", "l'un des vecteurs est nul", "les vecteurs sont orthogonaux"], bonne: 0, explication: "Le produit scalaire a le signe du cosinus." },
-    { question: "$ABCD$ est un carré de côté $5$. $\\overrightarrow{AB} \\cdot \\overrightarrow{AC} =$", choix: ["$25$", "$50$", "$25\\sqrt{2}$", "$0$"], bonne: 0, explication: "Le projeté de $C$ sur $(AB)$ est $B$ : $AB^2 = 25$." },
+    { question: "$ABCD$ est un carré de côté $5$. $\\overrightarrow{AB} \\cdot \\overrightarrow{AC} =$", figure: "ps-qcm-carre", choix: ["$25$", "$50$", "$25\\sqrt{2}$", "$0$"], bonne: 0, explication: "Le projeté de $C$ sur $(AB)$ est $B$ : $AB^2 = 25$." },
     { question: "$ABCD$ est un carré de côté $5$. $\\overrightarrow{AB} \\cdot \\overrightarrow{AD} =$", choix: ["$0$", "$25$", "$-25$", "$5$"], bonne: 0, explication: "$(AB) \\perp (AD)$ : produit scalaire nul." },
-    { question: "$ABCD$ est un rectangle avec $AB = 6$ et $AD = 2$. $\\overrightarrow{AB} \\cdot \\overrightarrow{CD} =$", choix: ["$-36$", "$36$", "$12$", "$0$"], bonne: 0, explication: "$\\overrightarrow{CD} = -\\overrightarrow{AB}$, donc le produit vaut $-AB^2$." },
+    { question: "$ABCD$ est un rectangle avec $AB = 6$ et $AD = 2$. $\\overrightarrow{AB} \\cdot \\overrightarrow{CD} =$", figure: "ps-qcm-rect", choix: ["$-36$", "$36$", "$12$", "$0$"], bonne: 0, explication: "$\\overrightarrow{CD} = -\\overrightarrow{AB}$, donc le produit vaut $-AB^2$." },
     { question: "$\\vec{u}\\begin{pmatrix} 2 \\\\ -3 \\end{pmatrix}$ et $\\vec{v}\\begin{pmatrix} 4 \\\\ 1 \\end{pmatrix}$. $\\vec{u} \\cdot \\vec{v} =$", choix: ["$5$", "$11$", "$-1$", "$\\begin{pmatrix} 8 \\\\ -3 \\end{pmatrix}$"], bonne: 0, explication: "$2 \\times 4 + (-3) \\times 1 = 8 - 3 = 5$." },
     { question: "La norme de $\\vec{u}\\begin{pmatrix} -5 \\\\ 12 \\end{pmatrix}$ est :", choix: ["$13$", "$7$", "$169$", "$17$"], bonne: 0, explication: "$\\sqrt{25 + 144} = \\sqrt{169} = 13$." },
     { question: "$\\vec{u}\\begin{pmatrix} 3 \\\\ m \\end{pmatrix}$ et $\\vec{v}\\begin{pmatrix} 2 \\\\ -6 \\end{pmatrix}$ sont orthogonaux pour $m =$", choix: ["$1$", "$-1$", "$9$", "$0$"], bonne: 0, explication: "$6 - 6m = 0 \\iff m = 1$." },
@@ -173,19 +180,21 @@ window.CHAPITRES["premiere-produit-scalaire-1"] = {
     { question: "Le travail d'une force perpendiculaire au déplacement est :", choix: ["nul", "maximal", "négatif", "égal à $F \\times AB$"], bonne: 0, explication: "$\\cos 90° = 0$." },
     { question: "Une force de $300$ N tire une pirogue sur $5$ m, dans le sens du déplacement. Son travail est :", choix: ["$1\\,500$ J", "$0$ J", "$750$ J", "$300$ J"], bonne: 0, explication: "$W = 300 \\times 5 \\times \\cos 0° = 1\\,500$ J." },
     { question: "« $\\vec{u} \\cdot \\vec{v} = 0 \\iff \\vec{u}$ et $\\vec{v}$ sont orthogonaux » est :", choix: ["une équivalence, vraie dans les deux sens", "une implication vraie dans un seul sens", "fausse si $\\vec{u} \\neq \\vec{0}$", "vraie seulement dans un repère orthonormé"], bonne: 0, explication: "Le symbole $\\iff$ signifie « si et seulement si » : les deux implications sont vraies." },
-    { question: "Que renvoie prodscal((1, 2), (3, 4)) (programme du cours) ?", choix: ["$11$", "$(3, 8)$", "$10$", "$24$"], bonne: 0, explication: "$1 \\times 3 + 2 \\times 4 = 11$." },
+    { question: "Que renvoie $\\texttt{prodscal((1, 2), (3, 4))}$ (programme du cours) ?", choix: ["$11$", "$(3\\,;8)$", "$10$", "$24$"], bonne: 0, explication: "$1 \\times 3 + 2 \\times 4 = 11$." },
     { question: "$\\|\\vec{u}\\| = 2$, $\\|\\vec{v}\\| = 5$ et l'angle $(\\vec{u}, \\vec{v})$ mesure $\\dfrac{\\pi}{6}$. Alors $\\vec{u} \\cdot \\vec{v} =$", choix: ["$5\\sqrt{3}$", "$5$", "$10\\sqrt{3}$", "$10$"], bonne: 0, explication: "$\\vec{u} \\cdot \\vec{v} = 2 \\times 5 \\times \\cos \\dfrac{\\pi}{6} = 10 \\times \\dfrac{\\sqrt{3}}{2} = 5\\sqrt{3}$. $5$ correspond à l'erreur $\\cos \\dfrac{\\pi}{6} = \\dfrac{1}{2}$." },
     { question: "$\\vec{u}$ et $\\vec{v}$ sont colinéaires et de sens contraires, avec $\\|\\vec{u}\\| = 3$ et $\\|\\vec{v}\\| = 2$. Alors $\\vec{u} \\cdot \\vec{v} =$", choix: ["$-6$", "$6$", "$0$", "$-5$"], bonne: 0, explication: "L'angle entre deux vecteurs de sens contraires mesure $\\pi$ et $\\cos \\pi = -1$ : $\\vec{u} \\cdot \\vec{v} = 3 \\times 2 \\times (-1) = -6$. Colinéaires ne veut pas dire orthogonaux." },
     { question: "Si $\\|\\vec{u}\\| = 7$, alors $\\vec{u} \\cdot \\vec{u} =$", choix: ["$49$", "$7$", "$14$", "$0$"], bonne: 0, explication: "C'est le carré scalaire : $\\vec{u} \\cdot \\vec{u} = \\|\\vec{u}\\|^2 = 49$, car l'angle de $\\vec{u}$ avec lui-même est nul et $\\cos 0 = 1$." },
-    { question: "$H$ est le projeté orthogonal de $C$ sur la droite $(AB)$, avec $AB = 4$ et $AH = 3$. Le point $A$ est situé entre $H$ et $B$. Alors $\\overrightarrow{AB} \\cdot \\overrightarrow{AC} =$", choix: ["$-12$", "$12$", "$7$", "$0$"], bonne: 0, explication: "$\\overrightarrow{AB} \\cdot \\overrightarrow{AC} = \\overrightarrow{AB} \\cdot \\overrightarrow{AH}$. Comme $A$ est entre $H$ et $B$, ces vecteurs sont de sens contraires : le produit vaut $-AB \\times AH = -12$." },
+    { question: "$H$ est le projeté orthogonal de $C$ sur la droite $(AB)$, avec $AB = 4$ et $AH = 3$. Le point $A$ est situé entre $H$ et $B$. Alors $\\overrightarrow{AB} \\cdot \\overrightarrow{AC} =$", figure: "ps-qcm-proj", choix: ["$-12$", "$12$", "$7$", "$0$"], bonne: 0, explication: "$\\overrightarrow{AB} \\cdot \\overrightarrow{AC} = \\overrightarrow{AB} \\cdot \\overrightarrow{AH}$. Comme $A$ est entre $H$ et $B$, ces vecteurs sont de sens contraires : le produit vaut $-AB \\times AH = -12$." },
     { question: "$ABC$ est un triangle équilatéral de côté $6$. $\\overrightarrow{AB} \\cdot \\overrightarrow{AC} =$", choix: ["$18$", "$36$", "$18\\sqrt{3}$", "$0$"], bonne: 0, explication: "Les angles d'un triangle équilatéral mesurent $60°$ : $\\overrightarrow{AB} \\cdot \\overrightarrow{AC} = 6 \\times 6 \\times \\cos 60° = 36 \\times \\dfrac{1}{2} = 18$." },
     { question: "$\\vec{u}\\begin{pmatrix} -1 \\\\ 4 \\end{pmatrix}$ et $\\vec{v}\\begin{pmatrix} 5 \\\\ 2 \\end{pmatrix}$ dans un repère orthonormé. $\\vec{u} \\cdot \\vec{v} =$", choix: ["$3$", "$-13$", "$18$", "$\\begin{pmatrix} -5 \\\\ 8 \\end{pmatrix}$"], bonne: 0, explication: "$xx' + yy' = (-1) \\times 5 + 4 \\times 2 = -5 + 8 = 3$. Le résultat est un nombre, pas un vecteur ; $18$ vient des coordonnées croisées." },
     { question: "Dans un repère orthonormé, la norme de $\\vec{u}\\begin{pmatrix} 2 \\\\ -2 \\end{pmatrix}$ est :", choix: ["$2\\sqrt{2}$", "$0$", "$8$", "$4$"], bonne: 0, explication: "$\\|\\vec{u}\\| = \\sqrt{2^2 + (-2)^2} = \\sqrt{8} = 2\\sqrt{2}$. $8$ est le carré de la norme, et $0$ vient de l'erreur $2 + (-2)$." },
     { question: "Dans un repère orthonormé, $\\vec{u}\\begin{pmatrix} 1 \\\\ 0 \\end{pmatrix}$ et $\\vec{v}\\begin{pmatrix} 1 \\\\ 1 \\end{pmatrix}$. L'angle entre $\\vec{u}$ et $\\vec{v}$ mesure :", choix: ["$45°$", "$60°$", "$30°$", "$90°$"], bonne: 0, explication: "$\\vec{u} \\cdot \\vec{v} = 1$, $\\|\\vec{u}\\| = 1$ et $\\|\\vec{v}\\| = \\sqrt{2}$, donc $\\cos(\\vec{u}, \\vec{v}) = \\dfrac{1}{\\sqrt{2}} = \\dfrac{\\sqrt{2}}{2}$ : l'angle mesure $45°$." },
     { question: "Dans un repère orthonormé, $\\vec{u}\\begin{pmatrix} m \\\\ 2 \\end{pmatrix}$ et $\\vec{v}\\begin{pmatrix} 3 \\\\ -6 \\end{pmatrix}$ sont orthogonaux pour $m =$", choix: ["$4$", "$-4$", "$-1$", "$0$"], bonne: 0, explication: "$\\vec{u} \\cdot \\vec{v} = 3m - 12 = 0 \\iff m = 4$. Avec $m = -1$, les vecteurs seraient colinéaires, pas orthogonaux." },
-    { question: "$A(1\\,;2)$, $B(3\\,;3)$ et $C(0\\,;4)$ dans un repère orthonormé. Le triangle $ABC$ est-il rectangle en $A$ ?", choix: ["Oui, car $\\overrightarrow{AB} \\cdot \\overrightarrow{AC} = -2 + 2 = 0$", "Non, car $\\overrightarrow{AB} \\cdot \\overrightarrow{AC} = 2 \\times 2 + 1 \\times (-1) = 3$", "On ne peut pas savoir sans rapporteur"], bonne: 0, explication: "$\\overrightarrow{AB}\\begin{pmatrix} 2 \\\\ 1 \\end{pmatrix}$ et $\\overrightarrow{AC}\\begin{pmatrix} -1 \\\\ 2 \\end{pmatrix}$ : $2 \\times (-1) + 1 \\times 2 = 0$. Les vecteurs sont orthogonaux, l'angle en $A$ est droit." },
-    { question: "On tire une pirogue sur $10$ m avec une force de $100$ N qui fait un angle de $60°$ avec le déplacement. Le travail de la force vaut :", choix: ["$500$ J", "$1\\,000$ J", "$866$ J", "$0$ J"], bonne: 0, explication: "$W = F \\times AB \\times \\cos 60° = 100 \\times 10 \\times \\dfrac{1}{2} = 500$ J. Seule la partie de la force dans le sens du déplacement travaille." },
-    { question: "Vrai ou faux : si $\\vec{u} \\neq \\vec{0}$ et $\\vec{u} \\cdot \\vec{v} = \\vec{u} \\cdot \\vec{w}$, alors $\\vec{v} = \\vec{w}$.", choix: ["Faux", "Vrai"], bonne: 0, explication: "Contre-exemple : $\\vec{u}\\begin{pmatrix} 1 \\\\ 0 \\end{pmatrix}$, $\\vec{v}\\begin{pmatrix} 0 \\\\ 1 \\end{pmatrix}$ et $\\vec{w}\\begin{pmatrix} 0 \\\\ 2 \\end{pmatrix}$ donnent deux produits scalaires nuls, alors que $\\vec{v} \\neq \\vec{w}$. On ne « simplifie » pas par $\\vec{u}$." },
+    { question: "$A(1\\,;2)$, $B(3\\,;3)$ et $C(0\\,;4)$ dans un repère orthonormé. Le triangle $ABC$ est-il rectangle en $A$ ?", choix: ["Oui, car $\\overrightarrow{AB} \\cdot \\overrightarrow{AC} = -2 + 2 = 0$", "Non, car $\\overrightarrow{AB} \\cdot \\overrightarrow{AC} = 2 \\times 2 + 1 \\times (-1) = 3$", "Non, car $AB \\neq AC$", "On ne peut pas savoir sans rapporteur"], bonne: 0, explication: "$\\overrightarrow{AB}\\begin{pmatrix} 2 \\\\ 1 \\end{pmatrix}$ et $\\overrightarrow{AC}\\begin{pmatrix} -1 \\\\ 2 \\end{pmatrix}$ : $2 \\times (-1) + 1 \\times 2 = 0$. Les vecteurs sont orthogonaux, l'angle en $A$ est droit." },
+    { question: "On tire une pirogue sur $10$ m avec une force de $100$ N qui fait un angle de $60°$ avec le déplacement. Le travail de la force vaut :", figure: "ps-qcm-force60", choix: ["$500$ J", "$1\\,000$ J", "$866$ J", "$0$ J"], bonne: 0, explication: "$W = F \\times AB \\times \\cos 60° = 100 \\times 10 \\times \\dfrac{1}{2} = 500$ J. Seule la partie de la force dans le sens du déplacement travaille." },
+    { question: "$\\vec{u} \\neq \\vec{0}$ et $\\vec{u} \\cdot \\vec{v} = \\vec{u} \\cdot \\vec{w}$. Que peut-on en déduire ?", choix: ["$\\vec{u}$ est orthogonal à $\\vec{v} - \\vec{w}$", "$\\vec{v} = \\vec{w}$", "$\\vec{v}$ et $\\vec{w}$ sont orthogonaux", "$\\vec{u} = \\vec{v} = \\vec{w}$"], bonne: 0, explication: "$\\vec{u} \\cdot \\vec{v} - \\vec{u} \\cdot \\vec{w} = 0$, c'est-à-dire $\\vec{u} \\cdot (\\vec{v} - \\vec{w}) = 0$ (bilinéarité, chapitre 14). On ne « simplifie » pas par $\\vec{u}$ : avec $\\vec{u}\\begin{pmatrix} 1 \\\\ 0 \\end{pmatrix}$, $\\vec{v}\\begin{pmatrix} 0 \\\\ 1 \\end{pmatrix}$ et $\\vec{w}\\begin{pmatrix} 0 \\\\ 2 \\end{pmatrix}$, les deux produits sont nuls alors que $\\vec{v} \\neq \\vec{w}$." },
+    { question: "Dans une base orthonormée $(\\vec{i}, \\vec{j})$, $\\vec{u} \\cdot \\vec{i} = 4$ et $\\vec{u} \\cdot \\vec{j} = -3$. Alors :", figure: "ps-cours-base", choix: ["$\\vec{u}\\begin{pmatrix} 4 \\\\ -3 \\end{pmatrix}$", "$\\vec{u}\\begin{pmatrix} -3 \\\\ 4 \\end{pmatrix}$", "$\\|\\vec{u}\\| = 1$", "$\\vec{u}\\begin{pmatrix} 4 \\\\ 3 \\end{pmatrix}$"], bonne: 0, explication: "Dans une base orthonormée, les coordonnées de $\\vec{u}$ sont $x = \\vec{u} \\cdot \\vec{i}$ et $y = \\vec{u} \\cdot \\vec{j}$. La figure montre un autre exemple, $\\vec{u}(4\\,;3)$." },
+    { question: "Avec les fonctions du cours, $\\texttt{u = (2, 1)}$ et $\\texttt{L = [(1, -2), (2, 1), (-3, 6), (0, 4)]}$. Combien d'éléments contient $\\texttt{[v for v in L if prodscal(u, v) == 0]}$ ?", choix: ["$2$", "$1$", "$4$", "$0$"], bonne: 0, explication: "Produits scalaires avec $\\vec{u}$ : $2 - 2 = 0$ ; $4 + 1 = 5$ ; $-6 + 6 = 0$ ; $0 + 4 = 4$. Deux vecteurs de la liste sont orthogonaux à $\\vec{u}$ : $(1\\,;-2)$ et $(-3\\,;6)$." },
     { question: "Avec les fonctions du cours, que renvoie $\\texttt{norme((6, 8))}$ ?", choix: ["$\\texttt{10.0}$", "$\\texttt{14}$", "$\\texttt{100}$", "$\\texttt{48}$"], bonne: 0, explication: "$\\texttt{prodscal((6, 8), (6, 8))}$ vaut $36 + 64 = 100$, puis la fonction renvoie sa racine carrée : $\\sqrt{100} = 10$, affiché $\\texttt{10.0}$." }
   ],
 
@@ -194,26 +203,31 @@ window.CHAPITRES["premiere-produit-scalaire-1"] = {
     {
       titre: "Choisir la bonne formule",
       etapes: ["Normes et angle connus : $\\|\\vec{u}\\| \\times \\|\\vec{v}\\| \\times \\cos(\\vec{u}, \\vec{v})$.", "Figure avec des angles droits : projection orthogonale.", "Coordonnées dans un repère orthonormé : $xx' + yy'$."],
+      figure: "ps-cosinus",
       exemple: "Carré $ABCD$ de côté $4$ : par projection, $\\overrightarrow{AB} \\cdot \\overrightarrow{AC} = AB^2 = 16$."
     },
     {
       titre: "Calculer par projection",
       etapes: ["Projeter orthogonalement l'extrémité du second vecteur sur la droite qui porte le premier.", "Même sens : produit des longueurs ; sens contraires : son opposé.", "Vecteurs orthogonaux : le produit scalaire est nul."],
+      figure: "ps-projection",
       exemple: "$H$ projeté de $C$ sur $(AB)$, $AB = 5$, $AH = 2$, $H$ du même côté que $B$ : $\\overrightarrow{AB} \\cdot \\overrightarrow{AC} = 10$."
     },
     {
       titre: "Démontrer un angle droit",
       etapes: ["Calculer les coordonnées des deux vecteurs.", "Calculer $xx' + yy'$.", "Conclure : s'il est nul, les vecteurs sont orthogonaux (et réciproquement)."],
+      figure: "ps-repere",
       exemple: "$\\overrightarrow{AB}\\begin{pmatrix} 3 \\\\ 1 \\end{pmatrix}$ et $\\overrightarrow{AC}\\begin{pmatrix} -1 \\\\ 3 \\end{pmatrix}$ : $-3 + 3 = 0$, l'angle en $A$ est droit."
     },
     {
       titre: "Calculer un angle",
       etapes: ["Calculer $\\vec{u} \\cdot \\vec{v}$ avec les coordonnées.", "Calculer les normes $\\|\\vec{u}\\|$ et $\\|\\vec{v}\\|$.", "Calculer $\\cos(\\vec{u}, \\vec{v}) = \\dfrac{\\vec{u} \\cdot \\vec{v}}{\\|\\vec{u}\\| \\|\\vec{v}\\|}$, puis l'angle."],
+      figure: "ps-meth-angle",
       exemple: "$\\vec{u} \\cdot \\vec{v} = 5$, $\\|\\vec{u}\\| = \\sqrt{5}$, $\\|\\vec{v}\\| = \\sqrt{10}$ : $\\cos = \\dfrac{\\sqrt{2}}{2}$, angle de $45°$."
     },
     {
       titre: "Calculer le travail d'une force",
-      etapes: ["Repérer la force $F$, le déplacement $AB$ et l'angle $\\alpha$ entre eux.", "Calculer $W = F \\times AB \\times \\cos \\alpha$.", "Donner le résultat en joules."],
+      etapes: ["Repérer la force $F$, le déplacement $AB$ et l'angle $\\alpha$ entre eux.", "Calculer $W = F \\times AB \\times \\cos \\alpha$.", "Donner le résultat en joules : positif si l'angle est aigu, négatif s'il est obtus (la force retient)."],
+      figure: "pirogue",
       exemple: "$F = 200$ N, $AB = 10$ m, $\\alpha = 60°$ : $W = 1\\,000$ J."
     }
   ],

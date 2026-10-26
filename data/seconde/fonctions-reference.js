@@ -3,7 +3,7 @@
   ---------------------------------------------------------------------------
   Chapitre 13 de la progression spiralée 2026-2027 (programme de Seconde 2026).
   Mêmes règles d'écriture que data/seconde/fonctions.js.
-  Figures disponibles : "courbe-inverse", "courbe-racine-cube", "x-et-x2".
+  Figures disponibles : "courbe-racine-cube" (chapitre 9), "fr-cours-inverse", "fr-cours-resoudre", "fr-cours-racine", "fr-cours-x-x2".
   Pas encore de vidéo de la chaîne ni de PDF pour ce chapitre : les vidéos sont celles d'Yvan Monka.
   Générateurs : fr- dans assets/exercices.js (fr-comparer et fr-equation reprennent var-ref-comparer
   et var-ref-equation limités à l'inverse, la racine carrée et le cube), et var-ref-courbe.
@@ -17,7 +17,9 @@ window.CHAPITRES["seconde-fonctions-reference"] = {
 
   playlist: "",
   drive: "",
-  pdfs: [],
+  pdfs: [
+    { titre: "Cours d'Yvan Monka : fonctions de référence (PDF)", url: "https://www.maths-et-tiques.fr/telech/19FonctionsReferenceM.pdf" }
+  ],
   liens: [
     { titre: "Le cours sur les fonctions de référence en vidéo (Yvan Monka)", url: "https://youtu.be/7BlHXCcTEx8", type: "video" }
   ],
@@ -32,7 +34,7 @@ window.CHAPITRES["seconde-fonctions-reference"] = {
         "- $0$ n'a pas d'image : on ne divise jamais par $0$. Et $\\dfrac{1}{x}$ n'est jamais égal à $0$.\n" +
         "- Elle est **décroissante** sur $]-\\infty\\,;0[$ et **décroissante** sur $]0\\,;+\\infty[$ (mais pas sur $\\mathbb{R}^*$ entier : $-1 < 1$ et $\\dfrac{1}{-1} < \\dfrac{1}{1}$).\n" +
         "- $\\dfrac{1}{x}$ a le **signe de $x$** : négatif pour $x < 0$, positif pour $x > 0$.",
-      figure: "courbe-inverse",
+      figure: "fr-cours-inverse",
       exemple: {
         enonce: "Le trajet Mamoudzou–Sada fait environ $30$ km. La durée (en heures) à la vitesse moyenne $v$ (en km/h) est $t = \\dfrac{30}{v}$. Comparer la durée à $40$ km/h et à $60$ km/h.",
         solution: "$40 < 60$ et la fonction inverse est décroissante sur $]0\\,;+\\infty[$ : $\\dfrac{1}{40} > \\dfrac{1}{60}$, donc $\\dfrac{30}{40} > \\dfrac{30}{60}$. Plus on roule vite, moins le trajet dure : $45$ min contre $30$ min."
@@ -74,7 +76,8 @@ window.CHAPITRES["seconde-fonctions-reference"] = {
         "Algébriquement, on utilise le sens de variation **sur un intervalle** :\n" +
         "- fonction croissante : l'inégalité garde son sens ;\n" +
         "- fonction décroissante : l'inégalité change de sens.\n\n" +
-        "Exemple : sur $]0\\,;+\\infty[$, $\\dfrac{1}{x} < 2 \\iff x > \\dfrac{1}{2}$.",
+        "Exemple : sur $]0\\,;+\\infty[$, $\\dfrac{1}{x} < 2 \\iff x > \\dfrac{1}{2}$ : sur la figure, la courbe est sous la droite $y = 2$ après $0{,}5$.",
+      figure: "fr-cours-resoudre",
       exemple: {
         enonce: "Résoudre sur $]0\\,;+\\infty[$ l'inéquation $\\dfrac{1}{x} \\geqslant 4$.",
         solution: "$\\dfrac{1}{x} = 4 \\iff x = \\dfrac{1}{4}$. La fonction inverse est décroissante sur $]0\\,;+\\infty[$, donc $\\dfrac{1}{x} \\geqslant 4 \\iff x \\leqslant \\dfrac{1}{4}$. $S = \\,]0\\,;\\dfrac{1}{4}]$."
@@ -82,22 +85,22 @@ window.CHAPITRES["seconde-fonctions-reference"] = {
     },
     {
       titre: "Démonstration : comparer $x$, $x^2$ et $x^3$",
-      video: { titre: "Vidéo d'Yvan Monka : démontrer les positions relatives de x, x² et x³", youtube: "https://youtu.be/op54acayjIQ" },
+      video: { titre: "Vidéo d'Yvan Monka : démontrer les positions relatives des courbes de x, x au carré et x au cube", youtube: "https://youtu.be/op54acayjIQ" },
       texte:
         "Pour $x \\geqslant 0$, on étudie le **signe de la différence** : $x^2 - x = x(x - 1)$.\n\n" +
         "- Si $0 \\leqslant x \\leqslant 1$ : $x \\geqslant 0$ et $x - 1 \\leqslant 0$, donc $x^2 - x \\leqslant 0$, soit $x^2 \\leqslant x$.\n" +
         "- Si $x \\geqslant 1$ : les deux facteurs sont positifs, donc $x^2 \\geqslant x$.\n" +
         "- Sur $[0\\,;1]$, la parabole est **sous** la droite $y = x$ ; après $1$, elle est **au-dessus**.\n\n" +
         "De même, $x^3 - x^2 = x^2(x - 1)$ : pour $0 \\leqslant x \\leqslant 1$, $x^3 \\leqslant x^2 \\leqslant x$ ; pour $x \\geqslant 1$, $x \\leqslant x^2 \\leqslant x^3$.",
-      figure: "x-et-x2",
+      figure: "fr-cours-x-x2",
       exemple: {
-        enonce: "Sans calculatrice, ranger $0{,}7$, $0{,}7^2$ et $0{,}7^3$.",
+        enonce: "Sans calculatrice, ranger les trois nombres $0{,}7$ ; $0{,}7^2$ et $0{,}7^3$.",
         solution: "$0{,}7$ est entre $0$ et $1$ : $0{,}7^3 < 0{,}7^2 < 0{,}7$ (en effet $0{,}343 < 0{,}49 < 0{,}7$)."
       }
     },
     {
       titre: "Démonstration : $\\sqrt{2}$ est irrationnel",
-      video: { titre: "Vidéo d'Yvan Monka : démontrer que √2 est irrationnel", youtube: "https://youtu.be/oRcTlNh1Sjc" },
+      video: { titre: "Vidéo d'Yvan Monka : démontrer que racine de 2 est irrationnel", youtube: "https://youtu.be/oRcTlNh1Sjc" },
       texte:
         "**Raisonnement par l'absurde** : on suppose le contraire de ce qu'on veut montrer, et on arrive à une contradiction.\n\n" +
         "Supposons $\\sqrt{2} = \\dfrac{p}{q}$ avec $p$ et $q$ entiers positifs et la fraction **irréductible** (chapitre 4).\n" +
@@ -136,9 +139,9 @@ window.CHAPITRES["seconde-fonctions-reference"] = {
   exercices: [
     { type: "var-ref-courbe", titre: "Reconnaître une fonction de référence", etape: "Les fonctions de référence", nb: 5 },
     { type: "fr-comparer", titre: "Comparer sans calculatrice", etape: "Les fonctions de référence", nb: 6 },
-    { type: "fr-equation", titre: "Résoudre 1/x = k, √x = k, x³ = k", etape: "Équations et inéquations", nb: 5 },
-    { type: "fr-inequation", titre: "Résoudre 1/x < k, √x < k, x³ < k", etape: "Équations et inéquations", nb: 5 },
-    { type: "fr-position", titre: "Ranger x, x² et x³", etape: "Positions relatives", nb: 4 },
+    { type: "fr-equation", titre: "Résoudre $\\dfrac{1}{x} = k$, $\\sqrt{x} = k$, $x^3 = k$", etape: "Équations et inéquations", nb: 5 },
+    { type: "fr-inequation", titre: "Résoudre $\\dfrac{1}{x} < k$, $\\sqrt{x} < k$, $x^3 < k$", etape: "Équations et inéquations", nb: 5 },
+    { type: "fr-position", titre: "Ranger $x$, $x^2$ et $x^3$", etape: "Positions relatives", nb: 4 },
     { type: "fr-python", titre: "Python : encadrer une racine carrée", etape: "Python", nb: 3 }
   ],
 
@@ -196,7 +199,11 @@ window.CHAPITRES["seconde-fonctions-reference"] = {
     { question: "L'image de $-0{,}25$ par la fonction inverse est :", choix: ["$-4$", "$4$", "$0{,}25$", "$-0{,}4$"], bonne: 0, explication: "$\\dfrac{1}{-0{,}25} = -\\dfrac{1}{0{,}25} = -4$. L'inverse a le signe du nombre." },
     { question: "L'antécédent de $5$ par la fonction inverse est :", choix: ["$0{,}2$", "$-5$", "$5$", "$0{,}5$"], bonne: 0, explication: "$\\dfrac{1}{x} = 5 \\iff x = \\dfrac{1}{5} = 0{,}2$. Vérification : $\\dfrac{1}{0{,}2} = 5$." },
     { question: "On a $-3 < -2$. On en déduit :", choix: ["$\\dfrac{1}{-3} > \\dfrac{1}{-2}$", "$\\dfrac{1}{-3} < \\dfrac{1}{-2}$", "$\\dfrac{1}{-3} = \\dfrac{1}{-2}$", "rien : on ne compare pas les inverses de nombres négatifs"], bonne: 0, explication: "La fonction inverse est décroissante sur $]-\\infty\\,;0[$ : l'ordre est inversé. En effet $-\\dfrac{1}{3} \\approx -0{,}33$ est plus grand que $-0{,}5$." },
-    { question: "Vrai ou faux : la fonction inverse est décroissante sur $\\mathbb{R}^*$ tout entier.", choix: ["Faux", "Vrai"], bonne: 0, explication: "Contre-exemple : $-1 < 1$ et $\\dfrac{1}{-1} = -1 < 1 = \\dfrac{1}{1}$, l'ordre est conservé. Elle est décroissante sur chacun des deux intervalles séparément." },
+    { question: "Sur quel(s) intervalle(s) la fonction inverse est-elle décroissante ?", figure: "fr-cours-inverse", choix: ["sur $]-\\infty\\,;0[$ et sur $]0\\,;+\\infty[$, séparément", "sur $\\mathbb{R}^*$ tout entier", "seulement sur $]0\\,;+\\infty[$", "sur $\\mathbb{R}$"], bonne: 0, explication: "Elle est décroissante sur chacun des deux intervalles. Mais pas sur $\\mathbb{R}^*$ tout entier : $-1 < 1$ et $\\dfrac{1}{-1} = -1 < 1 = \\dfrac{1}{1}$, l'ordre est conservé. Et $0$ n'a pas d'image." },
+    { question: "D'après la figure ci-dessous, l'ensemble des solutions de $\\dfrac{1}{x} < 2$ sur $]0\\,;+\\infty[$ est :", figure: "fr-cours-resoudre", choix: ["$]0{,}5\\,;+\\infty[$", "$]0\\,;0{,}5[$", "$]2\\,;+\\infty[$", "$]-\\infty\\,;0{,}5[$"], bonne: 0, explication: "La courbe est sous la droite $y = 2$ pour $x > 0{,}5$. Par le calcul : la fonction inverse est décroissante sur $]0\\,;+\\infty[$, donc $\\dfrac{1}{x} < \\dfrac{1}{0{,}5} \\iff x > 0{,}5$." },
+    { question: "D'après la figure ci-dessous, l'équation $\\sqrt{x} = 2$ a pour solution :", figure: "fr-cours-racine", choix: ["$4$", "$2$", "$\\sqrt{2}$", "$-4$ et $4$"], bonne: 0, explication: "La droite $y = 2$ coupe la courbe au point d'abscisse $4$ : $\\sqrt{4} = 2$. Une racine carrée n'est définie que pour $x \\geqslant 0$, d'où une seule solution." },
+    { question: "Sur la figure ci-dessous, pour $x$ entre $0$ et $1$ :", figure: "fr-cours-x-x2",choix: ["la courbe de $x^2$ est sous la droite $y = x$, donc $x^2 \\leqslant x$", "la courbe de $x^2$ est au-dessus de la droite, donc $x^2 \\geqslant x$", "les deux sont confondues", "on ne peut pas comparer"], bonne: 0, explication: "Entre $0$ et $1$, la parabole est sous la droite : $x^2 \\leqslant x$ (par exemple $0{,}5^2 = 0{,}25$). Après $1$, c'est l'inverse." },
+    { question: "La figure ci-dessous montre les courbes de la racine carrée et de la fonction cube. La fonction cube est :", figure: "courbe-racine-cube", choix: ["croissante sur $\\mathbb{R}$", "décroissante sur $]-\\infty\\,;0]$ puis croissante", "définie seulement pour $x \\geqslant 0$", "toujours positive"], bonne: 0, explication: "Sa courbe monte sur tout $\\mathbb{R}$ et passe par l'origine : la fonction cube est croissante sur $\\mathbb{R}$, et $x^3$ a le signe de $x$." },
     { question: "Dans la démonstration du cours, pour $0 < a < b$, le nombre $\\dfrac{1}{b} - \\dfrac{1}{a} = \\dfrac{a - b}{ab}$ est :", choix: ["négatif, car $a - b < 0$ et $ab > 0$", "positif, car $a$ et $b$ sont positifs", "négatif, car $ab < 0$", "nul"], bonne: 0, explication: "Le numérateur $a - b$ est négatif et le dénominateur $ab$ positif : le quotient est négatif, donc $\\dfrac{1}{b} < \\dfrac{1}{a}$." },
     { question: "L'équation $\\sqrt{x} = -4$ a :", choix: ["aucune solution", "une solution : $16$", "une solution : $-16$", "deux solutions : $16$ et $-16$"], bonne: 0, explication: "Une racine carrée est toujours positive : elle ne peut pas valoir $-4$. ($\\sqrt{16} = 4$, pas $-4$.)" },
     { question: "La solution de $x^3 = -8$ est :", choix: ["$-2$", "$2$", "il n'y en a pas : un cube est toujours positif", "$-\\dfrac{8}{3}$"], bonne: 0, explication: "$(-2)^3 = -8$. Un cube a le signe du nombre, et $x^3 = k$ a toujours une seule solution." },
@@ -220,6 +227,7 @@ window.CHAPITRES["seconde-fonctions-reference"] = {
         "Fonction croissante : les images sont dans le même ordre. Décroissante : dans l'ordre inverse.",
         "Conclus avec la bonne inégalité, en citant la fonction et l'intervalle."
       ],
+      figure: "fr-cours-inverse",
       exemple: "$0 < 0{,}2 < 0{,}5$ et l'inverse est décroissante sur $]0\\,;+\\infty[$ : $\\dfrac{1}{0{,}2} > \\dfrac{1}{0{,}5}$."
     },
     {
@@ -230,6 +238,7 @@ window.CHAPITRES["seconde-fonctions-reference"] = {
         "Utiliser le sens de variation sur l'intervalle étudié pour conclure.",
         "Contrôler sur la courbe."
       ],
+      figure: "fr-cours-racine",
       exemple: "$\\sqrt{x} < 3 \\iff 0 \\leqslant x < 9$."
     },
     {
@@ -239,6 +248,7 @@ window.CHAPITRES["seconde-fonctions-reference"] = {
         "Entre $0$ et $1$ : $x^3 \\leqslant x^2 \\leqslant x$.",
         "Au-delà de $1$ : $x \\leqslant x^2 \\leqslant x^3$."
       ],
+      figure: "fr-cours-x-x2",
       exemple: "$1{,}5 < 1{,}5^2 = 2{,}25 < 1{,}5^3 = 3{,}375$."
     }
   ],
