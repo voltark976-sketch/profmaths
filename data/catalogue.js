@@ -948,6 +948,27 @@ window.CATALOGUE = {
       ]
     },
     {
+      id: "tronc",
+      nom: "Première tronc commun",
+      intro: "Mathématiques de Première générale pour les élèves qui n'ont pas la spécialité maths : programme intégré à l'enseignement scientifique (BO n° 14 du 2 avril 2026), suivi dans l'ordre du texte officiel : automatismes, information chiffrée, phénomènes aléatoires, phénomènes d'évolution. Vidéos de la chaîne quand elles existent, sinon d'Yvan Monka.",
+      exercices: "assets/exercices-tronc.js",
+      chapitres: [
+        { id: "tronc-evolutions", numero: 1, titre: "Automatismes : évolutions et pourcentages", statut: "disponible", drive: "" },
+        { id: "tronc-calcul", numero: 2, titre: "Automatismes : calcul algébrique et signes", statut: "disponible", drive: "" },
+        { id: "tronc-graphiques", numero: 3, titre: "Automatismes : fonctions, graphiques et droites", statut: "disponible", drive: "" },
+        { id: "tronc-donnees", numero: 4, titre: "Automatismes : lire et résumer des données", statut: "disponible", drive: "" },
+        { id: "tronc-tableaux-croises", numero: 5, titre: "Tableaux croisés : deux caractères qualitatifs", statut: "disponible", drive: "" },
+        { id: "tronc-ajustement-affine", numero: 6, titre: "Deux caractères quantitatifs : nuage de points et ajustement affine", statut: "disponible", drive: "" },
+        { id: "tronc-probabilites-conditionnelles", numero: 7, titre: "Probabilités conditionnelles et indépendance", statut: "disponible", drive: "" },
+        { id: "tronc-epreuves-bernoulli", numero: 8, titre: "Répétition d'épreuves de Bernoulli", statut: "disponible", drive: "" },
+        { id: "tronc-suites-arithmetiques", numero: 9, titre: "Suites arithmétiques : croissance linéaire", statut: "disponible", drive: "" },
+        { id: "tronc-fonctions-affines", numero: 10, titre: "Fonctions affines : modéliser une variation linéaire", statut: "disponible", drive: "" },
+        { id: "tronc-second-degre", numero: 11, titre: "Fonctions polynômes de degré 2", statut: "disponible", drive: "" },
+        { id: "tronc-suites-geometriques", numero: 12, titre: "Suites géométriques : croissance exponentielle", statut: "disponible", drive: "" },
+        { id: "tronc-fonctions-exponentielles", numero: 13, titre: "Fonctions exponentielles : de la suite géométrique à la courbe", statut: "disponible", drive: "" }
+      ]
+    },
+    {
       id: "techno",
       nom: "Première technologique",
       intro: "Tronc commun de mathématiques des séries technologiques (STMG, STI2D, STL, ST2S, STHR…), nouveau programme 2026 (BO n° 14 du 2 avril 2026) suivi dans l'ordre du texte officiel : logique, Python, automatismes, suites, fonctions, dérivation, statistiques et probabilités. Vidéos de la chaîne quand elles existent, sinon d'Yvan Monka.",

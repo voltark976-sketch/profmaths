@@ -456,6 +456,7 @@
     seconde: "Les bases solides du lycée",
     automatismes: "Calcul et réflexes, pour l'épreuve anticipée",
     premiere: "Suites, second degré et plus",
+    tronc: "Sans spécialité maths : enseignement scientifique",
     techno: "Tronc commun STMG, STI2D, STL, ST2S…",
     "terminale-spe": "Vers le bac et le supérieur",
     expertes: "Complexes, arithmétique, graphes et matrices",
@@ -468,7 +469,7 @@
     college: { nom: "Collège", sous: "De la 6e à la 3e", glyphe: "÷", lead: "Choisis ta classe. Chaque chapitre suit le programme officiel en vigueur cette année.", niveaux: () => CATALOGUE.niveaux.filter((n) => n.groupe === "college") },
     lycee: { nom: "Lycée", sous: "De la Seconde à la Terminale", glyphe: "∫", lead: "Choisis ta classe. Les chapitres sont rangés dans l'ordre des playlists de la chaîne.", niveaux: () => CATALOGUE.niveaux.filter((n) => !n.groupe) }
   };
-  const COURT = { "Première spécialité": "Première spé", "Première technologique": "Première techno", "Terminale spécialité": "Terminale spé", "Terminale maths complémentaires": "Terminale compl." };
+  const COURT = { "Première spécialité": "Première spé", "Première tronc commun": "Première tronc commun", "Première technologique": "Première techno", "Terminale spécialité": "Terminale spé", "Terminale maths complémentaires": "Terminale compl." };
   const carteNiveau = (href, id, nom, nb) => `<a class="carte-niv" href="${href}" data-niv="${esc(id)}"><span class="pastille-niv" aria-hidden="true"></span><span class="carte-niv-t"><strong>${esc(nom)}</strong>${ACCROCHES[id] ? `<span class="accroche">${esc(ACCROCHES[id])}</span>` : ""}<span class="meta">${nb ? `${nb} chapitre${nb > 1 ? "s" : ""} en ligne` : "En préparation"}</span></span><span class="go" aria-hidden="true">→</span></a>`;
 
   function pageAccueil() {
@@ -1594,7 +1595,7 @@
 
   let filtreClassement = "";
   // Nom court d'une classe dans le classement : les deux Terminales doivent rester distinctes
-  const COURTES = { "Première technologique": "1re techno", "Terminale spécialité": "Tle spé", "Terminale maths complémentaires": "Tle compl.", "Terminale maths expertes": "Tle exp." };
+  const COURTES = { "Première tronc commun": "1re TC", "Première technologique": "1re techno", "Terminale spécialité": "Tle spé", "Terminale maths complémentaires": "Tle compl.", "Terminale maths expertes": "Tle exp." };
   const classeCourte = (cl) => COURTES[cl] || cl.split(" ")[0];
   function afficherClassement() {
     const $top = document.getElementById("top");

@@ -17,6 +17,7 @@
 :root[data-theme="ocean"] [data-niv="terminale"] { --ac: #7fb3ff; --ac-pale: #14304d; }
 :root[data-theme="ocean"] [data-niv="terminale-spe"] { --ac: #ff8fb1; --ac-pale: #43202f; }
 :root[data-theme="ocean"] [data-niv="expertes"] { --ac: #f0c45a; --ac-pale: #3a3018; }
+:root[data-theme="ocean"] [data-niv="tronc"] { --ac: #b5d66a; --ac-pale: #253418; }
 :root[data-theme="ocean"] .onglets a[aria-current="page"] { color: var(--fond); }
 :root[data-theme="ocean"] .chap-prog, :root[data-theme="ocean"] .chap-prog.fini { color: var(--encre); }
 /* Fond de page : bleu profond, rayons et bulles qui ne bougent pas */
