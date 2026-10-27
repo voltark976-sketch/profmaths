@@ -446,6 +446,7 @@ code.tt { font: 0.92em/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monosp
 [data-niv="terminale"] { --ac: #1e63b8; --ac-pale: #e1ecfa; }
 [data-niv="terminale-spe"] { --ac: #b3345e; --ac-pale: #fbe4eb; }
 [data-niv="expertes"] { --ac: #8a6300; --ac-pale: #f8eccb; }
+[data-niv="techno"] { --ac: #0e7c86; --ac-pale: #d8f1f3; }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme]) { --ombre: 0 1px 2px rgba(0, 0, 0, 0.3); --ombre-haut: 0 10px 26px rgba(0, 0, 0, 0.45); --hero-a: #0b5e5a; --hero-b: #123f63; }
   :root:not([data-theme]) [data-niv="college"], :root:not([data-theme]) [data-niv="sixieme"], :root:not([data-theme]) [data-niv="cinquieme"], :root:not([data-theme]) [data-niv="quatrieme"], :root:not([data-theme]) [data-niv="troisieme"] { --ac: #7fd38d; --ac-pale: #15321b; }
@@ -455,6 +456,7 @@ code.tt { font: 0.92em/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monosp
   :root:not([data-theme]) [data-niv="terminale"] { --ac: #7fb3ff; --ac-pale: #172c47; }
   :root:not([data-theme]) [data-niv="terminale-spe"] { --ac: #ff8fb1; --ac-pale: #43192a; }
   :root:not([data-theme]) [data-niv="expertes"] { --ac: #f0c45a; --ac-pale: #3b2f0e; }
+  :root:not([data-theme]) [data-niv="techno"] { --ac: #5fd0dc; --ac-pale: #0f3438; }
 }
 :root[data-theme="dark"] { --ombre: 0 1px 2px rgba(0, 0, 0, 0.3); --ombre-haut: 0 10px 26px rgba(0, 0, 0, 0.45); --hero-a: #0b5e5a; --hero-b: #123f63; }
 :root[data-theme="dark"] [data-niv="college"], :root[data-theme="dark"] [data-niv="sixieme"], :root[data-theme="dark"] [data-niv="cinquieme"], :root[data-theme="dark"] [data-niv="quatrieme"], :root[data-theme="dark"] [data-niv="troisieme"] { --ac: #7fd38d; --ac-pale: #15321b; }
@@ -464,6 +466,7 @@ code.tt { font: 0.92em/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monosp
 :root[data-theme="dark"] [data-niv="terminale"] { --ac: #7fb3ff; --ac-pale: #172c47; }
 :root[data-theme="dark"] [data-niv="terminale-spe"] { --ac: #ff8fb1; --ac-pale: #43192a; }
 :root[data-theme="dark"] [data-niv="expertes"] { --ac: #f0c45a; --ac-pale: #3b2f0e; }
+:root[data-theme="dark"] [data-niv="techno"] { --ac: #5fd0dc; --ac-pale: #0f3438; }
 
 body { background: radial-gradient(60rem 30rem at 85% -10%, var(--lagon-pale), transparent 70%) no-repeat, var(--fond); }
 

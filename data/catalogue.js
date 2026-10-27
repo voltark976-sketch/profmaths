@@ -948,6 +948,28 @@ window.CATALOGUE = {
       ]
     },
     {
+      id: "techno",
+      nom: "Première technologique",
+      intro: "Tronc commun de mathématiques des séries technologiques (STMG, STI2D, STL, ST2S, STHR…), nouveau programme 2026 (BO n° 14 du 2 avril 2026) suivi dans l'ordre du texte officiel : logique, Python, automatismes, suites, fonctions, dérivation, statistiques et probabilités. Vidéos de la chaîne quand elles existent, sinon d'Yvan Monka.",
+      exercices: "assets/exercices-techno.js",
+      chapitres: [
+        { id: "techno-ensembles-logique", numero: 1, titre: "Ensembles et logique", statut: "disponible", drive: "" },
+        { id: "techno-python-listes", numero: 2, titre: "Python : fonctions et listes", statut: "disponible", drive: "" },
+        { id: "techno-evolutions", numero: 3, titre: "Automatismes : évolutions et pourcentages", statut: "disponible", drive: "" },
+        { id: "techno-calcul-graphiques", numero: 4, titre: "Automatismes : calcul, fonctions et graphiques", statut: "disponible", drive: "" },
+        { id: "techno-suites", numero: 5, titre: "Suites numériques", statut: "disponible", drive: "" },
+        { id: "techno-suites-arithmetiques-geometriques", numero: 6, titre: "Suites arithmétiques et géométriques", statut: "disponible", drive: "" },
+        { id: "techno-fonctions", numero: 7, titre: "Fonctions : courbes et taux de variation", statut: "disponible", drive: "" },
+        { id: "techno-second-degre", numero: 8, titre: "Fonctions polynômes de degré 2", statut: "disponible", drive: "" },
+        { id: "techno-nombre-derive", numero: 9, titre: "Nombre dérivé et tangente", statut: "disponible", drive: "" },
+        { id: "techno-fonction-derivee", numero: 10, titre: "Fonction dérivée et variations", statut: "disponible", drive: "" },
+        { id: "techno-deux-variables", numero: 11, titre: "Statistiques à deux variables : ajustement affine", statut: "disponible", drive: "" },
+        { id: "techno-probabilites-conditionnelles", numero: 12, titre: "Probabilités conditionnelles et indépendance", statut: "disponible", drive: "" },
+        { id: "techno-epreuves-bernoulli", numero: 13, titre: "Répétition d'épreuves de Bernoulli", statut: "disponible", drive: "" },
+        { id: "techno-variables-aleatoires", numero: 14, titre: "Variables aléatoires et loi de Bernoulli", statut: "disponible", drive: "" }
+      ]
+    },
+    {
       id: "terminale-spe",
       nom: "Terminale spécialité",
       intro: "Les 15 chapitres dans l'ordre de la progression de l'année. Dans chaque chapitre : automatismes et algorithmique en Python.",
