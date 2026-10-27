@@ -1659,4 +1659,285 @@
     }
     return s + "</svg>";
   };
+
+
+  /* ---------- Chapitre 9 : matrices et calcul matriciel (préfixe xm) ---------- */
+  const mRand = (n, p, a = -5, b = 6) => Array.from({ length: n }, () => Array.from({ length: p }, () => rand(a, b)));
+  const ORD = ["", "première", "deuxième", "troisième"];
+  const coefNom = (i, j) => `$(${i}\\,;${j})$`;
+  const mInv2 = (M) => { const d = det2(M); return [[Q(M[1][1], d), Q(-M[0][1], d)], [Q(-M[1][0], d), Q(M[0][0], d)]]; };
+  const matQ = (M) => mat(M.map((l) => l.map((q) => qTex(q))));
+
+  def("xm-operations", () => {
+    const n = pick([2, 2, 3]), p = pick([2, 3]), A = mRand(n, p), B = mRand(n, p), a = pick([-3, -2, -1, 2, 3, 4]), b = pick([-3, -2, -1, 1, 2, 3]);
+    const i = rand(1, n), j = rand(1, p), att = a * A[i - 1][j - 1] + b * B[i - 1][j - 1];
+    const nom = `${a === 1 ? "" : a === -1 ? "-" : nb(a)}A ${b < 0 ? "-" : "+"} ${Math.abs(b) === 1 ? "" : nb(Math.abs(b))}B`;
+    return { enonce: `On donne $A = ${mat(A)}$ et $B = ${mat(B)}$. Quel est le coefficient de la ligne $${i}$ et de la colonne $${j}$ de $${nom}$ ?`, mode: "nombre", prefixe: `Coefficient ${coefNom(i, j)} :`, attendu: att,
+      erreurs: [{ valeur: a * A[j - 1] !== undefined && A[j - 1] && A[j - 1][i - 1] !== undefined ? a * A[j - 1][i - 1] + b * B[j - 1][i - 1] : NaN, message: "Attention : ligne $" + i + "$ d'abord, colonne $" + j + "$ ensuite." }, { valeur: A[i - 1][j - 1] + B[i - 1][j - 1], message: "N'oublie pas de multiplier par les coefficients $" + nb(a) + "$ et $" + nb(b) + "$." }, { valeur: a * A[i - 1][j - 1] - b * B[i - 1][j - 1], message: "Attention au signe devant $B$." }],
+      aides: ["On additionne et on multiplie par un réel **coefficient par coefficient**.", `Le coefficient ${coefNom(i, j)} de $A$ est $${nb(A[i - 1][j - 1])}$, celui de $B$ est $${nb(B[i - 1][j - 1])}$.`, `Calcule $${pr(a)} \\times ${pr(A[i - 1][j - 1])} + ${pr(b)} \\times ${pr(B[i - 1][j - 1])}$.`],
+      solution: `$${pr(a)} \\times ${pr(A[i - 1][j - 1])} + ${pr(b)} \\times ${pr(B[i - 1][j - 1])} = ${nb(att)}$.\n\nEn entier : $${nom} = ${mat(mAdd(A, B, a, b))}$.` };
+  });
+
+  def("xm-produit", () => {
+    const t = pick(["22", "22", "33", "23"]);
+    const [n, k, p] = t === "22" ? [2, 2, 2] : t === "33" ? [3, 3, 3] : pick([[2, 3, 2], [3, 2, 3], [2, 3, 3], [3, 2, 2]]);
+    const A = mRand(n, k, -4, 5), B = mRand(k, p, -4, 5), i = rand(1, n), j = rand(1, p), P = mMul(A, B), att = P[i - 1][j - 1];
+    const ligne = A[i - 1], col = B.map((l) => l[j - 1]);
+    const BA = n === p && k === n ? mMul(B, A)[i - 1][j - 1] : NaN;
+    return { enonce: `On donne $A = ${mat(A)}$ et $B = ${mat(B)}$. Quel est le coefficient ${coefNom(i, j)} (ligne $${i}$, colonne $${j}$) du produit $AB$ ?`, mode: "nombre", prefixe: `$(AB)_{${i}${j}} =$`, attendu: att,
+      erreurs: [{ valeur: A[i - 1][j - 1] !== undefined && B[i - 1] && B[i - 1][j - 1] !== undefined ? A[i - 1][j - 1] * B[i - 1][j - 1] : NaN, message: "On ne multiplie pas les coefficients à la même place : c'est « ligne de $A$ × colonne de $B$ »." }, { valeur: BA, message: "Ça, c'est le coefficient de $BA$ : l'ordre compte, le produit n'est pas commutatif." }, { valeur: ligne.reduce((s, v, q) => s + v + col[q], 0), message: "On multiplie terme à terme, puis on additionne les produits." }],
+      aides: [`Le coefficient ${coefNom(i, j)} de $AB$ s'obtient avec la **ligne $${i}$ de $A$** et la **colonne $${j}$ de $B$**.`, `Ligne $${i}$ de $A$ : ${liste(ligne)}. Colonne $${j}$ de $B$ : ${liste(col)}.`, "Multiplie les termes deux à deux, puis additionne."],
+      solution: `$(AB)_{${i}${j}} = ${ligne.map((v, q) => `${pr(v)} \\times ${pr(col[q])}`).join(" + ")} = ${nb(att)}$.\n\nEn entier : $AB = ${mat(P)}$.` };
+  });
+
+  def("xm-dimension", () => {
+    const d = () => rand(1, 4);
+    let [n, k, k2, p] = [d(), d(), d(), d()];
+    if (Math.random() < 0.65) k2 = k; else while (k2 === k) k2 = d();
+    const ok = k === k2, bonne = ok ? `$${n} \\times ${p}$` : "Le produit n'existe pas";
+    const f = [`$${p} \\times ${n}$`, `$${k} \\times ${k2}$`, `$${n} \\times ${k}$`, ok ? "Le produit n'existe pas" : `$${n} \\times ${p}$`, `$${n} \\times ${k2}$`, `$${k} \\times ${p}$`];
+    const ch = choix4(bonne, f.filter((x) => x !== bonne), (j) => `$${j + 1} \\times ${j + 2}$`);
+    return { enonce: `$A$ est une matrice à $${n}$ ligne${n > 1 ? "s" : ""} et $${k}$ colonne${k > 1 ? "s" : ""}, $B$ une matrice à $${k2}$ ligne${k2 > 1 ? "s" : ""} et $${p}$ colonne${p > 1 ? "s" : ""}. Quelle est la taille du produit $AB$ ?`, mode: "choix", choix: ch.choix, attendu: ch.attendu,
+      aides: ["Le produit $AB$ n'existe que si le nombre de **colonnes de $A$** est égal au nombre de **lignes de $B$**.", `Ici : $${k}$ colonne${k > 1 ? "s" : ""} pour $A$, $${k2}$ ligne${k2 > 1 ? "s" : ""} pour $B$.`, "S'il existe, $AB$ a autant de lignes que $A$ et autant de colonnes que $B$."],
+      solution: ok ? `$A$ a $${k}$ colonnes et $B$ a $${k}$ lignes : le produit existe. $AB$ a $${n}$ ligne${n > 1 ? "s" : ""} (comme $A$) et $${p}$ colonne${p > 1 ? "s" : ""} (comme $B$) : c'est une matrice $${n} \\times ${p}$.` : `$A$ a $${k}$ colonne${k > 1 ? "s" : ""} mais $B$ a $${k2}$ ligne${k2 > 1 ? "s" : ""} : on ne peut pas faire « ligne par colonne », le produit $AB$ n'existe pas.` };
+  });
+
+  def("xm-puissance", () => {
+    const t = pick(["carre", "carre", "diag", "triang"]);
+    if (t === "diag") {
+      const a = pick([-3, -2, -1, 2, 3]), b = pick([-2, -1, 2, 3, 4]), c = pick([1, 2, -1]), n = rand(3, 7), D = [[a, 0, 0], [0, b, 0], [0, 0, c]], k = rand(1, 3);
+      const v = [a, b, c][k - 1] ** n;
+      return { enonce: `On donne la matrice diagonale $D = ${mat(D)}$. Quel est le coefficient ${coefNom(k, k)} de $D^{${n}}$ ?`, mode: "nombre", prefixe: `$(D^{${n}})_{${k}${k}} =$`, attendu: v,
+        erreurs: [{ valeur: n * [a, b, c][k - 1], message: "Une puissance n'est pas une multiplication par $" + n + "$." }, { valeur: Math.abs(v), message: "Attention au signe d'une puissance d'un nombre négatif." }],
+        aides: ["Le produit de deux matrices diagonales est diagonal, avec les produits des coefficients diagonaux.", `Donc $D^{${n}}$ est diagonale, de coefficients $${pr(a)}^{${n}}$, $${pr(b)}^{${n}}$ et $${pr(c)}^{${n}}$.`, `Calcule $${pr([a, b, c][k - 1])}^{${n}}$.`],
+        solution: `$D^{${n}} = ${mat([[`${pr(a)}^{${n}}`, 0, 0], [0, `${pr(b)}^{${n}}`, 0], [0, 0, `${pr(c)}^{${n}}`]])} = ${mat([[a ** n, 0, 0], [0, b ** n, 0], [0, 0, c ** n]])}$.\n\nLe coefficient cherché vaut $${nb(v)}$.` };
+    }
+    if (t === "triang") {
+      const a = pick([-4, -3, -2, -1, 1, 2, 3, 4, 5]), n = rand(3, 20), A = [[1, a], [0, 1]];
+      return { enonce: `On donne $A = ${mat(A)}$. En calculant $A^2$ et $A^3$, conjecture $A^n$. Quel est le coefficient en haut à droite de $A^{${n}}$ ?`, mode: "nombre", prefixe: `Coefficient ${coefNom(1, 2)} :`, attendu: n * a,
+        erreurs: [{ valeur: a ** n, message: "Calcule $A^2$ et $A^3$ : le coefficient ne se multiplie pas, il s'ajoute." }, { valeur: a, message: "Il change à chaque puissance." }, { valeur: (n - 1) * a, message: "Vérifie sur $A^2$ : coefficient $" + 2 * a + "$." }],
+        aides: [`$A^2 = ${mat(mPow(A, 2))}$.`, `$A^3 = ${mat(mPow(A, 3))}$.`, `On conjecture $A^n = ${mat([[1, coef(a, "n")], [0, 1]])}$ (cela se démontre par récurrence).`],
+        solution: `$A^2 = ${mat(mPow(A, 2))}$, $A^3 = ${mat(mPow(A, 3))}$ : le coefficient en haut à droite augmente de $${nb(a)}$ à chaque fois.\n\nPar récurrence, $A^n = ${mat([[1, `${nb(a)}n`.replace(/^1n$/, "n").replace(/^-1n$/, "-n")], [0, 1]])}$, donc ce coefficient vaut $${n} \\times ${pr(a)} = ${nb(n * a)}$ pour $n = ${n}$.` };
+    }
+    const n = pick([2, 2, 3]), A = mRand(n, n, -3, 4), A2 = mMul(A, A), i = rand(1, n), j = rand(1, n);
+    return { enonce: `On donne $A = ${mat(A)}$. Quel est le coefficient ${coefNom(i, j)} de $A^2$ ?`, mode: "nombre", prefixe: `$(A^2)_{${i}${j}} =$`, attendu: A2[i - 1][j - 1],
+      erreurs: [{ valeur: A[i - 1][j - 1] ** 2, message: "$A^2 = A \\times A$ : on ne met pas chaque coefficient au carré." }, { valeur: 2 * A[i - 1][j - 1], message: "$A^2$ n'est pas $2A$." }],
+      aides: ["$A^2 = A \\times A$ : produit « ligne par colonne ».", `Ligne $${i}$ de $A$ : ${liste(A[i - 1])}. Colonne $${j}$ de $A$ : ${liste(A.map((l) => l[j - 1]))}.`, "Multiplie terme à terme et additionne."],
+      solution: `$(A^2)_{${i}${j}} = ${A[i - 1].map((v, q) => `${pr(v)} \\times ${pr(A[q][j - 1])}`).join(" + ")} = ${nb(A2[i - 1][j - 1])}$.\n\n$A^2 = ${mat(A2)}$.` };
+  });
+
+  def("xm-inverse", () => {
+    let M, d; do { M = mRand(2, 2, -6, 7); d = det2(M); } while (!d || Math.abs(d) > 12 || M.flat().filter((x) => x === 0).length > 1);
+    const I = mInv2(M);
+    const bonne = `$${matQ(I)}$`;
+    const sans = mat([[M[1][1], -M[0][1]], [-M[1][0], M[0][0]]]);
+    const transp = matQ([[Q(M[1][1], d), Q(-M[1][0], d)], [Q(-M[0][1], d), Q(M[0][0], d)]]);
+    const signe = matQ([[Q(M[1][1], d), Q(M[0][1], d)], [Q(M[1][0], d), Q(M[0][0], d)]]);
+    const diag = matQ([[Q(M[0][0], d), Q(-M[0][1], d)], [Q(-M[1][0], d), Q(M[1][1], d)]]);
+    const f = [Math.abs(d) === 1 ? null : `$${sans}$`, `$${transp}$`, `$${signe}$`, `$${diag}$`, `$${matQ([[Q(M[1][1], -d), Q(-M[0][1], -d)], [Q(-M[1][0], -d), Q(M[0][0], -d)]])}$`];
+    const ch = choix4(bonne, f);
+    return { enonce: `Quelle est l'inverse de la matrice $A = ${mat(M)}$ ?`, mode: "choix", choix: ch.choix, attendu: ch.attendu,
+      aides: [`$\\det(A) = ad - bc = ${pr(M[0][0])} \\times ${pr(M[1][1])} - ${pr(M[0][1])} \\times ${pr(M[1][0])} = ${d}$.`, "Pour $A = \\begin{pmatrix} a & b \\\\ c & d \\end{pmatrix}$ avec $ad - bc \\neq 0$ : $A^{-1} = \\dfrac{1}{ad - bc}\\begin{pmatrix} d & -b \\\\ -c & a \\end{pmatrix}$.", "On échange les coefficients de la diagonale et on change le signe des deux autres, puis on divise par le déterminant."],
+      solution: `$ad - bc = ${d} \\neq 0$, donc $A$ est inversible et $A^{-1} = ${Math.abs(d) === 1 ? (d < 0 ? "-" : "") : `${d < 0 ? "-" : ""}\\dfrac{1}{${Math.abs(d)}}`}${sans} =${matQ(I)}$.\n\nVérification : $A \\times A^{-1} = I_2$.` };
+  });
+
+  def("xm-det", () => {
+    const t = pick(["k", "k", "calc"]);
+    if (t === "calc") { const M = mRand(2, 2, -9, 10), d = det2(M); return { enonce: `La matrice $A = ${mat(M)}$ est-elle inversible ? Pour le savoir, calcule $ad - bc$.`, mode: "nombre", prefixe: "$ad - bc =$", attendu: d,
+      erreurs: [{ valeur: M[0][0] * M[1][1] + M[0][1] * M[1][0], message: "C'est une différence : $ad - bc$." }, { valeur: M[0][1] * M[1][0] - M[0][0] * M[1][1], message: "Dans l'autre sens : $ad - bc$ (diagonale principale moins l'autre)." }, { valeur: M[0][0] * M[0][1] - M[1][0] * M[1][1], message: "On multiplie en diagonale : $a \\times d$ et $b \\times c$." }],
+      aides: ["Une matrice $2 \\times 2$ est inversible si et seulement si $ad - bc \\neq 0$.", `$a = ${nb(M[0][0])}$, $b = ${nb(M[0][1])}$, $c = ${nb(M[1][0])}$, $d = ${nb(M[1][1])}$.`, `$ad - bc = ${pr(M[0][0])} \\times ${pr(M[1][1])} - ${pr(M[0][1])} \\times ${pr(M[1][0])}$.`],
+      solution: `$ad - bc = ${pr(M[0][0])} \\times ${pr(M[1][1])} - ${pr(M[0][1])} \\times ${pr(M[1][0])} = ${nb(d)}$. ${d ? "Ce nombre n'est pas nul : $A$ est inversible." : "Il est nul : $A$ n'est pas inversible."}` }; }
+    const dd = pick([-4, -3, -2, -1, 1, 2, 3, 4]), k0 = pick([-6, -5, -4, -3, -2, -1, 1, 2, 3, 4, 5, 6]), P = k0 * dd;
+    const c = pick(diviseurs(Math.abs(P))) * pick([1, -1]), b = P / c;
+    return { enonce: `Pour quelle valeur du réel $k$ la matrice $A = ${mat([["k", b], [c, dd]])}$ n'est-elle **pas** inversible ?`, mode: "nombre", prefixe: "$k =$", attendu: k0,
+      erreurs: [{ valeur: -k0, message: "Attention au signe en résolvant l'équation." }, { valeur: b * c, message: "Il faut encore diviser par $" + nb(dd) + "$." }],
+      aides: ["$A$ n'est pas inversible si et seulement si $ad - bc = 0$.", `Ici $ad - bc = ${coef(dd, "k")} ${plus(-b * c)}$.`, "Résous cette équation du premier degré."],
+      solution: `$ad - bc = ${coef(dd, "k")} ${plus(-b * c)}$. Il est nul pour $k = ${nb(k0)}$ : c'est la seule valeur pour laquelle $A$ n'est pas inversible.` };
+  });
+
+  def("xm-systeme", () => {
+    let M, d; do { M = mRand(2, 2, -5, 6); d = det2(M); } while (!d || M.flat().filter((x) => x === 0).length > 1);
+    const X = [rand(-6, 6), rand(-6, 6)], B = [M[0][0] * X[0] + M[0][1] * X[1], M[1][0] * X[0] + M[1][1] * X[1]], quoi = pick(["x", "y"]);
+    const eq = (l, r) => { const tx = l[0] ? coef(l[0], "x") : "", ty = l[1] ? (tx ? " " + pt(l[1], "y") : coef(l[1], "y")) : ""; return `${tx}${ty} = ${nb(r)}`; };
+    const I = mInv2(M);
+    return { enonce: `On considère le système $\\begin{cases} ${eq(M[0], B[0])} \\\\ ${eq(M[1], B[1])} \\end{cases}$. On l'écrit $AX = B$ avec $X = \\begin{pmatrix} x \\\\ y \\end{pmatrix}$. Que vaut $${quoi}$ ?`, mode: "nombre", prefixe: `$${quoi} =$`, attendu: quoi === "x" ? X[0] : X[1],
+      erreurs: [{ valeur: quoi === "x" ? X[1] : X[0], message: `Ça, c'est la valeur de $${quoi === "x" ? "y" : "x"}$.` }, { valeur: quoi === "x" ? -X[0] : -X[1], message: "Attention au signe." }],
+      aides: [`$A = ${mat(M)}$ et $B = ${mat([[B[0]], [B[1]]])}$.`, `$\\det(A) = ${d} \\neq 0$, donc $A$ est inversible et $X = A^{-1}B$.`, `$A^{-1} = ${matQ(I)}$.`],
+      solution: `$A = ${mat(M)}$ est inversible ($\\det(A) = ${d}$), donc $X = A^{-1}B = ${matQ(I)}${mat([[B[0]], [B[1]]])} = ${mat([[X[0]], [X[1]]])}$.\n\nAinsi $x = ${nb(X[0])}$ et $y = ${nb(X[1])}$.` };
+  });
+
+  def("xm-transformation", () => {
+    const T = pick([
+      { M: [[0, -1], [1, 0]], nom: "la rotation de centre $O$ et d'angle $\\dfrac{\\pi}{2}$" },
+      { M: [[0, 1], [-1, 0]], nom: "la rotation de centre $O$ et d'angle $-\\dfrac{\\pi}{2}$" },
+      { M: [[-1, 0], [0, -1]], nom: "la symétrie de centre $O$" },
+      { M: [[1, 0], [0, -1]], nom: "la symétrie par rapport à l'axe des abscisses" },
+      { M: [[-1, 0], [0, 1]], nom: "la symétrie par rapport à l'axe des ordonnées" },
+      { M: [[0, 1], [1, 0]], nom: "la symétrie par rapport à la droite d'équation $y = x$" },
+      { M: [[2, 0], [0, 2]], nom: "l'homothétie de centre $O$ et de rapport $2$" },
+      { M: [[3, 0], [0, 3]], nom: "l'homothétie de centre $O$ et de rapport $3$" }
+    ]);
+    let P; do { P = [rand(-5, 5), rand(-5, 5)]; } while (!P[0] || !P[1] || Math.abs(P[0]) === Math.abs(P[1]));
+    const im = [T.M[0][0] * P[0] + T.M[0][1] * P[1], T.M[1][0] * P[0] + T.M[1][1] * P[1]];
+    const ptx = (v) => `$(${nb(v[0])}\\,;${nb(v[1])})$`;
+    const ch = choix4(ptx(im), [ptx([-im[0], -im[1]]), ptx([P[1], P[0]]), ptx([-P[1], P[0]]), ptx([P[1], -P[0]]), ptx([-P[0], P[1]]), ptx([P[0], -P[1]]), ptx([2 * P[0], 2 * P[1]])].filter((x) => x !== ptx(im)));
+    return { enonce: `Dans un repère orthonormé, ${T.nom} transforme le point $M(x\\,;y)$ en $M'(x'\\,;y')$ avec $\\begin{pmatrix} x' \\\\ y' \\end{pmatrix} = ${mat(T.M)}\\begin{pmatrix} x \\\\ y \\end{pmatrix}$. Quelles sont les coordonnées de l'image de $M(${nb(P[0])}\\,;${nb(P[1])})$ ?`, mode: "choix", choix: ch.choix, attendu: ch.attendu,
+      figure: planC(Object.assign(fenetre([P, im]), { points: [ptC(P[0], P[1], "M")], segs: [[0, 0, P[0], P[1], true]], aria: `Point M de coordonnées (${P[0]} ; ${P[1]}) à transformer` })),
+      aides: ["Calcule le produit de la matrice par la colonne $\\begin{pmatrix} x \\\\ y \\end{pmatrix}$.", `$x' = ${pr(T.M[0][0])} \\times ${pr(P[0])} + ${pr(T.M[0][1])} \\times ${pr(P[1])}$.`, `$y' = ${pr(T.M[1][0])} \\times ${pr(P[0])} + ${pr(T.M[1][1])} \\times ${pr(P[1])}$.`],
+      solution: `$${mat(T.M)}${mat([[P[0]], [P[1]]])} = ${mat([[im[0]], [im[1]]])}$ : l'image est $M'(${nb(im[0])}\\,;${nb(im[1])})$, comme on le vérifie sur un dessin pour ${T.nom}.` };
+  });
+
+  def("xm-vrai-faux", () => vraiFaux4([
+    ["Pour toutes matrices carrées $A$ et $B$ de même taille, $A + B = B + A$.", true, "l'addition se fait coefficient par coefficient."],
+    ["$I_2 \\times A = A$ pour toute matrice $A$ de taille $2 \\times 2$.", true, "$I_2$ est l'élément neutre de la multiplication."],
+    ["Si $ad - bc \\neq 0$, la matrice $\\begin{pmatrix} a & b \\\\ c & d \\end{pmatrix}$ est inversible.", true, "son inverse est $\\dfrac{1}{ad - bc}\\begin{pmatrix} d & -b \\\\ -c & a \\end{pmatrix}$."],
+    ["Le produit d'une matrice $2 \\times 3$ par une matrice $3 \\times 4$ est une matrice $2 \\times 4$.", true, "lignes de la première, colonnes de la seconde."],
+    ["Si $A$ est inversible, le système $AX = B$ a une unique solution $X = A^{-1}B$.", true, "on multiplie à gauche par $A^{-1}$."],
+    ["Une matrice diagonale élevée à la puissance $n$ reste diagonale.", true, "ses coefficients diagonaux sont élevés à la puissance $n$."],
+    ["Pour toutes matrices carrées $A$ et $B$ de même taille, $AB = BA$.", false, "le produit n'est pas commutatif : par exemple $\\begin{pmatrix} 1 & 1 \\\\ 0 & 0 \\end{pmatrix}\\begin{pmatrix} 1 & 0 \\\\ 1 & 0 \\end{pmatrix} = \\begin{pmatrix} 2 & 0 \\\\ 0 & 0 \\end{pmatrix}$, mais dans l'autre ordre on obtient $\\begin{pmatrix} 1 & 1 \\\\ 1 & 1 \\end{pmatrix}$."],
+    ["Si $AB = 0$, alors $A = 0$ ou $B = 0$.", false, "contre-exemple : $\\begin{pmatrix} 0 & 1 \\\\ 0 & 0 \\end{pmatrix}^2 = 0$."],
+    ["Le carré d'une matrice s'obtient en élevant chaque coefficient au carré.", false, "$A^2 = A \\times A$, produit « ligne par colonne »."],
+    ["On peut toujours multiplier deux matrices.", false, "il faut que le nombre de colonnes de la première soit égal au nombre de lignes de la seconde."],
+    ["$(A + B)^2 = A^2 + 2AB + B^2$ pour toutes matrices carrées $A$ et $B$.", false, "$(A + B)^2 = A^2 + AB + BA + B^2$, et $AB \\neq BA$ en général."],
+    ["Toute matrice carrée non nulle est inversible.", false, "$\\begin{pmatrix} 1 & 2 \\\\ 2 & 4 \\end{pmatrix}$ n'est pas inversible : $1 \\times 4 - 2 \\times 2 = 0$."],
+    ["L'inverse de $\\begin{pmatrix} a & b \\\\ c & d \\end{pmatrix}$ est $\\begin{pmatrix} \\frac{1}{a} & \\frac{1}{b} \\\\ \\frac{1}{c} & \\frac{1}{d} \\end{pmatrix}$.", false, "on utilise $\\dfrac{1}{ad - bc}\\begin{pmatrix} d & -b \\\\ -c & a \\end{pmatrix}$, pas les inverses des coefficients."]
+  ], ["Rappelle les règles : addition coefficient par coefficient, produit « ligne par colonne ».", "Le produit de matrices n'est pas commutatif.", "Un contre-exemple $2 \\times 2$ suffit à montrer qu'une affirmation est fausse."]));
+
+  /* Figures du cours (chapitre 9) */
+  FIGURES["xm-cours-produit"] = () => {
+    // A (2×3) × B (3×2) : ligne 1 de A et colonne 2 de B mises en évidence
+    const A = [[1, 2, 0], [3, -1, 4]], B = [[2, 1], [0, 5], [-1, 3]];
+    let s = `<svg class="graph" viewBox="0 0 320 170" role="img" aria-label="Produit de matrices : le coefficient ligne 1, colonne 2 de AB s'obtient avec la ligne 1 de A et la colonne 2 de B : 1 × 1 + 2 × 5 + 0 × 3 = 11">`;
+    const cell = (x, y, v, on) => `<rect x="${x}" y="${y}" width="26" height="24" rx="4" style="fill:${on ? "var(--lagon)" : "none"};fill-opacity:0.2;stroke:${on ? "var(--lagon)" : "var(--trait)"}"/><text x="${x + 13}" y="${y + 16.5}" text-anchor="middle" style="font:700 12px var(--f-texte);fill:var(--encre)">${nbS(v)}</text>`;
+    A.forEach((l, i) => l.forEach((v, j) => (s += cell(8 + j * 28, 54 + i * 26, v, i === 0))));
+    B.forEach((l, i) => l.forEach((v, j) => (s += cell(110 + j * 28, 28 + i * 26, v, j === 1))));
+    s += `<text x="50" y="44" text-anchor="middle" style="font:700 13px var(--f-texte);fill:var(--encre)">A</text><text x="138" y="20" text-anchor="middle" style="font:700 13px var(--f-texte);fill:var(--encre)">B</text>`;
+    const AB = mMul(A, B);
+    AB.forEach((l, i) => l.forEach((v, j) => (s += cell(200 + j * 30, 54 + i * 26, v, i === 0 && j === 1))));
+    s += `<text x="230" y="44" text-anchor="middle" style="font:700 13px var(--f-texte);fill:var(--encre)">AB</text>`;
+    s += `<text x="160" y="150" text-anchor="middle" style="font:700 12px var(--f-texte);fill:var(--lagon)">1 × 1 + 2 × 5 + 0 × 3 = 11</text>`;
+    return s + "</svg>";
+  };
+  FIGURES["xm-cours-rotation"] = () => planC({ xmin: -4.4, xmax: 4.4, ymin: -1.4, ymax: 4.4,
+    points: [ptC(3, 1, "M(3 ; 1)"), ptC(-1, 3, "M'(−1 ; 3)", { gauche: true })], segs: [[0, 0, 3, 1, true], [0, 0, -1, 3, true]],
+    arcs: [{ a1: Math.atan2(1, 3), a2: Math.atan2(3, -1), r: 1.2, label: "90°", dl: 0.4 }],
+    aria: "La rotation de centre O d'angle 90° envoie M(3 ; 1) sur M'(−1 ; 3), grâce à la matrice de lignes (0 ; −1) et (1 ; 0)" });
+
+
+  /* ---------- Chapitre 10 : graphes et matrice d'adjacence (préfixe xr) ---------- */
+  // Graphe aléatoire connexe à n sommets (non orienté) : liste d'arêtes [i, j] avec i < j
+  const grapheAlea = (n, extra) => {
+    let E; do {
+      const ord = shuffle(Array.from({ length: n }, (_, k) => k)); E = [];
+      for (let k = 1; k < n; k++) { const a = ord[k], b = ord[rand(0, k - 1)]; E.push([Math.min(a, b), Math.max(a, b)]); } // arbre couvrant : connexe
+      for (let k = 0; k < extra; k++) { const a = rand(0, n - 1), b = rand(0, n - 1); if (a !== b && !E.some(([x, y]) => (x === Math.min(a, b) && y === Math.max(a, b)))) E.push([Math.min(a, b), Math.max(a, b)]); }
+    } while (E.length < Math.min(n, (n * (n - 1)) / 2) && extra > 0);
+    return E;
+  };
+  const adjNO = (n, E) => { const A = Array.from({ length: n }, () => Array(n).fill(0)); E.forEach(([a, b]) => { A[a][b] = 1; A[b][a] = 1; }); return A; };
+  const adjO = (n, E) => { const A = Array.from({ length: n }, () => Array(n).fill(0)); E.forEach(([a, b]) => { A[a][b] = 1; }); return A; };
+  const figGraphe = (n, E, oriente, aria) => grapheG({ sommets: enCercle(n), aretes: E.map(([a, b]) => [NOMS[a], NOMS[b]]), oriente, aria: aria || `Graphe ${oriente ? "orienté " : ""}à ${n} sommets ${NOMS.slice(0, n).join(", ")}, avec ${E.length} ${oriente ? "arcs" : "arêtes"} : ${E.map(([a, b]) => NOMS[a] + (oriente ? "→" : "–") + NOMS[b]).join(", ")}` });
+  // Distances (plus courtes chaînes) par parcours en largeur
+  const distances = (n, A, s) => { const d = Array(n).fill(-1); d[s] = 0; const F = [s]; while (F.length) { const u = F.shift(); for (let v = 0; v < n; v++) if (A[u][v] && d[v] < 0) { d[v] = d[u] + 1; F.push(v); } } return d; };
+  const VILLES = ["Mamoudzou", "Koungou", "Dzaoudzi", "Sada", "Chirongui", "Tsingoni", "Dembéni"];
+
+  def("xr-degre", () => {
+    const n = rand(5, 6), E = grapheAlea(n, rand(1, 4)), A = adjNO(n, E), t = pick(["degre", "degre", "aretes", "ordre-degre"]);
+    const deg = A.map((l) => l.reduce((s, v) => s + v, 0));
+    const figure = figGraphe(n, E, false);
+    if (t === "aretes") return { enonce: "Combien ce graphe a-t-il d'arêtes ?", figure, mode: "nombre", prefixe: "Nombre d'arêtes :", attendu: E.length,
+      erreurs: [{ valeur: n, message: "Ça, c'est l'**ordre** du graphe (le nombre de sommets)." }, { valeur: 2 * E.length, message: "Ça, c'est la somme des degrés : chaque arête y est comptée deux fois." }],
+      aides: ["Une arête relie deux sommets : compte les traits.", "Pour vérifier : la somme des degrés est égale au double du nombre d'arêtes.", `Somme des degrés : ${deg.map((d) => `$${d}$`).join(" + ")} $= ${2 * E.length}$.`],
+      solution: `Le graphe a $${E.length}$ arêtes : ${E.map(([a, b]) => `${NOMS[a]}–${NOMS[b]}`).join(", ")}.\n\nVérification : la somme des degrés vaut $${deg.join(" + ")} = ${2 * E.length} = 2 \\times ${E.length}$.` };
+    const s = rand(0, n - 1);
+    return { enonce: `Quel est le degré du sommet ${NOMS[s]} dans ce graphe ?`, figure, mode: "nombre", prefixe: `Degré de ${NOMS[s]} :`, attendu: deg[s],
+      erreurs: [{ valeur: n - 1, message: `${NOMS[s]} n'est pas forcément relié à tous les autres sommets.` }, { valeur: deg[s] + 1, message: "On compte les arêtes qui partent du sommet, pas le sommet lui-même." }],
+      aides: ["Le degré d'un sommet est le nombre d'arêtes qui le touchent.", `Repère toutes les arêtes qui partent de ${NOMS[s]}.`, `Les voisins de ${NOMS[s]} sont ses sommets adjacents : compte-les.`],
+      solution: `Les arêtes issues de ${NOMS[s]} vont vers ${A[s].map((v, k) => (v ? NOMS[k] : null)).filter(Boolean).join(", ")} : le degré de ${NOMS[s]} est $${deg[s]}$.` };
+  });
+
+  def("xr-poignees", () => {
+    const t = pick(["complet", "complet", "somme", "possible"]);
+    if (t === "complet") {
+      const n = rand(4, 24), ctx = pick([`Lors d'un tournoi de football entre $${n}$ villages de Mayotte, chaque équipe rencontre une fois chacune des autres. Combien de matchs faut-il organiser ?`, `$${n}$ élèves de la classe se serrent tous la main une fois. Combien de poignées de main y a-t-il ?`, `On veut relier $${n}$ îlots du lagon deux à deux par une liaison directe. Combien de liaisons faut-il ?`]);
+      return { enonce: ctx, mode: "nombre", prefixe: "Nombre :", attendu: (n * (n - 1)) / 2,
+        erreurs: [{ valeur: n * (n - 1), message: "Chaque rencontre est comptée deux fois : divise par $2$." }, { valeur: n * n, message: "Une équipe ne joue pas contre elle-même, et chaque match est compté deux fois." }],
+        aides: ["Modélise par un graphe complet : un sommet par participant, une arête par rencontre.", `Chaque sommet est de degré $${n - 1}$.`, "Somme des degrés $= 2 \\times$ (nombre d'arêtes)."],
+        solution: `Le graphe complet à $${n}$ sommets a tous ses sommets de degré $${n - 1}$. La somme des degrés vaut $${n} \\times ${n - 1} = ${n * (n - 1)}$, et c'est le double du nombre d'arêtes : $\\dfrac{${n * (n - 1)}}{2} = ${(n * (n - 1)) / 2}$.` };
+    }
+    // Havel-Hakimi : la suite de degrés est-elle réalisable par un graphe simple ?
+    const realisable = (D) => { let L = D.slice(); while (true) { L.sort((x, y) => y - x); if (!L.length || L[0] === 0) return true; const d = L.shift(); if (d > L.length) return false; for (let k = 0; k < d; k++) { L[k]--; if (L[k] < 0) return false; } } };
+    let m, degs, somme;
+    do { m = rand(5, 9); degs = Array.from({ length: m }, () => rand(1, Math.min(5, m - 2))); somme = degs.reduce((s, d) => s + d, 0); if (t === "somme" && somme % 2) { degs[0] += 1; somme += 1; } } while (somme % 2 === 0 && !realisable(degs));
+    if (t === "somme") {
+      return { enonce: `Un graphe a $${m}$ sommets, de degrés ${degs.map((d) => `$${d}$`).join(" ; ")}. Combien a-t-il d'arêtes ?`, mode: "nombre", prefixe: "Nombre d'arêtes :", attendu: somme / 2,
+        erreurs: [{ valeur: somme, message: "Chaque arête est comptée deux fois dans la somme des degrés : divise par $2$." }, { valeur: m, message: "Ça, c'est le nombre de sommets." }],
+        aides: ["Chaque arête a deux extrémités : elle compte pour $2$ dans la somme des degrés.", `Somme des degrés : $${somme}$.`, "Nombre d'arêtes $= \\dfrac{\\text{somme des degrés}}{2}$."],
+        solution: `Somme des degrés : $${degs.join(" + ")} = ${somme}$. Elle vaut le double du nombre d'arêtes : $\\dfrac{${somme}}{2} = ${somme / 2}$ arêtes.` };
+    }
+    const possible = somme % 2 === 0;
+    const ch = choix4(possible ? `Oui, et il a $${somme / 2}$ arêtes` : "Non : la somme des degrés est impaire", possible ? ["Non : la somme des degrés est impaire", "Non : il y a trop de sommets de degré impair", `Oui, et il a $${somme}$ arêtes`] : [`Oui, et il a $${Math.floor(somme / 2)}$ arêtes`, "Oui : chaque sommet a au moins une arête", `Oui, et il a $${somme}$ arêtes`]);
+    return { enonce: `Peut-il exister un graphe à $${m}$ sommets de degrés ${degs.map((d) => `$${d}$`).join(" ; ")} ?`, mode: "choix", choix: ch.choix, attendu: ch.attendu,
+      aides: ["Somme des degrés $= 2 \\times$ nombre d'arêtes : elle est toujours **paire**.", `Calcule la somme : $${somme}$.`, "Une somme impaire rend le graphe impossible."],
+      solution: `Somme des degrés : $${degs.join(" + ")} = ${somme}$. ${possible ? `Elle est paire, et on peut effectivement construire un tel graphe (en reliant d'abord le sommet de plus grand degré aux sommets suivants de plus grands degrés, et ainsi de suite). Il a $\\dfrac{${somme}}{2} = ${somme / 2}$ arêtes.` :"Elle est impaire, alors qu'elle doit valoir le double du nombre d'arêtes : un tel graphe n'existe pas."}` };
+  });
+
+  def("xr-matrice", () => {
+    const oriente = Math.random() < 0.45, n = oriente ? rand(3, 4) : rand(4, 5);
+    let E;
+    if (oriente) { do { E = []; for (let a = 0; a < n; a++) for (let b = 0; b < n; b++) if (a !== b && Math.random() < 0.4) E.push([a, b]); } while (E.length < n || E.length > 2 * n); }
+    else E = grapheAlea(n, rand(0, 2));
+    const A = oriente ? adjO(n, E) : adjNO(n, E);
+    const T = A.map((l, i) => l.map((_, j) => A[j][i]));
+    const D = A.map((l, i) => l.map((v, j) => (i === j ? 1 : v)));
+    const C = A.map((l) => l.map((v) => 1 - v)).map((l, i) => l.map((v, j) => (i === j ? 0 : v)));
+    const R = A.slice().reverse();
+    const f = [oriente ? `$${mat(T)}$` : null, `$${mat(D)}$`, `$${mat(C)}$`, `$${mat(R)}$`].filter((x) => x && x !== `$${mat(A)}$`);
+    const ch = choix4(`$${mat(A)}$`, f, () => { const X = A.map((l) => l.slice()); const i = rand(0, n - 1), j = rand(0, n - 1); if (i !== j) { X[i][j] = 1 - X[i][j]; if (!oriente) X[j][i] = X[i][j]; } return `$${mat(X)}$`; });
+    return { enonce: `Quelle est la matrice d'adjacence de ce graphe${oriente ? " orienté" : ""}, les sommets étant rangés dans l'ordre ${NOMS.slice(0, n).join(", ")} ?`, figure: figGraphe(n, E, oriente), mode: "choix", choix: ch.choix, attendu: ch.attendu,
+      aides: [oriente ? "Le coefficient $a_{ij}$ vaut $1$ s'il y a un arc **de** $i$ **vers** $j$, et $0$ sinon." : "Le coefficient $a_{ij}$ vaut $1$ si les sommets $i$ et $j$ sont reliés par une arête, et $0$ sinon.", oriente ? "Ligne = sommet de départ, colonne = sommet d'arrivée : la matrice n'est pas forcément symétrique." : "Pour un graphe non orienté, la matrice est symétrique.", "Ici, aucun sommet n'est relié à lui-même : la diagonale ne contient que des $0$."],
+      solution: `${oriente ? "Arcs" : "Arêtes"} : ${E.map(([a, b]) => NOMS[a] + (oriente ? "→" : "–") + NOMS[b]).join(", ")}.\n\nLa matrice d'adjacence est $${mat(A)}$.` };
+  });
+
+  def("xr-chemins", () => {
+    const n = 4, L = pick([2, 2, 3]);
+    let E; do { E = []; for (let a = 0; a < n; a++) for (let b = 0; b < n; b++) if (a !== b && Math.random() < 0.45) E.push([a, b]); } while (E.length < 5);
+    const A = adjO(n, E), A2 = mMul(A, A), AL = mPow(A, L), i = rand(0, n - 1), j = rand(0, n - 1), att = AL[i][j];
+    const intro = `On donne la matrice d'adjacence $A = ${mat(A)}$ du graphe orienté ci-contre (sommets ${NOMS.slice(0, n).join(", ")}).`;
+    return { enonce: `${intro}${L === 3 ? ` On a calculé $A^2 = ${mat(A2)}$.` : ""} Combien y a-t-il de chemins de longueur $${L}$ allant de ${NOMS[i]} à ${NOMS[j]} ?`, figure: figGraphe(n, E, true), mode: "nombre", prefixe: "Nombre de chemins :", attendu: att,
+      erreurs: [{ valeur: A[i][j], message: "Ça, c'est le nombre de chemins de longueur $1$ (le coefficient de $A$)." }, { valeur: L === 3 ? A2[i][j] : AL[j][i], message: L === 3 ? "Ça, ce sont les chemins de longueur $2$ : il faut $A^3$." : "Attention au sens : de " + NOMS[i] + " vers " + NOMS[j] + ", donc ligne " + (i + 1) + ", colonne " + (j + 1) + "." }],
+      aides: [`Le nombre de chemins de longueur $${L}$ de $i$ à $j$ est le coefficient $(i\\,;j)$ de $A^{${L}}$.`, L === 3 ? `$A^3 = A^2 \\times A$ : prends la ligne ${i + 1} de $A^2$ et la colonne ${j + 1} de $A$.` : `$(A^2)_{${i + 1}${j + 1}}$ : ligne ${i + 1} de $A$ fois colonne ${j + 1} de $A$.`, "Tu peux vérifier en listant les chemins sur la figure."],
+      solution: `Le nombre cherché est le coefficient ligne ${i + 1}, colonne ${j + 1} de $A^{${L}}$ :\n\n$(A^{${L}})_{${i + 1}${j + 1}} = ${(L === 3 ? A2[i] : A[i]).map((v, k) => `${v} \\times ${A[k][j]}`).join(" + ")} = ${att}$.\n\n$A^{${L}} = ${mat(AL)}$.` };
+  });
+
+  def("xr-chaine", () => {
+    const n = 6, E = grapheAlea(n, rand(0, 2)), A = adjNO(n, E);
+    const s = rand(0, n - 1); let t2; const d = distances(n, A, s); do { t2 = rand(0, n - 1); } while (t2 === s || d[t2] < 2 && Math.random() < 0.7);
+    const att = d[t2];
+    return { enonce: `Dans ce graphe, quelle est la longueur d'une plus courte chaîne reliant ${NOMS[s]} à ${NOMS[t2]} ?`, figure: figGraphe(n, E, false), mode: "nombre", prefixe: "Longueur :", attendu: att,
+      erreurs: [{ valeur: att + 1, message: "La longueur d'une chaîne est son nombre d'**arêtes**, pas son nombre de sommets." }, { valeur: att - 1, message: "Compte toutes les arêtes de la chaîne." }],
+      aides: ["La longueur d'une chaîne est le nombre d'arêtes qui la composent.", `Cherche d'abord les voisins de ${NOMS[s]} (à distance $1$), puis leurs voisins (à distance $2$)…`, `${NOMS[t2]} est à distance $${att}$ de ${NOMS[s]} : vérifie qu'aucune chaîne plus courte n'existe.`],
+      solution: `Distances depuis ${NOMS[s]} : ${d.map((x, k) => `${NOMS[k]} : $${x}$`).join(", ")}.\n\nUne plus courte chaîne de ${NOMS[s]} à ${NOMS[t2]} a donc pour longueur $${att}$.` };
+  });
+
+  def("xr-vrai-faux", () => vraiFaux4([
+    ["Dans un graphe non orienté, la somme des degrés est égale au double du nombre d'arêtes.", true, "chaque arête a deux extrémités (lemme des poignées de main)."],
+    ["Dans tout graphe, le nombre de sommets de degré impair est pair.", true, "sinon la somme des degrés serait impaire."],
+    ["Le graphe complet à $5$ sommets a $10$ arêtes.", true, "$\\dfrac{5 \\times 4}{2} = 10$."],
+    ["La matrice d'adjacence d'un graphe non orienté est symétrique.", true, "si $i$ est relié à $j$, alors $j$ est relié à $i$."],
+    ["Le coefficient $(i\\,;j)$ de $A^n$ donne le nombre de chemins de longueur $n$ de $i$ à $j$.", true, "c'est la propriété démontrée par récurrence dans le cours."],
+    ["Un graphe connexe est un graphe dans lequel deux sommets quelconques sont reliés par une chaîne.", true, "c'est la définition."],
+    ["La longueur d'une chaîne est son nombre de sommets.", false, "c'est son nombre d'arêtes."],
+    ["Il existe un graphe dont les degrés des sommets sont $3$, $3$, $3$.", false, "la somme $9$ est impaire, alors qu'elle vaut le double du nombre d'arêtes."],
+    ["La matrice d'adjacence d'un graphe orienté est toujours symétrique.", false, "un arc de $i$ vers $j$ n'implique pas un arc de $j$ vers $i$."],
+    ["L'ordre d'un graphe est son nombre d'arêtes.", false, "c'est son nombre de sommets."],
+    ["Le graphe complet à $n$ sommets a $n^2$ arêtes.", false, "il en a $\\dfrac{n(n - 1)}{2}$."],
+    ["Dans un graphe complet à $n$ sommets, chaque sommet est de degré $n$.", false, "chaque sommet est relié aux $n - 1$ autres."],
+    ["Le coefficient $(i\\,;j)$ de $A^2$ est égal à $a_{ij}^2$.", false, "on calcule $A^2 = A \\times A$ « ligne par colonne », pas coefficient par coefficient."]
+  ], ["Rappelle les définitions : ordre, degré, chaîne, longueur, connexe.", "Somme des degrés $= 2 \\times$ nombre d'arêtes.", "Un contre-exemple avec un petit graphe suffit."]));
+
+  /* Figures du cours (chapitre 10) */
+  FIGURES["xr-cours-graphe"] = () => grapheG({ sommets: enCercle(5), aretes: [["A", "B"], ["A", "C"], ["B", "C"], ["C", "D"], ["D", "E"], ["B", "E"]], aria: "Graphe à 5 sommets A, B, C, D, E et 6 arêtes : A–B, A–C, B–C, C–D, D–E, B–E ; degrés 2, 3, 3, 2, 2" });
+  FIGURES["xr-cours-complet"] = () => { const S = enCercle(5), E = []; for (let a = 0; a < 5; a++) for (let b = a + 1; b < 5; b++) E.push([NOMS[a], NOMS[b]]); return grapheG({ sommets: S, aretes: E, aria: "Graphe complet à 5 sommets : chaque sommet est relié aux 4 autres, 10 arêtes en tout" }); };
+  FIGURES["xr-cours-oriente"] = () => grapheG({ sommets: enCercle(4), aretes: [["A", "B"], ["B", "C"], ["C", "A"], ["A", "D"], ["D", "C"], ["C", "D"]], oriente: true, aria: "Graphe orienté à 4 sommets avec les arcs A→B, B→C, C→A, A→D, D→C et C→D" });
 })();
