@@ -22,6 +22,7 @@
 :root[data-theme="ruines"] [data-niv="premiere"] { --sigil: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 3 3'><path d='M0.06 0.56h.88v.88h-.88zM1.06 0.56h.88v.88h-.88zM1.06 1.56h.88v.88h-.88zM2.06 1.56h.88v.88h-.88z'/></svg>"); }
 :root[data-theme="ruines"] [data-niv="terminale-spe"] { --ac: #a52d55; --sigil: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 3 3'><path d='M1.06 0.56h.88v.88h-.88zM2.06 0.56h.88v.88h-.88zM0.06 1.56h.88v.88h-.88zM1.06 1.56h.88v.88h-.88z'/></svg>"); }
 :root[data-theme="ruines"] [data-niv="terminale"] { --ac: #1b5aa8; --sigil: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 3 3'><path d='M1.56 0.06h.88v.88h-.88zM1.56 1.06h.88v.88h-.88zM1.56 2.06h.88v.88h-.88zM0.56 2.06h.88v.88h-.88z'/></svg>"); }
+:root[data-theme="ruines"] [data-niv="expertes"] { --ac: #7a5600; --sigil: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 3 3'><path d='M0.56 0.56h.88v.88h-.88zM1.56 0.56h.88v.88h-.88zM0.56 1.56h.88v.88h-.88zM1.56 1.56h.88v.88h-.88z'/></svg>"); }
 :root[data-theme="ruines"] ::selection { background: rgba(255, 200, 60, 0.55); color: var(--encre); }
 
 /* Le mur : grès doré en grands blocs, pièces gravées, peintes ou allumées, lumière du soleil en haut à droite */

@@ -16,6 +16,7 @@
 :root[data-theme="nuit"] [data-niv="premiere"] { --ac: #b9a6ff; --ac-pale: #2a2358; }
 :root[data-theme="nuit"] [data-niv="terminale"] { --ac: #7fb3ff; --ac-pale: #172c52; }
 :root[data-theme="nuit"] [data-niv="terminale-spe"] { --ac: #ff8fb1; --ac-pale: #43203a; }
+:root[data-theme="nuit"] [data-niv="expertes"] { --ac: #f0c45a; --ac-pale: #3b3020; }
 :root[data-theme="nuit"] .onglets a[aria-current="page"] { color: var(--fond); }
 :root[data-theme="nuit"] .chap-prog, :root[data-theme="nuit"] .chap-prog.fini { color: var(--encre); }
 /* Fond de page : nuit profonde, quelques étoiles dans le haut */

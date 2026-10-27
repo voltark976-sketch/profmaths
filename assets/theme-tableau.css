@@ -17,6 +17,7 @@
 :root[data-theme="tableau"] [data-niv="premiere"] { --ac: #c9b8ff; --ac-pale: #3b3b58; }
 :root[data-theme="tableau"] [data-niv="terminale"] { --ac: #9cc6ff; --ac-pale: #2c4458; }
 :root[data-theme="tableau"] [data-niv="terminale-spe"] { --ac: #ffa3c0; --ac-pale: #4b3340; }
+:root[data-theme="tableau"] [data-niv="expertes"] { --ac: #ffd77a; --ac-pale: #4b4330; }
 :root[data-theme="tableau"] .onglets a[aria-current="page"] { color: var(--fond); }
 :root[data-theme="tableau"] .chap-prog, :root[data-theme="tableau"] .chap-prog.fini { color: var(--encre); }
 /* Fond de page : ardoise verte avec des traces d'éponge */

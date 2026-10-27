@@ -1060,6 +1060,91 @@ window.CATALOGUE = {
       ]
     },
     {
+      id: "expertes",
+      nom: "Terminale maths expertes",
+      intro: "Option maths expertes (programme de 2019, en vigueur jusqu'en 2027) : nombres complexes, arithmétique, graphes et matrices, dans l'ordre du programme officiel. Vidéos et cours PDF d'Yvan Monka, en attendant ceux de la chaîne.",
+      exercices: "assets/exercices-expertes.js",
+      chapitres: [
+        {
+          id: "expertes-complexes-algebrique",
+          numero: 1,
+          titre: "Nombres complexes : point de vue algébrique",
+          statut: "disponible",
+          drive: ""
+        },
+        {
+          id: "expertes-complexes-geometrique",
+          numero: 2,
+          titre: "Nombres complexes : point de vue géométrique",
+          statut: "disponible",
+          drive: ""
+        },
+        {
+          id: "expertes-complexes-trigonometrie",
+          numero: 3,
+          titre: "Nombres complexes et trigonométrie",
+          statut: "disponible",
+          drive: ""
+        },
+        {
+          id: "expertes-equations-polynomiales",
+          numero: 4,
+          titre: "Équations polynomiales",
+          statut: "disponible",
+          drive: ""
+        },
+        {
+          id: "expertes-complexes-geometrie",
+          numero: 5,
+          titre: "Nombres complexes et géométrie",
+          statut: "disponible",
+          drive: ""
+        },
+        {
+          id: "expertes-divisibilite-congruences",
+          numero: 6,
+          titre: "Divisibilité et congruences",
+          statut: "disponible",
+          drive: ""
+        },
+        {
+          id: "expertes-pgcd-bezout-gauss",
+          numero: 7,
+          titre: "PGCD, théorèmes de Bézout et de Gauss",
+          statut: "disponible",
+          drive: ""
+        },
+        {
+          id: "expertes-nombres-premiers",
+          numero: 8,
+          titre: "Nombres premiers",
+          statut: "disponible",
+          drive: ""
+        },
+        {
+          id: "expertes-matrices",
+          numero: 9,
+          titre: "Matrices et calcul matriciel",
+          statut: "disponible",
+          drive: ""
+        },
+        {
+          id: "expertes-graphes",
+          numero: 10,
+          titre: "Graphes et matrice d'adjacence",
+          statut: "disponible",
+          drive: ""
+        },
+        {
+          id: "expertes-suites-matrices-markov",
+          numero: 11,
+          titre: "Suites de matrices et chaînes de Markov",
+          statut: "disponible",
+          drive: ""
+        }
+      ]
+    },
+    {
       id: "terminale",
       nom: "Terminale maths complémentaires",
       chapitres: [

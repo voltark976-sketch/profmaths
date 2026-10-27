@@ -17,6 +17,7 @@ window.MOTEURS = {
   "automatismes": ["assets/exercices-base.js","assets/exercices.js"],
   "premiere": ["assets/exercices-base.js","assets/exercices.js"],
   "terminale-spe": ["assets/exercices-base.js","assets/exercices.js"],
+  "expertes": ["assets/exercices-base.js","assets/exercices-expertes.js"],
   "terminale": ["assets/exercices-base.js","assets/exercices.js"]
 };
 window.MANIFESTE = {
@@ -218,6 +219,7 @@ window.MANIFESTE = {
   "terminale-spe-integration": {"niveau":"terminale-spe","fichier":"data/terminale-spe/integration.js","series":11,"qcm":29},
   "terminale-spe-denombrement": {"niveau":"terminale-spe","fichier":"data/terminale-spe/denombrement.js","series":12,"qcm":34},
   "terminale-spe-grands-nombres": {"niveau":"terminale-spe","fichier":"data/terminale-spe/grands-nombres.js","series":8,"qcm":22},
+  "expertes-complexes-algebrique": {"niveau":"expertes","fichier":"data/expertes/complexes-algebrique.js","series":8,"qcm":23},
   "terminale-suites": {"niveau":"terminale","fichier":"data/terminale/suites.js","series":10,"qcm":28},
   "terminale-lois-discretes": {"niveau":"terminale","fichier":"data/terminale/lois-discretes.js","series":11,"qcm":36},
   "terminale-arithmetico-geometriques": {"niveau":"terminale","fichier":"data/terminale/arithmetico-geometriques.js","series":6,"qcm":26},

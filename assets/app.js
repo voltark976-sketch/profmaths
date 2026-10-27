@@ -450,6 +450,7 @@
     automatismes: "Calcul et réflexes, pour l'épreuve anticipée",
     premiere: "Suites, second degré et plus",
     "terminale-spe": "Vers le bac et le supérieur",
+    expertes: "Complexes, arithmétique, graphes et matrices",
     terminale: "Option maths complémentaires"
   };
   const chapitresEnLigne = (n) => n.chapitres.filter((ch) => ch.statut === "disponible" && dispo(ch.id)).length;
@@ -1582,7 +1583,7 @@
 
   let filtreClassement = "";
   // Nom court d'une classe dans le classement : les deux Terminales doivent rester distinctes
-  const COURTES = { "Terminale spécialité": "Tle spé", "Terminale maths complémentaires": "Tle compl." };
+  const COURTES = { "Terminale spécialité": "Tle spé", "Terminale maths complémentaires": "Tle compl.", "Terminale maths expertes": "Tle exp." };
   const classeCourte = (cl) => COURTES[cl] || cl.split(" ")[0];
   function afficherClassement() {
     const $top = document.getElementById("top");
