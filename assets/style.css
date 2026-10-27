@@ -545,10 +545,6 @@ a.chap:hover .go { transform: translateX(3px); }
 .rs { display: inline-flex; align-items: center; gap: 6px; padding: 7px 12px; border-radius: 999px; font: 700 0.88rem/1 var(--f-texte); text-decoration: none; white-space: nowrap; transition: transform 0.15s; }
 .rs:hover { transform: translateY(-2px); }
 .rs svg { width: 18px; height: 18px; flex: none; fill: currentColor; }
-.hero-rs { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; margin: 14px 0 0; }
-.hero-rs-t { font-size: 0.88rem; color: rgba(255, 255, 255, 0.86); }
-.hero .rs { color: #fff; background: rgba(255, 255, 255, 0.16); border: 1px solid rgba(255, 255, 255, 0.3); }
-@media (max-width: 440px) { .hero-rs-t { flex-basis: 100%; } .hero-rs .rs-liste { gap: 6px; } .hero .rs { padding: 6px 7px; gap: 4px; font-size: 0.8rem; } .hero .rs svg { width: 16px; height: 16px; } }
 .reseaux { padding: 16px; border-radius: 18px; background: var(--surface); border: 1px solid color-mix(in srgb, var(--trait) 70%, transparent); box-shadow: var(--ombre); }
 .reseaux-t { margin: 0; font-size: 0.95rem; color: var(--doux); }
 .reseaux-t strong { color: var(--encre); }

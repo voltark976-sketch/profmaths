@@ -518,8 +518,7 @@
     const totSeries = dispos.reduce((s, k) => s + nbSeries(k), 0);
     const nbQcm = dispos.reduce((s, k) => s + nbQcmBanque(k), 0);
     let h = `<section class="hero"><div class="hero-in"><p class="eyebrow">Maths de l'école au lycée · Mayotte</p><h1>Une vidéo, un cours, des exercices. À ton rythme.</h1><p class="lead">Choisis ton niveau : tous ses chapitres s'affichent, dans l'ordre du programme.</p>
-      <ul class="chiffres"><li><b>${dispos.length}</b> chapitres</li><li><b>${totSeries}</b> séries d'exercices</li><li><b>${nbQcm}</b> questions de QCM</li></ul>
-      <p class="hero-rs"><span class="hero-rs-t">Suis-moi :</span>${liensReseaux("rs-liste")}</p></div>${DECOR_HERO}</section>`;
+      <ul class="chiffres"><li><b>${dispos.length}</b> chapitres</li><li><b>${totSeries}</b> séries d'exercices</li><li><b>${nbQcm}</b> questions de QCM</li></ul></div>${DECOR_HERO}</section>`;
     // Deux grandes cartes, Collège et Lycée : chacune ouvre la page qui regroupe ses classes
     h += `<h2 class="titre-bloc">Choisis ton niveau</h2><nav class="cartes-cycle" aria-label="Collège ou lycée">`;
     Object.keys(CYCLES).forEach((k) => {
@@ -541,10 +540,10 @@
       <a class="promo promo-monka" href="${YT_MONKA}" target="_blank" rel="noopener"><span class="promo-ico" aria-hidden="true">▶</span><span class="promo-t"><strong>Yvan Monka</strong><span>Une autre explication de chaque notion, pour revoir une méthode autrement.</span></span><span class="go" aria-hidden="true">→</span></a>
     </div>`;
     if (!Compte.eleve()) h += `<a class="invite" href="#compte"><strong>Crée ton compte</strong><span>pour retrouver ton niveau, ton avatar et tes étoiles sur n'importe quel téléphone ou ordinateur.</span></a>`;
-    h += piedDePage();
+    h += piedDePage(false); // sur l'accueil, les réseaux sont déjà dans le bloc « Retrouve ProfMaths »
     $app.innerHTML = h;
   }
-  const piedDePage = () => `<footer class="pied">${liensReseaux("rs-liste rs-pied")}<a class="rs rs-drive" href="https://drive.google.com/drive/folders/1mTeWgDGTv4hNYrD_ozxN9-cSDDGH_Oqn" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#00ac47" d="M8 3l3.9 6.6-7.4 11.9L1 15.5z"/><path fill="#ffba00" d="M8 3h8l7 12.5h-7.6z"/><path fill="#2684fc" d="M4.5 21.5l3.5-6h15l-3.5 6z"/></svg><span>Cours et corrigés</span></a><p class="pied-note">Site gratuit et sans publicité, fait par un professeur de mathématiques de Mayotte. Les chapitres déjà ouverts restent lisibles sans connexion.</p></footer>`;
+  const piedDePage = (reseaux = true) => `<footer class="pied">${reseaux ? liensReseaux("rs-liste rs-pied") : ""}<a class="rs rs-drive" href="https://drive.google.com/drive/folders/1mTeWgDGTv4hNYrD_ozxN9-cSDDGH_Oqn" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#00ac47" d="M8 3l3.9 6.6-7.4 11.9L1 15.5z"/><path fill="#ffba00" d="M8 3h8l7 12.5h-7.6z"/><path fill="#2684fc" d="M4.5 21.5l3.5-6h15l-3.5 6z"/></svg><span>Cours et corrigés</span></a><p class="pied-note">Site gratuit et sans publicité, fait par un professeur de mathématiques de Mayotte. Les chapitres déjà ouverts restent lisibles sans connexion.</p></footer>`;
 
   /* ---------- Pages Collège et Lycée : les classes de chaque cycle ---------- */
   function pageCycle(k) {
