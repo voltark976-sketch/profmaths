@@ -489,19 +489,25 @@
     setTimeout(() => { if (b.dataset.abo === "non") boite.remove(); else boite.innerHTML = `<p>Merci, c'est noté ! Bon entraînement.</p>`; });
   });
   const ACCROCHES = {
-    sixieme: "Nombres, fractions, géométrie : les bases",
-    cinquieme: "Nouveau programme 2026",
-    quatrieme: "Puissances, Pythagore, calcul littéral",
-    troisieme: "Objectif brevet",
+    cp: "Compter et calculer jusqu'à 100",
+    ce1: "Jusqu'à 1 000 et les tables",
+    ce2: "Quatre opérations et mesures",
+    cm1: "Fractions et nombres décimaux",
+    cm2: "Bien préparé pour entrer en 6e",
+    sixieme: "Les bases du collège, pas à pas",
+    cinquieme: "Relatifs, fractions et calcul littéral",
+    quatrieme: "Pythagore, puissances et équations",
+    troisieme: "Tout pour réussir le brevet",
     seconde: "Les bases solides du lycée",
-    automatismes: "Calcul et réflexes, pour l'épreuve anticipée",
-    premiere: "Suites, second degré et plus",
-    tronc: "Sans spécialité maths : enseignement scientifique",
-    techno: "Tronc commun STMG, STI2D, STL, ST2S…",
-    "terminale-spe": "Vers le bac et le supérieur",
-    expertes: "Complexes, arithmétique, graphes et matrices",
-    terminale: "Option maths complémentaires"
+    automatismes: "Réflexes pour l'épreuve anticipée",
+    premiere: "Suites, dérivation et probabilités",
+    tronc: "Les maths utiles, sans la spécialité",
+    techno: "Les maths des séries techno",
+    "terminale-spe": "Limites, intégrales : cap sur le bac",
+    expertes: "Complexes, arithmétique, graphes",
+    terminale: "Garder les maths pour tes études"
   };
+
   const chapitresEnLigne = (n) => n.chapitres.filter((ch) => ch.statut === "disponible" && dispo(ch.id)).length;
   // L'accueil a trois grandes cartes : Primaire (groupe « ecole »), Collège (groupe « college ») et Lycée (tous les autres)
   const CYCLES = {
