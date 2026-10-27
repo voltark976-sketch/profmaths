@@ -16,6 +16,7 @@ window.MOTEURS = {
   "seconde": ["assets/exercices-base.js","assets/exercices.js"],
   "automatismes": ["assets/exercices-base.js","assets/exercices.js"],
   "premiere": ["assets/exercices-base.js","assets/exercices.js"],
+  "techno": ["assets/exercices-base.js","assets/exercices-techno.js"],
   "terminale-spe": ["assets/exercices-base.js","assets/exercices.js"],
   "expertes": ["assets/exercices-base.js","assets/exercices-expertes.js"],
   "terminale": ["assets/exercices-base.js","assets/exercices.js"]
@@ -204,6 +205,7 @@ window.MANIFESTE = {
   "premiere-geometrie-reperee": {"niveau":"premiere","fichier":"data/premiere/geometrie-reperee.js","series":7,"qcm":30},
   "premiere-echantillons": {"niveau":"premiere","fichier":"data/premiere/echantillons.js","series":8,"qcm":28},
   "premiere-epreuve-anticipee": {"niveau":"premiere","fichier":"data/premiere/epreuve-anticipee.js","series":13,"qcm":34},
+  "techno-ensembles-logique": {"niveau":"techno","fichier":"data/techno/ensembles-logique.js","series":12,"qcm":23},
   "terminale-spe-suites-recurrence": {"niveau":"terminale-spe","fichier":"data/terminale-spe/suites-recurrence.js","series":10,"qcm":33},
   "terminale-spe-derivation-convexite": {"niveau":"terminale-spe","fichier":"data/terminale-spe/derivation-convexite.js","series":10,"qcm":29},
   "terminale-spe-espace-1": {"niveau":"terminale-spe","fichier":"data/terminale-spe/espace-1.js","series":11,"qcm":25},

@@ -29,6 +29,7 @@
   // « + 3 », « - 3 » : terme suivant d'une somme ; coef(a, "x") : « 3x », « -x », « x »
   const plus = (x) => (x < 0 ? `- ${nb(-x)}` : `+ ${nb(x)}`);
   const coef = (a, v) => (a === 1 ? v : a === -1 ? `-${v}` : `${nb(a)}${v}`);
+  const fx = (a) => (a === 1 ? "" : a === -1 ? "-" : nb(a)); // coefficient devant une parenthèse
   // Polynôme : coefficients du plus haut degré au plus bas, variable v
   const poly = (cs, v = "x") => {
     const d = cs.length - 1; let s = "";
@@ -514,6 +515,1903 @@
     s += `<ellipse cx="160" cy="80" rx="140" ry="58" style="fill:var(--ylang);fill-opacity:0.12;stroke:var(--ylang);stroke-width:1.6"/><ellipse cx="120" cy="86" rx="68" ry="36" style="fill:var(--lagon);fill-opacity:0.15;stroke:var(--lagon);stroke-width:1.6"/>`;
     s += `<text class="g-label" x="120" y="82" text-anchor="middle" style="font-weight:700;fill:var(--lagon)">carrés</text><text class="g-label" x="120" y="98" text-anchor="middle" style="font-size:10px">(P)</text><text class="g-label" x="240" y="52" text-anchor="middle" style="font-weight:700;fill:var(--ylang)">rectangles</text><text class="g-label" x="240" y="68" text-anchor="middle" style="font-size:10px">(Q)</text>`;
     s += `<text class="g-label" x="160" y="140" text-anchor="middle">P ⟹ Q : carré ⟹ rectangle (vrai) ; Q ⟹ P faux</text>`;
+    return s + `</svg>`;
+  };
+
+  /* ---------- Chapitre 2 : Python, fonctions et listes (préfixe yl) ---------- */
+  const tt = (s) => `$\\texttt{${s}}$`;
+  const lst = (L) => `[${L.join(", ")}]`;
+
+  def("yl-affectation", () => {
+    const t = pick(["suite", "suite", "echange", "accumule"]);
+    if (t === "echange") {
+      const a = rand(1, 9), b = rand(10, 20);
+      const code = `a = ${a}\nb = ${b}\nc = a\na = b\nb = c`;
+      const quoi = pick(["a", "b"]), att = quoi === "a" ? b : a;
+      return { enonce: `On exécute ce programme :\n\n${py(code)}\n\nQuelle est la valeur de ${tt(quoi)} à la fin ?`, mode: "nombre", prefixe: `${tt(quoi)} $=$`, attendu: att,
+        erreurs: [{ valeur: quoi === "a" ? a : b, message: "Les deux variables ont été échangées grâce à la variable intermédiaire $\\texttt{c}$." }],
+        aides: ["Exécute les instructions une par une, de haut en bas, en notant la valeur de chaque variable.", `Après $\\texttt{c = a}$, $\\texttt{c}$ vaut $${a}$.`, "Puis $\\texttt{a}$ prend la valeur de $\\texttt{b}$, et $\\texttt{b}$ prend l'ancienne valeur de $\\texttt{a}$ gardée dans $\\texttt{c}$."],
+        solution: `Ligne par ligne : $\\texttt{a} = ${a}$, $\\texttt{b} = ${b}$, $\\texttt{c} = ${a}$, puis $\\texttt{a} = ${b}$, puis $\\texttt{b} = ${a}$.\n\nÀ la fin, $\\texttt{a} = ${b}$ et $\\texttt{b} = ${a}$ : les valeurs ont été échangées.` };
+    }
+    if (t === "accumule") {
+      const s0 = rand(0, 5), k = rand(2, 5), n = rand(3, 5);
+      const code = `s = ${s0}\nfor i in range(${n}):\n    s = s + ${k}`;
+      return { enonce: `On exécute ce programme :\n\n${py(code)}\n\nQuelle est la valeur de ${tt("s")} à la fin ?`, mode: "nombre", prefixe: `${tt("s")} $=$`, attendu: s0 + k * n,
+        erreurs: [{ valeur: s0 + k * (n - 1), message: `$\\texttt{range(${n})}$ fait $${n}$ tours (de $0$ à $${n - 1}$).` }, { valeur: s0 + k * (n + 1), message: `$\\texttt{range(${n})}$ fait exactement $${n}$ tours.` }, { valeur: s0 + k, message: "L'instruction est répétée à chaque tour de boucle." }],
+        aides: [`$\\texttt{range(${n})}$ donne les valeurs $0$, $1$, …, $${n - 1}$ : la boucle fait $${n}$ tours.`, `À chaque tour, $\\texttt{s}$ augmente de $${k}$ (c'est un accumulateur).`, `Départ $${s0}$, puis $${n}$ fois $+${k}$.`],
+        solution: `La boucle fait $${n}$ tours et ajoute $${k}$ à chaque fois : $\\texttt{s} = ${s0} + ${n} \\times ${k} = ${s0 + k * n}$.` };
+    }
+    const a = rand(2, 9), b = rand(1, 6), c = rand(2, 4);
+    const code = `a = ${a}\nb = a + ${b}\na = a * ${c}\nb = b - a`;
+    const quoi = pick(["a", "b"]), va = a * c, vb = a + b - a * c, att = quoi === "a" ? va : vb;
+    return { enonce: `On exécute ce programme :\n\n${py(code)}\n\nQuelle est la valeur de ${tt(quoi)} à la fin ?`, mode: "nombre", prefixe: `${tt(quoi)} $=$`, attendu: att,
+      erreurs: [{ valeur: quoi === "a" ? a : a + b, message: "La variable a été modifiée par une instruction plus bas : relis jusqu'à la fin." }, { valeur: quoi === "b" ? a + b - a : va, message: "Dans $\\texttt{b = b - a}$, on utilise la **nouvelle** valeur de $\\texttt{a}$." }],
+      aides: ["Le signe $=$ est une affectation : la variable de gauche reçoit la valeur calculée à droite.", `Après la ligne 2, $\\texttt{b} = ${a + b}$ ; après la ligne 3, $\\texttt{a} = ${va}$.`, `La dernière ligne utilise la nouvelle valeur de $\\texttt{a}$ : $\\texttt{b} = ${a + b} - ${va}$.`],
+      solution: `Ligne 1 : $\\texttt{a} = ${a}$. Ligne 2 : $\\texttt{b} = ${a} + ${b} = ${a + b}$. Ligne 3 : $\\texttt{a} = ${a} \\times ${c} = ${va}$. Ligne 4 : $\\texttt{b} = ${a + b} - ${va} = ${vb}$.\n\nDonc $\\texttt{${quoi}} = ${nb(att)}$.` };
+  });
+
+  def("yl-compteur", () => {
+    const t = pick(["somme", "produit", "compteur", "compteur"]);
+    const n = rand(4, 8);
+    if (t === "somme") {
+      const d = rand(1, 3), code = `s = 0\nfor k in range(${d}, ${n + 1}):\n    s = s + k\nprint(s)`;
+      let att = 0; for (let k = d; k <= n; k++) att += k;
+      return { enonce: `Qu'affiche ce programme ?\n\n${py(code)}`, mode: "nombre", prefixe: "Affichage :", attendu: att,
+        erreurs: [{ valeur: att + n + 1, message: `$\\texttt{range(${d}, ${n + 1})}$ s'arrête à $${n}$ : la borne $${n + 1}$ est exclue.` }, { valeur: att - n, message: `$\\texttt{range(${d}, ${n + 1})}$ va jusqu'à $${n}$ compris.` }],
+        aides: [`$\\texttt{range(${d}, ${n + 1})}$ donne $${d}$, $${d + 1}$, …, $${n}$ (la dernière valeur est exclue).`, "$\\texttt{s}$ est un accumulateur : à chaque tour on lui ajoute $\\texttt{k}$.", `Calcule $${Array.from({ length: n - d + 1 }, (_, i) => d + i).join(" + ")}$.`],
+        solution: `La boucle ajoute à $\\texttt{s}$ les entiers de $${d}$ à $${n}$ : $${Array.from({ length: n - d + 1 }, (_, i) => d + i).join(" + ")} = ${att}$.` };
+    }
+    if (t === "produit") {
+      const m = rand(3, 5), q = rand(2, 3), code = `p = 1\nfor k in range(${m}):\n    p = p * ${q}\nprint(p)`;
+      return { enonce: `Qu'affiche ce programme ?\n\n${py(code)}`, mode: "nombre", prefixe: "Affichage :", attendu: q ** m,
+        erreurs: [{ valeur: q * m, message: "On multiplie par $" + q + "$ à chaque tour : ce n'est pas une addition." }, { valeur: q ** (m - 1), message: `$\\texttt{range(${m})}$ fait $${m}$ tours.` }, { valeur: q ** (m + 1), message: `$\\texttt{range(${m})}$ fait exactement $${m}$ tours, de $0$ à $${m - 1}$.` }],
+        aides: [`La boucle fait $${m}$ tours.`, `$\\texttt{p}$ part de $1$ et est multiplié par $${q}$ à chaque tour.`, `$1 \\times ${Array(m).fill(q).join(" \\times ")}$.`],
+        solution: `$\\texttt{p}$ est multiplié $${m}$ fois par $${q}$ : $\\texttt{p} = ${q}^{${m}} = ${q ** m}$.` };
+    }
+    const L = Array.from({ length: rand(6, 9) }, () => rand(1, 20)), seuil = rand(5, 15), sens = pick([">", "<", ">=", "<="]);
+    const code = `L = ${lst(L)}\nc = 0\nfor x in L:\n    if x ${sens} ${seuil}:\n        c = c + 1\nprint(c)`;
+    const ok = (x) => (sens === ">" ? x > seuil : sens === "<" ? x < seuil : sens === ">=" ? x >= seuil : x <= seuil);
+    const att = L.filter(ok).length;
+    return { enonce: `Qu'affiche ce programme ?\n\n${py(code)}`, mode: "nombre", prefixe: "Affichage :", attendu: att,
+      erreurs: [{ valeur: L.length - att, message: `On compte les valeurs qui vérifient $x ${sens.replace(">=", "\\geqslant").replace("<=", "\\leqslant")} ${seuil}$, pas les autres.` }, { valeur: L.filter(ok).reduce((s, v) => s + v, 0), message: "$\\texttt{c}$ est un compteur : il augmente de $1$, pas de $\\texttt{x}$." }, { valeur: L.length, message: "Seules les valeurs qui vérifient la condition sont comptées." }],
+      aides: ["$\\texttt{c}$ est un compteur : il augmente de $1$ chaque fois que la condition est vraie.", `La condition : $x ${sens.replace(">=", "\\geqslant").replace("<=", "\\leqslant")} ${seuil}$.`, `Les valeurs qui conviennent : $${L.filter(ok).join("$, $") || "\\text{aucune}"}$.`],
+      solution: `La boucle parcourt la liste et compte les valeurs qui vérifient $x ${sens.replace(">=", "\\geqslant").replace("<=", "\\leqslant")} ${seuil}$ : ${att ? `$${L.filter(ok).join("$, $")}$` : "aucune"}. Le programme affiche $${att}$.` };
+  });
+
+  def("yl-fonction", () => {
+    const t = pick(["appel", "appel", "deux", "choisir"]);
+    if (t === "choisir") {
+      const a = rand(2, 6), b = rand(1, 9);
+      const bonne = `def f(x):\n    return ${a} * x + ${b}`;
+      const ch = choix4(py(bonne), [py(`def f(x):\n    return ${a} * x - ${b}`), py(`def f(x):\n    return ${a} * (x + ${b})`), py(`def f(x):\n    print(${a} * x + ${b})`), py(`def f(x):\n    return x ** ${a} + ${b}`)]);
+      return { enonce: `Quelle fonction Python renvoie l'image de $x$ par $f(x) = ${aff(a, b)}$ ?`, mode: "choix", choix: ch.choix, attendu: ch.attendu,
+        aides: ["$\\texttt{def f(x):}$ définit une fonction dont l'entrée est $\\texttt{x}$.", "$\\texttt{return}$ renvoie la sortie ; $\\texttt{print}$ ne fait qu'afficher.", `L'expression doit être $${a} \\times x + ${b}$, écrite $\\texttt{${a} * x + ${b}}$.`],
+        solution: `La fonction reçoit $\\texttt{x}$ en entrée et doit **renvoyer** $${aff(a, b)}$ avec $\\texttt{return}$ : c'est $\\texttt{return ${a} * x + ${b}}$. Les autres propositions changent la formule ou affichent sans renvoyer.` };
+    }
+    if (t === "deux") {
+      const p = rand(2, 9), q = rand(1, 9), code = `def g(a, b):\n    return a * b - ${q}`;
+      const x = rand(2, 7), y = rand(2, 7), att = x * y - q;
+      return { enonce: `On définit :\n\n${py(code)}\n\nQue vaut ${tt(`g(${x}, ${y})`)} ?`, mode: "nombre", prefixe: `${tt(`g(${x}, ${y})`)} $=$`, attendu: att,
+        erreurs: [{ valeur: x + y - q, message: "$\\texttt{a * b}$ est un produit." }, { valeur: x * y + q, message: `On retire $${q}$.` }],
+        aides: ["Les entrées sont $\\texttt{a}$ et $\\texttt{b}$, dans cet ordre.", `Ici $\\texttt{a} = ${x}$ et $\\texttt{b} = ${y}$.`, `Calcule $${x} \\times ${y} - ${q}$.`],
+        solution: `$\\texttt{g(${x}, ${y})}$ remplace $\\texttt{a}$ par $${x}$ et $\\texttt{b}$ par $${y}$ : $${x} \\times ${y} - ${q} = ${att}$.` };
+    }
+    const a = rand(2, 6), b = rand(-9, 9) || 4, x = rand(-4, 6), k = pick([1, 1, 2]);
+    const code = k === 1 ? `def f(x):\n    return ${a} * x ${b < 0 ? "-" : "+"} ${Math.abs(b)}` : `def f(x):\n    return x ** 2 ${b < 0 ? "-" : "+"} ${Math.abs(b)} * x`;
+    const att = k === 1 ? a * x + b : x * x + b * x;
+    return { enonce: `On définit :\n\n${py(code)}\n\nQue vaut ${tt(`f(${x})`)} ?`, mode: "nombre", prefixe: `${tt(`f(${x})`)} $=$`, attendu: att,
+      erreurs: [{ valeur: k === 1 ? a * x - b : x * x - b * x, message: "Attention au signe." }, { valeur: k === 1 ? a + x + b : 2 * x + b * x, message: k === 1 ? "$\\texttt{*}$ est une multiplication." : "$\\texttt{x ** 2}$ est le carré de $x$." }],
+      aides: ["$\\texttt{f(" + x + ")}$ : on remplace $\\texttt{x}$ par $" + nb(x) + "$ dans le $\\texttt{return}$.", k === 1 ? "$\\texttt{*}$ est la multiplication." : "$\\texttt{**}$ est la puissance : $\\texttt{x ** 2}$ est $x^2$.", `Calcule ${k === 1 ? `$${a} \\times ${pr(x)} ${plus(b)}$` : `$${pr(x)}^2 ${plus(b)} \\times ${pr(x)}$`}.`],
+      solution: `$\\texttt{f(${x})} = ${k === 1 ? `${a} \\times ${pr(x)} ${plus(b)}` : `${pr(x)}^2 ${plus(b)} \\times ${pr(x)}`} = ${nb(att)}$.` };
+  });
+
+  def("yl-indice", () => {
+    const L = Array.from({ length: rand(5, 8) }, () => rand(1, 30));
+    const t = pick(["ind", "ind", "neg", "len", "sum", "modif"]);
+    const fig = listePy(L);
+    if (t === "len") return { enonce: `On pose $\\texttt{L = ${lst(L)}}$. Que vaut ${tt("len(L)")} ?`, figure: fig, mode: "nombre", prefixe: `${tt("len(L)")} $=$`, attendu: L.length,
+      erreurs: [{ valeur: L.length - 1, message: "$\\texttt{len}$ compte les éléments, pas le dernier indice." }, { valeur: L[L.length - 1], message: "$\\texttt{len(L)}$ est le **nombre** d'éléments de la liste." }],
+      aides: ["$\\texttt{len(L)}$ est la longueur de la liste : son nombre d'éléments.", "Compte les éléments entre les crochets.", `Il y en a $${L.length}$.`], solution: `La liste a $${L.length}$ éléments : $\\texttt{len(L)} = ${L.length}$. Le dernier indice est $${L.length - 1}$.` };
+    if (t === "sum") { const s = L.reduce((a, v) => a + v, 0); return { enonce: `On pose $\\texttt{L = ${lst(L)}}$. Que vaut ${tt("sum(L)")} ?`, figure: fig, mode: "nombre", prefixe: `${tt("sum(L)")} $=$`, attendu: s,
+      erreurs: [{ valeur: L.length, message: "$\\texttt{sum}$ additionne les éléments ; $\\texttt{len}$ les compte." }], aides: ["$\\texttt{sum(L)}$ est la somme de tous les éléments.", `Additionne $${L.join(" + ")}$.`, "Vérifie ton calcul en regroupant les nombres."], solution: `$\\texttt{sum(L)} = ${L.join(" + ")} = ${s}$.` }; }
+    if (t === "modif") {
+      const k = rand(0, L.length - 1), v = rand(1, 30), M = L.slice(); M[k] = v;
+      const ch = choix4(tt(lst(M)), [tt(lst(L.map((x, i) => (i === k + 1 && k + 1 < L.length ? v : x)))), tt(lst(L.map((x, i) => (i === k - 1 && k > 0 ? v : x)))), tt(lst(L.concat([v]))), tt(lst(L.map((x, i) => (i === k ? x + v : x))))]);
+      return { enonce: `On pose $\\texttt{L = ${lst(L)}}$ puis on exécute $\\texttt{L[${k}] = ${v}}$. Que vaut $\\texttt{L}$ ensuite ?`, figure: fig, mode: "choix", choix: ch.choix, attendu: ch.attendu,
+        aides: ["$\\texttt{L[k] = v}$ remplace l'élément d'indice $\\texttt{k}$ par $\\texttt{v}$.", "Les indices commencent à $0$ : $\\texttt{L[0]}$ est le premier élément.", `L'élément d'indice $${k}$ est $${L[k]}$ : il devient $${v}$.`],
+        solution: `L'élément d'indice $${k}$ (le ${k + 1}${k === 0 ? "er" : "e"}, car on compte à partir de $0$) est remplacé par $${v}$ : $\\texttt{L = ${lst(M)}}$.` };
+    }
+    const k = t === "neg" ? -rand(1, 3) : rand(0, L.length - 1), att = L[(k + L.length) % L.length];
+    return { enonce: `On pose $\\texttt{L = ${lst(L)}}$. Que vaut ${tt(`L[${k}]`)} ?`, figure: fig, mode: "nombre", prefixe: `${tt(`L[${k}]`)} $=$`, attendu: att,
+      erreurs: [{ valeur: k >= 0 ? L[Math.min(k + 1, L.length - 1)] : L[L.length + k - 1] !== undefined ? L[L.length + k - 1] : -1, message: k >= 0 ? "Les indices commencent à $0$ : $\\texttt{L[0]}$ est le premier élément." : "$\\texttt{L[-1]}$ est le dernier élément, $\\texttt{L[-2]}$ l'avant-dernier…" }, { valeur: k >= 0 && k > 0 ? L[k - 1] : L[0], message: k >= 0 ? "Compte à partir de $0$, pas de $1$." : "Un indice négatif compte à partir de la fin." }],
+      aides: ["Les indices commencent à $0$ : $\\texttt{L[0]}$ est le premier élément, $\\texttt{L[1]}$ le deuxième…", "Un indice négatif part de la fin : $\\texttt{L[-1]}$ est le dernier.", k >= 0 ? `$\\texttt{L[${k}]}$ est le ${k + 1}${k === 0 ? "er" : "e"} élément.` : `$\\texttt{L[${k}]}$ est le ${-k === 1 ? "dernier" : -k === 2 ? "avant-dernier" : "3e en partant de la fin"}.`],
+      solution: k >= 0 ? `En comptant à partir de $0$, l'élément d'indice $${k}$ est $${att}$.` : `$\\texttt{L[${k}]}$ compte depuis la fin : c'est $${att}$ (indice $${L.length + k}$ en comptant depuis le début).` };
+  });
+
+  def("yl-comprehension", () => {
+    const t = pick(["res", "res", "res", "code", "cond"]);
+    const a = rand(1, 4), b = rand(0, 5), n = rand(4, 6);
+    if (t === "code") {
+      const L = Array.from({ length: n }, (_, k) => a * k + b);
+      const bonne = tt(`[${a === 1 ? "" : a + " * "}n${b ? " + " + b : ""} for n in range(${n})]`);
+      const ch = choix4(bonne, [tt(`[${a === 1 ? "" : a + " * "}n${b ? " + " + b : ""} for n in range(${n + 1})]`), tt(`[${a === 1 ? "" : a + " * "}n${b ? " + " + b : ""} for n in range(1, ${n})]`), tt(`[${a}${b ? " + " + b : ""} * n for n in range(${n})]`), tt(`[n${b ? " + " + b : ""} for n in range(${n})]`)]);
+      return { enonce: `Quelle liste en compréhension donne $\\texttt{${lst(L)}}$ ?`, mode: "choix", choix: ch.choix, attendu: ch.attendu,
+        aides: ["$\\texttt{[expression for n in range(N)]}$ calcule l'expression pour $n = 0, 1, \\dots, N - 1$.", `Ici il y a $${n}$ éléments, donc $\\texttt{range(${n})}$.`, `Pour $n = 0$ on obtient $${b}$, pour $n = 1$ on obtient $${a + b}$ : l'expression est $${a === 1 ? "n" : a + "n"}${b ? " + " + b : ""}$.`],
+        solution: `Les éléments sont $${a === 1 ? "n" : a + "n"}${b ? " + " + b : ""}$ pour $n$ de $0$ à $${n - 1}$ : ${bonne}.` };
+    }
+    if (t === "cond") {
+      const m = rand(8, 14), c = pick([2, 3]), L = Array.from({ length: m }, (_, k) => k).filter((k) => k % c === 0 && k > 0);
+      const ch = choix4(tt(lst(L)), [tt(lst(Array.from({ length: m }, (_, k) => k).filter((k) => k % c === 0))), tt(lst(Array.from({ length: m + 1 }, (_, k) => k).filter((k) => k % c === 0 && k > 0))), tt(lst(Array.from({ length: m }, (_, k) => k).filter((k) => k % c !== 0 && k > 0))), tt(lst(Array.from({ length: m }, (_, k) => k * c).filter((k) => k > 0)))]);
+      return { enonce: `Que vaut $\\texttt{[n for n in range(${m}) if n \\% ${c} == 0 and n > 0]}$ ?`, mode: "choix", choix: ch.choix, attendu: ch.attendu,
+        aides: ["$\\texttt{n \\% " + c + " == 0}$ : le reste de la division par $" + c + "$ est nul, $n$ est un multiple de $" + c + "$.", `$\\texttt{range(${m})}$ va de $0$ à $${m - 1}$.`, "La condition $\\texttt{and n > 0}$ écarte $0$."],
+        solution: `On garde les entiers de $0$ à $${m - 1}$ qui sont multiples de $${c}$ et strictement positifs : $\\texttt{${lst(L)}}$.` };
+    }
+    const f = pick([{ e: `n ** 2`, g: (k) => k * k, tex: "n^2" }, { e: `${a} * n + ${b}`, g: (k) => a * k + b, tex: `${a === 1 ? "n" : a + "n"} + ${b}` }, { e: `2 * n + 1`, g: (k) => 2 * k + 1, tex: "2n + 1" }, { e: `${a + 1} ** n`, g: (k) => (a + 1) ** k, tex: `${a + 1}^n` }]);
+    const d = pick([0, 0, 1]), L = Array.from({ length: n - d }, (_, k) => f.g(k + d));
+    const ch = choix4(tt(lst(L)), [tt(lst(Array.from({ length: n - d }, (_, k) => f.g(k + d + 1)))), tt(lst(Array.from({ length: n - d + 1 }, (_, k) => f.g(k + d)))), tt(lst(Array.from({ length: n - d }, (_, k) => k + d))), tt(lst(Array.from({ length: n - d - 1 }, (_, k) => f.g(k + d))))]);
+    return { enonce: `Que vaut $\\texttt{[${f.e} for n in range(${d ? d + ", " : ""}${n})]}$ ?`, mode: "choix", choix: ch.choix, attendu: ch.attendu,
+      aides: [`$\\texttt{range(${d ? d + ", " : ""}${n})}$ donne $n = ${d}, \\dots, ${n - 1}$.`, `Pour chaque $n$, on calcule $${f.tex}$.`, `Pour $n = ${d}$ : $${f.g(d)}$ ; pour $n = ${d + 1}$ : $${f.g(d + 1)}$.`],
+      solution: `Pour $n = ${Array.from({ length: n - d }, (_, k) => k + d).join(", ")}$, l'expression $${f.tex}$ vaut $${L.join(", ")}$ : la liste est $\\texttt{${lst(L)}}$.` };
+  });
+
+  def("yl-parcourir", () => {
+    const t = pick(["append", "max", "somme-cond"]);
+    const L = Array.from({ length: rand(5, 7) }, () => rand(1, 25));
+    if (t === "append") {
+      const k = rand(2, 4), code = `L = []\nfor i in range(${k}):\n    L.append(${pick(["2 * i", "i * i", "i + 10"])})\nprint(L)`;
+      const e = code.match(/append\((.*)\)/)[1], g = e === "2 * i" ? (i) => 2 * i : e === "i * i" ? (i) => i * i : (i) => i + 10;
+      const M = Array.from({ length: k }, (_, i) => g(i));
+      const ch = choix4(tt(lst(M)), [tt(lst(Array.from({ length: k + 1 }, (_, i) => g(i)))), tt(lst(Array.from({ length: k }, (_, i) => g(i + 1)))), tt(lst([g(k - 1)])), tt(lst(Array.from({ length: k }, (_, i) => i)))]);
+      return { enonce: `Qu'affiche ce programme ?\n\n${py(code)}`, mode: "choix", choix: ch.choix, attendu: ch.attendu,
+        aides: ["$\\texttt{L = []}$ crée une liste vide ; $\\texttt{L.append(v)}$ ajoute $\\texttt{v}$ à la fin.", `La boucle fait $${k}$ tours, avec $i = 0, \\dots, ${k - 1}$.`, `À chaque tour, on ajoute $\\texttt{${e}}$ pour la valeur de $i$ du tour.`],
+        solution: `On part d'une liste vide et on ajoute successivement $${M.join("$, $")}$ : $\\texttt{${lst(M)}}$.` };
+    }
+    if (t === "max") {
+      const code = `L = ${lst(L)}\nm = L[0]\nfor x in L:\n    if x > m:\n        m = x\nprint(m)`;
+      return { enonce: `Qu'affiche ce programme ?\n\n${py(code)}`, mode: "nombre", prefixe: "Affichage :", attendu: Math.max(...L),
+        erreurs: [{ valeur: Math.min(...L), message: "On remplace $\\texttt{m}$ quand on trouve **plus grand**." }, { valeur: L[0], message: "$\\texttt{m}$ est remplacé chaque fois qu'un élément plus grand apparaît." }, { valeur: L[L.length - 1], message: "$\\texttt{m}$ ne prend pas forcément la dernière valeur : seulement si elle est plus grande." }],
+        aides: ["$\\texttt{m}$ garde en mémoire le plus grand élément rencontré.", "Parcours la liste : chaque fois qu'un élément dépasse $\\texttt{m}$, il le remplace.", `Le plus grand élément de la liste est $${Math.max(...L)}$.`],
+        solution: `Ce programme cherche le maximum de la liste : il affiche $${Math.max(...L)}$.` };
+    }
+    const s = rand(5, 15), code = `L = ${lst(L)}\ns = 0\nfor x in L:\n    if x > ${s}:\n        s = s + x\nprint(s)`;
+    const att = L.filter((x) => x > s).reduce((a, v) => a + v, 0);
+    return { enonce: `Qu'affiche ce programme ?\n\n${py(code)}`, mode: "nombre", prefixe: "Affichage :", attendu: att,
+      erreurs: [{ valeur: L.filter((x) => x > s).length, message: "$\\texttt{s = s + x}$ additionne les valeurs, ce n'est pas un compteur." }, { valeur: L.reduce((a, v) => a + v, 0), message: `Seules les valeurs strictement supérieures à $${s}$ sont ajoutées.` }, { valeur: L.filter((x) => x >= s).reduce((a, v) => a + v, 0), message: `La condition est $x > ${s}$, strictement.` }],
+      aides: [`On n'ajoute que les éléments qui vérifient $x > ${s}$.`, `Ces éléments : $${L.filter((x) => x > s).join("$, $") || "\\text{aucun}"}$.`, "Additionne-les."],
+      solution: `Les éléments strictement supérieurs à $${s}$ sont ${att ? `$${L.filter((x) => x > s).join("$, $")}$` : "inexistants"} ; leur somme est $${att}$.` };
+  });
+
+  def("yl-condition", () => {
+    const t = pick(["tarif", "tarif", "note", "et-ou"]);
+    if (t === "tarif") {
+      const seuil = pick([50, 100, 200]), p1 = rand(3, 8), p2 = rand(0, 3) || 0;
+      const code = `def prix(x):\n    if x < ${seuil}:\n        return x + ${p1}\n    else:\n        return x`;
+      const x = pick([seuil - rand(1, 20), seuil, seuil + rand(1, 30)]), att = x < seuil ? x + p1 : x;
+      return { enonce: `Un site de vente en ligne offre les frais de port (${euros(p1)}) à partir de ${euros(seuil)} d'achat :\n\n${py(code)}\n\nQue vaut ${tt(`prix(${x})`)} ?`, mode: "nombre", prefixe: `${tt(`prix(${x})`)} $=$`, attendu: att, suffixe: "€",
+        erreurs: [{ valeur: x < seuil ? x : x + p1, message: x < seuil ? `$${x} < ${seuil}$ : la condition est vraie, on ajoute les frais.` : `$${x} < ${seuil}$ est faux : on passe dans le $\\texttt{else}$.` }],
+        aides: [`Teste la condition $\\texttt{x < ${seuil}}$ avec $x = ${x}$.`, x < seuil ? "Elle est vraie : on exécute le premier $\\texttt{return}$." : "Elle est fausse : on exécute le $\\texttt{else}$.", x === seuil ? `$${seuil} < ${seuil}$ est faux (ce n'est pas $\\leqslant$).` : "Calcule la valeur renvoyée."],
+        solution: x < seuil ? `$${x} < ${seuil}$ est vrai : la fonction renvoie $${x} + ${p1} = ${att}$ (frais de port ajoutés).` : `$${x} < ${seuil}$ est faux${x === seuil ? " (égalité, pas strictement inférieur)" : ""} : la fonction renvoie $${x}$ (port offert).` };
+    }
+    if (t === "note") {
+      const n = rand(0, 20), code = `def mention(n):\n    if n >= 16:\n        return "TB"\n    elif n >= 12:\n        return "B"\n    elif n >= 10:\n        return "AB"\n    else:\n        return "sans"`;
+      const att = n >= 16 ? "TB" : n >= 12 ? "B" : n >= 10 ? "AB" : "sans";
+      const ch = choix4(tt(`"${att}"`), ["TB", "B", "AB", "sans"].filter((x) => x !== att).map((x) => tt(`"${x}"`)));
+      return { enonce: `On définit :\n\n${py(code)}\n\nQue renvoie ${tt(`mention(${n})`)} ?`, mode: "choix", choix: ch.choix, attendu: ch.attendu,
+        aides: ["Les conditions sont testées dans l'ordre ; dès qu'une est vraie, la fonction renvoie et s'arrête.", `Teste $${n} \\geqslant 16$, puis $${n} \\geqslant 12$, puis $${n} \\geqslant 10$.`, "$\\texttt{elif}$ signifie « sinon, si »."],
+        solution: `Avec $n = ${n}$ : ${n >= 16 ? "$n \\geqslant 16$ est vrai" : n >= 12 ? "$n \\geqslant 16$ est faux, $n \\geqslant 12$ est vrai" : n >= 10 ? "$n \\geqslant 16$ et $n \\geqslant 12$ sont faux, $n \\geqslant 10$ est vrai" : "aucune condition n'est vraie"}, la fonction renvoie $\\texttt{"${att}"}$.` };
+    }
+    const x = rand(-5, 15), a = rand(0, 6), b = rand(7, 12), op = pick(["and", "or"]);
+    const code = `x = ${x}\nif x > ${a} ${op} x < ${b}:\n    print("oui")\nelse:\n    print("non")`;
+    const v = op === "and" ? x > a && x < b : x > a || x < b;
+    const ch = choix4(tt(`"${v ? "oui" : "non"}"`), [tt(`"${v ? "non" : "oui"}"`), tt(`"oui" puis "non"`), "rien, le programme a une erreur"]);
+    return { enonce: `Qu'affiche ce programme ?\n\n${py(code)}`, mode: "choix", choix: ch.choix, attendu: ch.attendu,
+      aides: [op === "and" ? "$\\texttt{and}$ : les deux conditions doivent être vraies." : "$\\texttt{or}$ : il suffit qu'une condition soit vraie.", `$x > ${a}$ est ${x > a ? "vrai" : "faux"} ; $x < ${b}$ est ${x < b ? "vrai" : "faux"}.`, "Conclus avec le sens de l'opérateur."],
+      solution: `$x > ${a}$ est ${x > a ? "vrai" : "faux"} et $x < ${b}$ est ${x < b ? "vrai" : "faux"} ; avec $\\texttt{${op}}$, la condition est ${v ? "vraie" : "fausse"} : le programme affiche $\\texttt{"${v ? "oui" : "non"}"}$.` };
+  });
+
+  def("yl-bernoulli", () => {
+    const t = pick(["code", "moyenne", "moyenne", "liste"]);
+    const p = pick([0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.6, 0.65, 0.7, 0.75, 0.8, 0.9]);
+    if (t === "code") {
+      const bonne = py(`from random import random\ndef bernoulli():\n    if random() < ${p}:\n        return 1\n    else:\n        return 0`);
+      const ch = choix4(bonne, [py(`from random import random\ndef bernoulli():\n    if random() < ${p}:\n        return 0\n    else:\n        return 1`), py(`from random import random\ndef bernoulli():\n    if random() < ${1 - p === 0.5 ? 0.9 : +(1 - p).toFixed(2)}:\n        return 1\n    else:\n        return 0`), py(`from random import random\ndef bernoulli():\n    return random() * ${p}`)]);
+      return { enonce: `$\\texttt{random()}$ renvoie un nombre au hasard entre $0$ et $1$. Quelle fonction simule une loi de Bernoulli de paramètre $p = ${nb(p)}$ (elle renvoie $1$ avec la probabilité $${nb(p)}$, sinon $0$) ?`, mode: "choix", choix: ch.choix, attendu: ch.attendu,
+        aides: ["La probabilité que $\\texttt{random()}$ soit inférieur à $p$ vaut exactement $p$.", `On veut renvoyer $1$ quand $\\texttt{random() < ${p}}$.`, "Sinon, on renvoie $0$."],
+        solution: `$\\texttt{random() < ${p}}$ est vrai avec la probabilité $${nb(p)}$ : on renvoie $1$ dans ce cas et $0$ sinon. La deuxième proposition inverse les deux sorties, la troisième n'a pas la bonne probabilité, la dernière ne renvoie ni $0$ ni $1$.` };
+    }
+    if (t === "liste") {
+      const n = pick([10, 20, 50, 100]);
+      const bonne = tt(`[bernoulli() for k in range(${n})]`);
+      const ch = choix4(bonne, [tt(`bernoulli(${n})`), tt(`[bernoulli() for k in range(${n + 1})]`), tt(`${n} * bernoulli()`), tt(`[bernoulli()] * ${n}`)]);
+      return { enonce: `La fonction $\\texttt{bernoulli()}$ renvoie $1$ ou $0$ au hasard. Quelle instruction fabrique une liste de $${n}$ tirages indépendants (un échantillon de taille $${n}$) ?`, mode: "choix", choix: ch.choix, attendu: ch.attendu,
+        aides: ["Il faut appeler la fonction $" + n + "$ fois : une liste en compréhension le fait.", `$\\texttt{range(${n})}$ donne exactement $${n}$ tours.`, "$\\texttt{[bernoulli()] * " + n + "}$ répéterait $" + n + "$ fois le **même** tirage."],
+        solution: `${bonne} appelle la fonction $${n}$ fois et range les résultats dans une liste. $\\texttt{[bernoulli()] * ${n}}$ ne fait qu'un seul tirage recopié $${n}$ fois.` };
+    }
+    const n = pick([20, 40, 50, 100, 200, 250, 300, 400, 500, 800, 1000, 2000]), att = arr(p * n);
+    return { enonce: `On simule $${n}$ tirages d'une loi de Bernoulli de paramètre $p = ${nb(p)}$ avec $\\texttt{L = [bernoulli() for k in range(${n})]}$. Autour de quelle valeur attend-on $\\texttt{sum(L)}$ (le nombre de $1$) ?`, mode: "nombre", prefixe: "Environ", attendu: att,
+      erreurs: [{ valeur: n * (1 - p), message: "C'est le nombre de $0$ attendu : la probabilité d'obtenir $1$ est $p$." }, { valeur: p, message: "On demande un nombre de $1$ parmi $" + n + "$ tirages, pas une probabilité." }],
+      aides: ["Chaque tirage donne $1$ avec la probabilité $p$.", `Sur $${n}$ tirages, on attend environ $p \\times ${n}$ fois le résultat $1$.`, `$${nb(p)} \\times ${n}$.`],
+      solution: `En moyenne, une proportion $p = ${nb(p)}$ des tirages donne $1$ : environ $${nb(p)} \\times ${n} = ${nb(att)}$. La valeur réelle fluctue autour de ce nombre d'une simulation à l'autre.` };
+  });
+
+  def("yl-vrai-faux", () => vraiFaux4([
+    ["$\\texttt{range(5)}$ donne les entiers $0$, $1$, $2$, $3$, $4$.", true, "la borne $5$ est exclue."],
+    ["Dans une liste, le premier élément a l'indice $0$.", true, "les indices commencent à $0$."],
+    ["$\\texttt{L[-1]}$ est le dernier élément de la liste $\\texttt{L}$.", true, "un indice négatif compte depuis la fin."],
+    ["$\\texttt{L.append(7)}$ ajoute $7$ à la fin de la liste.", true, "c'est la méthode pour ajouter un élément."],
+    ["$\\texttt{len(L)}$ est le nombre d'éléments de $\\texttt{L}$.", true, "c'est la longueur de la liste."],
+    ["$\\texttt{[2 * n for n in range(4)]}$ vaut $\\texttt{[0, 2, 4, 6]}$.", true, "$2n$ pour $n = 0, 1, 2, 3$."],
+    ["Une fonction Python renvoie une valeur avec $\\texttt{return}$.", true, "$\\texttt{print}$ ne fait qu'afficher."],
+    ["$\\texttt{random() < 0.3}$ est vrai avec la probabilité $0{,}3$.", true, "$\\texttt{random()}$ est uniforme entre $0$ et $1$."],
+    ["$\\texttt{s = s + x}$ est un compteur.", false, "c'est un accumulateur : un compteur fait $\\texttt{c = c + 1}$."],
+    ["$\\texttt{range(1, 5)}$ donne $1$, $2$, $3$, $4$, $5$.", false, "la borne $5$ est exclue : $1$, $2$, $3$, $4$."],
+    ["Si $\\texttt{L = [3, 8, 5]}$, alors $\\texttt{L[1]}$ vaut $3$.", false, "$\\texttt{L[1]}$ est le deuxième élément : $8$."],
+    ["$\\texttt{x ** 2}$ calcule $2x$.", false, "$\\texttt{**}$ est la puissance : $x^2$."],
+    ["Après $\\texttt{a = 2}$ puis $\\texttt{a = a + 3}$, la variable $\\texttt{a}$ vaut $2$.", false, "l'affectation remplace la valeur : $\\texttt{a}$ vaut $5$."],
+    ["$\\texttt{[n for n in range(10) if n > 7]}$ vaut $\\texttt{[7, 8, 9]}$.", false, "$n > 7$ strictement : $\\texttt{[8, 9]}$."],
+    ["Une fonction Python ne peut avoir qu'une seule entrée.", false, "on peut écrire $\\texttt{def g(a, b):}$ avec plusieurs paramètres."]
+  ], ["Relis le rôle de $\\texttt{range}$, des indices et de $\\texttt{return}$.", "Un compteur augmente de $1$, un accumulateur ajoute une valeur.", "Teste mentalement chaque affirmation sur un petit exemple."]));
+
+  /* Figures du cours (chapitre 2) */
+  FIGURES["yl-cours-liste"] = () => listePy([4, 9, 2, 7, 5], "L");
+  FIGURES["yl-cours-fonction"] = () => {
+    let s = `<svg class="graph" viewBox="0 0 320 120" role="img" aria-label="Schéma d'une fonction Python : entrées x, traitement, sortie renvoyée par return">`;
+    s += `<rect x="110" y="30" width="100" height="60" rx="8" style="fill:var(--lagon);fill-opacity:0.12;stroke:var(--lagon);stroke-width:1.8"/><text class="g-label" x="160" y="55" text-anchor="middle" style="font-weight:700">def f(x):</text><text class="g-label" x="160" y="75" text-anchor="middle">calculs</text>`;
+    s += `<path d="M20 60 L104 60" style="stroke:var(--encre);stroke-width:1.6"/><path d="M104 60 L96 55 L96 65 Z" style="fill:var(--encre)"/><text class="g-label" x="20" y="48">entrée x</text>`;
+    s += `<path d="M212 60 L296 60" style="stroke:var(--encre);stroke-width:1.6"/><path d="M296 60 L288 55 L288 65 Z" style="fill:var(--encre)"/><text class="g-label" x="300" y="48" text-anchor="end">sortie</text><text class="g-label" x="300" y="78" text-anchor="end" style="fill:var(--lagon)">return …</text>`;
+    return s + `</svg>`;
+  };
+  FIGURES["yl-cours-boucle"] = () => {
+    let s = `<svg class="graph" viewBox="0 0 320 130" role="img" aria-label="Boucle for k in range(4) : quatre tours, k vaut 0, 1, 2, 3, et l'accumulateur s passe de 0 à 2, 4, 6, 8">`;
+    s += `<text class="g-label" x="10" y="22" style="font-weight:700">for k in range(4):   s = s + 2</text>`;
+    ["tour", "k", "s"].forEach((n, i) => { s += `<text class="g-label" x="10" y="${54 + i * 24}" style="font-weight:700">${n}</text>`; });
+    [["1", "0", "2"], ["2", "1", "4"], ["3", "2", "6"], ["4", "3", "8"]].forEach((c, j) => { c.forEach((v, i) => { s += `<rect x="${70 + j * 60}" y="${38 + i * 24}" width="56" height="22" style="fill:${i === 2 ? "var(--lagon)" : "var(--surface)"};fill-opacity:${i === 2 ? 0.15 : 1};stroke:var(--doux);stroke-width:1"/><text class="g-label" x="${98 + j * 60}" y="${54 + i * 24}" text-anchor="middle">${v}</text>`; }); });
+    s += `<text class="g-label" x="10" y="122" style="font-size:10px">départ : s = 0 ; après la boucle : s = 8</text>`;
+    return s + `</svg>`;
+  };
+
+  /* ---------- Chapitre 3 : automatismes, évolutions et pourcentages (préfixe yv) ---------- */
+  const OBJETS = [["un scooter", "€"], ["un téléphone", "€"], ["un billet d'avion pour La Réunion", "€"], ["un sac de riz", "€"], ["le loyer d'un studio", "€"], ["une paire de baskets", "€"], ["un abonnement internet", "€"], ["une télévision", "€"]];
+  const GRANDEURS = [["la population de", "habitants"], ["le nombre d'abonnés de", "abonnés"], ["le nombre de visiteurs de", "visiteurs"], ["le nombre de licenciés du club de", "licenciés"]];
+  const TAUX = [2, 3, 4, 5, 6, 8, 10, 12, 15, 20, 25, 30, 40, 50, 60, 75];
+  const taux = () => pick([1, -1]) * pick(TAUX); // en %
+  const cm = (t) => arr(1 + t / 100); // coefficient multiplicateur
+  const signe = (t) => (t > 0 ? "augmente" : "baisse");
+  const tauxTex = (t) => (t < 0 ? `-${nb(-t)}\\,\\%` : `+${nb(t)}\\,\\%`);
+  const pctTex = (t) => `${nb(Math.abs(t))}\\,\\%`;
+
+  def("yv-proportion", () => {
+    const t = pick(["vers-pct", "vers-pct", "vers-eff", "de-de"]);
+    if (t === "de-de") {
+      const p1 = pick([20, 25, 30, 40, 50, 60, 75, 80]), p2 = pick([10, 20, 25, 30, 40, 50]), att = arr(p1 * p2 / 100);
+      const ctx = pick([["des élèves du lycée sont en Première", "des élèves de Première font de l'espagnol", "les élèves du lycée", "élèves de Première hispanisants"], ["des habitants ont moins de 25 ans", "des moins de 25 ans sont scolarisés", "les habitants", "moins de 25 ans scolarisés"], ["des clients paient par carte", "des paiements par carte sont sans contact", "les clients", "clients payant sans contact"]]);
+      return { enonce: `$${p1}\\,\\%$ ${ctx[0]}, et $${p2}\\,\\%$ ${ctx[1]}. Quel pourcentage de tous ${ctx[2]} représentent les ${ctx[3]} ?`,
+        mode: "nombre", prefixe: "Pourcentage :", attendu: att, suffixe: "%",
+        erreurs: [{ valeur: p1 + p2, message: "Une proportion de proportion se **multiplie** : $\\dfrac{p_1}{100} \\times \\dfrac{p_2}{100}$." }, { valeur: p1 * p2, message: "N'oublie pas de diviser par $100$ : $\\dfrac{" + p1 + "}{100} \\times \\dfrac{" + p2 + "}{100}$, puis en pourcentage." }],
+        aides: ["Une proportion de proportion : on multiplie les deux proportions.", `$\\dfrac{${p1}}{100} \\times \\dfrac{${p2}}{100} = ${nb(p1 / 100)} \\times ${nb(p2 / 100)}$.`, `Exprime le résultat en pourcentage (multiplie par $100$).`],
+        solution: `$\\dfrac{${p1}}{100} \\times \\dfrac{${p2}}{100} = ${nb(arr(p1 * p2 / 10000))}$, soit $${nb(att)}\\,\\%$ de l'ensemble.` };
+    }
+    const N = pick([40, 50, 80, 120, 150, 200, 250, 300, 400, 500, 600, 800, 1200, 1500, 2000]), p = pick([5, 10, 12, 15, 20, 25, 30, 35, 40, 45, 50, 60, 65, 70, 75, 80, 85, 90]);
+    const eff = arr(N * p / 100);
+    if (!Number.isInteger(eff)) return GEN["yv-proportion"]();
+    const ctx = pick([["élèves", "ont choisi l'option santé"], ["habitants", "ont moins de 20 ans"], ["véhicules", "sont des scooters"], ["touristes", "viennent de La Réunion"], ["bouteilles", "sont recyclées"]]);
+    if (t === "vers-eff") return { enonce: `Sur $${nb(N)}$ ${ctx[0]}, $${p}\\,\\%$ ${ctx[1]}. Combien cela fait-il de ${ctx[0]} ?`, mode: "nombre", prefixe: "Effectif :", attendu: eff,
+      erreurs: [{ valeur: N - eff, message: "Ça, c'est le reste : on veut les " + ctx[0] + " qui " + ctx[1] + "." }, { valeur: N * p, message: "$p\\,\\%$ de $N$, c'est $N \\times \\dfrac{p}{100}$." }],
+      aides: ["Prendre $p\\,\\%$ d'un nombre, c'est le multiplier par $\\dfrac{p}{100}$.", `$${nb(N)} \\times \\dfrac{${p}}{100}$.`, `$${nb(N)} \\times ${nb(p / 100)}$.`],
+      solution: `$${nb(N)} \\times \\dfrac{${p}}{100} = ${nb(N)} \\times ${nb(p / 100)} = ${nb(eff)}$ ${ctx[0]}.` };
+    return { enonce: `Sur $${nb(N)}$ ${ctx[0]}, $${nb(eff)}$ ${ctx[1]}. Quel pourcentage cela représente-t-il ?`, mode: "nombre", prefixe: "Pourcentage :", attendu: p, suffixe: "%",
+      erreurs: [{ valeur: 100 - p, message: "C'est le pourcentage des autres." }, { valeur: arr(eff / N), message: "Multiplie la proportion par $100$ pour avoir un pourcentage." }, { valeur: arr(N / eff), message: "La proportion est $\\dfrac{\\text{partie}}{\\text{total}}$, pas l'inverse." }],
+      aides: ["Proportion $= \\dfrac{\\text{effectif de la partie}}{\\text{effectif total}}$.", `$\\dfrac{${nb(eff)}}{${nb(N)}} = ${nb(arr(eff / N))}$.`, "Multiplie par $100$ pour l'écrire en pourcentage."],
+      solution: `$\\dfrac{${nb(eff)}}{${nb(N)}} = ${nb(arr(eff / N))} = \\dfrac{${p}}{100}$, soit $${p}\\,\\%$.` };
+  });
+
+  def("yv-appliquer", () => {
+    const t = taux(), c = cm(t);
+    const [objet, u] = pick(OBJETS), v0 = pick([40, 60, 80, 120, 150, 180, 200, 240, 250, 300, 320, 360, 400, 450, 500, 600, 640, 750, 800, 900, 1200, 1500, 2000]);
+    const v1 = arr(v0 * c);
+    const ctx = pick(["prix", "quantite"]);
+    if (ctx === "quantite") {
+      const [g, unite] = pick(GRANDEURS), lieu0 = lieu(), n0 = v0 * 10;
+      const n1 = arr(n0 * c);
+      return { enonce: `En un an, ${g} ${lieu0} ${signe(t)} de $${pctTex(t)}$. Il y avait $${nb(n0)}$ ${unite}. Combien y en a-t-il maintenant ?`, mode: "nombre", prefixe: "Nombre :", attendu: n1,
+        erreurs: [{ valeur: arr(n0 * (1 - t / 100)), message: `Une ${t > 0 ? "hausse" : "baisse"} de $${pctTex(t)}$ : le coefficient est $1 ${t > 0 ? "+" : "-"} ${nb(Math.abs(t) / 100)}$.` }, { valeur: arr(n0 * Math.abs(t) / 100), message: `Ça, c'est la variation. Il faut ${t > 0 ? "l'ajouter à" : "la retirer de"} la valeur de départ.` }, { valeur: n0 + t, message: "Un pourcentage se calcule par rapport à la valeur de départ, ce n'est pas un nombre qu'on ajoute." }],
+        aides: [`Une évolution de $${tauxTex(t)}$ revient à multiplier par $1 ${t > 0 ? "+" : "-"} \\dfrac{${Math.abs(t)}}{100}$.`, `Le coefficient multiplicateur est $${nb(c)}$.`, `$${nb(n0)} \\times ${nb(c)}$.`],
+        solution: `Coefficient multiplicateur : $1 ${t > 0 ? "+" : "-"} \\dfrac{${Math.abs(t)}}{100} = ${nb(c)}$.\n\n$${nb(n0)} \\times ${nb(c)} = ${nb(n1)}$ ${unite}.` };
+    }
+    return { enonce: `Le prix d'${objet.replace(/^un /, "un ").replace(/^le /, "")} est de ${euros(v0)}. Il ${signe(t)} de $${pctTex(t)}$. Quel est le nouveau prix ?`.replace("d'un ", "d'un ").replace("d'le ", "du "), mode: "nombre", prefixe: "Nouveau prix :", attendu: v1, suffixe: "€",
+      erreurs: [{ valeur: arr(v0 * (1 - t / 100)), message: `C'est une ${t > 0 ? "hausse" : "baisse"} : le coefficient est $1 ${t > 0 ? "+" : "-"} ${nb(Math.abs(t) / 100)}$.` }, { valeur: arr(v0 * Math.abs(t) / 100), message: `Ça, c'est le montant de la ${t > 0 ? "hausse" : "baisse"}. Il faut ${t > 0 ? "l'ajouter au" : "le retirer du"} prix de départ.` }, { valeur: v0 + t, message: "Un pourcentage se calcule par rapport au prix de départ." }],
+      aides: [`${t > 0 ? "Augmenter" : "Diminuer"} de $${pctTex(t)}$, c'est multiplier par $1 ${t > 0 ? "+" : "-"} \\dfrac{${Math.abs(t)}}{100}$.`, `Le coefficient multiplicateur est $${nb(c)}$.`, `$${nb(v0)} \\times ${nb(c)}$.`],
+      solution: `Coefficient multiplicateur : $1 ${t > 0 ? "+" : "-"} \\dfrac{${Math.abs(t)}}{100} = ${nb(c)}$.\n\nNouveau prix : $${nb(v0)} \\times ${nb(c)} = ${nb(v1)}$ €.` };
+  });
+
+  def("yv-initiale", () => {
+    const t = taux(), c = cm(t);
+    const v0 = pick([40, 60, 80, 120, 150, 200, 240, 250, 300, 400, 450, 500, 600, 800, 900, 1200, 1500, 2000, 2500]), v1 = arr(v0 * c);
+    if (!Number.isInteger(v1 * 100)) return GEN["yv-initiale"]();
+    const [objet] = pick(OBJETS);
+    return { enonce: `Après une ${t > 0 ? "hausse" : "baisse"} de $${pctTex(t)}$, le prix d'${objet.replace(/^un /, "")} est de ${euros(v1)}. Quel était le prix **avant** l'évolution ?`.replace("d'le ", "du "), mode: "nombre", prefixe: "Prix initial :", attendu: v0, suffixe: "€",
+      erreurs: [{ valeur: arr(v1 * (1 - t / 100)), message: `Pour revenir en arrière, on ne ${t > 0 ? "retire" : "rajoute"} pas $${pctTex(t)}$ du nouveau prix : on **divise** par le coefficient $${nb(c)}$.` }, { valeur: arr(v1 * c), message: "On cherche la valeur **avant** l'évolution : il faut diviser par le coefficient, pas multiplier." }, { valeur: arr(v1 - t), message: "Un pourcentage n'est pas un montant qu'on retire." }],
+      aides: [`Valeur finale $=$ valeur initiale $\\times$ coefficient, avec le coefficient $${nb(c)}$.`, "Donc valeur initiale $=$ valeur finale $\\div$ coefficient.", `$${nb(v1)} \\div ${nb(c)}$.`],
+      solution: `Coefficient multiplicateur : $${nb(c)}$. Valeur initiale : $\\dfrac{${nb(v1)}}{${nb(c)}} = ${nb(v0)}$ €.\n\nVérification : $${nb(v0)} \\times ${nb(c)} = ${nb(v1)}$.` };
+  });
+
+  def("yv-taux", () => {
+    const t = pick([1, -1]) * pick([2, 4, 5, 6, 8, 10, 12, 12.5, 15, 20, 24, 25, 30, 35, 40, 50, 60, 75, 80, 100, 120, 150, 200]);
+    const base = pick([40, 50, 80, 100, 120, 150, 200, 240, 250, 300, 400, 500, 600, 800, 1000, 1200, 1500, 2000, 2400, 3000]);
+    const v0 = base, v1 = arr(v0 * (1 + t / 100));
+    if (!Number.isInteger(v1) || v1 <= 0) return GEN["yv-taux"]();
+    const [g, unite] = pick(GRANDEURS), l = lieu();
+    const ctxPrix = Math.random() < 0.5;
+    const [objet] = pick(OBJETS);
+    const enonce = ctxPrix ? `Le prix d'${objet.replace(/^un /, "")} passe de ${euros(v0)} à ${euros(v1)}. Quel est le taux d'évolution, en pourcentage ?`.replace("d'le ", "du ") : `${g.charAt(0).toUpperCase() + g.slice(1)} ${l} passe de $${nb(v0)}$ à $${nb(v1)}$ ${unite}. Quel est le taux d'évolution, en pourcentage ?`;
+    return { enonce, mode: "nombre", prefixe: "Taux :", attendu: t, suffixe: "%",
+      erreurs: [{ valeur: -t, message: `La valeur ${t > 0 ? "augmente" : "diminue"} : le taux est ${t > 0 ? "positif" : "négatif"}.` }, { valeur: arr((v1 - v0) / v1 * 100), message: "On divise par la valeur de **départ**, pas par la valeur d'arrivée." }, { valeur: v1 - v0, message: "Ça, c'est la variation absolue. Le taux est $\\dfrac{\\text{variation}}{\\text{valeur de départ}}$, en pourcentage." }, { valeur: arr((v1 - v0) / v0), message: "Multiplie par $100$ pour l'exprimer en pourcentage." }],
+      aides: ["Taux d'évolution $= \\dfrac{\\text{valeur finale} - \\text{valeur initiale}}{\\text{valeur initiale}}$.", `$\\dfrac{${nb(v1)} - ${nb(v0)}}{${nb(v0)}} = \\dfrac{${nb(v1 - v0)}}{${nb(v0)}}$.`, `$\\dfrac{${nb(v1 - v0)}}{${nb(v0)}} = ${nb(arr(t / 100))}$ : multiplie par $100$.`],
+      solution: `$\\dfrac{${nb(v1)} - ${nb(v0)}}{${nb(v0)}} = \\dfrac{${nb(v1 - v0)}}{${nb(v0)}} = ${nb(arr(t / 100))}$, soit un taux de $${tauxTex(t)}$ (${t > 0 ? "hausse" : "baisse"}).\n\nAutrement dit, le coefficient multiplicateur est $\\dfrac{${nb(v1)}}{${nb(v0)}} = ${nb(arr(1 + t / 100))}$.` };
+  });
+
+  def("yv-coefficient", () => {
+    const t = pick([1, -1]) * pick([0.5, 1, 1.5, 2, 2.5, 3, 4, 5, 7, 7.5, 8, 10, 12, 12.5, 15, 18, 20, 25, 30, 35, 40, 45, 50, 60, 70, 75, 80, 90, 100, 120, 150, 200]);
+    const c = cm(t);
+    if (c <= 0) return GEN["yv-coefficient"]();
+    if (Math.random() < 0.5) return { enonce: `Quel est le coefficient multiplicateur associé à une ${t > 0 ? "hausse" : "baisse"} de $${pctTex(t)}$ ?`, mode: "nombre", prefixe: "$CM =$", attendu: c,
+      erreurs: [{ valeur: arr(1 - t / 100), message: `Une ${t > 0 ? "hausse" : "baisse"} : $1 ${t > 0 ? "+" : "-"} \\dfrac{${nb(Math.abs(t))}}{100}$.` }, { valeur: arr(Math.abs(t) / 100), message: "N'oublie pas le $1$ : le coefficient est $1 + \\dfrac{t}{100}$." }, { valeur: arr(1 + t / 10), message: `$${nb(Math.abs(t))}\\,\\% = \\dfrac{${nb(Math.abs(t))}}{100} = ${nb(Math.abs(t) / 100)}$.` }],
+      aides: ["Coefficient multiplicateur $CM = 1 + \\dfrac{t}{100}$, avec $t$ négatif pour une baisse.", `$t = ${nb(t)}$.`, `$1 ${t > 0 ? "+" : "-"} ${nb(Math.abs(t) / 100)}$.`],
+      solution: `$CM = 1 ${t > 0 ? "+" : "-"} \\dfrac{${nb(Math.abs(t))}}{100} = ${nb(c)}$.` };
+    return { enonce: `Une grandeur est multipliée par $${nb(c)}$. Quel est le taux d'évolution correspondant, en pourcentage (négatif pour une baisse) ?`, mode: "nombre", prefixe: "Taux :", attendu: t, suffixe: "%",
+      erreurs: [{ valeur: -t, message: `Le coefficient est ${c > 1 ? "supérieur" : "inférieur"} à $1$ : c'est une ${c > 1 ? "hausse" : "baisse"}.` }, { valeur: arr(c * 100), message: "Le taux est $(CM - 1) \\times 100$ : on retire d'abord le $1$." }, { valeur: arr(t / 100), message: "Multiplie par $100$ pour avoir un pourcentage." }],
+      aides: ["$CM = 1 + \\dfrac{t}{100}$, donc $t = (CM - 1) \\times 100$.", `$${nb(c)} - 1 = ${nb(arr(c - 1))}$.`, c > 1 ? "Le coefficient dépasse $1$ : hausse." : "Le coefficient est inférieur à $1$ : baisse, taux négatif."],
+      solution: `$CM - 1 = ${nb(arr(c - 1))}$, soit $t = ${nb(arr(c - 1))} \\times 100 = ${nb(t)}$ : une ${t > 0 ? "hausse" : "baisse"} de $${pctTex(t)}$.` };
+  });
+
+  def("yv-successives", () => {
+    const t1 = taux(), t2 = taux();
+    const c = arr(cm(t1) * cm(t2)), tg = arr((c - 1) * 100);
+    if (Math.abs(t1) === Math.abs(t2) && t1 === t2 && Math.random() < 0.5) return GEN["yv-successives"]();
+    const ctx = pick([["Le prix d'un billet d'avion", "prix"], ["Le loyer d'un appartement", "loyer"], ["La population d'un village", "population"], ["Le prix du carburant", "prix"], ["Le nombre d'abonnés d'une chaîne", "nombre d'abonnés"]]);
+    return { enonce: `${ctx[0]} ${signe(t1)} de $${pctTex(t1)}$, puis ${signe(t2)} de $${pctTex(t2)}$. Quel est le taux d'évolution global, en pourcentage (négatif pour une baisse) ?`, mode: "nombre", prefixe: "Taux global :", attendu: tg, suffixe: "%",
+      erreurs: [{ valeur: t1 + t2, message: "Les taux ne s'additionnent pas : on **multiplie** les coefficients multiplicateurs." }, { valeur: arr(c * 100), message: "Tu as le coefficient global en pourcentage : le taux est $(CM - 1) \\times 100$." }, { valeur: c, message: "Ça, c'est le coefficient global. Le taux est $(CM - 1) \\times 100$." }],
+      aides: [`Coefficients : $${nb(cm(t1))}$ puis $${nb(cm(t2))}$.`, `Coefficient global : $${nb(cm(t1))} \\times ${nb(cm(t2))} = ${nb(c)}$.`, "Taux global $= (CM_{\\text{global}} - 1) \\times 100$."],
+      solution: `$CM_{\\text{global}} = ${nb(cm(t1))} \\times ${nb(cm(t2))} = ${nb(c)}$.\n\nTaux global : $(${nb(c)} - 1) \\times 100 = ${nb(tg)}$, soit $${tauxTex(tg)}$. ${t1 + t2 !== tg ? `Ce n'est pas $${tauxTex(t1 + t2)}$ : les pourcentages ne s'additionnent pas.` : ""}` };
+  });
+
+  def("yv-reciproque", () => {
+    const exact = [[25, -20], [100, -50], [-20, 25], [-50, 100], [50, -33.33], [-25, 33.33], [20, -16.67], [-10, 11.11], [10, -9.09], [-40, 66.67], [60, -37.5], [-37.5, 60], [300, -75], [-75, 300], [150, -60], [-60, 150], [400, -80], [-80, 400], [12.5, -11.11], [-4, 4.17], [5, -4.76], [-5, 5.26], [8, -7.41], [15, -13.04], [30, -23.08], [-30, 42.86], [75, -42.86], [-15, 17.65], [40, -28.57], [-35, 53.85]];
+    const [t, r] = pick(exact), c = cm(t), rExact = arr((1 / c - 1) * 100);
+    const arrondi = Math.abs(rExact - Math.round(rExact * 10) / 10) > 1e-9;
+    const att = arrondi ? Math.round(rExact * 10) / 10 : rExact;
+    const [objet] = pick(OBJETS);
+    return { enonce: `Le prix d'${objet.replace(/^un /, "")} a ${t > 0 ? "augmenté" : "baissé"} de $${pctTex(t)}$. De quel pourcentage doit-il ${t > 0 ? "baisser" : "augmenter"} pour revenir à sa valeur de départ (taux réciproque, négatif pour une baisse${arrondi ? ", arrondi au dixième" : ""}) ?`.replace("d'le ", "du "), mode: "nombre", prefixe: "Taux réciproque :", attendu: att, suffixe: "%", tolerance: arrondi ? 0.05 : 1e-9,
+      erreurs: [{ valeur: -t, message: `Revenir en arrière n'est pas « $${tauxTex(-t)}$ » : il faut diviser par le coefficient $${nb(c)}$.` }, { valeur: Math.abs(att), message: "Le taux réciproque est " + (t > 0 ? "une baisse : signe négatif." : "une hausse : signe positif.") }],
+      aides: [`Le coefficient de l'évolution est $${nb(c)}$.`, `Le coefficient réciproque est $\\dfrac{1}{${nb(c)}}$ : on doit annuler la multiplication par $${nb(c)}$.`, `$\\dfrac{1}{${nb(c)}} \\approx ${nb(arr(1 / c, 4))}$, puis $t = (CM - 1) \\times 100$.`],
+      solution: `Coefficient réciproque : $\\dfrac{1}{${nb(c)}} ${arrondi ? "\\approx" : "="} ${nb(arr(1 / c, 4))}$.\n\nTaux réciproque : $(${nb(arr(1 / c, 4))} - 1) \\times 100 ${arrondi ? "\\approx" : "="} ${nb(att)}$, soit ${t > 0 ? "une baisse" : "une hausse"} d'environ $${pctTex(att)}$. ${Math.abs(att) !== Math.abs(t) ? `Ce n'est pas $${pctTex(t)}$ !` : ""}` };
+  });
+
+  def("yv-points", () => {
+    const a = pick([10, 12, 15, 20, 24, 25, 30, 32, 40, 45, 48, 50, 60]), d = pick([-10, -8, -6, -5, -4, -3, -2, 2, 3, 4, 5, 6, 8, 10, 12, 15]), b = a + d;
+    if (b <= 0 || b >= 100) return GEN["yv-points"]();
+    const ctx = pick(["Le taux de chômage", "La part des énergies renouvelables", "Le taux de réussite au bac", "La proportion de clients satisfaits", "Le taux de participation"]);
+    const q = pick(["points", "pct"]);
+    const tp = arr(d / a * 100), arrondi = Math.abs(tp - Math.round(tp * 10) / 10) > 1e-9, att = q === "points" ? d : (arrondi ? Math.round(tp * 10) / 10 : tp);
+    return { enonce: `${ctx} passe de $${a}\\,\\%$ à $${b}\\,\\%$. ${q === "points" ? "De combien de **points de pourcentage** a-t-il évolué ?" : `Quel est son **taux d'évolution** en pourcentage${arrondi ? " (arrondi au dixième)" : ""} ?`}`, mode: "nombre", prefixe: q === "points" ? "Variation :" : "Taux :", attendu: att, suffixe: q === "points" ? "points" : "%", tolerance: q === "pct" && arrondi ? 0.05 : 1e-9,
+      erreurs: q === "points" ? [{ valeur: arrondi ? Math.round(tp * 10) / 10 : tp, message: "Ça, c'est le taux d'évolution en pourcentage. En points, on fait simplement la différence." }, { valeur: -d, message: "Le signe : " + (d > 0 ? "hausse, variation positive." : "baisse, variation négative.") }] : [{ valeur: d, message: "Ça, c'est la variation en points. Le taux d'évolution est $\\dfrac{\\text{variation}}{\\text{valeur de départ}} \\times 100$." }, { valeur: arr(d / b * 100), message: "On divise par la valeur de départ." }],
+      aides: ["Une variation en **points** est une simple différence entre deux pourcentages.", "Un **taux d'évolution** compare la variation à la valeur de départ.", q === "points" ? `$${b} - ${a}$.` : `$\\dfrac{${b} - ${a}}{${a}} \\times 100$.`],
+      solution: q === "points" ? `$${b} - ${a} = ${nb(d)}$ : ${d > 0 ? "une hausse" : "une baisse"} de $${Math.abs(d)}$ points de pourcentage. (Le taux d'évolution, lui, vaut $\\dfrac{${nb(d)}}{${a}} \\approx ${nb(Math.round(tp * 10) / 10)}\\,\\%$.)` : `$\\dfrac{${b} - ${a}}{${a}} \\times 100 = \\dfrac{${nb(d)}}{${a}} \\times 100 ${arrondi ? "\\approx" : "="} ${nb(att)}$ : un taux d'évolution de $${tauxTex(att)}$, alors que la variation n'est que de $${nb(d)}$ points.` };
+  });
+
+  def("yv-vrai-faux", () => vraiFaux4([
+    ["Augmenter de $20\\,\\%$, c'est multiplier par $1{,}2$.", true, "$1 + \\dfrac{20}{100} = 1{,}2$."],
+    ["Baisser de $30\\,\\%$, c'est multiplier par $0{,}7$.", true, "$1 - \\dfrac{30}{100} = 0{,}7$."],
+    ["Un coefficient multiplicateur de $1{,}05$ correspond à une hausse de $5\\,\\%$.", true, "$(1{,}05 - 1) \\times 100 = 5$."],
+    ["Deux hausses successives de $10\\,\\%$ font une hausse de $21\\,\\%$.", true, "$1{,}1 \\times 1{,}1 = 1{,}21$."],
+    ["Après une hausse de $25\\,\\%$, il faut baisser de $20\\,\\%$ pour revenir au départ.", true, "$\\dfrac{1}{1{,}25} = 0{,}8$."],
+    ["Passer de $200$ à $250$, c'est une hausse de $25\\,\\%$.", true, "$\\dfrac{50}{200} = 0{,}25$."],
+    ["Un prix qui double augmente de $100\\,\\%$.", true, "le coefficient est $2 = 1 + \\dfrac{100}{100}$."],
+    ["$30\\,\\%$ de $50\\,\\%$ font $15\\,\\%$.", true, "$0{,}3 \\times 0{,}5 = 0{,}15$."],
+    ["Une hausse de $50\\,\\%$ puis une baisse de $50\\,\\%$ ramènent au prix de départ.", false, "$1{,}5 \\times 0{,}5 = 0{,}75$ : baisse de $25\\,\\%$."],
+    ["Baisser de $20\\,\\%$, c'est multiplier par $0{,}2$.", false, "c'est multiplier par $1 - 0{,}2 = 0{,}8$."],
+    ["Deux baisses de $10\\,\\%$ font une baisse de $20\\,\\%$.", false, "$0{,}9 \\times 0{,}9 = 0{,}81$ : baisse de $19\\,\\%$."],
+    ["Passer de $50$ à $40$, c'est une baisse de $25\\,\\%$.", false, "$\\dfrac{40 - 50}{50} = -0{,}2$ : baisse de $20\\,\\%$."],
+    ["Un taux qui passe de $10\\,\\%$ à $15\\,\\%$ augmente de $5\\,\\%$.", false, "il augmente de $5$ **points**, soit $50\\,\\%$."],
+    ["Pour retrouver la valeur avant une hausse de $10\\,\\%$, on retire $10\\,\\%$ de la nouvelle valeur.", false, "on divise par $1{,}1$ (baisse d'environ $9{,}1\\,\\%$)."],
+    ["Un coefficient multiplicateur de $0{,}6$ correspond à une baisse de $60\\,\\%$.", false, "$0{,}6 - 1 = -0{,}4$ : baisse de $40\\,\\%$."]
+  ], ["Passe toujours par le coefficient multiplicateur $1 + \\dfrac{t}{100}$.", "Des évolutions successives se composent en multipliant les coefficients.", "Compare variation en points et taux d'évolution."]));
+
+  /* Figures du cours (chapitre 3) */
+  FIGURES["yv-cours-cm"] = () => {
+    let s = `<svg class="graph" viewBox="0 0 320 120" role="img" aria-label="Valeur initiale multipliée par le coefficient 1 + t/100 donne la valeur finale ; pour revenir, on divise">`;
+    const box = (x, t1, t2) => `<rect x="${x}" y="38" width="100" height="44" rx="8" style="fill:var(--lagon);fill-opacity:0.12;stroke:var(--lagon);stroke-width:1.6"/><text class="g-label" x="${x + 50}" y="56" text-anchor="middle" style="font-weight:700">${t1}</text><text class="g-label" x="${x + 50}" y="72" text-anchor="middle" style="font-size:10px">${t2}</text>`;
+    s += box(10, "valeur", "initiale") + box(210, "valeur", "finale");
+    s += `<path d="M115 50 L200 50" style="stroke:var(--encre);stroke-width:1.6"/><path d="M205 50 L196 45 L196 55 Z" style="fill:var(--encre)"/><text class="g-label" x="160" y="30" text-anchor="middle" style="fill:var(--lagon);font-weight:700">× CM</text><text class="g-label" x="160" y="44" text-anchor="middle" style="font-size:10px">CM = 1 + t/100</text>`;
+    s += `<path d="M205 72 L120 72" style="stroke:var(--encre);stroke-width:1.6"/><path d="M115 72 L124 67 L124 77 Z" style="fill:var(--encre)"/><text class="g-label" x="160" y="100" text-anchor="middle" style="fill:var(--faux);font-weight:700">÷ CM</text><text class="g-label" x="160" y="114" text-anchor="middle" style="font-size:10px">retour en arrière</text>`;
+    return s + `</svg>`;
+  };
+  FIGURES["yv-cours-successives"] = () => {
+    let s = `<svg class="graph" viewBox="0 0 320 110" role="img" aria-label="Évolutions successives : 200, +20 % donne 240, puis −25 % donne 180 ; coefficient global 1,2 × 0,75 = 0,9">`;
+    const box = (x, t) => `<rect x="${x}" y="40" width="60" height="36" rx="8" style="fill:var(--surface);stroke:var(--lagon);stroke-width:1.6"/><text class="g-label" x="${x + 30}" y="63" text-anchor="middle" style="font-weight:700">${t}</text>`;
+    const fl = (x1, x2, t) => `<path d="M${x1} 58 L${x2 - 6} 58" style="stroke:var(--encre);stroke-width:1.6"/><path d="M${x2} 58 L${x2 - 9} 53 L${x2 - 9} 63 Z" style="fill:var(--encre)"/><text class="g-label" x="${(x1 + x2) / 2}" y="34" text-anchor="middle" style="fill:var(--lagon);font-weight:700">${t}</text>`;
+    s += box(10, "200") + fl(72, 130, "× 1,2") + box(130, "240") + fl(192, 250, "× 0,75") + box(250, "180");
+    s += `<text class="g-label" x="160" y="100" text-anchor="middle">global : × 1,2 × 0,75 = × 0,9, soit −10 % (et non −5 %)</text>`;
+    return s + `</svg>`;
+  };
+
+  /* ---------- Chapitre 4 : automatismes, calcul, fonctions et graphiques (préfixe yc) ---------- */
+  const nz2 = (a, b) => rand(a, b) || pick([a, b]);
+  // Portion de la droite y = mx + p visible dans la fenêtre [x0 ; x1] × [y0 ; y1]
+  function segDroite(m, p, x0, x1, y0, y1) {
+    if (m === 0) return { a: x0, b: x1 };
+    const xs = [x0, x1, (y0 - p) / m, (y1 - p) / m].filter((x) => x >= x0 - 1e-9 && x <= x1 + 1e-9 && m * x + p >= y0 - 1e-9 && m * x + p <= y1 + 1e-9);
+    return { a: Math.min(...xs), b: Math.max(...xs) };
+  }
+  const ineg = { "<": "<", ">": ">", "<=": "\\leqslant", ">=": "\\geqslant" };
+  const fac = (a, b) => `(${aff(a, b)})`; // (ax + b)
+  const pt = (k, v) => (!k ? "" : `${k < 0 ? "-" : "+"} ${Math.abs(k) === 1 && v ? "" : nb(Math.abs(k))}${v}`); // terme suivant : « + 3x », « - x », rien si 0
+
+  def("yc-produit-nul", () => {
+    const a = pick([1, 1, 2, 3, -1, 5]), b = nz2(-9, 9), c = pick([1, 1, 2, 4, -2, 3]), d = nz2(-9, 9);
+    const s1 = -b / a, s2 = -d / c;
+    const dec = (x) => Number.isInteger(x * 100);
+    if (!dec(s1) || !dec(s2) || Math.abs(s1 - s2) < 1e-9) return GEN["yc-produit-nul"]();
+    const t = pick(["direct", "direct", "facto"]);
+    const sol = [s1, s2].sort((x, y) => x - y);
+    if (t === "facto") {
+      // x(ax + b) = 0 ou (ax+b)² − (cx+d)² non : on reste simple, équation x² = kx ou ax² + bx = 0
+      const k = nz2(-9, 9), a2 = pick([1, 1, 2, 3]);
+      const sol2 = [0, -k / a2].sort((x, y) => x - y);
+      if (!dec(sol2[1])) return GEN["yc-produit-nul"]();
+      return { enonce: `Résous l'équation $${poly([a2, k, 0])} = 0$ (factorise d'abord). Écris les solutions séparées par « ; ».`, mode: "ensemble", attendu: sol2,
+        aides: ["Les deux termes ont $x$ en facteur commun.", `$${poly([a2, k, 0])} = x(${aff(a2, k)})$.`, "Un produit est nul si et seulement si l'un des facteurs est nul."],
+        solution: `$${poly([a2, k, 0])} = x(${aff(a2, k)})$.\n\nProduit nul : $x = 0$ ou $${aff(a2, k)} = 0$, c'est-à-dire $x = ${frac(-k, a2)}$.\n\n$S = \\{${sol2.map((v) => nb(v)).join("\\,;")}\\}$.` };
+    }
+    return { enonce: `Résous l'équation $${fac(a, b)}${fac(c, d)} = 0$. Écris les solutions séparées par « ; ».`, mode: "ensemble", attendu: sol,
+      aides: ["Un produit est nul si et seulement si l'un au moins de ses facteurs est nul.", `Résous $${aff(a, b)} = 0$ puis $${aff(c, d)} = 0$.`, `$${aff(a, b)} = 0$ donne $x = ${frac(-b, a)}$.`],
+      solution: `$${aff(a, b)} = 0$ ou $${aff(c, d)} = 0$.\n\n$x = ${frac(-b, a)}$ ou $x = ${frac(-d, c)}$.\n\n$S = \\{${sol.map((v) => nb(v)).join("\\,;")}\\}$.` };
+  });
+
+  def("yc-signe", () => {
+    const t = pick(["affine", "affine", "produit", "produit", "produit"]);
+    if (t === "affine") {
+      const a = nz2(-6, 6), b = nz2(-9, 9), r = -b / a;
+      if (!Number.isInteger(r * 100)) return GEN["yc-signe"]();
+      const q = pick(["pos", "neg"]);
+      const bonne = (q === "pos") === (a > 0) ? `$[${nb(r)}\\,;+\\infty[$` : `$]-\\infty\\,;${nb(r)}]$`;
+      const ch = choix4(bonne, [(q === "pos") === (a > 0) ? `$]-\\infty\\,;${nb(r)}]$` : `$[${nb(r)}\\,;+\\infty[$`, `$[${nb(-r)}\\,;+\\infty[$`, `$]-\\infty\\,;${nb(-r)}]$`, `$[${nb(b)}\\,;+\\infty[$`]);
+      return { enonce: `Sur quel intervalle l'expression $${aff(a, b)}$ est-elle ${q === "pos" ? "positive ou nulle" : "négative ou nulle"} ?`, mode: "choix", choix: ch.choix, attendu: ch.attendu,
+        figureSolution: tabSigne(["−∞", nbS(r), "+∞"], [a > 0 ? "-" : "+", "0", a > 0 ? "+" : "-"], aff(a, b).replace(/\\,/g, " ")),
+        aides: [`$${aff(a, b)} = 0$ pour $x = ${nb(r)}$.`, `Le coefficient de $x$ est ${a > 0 ? "positif" : "négatif"} : l'expression est ${a > 0 ? "croissante, négative avant la racine et positive après" : "décroissante, positive avant la racine et négative après"}.`, "Lis la ligne du tableau de signes."],
+        solution: `$${aff(a, b)} = 0 \\Leftrightarrow x = ${nb(r)}$. Comme $a = ${nb(a)}$ est ${a > 0 ? "positif" : "négatif"}, l'expression est ${a > 0 ? "négative avant $" + nb(r) + "$ et positive après" : "positive avant $" + nb(r) + "$ et négative après"}.\n\nElle est ${q === "pos" ? "positive ou nulle" : "négative ou nulle"} sur ${bonne}.` };
+    }
+    const r1 = rand(-6, 6), r2 = r1 + rand(1, 7), a = pick([1, 1, 1, -1, 2, -2]);
+    const q = pick(["pos", "neg", "val"]);
+    const ext = a > 0; // positif à l'extérieur des racines si a > 0
+    const dehors = `$]-\\infty\\,;${nb(r1)}] \\cup [${nb(r2)}\\,;+\\infty[$`, dedans = `$[${nb(r1)}\\,;${nb(r2)}]$`;
+    const expr = `${a === 1 ? "" : a === -1 ? "-" : nb(a)}(x ${plus(-r1)})(x ${plus(-r2)})`;
+    const fig = tabSigne(["−∞", nbS(r1), nbS(r2), "+∞"], [ext ? "+" : "-", "0", ext ? "-" : "+", "0", ext ? "+" : "-"], "f(x)");
+    if (q === "val") {
+      const x = pick([r1 - rand(1, 3), rand(r1 + 1, r2 - 1), r2 + rand(1, 3)].filter((v) => v !== undefined && v > r1 - 4 && v < r2 + 4 && Number.isInteger(v)));
+      const v = a * (x - r1) * (x - r2);
+      const bonne = v > 0 ? "strictement positif" : v < 0 ? "strictement négatif" : "nul";
+      const ch = choix4(bonne, ["strictement positif", "strictement négatif", "nul", "impossible à déterminer"].filter((s) => s !== bonne));
+      return { enonce: `On pose $f(x) = ${expr}$. Sans calculer $f(${nb(x)})$, quel est son signe ?`, mode: "choix", choix: ch.choix, attendu: ch.attendu, figureSolution: fig,
+        aides: [`Les racines sont $${nb(r1)}$ et $${nb(r2)}$.`, `Signe de chaque facteur pour $x = ${nb(x)}$ : $x ${plus(-r1)}$ est ${x - r1 > 0 ? "positif" : x - r1 < 0 ? "négatif" : "nul"}, $x ${plus(-r2)}$ est ${x - r2 > 0 ? "positif" : x - r2 < 0 ? "négatif" : "nul"}.`, `Le coefficient $${nb(a)}$ est ${a > 0 ? "positif" : "négatif"} : règle des signes.`],
+        solution: `Pour $x = ${nb(x)}$ : $x ${plus(-r1)} = ${nb(x - r1)}$ (${x - r1 > 0 ? "positif" : x - r1 < 0 ? "négatif" : "nul"}) et $x ${plus(-r2)} = ${nb(x - r2)}$ (${x - r2 > 0 ? "positif" : x - r2 < 0 ? "négatif" : "nul"})${a !== 1 ? `, avec le coefficient $${nb(a)}$` : ""}. Le produit est ${bonne}.\n\nLe tableau de signes le confirme : ${ext ? "positif à l'extérieur des racines, négatif entre" : "négatif à l'extérieur des racines, positif entre"}.` };
+    }
+    const bonne = (q === "pos") === ext ? dehors : dedans;
+    const ch = choix4(bonne, [(q === "pos") === ext ? dedans : dehors, `$]-\\infty\\,;${nb(r1)}]$`, `$[${nb(r2)}\\,;+\\infty[$`, `$[${nb(-r2)}\\,;${nb(-r1)}]$`]);
+    return { enonce: `On pose $f(x) = ${expr}$. Sur quel ensemble a-t-on $f(x) ${q === "pos" ? "\\geqslant" : "\\leqslant"} 0$ ?`, mode: "choix", choix: ch.choix, attendu: ch.attendu, figureSolution: fig,
+      aides: [`Les racines sont $${nb(r1)}$ et $${nb(r2)}$ : elles coupent la droite en trois zones.`, `Dresse le tableau de signes des facteurs $x ${plus(-r1)}$ et $x ${plus(-r2)}$${a !== 1 ? ` (et du coefficient $${nb(a)}$)` : ""}.`, `Le produit est ${ext ? "positif à l'extérieur des racines et négatif entre les deux" : "négatif à l'extérieur des racines et positif entre les deux"}.`],
+      solution: `Tableau de signes : $x ${plus(-r1)}$ change de signe en $${nb(r1)}$, $x ${plus(-r2)}$ en $${nb(r2)}$${a < 0 ? `, et le coefficient $${nb(a)}$ est négatif` : ""}.\n\n$f(x)$ est ${ext ? "positif à l'extérieur des racines, négatif entre" : "négatif à l'extérieur des racines, positif entre"}. Donc $f(x) ${q === "pos" ? "\\geqslant" : "\\leqslant"} 0$ sur ${bonne}.` };
+  });
+
+  def("yc-developper", () => {
+    const t = pick(["dev", "dev", "fact", "reduire"]);
+    if (t === "fact") {
+      const a = pick([2, 3, 4, 5, 6, 7]), b = nz2(-9, 9), c = nz2(-8, 8);
+      // a·x·(…) : ax² + ab x ; ou k(x + b) + (x + b)(x + c) → (x+b)(k + x + c)
+      if (Math.random() < 0.5) {
+        const bonne = `$${coef(a, "x")}(x ${plus(b)})$`;
+        const ch = choix4(bonne, [`$x(${aff(a, a * b)})$`, `$${coef(a, "x")}(x ${plus(a * b)})$`, `$${coef(a, "x")}(${coef(a, "x")} ${plus(b)})$`, `$${coef(a, "x")}(x ${plus(-b)})$`]);
+        return { enonce: `Factorise $${poly([a, a * b, 0])}$ le plus possible.`, mode: "choix", choix: ch.choix, attendu: ch.attendu,
+          aides: ["Cherche le facteur commun aux deux termes (nombre et lettre).", `$${poly([a, a * b, 0])} = ${a} \\times x \\times x + ${a} \\times ${pr(b)} \\times x$.`, "Vérifie en développant."],
+          solution: `Le facteur commun est $${coef(a, "x")}$ : $${poly([a, a * b, 0])} = ${coef(a, "x")}(x ${plus(b)})$. Vérification : $${coef(a, "x")} \\times x = ${coef(a, "x^2")}$ et $${coef(a, "x")} \\times ${pr(b)} = ${coef(a * b, "x")}$.` };
+      }
+      const bonne = `$(x ${plus(b)})(x ${plus(c + a)})$`;
+      const ch = choix4(bonne, [`$(x ${plus(b)})(x ${plus(c)})$`, `$(x ${plus(b)})(${nb(a)}x ${plus(c)})$`, `$(x ${plus(b)})^2(x ${plus(c)})$`, `$(x ${plus(b + a)})(x ${plus(c)})$`]);
+      return { enonce: `Factorise $${nb(a)}(x ${plus(b)}) + (x ${plus(b)})(x ${plus(c)})$.`, mode: "choix", choix: ch.choix, attendu: ch.attendu,
+        aides: [`Le facteur commun est $(x ${plus(b)})$.`, `$(x ${plus(b)})\\,[${nb(a)} + (x ${plus(c)})]$.`, "Réduis le crochet."],
+        solution: `$(x ${plus(b)})$ est en facteur : $(x ${plus(b)})\\,[${nb(a)} + x ${plus(c)}] = (x ${plus(b)})(x ${plus(c + a)})$.` };
+    }
+    if (t === "reduire") {
+      const a = nz2(-5, 5), b = nz2(-6, 6), c = nz2(-5, 5), d = nz2(-6, 6), k = pick([2, 3, -2, -1]);
+      // k(ax + b) + (cx + d) → (ka + c)x + (kb + d)
+      const A = k * a + c, B = k * b + d, quoi = pick(["x", "c"]);
+      return { enonce: `Développe et réduis $${nb(k)}(${aff(a, b)}) + (${aff(c, d)})$. Quel est le coefficient de $x$${quoi === "c" ? " ? Non : quel est le terme constant" : ""} ?`.replace(" ? Non : quel est le terme constant ?", " ? (On demande le terme constant.)").replace("Quel est le coefficient de $x$ ? (On demande le terme constant.)", "Quel est le terme constant ?"), mode: "nombre", prefixe: quoi === "x" ? "Coefficient de $x$ :" : "Terme constant :", attendu: quoi === "x" ? A : B,
+        erreurs: [{ valeur: quoi === "x" ? B : A, message: quoi === "x" ? "Ça, c'est le terme constant." : "Ça, c'est le coefficient de $x$." }, { valeur: quoi === "x" ? a + c : b + d, message: `N'oublie pas de multiplier par $${nb(k)}$ les deux termes de la première parenthèse.` }, { valeur: quoi === "x" ? k * a - c : k * b - d, message: "Le signe devant la seconde parenthèse est $+$." }],
+        aides: [`Distribue $${nb(k)}$ sur les deux termes : $${nb(k)} \\times ${a < 0 ? `(${coef(a, "x")})` : coef(a, "x")} ${plus(k * b)}$.`, "Supprime la seconde parenthèse (signe $+$ devant : rien ne change).", "Regroupe les termes en $x$ entre eux, et les constantes entre elles."],
+        solution: `$${nb(k)}(${aff(a, b)}) + (${aff(c, d)}) = ${aff(k * a, k * b)} ${aff(c, d).startsWith("-") ? "" : "+ "}${aff(c, d)} = ${aff(A, B)}$.\n\n${quoi === "x" ? `Coefficient de $x$ : $${nb(A)}$.` : `Terme constant : $${nb(B)}$.`}` };
+    }
+    const a = pick([1, 1, 2, 3, -1]), b = nz2(-7, 7), c = pick([1, 1, 2, -1, 4]), d = nz2(-7, 7);
+    const P = [a * c, a * d + b * c, b * d], quoi = pick(["x", "x", "c", "x2"]);
+    const att = quoi === "x" ? P[1] : quoi === "c" ? P[2] : P[0];
+    return { enonce: `Développe et réduis $${fac(a, b)}${fac(c, d)}$. ${quoi === "x" ? "Quel est le coefficient de $x$ ?" : quoi === "c" ? "Quel est le terme constant ?" : "Quel est le coefficient de $x^2$ ?"}`, mode: "nombre", prefixe: quoi === "x" ? "Coefficient de $x$ :" : quoi === "c" ? "Terme constant :" : "Coefficient de $x^2$ :", attendu: att,
+      erreurs: [{ valeur: quoi === "x" ? a * d : quoi === "c" ? b + d : a + c, message: quoi === "x" ? "Il y a deux termes en $x$ : $" + coef(a, "x") + " \\times " + pr(d) + "$ et $" + pr(b) + " \\times " + coef(c, "x") + "$." : quoi === "c" ? "Le terme constant est le **produit** $" + pr(b) + " \\times " + pr(d) + "$." : "Le coefficient de $x^2$ est le produit $" + pr(a) + " \\times " + pr(c) + "$." }, { valeur: quoi === "x" ? b * c : quoi === "c" ? -b * d : -a * c, message: quoi === "x" ? "Additionne les deux termes en $x$." : "Attention au signe du produit." }, { valeur: -att, message: "Vérifie les signes." }],
+      aides: ["Double distributivité : $(ax + b)(cx + d) = ax \\times cx + ax \\times d + b \\times cx + b \\times d$.", `$${coef(a, "x")} \\times ${coef(c, "x")} = ${coef(a * c, "x^2")}$ ; $${coef(a, "x")} \\times ${pr(d)} = ${coef(a * d, "x")}$ ; $${pr(b)} \\times ${coef(c, "x")} = ${coef(b * c, "x")}$ ; $${pr(b)} \\times ${pr(d)} = ${nb(b * d)}$.`, "Regroupe les termes en $x$."],
+      solution: `$${fac(a, b)}${fac(c, d)} = ${coef(a * c, "x^2")} ${pt(a * d, "x")} ${pt(b * c, "x")} ${plus(b * d)} = ${poly(P)}$.\n\n${quoi === "x" ? `Coefficient de $x$ : $${nb(att)}$.` : quoi === "c" ? `Terme constant : $${nb(att)}$.` : `Coefficient de $x^2$ : $${nb(att)}$.`}` };
+  });
+
+  // Parabole f(x) = s(x − h)² + v (s = ±1), fenêtre [-6 ; 6]
+  function paraboleQ() {
+    const s = pick([1, 1, -1]), h = rand(-2, 2), v = s > 0 ? rand(-5, 1) : rand(-1, 5);
+    const f = (x) => s * (x - h) ** 2 + v;
+    return { s, h, v, f };
+  }
+  const figParabole = (P, hl, pts) => graph({ xmin: -5.6, xmax: 5.6, ymin: -6.6, ymax: 6.6, h: 300, curves: [{ f: P.f, a: Math.max(-5.3, P.h - Math.sqrt(Math.max(0, (P.s > 0 ? 6.3 - P.v : P.v + 6.3)))), b: Math.min(5.3, P.h + Math.sqrt(Math.max(0, (P.s > 0 ? 6.3 - P.v : P.v + 6.3)))), label: "C<tspan class=\"sub\" dy=\"3\">f</tspan>", closed: false }], hlines: hl || [], points: pts || [], aria: `Parabole de sommet (${nbS(P.h)} ; ${nbS(P.v)}), tournée vers le ${P.s > 0 ? "haut" : "bas"}` });
+
+  def("yc-graphique", () => {
+    const P = paraboleQ(), t = pick(["egal", "egal", "ineg", "image", "signe"]);
+    if (t === "image") {
+      const x = rand(Math.max(-4, P.h - 3), Math.min(4, P.h + 3)), y = P.f(x);
+      if (Math.abs(y) > 6) return GEN["yc-graphique"]();
+      const q = pick(["image", "antecedents"]);
+      if (q === "image") return { enonce: `La courbe $C_f$ est donnée ci-dessous. Lis graphiquement $f(${nb(x)})$.`, figure: figParabole(P), mode: "nombre", prefixe: `$f(${nb(x)}) =$`, attendu: y,
+        erreurs: [{ valeur: x, message: "L'image se lit sur l'axe **vertical** (ordonnées)." }, { valeur: -y, message: "Vérifie le signe : la courbe est-elle au-dessus ou en dessous de l'axe des abscisses ?" }],
+        aides: [`Place $x = ${nb(x)}$ sur l'axe horizontal.`, "Monte (ou descends) jusqu'à la courbe, puis lis l'ordonnée du point.", `Le point de la courbe d'abscisse $${nb(x)}$ a pour ordonnée $${nb(y)}$.`],
+        solution: `Le point de $C_f$ d'abscisse $${nb(x)}$ a pour ordonnée $${nb(y)}$ : $f(${nb(x)}) = ${nb(y)}$.` };
+      const m = rand(1, 3), k = P.f(P.h + m), sol = [P.h - m, P.h + m];
+      if (Math.abs(k) > 6) return GEN["yc-graphique"]();
+      return { enonce: `La courbe $C_f$ est donnée ci-dessous. Lis graphiquement les antécédents de $${nb(k)}$ par $f$ (séparés par « ; »).`, figure: figParabole(P, [{ y: k, label: `y = ${nbS(k)}` }]), mode: "ensemble", attendu: sol,
+        aides: [`Trace la droite horizontale $y = ${nb(k)}$.`, "Les antécédents sont les abscisses des points d'intersection avec la courbe.", `Il y en a deux, symétriques par rapport à l'axe de la parabole $x = ${nb(P.h)}$.`],
+        solution: `La droite $y = ${nb(k)}$ coupe $C_f$ en deux points, d'abscisses $${nb(sol[0])}$ et $${nb(sol[1])}$ : les antécédents de $${nb(k)}$ sont $${nb(sol[0])}$ et $${nb(sol[1])}$.` };
+    }
+    if (t === "signe") {
+      const m = rand(1, 3), r1 = P.h - m, r2 = P.h + m;
+      const P2 = { s: P.s, h: P.h, v: -P.s * m * m, f: (x) => P.s * ((x - P.h) ** 2 - m * m) };
+      const ext = P2.s > 0;
+      const bonne = ext ? `$f(x) \\geqslant 0$ sur $]-\\infty\\,;${nb(r1)}] \\cup [${nb(r2)}\\,;+\\infty[$ et $f(x) \\leqslant 0$ sur $[${nb(r1)}\\,;${nb(r2)}]$` : `$f(x) \\leqslant 0$ sur $]-\\infty\\,;${nb(r1)}] \\cup [${nb(r2)}\\,;+\\infty[$ et $f(x) \\geqslant 0$ sur $[${nb(r1)}\\,;${nb(r2)}]$`;
+      const autre = ext ? `$f(x) \\leqslant 0$ sur $]-\\infty\\,;${nb(r1)}] \\cup [${nb(r2)}\\,;+\\infty[$ et $f(x) \\geqslant 0$ sur $[${nb(r1)}\\,;${nb(r2)}]$` : `$f(x) \\geqslant 0$ sur $]-\\infty\\,;${nb(r1)}] \\cup [${nb(r2)}\\,;+\\infty[$ et $f(x) \\leqslant 0$ sur $[${nb(r1)}\\,;${nb(r2)}]$`;
+      const ch = choix4(bonne, [autre, `$f(x) \\geqslant 0$ sur $]-\\infty\\,;${nb(P.h)}]$ et $f(x) \\leqslant 0$ sur $[${nb(P.h)}\\,;+\\infty[$`, `$f(x) \\geqslant 0$ sur $[${nb(r1)}\\,;+\\infty[$ et $f(x) \\leqslant 0$ sur $]-\\infty\\,;${nb(r1)}]$`]);
+      return { enonce: `La courbe $C_f$ est donnée ci-dessous. Quel est le signe de $f(x)$ selon les valeurs de $x$ ?`, figure: figParabole(P2), mode: "choix", choix: ch.choix, attendu: ch.attendu, figureSolution: tabSigne(["−∞", nbS(r1), nbS(r2), "+∞"], [ext ? "+" : "-", "0", ext ? "-" : "+", "0", ext ? "+" : "-"], "f(x)"),
+        aides: ["$f(x) > 0$ quand la courbe est **au-dessus** de l'axe des abscisses, $f(x) < 0$ quand elle est en dessous.", `La courbe coupe l'axe des abscisses en $${nb(r1)}$ et $${nb(r2)}$.`, `Entre les deux, la courbe est ${ext ? "en dessous" : "au-dessus"} de l'axe.`],
+        solution: `La courbe coupe l'axe des abscisses en $${nb(r1)}$ et en $${nb(r2)}$. Elle est ${ext ? "en dessous de l'axe entre ces deux valeurs et au-dessus ailleurs" : "au-dessus de l'axe entre ces deux valeurs et en dessous ailleurs"} : ${bonne.replace(/\$f\(x\)/g, "$f(x)")}.` };
+    }
+    const m = rand(1, 3), k = P.f(P.h + m);
+    if (Math.abs(k) > 6) return GEN["yc-graphique"]();
+    const a = P.h - m, b = P.h + m;
+    if (t === "egal") return { enonce: `La courbe $C_f$ est donnée ci-dessous. Résous graphiquement l'équation $f(x) = ${nb(k)}$ (solutions séparées par « ; »).`, figure: figParabole(P, [{ y: k, label: `y = ${nbS(k)}` }]), mode: "ensemble", attendu: [a, b],
+      aides: [`Trace la droite horizontale $y = ${nb(k)}$.`, "Les solutions sont les abscisses des points où la droite coupe la courbe.", `Lis les deux abscisses : $${nb(a)}$ et $${nb(b)}$.`],
+      solution: `La droite $y = ${nb(k)}$ coupe la courbe en deux points d'abscisses $${nb(a)}$ et $${nb(b)}$ : $S = \\{${nb(a)}\\,;${nb(b)}\\}$.` };
+    const sens = pick(["<", ">", "<=", ">="]);
+    const strict = sens === "<" || sens === ">";
+    const dedans = (sens === "<" || sens === "<=") === (P.s > 0); // f(x) < k entre a et b si parabole vers le haut
+    const I = dedans ? `${strict ? "]" : "["}${nb(a)}\\,;${nb(b)}${strict ? "[" : "]"}` : `]-\\infty\\,;${nb(a)}${strict ? "[" : "]"} \\cup ${strict ? "]" : "["}${nb(b)}\\,;+\\infty[`;
+    const Iautre = dedans ? `]-\\infty\\,;${nb(a)}${strict ? "[" : "]"} \\cup ${strict ? "]" : "["}${nb(b)}\\,;+\\infty[` : `${strict ? "]" : "["}${nb(a)}\\,;${nb(b)}${strict ? "[" : "]"}`;
+    const ch = choix4(`$S = ${I}$`, [`$S = ${Iautre}$`, `$S = ${dedans ? `${strict ? "[" : "]"}${nb(a)}\\,;${nb(b)}${strict ? "]" : "["}` : `]-\\infty\\,;${nb(a)}${strict ? "]" : "["} \\cup ${strict ? "[" : "]"}${nb(b)}\\,;+\\infty[`}$`, `$S = \\{${nb(a)}\\,;${nb(b)}\\}$`]);
+    return { enonce: `La courbe $C_f$ est donnée ci-dessous. Résous graphiquement l'inéquation $f(x) ${ineg[sens]} ${nb(k)}$.`, figure: figParabole(P, [{ y: k, label: `y = ${nbS(k)}` }]), mode: "choix", choix: ch.choix, attendu: ch.attendu,
+      aides: [`Trace la droite $y = ${nb(k)}$ ; elle coupe la courbe en $${nb(a)}$ et $${nb(b)}$.`, `On cherche les $x$ pour lesquels la courbe est ${sens.startsWith("<") ? "**en dessous**" : "**au-dessus**"} de la droite.`, strict ? "Inégalité stricte : les bornes sont exclues (crochets vers l'extérieur)." : "Inégalité large : les bornes sont comprises."],
+      solution: `La courbe est ${sens.startsWith("<") ? "en dessous" : "au-dessus"} de la droite $y = ${nb(k)}$ ${dedans ? `entre $${nb(a)}$ et $${nb(b)}$` : `avant $${nb(a)}$ et après $${nb(b)}$`}${strict ? ", bornes exclues" : ", bornes comprises"} : $S = ${I}$.` };
+  });
+
+  def("yc-variations", () => {
+    const P = paraboleQ(), t = pick(["var", "var", "extremum"]);
+    const h = P.h, v = P.v, up = P.s > 0;
+    if (t === "extremum") {
+      const q = pick(["val", "en"]);
+      return { enonce: `La courbe $C_f$ est donnée ci-dessous. ${q === "val" ? `Quel est le ${up ? "minimum" : "maximum"} de $f$ ?` : `En quelle valeur de $x$ le ${up ? "minimum" : "maximum"} de $f$ est-il atteint ?`}`, figure: figParabole(P, [], [{ x: h, y: v }]), mode: "nombre", prefixe: q === "val" ? `${up ? "Minimum" : "Maximum"} :` : "Atteint pour $x =$", attendu: q === "val" ? v : h,
+        erreurs: [{ valeur: q === "val" ? h : v, message: q === "val" ? "L'extremum est une **valeur de $f$** : on lit l'ordonnée du sommet." : "On demande l'**abscisse** du sommet." }],
+        aides: ["Le sommet de la parabole est le point le plus bas (minimum) ou le plus haut (maximum).", `Ses coordonnées sont $(${nb(h)}\\,;${nb(v)})$.`, q === "val" ? "L'extremum est l'ordonnée du sommet." : "La valeur où il est atteint est l'abscisse du sommet."],
+        solution: `Le sommet est $(${nb(h)}\\,;${nb(v)})$ : le ${up ? "minimum" : "maximum"} de $f$ vaut $${nb(v)}$, atteint pour $x = ${nb(h)}$.` };
+    }
+    const bonne = up ? `$f$ est décroissante sur $]-\\infty\\,;${nb(h)}]$ et croissante sur $[${nb(h)}\\,;+\\infty[$` : `$f$ est croissante sur $]-\\infty\\,;${nb(h)}]$ et décroissante sur $[${nb(h)}\\,;+\\infty[$`;
+    const ch = choix4(bonne, [up ? `$f$ est croissante sur $]-\\infty\\,;${nb(h)}]$ et décroissante sur $[${nb(h)}\\,;+\\infty[$` : `$f$ est décroissante sur $]-\\infty\\,;${nb(h)}]$ et croissante sur $[${nb(h)}\\,;+\\infty[$`, up ? `$f$ est décroissante sur $]-\\infty\\,;${nb(v)}]$ et croissante sur $[${nb(v)}\\,;+\\infty[$` : `$f$ est croissante sur $]-\\infty\\,;${nb(v)}]$ et décroissante sur $[${nb(v)}\\,;+\\infty[$`, `$f$ est ${up ? "croissante" : "décroissante"} sur $\\mathbb{R}$`]);
+    return { enonce: `La courbe $C_f$ est donnée ci-dessous. Quel est le sens de variation de $f$ ?`, figure: figParabole(P), mode: "choix", choix: ch.choix, attendu: ch.attendu, figureSolution: tabSV(["−∞", nbS(h), "+∞"], [up ? "-" : "+", "", up ? "+" : "-"], ["", nbS(v), ""], "f", true),
+      aides: ["Une fonction est croissante quand la courbe monte (en lisant de gauche à droite), décroissante quand elle descend.", `Le changement se fait au sommet, d'abscisse $${nb(h)}$.`, "Les intervalles de variation s'écrivent avec des **abscisses**, pas des ordonnées."],
+      solution: `La courbe ${up ? "descend" : "monte"} jusqu'au sommet d'abscisse $${nb(h)}$ puis ${up ? "monte" : "descend"} : ${bonne.replace("$f$", "$f$")}.` };
+  });
+
+  def("yc-droite", () => {
+    const t = pick(["lire", "lire", "tracer", "point-pente"]);
+    const m = pick([-3, -2, -1, -0.5, 0.5, 1, 2, 3]), p = rand(-4, 4);
+    const W = { x0: -5.5, x1: 5.5, y0: -5.5, y1: 5.5 };
+    const seg = segDroite(m, p, -5.2, 5.2, -5.2, 5.2);
+    const eq = (mm, pp) => `y = ${mm === 0 ? nb(pp) : aff(mm, pp)}`;
+    if (t === "tracer") {
+      const autres = [[m, -p || 1], [-m, p], [m + pick([1, -1]) || 1, p], [1 / m === Math.round(1 / m) ? 1 / m : -m, p + 1]].filter((l, i, A) => !(l[0] === m && l[1] === p) && A.findIndex((w) => w[0] === l[0] && w[1] === l[1]) === i).slice(0, 3);
+      const lignes = shuffle([[m, p], ...autres]);
+      const noms = ["d₁", "d₂", "d₃", "d₄"], bonneK = lignes.findIndex((l) => l[0] === m && l[1] === p);
+      const fig = graph({ xmin: W.x0, xmax: W.x1, ymin: W.y0, ymax: W.y1, h: 300, curves: lignes.map((l, k) => { const s = segDroite(l[0], l[1], -5.2, 5.2, -5.2, 5.2); return { f: (x) => l[0] * x + l[1], a: s.a, b: s.b, label: noms[k], closed: false, couleur: k }; }), aria: "Quatre droites d1 à d4 dans un repère" });
+      const ch = choix4(`$${noms[bonneK]}$`, noms.filter((_, k) => k !== bonneK).map((n) => `$${n}$`));
+      return { enonce: `Laquelle de ces droites a pour équation réduite $${eq(m, p)}$ ?`, figure: fig, mode: "choix", choix: ch.choix, attendu: ch.attendu,
+        aides: [`L'ordonnée à l'origine est $${nb(p)}$ : la droite coupe l'axe des ordonnées en $(0\\,;${nb(p)})$.`, `Le coefficient directeur est $${nb(m)}$ : quand $x$ augmente de $1$, $y$ ${m > 0 ? "augmente" : "diminue"} de $${nb(Math.abs(m))}$.`, "Repère la droite qui passe par $(0\\,;" + nb(p) + ")$ et $(1\\,;" + nb(m + p) + ")$."],
+        solution: `La droite $${eq(m, p)}$ passe par $(0\\,;${nb(p)})$ et par $(1\\,;${nb(m + p)})$ : c'est $${noms[bonneK]}$.` };
+    }
+    if (t === "point-pente") {
+      const x1 = rand(-4, 3), y1 = rand(-4, 4), x2 = x1 + pick([1, 2, 3, 4]), y2 = y1 + pick([-6, -4, -3, -2, -1, 1, 2, 3, 4, 6]);
+      if (Math.abs(y2) > 5) return GEN["yc-droite"]();
+      const mm = (y2 - y1) / (x2 - x1), fr2 = !Number.isInteger(mm * 100);
+      return { enonce: `Une droite passe par $A(${nb(x1)}\\,;${nb(y1)})$ et $B(${nb(x2)}\\,;${nb(y2)})$. Quel est son coefficient directeur${fr2 ? " (fraction)" : ""} ?`, mode: "nombre", prefixe: "$m =$", attendu: mm,
+        erreurs: [{ valeur: (x2 - x1) / (y2 - y1), message: "Le coefficient directeur est $\\dfrac{y_B - y_A}{x_B - x_A}$ : les ordonnées au numérateur." }, { valeur: -mm, message: "Attention à l'ordre : $\\dfrac{y_B - y_A}{x_B - x_A}$, les deux différences dans le même sens." }, ...(fr2 ? approx(mm) : [])],
+        aides: ["$m = \\dfrac{y_B - y_A}{x_B - x_A}$ (différence des ordonnées sur différence des abscisses).", `$y_B - y_A = ${nb(y2 - y1)}$ et $x_B - x_A = ${nb(x2 - x1)}$.`, `$m = \\dfrac{${nb(y2 - y1)}}{${nb(x2 - x1)}}$.`],
+        solution: `$m = \\dfrac{y_B - y_A}{x_B - x_A} = \\dfrac{${nb(y2)} - ${pr(y1)}}{${nb(x2)} - ${pr(x1)}} = \\dfrac{${nb(y2 - y1)}}{${nb(x2 - x1)}} = ${frac(y2 - y1, x2 - x1)}$.` };
+    }
+    const fig = graph({ xmin: W.x0, xmax: W.x1, ymin: W.y0, ymax: W.y1, h: 300, curves: [{ f: (x) => m * x + p, a: seg.a, b: seg.b, label: "d", closed: false }], points: [{ x: 0, y: p }, { x: Number.isInteger(m) ? 1 : 2, y: Number.isInteger(m) ? m + p : 2 * m + p }], aria: `Droite d passant par (0 ; ${nbS(p)}) et (1 ; ${nbS(m + p)})` });
+    const q = pick(["eq", "eq", "m", "p"]);
+    if (q === "eq") {
+      const ch = choix4(`$${eq(m, p)}$`, [`$${eq(p, m)}$`, `$${eq(-m, p)}$`, `$${eq(m, -p)}$`, `$${eq(m === 0 ? 1 : 1 / m, p)}$`], () => `$${eq(m + rand(-2, 2) || 1, p + rand(-2, 2))}$`);
+      return { enonce: `Lis graphiquement l'équation réduite de la droite $d$.`, figure: fig, mode: "choix", choix: ch.choix, attendu: ch.attendu,
+        aides: ["L'équation réduite est $y = mx + p$ : $p$ est l'ordonnée du point où la droite coupe l'axe des ordonnées.", `Ici $p = ${nb(p)}$.`, `Pour $m$ : en avançant de $1$ vers la droite, on ${m > 0 ? "monte" : "descend"} de $${nb(Math.abs(m))}$.`],
+        solution: `La droite coupe l'axe des ordonnées en $(0\\,;${nb(p)})$ : $p = ${nb(p)}$. Entre les deux points marqués, quand $x$ augmente de $${Number.isInteger(m) ? 1 : 2}$, $y$ varie de $${nb(Number.isInteger(m) ? m : 2 * m)}$ : $m = ${nb(m)}$. Donc $${eq(m, p)}$.` };
+    }
+    return { enonce: `Lis graphiquement ${q === "m" ? "le coefficient directeur" : "l'ordonnée à l'origine"} de la droite $d$.`, figure: fig, mode: "nombre", prefixe: q === "m" ? "$m =$" : "$p =$", attendu: q === "m" ? m : p,
+      erreurs: [{ valeur: q === "m" ? p : m, message: q === "m" ? "Ça, c'est l'ordonnée à l'origine. Le coefficient directeur mesure la pente." : "Ça, c'est le coefficient directeur. L'ordonnée à l'origine se lit sur l'axe des ordonnées." }, { valeur: q === "m" ? -m : -p, message: "Vérifie le signe." }],
+      aides: [q === "m" ? "Le coefficient directeur : de combien $y$ varie quand $x$ augmente de $1$." : "L'ordonnée à l'origine : l'ordonnée du point de la droite d'abscisse $0$.", q === "m" ? `Utilise les deux points marqués : $(0\\,;${nb(p)})$ et $(${Number.isInteger(m) ? 1 : 2}\\,;${nb(Number.isInteger(m) ? m + p : 2 * m + p)})$.` : "Regarde où la droite coupe l'axe vertical.", q === "m" ? (m > 0 ? "La droite monte : $m > 0$." : "La droite descend : $m < 0$.") : `Le point marqué sur l'axe des ordonnées est $(0\\,;${nb(p)})$.`],
+      solution: q === "m" ? `Entre $(0\\,;${nb(p)})$ et $(${Number.isInteger(m) ? 1 : 2}\\,;${nb(Number.isInteger(m) ? m + p : 2 * m + p)})$ : $m = \\dfrac{${nb(Number.isInteger(m) ? m : 2 * m)}}{${Number.isInteger(m) ? 1 : 2}} = ${nb(m)}$.` : `La droite coupe l'axe des ordonnées au point $(0\\,;${nb(p)})$ : $p = ${nb(p)}$.` };
+  });
+
+  def("yc-stats", () => {
+    const t = pick(["moyenne", "mediane", "barres", "barres"]);
+    if (t === "barres") {
+      const cats = pick([["lundi", "mardi", "mercredi", "jeudi", "vendredi"], ["6e", "5e", "4e", "3e"], ["bus", "voiture", "à pied", "vélo"], ["0", "1", "2", "3", "4"]]);
+      const vals = cats.map(() => rand(2, 12) * pick([1, 5, 10]));
+      const u = pick([1, 5, 10]); const V = cats.map(() => rand(2, 12) * u);
+      const maxV = Math.max(...V), step = u === 1 ? 2 : u === 5 ? 10 : 20;
+      const fig = graph({ xmin: -0.2, xmax: cats.length + 0.4, ymin: -maxV * 0.14, ymax: maxV * 1.15, xstep: 1, ystep: step, h: 260, xetiq: 100, bars: V.map((v, k) => ({ x: k + 0.6, y: v })), marques: cats.map((c, k) => ({ x: k + 0.6, y: -maxV * 0.09, texte: c })), aria: `Diagramme en barres : ${cats.map((c, k) => `${c} ${V[k]}`).join(", ")}` });
+      const q = pick(["max", "val", "total", "diff"]);
+      const kmax = V.indexOf(maxV), k = rand(0, cats.length - 1), tot = V.reduce((s, v) => s + v, 0);
+      const ctx = pick(["le nombre d'élèves absents", "le nombre de ventes", "le nombre de visiteurs"]);
+      if (q === "max") { const ch = choix4(cats[kmax], cats.filter((_, i) => i !== kmax)); return { enonce: `Le diagramme en barres donne ${ctx} selon la catégorie. Pour quelle catégorie la valeur est-elle la plus grande ?`, figure: fig, mode: "choix", choix: ch.choix, attendu: ch.attendu, aides: ["La valeur se lit sur la hauteur de la barre.", "Compare les hauteurs.", `La barre la plus haute atteint $${maxV}$.`], solution: `La barre la plus haute est celle de « ${cats[kmax]} » ($${maxV}$).` }; }
+      if (q === "total") return { enonce: `Le diagramme en barres donne ${ctx} selon la catégorie. Quel est le total ?`, figure: fig, mode: "nombre", prefixe: "Total :", attendu: tot, erreurs: [{ valeur: maxV, message: "On demande la somme de toutes les barres." }], aides: ["Lis la hauteur de chaque barre sur l'axe vertical.", `Les valeurs : $${V.join("$, $")}$.`, "Additionne-les."], solution: `$${V.join(" + ")} = ${tot}$.` };
+      if (q === "diff") { const i = rand(0, cats.length - 1); let j = rand(0, cats.length - 1); if (j === i) j = (i + 1) % cats.length; return { enonce: `Le diagramme en barres donne ${ctx} selon la catégorie. Combien y en a-t-il de plus pour « ${cats[V[i] >= V[j] ? i : j]} » que pour « ${cats[V[i] >= V[j] ? j : i]} » ?`, figure: fig, mode: "nombre", prefixe: "Différence :", attendu: Math.abs(V[i] - V[j]), erreurs: [{ valeur: V[i] + V[j], message: "On demande la différence, pas la somme." }], aides: ["Lis les deux hauteurs.", `$${Math.max(V[i], V[j])}$ et $${Math.min(V[i], V[j])}$.`, "Soustrais."], solution: `$${Math.max(V[i], V[j])} - ${Math.min(V[i], V[j])} = ${Math.abs(V[i] - V[j])}$.` }; }
+      return { enonce: `Le diagramme en barres donne ${ctx} selon la catégorie. Lis la valeur pour « ${cats[k]} ».`, figure: fig, mode: "nombre", prefixe: "Valeur :", attendu: V[k], erreurs: [{ valeur: k + 1, message: "Lis la hauteur de la barre sur l'axe vertical, pas sa position." }], aides: ["Repère la barre de la bonne catégorie.", "Suis son sommet jusqu'à l'axe vertical.", `La graduation est de $${step}$ en $${step}$.`], solution: `La barre « ${cats[k]} » monte jusqu'à $${V[k]}$.` };
+    }
+    const n = rand(5, 9), L = Array.from({ length: n }, () => rand(4, 20));
+    const ctx = pick(["notes sur 20", "températures relevées (en °C)", "nombres de buts marqués", "temps de trajet (en min)"]);
+    if (t === "moyenne") {
+      const s = L.reduce((a, v) => a + v, 0), moy = s / n;
+      if (!Number.isInteger(moy * 100)) return GEN["yc-stats"]();
+      return { enonce: `Voici une série de ${ctx} : $${L.join("$ ; $")}$. Calcule la moyenne.`, mode: "nombre", prefixe: "Moyenne :", attendu: moy,
+        erreurs: [{ valeur: s, message: "Divise la somme par le nombre de valeurs." }, { valeur: s / (n - 1), message: `Il y a $${n}$ valeurs.` }],
+        aides: ["Moyenne $= \\dfrac{\\text{somme des valeurs}}{\\text{nombre de valeurs}}$.", `Somme : $${s}$.`, `$\\dfrac{${s}}{${n}}$.`],
+        solution: `$\\dfrac{${L.join(" + ")}}{${n}} = \\dfrac{${s}}{${n}} = ${nb(moy)}$.` };
+    }
+    const T = L.slice().sort((a, b) => a - b), med = n % 2 ? T[(n - 1) / 2] : (T[n / 2 - 1] + T[n / 2]) / 2;
+    return { enonce: `Voici une série de ${ctx} : $${L.join("$ ; $")}$. Détermine la médiane.`, mode: "nombre", prefixe: "Médiane :", attendu: med,
+      erreurs: [{ valeur: L[Math.floor(n / 2)], message: "Il faut d'abord **ranger** les valeurs dans l'ordre croissant." }, { valeur: +(L.reduce((a, v) => a + v, 0) / n).toFixed(2), message: "Ça, c'est (environ) la moyenne. La médiane partage la série rangée en deux moitiés." }],
+      aides: ["Range les valeurs dans l'ordre croissant.", `Série rangée : $${T.join("$ ; $")}$.`, n % 2 ? `Il y a $${n}$ valeurs (impair) : la médiane est la valeur du milieu, la ${(n + 1) / 2}e.` : `Il y a $${n}$ valeurs (pair) : la médiane est la moyenne des deux valeurs du milieu (${n / 2}e et ${n / 2 + 1}e).`],
+      solution: `Série rangée : $${T.join("$ ; $")}$. ${n % 2 ? `La valeur du milieu est $${med}$.` : `Les deux valeurs centrales sont $${T[n / 2 - 1]}$ et $${T[n / 2]}$ : médiane $\\dfrac{${T[n / 2 - 1]} + ${T[n / 2]}}{2} = ${nb(med)}$.`}` };
+  });
+
+  def("yc-vrai-faux", () => vraiFaux4([
+    ["$(x - 3)(x + 5) = 0$ a pour solutions $3$ et $-5$.", true, "produit nul : $x - 3 = 0$ ou $x + 5 = 0$."],
+    ["$2x - 8$ est positif pour $x > 4$.", true, "$2x - 8 > 0 \\Leftrightarrow x > 4$."],
+    ["$(x - 1)(x - 4)$ est négatif entre $1$ et $4$.", true, "le produit est négatif entre les racines (coefficient $1 > 0$)."],
+    ["$(2x + 1)(x - 3) = 2x^2 - 5x - 3$.", true, "double distributivité : $2x^2 - 6x + x - 3$."],
+    ["La droite $y = -2x + 5$ a pour ordonnée à l'origine $5$.", true, "$p = 5$ dans $y = mx + p$."],
+    ["La droite passant par $(1\\,;2)$ et $(3\\,;8)$ a pour coefficient directeur $3$.", true, "$\\dfrac{8 - 2}{3 - 1} = 3$."],
+    ["Résoudre graphiquement $f(x) = 2$, c'est lire les abscisses des points de la courbe d'ordonnée $2$.", true, "on trace $y = 2$ et on lit les abscisses des intersections."],
+    ["La médiane de $3$ ; $8$ ; $5$ ; $12$ ; $7$ est $7$.", true, "rangée : $3$ ; $5$ ; $7$ ; $8$ ; $12$, le milieu est $7$."],
+    ["$x(x - 2) = 0$ a pour unique solution $2$.", false, "il y a aussi $x = 0$."],
+    ["$-3x + 6$ est positif pour $x > 2$.", false, "le coefficient est négatif : positif pour $x < 2$."],
+    ["$(x + 2)(x + 5)$ est toujours positif.", false, "il est négatif pour $x$ entre $-5$ et $-2$."],
+    ["$(x + 3)^2 = x^2 + 9$.", false, "$(x + 3)^2 = x^2 + 6x + 9$."],
+    ["Une droite de coefficient directeur négatif monte quand on lit de gauche à droite.", false, "elle descend."],
+    ["$f(x) < 3$ se résout en lisant où la courbe est au-dessus de $y = 3$.", false, "en dessous."],
+    ["La moyenne de $4$ ; $6$ ; $11$ est $6$.", false, "$\\dfrac{21}{3} = 7$ ; $6$ est la médiane."]
+  ], ["Pense « produit nul », tableau de signes, double distributivité.", "Pour une droite, $m$ est la pente et $p$ l'ordonnée à l'origine.", "Graphiquement : au-dessus pour $>$, en dessous pour $<$."]));
+
+  /* Figures du cours (chapitre 4) */
+  FIGURES["yc-cours-signe"] = () => tabSigne(["−∞", "−1", "3", "+∞"], ["+", "0", "−", "0", "+"], "", [["x + 1", ["−", "0", "+", "", "+"]], ["x − 3", ["−", "", "−", "0", "+"]], ["produit", ["+", "0", "−", "0", "+"]]]);
+  FIGURES["yc-cours-graphique"] = () => graph({ xmin: -3.6, xmax: 4.6, ymin: -3.6, ymax: 5.6, h: 300, curves: [{ f: (x) => (x - 1) ** 2 - 2, a: -1.7, b: 3.7, label: "C<tspan class=\"sub\" dy=\"3\">f</tspan>", closed: false }], hlines: [{ y: 2, label: "y = 2" }], points: [{ x: -1, y: 2, label: "−1", gauche: true }, { x: 3, y: 2, label: "3" }], aria: "Parabole de sommet (1 ; −2) et droite y = 2 : elles se coupent en x = −1 et x = 3 ; la courbe est en dessous de la droite entre −1 et 3" });
+  FIGURES["yc-cours-droite"] = () => graph({ xmin: -3.6, xmax: 4.6, ymin: -2.6, ymax: 5.6, h: 280, curves: [{ f: (x) => 2 * x - 1, a: -0.8, b: 3.3, label: "y = 2x − 1", closed: false }], points: [{ x: 0, y: -1, label: "(0 ; −1)", gauche: true }, { x: 1, y: 1, label: "(1 ; 1)" }, { x: 2, y: 3, label: "+1 → +2", gauche: true }], aria: "Droite y = 2x − 1 : elle coupe l'axe des ordonnées en −1 et monte de 2 quand x augmente de 1" });
+  FIGURES["yc-cours-barres"] = () => graph({ xmin: -0.2, xmax: 5.4, ymin: -1.8, ymax: 14, xstep: 1, ystep: 2, h: 240, xetiq: 100, bars: [{ x: 0.6, y: 6 }, { x: 1.6, y: 12 }, { x: 2.6, y: 9 }, { x: 3.6, y: 3 }, { x: 4.6, y: 10 }], marques: ["bus", "voiture", "à pied", "vélo", "scooter"].map((c, k) => ({ x: k + 0.6, y: -1.1, texte: c })), ylabel: "élèves", aria: "Diagramme en barres : bus 6, voiture 12, à pied 9, vélo 3, scooter 10" });
+
+  /* ---------- Chapitre 5 : suites numériques (préfixe ys) ---------- */
+  // Suites explicites simples : { tex (en n), f }
+  function suiteExplicite() {
+    const t = pick(["affine", "affine", "carre", "quotient", "puissance"]);
+    if (t === "affine") { const a = nz2(-6, 9), b = rand(-9, 9); return { tex: aff(a, b, "n"), f: (n) => a * n + b, type: t }; }
+    if (t === "carre") { const b = rand(-6, 6), c = rand(-5, 5); return { tex: poly([1, b, c], "n"), f: (n) => n * n + b * n + c, type: t }; }
+    if (t === "quotient") { const a = rand(1, 9), b = rand(1, 4); return { tex: `\\dfrac{${a}}{n + ${b}}`, f: (n) => a / (n + b), type: t, a, b }; }
+    const q = pick([2, 3, 0.5]), k = pick([1, 2, 5]); return { tex: `${k === 1 ? "" : nb(k) + " \\times "}${nb(q)}^n`, f: (n) => k * q ** n, type: t };
+  }
+  const un = (n) => `u(${n})`;
+
+  def("ys-termes-explicite", () => {
+    const S = suiteExplicite(), n = S.type === "puissance" ? rand(0, 5) : rand(0, 8);
+    const vx = S.f(n), v = arr(vx);
+    if (!Number.isInteger(v * 100) && S.type !== "quotient") return GEN["ys-termes-explicite"]();
+    const fr2 = !Number.isInteger(arr(vx * 10000, 6));
+    const nom = pick(["u", "u", "v"]);
+    return { enonce: `La suite $(${nom}(n))$ est définie pour tout entier $n \\geqslant 0$ par $${nom}(n) = ${S.tex}$. Calcule $${nom}(${n})$${fr2 ? " (fraction)" : ""}.`, mode: "nombre", prefixe: `$${nom}(${n}) =$`, attendu: fr2 ? vx : v,
+      erreurs: [{ valeur: arr(S.f(n + 1)), message: `Tu as calculé $${nom}(${n + 1})$ : remplace $n$ par $${n}$, pas par $${n + 1}$.` }, { valeur: arr(S.f(n - 1)), message: `Tu as calculé $${nom}(${n - 1})$.` }, ...(fr2 ? approx(v) : [])],
+      aides: [`Une formule explicite : on remplace $n$ par $${n}$ directement.`, `$${nom}(${n}) = ${S.tex.replace(/n/g, `(${n})`).replace(/\(\((\d+)\)\)/g, "($1)")}$.`, "Calcule en respectant les priorités (puissances, puis produits, puis sommes)."],
+      solution: `$${nom}(${n}) = ${S.tex.replace(/n/g, `${n}`)} = ${S.type === "quotient" ? frac(S.a, n + S.b) : nb(v)}$.` };
+  });
+
+  def("ys-termes-recurrence", () => {
+    const t = pick(["add", "mul", "affine", "affine", "carre"]);
+    const u0 = rand(-5, 9), n = rand(2, 4);
+    let rel, f;
+    if (t === "add") { const b = nz2(-7, 9); rel = `u(n) ${plus(b)}`; f = (u) => u + b; }
+    else if (t === "mul") { const q = pick([2, 3, -2, 0.5]); rel = `${nb(q)} \\times u(n)`; f = (u) => q * u; }
+    else if (t === "carre") { rel = `u(n)^2 - ${rand(1, 5)}`; const c = +rel.match(/- (\d+)/)[1]; f = (u) => u * u - c; }
+    else { const a = pick([2, 3, -1, 0.5]), b = nz2(-6, 6); rel = `${nb(a)} \\times u(n) ${plus(b)}`; f = (u) => a * u + b; }
+    const termes = [u0]; for (let k = 0; k < n; k++) termes.push(arr(f(termes[k])));
+    const u00 = t === "carre" ? rand(-2, 2) : u0;
+    if (t === "carre") { termes.length = 0; termes.push(u00); for (let k = 0; k < n; k++) termes.push(arr(f(termes[k]))); }
+    if (Math.abs(termes[n]) > 5000 || !Number.isInteger(termes[n] * 100)) return GEN["ys-termes-recurrence"]();
+    const depart = pick([0, 0, 1]);
+    const noms = termes.map((_, k) => k + depart);
+    return { enonce: `La suite $(u(n))$ est définie par $u(${depart}) = ${nb(termes[0])}$ et, pour tout entier $n \\geqslant ${depart}$, $u(n + 1) = ${rel}$. Calcule $u(${n + depart})$.`, mode: "nombre", prefixe: `$u(${n + depart}) =$`, attendu: termes[n],
+      erreurs: [{ valeur: termes[n - 1], message: `Tu t'es arrêté à $u(${n - 1 + depart})$ : il faut encore une étape.` }, { valeur: arr(f(termes[n])), message: `Tu es allé une étape trop loin : c'est $u(${n + 1 + depart})$.` }, { valeur: arr(f(n + depart)), message: "Une suite récurrente : on applique la relation au **terme précédent**, pas à $n$." }],
+      aides: ["Par récurrence : chaque terme se calcule à partir du précédent.", `$u(${1 + depart}) = ${rel.replace(/u\(n\)/g, `${pr(termes[0])}`)} = ${nb(termes[1])}$.`, `Continue : $u(${2 + depart}) = ${nb(termes[2])}$${n > 2 ? `, $u(${3 + depart}) = ${nb(termes[3])}$` : ""}${n > 3 ? ", …" : ""}`],
+      solution: termes.slice(1).map((v, k) => `$u(${noms[k + 1]}) = ${rel.replace(/u\(n\)/g, `${pr(termes[k])}`)} = ${nb(v)}$`).join("\n\n") + `\n\nDonc $u(${n + depart}) = ${nb(termes[n])}$.` };
+  });
+
+  def("ys-modeliser", () => {
+    const S = pick([
+      { ctx: (a, b) => `Un abonnement à une salle de sport coûte $${a}$ € d'inscription puis $${b}$ € par mois. On note $u(n)$ le total payé après $n$ mois.`, a: () => rand(10, 50), b: () => rand(15, 40), bonne: (a, b) => `u(n) = ${a} + ${b}n`, faux: (a, b) => [`u(n) = ${a}n + ${b}`, `u(n) = ${a + b}n`, `u(n) = ${a} \\times ${b}^n`], val: (a, b, n) => a + b * n, exp: () => "le coût augmente de la même somme chaque mois : modèle linéaire" },
+      { ctx: (a, b) => `Une colonie de bactéries compte $${a}$ individus et son effectif est multiplié par $${nb(b)}$ chaque heure. On note $u(n)$ l'effectif après $n$ heures.`, a: () => pick([100, 200, 500, 1000]), b: () => pick([2, 3, 1.5]), bonne: (a, b) => `u(n) = ${a} \\times ${nb(b)}^n`, faux: (a, b) => [`u(n) = ${a} + ${nb(b)}n`, `u(n) = ${a} \\times ${nb(b)}n`, `u(n) = ${nb(b)} \\times ${a}^n`], val: (a, b, n) => a * b ** n, exp: () => "l'effectif est multiplié par le même nombre chaque heure : modèle exponentiel" },
+      { ctx: (a, b) => `Un réservoir contient $${a}$ L d'eau et perd $${b}$ L par jour. On note $u(n)$ le volume restant après $n$ jours.`, a: () => pick([500, 800, 1000, 1200]), b: () => rand(10, 60), bonne: (a, b) => `u(n) = ${a} - ${b}n`, faux: (a, b) => [`u(n) = ${a} + ${b}n`, `u(n) = ${b} - ${a}n`, `u(n) = ${a} \\times 0{,}${b}^n`], val: (a, b, n) => a - b * n, exp: () => "on retire la même quantité chaque jour : modèle linéaire décroissant" },
+      { ctx: (a, b) => `Un capital de $${a}$ € est placé à $${b}\\,\\%$ par an (intérêts composés). On note $u(n)$ le capital après $n$ années.`, a: () => pick([1000, 2000, 5000]), b: () => pick([2, 3, 4, 5]), bonne: (a, b) => `u(n) = ${a} \\times ${nb(1 + b / 100)}^n`, faux: (a, b) => [`u(n) = ${a} + ${b}n`, `u(n) = ${a} \\times ${nb(b / 100)}^n`, `u(n) = ${a} \\times ${nb(1 + b / 100)} \\times n`], val: (a, b, n) => a * (1 + b / 100) ** n, exp: (a, b) => `chaque année le capital est multiplié par $1 + \\dfrac{${b}}{100} = ${nb(1 + b / 100)}$ : modèle exponentiel` },
+      { ctx: (a, b) => `Un motif de $${a}$ allumettes est prolongé : chaque nouveau motif ajoute $${b}$ allumettes. On note $u(n)$ le nombre d'allumettes au motif $n$, avec $u(0) = ${a}$.`, a: () => rand(3, 8), b: () => rand(2, 5), bonne: (a, b) => `u(n) = ${a} + ${b}n`, faux: (a, b) => [`u(n) = ${a}n + ${b}`, `u(n) = ${a} \\times ${b}^n`, `u(n) = ${a + b}n`], val: (a, b, n) => a + b * n, exp: () => "on ajoute toujours le même nombre : modèle linéaire" }
+    ]);
+    const a = S.a(), b = S.b();
+    if (Math.random() < 0.5) {
+      const ch = choix4(`$${S.bonne(a, b)}$`, S.faux(a, b).map((s) => `$${s}$`));
+      return { enonce: `${S.ctx(a, b)} Quelle formule donne $u(n)$ ?`, mode: "choix", choix: ch.choix, attendu: ch.attendu,
+        aides: ["Calcule $u(0)$, $u(1)$, $u(2)$ à la main.", "Ajoute-t-on toujours le même nombre (croissance linéaire) ou multiplie-t-on par le même nombre (croissance exponentielle) ?", `Teste la formule avec $n = 1$ : on doit trouver $u(1) = ${nb(arr(S.val(a, b, 1)))}$.`],
+        solution: `$u(0) = ${nb(a)}$, $u(1) = ${nb(arr(S.val(a, b, 1)))}$, $u(2) = ${nb(arr(S.val(a, b, 2)))}$ : ${S.exp(a, b)}. La formule est $${S.bonne(a, b)}$.` };
+    }
+    const n = rand(2, 6), v = arr(S.val(a, b, n));
+    if (!Number.isInteger(v * 100)) return GEN["ys-modeliser"]();
+    return { enonce: `${S.ctx(a, b)} Calcule $u(${n})$.`, mode: "nombre", prefixe: `$u(${n}) =$`, attendu: v,
+      erreurs: [{ valeur: arr(S.val(a, b, n - 1)), message: `C'est $u(${n - 1})$ : compte bien $${n}$ étapes depuis $u(0)$.` }, { valeur: arr(S.val(a, b, n + 1)), message: `C'est $u(${n + 1})$ : une étape de trop.` }],
+      aides: [`Commence par $u(0) = ${nb(a)}$ et $u(1) = ${nb(arr(S.val(a, b, 1)))}$.`, S.exp(a, b) + ".", `Formule : $${S.bonne(a, b)}$, avec $n = ${n}$.`],
+      solution: `${S.exp(a, b).charAt(0).toUpperCase() + S.exp(a, b).slice(1)}, donc $${S.bonne(a, b)}$ et $u(${n}) = ${S.bonne(a, b).replace("u(n) = ", "").replace(/n/g, String(n))} = ${nb(v)}$.` };
+  });
+
+  def("ys-variations", () => {
+    const t = pick(["diff", "diff", "nature", "nature", "calcul"]);
+    if (t === "calcul") {
+      const S = suiteExplicite(), n = rand(0, 5), d = arr(S.f(n + 1) - S.f(n));
+      if (!Number.isInteger(d * 100)) return GEN["ys-variations"]();
+      return { enonce: `La suite $(u(n))$ est définie par $u(n) = ${S.tex}$. Calcule $u(${n + 1}) - u(${n})$.`, mode: "nombre", prefixe: `$u(${n + 1}) - u(${n}) =$`, attendu: d,
+        erreurs: [{ valeur: -d, message: "Attention à l'ordre : $u(n + 1) - u(n)$." }, { valeur: arr(S.f(n + 1)), message: "Il faut soustraire $u(" + n + ")$." }],
+        aides: [`$u(${n}) = ${nb(arr(S.f(n)))}$.`, `$u(${n + 1}) = ${nb(arr(S.f(n + 1)))}$.`, "Soustrais : terme suivant moins terme actuel."],
+        solution: `$u(${n + 1}) - u(${n}) = ${nb(arr(S.f(n + 1)))} - ${pr(arr(S.f(n)))} = ${nb(d)}$${d > 0 ? " : la suite augmente entre ces deux rangs" : d < 0 ? " : la suite diminue entre ces deux rangs" : ""}.` };
+    }
+    if (t === "nature") {
+      const S = pick([
+        { tex: `${rand(2, 9)}n + ${rand(1, 9)}`, sens: "croissante", why: "c'est une suite affine de coefficient positif : $u(n + 1) - u(n)$ est une constante positive" },
+        { tex: `${rand(10, 50)} - ${rand(2, 9)}n`, sens: "décroissante", why: "à chaque rang on retire la même quantité positive" },
+        { tex: `${pick([2, 3, 5])}^n`, sens: "croissante", why: "chaque terme est le précédent multiplié par un nombre supérieur à $1$ (termes positifs)" },
+        { tex: `${pick([100, 200, 500])} \\times 0{,}${pick([5, 8, 9])}^n`, sens: "décroissante", why: "chaque terme est le précédent multiplié par un nombre entre $0$ et $1$ (termes positifs)" },
+        { tex: `(-2)^n`, sens: "ni croissante ni décroissante", why: "les termes alternent de signe : $1$, $-2$, $4$, $-8$…" },
+        { tex: `n^2 - ${pick([4, 6, 8])}n`, sens: "ni croissante ni décroissante", why: "elle diminue d'abord puis augmente (par exemple $u(0) = 0$, $u(1) < 0$, puis les termes remontent)" },
+        { tex: `\\dfrac{${rand(1, 9)}}{n + 1}`, sens: "décroissante", why: "le dénominateur augmente, le quotient diminue" },
+        { tex: `n^2 + ${rand(1, 9)}`, sens: "croissante", why: "pour $n \\geqslant 0$, $n^2$ augmente avec $n$" },
+        { tex: `(-1)^n \\times ${rand(2, 9)}`, sens: "ni croissante ni décroissante", why: "les termes alternent entre une valeur et son opposée" }
+      ]);
+      const ch = choix4(S.sens, ["croissante", "décroissante", "ni croissante ni décroissante", "constante"].filter((s) => s !== S.sens));
+      return { enonce: `La suite $(u(n))$ est définie pour $n \\geqslant 0$ par $u(n) = ${S.tex}$. Quel est son sens de variation ?`, mode: "choix", choix: ch.choix, attendu: ch.attendu,
+        aides: ["Calcule les premiers termes : $u(0)$, $u(1)$, $u(2)$, $u(3)$.", "Croissante : chaque terme est plus grand que le précédent ; décroissante : plus petit.", "Si ça monte puis descend (ou alterne), la suite n'est ni croissante ni décroissante."],
+        solution: `La suite est **${S.sens}** : ${S.why}.` };
+    }
+    const a = nz2(-6, 6), b = rand(-9, 9), S = { tex: aff(a, b, "n"), f: (n) => a * n + b };
+    const bonne = a > 0 ? `$u(n + 1) - u(n) = ${nb(a)} > 0$ : la suite est croissante` : `$u(n + 1) - u(n) = ${nb(a)} < 0$ : la suite est décroissante`;
+    const ch = choix4(bonne, [a > 0 ? `$u(n + 1) - u(n) = ${nb(a)} > 0$ : la suite est décroissante` : `$u(n + 1) - u(n) = ${nb(a)} < 0$ : la suite est croissante`, `$u(n + 1) - u(n) = ${nb(b)}$ : la suite est ${b > 0 ? "croissante" : "décroissante"}`, `$u(n + 1) - u(n) = ${nb(-a)}$ : la suite est ${a > 0 ? "décroissante" : "croissante"}`]);
+    return { enonce: `La suite $(u(n))$ est définie par $u(n) = ${S.tex}$. Calcule $u(n + 1) - u(n)$ et conclus.`, mode: "choix", choix: ch.choix, attendu: ch.attendu,
+      aides: [`$u(n + 1) = ${nb(a)}(n + 1) ${plus(b)} = ${aff(a, a + b, "n")}$.`, `$u(n + 1) - u(n) = (${aff(a, a + b, "n")}) - (${aff(a, b, "n")})$.`, "Le signe de cette différence donne le sens de variation."],
+      solution: `$u(n + 1) = ${nb(a)}(n + 1) ${plus(b)} = ${aff(a, a + b, "n")}$, donc $u(n + 1) - u(n) = ${nb(a)}$. Cette différence est ${a > 0 ? "positive : la suite est croissante" : "négative : la suite est décroissante"}.` };
+  });
+
+  def("ys-graphique", () => {
+    const S = pick([
+      { tex: (a, b) => aff(a, b, "n"), f: (a, b) => (n) => a * n + b, a: () => pick([1, 2, 3, -1, -2]), b: () => rand(0, 6), nature: "linéaire (points alignés)" },
+      { tex: (a, b) => `${a} \\times ${nb(b)}^n`, f: (a, b) => (n) => a * b ** n, a: () => pick([1, 2]), b: () => pick([1.5, 2]), nature: "exponentielle (croissance de plus en plus rapide)" },
+      { tex: (a, b) => `n^2 - ${a}n + ${b}`, f: (a, b) => (n) => n * n - a * n + b, a: () => pick([4, 5, 6]), b: () => rand(3, 8), nature: "ni linéaire ni exponentielle (descend puis remonte)" }
+    ]);
+    const a = S.a(), b = S.b(), f = S.f(a, b), N = 7;
+    const ys = Array.from({ length: N }, (_, n) => arr(f(n)));
+    if (Math.max(...ys.map(Math.abs)) > 60) return GEN["ys-graphique"]();
+    const fig = nuage(ys.map((_, n) => n), ys, { xlabel: "n", ylabel: "u(n)", xstep: 1 });
+    const t = pick(["lire", "lire", "formule", "sens"]);
+    if (t === "lire") {
+      const n = rand(0, N - 1);
+      return { enonce: `Le nuage de points représente les premiers termes d'une suite $(u(n))$. Lis $u(${n})$.`, figure: fig, mode: "nombre", prefixe: `$u(${n}) =$`, attendu: ys[n],
+        erreurs: [{ valeur: n, message: "$u(n)$ se lit sur l'axe vertical ; $n$ est sur l'axe horizontal." }, { valeur: ys[Math.min(n + 1, N - 1)], message: `Le point d'abscisse $${n}$, pas $${n + 1}$.` }],
+        aides: [`Repère le point d'abscisse $n = ${n}$.`, "Lis son ordonnée sur l'axe vertical.", `Le point est $(${n}\\,;${nb(ys[n])})$.`],
+        solution: `Le point d'abscisse $${n}$ a pour ordonnée $${nb(ys[n])}$ : $u(${n}) = ${nb(ys[n])}$.` };
+    }
+    if (t === "sens") {
+      const diffs = ys.slice(1).map((v, k) => v - ys[k]);
+      const sens = diffs.every((d) => d > 0) ? "croissante" : diffs.every((d) => d < 0) ? "décroissante" : "ni croissante ni décroissante";
+      const ch = choix4(sens, ["croissante", "décroissante", "ni croissante ni décroissante", "constante"].filter((s) => s !== sens));
+      return { enonce: `Le nuage de points représente les premiers termes d'une suite $(u(n))$. D'après le graphique, la suite semble :`, figure: fig, mode: "choix", choix: ch.choix, attendu: ch.attendu,
+        aides: ["Lis les points de gauche à droite.", "Montent-ils toujours ? descendent-ils toujours ?", `Termes : $${ys.map(nb).join("$, $")}$.`],
+        solution: `Les termes sont $${ys.map(nb).join("$, $")}$ : la suite semble **${sens}**.` };
+    }
+    const ch = choix4(`$u(n) = ${S.tex(a, b)}$`, [`$u(n) = ${aff(a, ys[0], "n")}$`, `$u(n) = ${ys[0]} \\times 2^n$`, `$u(n) = ${ys[0]} ${pt(ys[1] - ys[0], "n")}$`, `$u(n) = n^2 + ${ys[0]}$`], (k) => `$u(n) = ${aff(k + 1, ys[0] - k, "n")}$`);
+    return { enonce: `Le nuage de points représente les premiers termes d'une suite $(u(n))$. Quelle formule correspond au graphique ?`, figure: fig, mode: "choix", choix: ch.choix, attendu: ch.attendu,
+      aides: [`Lis $u(0) = ${nb(ys[0])}$, $u(1) = ${nb(ys[1])}$, $u(2) = ${nb(ys[2])}$.`, `L'allure est ${S.nature}.`, "Teste chaque formule avec $n = 0$, $1$ et $2$."],
+      solution: `$u(0) = ${nb(ys[0])}$, $u(1) = ${nb(ys[1])}$, $u(2) = ${nb(ys[2])}$ : seule la formule $u(n) = ${S.tex(a, b)}$ redonne ces valeurs (allure ${S.nature}).` };
+  });
+
+  def("ys-python", () => {
+    const t = pick(["termes", "termes", "somme", "liste", "seuil"]);
+    const u0 = rand(1, 9), b = rand(2, 9), q = pick([2, 3]);
+    if (t === "termes") {
+      const n = rand(3, 5), add = Math.random() < 0.5;
+      const code = `u = ${u0}\nfor k in range(${n}):\n    u = ${add ? `u + ${b}` : `${q} * u`}\nprint(u)`;
+      const att = add ? u0 + n * b : u0 * q ** n;
+      return { enonce: `Qu'affiche ce programme ?\n\n${py(code)}`, mode: "nombre", prefixe: "Affichage :", attendu: att,
+        erreurs: [{ valeur: add ? u0 + (n - 1) * b : u0 * q ** (n - 1), message: `$\\texttt{range(${n})}$ fait $${n}$ tours.` }, { valeur: add ? u0 + (n + 1) * b : u0 * q ** (n + 1), message: `$\\texttt{range(${n})}$ fait exactement $${n}$ tours.` }],
+        aides: [`$\\texttt{u}$ part de $${u0}$ et la boucle fait $${n}$ tours.`, `À chaque tour, $\\texttt{u}$ ${add ? `augmente de $${b}$` : `est multiplié par $${q}$`} : c'est la suite $u(n + 1) = ${add ? `u(n) + ${b}` : `${q}u(n)`}$.`, `Le programme affiche $u(${n})$.`],
+        solution: `Le programme calcule les termes de la suite $u(0) = ${u0}$, $u(n + 1) = ${add ? `u(n) + ${b}` : `${q}u(n)`}$ et affiche $u(${n}) = ${att}$.` };
+    }
+    if (t === "somme") {
+      const n = rand(3, 6), a = rand(1, 4);
+      const code = `s = 0\nfor n in range(${n + 1}):\n    s = s + (${a} * n + ${b})\nprint(s)`;
+      let att = 0; for (let k = 0; k <= n; k++) att += a * k + b;
+      return { enonce: `La suite est définie par $u(n) = ${aff(a, b, "n")}$. Qu'affiche ce programme ?\n\n${py(code)}`, mode: "nombre", prefixe: "Affichage :", attendu: att,
+        erreurs: [{ valeur: att - (a * n + b), message: `$\\texttt{range(${n + 1})}$ va de $0$ à $${n}$ : il y a $${n + 1}$ termes.` }, { valeur: a * n + b, message: "Le programme additionne tous les termes de $u(0)$ à $u(" + n + ")$, pas seulement le dernier." }],
+        aides: [`$\\texttt{s}$ accumule les termes $u(0) + u(1) + \\dots + u(${n})$.`, `Les termes : $${Array.from({ length: n + 1 }, (_, k) => a * k + b).join("$, $")}$.`, "Additionne-les."],
+        solution: `Le programme calcule $u(0) + u(1) + \\dots + u(${n}) = ${Array.from({ length: n + 1 }, (_, k) => a * k + b).join(" + ")} = ${att}$.` };
+    }
+    if (t === "liste") {
+      const n = rand(4, 6), add = Math.random() < 0.5;
+      const L = [u0]; for (let k = 1; k < n; k++) L.push(add ? L[k - 1] + b : L[k - 1] * q);
+      const bonne = py(`L = [${u0}]\nfor k in range(${n - 1}):\n    L.append(${add ? `L[-1] + ${b}` : `${q} * L[-1]`})`);
+      const ch = choix4(bonne, [py(`L = [${u0}]\nfor k in range(${n - 1}):\n    L.append(${add ? `L[0] + ${b}` : `${q} * L[0]`})`), py(`L = [${add ? `${u0} + ${b} * k` : `${u0} * ${q} * k`} for k in range(${n})]`), py(`L = [${u0}]\nfor k in range(${n - 1}):\n    L = L + ${add ? b : q}`)]);
+      return { enonce: `La suite est définie par $u(0) = ${u0}$ et $u(n + 1) = ${add ? `u(n) + ${b}` : `${q}u(n)`}$. Quel programme construit la liste $\\texttt{${lst(L)}}$ de ses $${n}$ premiers termes ?`, mode: "choix", choix: ch.choix, attendu: ch.attendu,
+        aides: ["Chaque nouveau terme se calcule à partir du **dernier** terme de la liste, $\\texttt{L[-1]}$.", `Il faut ajouter $${n - 1}$ termes après $u(0)$.`, "$\\texttt{L[0]}$ est toujours le premier terme : l'utiliser à chaque tour donnerait toujours le même résultat."],
+        solution: `On part de $\\texttt{[${u0}]}$ et on ajoute $${n - 1}$ fois le terme suivant, calculé à partir du dernier élément $\\texttt{L[-1]}$ : ${bonne}` };
+    }
+    const seuil = pick([50, 100, 200, 500, 1000]), add = Math.random() < 0.5, pas = add ? b : q;
+    let n = 0, u = u0; while (u <= seuil) { u = add ? u + pas : u * pas; n++; }
+    const code = `u = ${u0}\nn = 0\nwhile u <= ${seuil}:\n    u = ${add ? `u + ${pas}` : `${pas} * u`}\n    n = n + 1\nprint(n)`;
+    return { enonce: `Qu'affiche ce programme, et que représente ce nombre ?\n\n${py(code)}`, mode: "nombre", prefixe: "Affichage :", attendu: n,
+      erreurs: [{ valeur: n - 1, message: `La boucle continue tant que $u \\leqslant ${seuil}$ : elle s'arrête au premier rang où $u > ${seuil}$.` }, { valeur: u, message: "Le programme affiche $\\texttt{n}$ (le rang), pas $\\texttt{u}$." }],
+      aides: [`La boucle $\\texttt{while}$ tourne tant que $u \\leqslant ${seuil}$ ; $\\texttt{n}$ compte les tours.`, `Termes : $${(() => { const T = [u0]; let v = u0; while (v <= seuil) { v = add ? v + pas : v * pas; T.push(v); } return T.map(nb).join("$, $"); })()}$.`, "Le programme affiche le premier rang $n$ tel que $u(n) > " + seuil + "$."],
+      solution: `La suite est $u(0) = ${u0}$, $u(n + 1) = ${add ? `u(n) + ${pas}` : `${pas}u(n)`}$. La boucle s'arrête dès que $u > ${seuil}$, ce qui arrive pour $n = ${n}$ (avec $u(${n}) = ${u}$) : le programme affiche $${n}$, le plus petit rang à partir duquel les termes dépassent $${seuil}$.` };
+  });
+
+  def("ys-seuil", () => {
+    const u0 = pick([1, 2, 3, 5, 10, 20, 50, 100]), add = Math.random() < 0.5, pas = add ? rand(3, 25) : pick([1.2, 1.5, 2, 3]);
+    const seuil = add ? u0 + pas * rand(4, 15) + rand(1, pas - 1 || 1) : pick([100, 200, 500, 1000, 2000, 5000]);
+    if (!add && u0 >= seuil) return GEN["ys-seuil"]();
+    let n = 0, u = u0; const T = [u0]; while (u <= seuil && n < 60) { u = arr(add ? u + pas : u * pas); n++; T.push(u); }
+    if (n < 2 || n > 25) return GEN["ys-seuil"]();
+    const ctx = add ? pick([`Une cagnotte contient $${u0}$ € et reçoit $${pas}$ € chaque semaine.`, `Un manguier mesure $${u0}$ cm et grandit de $${pas}$ cm par mois.`, `Une tirelire contient $${u0}$ € et on y ajoute $${pas}$ € par jour.`]) : pick([`Une rumeur est connue de $${u0}$ personnes et le nombre de personnes informées est multiplié par $${nb(pas)}$ chaque jour.`, `Une population de moustiques compte $${u0}$ individus et est multipliée par $${nb(pas)}$ chaque semaine.`]);
+    const unite = add ? (ctx.includes("cm") ? "cm" : "€") : "";
+    return { enonce: `${ctx} On note $u(n)$ la valeur après $n$ ${add ? (ctx.includes("semaine") ? "semaines" : ctx.includes("mois") ? "mois" : "jours") : (ctx.includes("jour") ? "jours" : "semaines")}. À partir de quel rang $n$ a-t-on $u(n) > ${nb(seuil)}$${unite ? " " + unite : ""} ?`, mode: "nombre", prefixe: "$n =$", attendu: n,
+      erreurs: [{ valeur: n - 1, message: `Pour $n = ${n - 1}$, $u(n) = ${nb(T[n - 1])}$ ne dépasse pas encore $${nb(seuil)}$.` }, { valeur: n + 1, message: `On cherche le **premier** rang : dès $n = ${n}$, le seuil est dépassé.` }, { valeur: T[n], message: "On demande le rang $n$, pas la valeur $u(n)$." }],
+      aides: [`$u(n + 1) = ${add ? `u(n) + ${pas}` : `${nb(pas)} \\times u(n)`}$ ${add ? `et $u(n) = ${u0} + ${pas}n$` : `et $u(n) = ${u0} \\times ${nb(pas)}^n$`}.`, `Calcule les termes jusqu'à dépasser $${nb(seuil)}$ : $${T.slice(0, Math.min(T.length, 6)).map(nb).join("$, $")}$${T.length > 6 ? ", …" : ""}`, `$u(${n - 1}) = ${nb(T[n - 1])} \\leqslant ${nb(seuil)}$ et $u(${n}) = ${nb(T[n])} > ${nb(seuil)}$.`],
+      solution: `${add ? `$u(n) = ${u0} + ${pas}n$` : `$u(n) = ${u0} \\times ${nb(pas)}^n$`}. On a $u(${n - 1}) = ${nb(T[n - 1])} \\leqslant ${nb(seuil)}$ et $u(${n}) = ${nb(T[n])} > ${nb(seuil)}$ : le seuil est dépassé à partir du rang $n = ${n}$.${add ? ` (On peut aussi résoudre $${u0} + ${pas}n > ${nb(seuil)}$.)` : " (En Python : boucle $\\texttt{while}$ avec un compteur.)"}` };
+  });
+
+  def("ys-vrai-faux", () => vraiFaux4([
+    ["Si $u(n) = 3n + 2$, alors $u(4) = 14$.", true, "$3 \\times 4 + 2 = 14$."],
+    ["Si $u(0) = 5$ et $u(n + 1) = 2u(n)$, alors $u(2) = 20$.", true, "$u(1) = 10$, $u(2) = 20$."],
+    ["La suite $u(n) = 7 - 2n$ est décroissante.", true, "$u(n + 1) - u(n) = -2 < 0$."],
+    ["Une suite définie par récurrence se calcule terme après terme.", true, "chaque terme dépend du précédent."],
+    ["Le nuage de points d'une suite $u(n) = 2n + 1$ est formé de points alignés.", true, "croissance linéaire : même augmentation à chaque rang."],
+    ["La suite $u(n) = n^2$ est croissante pour $n \\geqslant 0$.", true, "$0, 1, 4, 9, \\dots$ augmente."],
+    ["$u(n + 1) - u(n) > 0$ pour tout $n$ signifie que la suite est croissante.", true, "chaque terme dépasse le précédent."],
+    ["Si $u(n) = 5 \\times 2^n$, alors $u(0) = 5$.", true, "$2^0 = 1$."],
+    ["Si $u(n) = 3n + 2$, alors $u(n + 1) = 3n + 3$.", false, "$u(n + 1) = 3(n + 1) + 2 = 3n + 5$."],
+    ["La suite $u(n) = (-1)^n$ est croissante.", false, "elle alterne $1$, $-1$, $1$…"],
+    ["Si $u(0) = 2$ et $u(n + 1) = u(n) + 3$, alors $u(5) = 15$.", false, "$u(5) = 2 + 5 \\times 3 = 17$."],
+    ["Pour une suite par récurrence, on peut calculer $u(10)$ sans connaître $u(9)$.", false, "il faut tous les termes précédents (sauf si on trouve une formule explicite)."],
+    ["Un nuage de points d'une suite se trace en reliant les points.", false, "une suite n'est définie que pour les entiers : on ne relie pas les points."],
+    ["Si $u(2) < u(3)$, la suite est croissante.", false, "il faut $u(n + 1) > u(n)$ pour **tout** $n$."],
+    ["La suite $u(n) = 100 \\times 0{,}9^n$ est croissante.", false, "on multiplie par $0{,}9 < 1$ : elle décroît."]
+  ], ["Distingue formule explicite ($u(n)$ en fonction de $n$) et récurrence ($u(n + 1)$ en fonction de $u(n)$).", "Teste avec les premiers termes.", "Pour le sens de variation, regarde le signe de $u(n + 1) - u(n)$ pour tout $n$."]));
+
+  /* Figures du cours (chapitre 5) */
+  FIGURES["ys-cours-nuage"] = () => nuage([0, 1, 2, 3, 4, 5, 6], [5, 2, 1, 2, 5, 10, 17], { xlabel: "n", ylabel: "u(n)", xstep: 1, aria: "Nuage de points de la suite u(n) = n² − 4n + 5 : 5, 2, 1, 2, 5, 10, 17 ; elle décroît puis croît" });
+  FIGURES["ys-cours-modes"] = () => {
+    let s = `<svg class="graph" viewBox="0 0 320 150" role="img" aria-label="Deux modes de génération : formule explicite u(n) = 3n + 2 donne directement u(4) = 14 ; récurrence u(n+1) = u(n) + 3 avec u(0) = 2 enchaîne 2, 5, 8, 11, 14">`;
+    s += `<text class="g-label" x="10" y="22" style="font-weight:700;fill:var(--lagon)">Explicite : u(n) = 3n + 2</text><text class="g-label" x="10" y="44">n = 4 → u(4) = 3 × 4 + 2 = 14 directement</text>`;
+    s += `<text class="g-label" x="10" y="84" style="font-weight:700;fill:var(--ylang)">Récurrence : u(0) = 2, u(n + 1) = u(n) + 3</text>`;
+    [2, 5, 8, 11, 14].forEach((v, k) => { s += `<rect x="${12 + k * 62}" y="100" width="40" height="28" rx="6" style="fill:var(--surface);stroke:var(--ylang);stroke-width:1.5"/><text class="g-label" x="${32 + k * 62}" y="119" text-anchor="middle" style="font-weight:700">${v}</text>`; if (k < 4) s += `<text class="g-label" x="${63 + k * 62}" y="119" text-anchor="middle" style="fill:var(--ylang);font-size:10px">+3</text>`; s += `<text class="g-label" x="${32 + k * 62}" y="143" text-anchor="middle" style="font-size:10px">u(${k})</text>`; });
+    return s + `</svg>`;
+  };
+  FIGURES["ys-cours-lineaire-expo"] = () => nuage([0, 1, 2, 3, 4, 5, 6], [2, 4, 8, 16, 32, 64, 128].map((v) => v / 4), { xlabel: "n", ylabel: "u(n)", xstep: 1, ystep: 4, points: [0, 1, 2, 3, 4, 5, 6].map((n) => ({ x: n, y: 3 + 4 * n })).concat([0, 1, 2, 3, 4, 5, 6].map((n) => ({ x: n, y: 0.5 * 2 ** n }))), aria: "Deux nuages : points alignés de la suite 3 + 4n (linéaire) et points de la suite 0,5 × 2^n qui montent de plus en plus vite (exponentielle)" });
+
+  /* ---------- Chapitre 6 : suites arithmétiques et géométriques (préfixe yg) ---------- */
+  const RAISONS_Q = [2, 3, 4, 5, 1.5, 1.2, 1.1, 0.5, 0.8, 0.9, 0.75, 1.25, 1.05];
+  const puiss = (q, n) => arr(q ** n, 6);
+  const termesArith = (u0, r, n) => Array.from({ length: n }, (_, k) => u0 + k * r);
+  const termesGeo = (u0, q, n) => Array.from({ length: n }, (_, k) => arr(u0 * q ** k, 4));
+
+  def("yg-reconnaitre", () => {
+    const t = pick(["arith", "geo", "aucune", "arith", "geo"]);
+    let T, nat, raison, why;
+    if (t === "arith") { const u0 = rand(-9, 20), r = nz2(-7, 9); T = termesArith(u0, r, 5); nat = "arithmétique"; raison = r; why = `on passe d'un terme au suivant en ajoutant toujours $${nb(r)}$ : $${T[1]} - ${pr(T[0])} = ${T[2]} - ${pr(T[1])} = ${nb(r)}$`; }
+    else if (t === "geo") { const u0 = pick([1, 2, 3, 4, 5, 8, 10, 16, 20, 25, 50, 100, 200, 400, 1000]), q = pick([2, 3, 4, 1.5, 0.5, 0.1, 0.2, 10]); T = termesGeo(u0, q, 5); if (T.some((v) => !Number.isInteger(v * 100))) return GEN["yg-reconnaitre"](); nat = "géométrique"; raison = q; why = `on passe d'un terme au suivant en multipliant toujours par $${nb(q)}$ : $\\dfrac{${nb(T[1])}}{${nb(T[0])}} = \\dfrac{${nb(T[2])}}{${nb(T[1])}} = ${nb(q)}$`; }
+    else { const k = pick(["carres", "fibo", "mixte", "triang"]); T = k === "carres" ? [1, 4, 9, 16, 25] : k === "fibo" ? [1, 1, 2, 3, 5] : k === "triang" ? [1, 3, 6, 10, 15] : [rand(1, 5), rand(6, 9), rand(10, 15), rand(16, 25), rand(26, 40)]; nat = "ni arithmétique ni géométrique"; why = `la différence entre deux termes consécutifs change ($${T[1] - T[0]}$ puis $${T[2] - T[1]}$) et le quotient aussi`; }
+    const q = pick(["nature", "nature", "raison"]);
+    if (q === "raison" && t !== "aucune") return { enonce: `Les premiers termes d'une suite sont $${T.map(nb).join("$ ; $")}$. Elle est ${nat}. Quelle est sa raison ?`, mode: "nombre", prefixe: "Raison :", attendu: raison,
+      erreurs: t === "arith" ? [{ valeur: -raison, message: "La raison est $u(1) - u(0)$ : attention au signe." }, { valeur: T[1] / T[0], message: "Une suite arithmétique : on cherche ce qu'on **ajoute**, pas ce par quoi on multiplie." }] : [{ valeur: T[1] - T[0], message: "Une suite géométrique : on cherche ce par quoi on **multiplie**." }, { valeur: 1 / raison, message: "La raison est $\\dfrac{u(1)}{u(0)}$ : terme suivant divisé par le précédent." }],
+      aides: [t === "arith" ? "Suite arithmétique : $u(n + 1) = u(n) + r$." : "Suite géométrique : $u(n + 1) = q \\times u(n)$.", t === "arith" ? `$r = u(1) - u(0) = ${nb(T[1])} - ${pr(T[0])}$.` : `$q = \\dfrac{u(1)}{u(0)} = \\dfrac{${nb(T[1])}}{${nb(T[0])}}$.`, "Vérifie avec les termes suivants."],
+      solution: `${why.charAt(0).toUpperCase() + why.slice(1)}. La raison est $${nb(raison)}$.` };
+    const bonne = t === "aucune" ? nat : `${nat} de raison $${nb(raison)}$`;
+    const f = t === "arith" ? [`géométrique de raison $${nb(raison)}$`, `arithmétique de raison $${nb(-raison)}$`, "ni arithmétique ni géométrique", `arithmétique de raison $${nb(T[0])}$`] : t === "geo" ? [`arithmétique de raison $${nb(raison)}$`, `géométrique de raison $${nb(T[1] - T[0])}$`, "ni arithmétique ni géométrique", `géométrique de raison $${nb(arr(1 / raison, 4))}$`] : [`arithmétique de raison $${nb(T[1] - T[0])}$`, `géométrique de raison $${nb(arr(T[1] / T[0], 2))}$`, `arithmétique de raison $${nb(T[2] - T[1])}$`];
+    const ch = choix4(bonne, f);
+    return { enonce: `Les premiers termes d'une suite sont $${T.map(nb).join("$ ; $")}$. Cette suite semble :`, mode: "choix", choix: ch.choix, attendu: ch.attendu,
+      aides: ["Calcule les différences $u(1) - u(0)$, $u(2) - u(1)$… : si elles sont toutes égales, la suite est arithmétique.", "Calcule les quotients $\\dfrac{u(1)}{u(0)}$, $\\dfrac{u(2)}{u(1)}$… : s'ils sont tous égaux, la suite est géométrique.", "Si ni les différences ni les quotients ne sont constants : ni l'un ni l'autre."],
+      solution: `La suite semble **${bonne}** : ${why}.` };
+  });
+
+  def("yg-arith-terme", () => {
+    const t = pick(["u0", "u0", "up", "formule"]);
+    const u0 = rand(-15, 30), r = nz2(-9, 12), n = rand(5, 40);
+    if (t === "formule") {
+      const bonne = `$u(n) = ${aff(r, u0, "n")}$`;
+      const ch = choix4(bonne, [`$u(n) = ${aff(u0, r, "n")}$`, `$u(n) = ${nb(u0)} \\times ${nb(r)}^n$`, `$u(n) = ${aff(r, u0 + r, "n")}$`, `$u(n) = ${aff(r, u0 - r, "n")}$`]);
+      return { enonce: `$(u(n))$ est arithmétique de premier terme $u(0) = ${nb(u0)}$ et de raison $${nb(r)}$. Quelle est l'expression de $u(n)$ en fonction de $n$ ?`, mode: "choix", choix: ch.choix, attendu: ch.attendu,
+        aides: ["Pour une suite arithmétique, $u(n) = u(0) + n \\times r$.", `Ici $u(0) = ${nb(u0)}$ et $r = ${nb(r)}$.`, "Vérifie avec $n = 0$ (on doit retrouver $u(0)$) et $n = 1$."],
+        solution: `$u(n) = u(0) + nr = ${nb(u0)} ${plus(r)} \\times n = ${aff(r, u0, "n")}$. Vérification : $u(0) = ${nb(u0)}$, $u(1) = ${nb(u0 + r)}$.` };
+    }
+    if (t === "up") {
+      const p = rand(1, 6), up = rand(-10, 30), m = p + rand(3, 20), att = up + (m - p) * r;
+      return { enonce: `$(u(n))$ est arithmétique de raison $${nb(r)}$ et $u(${p}) = ${nb(up)}$. Calcule $u(${m})$.`, mode: "nombre", prefixe: `$u(${m}) =$`, attendu: att,
+        erreurs: [{ valeur: up + m * r, message: `On part de $u(${p})$, pas de $u(0)$ : il y a $${m} - ${p} = ${m - p}$ étapes.` }, { valeur: up + (m - p - 1) * r, message: `De $u(${p})$ à $u(${m})$, il y a $${m - p}$ ajouts de la raison.` }],
+        aides: [`De $u(${p})$ à $u(${m})$, on ajoute la raison $${m} - ${p} = ${m - p}$ fois.`, `$u(${m}) = u(${p}) + ${m - p} \\times r$.`, `$${nb(up)} + ${m - p} \\times ${pr(r)}$.`],
+        solution: `$u(${m}) = u(${p}) + (${m} - ${p}) \\times r = ${nb(up)} + ${m - p} \\times ${pr(r)} = ${nb(att)}$.` };
+    }
+    const att = u0 + n * r;
+    return { enonce: `$(u(n))$ est arithmétique de premier terme $u(0) = ${nb(u0)}$ et de raison $${nb(r)}$. Calcule $u(${n})$.`, mode: "nombre", prefixe: `$u(${n}) =$`, attendu: att,
+      erreurs: [{ valeur: u0 + (n - 1) * r, message: `De $u(0)$ à $u(${n})$, on ajoute $${n}$ fois la raison.` }, { valeur: u0 * r ** Math.min(n, 3), message: "Suite arithmétique : on **ajoute** la raison, on ne multiplie pas." }, { valeur: u0 + (n + 1) * r, message: `$u(n) = u(0) + n \\times r$ avec $n = ${n}$.` }],
+      aides: ["Formule : $u(n) = u(0) + n \\times r$.", `$u(${n}) = ${nb(u0)} + ${n} \\times ${pr(r)}$.`, `$${n} \\times ${pr(r)} = ${nb(n * r)}$.`],
+      solution: `$u(${n}) = u(0) + ${n}r = ${nb(u0)} + ${n} \\times ${pr(r)} = ${nb(u0)} ${plus(n * r)} = ${nb(att)}$.` };
+  });
+
+  def("yg-arith-raison", () => {
+    const u0 = rand(-10, 25), r = nz2(-8, 9), p = rand(0, 5), m = p + rand(2, 12);
+    const up = u0 + p * r, um = u0 + m * r;
+    const q = pick(["raison", "raison", "u0"]);
+    if (q === "u0" && p > 0) return { enonce: `$(u(n))$ est arithmétique, $u(${p}) = ${nb(up)}$ et $u(${m}) = ${nb(um)}$. Calcule $u(0)$.`, mode: "nombre", prefixe: "$u(0) =$", attendu: u0,
+      erreurs: [{ valeur: up - r, message: `De $u(0)$ à $u(${p})$, il y a $${p}$ ajouts de la raison.` }, { valeur: r, message: "Ça, c'est la raison. On demande le premier terme." }],
+      aides: [`Trouve d'abord la raison : $r = \\dfrac{u(${m}) - u(${p})}{${m} - ${p}}$.`, `$r = ${nb(r)}$.`, `Puis $u(0) = u(${p}) - ${p} \\times r$.`],
+      solution: `$r = \\dfrac{${nb(um)} - ${pr(up)}}{${m} - ${p}} = \\dfrac{${nb(um - up)}}{${m - p}} = ${nb(r)}$, puis $u(0) = u(${p}) - ${p}r = ${nb(up)} - ${p} \\times ${pr(r)} = ${nb(u0)}$.` };
+    return { enonce: `$(u(n))$ est arithmétique, $u(${p}) = ${nb(up)}$ et $u(${m}) = ${nb(um)}$. Quelle est sa raison ?`, mode: "nombre", prefixe: "$r =$", attendu: r,
+      erreurs: [{ valeur: um - up, message: `Entre $u(${p})$ et $u(${m})$, la raison a été ajoutée $${m - p}$ fois : divise par $${m - p}$.` }, { valeur: -r, message: "Attention au signe : $u(" + m + ") - u(" + p + ")$, dans cet ordre." }, { valeur: arr((um - up) / m), message: `Il y a $${m} - ${p} = ${m - p}$ étapes, pas $${m}$.` }],
+      aides: [`$u(${m}) = u(${p}) + (${m} - ${p}) \\times r$.`, `Donc $r = \\dfrac{u(${m}) - u(${p})}{${m - p}}$.`, `$\\dfrac{${nb(um)} - ${pr(up)}}{${m - p}}$.`],
+      solution: `$u(${m}) - u(${p}) = ${m - p}\\,r$, donc $r = \\dfrac{${nb(um)} - ${pr(up)}}{${m - p}} = \\dfrac{${nb(um - up)}}{${m - p}} = ${nb(r)}$.` };
+  });
+
+  def("yg-geo-terme", () => {
+    const t = pick(["u0", "u0", "formule", "up"]);
+    const u0 = pick([1, 2, 3, 4, 5, 8, 10, 20, 50, 100, 200, 500, 1000, 2000]), q = pick([2, 3, 4, 5, 10, 1.5, 0.5, 0.1, 1.2, 1.1, 0.9, 0.8]);
+    const n = q >= 2 ? rand(2, 6) : rand(2, 4);
+    const att = arr(u0 * q ** n, 6);
+    if (!Number.isInteger(att * 1000) || att > 1e6) return GEN["yg-geo-terme"]();
+    if (t === "formule") {
+      const bonne = `$u(n) = ${nb(u0)} \\times ${nb(q)}^n$`;
+      const ch = choix4(bonne, [`$u(n) = ${aff(q, u0, "n")}$`, `$u(n) = ${nb(q)} \\times ${nb(u0)}^n$`, `$u(n) = ${nb(u0)} \\times ${nb(q)} \\times n$`, `$u(n) = ${nb(u0 * q)}^n$`]);
+      return { enonce: `$(u(n))$ est géométrique de premier terme $u(0) = ${nb(u0)}$ et de raison $${nb(q)}$. Quelle est l'expression de $u(n)$ en fonction de $n$ ?`, mode: "choix", choix: ch.choix, attendu: ch.attendu,
+        aides: ["Pour une suite géométrique, $u(n) = u(0) \\times q^n$.", `Ici $u(0) = ${nb(u0)}$ et $q = ${nb(q)}$.`, "Vérifie avec $n = 0$ ($q^0 = 1$) et $n = 1$."],
+        solution: `$u(n) = u(0) \\times q^n = ${nb(u0)} \\times ${nb(q)}^n$. Vérification : $u(0) = ${nb(u0)}$, $u(1) = ${nb(arr(u0 * q))}$.` };
+    }
+    if (t === "up") {
+      const p = rand(1, 4), m = p + rand(2, 4), up = u0, attm = arr(up * q ** (m - p), 6);
+      if (!Number.isInteger(attm * 1000)) return GEN["yg-geo-terme"]();
+      return { enonce: `$(u(n))$ est géométrique de raison $${nb(q)}$ et $u(${p}) = ${nb(up)}$. Calcule $u(${m})$.`, mode: "nombre", prefixe: `$u(${m}) =$`, attendu: attm,
+        erreurs: [{ valeur: arr(up * q ** m, 6), message: `On part de $u(${p})$ : il y a $${m} - ${p} = ${m - p}$ multiplications par la raison.` }, { valeur: arr(up + (m - p) * q, 6), message: "Suite géométrique : on **multiplie** par la raison." }],
+        aides: [`De $u(${p})$ à $u(${m})$, on multiplie $${m - p}$ fois par $q$.`, `$u(${m}) = u(${p}) \\times q^{${m - p}}$.`, `$${nb(up)} \\times ${nb(q)}^{${m - p}} = ${nb(up)} \\times ${nb(puiss(q, m - p))}$.`],
+        solution: `$u(${m}) = u(${p}) \\times q^{${m} - ${p}} = ${nb(up)} \\times ${nb(q)}^{${m - p}} = ${nb(up)} \\times ${nb(puiss(q, m - p))} = ${nb(attm)}$.` };
+    }
+    return { enonce: `$(u(n))$ est géométrique de premier terme $u(0) = ${nb(u0)}$ et de raison $${nb(q)}$. Calcule $u(${n})$.`, mode: "nombre", prefixe: `$u(${n}) =$`, attendu: att,
+      erreurs: [{ valeur: arr(u0 * q ** (n - 1), 6), message: `De $u(0)$ à $u(${n})$, on multiplie $${n}$ fois par la raison.` }, { valeur: arr(u0 + n * q, 6), message: "Suite géométrique : on **multiplie** par la raison, on ne l'ajoute pas." }, { valeur: arr((u0 * q) ** n, 6), message: "Seule la raison est élevée à la puissance $n$ : $u(0) \\times q^n$." }],
+      aides: ["Formule : $u(n) = u(0) \\times q^n$.", `$u(${n}) = ${nb(u0)} \\times ${nb(q)}^{${n}}$.`, `$${nb(q)}^{${n}} = ${nb(puiss(q, n))}$.`],
+      solution: `$u(${n}) = u(0) \\times q^{${n}} = ${nb(u0)} \\times ${nb(q)}^{${n}} = ${nb(u0)} \\times ${nb(puiss(q, n))} = ${nb(att)}$.` };
+  });
+
+  def("yg-geo-raison", () => {
+    const u0 = pick([2, 3, 4, 5, 8, 10, 20, 40, 50, 100, 200, 500]), q = pick([2, 3, 4, 5, 1.5, 0.5, 0.2, 0.1, 1.2, 0.8, 2.5]);
+    const p = rand(0, 4), up = arr(u0 * q ** p, 4), up1 = arr(up * q, 4);
+    if (!Number.isInteger(up * 100) || !Number.isInteger(up1 * 100)) return GEN["yg-geo-raison"]();
+    const t = pick(["consecutifs", "consecutifs", "deux"]);
+    if (t === "deux") {
+      const m = p + 2, um = arr(up * q * q, 4);
+      if (!Number.isInteger(um * 100)) return GEN["yg-geo-raison"]();
+      return { enonce: `$(u(n))$ est géométrique à termes positifs, $u(${p}) = ${nb(up)}$ et $u(${m}) = ${nb(um)}$. Quelle est sa raison ?`, mode: "nombre", prefixe: "$q =$", attendu: q,
+        erreurs: [{ valeur: arr(um / up, 4), message: `Entre $u(${p})$ et $u(${m})$, on a multiplié **deux** fois par $q$ : $\\dfrac{u(${m})}{u(${p})} = q^2$.` }, { valeur: arr((um - up) / 2, 4), message: "Suite géométrique : on cherche un quotient, pas une différence." }],
+        aides: [`$u(${m}) = u(${p}) \\times q^2$.`, `$q^2 = \\dfrac{${nb(um)}}{${nb(up)}} = ${nb(arr(um / up, 4))}$.`, "$q$ est positif (termes positifs) : prends la racine carrée."],
+        solution: `$q^2 = \\dfrac{u(${m})}{u(${p})} = \\dfrac{${nb(um)}}{${nb(up)}} = ${nb(arr(um / up, 4))}$, donc $q = \\sqrt{${nb(arr(um / up, 4))}} = ${nb(q)}$ (termes positifs).` };
+    }
+    return { enonce: `$(u(n))$ est géométrique, $u(${p}) = ${nb(up)}$ et $u(${p + 1}) = ${nb(up1)}$. Quelle est sa raison ?`, mode: "nombre", prefixe: "$q =$", attendu: q,
+      erreurs: [{ valeur: arr(up1 - up, 4), message: "Suite géométrique : la raison est le **quotient** $\\dfrac{u(n + 1)}{u(n)}$, pas la différence." }, { valeur: arr(up / up1, 4), message: "Terme suivant **divisé par** le précédent : $\\dfrac{u(" + (p + 1) + ")}{u(" + p + ")}$." }],
+      aides: ["Suite géométrique : $u(n + 1) = q \\times u(n)$.", `Donc $q = \\dfrac{u(${p + 1})}{u(${p})}$.`, `$\\dfrac{${nb(up1)}}{${nb(up)}}$.`],
+      solution: `$q = \\dfrac{u(${p + 1})}{u(${p})} = \\dfrac{${nb(up1)}}{${nb(up)}} = ${nb(q)}$.` };
+  });
+
+  def("yg-nature-formule", () => {
+    const u0 = rand(1, 9), r = nz2(-6, 8), q = pick([2, 3, 5, 0.5, 1.5, 10]);
+    const S = pick([
+      { tex: aff(r, u0, "n"), nat: "arithmétique", rais: r, why: `$u(n + 1) - u(n) = ${nb(r)}(n + 1) ${plus(u0)} - (${aff(r, u0, "n")}) = ${nb(r)}$, constante : arithmétique de raison $${nb(r)}$` },
+      { tex: `${u0} \\times ${nb(q)}^n`, nat: "géométrique", rais: q, why: `$\\dfrac{u(n + 1)}{u(n)} = \\dfrac{${u0} \\times ${nb(q)}^{n + 1}}{${u0} \\times ${nb(q)}^n} = ${nb(q)}$, constant : géométrique de raison $${nb(q)}$` },
+      { tex: `${nb(q)}^n`, nat: "géométrique", rais: q, why: `$u(n + 1) = ${nb(q)}^{n + 1} = ${nb(q)} \\times ${nb(q)}^n = ${nb(q)} \\times u(n)$ : géométrique de raison $${nb(q)}$` },
+      { tex: `n^2 + ${u0}`, nat: "ni arithmétique ni géométrique", rais: null, why: `$u(0) = ${u0}$, $u(1) = ${u0 + 1}$, $u(2) = ${u0 + 4}$ : les différences ($1$ puis $3$) ne sont pas égales, ni les quotients` },
+      { tex: `${u0} - ${Math.abs(r) === 1 ? "" : Math.abs(r)}n`, nat: "arithmétique", rais: -Math.abs(r), why: `à chaque rang on retire $${Math.abs(r)}$ : $u(n + 1) - u(n) = -${Math.abs(r)}$, arithmétique de raison $${nb(-Math.abs(r))}$` },
+      { tex: `\\dfrac{${u0}}{n + 1}`, nat: "ni arithmétique ni géométrique", rais: null, why: `$u(0) = ${u0}$, $u(1) = ${nb(u0 / 2)}$, $u(2) = ${frac(u0, 3)}$ : ni les différences ni les quotients ne sont constants` },
+      { tex: `${u0 + 1} \\times n`, nat: "arithmétique", rais: u0 + 1, why: `$u(n + 1) - u(n) = ${u0 + 1}(n + 1) - ${u0 + 1}n = ${u0 + 1}$ : arithmétique de raison $${u0 + 1}$ (et de premier terme $0$)` }
+    ]);
+    const bonne = S.rais === null ? S.nat : `${S.nat} de raison $${nb(S.rais)}$`;
+    const f = S.nat === "arithmétique" ? [`géométrique de raison $${nb(S.rais)}$`, `arithmétique de raison $${nb(u0)}$`, "ni arithmétique ni géométrique", `arithmétique de raison $${nb(-S.rais)}$`] : S.nat === "géométrique" ? [`arithmétique de raison $${nb(S.rais)}$`, `géométrique de raison $${nb(u0)}$`, "ni arithmétique ni géométrique", `arithmétique de raison $${nb(u0)}$`] : [`arithmétique de raison $${nb(u0)}$`, `géométrique de raison $${nb(u0)}$`, "arithmétique de raison $1$", "géométrique de raison $2$"];
+    const ch = choix4(bonne, f.filter((x) => x !== bonne));
+    return { enonce: `La suite $(u(n))$ est définie pour tout $n \\geqslant 0$ par $u(n) = ${S.tex}$. Elle est :`, mode: "choix", choix: ch.choix, attendu: ch.attendu,
+      aides: ["Calcule $u(n + 1) - u(n)$ : si c'est une constante, la suite est arithmétique de cette raison.", "Calcule $\\dfrac{u(n + 1)}{u(n)}$ : si c'est une constante, la suite est géométrique de cette raison.", "Sinon, teste avec les premiers termes pour voir que ni l'un ni l'autre ne marche."],
+      solution: `${S.why.charAt(0).toUpperCase() + S.why.slice(1)}.` };
+  });
+
+  def("yg-variation", () => {
+    const t = pick(["arith", "geo", "geo"]);
+    if (t === "arith") {
+      const u0 = rand(-9, 20), r = nz2(-8, 9);
+      const bonne = r > 0 ? `croissante, car $r = ${nb(r)} > 0$` : `décroissante, car $r = ${nb(r)} < 0$`;
+      const ch = choix4(bonne, [r > 0 ? `décroissante, car $r = ${nb(r)} > 0$` : `croissante, car $r = ${nb(r)} < 0$`, `${u0 > 0 ? "croissante" : "décroissante"}, car $u(0) = ${nb(u0)}$`, "constante, car la raison ne change pas"]);
+      return { enonce: `$(u(n))$ est arithmétique de premier terme $u(0) = ${nb(u0)}$ et de raison $${nb(r)}$. Quel est son sens de variation ?`, mode: "choix", choix: ch.choix, attendu: ch.attendu,
+        aides: ["$u(n + 1) - u(n) = r$ pour tout $n$.", "Le signe de $r$ donne le sens de variation.", `Ici $r = ${nb(r)}$.`],
+        solution: `$u(n + 1) - u(n) = r = ${nb(r)}$, qui est ${r > 0 ? "positif : la suite est croissante" : "négatif : la suite est décroissante"} (le premier terme n'y change rien).` };
+    }
+    const u0 = pick([1, 2, 5, 10, 20, 50, 100, 500]), q = pick([2, 3, 1.5, 1.2, 1.05, 0.5, 0.9, 0.8, 0.75, 0.95]);
+    const bonne = q > 1 ? `croissante, car $u(0) > 0$ et $q = ${nb(q)} > 1$` : `décroissante, car $u(0) > 0$ et $0 < q = ${nb(q)} < 1$`;
+    const ch = choix4(bonne, [q > 1 ? `décroissante, car $q = ${nb(q)} > 1$` : `croissante, car $q = ${nb(q)} < 1$`, `croissante, car $q = ${nb(q)} > 0$`, `décroissante, car $q = ${nb(q)}$ est inférieur à $u(0)$`]);
+    return { enonce: `$(u(n))$ est géométrique de premier terme $u(0) = ${nb(u0)}$ et de raison $${nb(q)}$. Quel est son sens de variation ?`, mode: "choix", choix: ch.choix, attendu: ch.attendu,
+      aides: ["Les termes sont positifs ($u(0) > 0$ et $q > 0$).", "Multiplier un nombre positif par $q > 1$ l'augmente ; par $0 < q < 1$, le diminue.", `Ici $q = ${nb(q)}$.`],
+      solution: `Les termes sont positifs et $q = ${nb(q)}$ ${q > 1 ? "est supérieur à $1$ : chaque terme est plus grand que le précédent, la suite est croissante" : "est entre $0$ et $1$ : chaque terme est plus petit que le précédent, la suite est décroissante"}. Par exemple $u(1) = ${nb(arr(u0 * q))}$ ${q > 1 ? ">" : "<"} $u(0) = ${nb(u0)}$.` };
+  });
+
+  def("yg-modele", () => {
+    const t = pick(["geo", "geo", "arith", "formule"]);
+    const [objet] = pick(OBJETS);
+    if (t === "arith") {
+      const u0 = pick([20, 50, 100, 150, 200]), r = pick([5, 8, 10, 12, 15, 20, 25]), n = rand(4, 12);
+      const ctx = pick([`Un arbre mesure $${u0}$ cm à la plantation et grandit de $${r}$ cm chaque mois.`, `Une tirelire contient $${u0}$ € et reçoit $${r}$ € chaque semaine.`, `Un abonnement coûte $${u0}$ € puis $${r}$ € par mois supplémentaire.`]);
+      return { enonce: `${ctx} On note $u(n)$ la valeur après $n$ ${ctx.includes("semaine") ? "semaines" : "mois"}. De quelle nature est la suite, et que vaut $u(${n})$ ?`, mode: "choix", choix: ["", "", "", ""], attendu: 0, ...(() => { const bonne = `arithmétique de raison $${r}$ ; $u(${n}) = ${nb(u0 + n * r)}$`; const ch = choix4(bonne, [`géométrique de raison $${r}$ ; $u(${n}) = ${nb(u0 * r)}$`, `arithmétique de raison $${r}$ ; $u(${n}) = ${nb(u0 + (n - 1) * r)}$`, `arithmétique de raison $${u0}$ ; $u(${n}) = ${nb(r + n * u0)}$`]); return { choix: ch.choix, attendu: ch.attendu }; })(),
+        aides: ["On ajoute toujours la même quantité : évolution absolue constante.", `$u(n + 1) = u(n) + ${r}$ et $u(0) = ${u0}$.`, `$u(n) = ${u0} + ${r}n$.`],
+        solution: `On ajoute $${r}$ à chaque étape : suite arithmétique de raison $${r}$, $u(n) = ${u0} + ${r}n$ et $u(${n}) = ${u0} + ${r} \\times ${n} = ${nb(u0 + n * r)}$.` };
+    }
+    const u0 = pick([200, 400, 500, 800, 1000, 1500, 2000, 5000, 10000]), tx = pick([2, 3, 4, 5, 8, 10, 12, 15, 20, 25, 30, 40, 50]) * pick([1, 1, -1]), q = cm(tx);
+    const n = rand(2, 6), att = arr(u0 * q ** n, 2);
+    const ctx = tx > 0 ? pick([`Une ville de $${nb(u0)}$ habitants voit sa population augmenter de $${Math.abs(tx)}\\,\\%$ par an.`, `Un capital de $${nb(u0)}$ € est placé à $${Math.abs(tx)}\\,\\%$ par an (intérêts composés).`, `Le nombre d'abonnés d'une chaîne, $${nb(u0)}$ aujourd'hui, augmente de $${Math.abs(tx)}\\,\\%$ par mois.`]) : pick([`Un scooter acheté $${nb(u0)}$ € perd $${Math.abs(tx)}\\,\\%$ de sa valeur chaque année.`, `Une quantité de médicament de $${nb(u0)}$ mg dans le sang diminue de $${Math.abs(tx)}\\,\\%$ chaque heure.`, `Un stock de $${nb(u0)}$ articles baisse de $${Math.abs(tx)}\\,\\%$ chaque semaine.`]);
+    const unite = ctx.includes("habitants") ? "habitants" : ctx.includes("€") ? "€" : ctx.includes("mg") ? "mg" : ctx.includes("articles") ? "articles" : "abonnés";
+    const periode = ctx.includes("an") && !ctx.includes("semaine") && !ctx.includes("heure") && !ctx.includes("mois") ? "années" : ctx.includes("mois") ? "mois" : ctx.includes("heure") ? "heures" : "semaines";
+    if (t === "formule") {
+      const bonne = `$u(n) = ${nb(u0)} \\times ${nb(q)}^n$`;
+      const ch = choix4(bonne, [`$u(n) = ${nb(u0)} \\times ${nb(Math.abs(tx) / 100)}^n$`, `$u(n) = ${nb(u0)} ${tx > 0 ? "+" : "-"} ${nb(u0 * Math.abs(tx) / 100)}n$`, `$u(n) = ${nb(u0)} \\times ${nb(1 - tx / 100)}^n$`, `$u(n) = ${nb(u0)} + ${nb(q)}n$`]);
+      return { enonce: `${ctx} On note $u(n)$ la valeur après $n$ ${periode}. Quelle formule donne $u(n)$ ?`, mode: "choix", choix: ch.choix, attendu: ch.attendu,
+        aides: [`Une évolution de $${tauxTex(tx)}$ par période : on multiplie par $1 ${tx > 0 ? "+" : "-"} \\dfrac{${Math.abs(tx)}}{100} = ${nb(q)}$ à chaque fois.`, `La suite est géométrique de raison $${nb(q)}$ et de premier terme $${nb(u0)}$.`, "$u(n) = u(0) \\times q^n$."],
+        solution: `Chaque période multiplie la valeur par $${nb(q)}$ : suite géométrique de raison $${nb(q)}$, $u(n) = ${nb(u0)} \\times ${nb(q)}^n$.` };
+    }
+    const arrondi = !Number.isInteger(u0 * q ** n * 100);
+    return { enonce: `${ctx} On note $u(n)$ la valeur après $n$ ${periode}. Calcule $u(${n})$${arrondi ? " (arrondi au centième)" : ""}.`, mode: "nombre", prefixe: `$u(${n}) =$`, attendu: arrondi ? Math.round(u0 * q ** n * 100) / 100 : att, suffixe: unite, tolerance: arrondi ? 0.005 : 1e-9,
+      erreurs: [{ valeur: arr(u0 * (1 + n * tx / 100), 2), message: "Les pourcentages successifs ne s'additionnent pas : on multiplie $" + n + "$ fois par $" + nb(q) + "$." }, { valeur: arr(u0 * q ** (n - 1), 2), message: `Après $${n}$ ${periode}, on a multiplié $${n}$ fois par $${nb(q)}$.` }],
+      aides: [`Évolution de $${tauxTex(tx)}$ : coefficient $${nb(q)}$ à chaque période.`, `Suite géométrique : $u(n) = ${nb(u0)} \\times ${nb(q)}^n$.`, `$u(${n}) = ${nb(u0)} \\times ${nb(q)}^{${n}}$.`],
+      solution: `Suite géométrique de raison $${nb(q)}$ : $u(${n}) = ${nb(u0)} \\times ${nb(q)}^{${n}} ${arrondi ? "\\approx" : "="} ${nb(arrondi ? Math.round(u0 * q ** n * 100) / 100 : att)}$ ${unite}.` };
+  });
+
+  def("yg-graphique", () => {
+    const t = pick(["arith", "geo"]);
+    const N = 7;
+    let ys, raison, u0;
+    if (t === "arith") { u0 = rand(1, 12); raison = pick([1, 2, 3, 4, 5, -1, -2]); ys = termesArith(u0, raison, N); if (Math.min(...ys) < -2) return GEN["yg-graphique"](); }
+    else { u0 = pick([1, 2, 3, 4]); raison = pick([1.5, 2]); ys = termesGeo(u0, raison, N); if (Math.max(...ys) > 100) return GEN["yg-graphique"](); }
+    const fig = nuage(ys.map((_, n) => n), ys, { xlabel: "n", ylabel: "u(n)", xstep: 1 });
+    const q = pick(["nature", "nature", "raison", "terme"]);
+    if (q === "nature") {
+      const bonne = t === "arith" ? "arithmétique : les points sont alignés" : "géométrique : les points montent de plus en plus vite";
+      const ch = choix4(bonne, [t === "arith" ? "géométrique : les points montent de plus en plus vite" : "arithmétique : les points sont alignés", "ni arithmétique ni géométrique : aucune régularité", t === "arith" ? "géométrique : les points sont alignés" : "arithmétique : les points montent de plus en plus vite"]);
+      return { enonce: `Le nuage représente les premiers termes d'une suite $(u(n))$. D'après le graphique, cette suite semble :`, figure: fig, mode: "choix", choix: ch.choix, attendu: ch.attendu,
+        aides: ["Suite arithmétique : on ajoute toujours la même quantité, les points sont sur une droite.", "Suite géométrique (raison $> 1$) : les écarts entre points successifs augmentent.", `Lis les termes : $${ys.map(nb).join("$, $")}$.`],
+        solution: `Les termes sont $${ys.map(nb).join("$, $")}$ : ${t === "arith" ? `on ajoute toujours $${nb(raison)}$, les points sont alignés, la suite semble arithmétique de raison $${nb(raison)}$` : `on multiplie toujours par $${nb(raison)}$, les écarts grandissent, la suite semble géométrique de raison $${nb(raison)}$`}.` };
+    }
+    if (q === "terme") { const n = rand(0, N - 1); return { enonce: `Le nuage représente les premiers termes d'une suite ${t === "arith" ? "arithmétique" : "géométrique"} $(u(n))$. Lis $u(${n})$.`, figure: fig, mode: "nombre", prefixe: `$u(${n}) =$`, attendu: ys[n], erreurs: [{ valeur: n, message: "$u(n)$ est l'ordonnée du point." }], aides: [`Repère le point d'abscisse $${n}$.`, "Lis son ordonnée.", `Le point est $(${n}\\,;${nb(ys[n])})$.`], solution: `$u(${n}) = ${nb(ys[n])}$.` }; }
+    return { enonce: `Le nuage représente les premiers termes d'une suite ${t === "arith" ? "arithmétique" : "géométrique"} $(u(n))$. Lis graphiquement sa raison.`, figure: fig, mode: "nombre", prefixe: "Raison :", attendu: raison,
+      erreurs: [{ valeur: ys[0], message: "Ça, c'est $u(0)$. La raison relie deux termes consécutifs." }, { valeur: t === "arith" ? -raison : ys[1] - ys[0], message: t === "arith" ? "Attention au signe : $u(1) - u(0)$." : "Suite géométrique : la raison est le quotient $\\dfrac{u(1)}{u(0)}$." }],
+      aides: [`Lis $u(0) = ${nb(ys[0])}$ et $u(1) = ${nb(ys[1])}$.`, t === "arith" ? "Raison $= u(1) - u(0)$." : "Raison $= \\dfrac{u(1)}{u(0)}$.", "Vérifie avec $u(2)$."],
+      solution: t === "arith" ? `$u(1) - u(0) = ${nb(ys[1])} - ${nb(ys[0])} = ${nb(raison)}$ ; on retrouve le même écart entre tous les points : $r = ${nb(raison)}$.` : `$\\dfrac{u(1)}{u(0)} = \\dfrac{${nb(ys[1])}}{${nb(ys[0])}} = ${nb(raison)}$, et $\\dfrac{u(2)}{u(1)} = ${nb(raison)}$ aussi : $q = ${nb(raison)}$.` };
+  });
+
+  def("yg-demontrer", () => {
+    const t = pick(["arith", "geo"]);
+    if (t === "arith") {
+      const a = nz2(-7, 9), b = rand(-9, 9);
+      return { enonce: `On veut démontrer que la suite $u(n) = ${aff(a, b, "n")}$ est arithmétique. Calcule $u(n + 1) - u(n)$.`, mode: "nombre", prefixe: "$u(n + 1) - u(n) =$", attendu: a,
+        erreurs: [{ valeur: b, message: "C'est le premier terme $u(0)$, pas la différence." }, { valeur: a + b, message: "$u(n + 1) - u(n)$ : la constante $" + nb(b) + "$ disparaît dans la soustraction." }, { valeur: -a, message: "Attention à l'ordre de la soustraction." }],
+        aides: [`$u(n + 1) = ${nb(a)}(n + 1) ${plus(b)} = ${aff(a, a + b, "n")}$.`, `$u(n + 1) - u(n) = (${aff(a, a + b, "n")}) - (${aff(a, b, "n")})$.`, "Les termes en $n$ s'annulent."],
+        solution: `$u(n + 1) - u(n) = ${aff(a, a + b, "n")} - (${aff(a, b, "n")}) = ${nb(a)}$, une constante : la suite est arithmétique de raison $${nb(a)}$ (et de premier terme $u(0) = ${nb(b)}$).` };
+    }
+    const k = rand(2, 9), q = pick([2, 3, 4, 5, 0.5, 1.5, 10]);
+    return { enonce: `On veut démontrer que la suite $u(n) = ${k} \\times ${nb(q)}^n$ est géométrique. Calcule $\\dfrac{u(n + 1)}{u(n)}$.`, mode: "nombre", prefixe: "$\\dfrac{u(n + 1)}{u(n)} =$", attendu: q,
+      erreurs: [{ valeur: k, message: "$" + k + "$ est le premier terme : il se simplifie dans le quotient." }, { valeur: k * q, message: "Au numérateur comme au dénominateur il y a le facteur $" + k + "$ : il se simplifie." }, { valeur: 1 / q, message: "C'est $u(n + 1)$ **sur** $u(n)$." }],
+      aides: [`$u(n + 1) = ${k} \\times ${nb(q)}^{n + 1}$.`, `$\\dfrac{${k} \\times ${nb(q)}^{n + 1}}{${k} \\times ${nb(q)}^n}$ : simplifie par $${k}$.`, `$\\dfrac{${nb(q)}^{n + 1}}{${nb(q)}^n} = ${nb(q)}$.`],
+      solution: `$\\dfrac{u(n + 1)}{u(n)} = \\dfrac{${k} \\times ${nb(q)}^{n + 1}}{${k} \\times ${nb(q)}^n} = ${nb(q)}$, une constante : la suite est géométrique de raison $${nb(q)}$ et de premier terme $u(0) = ${k}$.` };
+  });
+
+  def("yg-vrai-faux", () => vraiFaux4([
+    ["La suite $3$ ; $7$ ; $11$ ; $15$ est arithmétique de raison $4$.", true, "on ajoute $4$ à chaque fois."],
+    ["La suite $5$ ; $10$ ; $20$ ; $40$ est géométrique de raison $2$.", true, "on multiplie par $2$ à chaque fois."],
+    ["Si $u(n) = 7 - 3n$, la suite est arithmétique de raison $-3$.", true, "$u(n + 1) - u(n) = -3$."],
+    ["Si $u(n) = 4 \\times 1{,}5^n$, la suite est géométrique de raison $1{,}5$.", true, "$u(n) = u(0) \\times q^n$ avec $u(0) = 4$."],
+    ["Une suite arithmétique de raison négative est décroissante.", true, "on retire la même quantité à chaque rang."],
+    ["Une suite géométrique à termes positifs de raison $0{,}8$ est décroissante.", true, "multiplier par $0{,}8 < 1$ diminue."],
+    ["Une hausse de $5\\,\\%$ par an se modélise par une suite géométrique de raison $1{,}05$.", true, "évolution relative constante : on multiplie par $1 + 0{,}05$."],
+    ["Pour une suite arithmétique, $u(10) = u(0) + 10r$.", true, "formule du terme général."],
+    ["La suite $1$ ; $4$ ; $9$ ; $16$ est arithmétique.", false, "les différences $3$, $5$, $7$ ne sont pas égales."],
+    ["Si $u(n) = 2n + 1$, la suite est géométrique de raison $2$.", false, "elle est arithmétique de raison $2$."],
+    ["Pour une suite géométrique, $u(5) = u(0) + 5q$.", false, "$u(5) = u(0) \\times q^5$."],
+    ["Une suite géométrique de raison $3$ et de premier terme $-2$ est croissante.", false, "ses termes $-2$, $-6$, $-18$ diminuent (le programme se limite d'ailleurs aux termes positifs)."],
+    ["Une baisse de $10\\,\\%$ par an se modélise par une suite arithmétique.", false, "le pourcentage s'applique à la valeur précédente : suite géométrique de raison $0{,}9$."],
+    ["Si $u(2) = 8$ et $u(5) = 20$ pour une suite arithmétique, alors $r = 12$.", false, "$3r = 12$ donc $r = 4$."],
+    ["Les points d'une suite géométrique de raison $2$ sont alignés.", false, "les écarts doublent : ce sont ceux d'une suite arithmétique qui sont alignés."]
+  ], ["Arithmétique : on ajoute $r$ ; géométrique : on multiplie par $q$.", "Terme général : $u(0) + nr$ ou $u(0) \\times q^n$.", "Pensez au signe de $r$ et à la position de $q$ par rapport à $1$."]));
+
+  /* Figures du cours (chapitre 6) */
+  FIGURES["yg-cours-arith"] = () => nuage([0, 1, 2, 3, 4, 5, 6], [2, 5, 8, 11, 14, 17, 20], { xlabel: "n", ylabel: "u(n)", xstep: 1, ystep: 2, curves: [{ f: (x) => 3 * x + 2, a: -0.3, b: 6.3, closed: false }], aria: "Suite arithmétique u(0) = 2, raison 3 : points alignés sur la droite y = 3x + 2" });
+  FIGURES["yg-cours-geo"] = () => nuage([0, 1, 2, 3, 4, 5, 6], [2, 3, 4.5, 6.75, 10.125, 15.1875, 22.78], { xlabel: "n", ylabel: "u(n)", xstep: 1, ystep: 2, aria: "Suite géométrique u(0) = 2, raison 1,5 : les points montent de plus en plus vite" });
+  FIGURES["yg-cours-compare"] = () => nuage([0, 1, 2, 3, 4, 5, 6, 7, 8], [1, 2, 4, 8, 16, 32, 64, 128, 256].map((v) => v / 8), { xlabel: "n", ylabel: "u(n)", xstep: 1, ystep: 4, points: [0, 1, 2, 3, 4, 5, 6, 7, 8].map((n) => ({ x: n, y: 4 + 3 * n })).concat([0, 1, 2, 3, 4, 5, 6, 7, 8].map((n) => ({ x: n, y: 2 ** n / 8 }))), aria: "Comparaison : suite arithmétique 4 + 3n (points alignés) et suite géométrique 0,125 × 2^n, d'abord en dessous puis qui dépasse largement" });
+
+  /* ---------- Chapitre 7 : fonctions, courbes et taux de variation (préfixe yf) ---------- */
+  // Fonctions simples : { tex, f, nom }
+  function fonctionSimple() {
+    const t = pick(["affine", "carre", "carre", "cube", "inverse"]);
+    if (t === "affine") { const a = nz2(-5, 6), b = rand(-8, 8); return { tex: aff(a, b), f: (x) => a * x + b, type: t }; }
+    if (t === "carre") { const a = pick([1, 1, 2, -1, 3]), b = rand(-6, 6), c = rand(-7, 7); return { tex: poly([a, b, c]), f: (x) => a * x * x + b * x + c, type: t }; }
+    if (t === "cube") { const b = rand(-5, 5), c = rand(-4, 4); return { tex: poly([1, 0, b, c]), f: (x) => x ** 3 + b * x + c, type: t }; }
+    const k = rand(1, 9); return { tex: `\\dfrac{${k}}{x}`, f: (x) => k / x, type: t, k };
+  }
+
+  def("yf-image", () => {
+    const F = fonctionSimple(), x = F.type === "inverse" ? pick([-4, -2, -1, 1, 2, 4, 5, 0.5]) : rand(-5, 6);
+    const vx = F.f(x), v = arr(vx);
+    const fr2 = !Number.isInteger(arr(vx * 10000, 6));
+    const t = pick(["image", "image", "notation"]);
+    if (t === "notation") {
+      const bonne = `l'image de $${nb(x)}$ par $f$ est $${fr2 ? frac(F.k, x) : nb(v)}$`;
+      const ch = choix4(bonne, [`l'antécédent de $${nb(x)}$ par $f$ est $${fr2 ? frac(F.k, x) : nb(v)}$`, `l'image de $${fr2 ? frac(F.k, x) : nb(v)}$ par $f$ est $${nb(x)}$`, `le point $(${fr2 ? frac(F.k, x) : nb(v)}\\,;${nb(x)})$ est sur la courbe de $f$`]);
+      return { enonce: `On pose $f(x) = ${F.tex}$. On a $f(${nb(x)}) = ${fr2 ? frac(F.k, x) : nb(v)}$. Que signifie cette égalité ?`, mode: "choix", choix: ch.choix, attendu: ch.attendu,
+        aides: ["$f(a) = b$ se lit : « l'image de $a$ par $f$ est $b$ », ou « $a$ est un antécédent de $b$ ».", "Le point de coordonnées $(a\\,;b)$ est alors sur la courbe (abscisse d'abord).", "Ne pas confondre $a$ (on part de lui) et $b$ (on arrive à lui)."],
+        solution: `$f(${nb(x)}) = ${fr2 ? frac(F.k, x) : nb(v)}$ signifie que ${bonne}. Autrement dit, $${nb(x)}$ est un antécédent de $${fr2 ? frac(F.k, x) : nb(v)}$, et le point $(${nb(x)}\\,;${fr2 ? frac(F.k, x) : nb(v)})$ est sur la courbe.` };
+    }
+    return { enonce: `On pose $f(x) = ${F.tex}$. Calcule $f(${nb(x)})$${fr2 ? " (fraction)" : ""}.`, mode: "nombre", prefixe: `$f(${nb(x)}) =$`, attendu: fr2 ? vx : v,
+      erreurs: [{ valeur: F.type === "carre" ? arr(F.f(-x)) : arr(F.f(x + 1)), message: F.type === "carre" ? "Attention au signe : $(-a)^2 = a^2$ mais le terme en $x$ change de signe." : "Vérifie la valeur remplacée." }, { valeur: F.type === "carre" || F.type === "cube" ? arr(-vx) : arr(1 / vx), message: "Vérifie les signes." }, ...(fr2 ? approx(vx) : [])],
+      aides: [`Remplace $x$ par $${nb(x)}$ dans l'expression${x < 0 ? ", avec des parenthèses autour du négatif" : ""}.`, `$f(${nb(x)}) = ${F.tex.replace(/x/g, `(${nb(x)})`)}$.`, "Respecte les priorités : puissances d'abord, puis produits, puis sommes."],
+      solution: `$f(${nb(x)}) = ${F.tex.replace(/x/g, `(${nb(x)})`)} = ${fr2 ? frac(F.k, x) : nb(v)}$.` };
+  });
+
+  def("yf-antecedent", () => {
+    const t = pick(["affine", "affine", "carre", "lecture"]);
+    if (t === "carre") {
+      const k = pick([0, 1, 4, 9, 16, 25, 36, 49]), c = rand(-5, 5);
+      const sol = k === 0 ? [0] : [-Math.sqrt(k), Math.sqrt(k)];
+      return { enonce: `On pose $f(x) = x^2 ${plus(c)}$. Détermine le ou les antécédents de $${nb(k + c)}$ par $f$ (séparés par « ; »).`, mode: "ensemble", attendu: sol,
+        aides: [`On résout $f(x) = ${nb(k + c)}$, c'est-à-dire $x^2 ${plus(c)} = ${nb(k + c)}$.`, `$x^2 = ${k}$.`, k === 0 ? "Un seul nombre a pour carré $0$." : `Deux nombres ont pour carré $${k}$ : $${Math.sqrt(k)}$ et $-${Math.sqrt(k)}$.`],
+        solution: `$x^2 ${plus(c)} = ${nb(k + c)} \\Leftrightarrow x^2 = ${k}$ : ${k === 0 ? "$x = 0$, un seul antécédent" : `$x = ${Math.sqrt(k)}$ ou $x = -${Math.sqrt(k)}$, deux antécédents`}.` };
+    }
+    if (t === "lecture") {
+      const P = paraboleQ(), m = rand(1, 3), k = P.f(P.h + m);
+      if (Math.abs(k) > 6) return GEN["yf-antecedent"]();
+      const q = pick(["nb", "nb", "aucun"]);
+      if (q === "aucun") {
+        const kk = P.s > 0 ? P.v - rand(1, 3) : P.v + rand(1, 3);
+        if (Math.abs(kk) > 6) return GEN["yf-antecedent"]();
+        const sol = kk === P.v ? [P.h] : [];
+        return { enonce: `La courbe $C_f$ est donnée. Combien le nombre $${nb(kk)}$ a-t-il d'antécédents par $f$ ?`, figure: figParabole(P, [{ y: kk, label: `y = ${nbS(kk)}` }]), mode: "nombre", prefixe: "Nombre d'antécédents :", attendu: 0,
+          erreurs: [{ valeur: 2, message: `La droite $y = ${nb(kk)}$ ne coupe pas la courbe.` }, { valeur: 1, message: "La droite ne touche pas la courbe : aucun point d'intersection." }],
+          aides: [`Trace la droite horizontale $y = ${nb(kk)}$.`, "Compte les points d'intersection avec la courbe.", `La courbe reste ${P.s > 0 ? "au-dessus" : "en dessous"} de cette droite.`],
+          solution: `La droite $y = ${nb(kk)}$ ne coupe pas $C_f$ (le ${P.s > 0 ? "minimum" : "maximum"} de $f$ est $${nb(P.v)}$) : $${nb(kk)}$ a $0$ antécédent.` };
+      }
+      return { enonce: `La courbe $C_f$ est donnée. Combien le nombre $${nb(k)}$ a-t-il d'antécédents par $f$ ?`, figure: figParabole(P, [{ y: k, label: `y = ${nbS(k)}` }]), mode: "nombre", prefixe: "Nombre d'antécédents :", attendu: 2,
+        erreurs: [{ valeur: 1, message: "La droite coupe la courbe en **deux** points." }, { valeur: 0, message: `La droite $y = ${nb(k)}$ coupe bien la courbe.` }],
+        aides: [`Trace la droite horizontale $y = ${nb(k)}$.`, "Compte les points d'intersection avec la courbe.", "Chaque point d'intersection donne un antécédent (son abscisse)."],
+        solution: `La droite $y = ${nb(k)}$ coupe $C_f$ en deux points, d'abscisses $${nb(P.h - m)}$ et $${nb(P.h + m)}$ : $${nb(k)}$ a $2$ antécédents.` };
+    }
+    const a = nz2(-6, 8), b = rand(-9, 9), x = rand(-6, 8), k = a * x + b;
+    return { enonce: `On pose $f(x) = ${aff(a, b)}$. Détermine l'antécédent de $${nb(k)}$ par $f$.`, mode: "nombre", prefixe: "Antécédent :", attendu: x,
+      erreurs: [{ valeur: a * k + b, message: `Tu as calculé $f(${nb(k)})$, l'image de $${nb(k)}$. On cherche $x$ tel que $f(x) = ${nb(k)}$.` }, { valeur: arr((k + b) / a), message: `Résous $${aff(a, b)} = ${nb(k)}$ : commence par ${b >= 0 ? "retirer" : "ajouter"} $${Math.abs(b)}$.` }],
+      aides: [`Chercher l'antécédent de $${nb(k)}$, c'est résoudre $f(x) = ${nb(k)}$.`, `$${aff(a, b)} = ${nb(k)}$, donc $${coef(a, "x")} = ${nb(k - b)}$.`, `$x = \\dfrac{${nb(k - b)}}{${nb(a)}}$.`],
+      solution: `$${aff(a, b)} = ${nb(k)} \\Leftrightarrow ${coef(a, "x")} = ${nb(k - b)} \\Leftrightarrow x = ${nb(x)}$. L'antécédent de $${nb(k)}$ est $${nb(x)}$ (vérification : $f(${nb(x)}) = ${nb(k)}$).` };
+  });
+
+  def("yf-taux", () => {
+    const t = pick(["calcul", "calcul", "contexte", "contexte"]);
+    if (t === "contexte") {
+      const C = pick([
+        { g: "la température (en °C)", v: "l'heure", u: "°C par heure", x: () => [rand(6, 10), rand(12, 16)], y: () => [rand(22, 26), rand(28, 34)] },
+        { g: "la distance parcourue (en km)", v: "le temps (en h)", u: "km/h", x: () => [rand(0, 2), rand(3, 5)], y: () => [rand(0, 40), rand(120, 300)] },
+        { g: "le nombre d'abonnés", v: "le mois", u: "abonnés par mois", x: () => [rand(1, 3), rand(5, 9)], y: () => [rand(100, 300), rand(400, 900)] },
+        { g: "la hauteur d'eau du lagon (en cm)", v: "l'heure", u: "cm par heure", x: () => [rand(8, 10), rand(12, 14)], y: () => [rand(250, 320), rand(60, 150)] }
+      ]);
+      const [x1, x2] = C.x(), [y1, y2] = C.y();
+      const tx = (y2 - y1) / (x2 - x1), fr2 = !Number.isInteger(tx * 100);
+      const arrondi = fr2;
+      const att = arrondi ? Math.round(tx * 10) / 10 : tx;
+      return { enonce: `Une fonction $f$ donne ${C.g} en fonction de ${C.v} $x$. On sait que $f(${x1}) = ${nb(y1)}$ et $f(${x2}) = ${nb(y2)}$. Calcule le taux de variation de $f$ entre $${x1}$ et $${x2}$, en ${C.u}${arrondi ? " (arrondi au dixième)" : ""}.`, mode: "nombre", prefixe: "Taux :", attendu: att, tolerance: arrondi ? 0.05 : 1e-9,
+        erreurs: [{ valeur: y2 - y1, message: "Il faut diviser la variation de $f$ par la variation de $x$." }, { valeur: arrondi ? Math.round((x2 - x1) / (y2 - y1) * 10) / 10 : (x2 - x1) / (y2 - y1), message: "Le taux est $\\dfrac{f(b) - f(a)}{b - a}$ : la variation de $f$ au numérateur." }, { valeur: -att, message: "Attention à l'ordre des soustractions (le même en haut et en bas)." }],
+        aides: ["Taux de variation entre $a$ et $b$ : $\\dfrac{f(b) - f(a)}{b - a}$.", `$f(${x2}) - f(${x1}) = ${nb(y2 - y1)}$ et $${x2} - ${x1} = ${x2 - x1}$.`, `$\\dfrac{${nb(y2 - y1)}}{${x2 - x1}}$.`],
+        solution: `$\\dfrac{f(${x2}) - f(${x1})}{${x2} - ${x1}} = \\dfrac{${nb(y2)} - ${nb(y1)}}{${x2 - x1}} = \\dfrac{${nb(y2 - y1)}}{${x2 - x1}} ${arrondi ? "\\approx" : "="} ${nb(att)}$ ${C.u} : ${tx > 0 ? "en moyenne, la grandeur augmente" : "en moyenne, la grandeur diminue"} de $${nb(Math.abs(att))}$ par unité de $x$ sur cet intervalle.` };
+    }
+    const F = fonctionSimple();
+    if (F.type === "inverse") return GEN["yf-taux"]();
+    const a = rand(-4, 3), b = a + rand(1, 4), ya = F.f(a), yb = F.f(b), tx = (yb - ya) / (b - a), fr2 = !Number.isInteger(tx * 100);
+    return { enonce: `On pose $f(x) = ${F.tex}$. Calcule le taux de variation de $f$ entre $${nb(a)}$ et $${nb(b)}$${fr2 ? " (fraction)" : ""}.`, mode: "nombre", prefixe: "Taux :", attendu: tx,
+      erreurs: [{ valeur: yb - ya, message: `Divise par $b - a = ${b - a}$.` }, { valeur: -tx, message: "Même ordre au numérateur et au dénominateur : $\\dfrac{f(b) - f(a)}{b - a}$." }, ...(fr2 ? approx(tx) : [])],
+      aides: ["Taux de variation : $\\dfrac{f(b) - f(a)}{b - a}$.", `$f(${nb(a)}) = ${nb(ya)}$ et $f(${nb(b)}) = ${nb(yb)}$.`, `$\\dfrac{${nb(yb)} - ${pr(ya)}}{${nb(b)} - ${pr(a)}} = \\dfrac{${nb(yb - ya)}}{${b - a}}$.`],
+      solution: `$f(${nb(a)}) = ${nb(ya)}$ et $f(${nb(b)}) = ${nb(yb)}$. Taux : $\\dfrac{${nb(yb)} - ${pr(ya)}}{${nb(b)} - ${pr(a)}} = \\dfrac{${nb(yb - ya)}}{${b - a}} = ${frac(yb - ya, b - a)}$.\n\nC'est la pente de la sécante passant par les points de la courbe d'abscisses $${nb(a)}$ et $${nb(b)}$.` };
+  });
+
+  def("yf-secante", () => {
+    const P = paraboleQ(), a = rand(P.h - 3, P.h - 1), b = a + rand(1, 4);
+    const ya = P.f(a), yb = P.f(b);
+    if (Math.abs(ya) > 6 || Math.abs(yb) > 6 || a < -5 || b > 5) return GEN["yf-secante"]();
+    const m = (yb - ya) / (b - a);
+    const fig = (() => { const o = { xmin: -5.6, xmax: 5.6, ymin: -6.6, ymax: 6.6, h: 300, curves: [{ f: P.f, a: Math.max(-5.3, P.h - Math.sqrt(Math.max(0, (P.s > 0 ? 6.3 - P.v : P.v + 6.3)))), b: Math.min(5.3, P.h + Math.sqrt(Math.max(0, (P.s > 0 ? 6.3 - P.v : P.v + 6.3)))), label: "C<tspan class=\"sub\" dy=\"3\">f</tspan>", closed: false }, { f: (x) => ya + m * (x - a), a: Math.max(-5.3, a - 1.2), b: Math.min(5.3, b + 1.2), closed: false }], points: [{ x: a, y: ya, label: `A(${nbS(a)} ; ${nbS(ya)})`, gauche: true }, { x: b, y: yb, label: `B(${nbS(b)} ; ${nbS(yb)})` }], aria: `Parabole et sécante passant par A(${nbS(a)} ; ${nbS(ya)}) et B(${nbS(b)} ; ${nbS(yb)})` }; return tiret(graph(o), 1); })();
+    const t = pick(["pente", "pente", "signe"]);
+    if (t === "signe") {
+      const bonne = m > 0 ? "positif : la sécante monte, $f(b) > f(a)$" : m < 0 ? "négatif : la sécante descend, $f(b) < f(a)$" : "nul : la sécante est horizontale, $f(a) = f(b)$";
+      const ch = choix4(bonne, ["positif : la sécante monte, $f(b) > f(a)$", "négatif : la sécante descend, $f(b) < f(a)$", "nul : la sécante est horizontale, $f(a) = f(b)$", "impossible à connaître sans l'expression de $f$"].filter((s) => s !== bonne));
+      return { enonce: `La droite $(AB)$ est la sécante à $C_f$ passant par les points d'abscisses $${nb(a)}$ et $${nb(b)}$. Quel est le signe du taux de variation de $f$ entre $${nb(a)}$ et $${nb(b)}$ ?`, figure: fig, mode: "choix", choix: ch.choix, attendu: ch.attendu,
+        aides: ["Le taux de variation est le coefficient directeur de la sécante $(AB)$.", "Une droite qui monte (de gauche à droite) a un coefficient directeur positif.", `Compare $f(${nb(a)}) = ${nb(ya)}$ et $f(${nb(b)}) = ${nb(yb)}$.`],
+        solution: `Le taux de variation est la pente de $(AB)$ : $\\dfrac{${nb(yb)} - ${pr(ya)}}{${nb(b)} - ${pr(a)}} = ${frac(yb - ya, b - a)}$, ${bonne}.` };
+    }
+    const fr2 = !Number.isInteger(m * 100);
+    return { enonce: `La droite $(AB)$ est la sécante à $C_f$ passant par $A$ et $B$. Calcule son coefficient directeur, c'est-à-dire le taux de variation de $f$ entre $${nb(a)}$ et $${nb(b)}$${fr2 ? " (fraction)" : ""}.`, figure: fig, mode: "nombre", prefixe: "Taux :", attendu: m,
+      erreurs: [{ valeur: yb - ya, message: `Divise par $${nb(b)} - ${pr(a)} = ${b - a}$.` }, { valeur: -m, message: "Même ordre au numérateur et au dénominateur." }, ...(fr2 ? approx(m) : [])],
+      aides: ["Coefficient directeur de $(AB)$ : $\\dfrac{y_B - y_A}{x_B - x_A}$.", `$A(${nb(a)}\\,;${nb(ya)})$ et $B(${nb(b)}\\,;${nb(yb)})$.`, `$\\dfrac{${nb(yb)} - ${pr(ya)}}{${nb(b)} - ${pr(a)}}$.`],
+      solution: `Taux de variation $= \\dfrac{f(${nb(b)}) - f(${nb(a)})}{${nb(b)} - ${pr(a)}} = \\dfrac{${nb(yb)} - ${pr(ya)}}{${b - a}} = ${frac(yb - ya, b - a)}$ : c'est la pente de la sécante $(AB)$.` };
+  });
+
+  def("yf-monotonie", () => {
+    const t = pick(["taux", "taux", "comparer", "comparer", "tableau"]);
+    if (t === "comparer") {
+      const a = rand(-6, 4), b = a + rand(1, 5), sens = pick(["croissante", "décroissante"]);
+      const bonne = sens === "croissante" ? `$f(${nb(a)}) \\leqslant f(${nb(b)})$` : `$f(${nb(a)}) \\geqslant f(${nb(b)})$`;
+      const ch = choix4(bonne, [sens === "croissante" ? `$f(${nb(a)}) \\geqslant f(${nb(b)})$` : `$f(${nb(a)}) \\leqslant f(${nb(b)})$`, `$f(${nb(a)}) = f(${nb(b)})$`, "On ne peut pas comparer sans l'expression de $f$"]);
+      const I = `[${nb(a - rand(0, 2))}\\,;${nb(b + rand(0, 2))}]`;
+      return { enonce: `La fonction $f$ est ${sens} sur $${I}$. Que peut-on dire de $f(${nb(a)})$ et $f(${nb(b)})$ ?`, mode: "choix", choix: ch.choix, attendu: ch.attendu,
+        aides: [sens === "croissante" ? "Croissante : les images sont rangées dans le même ordre que les nombres." : "Décroissante : les images sont rangées dans l'ordre inverse des nombres.", `$${nb(a)} < ${nb(b)}$.`, "Conclus sur l'ordre des images."],
+        solution: `$${nb(a)} < ${nb(b)}$ et $f$ est ${sens} sur $${I}$ : ${sens === "croissante" ? "les images sont dans le même ordre" : "les images sont dans l'ordre inverse"}, donc ${bonne}.` };
+    }
+    if (t === "tableau") {
+      const x0 = rand(-4, 0), x1 = x0 + rand(1, 3), x2 = x1 + rand(1, 3), y0 = rand(-5, 5), y1 = y0 + pick([-4, -3, 3, 4]), y2 = y1 + pick([-4, -3, 3, 4]);
+      const fig = tabSV([nbS(x0), nbS(x1), nbS(x2)], [y1 > y0 ? "+" : "-", "", y2 > y1 ? "+" : "-"], [nbS(y0), nbS(y1), nbS(y2)], "f", true);
+      const q = pick(["max", "signe", "lire"]);
+      if (q === "lire") { const k = pick([0, 1, 2]), xs = [x0, x1, x2], ys = [y0, y1, y2]; return { enonce: `Voici le tableau de variations de $f$ sur $[${nb(x0)}\\,;${nb(x2)}]$. Que vaut $f(${nb(xs[k])})$ ?`, figure: fig, mode: "nombre", prefixe: `$f(${nb(xs[k])}) =$`, attendu: ys[k], erreurs: [{ valeur: xs[k], message: "Les images sont sur la ligne du bas, les valeurs de $x$ sur la ligne du haut." }], aides: ["La première ligne donne les valeurs de $x$, la seconde les images aux bornes.", `Repère la colonne de $x = ${nb(xs[k])}$.`, "L'image est le nombre écrit sous cette valeur."], solution: `Dans la colonne $x = ${nb(xs[k])}$, on lit $f(${nb(xs[k])}) = ${nb(ys[k])}$.` }; }
+      const M = Math.max(y0, y1, y2), xM = [x0, x1, x2][[y0, y1, y2].indexOf(M)];
+      if (q === "max") return { enonce: `Voici le tableau de variations de $f$ sur $[${nb(x0)}\\,;${nb(x2)}]$. Quel est le maximum de $f$ sur cet intervalle ?`, figure: fig, mode: "nombre", prefixe: "Maximum :", attendu: M, erreurs: [{ valeur: xM, message: "Le maximum est une **image** (ligne du bas), atteinte en $x = " + nb(xM) + "$." }, { valeur: Math.min(y0, y1, y2), message: "Ça, c'est le minimum." }], aides: ["Le maximum est la plus grande image.", "Compare les valeurs de la ligne du bas.", `La plus grande est $${nb(M)}$.`], solution: `La plus grande valeur de la ligne des images est $${nb(M)}$, atteinte pour $x = ${nb(xM)}$ : le maximum de $f$ est $${nb(M)}$.` };
+      const k = pick([0, 1]), xs = [x0, x1, x2], mont = [y1 > y0, y2 > y1][k];
+      const bonne = mont ? `positif, car $f$ est croissante sur $[${nb(xs[k])}\\,;${nb(xs[k + 1])}]$` : `négatif, car $f$ est décroissante sur $[${nb(xs[k])}\\,;${nb(xs[k + 1])}]$`;
+      const ch = choix4(bonne, [mont ? `négatif, car $f$ est croissante sur $[${nb(xs[k])}\\,;${nb(xs[k + 1])}]$` : `positif, car $f$ est décroissante sur $[${nb(xs[k])}\\,;${nb(xs[k + 1])}]$`, "nul, car le tableau ne donne pas l'expression de $f$", mont ? "négatif, car les images diminuent" : "positif, car les images augmentent"]);
+      return { enonce: `Voici le tableau de variations de $f$. Quel est le signe du taux de variation de $f$ entre $${nb(xs[k])}$ et $${nb(xs[k + 1])}$ ?`, figure: fig, mode: "choix", choix: ch.choix, attendu: ch.attendu,
+        aides: ["Sur un intervalle où $f$ est croissante, le taux de variation entre deux valeurs est positif.", "Sur un intervalle où $f$ est décroissante, il est négatif.", `La flèche entre $${nb(xs[k])}$ et $${nb(xs[k + 1])}$ ${mont ? "monte" : "descend"}.`],
+        solution: `Entre $${nb(xs[k])}$ et $${nb(xs[k + 1])}$, la flèche ${mont ? "monte" : "descend"} : $f$ est ${mont ? "croissante" : "décroissante"}, et le taux $\\dfrac{f(${nb(xs[k + 1])}) - f(${nb(xs[k])})}{${nb(xs[k + 1])} - ${pr(xs[k])}} = \\dfrac{${nb([y0, y1, y2][k + 1] - [y0, y1, y2][k])}}{${xs[k + 1] - xs[k]}}$ est ${mont ? "positif" : "négatif"}.` };
+    }
+    const a = nz2(-6, 6), b = rand(-5, 5), x1 = rand(-5, 3), x2 = x1 + rand(1, 5);
+    const bonne = a > 0 ? `Le taux vaut $${nb(a)} > 0$ : $f$ est croissante sur $\\mathbb{R}$` : `Le taux vaut $${nb(a)} < 0$ : $f$ est décroissante sur $\\mathbb{R}$`;
+    const ch = choix4(bonne, [a > 0 ? `Le taux vaut $${nb(a)} > 0$ : $f$ est décroissante sur $\\mathbb{R}$` : `Le taux vaut $${nb(a)} < 0$ : $f$ est croissante sur $\\mathbb{R}$`, `Le taux vaut $${nb(b)}$ : $f$ est ${b >= 0 ? "croissante" : "décroissante"}`, `Le taux dépend des valeurs choisies : on ne peut pas conclure`]);
+    return { enonce: `On pose $f(x) = ${aff(a, b)}$. Calcule le taux de variation de $f$ entre deux valeurs quelconques $x_1 < x_2$ et conclus.`, mode: "choix", choix: ch.choix, attendu: ch.attendu,
+      aides: [`$f(x_2) - f(x_1) = (${aff(a, b).replace(/x/g, "x_2")}) - (${aff(a, b).replace(/x/g, "x_1")}) = ${coef(a, "(x_2 - x_1)")}$.`, "Divise par $x_2 - x_1$.", "Un taux toujours positif signifie que $f$ est croissante ; toujours négatif, décroissante."],
+      solution: `$\\dfrac{f(x_2) - f(x_1)}{x_2 - x_1} = \\dfrac{${coef(a, "(x_2 - x_1)")}}{x_2 - x_1} = ${nb(a)}$ pour toutes valeurs $x_1 \\neq x_2$. ${bonne}. (Pour une fonction affine, le taux est toujours le coefficient directeur.)` };
+  });
+
+  def("yf-modeliser", () => {
+    const S = pick([
+      { ctx: (a, b) => `Un taxi facture $${a}$ € de prise en charge puis $${nb(b)}$ € par kilomètre. On note $f(x)$ le prix (en €) d'une course de $x$ km.`, a: () => rand(2, 6), b: () => pick([1.5, 2, 2.5, 3]), bonne: (a, b) => `f(x) = ${nb(b)}x + ${a}`, faux: (a, b) => [`f(x) = ${a}x + ${nb(b)}`, `f(x) = ${nb(a + b)}x`, `f(x) = ${a} \\times ${nb(b)}^x`], val: (a, b, x) => b * x + a, xq: () => rand(4, 20), u: "€" },
+      { ctx: (a, b) => `Un rectangle a pour largeur $x$ et pour longueur $x + ${a}$. On note $f(x)$ son aire.`, a: () => rand(2, 9), b: () => 0, bonne: (a) => `f(x) = x^2 + ${a}x`, faux: (a) => [`f(x) = 2x + ${a}`, `f(x) = 4x + ${2 * a}`, `f(x) = x^2 + ${a}`], val: (a, b, x) => x * x + a * x, xq: () => rand(2, 9), u: "" },
+      { ctx: (a, b) => `Un rectangle a pour largeur $x$ et pour longueur $x + ${a}$. On note $f(x)$ son périmètre.`, a: () => rand(2, 9), b: () => 0, bonne: (a) => `f(x) = 4x + ${2 * a}`, faux: (a) => [`f(x) = 2x + ${a}`, `f(x) = x^2 + ${a}x`, `f(x) = 4x + ${a}`], val: (a, b, x) => 4 * x + 2 * a, xq: () => rand(2, 9), u: "" },
+      { ctx: (a, b) => `Un vendeur de brochettes a des frais fixes de $${a}$ € par soirée et chaque brochette lui coûte $${nb(b)}$ € à préparer ; il la vend $${nb(b + 1)}$ €. On note $f(x)$ le bénéfice (en €) pour $x$ brochettes vendues.`, a: () => pick([20, 30, 40, 50]), b: () => pick([0.5, 1, 1.5]), bonne: (a, b) => `f(x) = x - ${a}`, faux: (a, b) => [`f(x) = ${nb(b + 1)}x - ${a}`, `f(x) = ${coef(b, "x")} + ${a}`, `f(x) = ${a} - x`], val: (a, b, x) => x - a, xq: () => pick([60, 80, 100, 120]), u: "€" },
+      { ctx: (a, b) => `Avec $${a}$ m de grillage, on construit un enclos rectangulaire contre un mur (le mur forme un côté). On note $x$ la largeur et $f(x)$ l'aire de l'enclos.`, a: () => pick([20, 24, 30, 40, 50, 60]), b: () => 0, bonne: (a) => `f(x) = x(${a} - 2x)`, faux: (a) => [`f(x) = x(${a} - x)`, `f(x) = 2x + (${a} - 2x)`, `f(x) = x^2 + ${a}`], val: (a, b, x) => x * (a - 2 * x), xq: (a) => rand(2, Math.floor(a / 2) - 2), u: "m²" }
+    ]);
+    const a = S.a(), b = S.b();
+    if (Math.random() < 0.55) {
+      const ch = choix4(`$${S.bonne(a, b)}$`, S.faux(a, b).map((s) => `$${s}$`));
+      return { enonce: `${S.ctx(a, b)} Quelle est l'expression de $f(x)$ ?`, mode: "choix", choix: ch.choix, attendu: ch.attendu,
+        aides: ["Traduis la situation étape par étape avec $x$.", "Vérifie avec une valeur simple de $x$ (par exemple $x = 1$ ou $x = 2$).", "Aire $=$ longueur $\\times$ largeur ; périmètre $=$ somme des côtés ; bénéfice $=$ recette $-$ coûts."],
+        solution: `En traduisant : $${S.bonne(a, b)}$. ${S.u === "€" && S.ctx(a, b).includes("taxi") ? `Le prix est $${nb(b)}$ € multiplié par le nombre de kilomètres, plus la prise en charge.` : S.ctx(a, b).includes("bénéfice") ? `Recette $${nb(b + 1)}x$, coûts $${coef(b, "x")} + ${a}$ : bénéfice $${nb(b + 1)}x - ${coef(b, "x")} - ${a} = x - ${a}$.` : S.ctx(a, b).includes("enclos") ? `Les trois côtés de grillage : $x + x + L = ${a}$, donc $L = ${a} - 2x$ et l'aire vaut $x(${a} - 2x)$.` : "On développe si besoin pour vérifier."}` };
+    }
+    const x = S.xq(a), v = arr(S.val(a, b, x));
+    return { enonce: `${S.ctx(a, b)} Calcule $f(${x})$.`, mode: "nombre", prefixe: `$f(${x}) =$`, attendu: v, suffixe: S.u,
+      erreurs: [{ valeur: arr(S.val(a, b, x + 1)), message: `Calcule pour $x = ${x}$ exactement.` }, { valeur: arr(S.val(a, b, x) + a), message: "Relis l'expression de $f(x)$." }],
+      aides: ["Trouve d'abord l'expression de $f(x)$.", `$${S.bonne(a, b)}$.`, `Remplace $x$ par $${x}$.`],
+      solution: `$${S.bonne(a, b)}$, donc $f(${x}) = ${S.bonne(a, b).replace("f(x) = ", "").replace(/x/g, `${x}`).replace(/(\d)\(/g, "$1 \\times (")} = ${nb(v)}$${S.u ? " " + S.u : ""}.` };
+  });
+
+  def("yf-courbe", () => {
+    // température au cours d'une journée : f(t) = a - b (t - h)^2 sur [6 ; 20], ou autre bosse
+    const h = rand(12, 15), Tmax = rand(28, 34), b = pick([0.25, 0.2, 0.3]), f = (t) => Tmax - b * (t - h) ** 2;
+    const fig = graph({ xmin: 5, xmax: 20.8, ymin: 16, ymax: Tmax + 2.4, xstep: 1, ystep: 1, xetiq: 2, yetiq: 2, h: 280, xlabel: "heure", ylabel: "°C", curves: [{ f, a: 6, b: 20, closed: false }], aria: `Courbe de la température de 6 h à 20 h, maximum ${Tmax} °C à ${h} h` });
+    const t = pick(["max", "lire", "sup", "sup"]);
+    if (t === "max") { const q = pick(["val", "heure"]); return { enonce: `La courbe donne la température $f(t)$ (en °C) à ${lieu()} en fonction de l'heure $t$. ${q === "val" ? "Quelle est la température maximale ?" : "À quelle heure la température est-elle maximale ?"}`, figure: fig, mode: "nombre", prefixe: q === "val" ? "Maximum :" : "Heure :", attendu: q === "val" ? Tmax : h, suffixe: q === "val" ? "°C" : "h", erreurs: [{ valeur: q === "val" ? h : Tmax, message: q === "val" ? "La température se lit sur l'axe vertical." : "L'heure se lit sur l'axe horizontal." }], aides: ["Repère le point le plus haut de la courbe.", q === "val" ? "Lis son ordonnée." : "Lis son abscisse.", `Le sommet est à $(${h}\\,;${Tmax})$.`], solution: `Le point le plus haut de la courbe est $(${h}\\,;${Tmax})$ : la température maximale est $${Tmax}$ °C, atteinte à $${h}$ h.` }; }
+    if (t === "lire") { const x = pick([6, 8, 10, 12, 14, 16, 18, 20].filter((v) => Number.isInteger(f(v) * 10))); if (x === undefined) return GEN["yf-courbe"](); const v = arr(f(x)); return { enonce: `La courbe donne la température $f(t)$ (en °C) en fonction de l'heure $t$. Lis $f(${x})$ (à $0{,}5$ °C près).`, figure: fig, mode: "nombre", prefixe: `$f(${x}) =$`, attendu: v, suffixe: "°C", tolerance: 0.5, erreurs: [], aides: [`Repère $t = ${x}$ sur l'axe horizontal.`, "Monte jusqu'à la courbe et lis l'ordonnée.", `On lit environ $${nb(v)}$.`], solution: `À $t = ${x}$ h, la courbe est à la hauteur $${nb(v)}$ : $f(${x}) \\approx ${nb(v)}$ °C.` }; }
+    const k = Tmax - pick([1, 4]), d = Math.sqrt((Tmax - k) / b);
+    if (!Number.isInteger(d * 2) || h - d < 6 || h + d > 20) return GEN["yf-courbe"]();
+    const fig2 = graph({ xmin: 5, xmax: 20.8, ymin: 16, ymax: Tmax + 2.4, xstep: 1, ystep: 1, xetiq: 2, yetiq: 2, h: 280, xlabel: "heure", ylabel: "°C", curves: [{ f, a: 6, b: 20, closed: false }], hlines: [{ y: k, label: `${k} °C` }], aria: `Courbe de la température et droite horizontale à ${k} °C` });
+    const sens = pick([">", "<"]);
+    const I = sens === ">" ? `]${nb(h - d)}\\,;${nb(h + d)}[` : `[6\\,;${nb(h - d)}[ \\cup ]${nb(h + d)}\\,;20]`;
+    const ch = choix4(`$${I}$`, [`$${sens === ">" ? `[6\\,;${nb(h - d)}[ \\cup ]${nb(h + d)}\\,;20]` : `]${nb(h - d)}\\,;${nb(h + d)}[`}$`, `$\\{${nb(h - d)}\\,;${nb(h + d)}\\}$`, `$]${nb(k)}\\,;${nb(Tmax)}]$`]);
+    return { enonce: `La courbe donne la température $f(t)$ (en °C) entre $6$ h et $20$ h. Pendant quelles heures a-t-on $f(t) ${sens} ${k}$ ?`, figure: fig2, mode: "choix", choix: ch.choix, attendu: ch.attendu,
+      aides: [`La droite horizontale à $${k}$ °C coupe la courbe en $t = ${nb(h - d)}$ et $t = ${nb(h + d)}$.`, sens === ">" ? "On cherche où la courbe est **au-dessus** de la droite." : "On cherche où la courbe est **en dessous** de la droite.", "Inégalité stricte : bornes exclues."],
+      solution: `La courbe coupe la droite $y = ${k}$ en $t = ${nb(h - d)}$ et $t = ${nb(h + d)}$ ; elle est ${sens === ">" ? "au-dessus entre ces deux heures" : "en dessous avant la première et après la seconde"} : $f(t) ${sens} ${k}$ pour $t \\in ${I}$.` };
+  });
+
+  def("yf-balayage", () => {
+    const t = pick(["tableau", "tableau", "python"]);
+    const F = pick([{ tex: "x^2 - 2", f: (x) => x * x - 2, k: 0, rac: Math.SQRT2 }, { tex: "x^2 - 5", f: (x) => x * x - 5, k: 0, rac: Math.sqrt(5) }, { tex: "x^3 - 3", f: (x) => x ** 3 - 3, k: 0, rac: Math.cbrt(3) }, { tex: "x^2 + x", f: (x) => x * x + x, k: 3, rac: (-1 + Math.sqrt(13)) / 2 }, { tex: "x^3", f: (x) => x ** 3, k: 10, rac: Math.cbrt(10) }, { tex: "x^2 - 7", f: (x) => x * x - 7, k: 0, rac: Math.sqrt(7) }]);
+    const pas = pick([0.1, 0.01]), lo = Math.floor(F.rac / pas) * pas, hi = arr(lo + pas);
+    if (t === "python") {
+      const code = `def f(x):\n    return ${F.tex.replace(/\^(\d)/g, " ** $1").replace(/x \*\* 2/g, "x ** 2")}\n\nx = ${Math.floor(F.rac)}\nwhile f(x) < ${F.k}:\n    x = x + ${pas}\nprint(x)`;
+      const att = Math.round(hi * 100) / 100;
+      return { enonce: `On encadre la solution positive de $${F.tex} = ${F.k}$ par balayage. Qu'affiche ce programme (arrondi au ${pas === 0.1 ? "dixième" : "centième"}) ?\n\n${py(code)}`, mode: "nombre", prefixe: "Affichage :", attendu: att, tolerance: pas / 2 + 1e-9,
+        erreurs: [{ valeur: Math.round(lo * 100) / 100, message: `La boucle continue **tant que** $f(x) < ${F.k}$ : elle s'arrête au premier $x$ où $f(x) \\geqslant ${F.k}$.` }],
+        aides: [`On avance de $${nb(pas)}$ en $${nb(pas)}$ à partir de $${Math.floor(F.rac)}$ tant que $f(x) < ${F.k}$.`, `La solution est entre $${nb(arr(lo))}$ et $${nb(hi)}$ : $f(${nb(arr(lo))}) ${arr(F.f(lo)) < F.k ? "<" : "\\geqslant"} ${F.k}$ et $f(${nb(hi)}) \\geqslant ${F.k}$.`, "Le programme affiche la première valeur qui fait sortir de la boucle."],
+        solution: `Le balayage s'arrête à la première valeur $x$ telle que $f(x) \\geqslant ${F.k}$ : $x \\approx ${nb(hi)}$ (la solution exacte est entre $${nb(arr(lo))}$ et $${nb(hi)}$, environ $${nb(arr(F.rac, 3))}$). L'affichage peut montrer des décimales parasites comme $${nb(hi)}000001$ à cause des calculs approchés de l'ordinateur.` };
+    }
+    const pas2 = pick([1, 0.5, 0.1]);
+    const base = Math.floor(F.rac / pas2) * pas2, xs = Array.from({ length: 6 }, (_, k) => arr(base - 2 * pas2 + k * pas2));
+    const tab = { var: "x", x: xs.map(nb), nom: `f(x)`, y: xs.map((x) => nb(arr(F.f(x), 3))) };
+    const bonne = `$]${nb(arr(base))}\\,;${nb(arr(base + pas2))}[$`;
+    const ch = choix4(bonne, [`$]${nb(arr(base - pas2))}\\,;${nb(arr(base))}[$`, `$]${nb(arr(base + pas2))}\\,;${nb(arr(base + 2 * pas2))}[$`, `$]${nb(arr(base - 2 * pas2))}\\,;${nb(arr(base - pas2))}[$`]);
+    return { enonce: `On cherche la solution de $f(x) = ${F.k}$ avec $f(x) = ${F.tex}$. Le tableau de valeurs (pas de $${nb(pas2)}$) est donné. Entre quelles valeurs se trouve la solution ?`, tableau: tab, mode: "choix", choix: ch.choix, attendu: ch.attendu,
+      aides: [`Cherche deux valeurs consécutives de $x$ entre lesquelles $f(x)$ passe en dessous puis au-dessus de $${F.k}$.`, `$f(${nb(arr(base))}) = ${nb(arr(F.f(base), 3))} < ${F.k}$ et $f(${nb(arr(base + pas2))}) = ${nb(arr(F.f(base + pas2), 3))} > ${F.k}$.`, "La solution est entre ces deux valeurs de $x$ : c'est le principe du balayage."],
+      solution: `$f(${nb(arr(base))}) = ${nb(arr(F.f(base), 3))} < ${F.k}$ et $f(${nb(arr(base + pas2))}) = ${nb(arr(F.f(base + pas2), 3))} > ${F.k}$ : la solution est dans ${bonne}. En resserrant le pas, on l'encadre de mieux en mieux (solution $\\approx ${nb(arr(F.rac, 3))}$).` };
+  });
+
+  def("yf-vrai-faux", () => vraiFaux4([
+    ["Si $f(x) = x^2 - 3x$, alors $f(-2) = 10$.", true, "$4 + 6 = 10$."],
+    ["Si $f(3) = 7$, le point $(3\\,;7)$ est sur la courbe de $f$.", true, "abscisse $3$, ordonnée $f(3)$."],
+    ["Le taux de variation de $f$ entre $1$ et $4$ est $\\dfrac{f(4) - f(1)}{3}$.", true, "$\\dfrac{f(b) - f(a)}{b - a}$ avec $b - a = 3$."],
+    ["Le taux de variation entre $a$ et $b$ est la pente de la sécante passant par les points d'abscisses $a$ et $b$.", true, "c'est l'interprétation graphique."],
+    ["Si $f$ est croissante sur $[0\\,;5]$, alors $f(2) \\leqslant f(4)$.", true, "les images sont rangées dans le même ordre."],
+    ["Pour une fonction affine, le taux de variation est toujours égal au coefficient directeur.", true, "$\\dfrac{(mb + p) - (ma + p)}{b - a} = m$."],
+    ["Un nombre peut avoir deux antécédents par une fonction.", true, "$4$ a pour antécédents $2$ et $-2$ par la fonction carré."],
+    ["Le balayage consiste à calculer $f(x)$ pour des valeurs régulièrement espacées de $x$ pour encadrer une solution.", true, "on repère où $f(x) - k$ change de signe."],
+    ["Si $f(2) = 5$, alors $5$ est un antécédent de $2$.", false, "$2$ est un antécédent de $5$ ; $5$ est l'image de $2$."],
+    ["Un nombre peut avoir deux images par une fonction.", false, "une fonction associe **une seule** image à chaque nombre."],
+    ["Si le taux de variation de $f$ entre $1$ et $3$ est négatif, alors $f(1) < f(3)$.", false, "taux négatif : $f(3) - f(1) < 0$, donc $f(3) < f(1)$."],
+    ["Si $f$ est décroissante sur $[0\\,;5]$, alors $f(1) \\leqslant f(4)$.", false, "ordre inverse : $f(1) \\geqslant f(4)$."],
+    ["Le taux de variation de $f(x) = x^2$ est le même entre toutes les valeurs.", false, "entre $0$ et $1$ il vaut $1$, entre $1$ et $2$ il vaut $3$."],
+    ["Résoudre $f(x) = 2$ graphiquement, c'est lire $f(2)$.", false, "c'est chercher les abscisses des points d'ordonnée $2$."]
+  ], ["Image : on part de $x$ ; antécédent : on cherche $x$.", "Taux de variation : variation des images sur variation de $x$.", "Croissante : même ordre ; décroissante : ordre inverse."]));
+
+  /* Figures du cours (chapitre 7) */
+  FIGURES["yf-cours-secante"] = () => tiret(graph({ xmin: -1.6, xmax: 4.6, ymin: -2.6, ymax: 6.6, h: 300, curves: [{ f: (x) => 0.5 * x * x - x + 1, a: -1.3, b: 4.2, label: "C<tspan class=\"sub\" dy=\"3\">f</tspan>", closed: false }, { f: (x) => 1 + 1.5 * (x - 1) + 0.5 * 0, a: 0, b: 4.4, closed: false }], points: [{ x: 1, y: 0.5, label: "A(1 ; 0,5)", gauche: true }, { x: 3, y: 2.5, label: "B(3 ; 2,5)" }], aria: "Courbe de f et sécante (AB) : taux de variation entre 1 et 3 égal à (2,5 − 0,5)/(3 − 1) = 1" }).replace(/<path class="g-curve g-curve-1"[^>]*d="[^"]*"/, (m) => m), 1);
+  FIGURES["yf-cours-temperature"] = () => graph({ xmin: 5, xmax: 20.8, ymin: 16, ymax: 34.4, xstep: 1, ystep: 1, xetiq: 2, yetiq: 2, h: 280, xlabel: "heure", ylabel: "°C", curves: [{ f: (t) => 32 - 0.25 * (t - 14) ** 2, a: 6, b: 20, closed: false }], hlines: [{ y: 28, label: "28 °C" }], points: [{ x: 14, y: 32, label: "max 32 °C" }], aria: "Température de 6 h à 20 h : maximum 32 °C à 14 h ; au-dessus de 28 °C entre 10 h et 18 h" });
+  FIGURES["yf-cours-croissante"] = () => graph({ xmin: -0.6, xmax: 5.6, ymin: -0.6, ymax: 5.6, h: 260, curves: [{ f: (x) => 0.2 * x * x + 0.2, a: 0, b: 5, label: "f croissante", closed: false }], points: [{ x: 1, y: 0.4, label: "f(1)", gauche: true }, { x: 4, y: 3.4, label: "f(4)" }], aria: "Fonction croissante : 1 < 4 et f(1) < f(4), la sécante monte" });
+
+  /* ---------- Chapitre 8 : fonctions polynômes de degré 2 (préfixe yp) ---------- */
+  // Parabole sous forme factorisée a(x − x1)(x − x2), racines entières, fenêtre adaptée
+  function paraboleF() {
+    const a = pick([1, 1, 1, -1, -1, 2, -2, 0.5, -0.5]), x1 = rand(-4, 2), x2 = x1 + pick([1, 2, 2, 3, 4, 4, 6]);
+    const h = (x1 + x2) / 2, v = a * (h - x1) * (h - x2);
+    if (Math.abs(v) > 9 || x2 > 6) return paraboleF();
+    return { a, x1, x2, h, v, f: (x) => a * (x - x1) * (x - x2), dev: [a, -a * (x1 + x2), a * x1 * x2] };
+  }
+  const texFact = (P) => `${P.a === 1 ? "" : P.a === -1 ? "-" : nb(P.a)}(x ${plus(-P.x1)})(x ${plus(-P.x2)})`;
+  function figParaboleF(P, extra) {
+    const ymin = Math.min(-1, P.v) - 2, ymax = Math.max(1, P.v) + 2.5;
+    const xm = Math.min(P.x1, -1) - 2, xM = Math.max(P.x2, 1) + 2;
+    const lim = (y) => P.h + Math.sqrt(Math.max(0, (y - P.v) / P.a));
+    const a0 = Math.max(xm + 0.2, 2 * P.h - lim(P.a > 0 ? ymax - 0.3 : ymin + 0.3)), b0 = Math.min(xM - 0.2, lim(P.a > 0 ? ymax - 0.3 : ymin + 0.3));
+    return graph(Object.assign({ xmin: xm, xmax: xM, ymin, ymax, h: 290, curves: [{ f: P.f, a: a0, b: b0, label: "C<tspan class=\"sub\" dy=\"3\">f</tspan>", closed: false }], aria: `Parabole tournée vers le ${P.a > 0 ? "haut" : "bas"}, coupant l'axe des abscisses en ${nbS(P.x1)} et ${nbS(P.x2)}, sommet (${nbS(P.h)} ; ${nbS(P.v)})` }, extra || {}));
+  }
+
+  def("yp-allure", () => {
+    const t = pick(["ax2", "ax2c", "fact", "fact", "sens"]);
+    if (t === "sens") {
+      const P = paraboleF();
+      const bonne = P.a > 0 ? `$a > 0$ : la parabole est tournée vers le haut, $f$ admet un minimum` : `$a < 0$ : la parabole est tournée vers le bas, $f$ admet un maximum`;
+      const ch = choix4(bonne, [P.a > 0 ? `$a < 0$ : la parabole est tournée vers le bas, $f$ admet un maximum` : `$a > 0$ : la parabole est tournée vers le haut, $f$ admet un minimum`, `$a = ${nb(P.v)}$ : c'est l'ordonnée du sommet`, "Le signe de $a$ ne se voit pas sur la courbe"]);
+      return { enonce: `Voici la courbe de $f(x) = ax^2 + bx + c$. Que peut-on dire du coefficient $a$ ?`, figure: figParaboleF(P), mode: "choix", choix: ch.choix, attendu: ch.attendu,
+        aides: ["Le signe de $a$ donne l'orientation de la parabole.", "$a > 0$ : « sourire », tournée vers le haut ; $a < 0$ : tournée vers le bas.", "Regarde si la courbe a un point le plus bas ou le plus haut."],
+        solution: `La parabole est tournée vers le ${P.a > 0 ? "haut" : "bas"} : ${bonne}.` };
+    }
+    if (t === "ax2") {
+      const a = pick([1, 2, 3, 0.5, -1, -2, -0.5, 4]);
+      const fig = graph({ xmin: -3.6, xmax: 3.6, ymin: a > 0 ? -1.6 : -9.6, ymax: a > 0 ? 9.6 : 1.6, h: 280, curves: [{ f: (x) => a * x * x, a: -Math.sqrt(9 / Math.abs(a)), b: Math.sqrt(9 / Math.abs(a)), closed: false }], points: [{ x: 1, y: a, label: `(1 ; ${nbS(a)})` }], aria: `Parabole y = ${nbS(a)}x², sommet à l'origine, passant par (1 ; ${nbS(a)})` });
+      const ch = choix4(`$f(x) = ${coef(a, "x^2")}$`, [`$f(x) = ${coef(-a, "x^2")}$`, `$f(x) = ${coef(a === 1 ? 2 : 1, "x^2")}$`, `$f(x) = ${coef(a, "x")}$`, `$f(x) = x^2 ${plus(a)}$`]);
+      return { enonce: `Cette parabole a son sommet à l'origine. Quelle est l'expression de $f$ ?`, figure: fig, mode: "choix", choix: ch.choix, attendu: ch.attendu,
+        aides: ["Une parabole de sommet $(0\\,;0)$ a une équation de la forme $y = ax^2$.", "Le signe de $a$ : vers le haut si $a > 0$, vers le bas si $a < 0$.", `Le point $(1\\,;${nb(a)})$ est sur la courbe : $a \\times 1^2 = ${nb(a)}$.`],
+        solution: `Sommet à l'origine : $f(x) = ax^2$. Avec le point $(1\\,;${nb(a)})$, $a = ${nb(a)}$ : $f(x) = ${coef(a, "x^2")}$.` };
+    }
+    if (t === "ax2c") {
+      const a = pick([1, 2, -1, -2, 0.5, -0.5]), c = nz2(-5, 5);
+      const fig = graph({ xmin: -3.6, xmax: 3.6, ymin: Math.min(c, a > 0 ? c : c - 8) - 1.6, ymax: Math.max(c, a > 0 ? c + 8 : c) + 1.6, h: 280, curves: [{ f: (x) => a * x * x + c, a: -Math.sqrt(8 / Math.abs(a)), b: Math.sqrt(8 / Math.abs(a)), closed: false }], points: [{ x: 0, y: c, label: `(0 ; ${nbS(c)})` }, { x: 1, y: a + c, label: `(1 ; ${nbS(a + c)})` }], aria: `Parabole y = ${nbS(a)}x² + ${nbS(c)}, sommet (0 ; ${nbS(c)})` });
+      const ch = choix4(`$f(x) = ${coef(a, "x^2")} ${plus(c)}$`, [`$f(x) = ${coef(a, "x^2")} ${plus(-c)}$`, `$f(x) = ${coef(-a, "x^2")} ${plus(c)}$`, `$f(x) = ${coef(c, "x^2")} ${plus(a)}$`, `$f(x) = (x ${plus(c)})^2$`]);
+      return { enonce: `Cette parabole a son sommet sur l'axe des ordonnées. Quelle est l'expression de $f$ ?`, figure: fig, mode: "choix", choix: ch.choix, attendu: ch.attendu,
+        aides: ["Sommet sur l'axe des ordonnées : $f(x) = ax^2 + c$, avec $c = f(0)$ l'ordonnée du sommet.", `Ici $c = ${nb(c)}$.`, `Le point $(1\\,;${nb(a + c)})$ donne $a + ${pr(c)} = ${nb(a + c)}$, donc $a = ${nb(a)}$.`],
+        solution: `$f(x) = ax^2 + c$ avec $c = f(0) = ${nb(c)}$ et $f(1) = a ${plus(c)} = ${nb(a + c)}$, donc $a = ${nb(a)}$ : $f(x) = ${coef(a, "x^2")} ${plus(c)}$.` };
+    }
+    const P = paraboleF();
+    const bonne = `$f(x) = ${texFact(P)}$`;
+    const Q = { a: P.a, x1: -P.x1, x2: -P.x2 }, R = { a: -P.a, x1: P.x1, x2: P.x2 };
+    const ch = choix4(bonne, [`$f(x) = ${texFact(Q)}$`, `$f(x) = ${texFact(R)}$`, `$f(x) = ${P.a === 1 ? "" : P.a === -1 ? "-" : nb(P.a)}(x ${plus(-P.x1)})(x ${plus(P.x2)})$`, `$f(x) = ${coef(P.a, "x^2")} ${plus(P.x1 * P.x2)}$`]);
+    return { enonce: `Cette parabole coupe l'axe des abscisses en $${nb(P.x1)}$ et $${nb(P.x2)}$. Quelle est l'expression de $f$ ?`, figure: figParaboleF(P, { points: [{ x: P.x1, y: 0 }, { x: P.x2, y: 0 }, { x: P.h, y: P.v, label: `(${nbS(P.h)} ; ${nbS(P.v)})` }] }), mode: "choix", choix: ch.choix, attendu: ch.attendu,
+      aides: ["Racines $x_1$ et $x_2$ : $f(x) = a(x - x_1)(x - x_2)$.", `Ici $x_1 = ${nb(P.x1)}$ et $x_2 = ${nb(P.x2)}$ : attention aux signes dans les parenthèses.`, `Le sommet $(${nb(P.h)}\\,;${nb(P.v)})$ permet de trouver $a$ : $a(${nb(P.h)} ${plus(-P.x1)})(${nb(P.h)} ${plus(-P.x2)}) = ${nb(P.v)}$.`],
+      solution: `Les racines sont $${nb(P.x1)}$ et $${nb(P.x2)}$ : $f(x) = a(x ${plus(-P.x1)})(x ${plus(-P.x2)})$. Le sommet $(${nb(P.h)}\\,;${nb(P.v)})$ donne $a \\times ${pr(P.h - P.x1)} \\times ${pr(P.h - P.x2)} = ${nb(P.v)}$, soit $a = ${nb(P.a)}$ : ${bonne.slice(1, -1)}.` };
+  });
+
+  def("yp-sommet", () => {
+    const P = paraboleF(), t = pick(["axe", "axe", "ordonnee", "symetrie", "variations"]);
+    if (t === "symetrie") {
+      const a = pick([1, 1, 2, -1, -2, 3]), b = nz2(-9, 9), c = rand(-6, 6);
+      const h = -b / (2 * a), fr2 = !Number.isInteger(h * 100);
+      if (!Number.isInteger(h * 4)) return GEN["yp-sommet"]();
+      return { enonce: `On pose $f(x) = ${poly([a, b, c])}$. En résolvant $f(x) = ${nb(c)}$, détermine l'abscisse du sommet de la parabole${fr2 ? " (fraction)" : ""}.`, mode: "nombre", prefixe: "Abscisse du sommet :", attendu: h,
+        erreurs: [{ valeur: -b / a, message: `$f(x) = ${nb(c)}$ a pour solutions $0$ et $${frac(-b, a)}$ : le sommet est au **milieu**.` }, { valeur: b / (2 * a), message: "Attention au signe." }, { valeur: c, message: "On demande l'abscisse, pas l'ordonnée $f(0)$." }, ...(fr2 ? approx(h) : [])],
+        aides: [`$f(x) = ${nb(c)} \\Leftrightarrow ${poly([a, b, 0])} = 0 \\Leftrightarrow x(${aff(a, b)}) = 0$.`, `Solutions : $x = 0$ et $x = ${frac(-b, a)}$ : deux points de la parabole à la même hauteur $${nb(c)}$.`, "Par symétrie, le sommet est au milieu de ces deux abscisses."],
+        solution: `$f(x) = ${nb(c)} \\Leftrightarrow x(${aff(a, b)}) = 0 \\Leftrightarrow x = 0$ ou $x = ${frac(-b, a)}$. Les points d'abscisses $0$ et $${frac(-b, a)}$ ont la même ordonnée $${nb(c)}$ : l'axe de symétrie passe au milieu, $x = \\dfrac{0 + ${-b / a < 0 ? `(${frac(-b, a)})` : frac(-b, a)}}{2} = ${frac(-b, 2 * a)}$.` };
+    }
+    if (t === "variations") {
+      const bonne = P.a > 0 ? `décroissante sur $]-\\infty\\,;${nb(P.h)}]$ puis croissante sur $[${nb(P.h)}\\,;+\\infty[$, minimum $${nb(P.v)}$` : `croissante sur $]-\\infty\\,;${nb(P.h)}]$ puis décroissante sur $[${nb(P.h)}\\,;+\\infty[$, maximum $${nb(P.v)}$`;
+      const ch = choix4(bonne, [P.a > 0 ? `croissante sur $]-\\infty\\,;${nb(P.h)}]$ puis décroissante sur $[${nb(P.h)}\\,;+\\infty[$, maximum $${nb(P.v)}$` : `décroissante sur $]-\\infty\\,;${nb(P.h)}]$ puis croissante sur $[${nb(P.h)}\\,;+\\infty[$, minimum $${nb(P.v)}$`, `${P.a > 0 ? "décroissante" : "croissante"} sur $]-\\infty\\,;${nb(P.v)}]$ puis ${P.a > 0 ? "croissante" : "décroissante"} sur $[${nb(P.v)}\\,;+\\infty[$, extremum $${nb(P.h)}$`, `${P.a > 0 ? "décroissante" : "croissante"} sur $]-\\infty\\,;${nb(P.x1)}]$ puis ${P.a > 0 ? "croissante" : "décroissante"} sur $[${nb(P.x2)}\\,;+\\infty[$`]);
+      return { enonce: `On pose $f(x) = ${texFact(P)}$. Quel est le tableau de variations de $f$ ?`, mode: "choix", choix: ch.choix, attendu: ch.attendu, figureSolution: tabSV(["−∞", nbS(P.h), "+∞"], [P.a > 0 ? "-" : "+", "", P.a > 0 ? "+" : "-"], ["", nbS(P.v), ""], "f", true),
+        aides: [`Racines $${nb(P.x1)}$ et $${nb(P.x2)}$ : l'axe de symétrie est $x = \\dfrac{${nb(P.x1)} + ${pr(P.x2)}}{2} = ${nb(P.h)}$.`, `$a = ${nb(P.a)}$ ${P.a > 0 ? "> 0" : "< 0"} : parabole tournée vers le ${P.a > 0 ? "haut" : "bas"}.`, `L'extremum vaut $f(${nb(P.h)}) = ${nb(P.v)}$.`],
+        solution: `Sommet d'abscisse $${nb(P.h)}$ (milieu des racines) et d'ordonnée $f(${nb(P.h)}) = ${nb(P.v)}$ ; $a ${P.a > 0 ? "> 0" : "< 0"}$ : $f$ est ${bonne}.` };
+    }
+    if (t === "ordonnee") return { enonce: `On pose $f(x) = ${texFact(P)}$. L'axe de symétrie de la parabole est $x = ${nb(P.h)}$. Calcule l'ordonnée du sommet.`, mode: "nombre", prefixe: "Ordonnée du sommet :", attendu: P.v,
+      erreurs: [{ valeur: P.h, message: "Ça, c'est l'abscisse. L'ordonnée du sommet est $f(" + nb(P.h) + ")$." }, { valeur: -P.v, message: "Vérifie les signes dans le calcul de $f(" + nb(P.h) + ")$." }, { valeur: P.a * (P.h - P.x1) * (P.h - P.x2) / P.a, message: `N'oublie pas le coefficient $${nb(P.a)}$.` }],
+      aides: ["L'ordonnée du sommet est l'image de l'abscisse du sommet.", `Calcule $f(${nb(P.h)}) = ${P.a === 1 ? "" : P.a === -1 ? "-" : nb(P.a) + " \\times "}(${nb(P.h)} ${plus(-P.x1)})(${nb(P.h)} ${plus(-P.x2)})$.`, `$(${nb(P.h - P.x1)}) \\times (${nb(P.h - P.x2)}) = ${nb((P.h - P.x1) * (P.h - P.x2))}$.`],
+      solution: `$f(${nb(P.h)}) = ${P.a === 1 ? "" : P.a === -1 ? "-" : nb(P.a) + " \\times "}${pr(P.h - P.x1)} \\times ${pr(P.h - P.x2)} = ${nb(P.v)}$ : le sommet est $(${nb(P.h)}\\,;${nb(P.v)})$, ${P.a > 0 ? "minimum" : "maximum"} de $f$.` };
+    const fr2 = !Number.isInteger(P.h);
+    return { enonce: `On pose $f(x) = ${texFact(P)}$. Quelle est l'équation de l'axe de symétrie de sa parabole ? Donne l'abscisse $x = \\dots$${fr2 ? " (nombre décimal ou fraction)" : ""}.`, mode: "nombre", prefixe: "$x =$", attendu: P.h,
+      erreurs: [{ valeur: P.x1 + P.x2, message: "L'axe passe au **milieu** des racines : divise la somme par $2$." }, { valeur: P.v, message: "On demande l'abscisse de l'axe, pas l'ordonnée du sommet." }, { valeur: -P.h, message: "Attention aux signes des racines." }],
+      aides: [`Les racines sont $${nb(P.x1)}$ et $${nb(P.x2)}$ (valeurs qui annulent les facteurs).`, "L'axe de symétrie passe par le milieu des racines.", `$\\dfrac{${nb(P.x1)} + ${pr(P.x2)}}{2}$.`],
+      solution: `Racines $${nb(P.x1)}$ et $${nb(P.x2)}$ : par symétrie, l'axe est $x = \\dfrac{${nb(P.x1)} + ${pr(P.x2)}}{2} = ${nb(P.h)}$. Le sommet a pour abscisse $${nb(P.h)}$.` };
+  });
+
+  def("yp-racines", () => {
+    const P = paraboleF(), t = pick(["fact", "fact", "graph", "verifier"]);
+    if (t === "verifier") {
+      const cands = [P.x1, P.x2, P.x1 - 1, P.x2 + 1, 0, P.x1 + P.x2].filter((x, i, A) => A.indexOf(x) === i);
+      const bon = pick([P.x1, P.x2]), faux = cands.filter((x) => x !== P.x1 && x !== P.x2);
+      const ch = choix4(`$${nb(bon)}$`, faux.map((x) => `$${nb(x)}$`));
+      const dev = poly(P.dev.map((c) => (Number.isInteger(c) ? c : c)));
+      if (!Number.isInteger(P.a)) return GEN["yp-racines"]();
+      return { enonce: `On pose $f(x) = ${dev}$. Lequel de ces nombres est une racine de $f$ (c'est-à-dire vérifie $f(x) = 0$) ?`, mode: "choix", choix: ch.choix, attendu: ch.attendu,
+        aides: ["Une racine est une valeur $x$ telle que $f(x) = 0$.", "Calcule $f$ pour chaque proposition.", `$f(${nb(bon)}) = ${dev.replace(/x/g, `(${nb(bon)})`)}$.`],
+        solution: `$f(${nb(bon)}) = ${dev.replace(/x/g, `(${nb(bon)})`)} = 0$ : $${nb(bon)}$ est une racine. (L'autre racine est $${nb(bon === P.x1 ? P.x2 : P.x1)}$ ; les autres propositions ne donnent pas $0$.)` };
+    }
+    if (t === "graph") return { enonce: `Voici la courbe de $f$. Lis graphiquement les racines de $f$ (séparées par « ; »).`, figure: figParaboleF(P), mode: "ensemble", attendu: [P.x1, P.x2],
+      aides: ["Les racines sont les abscisses des points où la courbe coupe l'axe des abscisses.", "Il y en a deux ici.", `La courbe coupe l'axe en $${nb(P.x1)}$ et $${nb(P.x2)}$.`],
+      solution: `La parabole coupe l'axe des abscisses en $x = ${nb(P.x1)}$ et $x = ${nb(P.x2)}$ : ce sont les racines de $f$, et $f(x) = ${texFact(P)}$.` };
+    return { enonce: `On pose $f(x) = ${texFact(P)}$. Détermine les racines de $f$ (séparées par « ; »).`, mode: "ensemble", attendu: [P.x1, P.x2],
+      aides: ["Les racines sont les solutions de $f(x) = 0$.", "Un produit est nul si et seulement si l'un des facteurs est nul.", `$x ${plus(-P.x1)} = 0$ ou $x ${plus(-P.x2)} = 0$.`],
+      solution: `$f(x) = 0 \\Leftrightarrow x ${plus(-P.x1)} = 0$ ou $x ${plus(-P.x2)} = 0 \\Leftrightarrow x = ${nb(P.x1)}$ ou $x = ${nb(P.x2)}$. La parabole coupe l'axe des abscisses en ces deux points.` };
+  });
+
+  def("yp-factoriser", () => {
+    const t = pick(["autre-racine", "autre-racine", "forme", "developper"]);
+    const P = paraboleF();
+    if (!Number.isInteger(P.a)) return GEN["yp-factoriser"]();
+    const dev = poly(P.dev);
+    if (t === "developper") {
+      const quoi = pick(["b", "c"]), att = quoi === "b" ? P.dev[1] : P.dev[2];
+      return { enonce: `Développe $f(x) = ${texFact(P)}$ sous la forme $ax^2 + bx + c$. Que vaut $${quoi}$ ?`, mode: "nombre", prefixe: `$${quoi} =$`, attendu: att,
+        erreurs: [{ valeur: quoi === "b" ? P.dev[2] : P.dev[1], message: quoi === "b" ? "Ça, c'est $c$." : "Ça, c'est $b$." }, { valeur: -att, message: "Vérifie les signes." }, { valeur: quoi === "b" ? -(P.x1 + P.x2) : P.x1 * P.x2, message: `N'oublie pas de multiplier par $a = ${nb(P.a)}$.` }],
+        aides: [`Développe d'abord $(x ${plus(-P.x1)})(x ${plus(-P.x2)}) = x^2 ${pt(-(P.x1 + P.x2), "x")} ${plus(P.x1 * P.x2)}$.`, `Puis multiplie tout par $${nb(P.a)}$.`, `$f(x) = ${dev}$.`],
+        solution: `$(x ${plus(-P.x1)})(x ${plus(-P.x2)}) = ${poly([1, -(P.x1 + P.x2), P.x1 * P.x2])}$, puis $f(x) = ${nb(P.a)} \\times (\\dots) = ${dev}$. Donc $${quoi} = ${nb(att)}$.` };
+    }
+    if (t === "forme") {
+      const bonne = `$f(x) = ${texFact(P)}$`;
+      const ch = choix4(bonne, [`$f(x) = ${texFact({ a: P.a, x1: -P.x1, x2: -P.x2 })}$`, `$f(x) = ${texFact({ a: P.a, x1: P.x1, x2: -P.x2 })}$`, `$f(x) = (x ${plus(-P.x1)})(x ${plus(-P.x2)})$`, `$f(x) = ${texFact({ a: -P.a, x1: P.x1, x2: P.x2 })}$`].filter((s) => s !== bonne));
+      return { enonce: `On sait que $f(x) = ${dev}$ a pour racines $${nb(P.x1)}$ et $${nb(P.x2)}$. Quelle est sa forme factorisée ?`, mode: "choix", choix: ch.choix, attendu: ch.attendu,
+        aides: ["Avec les racines $x_1$ et $x_2$ : $f(x) = a(x - x_1)(x - x_2)$, où $a$ est le coefficient de $x^2$.", `Ici $a = ${nb(P.a)}$.`, "Vérifie en développant, ou avec une valeur simple de $x$."],
+        solution: `$a = ${nb(P.a)}$ (coefficient de $x^2$) et les racines sont $${nb(P.x1)}$, $${nb(P.x2)}$ : $f(x) = ${texFact(P)}$. En développant, on retrouve $${dev}$.` };
+    }
+    const connue = pick([P.x1, P.x2]), autre = connue === P.x1 ? P.x2 : P.x1;
+    return { enonce: `On pose $f(x) = ${dev}$. On sait que $${nb(connue)}$ est une racine de $f$. Trouve l'autre racine.`, mode: "nombre", prefixe: "Autre racine :", attendu: autre,
+      erreurs: [{ valeur: -autre, message: "Attention au signe : écris $f(x) = a(x - x_1)(x - x_2)$ et identifie." }, { valeur: -connue, message: "Ce n'est pas l'opposé de la racine connue." }, { valeur: P.dev[2], message: "Le terme constant vaut $a x_1 x_2$, pas directement une racine." }],
+      aides: [`Écris $f(x) = ${nb(P.a)}(x ${plus(-connue)})(x - x_2)$ et développe le terme constant : $${nb(P.a)} \\times ${pr(-connue)} \\times (-x_2) = ${nb(P.dev[2])}$.`, `Donc $x_2 = \\dfrac{${nb(P.dev[2])}}{${nb(P.a * connue)}}$ (si $x_1 \\neq 0$) ; sinon utilise le coefficient de $x$ : $-a(x_1 + x_2) = ${nb(P.dev[1])}$.`, `L'autre racine est $${nb(autre)}$.`],
+      solution: `$f(x) = ${nb(P.a)}(x ${plus(-connue)})(x - x_2)$. ${connue !== 0 ? `Le terme constant donne $${nb(P.a)} \\times ${pr(-connue)} \\times (-x_2) = ${nb(P.dev[2])}$, soit $x_2 = ${nb(autre)}$.` : `Le coefficient de $x$ donne $${coef(-P.a, "x_2")} = ${nb(P.dev[1])}$, soit $x_2 = ${nb(autre)}$.`} Donc $f(x) = ${texFact(P)}$.` };
+  });
+
+  def("yp-signe", () => {
+    const P = paraboleF(), t = pick(["intervalle", "intervalle", "valeur", "graph"]);
+    const ext = P.a > 0;
+    const fig = tabSigne(["−∞", nbS(P.x1), nbS(P.x2), "+∞"], [ext ? "+" : "-", "0", ext ? "-" : "+", "0", ext ? "+" : "-"], "f(x)");
+    const dehors = `$]-\\infty\\,;${nb(P.x1)}] \\cup [${nb(P.x2)}\\,;+\\infty[$`, dedans = `$[${nb(P.x1)}\\,;${nb(P.x2)}]$`;
+    if (t === "valeur") {
+      const x = pick([P.x1 - rand(1, 3), rand(P.x1 + 1, P.x2 - 1), P.x2 + rand(1, 3)].filter((v) => Number.isInteger(v) && v > P.x1 - 4 && v < P.x2 + 4 && v !== P.x1 && v !== P.x2));
+      if (x === undefined) return GEN["yp-signe"]();
+      const v = P.f(x), bonne = v > 0 ? "strictement positif" : "strictement négatif";
+      const ch = choix4(bonne, ["strictement positif", "strictement négatif", "nul", "impossible à déterminer sans calculer"].filter((s) => s !== bonne));
+      return { enonce: `On pose $f(x) = ${texFact(P)}$. Sans calculer $f(${nb(x)})$, donne son signe.`, mode: "choix", choix: ch.choix, attendu: ch.attendu, figureSolution: fig,
+        aides: [`Racines : $${nb(P.x1)}$ et $${nb(P.x2)}$.`, `$a = ${nb(P.a)}$ : $f(x)$ est du signe de $a$ à l'extérieur des racines, du signe contraire entre les racines.`, `$${nb(x)}$ est ${x > P.x1 && x < P.x2 ? "entre" : "à l'extérieur"} des racines.`],
+        solution: `$${nb(x)}$ est ${x > P.x1 && x < P.x2 ? "entre les racines" : "à l'extérieur des racines"} : $f(${nb(x)})$ est du signe ${x > P.x1 && x < P.x2 ? "contraire à" : "de"} $a = ${nb(P.a)}$, donc ${bonne}. (Vérification : $f(${nb(x)}) = ${nb(v)}$.)` };
+    }
+    if (t === "graph") {
+      const q = pick([">", "<"]);
+      const bonne = (q === ">") === ext ? dehors.replace(/\]/g, "]").replace(`[${nb(P.x2)}`, `]${nb(P.x2)}`).replace(`${nb(P.x1)}]`, `${nb(P.x1)}[`) : dedans.replace("[", "]").replace("]$", "[$");
+      const autre = (q === ">") === ext ? dedans.replace("[", "]").replace("]$", "[$") : dehors.replace(`[${nb(P.x2)}`, `]${nb(P.x2)}`).replace(`${nb(P.x1)}]`, `${nb(P.x1)}[`);
+      const ch = choix4(bonne, [autre, dedans, dehors].filter((s) => s !== bonne));
+      return { enonce: `Voici la courbe de $f$. Résous graphiquement $f(x) ${q} 0$.`, figure: figParaboleF(P), mode: "choix", choix: ch.choix, attendu: ch.attendu,
+        aides: [`La courbe coupe l'axe des abscisses en $${nb(P.x1)}$ et $${nb(P.x2)}$.`, q === ">" ? "$f(x) > 0$ là où la courbe est **au-dessus** de l'axe des abscisses." : "$f(x) < 0$ là où la courbe est **en dessous** de l'axe des abscisses.", "Inégalité stricte : les racines sont exclues."],
+        solution: `La courbe est ${ext ? "au-dessus de l'axe à l'extérieur des racines et en dessous entre elles" : "en dessous de l'axe à l'extérieur des racines et au-dessus entre elles"}. Donc $f(x) ${q} 0$ pour $x \\in ${bonne.slice(1, -1)}$.` };
+    }
+    const q = pick(["pos", "neg"]), bonne = (q === "pos") === ext ? dehors : dedans;
+    const ch = choix4(bonne, [(q === "pos") === ext ? dedans : dehors, `$]-\\infty\\,;${nb(P.x1)}]$`, `$[${nb(P.x2)}\\,;+\\infty[$`]);
+    return { enonce: `On pose $f(x) = ${texFact(P)}$. Résous $f(x) ${q === "pos" ? "\\geqslant" : "\\leqslant"} 0$.`, mode: "choix", choix: ch.choix, attendu: ch.attendu, figureSolution: fig,
+      aides: [`Racines : $${nb(P.x1)}$ et $${nb(P.x2)}$.`, `Signe de $a = ${nb(P.a)}$ à l'extérieur des racines, signe contraire entre les deux.`, "Dresse le tableau de signes et lis l'ensemble demandé (bornes comprises)."],
+      solution: `Tableau de signes : $f(x)$ est ${ext ? "positif à l'extérieur des racines et négatif entre" : "négatif à l'extérieur des racines et positif entre"} $${nb(P.x1)}$ et $${nb(P.x2)}$. Donc $f(x) ${q === "pos" ? "\\geqslant" : "\\leqslant"} 0$ sur ${bonne}.` };
+  });
+
+  def("yp-modeliser", () => {
+    const S = pick([
+      { ctx: (k) => `Une balle est lancée ; sa hauteur (en m) après $t$ secondes est $h(t) = -5t^2 + ${10 * k}t$.`, k: () => rand(1, 4), r1: () => 0, r2: (k) => 2 * k, hmax: (k) => 5 * k * k, th: (k) => k, qs: ["retombe", "hmax", "th"], f: (k) => (t) => -5 * t * t + 10 * k * t, u: "m", v: "s" },
+      { ctx: (k) => `Avec $${4 * k}$ m de grillage, on entoure un jardin rectangulaire de largeur $x$. Son aire est $A(x) = x(${2 * k} - x)$.`, k: () => rand(3, 12), r1: () => 0, r2: (k) => 2 * k, hmax: (k) => k * k, th: (k) => k, qs: ["hmax", "th", "racines"], f: (k) => (x) => x * (2 * k - x), u: "m²", v: "m" },
+      { ctx: (k) => `Le bénéfice (en centaines d'euros) d'un snack qui vend $x$ dizaines de repas est $B(x) = -(x - 2)(x - ${2 + 2 * k})$.`, k: () => rand(2, 6), r1: () => 2, r2: (k) => 2 + 2 * k, hmax: (k) => k * k, th: (k) => 2 + k, qs: ["hmax", "th", "racines"], f: (k) => (x) => -(x - 2) * (x - 2 - 2 * k), u: "centaines d'€", v: "dizaines de repas" }
+    ]);
+    const k = S.k(), q = pick(S.qs), r1 = S.r1(k), r2 = S.r2(k), hmax = S.hmax(k), th = S.th(k), f = S.f(k);
+    const fig = graph(repere([f], r1 - 0.5, r2 + 0.5, { curves: [{ f, a: r1, b: r2, closed: false }], xlabel: S.v, ylabel: S.u, aria: `Parabole tournée vers le bas, nulle en ${nbS(r1)} et ${nbS(r2)}, maximum ${nbS(hmax)} en ${nbS(th)}` }));
+    if (q === "retombe") return { enonce: `${S.ctx(k)} Au bout de combien de temps la balle retombe-t-elle au sol ($h(t) = 0$, $t > 0$) ?`, figure: fig, mode: "nombre", prefixe: "$t =$", attendu: r2, suffixe: "s",
+      erreurs: [{ valeur: th, message: "C'est l'instant de la hauteur maximale ; la balle retombe au sol deux fois plus tard." }, { valeur: hmax, message: "On demande un temps, pas une hauteur." }],
+      aides: [`$h(t) = -5t^2 + ${10 * k}t = -5t(t - ${2 * k})$ (factorise).`, "Produit nul : $t = 0$ (départ) ou $t - " + 2 * k + " = 0$.", "On garde la solution strictement positive."],
+      solution: `$h(t) = -5t(t - ${2 * k}) = 0 \\Leftrightarrow t = 0$ ou $t = ${2 * k}$. La balle retombe au bout de $${2 * k}$ s. (Le sommet, à $t = ${k}$ s, est au milieu des deux racines.)` };
+    if (q === "racines") return { enonce: `${S.ctx(k)} Pour quelles valeurs de $x$ la grandeur est-elle nulle (séparées par « ; ») ?`, figure: fig, mode: "ensemble", attendu: [r1, r2],
+      aides: ["La grandeur est nulle quand le produit est nul.", "Un produit est nul si et seulement si l'un des facteurs est nul.", `Les deux valeurs sont $${nb(r1)}$ et $${nb(r2)}$.`],
+      solution: `Produit nul : $x = ${nb(r1)}$ ou $x = ${nb(r2)}$. ${S.u === "m²" ? "Dans les deux cas le rectangle est aplati : l'aire est nulle." : "Entre ces deux valeurs, le bénéfice est positif ; en dehors, le snack perd de l'argent."}` };
+    if (q === "th") return { enonce: `${S.ctx(k)} Pour quelle valeur de ${S.v === "s" ? "$t$" : "$x$"} la grandeur est-elle maximale ?`, figure: fig, mode: "nombre", prefixe: S.v === "s" ? "$t =$" : "$x =$", attendu: th, suffixe: S.v,
+      erreurs: [{ valeur: hmax, message: "On demande la valeur de la variable, pas le maximum lui-même." }, { valeur: r2, message: "À cette valeur la grandeur est nulle. Le maximum est au milieu des racines." }],
+      aides: [`Les racines sont $${nb(r1)}$ et $${nb(r2)}$.`, "La parabole est tournée vers le bas : le maximum est au sommet, au milieu des racines.", `$\\dfrac{${nb(r1)} + ${nb(r2)}}{2}$.`],
+      solution: `Racines $${nb(r1)}$ et $${nb(r2)}$ ; par symétrie, le sommet a pour abscisse $\\dfrac{${nb(r1)} + ${nb(r2)}}{2} = ${nb(th)}$ : la grandeur est maximale pour ${S.v === "s" ? "$t$" : "$x$"} $= ${nb(th)}$ ${S.v}.` };
+    return { enonce: `${S.ctx(k)} Quelle est la valeur maximale de cette grandeur ?`, figure: fig, mode: "nombre", prefixe: "Maximum :", attendu: hmax, suffixe: S.u,
+      erreurs: [{ valeur: th, message: "Ça, c'est la valeur de la variable au sommet. Le maximum est l'image de cette valeur." }, { valeur: arr(f(th + 1)), message: `Le sommet est en ${S.v === "s" ? "$t$" : "$x$"} $= ${nb(th)}$, milieu des racines.` }],
+      aides: [`Racines $${nb(r1)}$ et $${nb(r2)}$ : le sommet est en ${S.v === "s" ? "$t$" : "$x$"} $= ${nb(th)}$.`, `Calcule l'image de $${nb(th)}$.`, `$${nb(hmax)}$.`],
+      solution: `Le sommet est atteint au milieu des racines, en $${nb(th)}$, et vaut $f(${nb(th)}) = ${nb(hmax)}$ : le maximum est $${nb(hmax)}$ ${S.u}.` };
+  });
+
+  def("yp-vrai-faux", () => vraiFaux4([
+    ["La courbe de $f(x) = 3x^2$ est tournée vers le haut.", true, "$a = 3 > 0$."],
+    ["La parabole de $f(x) = -2x^2 + 5$ a pour sommet $(0\\,;5)$.", true, "forme $ax^2 + c$ : sommet sur l'axe des ordonnées, en $(0\\,;c)$."],
+    ["$f(x) = (x - 1)(x - 5)$ a pour racines $1$ et $5$.", true, "produit nul."],
+    ["L'axe de symétrie de la parabole $y = (x - 1)(x - 5)$ est $x = 3$.", true, "milieu des racines $\\dfrac{1 + 5}{2}$."],
+    ["$f(x) = (x - 1)(x - 5)$ est négatif entre $1$ et $5$.", true, "$a = 1 > 0$ : signe contraire entre les racines."],
+    ["$2$ est une racine de $f(x) = x^2 - 3x + 2$.", true, "$4 - 6 + 2 = 0$."],
+    ["Si $f(x) = a(x - x_1)(x - x_2)$ avec $a < 0$, $f$ admet un maximum.", true, "parabole tournée vers le bas."],
+    ["Deux points d'une parabole de même ordonnée sont symétriques par rapport à l'axe de symétrie.", true, "c'est ce qui permet de trouver l'axe en résolvant $f(x) = c$."],
+    ["La courbe de $f(x) = -x^2 + 4$ est tournée vers le haut.", false, "$a = -1 < 0$ : vers le bas."],
+    ["$f(x) = (x + 3)(x - 2)$ a pour racines $3$ et $2$.", false, "$x + 3 = 0$ donne $-3$ : racines $-3$ et $2$."],
+    ["Le sommet de la parabole $y = (x - 2)(x - 6)$ a pour ordonnée $4$.", false, "abscisse $4$, ordonnée $f(4) = (2)(-2) = -4$."],
+    ["Pour trouver les racines d'un polynôme de degré $2$, il faut toujours calculer le discriminant.", false, "avec la forme factorisée ou une racine évidente, pas besoin (le discriminant n'est pas au programme)."],
+    ["$f(x) = (x - 1)(x - 5)$ est positif pour $x = 3$.", false, "$3$ est entre les racines : $f(3) = (2)(-2) = -4 < 0$."],
+    ["Si $3$ est racine de $x^2 - 7x + 12$, l'autre racine est $-4$.", false, "$x^2 - 7x + 12 = (x - 3)(x - 4)$ : l'autre racine est $4$."]
+  ], ["Signe de $a$ : orientation ; racines : où la courbe coupe l'axe des abscisses.", "Axe de symétrie au milieu des racines.", "Signe de $a$ à l'extérieur des racines, contraire entre."]));
+
+  /* Figures du cours (chapitre 8) */
+  FIGURES["yp-cours-orientation"] = () => graph({ xmin: -3.6, xmax: 3.6, ymin: -5.6, ymax: 5.6, h: 280, curves: [{ f: (x) => 0.5 * x * x, a: -3.2, b: 3.2, label: "a > 0", closed: false }, { f: (x) => -0.5 * x * x, a: -3.2, b: 3.2, label: "a < 0", closed: false }], points: [{ x: 0, y: 0, label: "sommet (0 ; 0)" }], aria: "Deux paraboles de sommet l'origine : y = 0,5x² tournée vers le haut, y = −0,5x² tournée vers le bas" });
+  FIGURES["yp-cours-factorisee"] = () => graph({ xmin: -2.6, xmax: 6.6, ymin: -5.6, ymax: 6.6, h: 300, curves: [{ f: (x) => (x - 1) * (x - 5), a: -0.4, b: 6.4, label: "y = (x − 1)(x − 5)", closed: false }, { f: () => 0, a: 3, b: 3, closed: false }], points: [{ x: 1, y: 0, label: "1", gauche: true }, { x: 5, y: 0, label: "5" }, { x: 3, y: -4, label: "sommet (3 ; −4)" }], hlines: [], aria: "Parabole y = (x − 1)(x − 5) : racines 1 et 5, axe de symétrie x = 3, sommet (3 ; −4)" });
+  FIGURES["yp-cours-signe"] = () => tabSigne(["−∞", "1", "5", "+∞"], ["+", "0", "−", "0", "+"], "", [["x − 1", ["−", "0", "+", "", "+"]], ["x − 5", ["−", "", "−", "0", "+"]], ["f(x)", ["+", "0", "−", "0", "+"]]]);
+  FIGURES["yp-cours-trajectoire"] = () => graph({ xmin: -0.5, xmax: 4.7, ymin: -1.5, ymax: 22, xstep: 0.5, ystep: 2, xetiq: 1, yetiq: 4, h: 280, xlabel: "t (s)", ylabel: "h (m)", curves: [{ f: (t) => -5 * t * t + 20 * t, a: 0, b: 4, closed: false }], points: [{ x: 2, y: 20, label: "max 20 m à t = 2 s" }, { x: 4, y: 0, label: "sol à t = 4 s", gauche: true }], aria: "Hauteur d'une balle h(t) = −5t² + 20t : maximum 20 m à 2 s, retour au sol à 4 s" });
+
+  /* ---------- Chapitre 9 : nombre dérivé et tangente (préfixe yd) ---------- */
+  // Fonctions dont on connaît le nombre dérivé : f(x) = p x² + q x + r (f'(a) = 2pa + q) ou x³ (3a²)
+  function fonctionDer() {
+    if (Math.random() < 0.2) { const r = rand(-3, 3); return { tex: poly([1, 0, 0, r]), f: (x) => x ** 3 + r, d: (x) => 3 * x * x, type: "cube", p: 0, q: 0, r }; }
+    const p = pick([1, 1, 1, -1, 2, 0.5, -0.5]), q = rand(-4, 4), r = rand(-4, 4);
+    return { tex: poly([p, q, r]), f: (x) => p * x * x + q * x + r, d: (x) => 2 * p * x + q, type: "carre", p, q, r };
+  }
+  function figTangente(F, a, extra) {
+    const fa = F.f(a), m = F.d(a);
+    const o = repere([F.f], Math.min(a, 0) - 2, Math.max(a, 0) + 2, { h: 300, curves: [{ f: F.f, a: Math.min(a, 0) - 2, b: Math.max(a, 0) + 2, label: "C<tspan class=\"sub\" dy=\"3\">f</tspan>", closed: false }, { f: (x) => fa + m * (x - a), a: a - 1.6, b: a + 1.6, closed: false }], points: [{ x: a, y: fa, label: `A(${nbS(a)} ; ${nbS(fa)})` }], aria: `Courbe de f et sa tangente au point A(${nbS(a)} ; ${nbS(fa)}), de coefficient directeur ${nbS(m)}` });
+    return tiret(graph(Object.assign(o, extra || {})), 1);
+  }
+
+  def("yd-taux-h", () => {
+    const F = fonctionDer(), a = rand(-3, 3), h = pick([1, 0.5, 0.1, 0.01, 2]);
+    if (F.type === "cube" && Math.abs(a) > 2) return GEN["yd-taux-h"]();
+    const t = pick(["taux", "taux", "limite"]);
+    const tx = arr((F.f(a + h) - F.f(a)) / h, 6);
+    if (t === "limite") {
+      const expr = F.type === "cube" ? `${3 * a * a} ${plus(3 * a)}h + h^2`.replace("+ 0h ", "").replace(/^0 \+ /, "") : `${nb(F.d(a))} ${plus(F.p)}h`.replace(/^0 \+ /, "").replace(/ \+ 1h$/, " + h").replace(/ - 1h$/, " - h");
+      return { enonce: `Pour $f(x) = ${F.tex}$, le taux de variation entre $${nb(a)}$ et $${nb(a)} + h$ vaut $${F.type === "cube" ? poly([1, 3 * a, 3 * a * a], "h") : aff(F.p, F.d(a), "h")}$. Vers quelle valeur tend-il quand $h$ se rapproche de $0$ ? (C'est $f'(${nb(a)})$.)`, mode: "nombre", prefixe: `$f'(${nb(a)}) =$`, attendu: F.d(a),
+        erreurs: [{ valeur: F.type === "cube" ? 3 * a : F.p, message: "Quand $h$ tend vers $0$, les termes en $h$ disparaissent : il reste la constante." }, { valeur: F.f(a), message: "Ça, c'est $f(" + nb(a) + ")$, pas le nombre dérivé." }],
+        aides: ["Remplace $h$ par des valeurs de plus en plus petites : $0{,}1$, $0{,}01$, $0{,}001$…", "Les termes qui contiennent $h$ deviennent négligeables.", `Il reste $${nb(F.d(a))}$.`],
+        solution: `Quand $h \\to 0$, $${F.type === "cube" ? poly([1, 3 * a, 3 * a * a], "h") : aff(F.p, F.d(a), "h")} \\to ${nb(F.d(a))}$ : le nombre dérivé est $f'(${nb(a)}) = ${nb(F.d(a))}$, coefficient directeur de la tangente en $A(${nb(a)}\\,;${nb(F.f(a))})$.` };
+    }
+    return { enonce: `On pose $f(x) = ${F.tex}$. Calcule le taux de variation de $f$ entre $${nb(a)}$ et $${nb(a)} + h$ pour $h = ${nb(h)}$, c'est-à-dire entre $${nb(a)}$ et $${nb(a + h)}$.`, mode: "nombre", prefixe: "Taux :", attendu: tx,
+      erreurs: [{ valeur: arr(F.f(a + h) - F.f(a), 6), message: `Divise par $h = ${nb(h)}$.` }, { valeur: F.d(a), message: "Ça, c'est la limite du taux (le nombre dérivé) : ici on demande le taux pour $h = " + nb(h) + "$, pas encore la limite." }, { valeur: arr((F.f(a) - F.f(a + h)) / h, 6), message: "Même ordre au numérateur et au dénominateur." }],
+      aides: [`$f(${nb(a)}) = ${nb(F.f(a))}$ et $f(${nb(a + h)}) = ${nb(arr(F.f(a + h), 6))}$.`, `Taux $= \\dfrac{f(${nb(a + h)}) - f(${nb(a)})}{${nb(h)}}$.`, `$\\dfrac{${nb(arr(F.f(a + h) - F.f(a), 6))}}{${nb(h)}}$.`],
+      solution: `$\\dfrac{f(${nb(a + h)}) - f(${nb(a)})}{${nb(h)}} = \\dfrac{${nb(arr(F.f(a + h), 6))} - ${pr(F.f(a))}}{${nb(h)}} = ${nb(tx)}$. Pour $h$ plus petit, ce taux se rapproche de $f'(${nb(a)}) = ${nb(F.d(a))}$.` };
+  });
+
+  def("yd-lecture", () => {
+    const F = fonctionDer(), a = rand(-2, 2);
+    const m = F.d(a), fa = F.f(a);
+    if (Math.abs(m) > 6 || Math.abs(fa) > 12) return GEN["yd-lecture"]();
+    const t = pick(["pente", "pente", "signe", "fa"]);
+    const fig = figTangente(F, a);
+    if (t === "signe") {
+      const bonne = m > 0 ? "positif : la tangente monte" : m < 0 ? "négatif : la tangente descend" : "nul : la tangente est horizontale";
+      const ch = choix4(bonne, ["positif : la tangente monte", "négatif : la tangente descend", "nul : la tangente est horizontale", "impossible à lire sur le graphique"].filter((s) => s !== bonne));
+      return { enonce: `La droite en pointillés est la tangente à $C_f$ au point $A$ d'abscisse $${nb(a)}$. Quel est le signe de $f'(${nb(a)})$ ?`, figure: fig, mode: "choix", choix: ch.choix, attendu: ch.attendu,
+        aides: ["$f'(a)$ est le coefficient directeur de la tangente en $A$.", "Une droite qui monte a un coefficient directeur positif ; qui descend, négatif ; horizontale, nul.", "Regarde la tangente en pointillés de gauche à droite."],
+        solution: `La tangente ${m > 0 ? "monte" : m < 0 ? "descend" : "est horizontale"} : $f'(${nb(a)})$ est ${bonne.split(" :")[0]} (il vaut $${nb(m)}$).` };
+    }
+    if (t === "fa") return { enonce: `La droite en pointillés est la tangente à $C_f$ au point $A$. Lis $f(${nb(a)})$.`, figure: fig, mode: "nombre", prefixe: `$f(${nb(a)}) =$`, attendu: fa, erreurs: [{ valeur: m, message: "$f(a)$ est l'ordonnée du point $A$, pas la pente de la tangente." }], aides: ["$f(a)$ est l'ordonnée du point $A$ de la courbe.", "Lis les coordonnées de $A$ sur la figure.", `$A(${nb(a)}\\,;${nb(fa)})$.`], solution: `Le point $A$ a pour coordonnées $(${nb(a)}\\,;${nb(fa)})$ : $f(${nb(a)}) = ${nb(fa)}$.` };
+    return { enonce: `La droite en pointillés est la tangente à $C_f$ au point $A(${nb(a)}\\,;${nb(fa)})$. Elle passe aussi par le point $(${nb(a + 1)}\\,;${nb(fa + m)})$. Lis $f'(${nb(a)})$.`, figure: figTangente(F, a, { points: [{ x: a, y: fa, label: `A(${nbS(a)} ; ${nbS(fa)})` }, { x: a + 1, y: fa + m, label: `(${nbS(a + 1)} ; ${nbS(fa + m)})` }] }), mode: "nombre", prefixe: `$f'(${nb(a)}) =$`, attendu: m,
+      erreurs: [{ valeur: fa, message: "$f'(a)$ est la **pente** de la tangente, pas l'ordonnée de $A$." }, { valeur: -m, message: "Vérifie le sens : la tangente " + (m > 0 ? "monte" : "descend") + "." }, { valeur: fa + m, message: "C'est l'ordonnée du second point ; la pente est la variation de $y$ pour $+1$ en $x$." }],
+      aides: ["$f'(a)$ est le coefficient directeur de la tangente.", `Entre $A(${nb(a)}\\,;${nb(fa)})$ et $(${nb(a + 1)}\\,;${nb(fa + m)})$, $x$ augmente de $1$.`, `$y$ varie de $${nb(fa + m)} - ${pr(fa)} = ${nb(m)}$.`],
+      solution: `Coefficient directeur de la tangente : $\\dfrac{${nb(fa + m)} - ${pr(fa)}}{${nb(a + 1)} - ${pr(a)}} = ${nb(m)}$, donc $f'(${nb(a)}) = ${nb(m)}$.` };
+  });
+
+  def("yd-equation", () => {
+    const t = pick(["choix", "choix", "ordonnee", "point"]);
+    const a = rand(-3, 3), fa = rand(-6, 6), m = nz2(-4, 4);
+    const p = fa - m * a, eq = `y = ${aff(m, p)}`;
+    if (t === "choix") {
+      const ch = choix4(`$${eq}$`, [`$y = ${aff(m, fa)}$`, `$y = ${aff(fa, m)}$`, `$y = ${aff(m, -p)}$`, `$y = ${aff(a, fa)}$`], () => `$y = ${aff(m + pick([-2, -1, 1, 2]), p + rand(-3, 3))}$`);
+      return { enonce: `On sait que $f(${nb(a)}) = ${nb(fa)}$ et $f'(${nb(a)}) = ${nb(m)}$. Quelle est l'équation réduite de la tangente à $C_f$ au point d'abscisse $${nb(a)}$ ?`, mode: "choix", choix: ch.choix, attendu: ch.attendu,
+        aides: ["Équation de la tangente en $a$ : $y = f'(a)(x - a) + f(a)$.", `$y = ${fx(m)}(x ${plus(-a)}) ${plus(fa)}$.`, "Développe et réduis pour obtenir $y = mx + p$."],
+        solution: `$y = f'(${nb(a)})(x - ${pr(a)}) + f(${nb(a)}) = ${fx(m)}(x ${plus(-a)}) ${plus(fa)} = ${aff(m, -m * a)} ${plus(fa)}$, soit $${eq}$. Vérification : pour $x = ${nb(a)}$, $y = ${nb(fa)}$.` };
+    }
+    if (t === "point") {
+      const x = a + pick([-2, -1, 1, 2, 3]), y = m * x + p;
+      return { enonce: `La tangente à $C_f$ au point d'abscisse $${nb(a)}$ a pour équation $${eq}$. Calcule l'ordonnée du point de cette tangente d'abscisse $${nb(x)}$.`, mode: "nombre", prefixe: "$y =$", attendu: y,
+        erreurs: [{ valeur: m * x - p, message: "Attention au signe de l'ordonnée à l'origine." }, { valeur: x, message: "Remplace $x$ dans l'équation de la tangente." }],
+        aides: [`Remplace $x$ par $${nb(x)}$ dans $${eq}$.`, `$${nb(m)} \\times ${pr(x)} ${plus(p)}$.`, "Ce point est sur la tangente, pas forcément sur la courbe."],
+        solution: `$y = ${nb(m)} \\times ${pr(x)} ${plus(p)} = ${nb(y)}$. (Près de $A$, ce nombre est proche de $f(${nb(x)})$ : la tangente approche la courbe.)` };
+    }
+    return { enonce: `On sait que $f(${nb(a)}) = ${nb(fa)}$ et $f'(${nb(a)}) = ${nb(m)}$. La tangente en $${nb(a)}$ a pour équation $y = ${coef(m, "x")} + p$. Calcule $p$.`, mode: "nombre", prefixe: "$p =$", attendu: p,
+      erreurs: [{ valeur: fa, message: "$p$ n'est pas $f(a)$ (sauf si $a = 0$) : utilise $y = f'(a)(x - a) + f(a)$." }, { valeur: fa + m * a, message: "$p = f(a) - f'(a) \\times a$ : attention au signe." }, { valeur: -p, message: "Vérifie le signe." }],
+      aides: [`$y = f'(a)(x - a) + f(a) = ${fx(m)}(x ${plus(-a)}) ${plus(fa)}$.`, "Développe : le terme constant est $p$.", `$p = ${nb(-m * a)} ${plus(fa)}$.`],
+      solution: `$y = ${fx(m)}(x ${plus(-a)}) ${plus(fa)} = ${coef(m, "x")} ${plus(-m * a)} ${plus(fa)} = ${aff(m, p)}$, donc $p = ${nb(p)}$. (Autre méthode : le point $A(${nb(a)}\\,;${nb(fa)})$ est sur la tangente, donc $${nb(fa)} = ${nb(m)} \\times ${pr(a)} + p$.)` };
+  });
+
+  def("yd-tracer", () => {
+    const F = fonctionDer(), a = rand(-2, 2), m = F.d(a), fa = F.f(a);
+    if (Math.abs(m) > 5 || Math.abs(fa) > 10 || m === 0) return GEN["yd-tracer"]();
+    const pentes = shuffle([m, -m, m + pick([1, -1]) * rand(1, 2), 0].filter((v, i, A) => A.indexOf(v) === i)).slice(0, 4);
+    if (pentes.length < 4) return GEN["yd-tracer"]();
+    const noms = ["d₁", "d₂", "d₃", "d₄"], k = pentes.indexOf(m);
+    const o = repere([F.f], Math.min(a, 0) - 2, Math.max(a, 0) + 2, { h: 300, curves: [{ f: F.f, a: Math.min(a, 0) - 2, b: Math.max(a, 0) + 2, label: "C<tspan class=\"sub\" dy=\"3\">f</tspan>", closed: false }].concat(pentes.map((pe, j) => ({ f: (x) => fa + pe * (x - a), a: a - 1.4, b: a + 1.4, closed: false, label: noms[j], couleur: j + 1 }))), points: [{ x: a, y: fa, label: "A" }], aria: `Courbe de f, point A et quatre droites passant par A ; une seule est la tangente` });
+    const ch = choix4(`$${noms[k]}$`, noms.filter((_, j) => j !== k).map((n) => `$${n}$`));
+    return { enonce: `Quatre droites passent par le point $A$ de $C_f$. On sait que $f'(${nb(a)}) = ${nb(m)}$. Laquelle est la tangente à $C_f$ en $A$ ?`, figure: graph(o), mode: "choix", choix: ch.choix, attendu: ch.attendu,
+      aides: ["La tangente passe par $A$ et a pour coefficient directeur $f'(a)$.", `Ici le coefficient directeur doit être $${nb(m)}$ : la droite ${m > 0 ? "monte" : "descend"} de $${nb(Math.abs(m))}$ quand $x$ augmente de $1$.`, "La tangente est aussi la droite qui « colle » le mieux à la courbe autour de $A$."],
+      solution: `La tangente en $A$ a pour coefficient directeur $f'(${nb(a)}) = ${nb(m)}$ : c'est la droite $${noms[k]}$, qui épouse la courbe au voisinage de $A$. Les autres droites coupent la courbe ou s'en écartent.` };
+  });
+
+  def("yd-contexte", () => {
+    const S = pick([
+      { ctx: (a, v) => `La position d'un scooter (en m) après $t$ secondes est donnée par $d(t)$. On sait que $d'(${a}) = ${nb(v)}$.`, q: "vitesse", bonne: (a, v) => `À l'instant $t = ${a}$ s, la vitesse instantanée du scooter est $${nb(v)}$ m/s`, faux: (a, v) => [`Après $${a}$ secondes, le scooter a parcouru $${nb(v)}$ m`, `La vitesse moyenne du scooter sur les $${a}$ premières secondes est $${nb(v)}$ m/s`, `Le scooter met $${nb(v)}$ s pour parcourir $${a}$ m`], a: () => rand(2, 20), v: () => pick([4, 6, 8, 10, 12, 15]) },
+      { ctx: (a, v) => `Le coût total de fabrication (en €) de $q$ objets est $C(q)$. On sait que $C'(${a}) = ${nb(v)}$.`, q: "cout", bonne: (a, v) => `Fabriquer un objet de plus, après $${a}$ objets, coûte environ $${nb(v)}$ € (coût marginal)`, faux: (a, v) => [`Fabriquer $${a}$ objets coûte $${nb(v)}$ €`, `Chaque objet coûte en moyenne $${nb(v)}$ €`, `Le coût total augmente de $${nb(v)}\\,\\%$`], a: () => pick([50, 100, 200, 500]), v: () => pick([2.5, 3, 4, 5.5, 8, 12]) },
+      { ctx: (a, v) => `La température (en °C) d'un four après $t$ minutes est $T(t)$. On sait que $T'(${a}) = ${nb(v)}$.`, q: "temp", bonne: (a, v) => `À $t = ${a}$ min, la température augmente à la vitesse de $${nb(v)}$ °C par minute`, faux: (a, v) => [`Après $${a}$ minutes, la température est de $${nb(v)}$ °C`, `La température a augmenté de $${nb(v)}$ °C en $${a}$ minutes`, `Le four met $${nb(v)}$ minutes à chauffer`], a: () => rand(2, 15), v: () => pick([3, 5, 8, 10, 15, 20]) },
+      { ctx: (a, v) => `La hauteur d'eau (en cm) dans le port de Mamoudzou à l'instant $t$ (en h) est $h(t)$. On sait que $h'(${a}) = ${nb(v)}$.`, q: "maree", bonne: (a, v) => `À $${a}$ h, la mer ${v > 0 ? "monte" : "descend"} à la vitesse de $${nb(Math.abs(v))}$ cm par heure`, faux: (a, v) => [`À $${a}$ h, la hauteur d'eau est $${nb(v)}$ cm`, `À $${a}$ h, la mer ${v > 0 ? "descend" : "monte"} à la vitesse de $${nb(Math.abs(v))}$ cm par heure`, `En $${a}$ heures, la mer est ${v > 0 ? "montée" : "descendue"} de $${nb(Math.abs(v))}$ cm`], a: () => rand(6, 18), v: () => pick([-40, -25, -15, 15, 25, 40]) }
+    ]);
+    const a = S.a(), v = S.v();
+    if (Math.random() < 0.6) {
+      const ch = choix4(S.bonne(a, v), S.faux(a, v));
+      return { enonce: `${S.ctx(a, v)} Que signifie ce nombre dérivé ?`, mode: "choix", choix: ch.choix, attendu: ch.attendu,
+        aides: ["Le nombre dérivé $f'(a)$ est la limite du taux de variation : une **vitesse instantanée** de variation de la grandeur.", "Il se mesure en « unité de $f$ par unité de la variable ».", "Il ne donne ni la valeur de $f(a)$, ni une moyenne sur tout l'intervalle $[0\\,;a]$."],
+        solution: `$f'(a)$ est la vitesse à laquelle la grandeur varie **à l'instant** $a$ : ${S.bonne(a, v).charAt(0).toLowerCase() + S.bonne(a, v).slice(1)}. Ce n'est ni $f(a)$ (la valeur), ni une vitesse moyenne.` };
+    }
+    // estimation avec la tangente : f(a + 1) ≈ f(a) + f'(a)
+    const fa = S.q === "vitesse" ? rand(20, 80) : S.q === "cout" ? pick([400, 800, 1200, 2000]) : S.q === "temp" ? rand(60, 180) : rand(150, 300);
+    const u = S.q === "vitesse" ? "m" : S.q === "cout" ? "€" : S.q === "temp" ? "°C" : "cm";
+    const nomF = S.q === "vitesse" ? "d" : S.q === "cout" ? "C" : S.q === "temp" ? "T" : "h";
+    return { enonce: `${S.ctx(a, v)} De plus, $${nomF}(${a}) = ${nb(fa)}$. En utilisant la tangente, estime $${nomF}(${a + 1})$.`, mode: "nombre", prefixe: `$${nomF}(${a + 1}) \\approx$`, attendu: arr(fa + v), suffixe: u,
+      erreurs: [{ valeur: arr(fa - v), message: "On ajoute $f'(a) \\times 1$ : la grandeur " + (v > 0 ? "augmente" : "diminue") + "." }, { valeur: v, message: "Il faut partir de $" + nomF + "(" + a + ") = " + nb(fa) + "$." }, { valeur: arr(fa * v), message: "On ajoute, on ne multiplie pas : $f(a + 1) \\approx f(a) + f'(a)$." }],
+      aides: ["Près de $a$, la courbe est proche de sa tangente : $f(a + h) \\approx f(a) + f'(a) \\times h$.", `Ici $h = 1$ : $${nomF}(${a + 1}) \\approx ${nomF}(${a}) + ${nomF}'(${a})$.`, `$${nb(fa)} ${plus(v)}$.`],
+      solution: `Avec la tangente (approximation pour une petite variation) : $${nomF}(${a + 1}) \\approx ${nomF}(${a}) + ${nomF}'(${a}) \\times 1 = ${nb(fa)} ${plus(v)} = ${nb(arr(fa + v))}$ ${u}.` };
+  });
+
+  def("yd-vrai-faux", () => vraiFaux4([
+    ["$f'(a)$ est le coefficient directeur de la tangente à $C_f$ au point d'abscisse $a$.", true, "c'est l'interprétation géométrique du nombre dérivé."],
+    ["La tangente en $a$ a pour équation $y = f'(a)(x - a) + f(a)$.", true, "droite de pente $f'(a)$ passant par $(a\\,;f(a))$."],
+    ["Si $f'(a) = 0$, la tangente en $a$ est horizontale.", true, "coefficient directeur nul."],
+    ["Le nombre dérivé est la limite du taux de variation $\\dfrac{f(a + h) - f(a)}{h}$ quand $h$ tend vers $0$.", true, "c'est la définition."],
+    ["Pour un mobile, $d'(t)$ est la vitesse instantanée à l'instant $t$.", true, "limite de la vitesse moyenne sur un intervalle de plus en plus court."],
+    ["Si $f'(a) < 0$, la tangente en $a$ descend.", true, "coefficient directeur négatif."],
+    ["La tangente est la position limite des sécantes passant par $A$ quand le second point se rapproche de $A$.", true, "c'est ainsi qu'on l'a définie."],
+    ["Si $f(2) = 5$ et $f'(2) = 3$, la tangente en $2$ passe par $(2\\,;5)$.", true, "le point de tangence est sur la tangente."],
+    ["$f'(a)$ est l'ordonnée du point de la courbe d'abscisse $a$.", false, "ça, c'est $f(a)$ ; $f'(a)$ est une pente."],
+    ["Si $f(2) = 5$ et $f'(2) = 3$, la tangente en $2$ a pour équation $y = 3x + 5$.", false, "$y = 3(x - 2) + 5 = 3x - 1$."],
+    ["Le taux de variation entre $a$ et $a + h$ est égal à $f'(a)$ pour tout $h$.", false, "il s'en rapproche seulement quand $h$ tend vers $0$ (sauf pour une fonction affine)."],
+    ["Une tangente coupe toujours la courbe en un seul point.", false, "elle peut la recouper ailleurs ; ce qui compte, c'est le contact en $A$."],
+    ["Le coût marginal $C'(q)$ est le coût moyen d'un objet.", false, "c'est le coût (approché) d'un objet supplémentaire après $q$ objets."],
+    ["Si $f'(3) = 2$, alors $f(3) = 2$.", false, "$f(3)$ et $f'(3)$ sont deux informations différentes."]
+  ], ["$f(a)$ : ordonnée du point ; $f'(a)$ : pente de la tangente.", "Équation de la tangente : $y = f'(a)(x - a) + f(a)$.", "Nombre dérivé = vitesse instantanée de variation."]));
+
+  /* Figures du cours (chapitre 9) */
+  FIGURES["yd-cours-secantes"] = () => {
+    const f = (x) => 0.5 * x * x, a = 1, fa = 0.5;
+    const secs = [3, 2, 1.5].map((b) => ({ f: (x) => fa + ((f(b) - fa) / (b - a)) * (x - a), a: -0.2, b: 3.6, closed: false }));
+    let s = graph({ xmin: -1.6, xmax: 4.4, ymin: -1.6, ymax: 6.6, h: 300, curves: [{ f, a: -1.4, b: 3.5, label: "C<tspan class=\"sub\" dy=\"3\">f</tspan>", closed: false }].concat(secs).concat([{ f: (x) => fa + 1 * (x - a), a: -0.6, b: 3.2, closed: false, couleur: 1 }]), points: [{ x: 1, y: 0.5, label: "A", gauche: true }, { x: 3, y: 4.5, label: "M₁" }, { x: 2, y: 2, label: "M₂" }, { x: 1.5, y: 1.125, label: "M₃" }], aria: "Parabole y = 0,5x², point A(1 ; 0,5) et sécantes (AM₁), (AM₂), (AM₃) qui se rapprochent de la tangente en A, de pente 1" });
+    [1, 2, 3].forEach((i) => { s = tiret(s, i); });
+    return s;
+  };
+  FIGURES["yd-cours-tangente"] = () => tiret(graph({ xmin: -1.6, xmax: 4.4, ymin: -1.6, ymax: 6.6, h: 300, curves: [{ f: (x) => 0.5 * x * x, a: -1.4, b: 3.5, label: "C<tspan class=\"sub\" dy=\"3\">f</tspan>", closed: false }, { f: (x) => 2 * x - 2, a: 0.4, b: 4, closed: false }], points: [{ x: 2, y: 2, label: "A(2 ; 2)", gauche: true }, { x: 3, y: 4, label: "+1 → +2" }], aria: "Parabole y = 0,5x² et sa tangente en A(2 ; 2), d'équation y = 2x − 2 : f'(2) = 2" }), 1);
+  FIGURES["yd-cours-vitesse"] = () => tiret(graph({ xmin: -0.5, xmax: 5.5, ymin: -5, ymax: 55, xstep: 1, ystep: 5, yetiq: 10, h: 280, xlabel: "t (s)", ylabel: "d (m)", curves: [{ f: (t) => 2 * t * t, a: 0, b: 5, closed: false }, { f: (t) => 18 + 12 * (t - 3), a: 1.5, b: 5, closed: false }], points: [{ x: 3, y: 18, label: "t = 3 s", gauche: true }], aria: "Distance parcourue d(t) = 2t² et tangente en t = 3 : vitesse instantanée 12 m/s" }), 1);
+
+  /* ---------- Chapitre 10 : fonction dérivée et variations (préfixe yr) ---------- */
+  // Polynôme de degré ≤ 3 : coefficients [a3, a2, a1, a0] ; dérivée
+  const deriv = (P) => { const d = P.length - 1; return P.slice(0, -1).map((c, k) => c * (d - k)); };
+  function polyAlea() {
+    const t = pick(["deg2", "deg2", "deg3", "deg3"]);
+    if (t === "deg2") { const a = pick([1, 1, 2, 3, -1, -2, 0.5]), b = nz2(-9, 9), c = rand(-9, 9); return [a, b, c]; }
+    const a = pick([1, 1, 2, -1, -2]), b = rand(-6, 6), c = rand(-9, 9), d = rand(-5, 5); return [a, b, c, d];
+  }
+
+  def("yr-formules", () => {
+    const P = polyAlea(), D = deriv(P), t = pick(["choix", "choix", "coef", "usuelle"]);
+    if (t === "usuelle") {
+      const U = pick([["x^2", "2x", "2x", ["x", "2", "x^2"]], ["x^3", "3x^2", "3x^2", ["3x", "x^2", "3x^3"]], ["5x^2", "10x", "10x", ["5x", "10x^2", "10"]], ["4x^3", "12x^2", "12x^2", ["4x^2", "12x", "12x^3"]], ["7x", "7", "7", ["7x", "0", "x"]], ["-3x^2", "-6x", "-6x", ["-3x", "6x", "-6x^2"]], ["x^2 + x^3", "2x + 3x^2", "2x + 3x^2", ["2x + 3x", "x + x^2", "2x^2 + 3x^3"]], ["9", "0", "0", ["9", "9x", "1"]], ["2x^3 - x", "6x^2 - 1", "6x^2 - 1", ["6x^2 - x", "2x^2 - 1", "6x - 1"]], ["x^2 - 5", "2x", "2x", ["2x - 5", "2x - 1", "x"]]]);
+      const ch = choix4(`$f'(x) = ${U[1]}$`, U[3].map((s) => `$f'(x) = ${s}$`));
+      return { enonce: `Quelle est la dérivée de $f(x) = ${U[0]}$ ?`, mode: "choix", choix: ch.choix, attendu: ch.attendu,
+        aides: ["Dérivées usuelles : $(x^2)' = 2x$, $(x^3)' = 3x^2$, $(x)' = 1$, une constante a pour dérivée $0$.", "$(kf)' = kf'$ : le coefficient multiplicateur reste.", "$(u + v)' = u' + v'$ : on dérive terme à terme."],
+        solution: `En appliquant les formules usuelles terme à terme : $f'(x) = ${U[2]}$.` };
+    }
+    if (t === "coef") {
+      const deg = D.length - 1, k = rand(0, deg), att = D[k];
+      const nomT = deg - k === 0 ? "le terme constant" : deg - k === 1 ? "le coefficient de $x$" : `le coefficient de $x^${deg - k}$`;
+      return { enonce: `On pose $f(x) = ${poly(P)}$. Dans $f'(x)$, que vaut ${nomT} ?`, mode: "nombre", prefixe: "Valeur :", attendu: att,
+        erreurs: [{ valeur: P[k], message: "C'est le coefficient dans $f$, pas dans $f'$ : il faut multiplier par l'exposant." }, { valeur: P[k + 1], message: "Dériver fait baisser le degré : regarde le terme de degré juste au-dessus dans $f$." }, { valeur: -att, message: "Vérifie le signe." }],
+        aides: [`Dérive terme à terme : $(ax^n)' = n a x^{n - 1}$.`, `$f'(x) = ${poly(D)}$.`, "Lis le coefficient demandé."],
+        solution: `$f'(x) = ${poly(D)}$ : ${nomT.replace(/^le /, "le ")} vaut $${nb(att)}$.` };
+    }
+    const faux = [poly(D.map((c, k) => (k === 0 ? c : c + 1))), poly(P.length === 3 ? [P[0], P[1]] : [P[0], P[1], P[2]]), poly(D.map((c, k) => c / (D.length - k)).concat([0])), poly([D[0] * 2].concat(D.slice(1)))].map((s) => `$f'(x) = ${s}$`);
+    const ch = choix4(`$f'(x) = ${poly(D)}$`, faux);
+    return { enonce: `On pose $f(x) = ${poly(P)}$. Quelle est l'expression de $f'(x)$ ?`, mode: "choix", choix: ch.choix, attendu: ch.attendu,
+      aides: ["Dérive chaque terme : $(ax^3)' = 3ax^2$, $(ax^2)' = 2ax$, $(ax)' = a$, constante $\\to 0$.", `Premier terme : $(${poly([P[0]].concat(Array(P.length - 1).fill(0)))})' = ${poly([D[0]].concat(Array(D.length - 1).fill(0)))}$.`, "Additionne les dérivées des termes."],
+      solution: `Terme à terme : $f'(x) = ${poly(D)}$. (Le terme constant $${nb(P[P.length - 1])}$ disparaît.)` };
+  });
+
+  def("yr-valeur", () => {
+    const P = polyAlea(), D = deriv(P), x0 = rand(-3, 3), att = evalP(D, x0);
+    const t = pick(["valeur", "valeur", "tangente"]);
+    if (t === "tangente") {
+      const fa = evalP(P, x0), p = fa - att * x0;
+      const bonne = `$y = ${aff(att, p)}$`;
+      const ch = choix4(bonne, [`$y = ${aff(att, fa)}$`, `$y = ${aff(fa, att)}$`, `$y = ${aff(att, -p)}$`, `$y = ${aff(evalP(P, x0), p)}$`], () => `$y = ${aff(att + pick([-2, -1, 1, 2]), p + rand(-3, 3))}$`);
+      return { enonce: `On pose $f(x) = ${poly(P)}$. Quelle est l'équation de la tangente à $C_f$ au point d'abscisse $${nb(x0)}$ ?`, mode: "choix", choix: ch.choix, attendu: ch.attendu,
+        aides: [`$f'(x) = ${poly(D)}$, donc $f'(${nb(x0)}) = ${nb(att)}$.`, `$f(${nb(x0)}) = ${nb(fa)}$.`, `$y = f'(${nb(x0)})(x - ${pr(x0)}) + f(${nb(x0)})$.`],
+        solution: `$f'(x) = ${poly(D)}$, $f'(${nb(x0)}) = ${nb(att)}$ et $f(${nb(x0)}) = ${nb(fa)}$. Tangente : $y = ${fx(att)}(x ${plus(-x0)}) ${plus(fa)} = ${aff(att, p)}$.` };
+    }
+    return { enonce: `On pose $f(x) = ${poly(P)}$. Calcule $f'(${nb(x0)})$.`, mode: "nombre", prefixe: `$f'(${nb(x0)}) =$`, attendu: att,
+      erreurs: [{ valeur: evalP(P, x0), message: `Ça, c'est $f(${nb(x0)})$. Il faut d'abord dériver, puis remplacer.` }, { valeur: evalP(D, -x0), message: "Attention au signe de $x$ et aux parenthèses." }, { valeur: evalP(deriv(D), x0), message: "Tu as dérivé deux fois." }],
+      aides: ["Calcule d'abord la fonction dérivée $f'(x)$.", `$f'(x) = ${poly(D)}$.`, `Remplace $x$ par $${nb(x0)}$.`],
+      solution: `$f'(x) = ${poly(D)}$, donc $f'(${nb(x0)}) = ${poly(D).replace(/x/g, `(${nb(x0)})`)} = ${nb(att)}$. C'est la pente de la tangente au point d'abscisse $${nb(x0)}$.` };
+  });
+
+  def("yr-signe-variations", () => {
+    const a = pick([1, 1, 2, 3, -1, -2, 0.5]), b = nz2(-8, 8), c = rand(-9, 9);
+    const r = -b / (2 * a);
+    if (!Number.isInteger(r * 4)) return GEN["yr-signe-variations"]();
+    const D = [2 * a, b], t = pick(["signe", "variations", "variations", "extremum"]);
+    const fr2 = !Number.isInteger(r), v = arr(a * r * r + b * r + c);
+    const figSV = tabSV(["−∞", nbS(r), "+∞"], [a > 0 ? "-" : "+", "0", a > 0 ? "+" : "-"], ["", nbS(v), ""], "f");
+    if (t === "signe") {
+      const bonne = a > 0 ? `$f'(x) \\leqslant 0$ sur $]-\\infty\\,;${nb(r)}]$ et $f'(x) \\geqslant 0$ sur $[${nb(r)}\\,;+\\infty[$` : `$f'(x) \\geqslant 0$ sur $]-\\infty\\,;${nb(r)}]$ et $f'(x) \\leqslant 0$ sur $[${nb(r)}\\,;+\\infty[$`;
+      const ch = choix4(bonne, [a > 0 ? `$f'(x) \\geqslant 0$ sur $]-\\infty\\,;${nb(r)}]$ et $f'(x) \\leqslant 0$ sur $[${nb(r)}\\,;+\\infty[$` : `$f'(x) \\leqslant 0$ sur $]-\\infty\\,;${nb(r)}]$ et $f'(x) \\geqslant 0$ sur $[${nb(r)}\\,;+\\infty[$`, `$f'(x) ${a > 0 ? "\\geqslant" : "\\leqslant"} 0$ pour tout $x$`, `$f'(x) \\leqslant 0$ sur $]-\\infty\\,;${nb(-r)}]$ et $f'(x) \\geqslant 0$ sur $[${nb(-r)}\\,;+\\infty[$`]);
+      return { enonce: `On pose $f(x) = ${poly([a, b, c])}$. Quel est le signe de $f'(x)$ ?`, mode: "choix", choix: ch.choix, attendu: ch.attendu, figureSolution: figSV,
+        aides: [`$f'(x) = ${poly(D)}$, une expression du premier degré.`, `Elle s'annule en $x = ${nb(r)}$.`, `Le coefficient de $x$ dans $f'$ est $${nb(2 * a)}$ : ${2 * a > 0 ? "négatif avant la racine, positif après" : "positif avant la racine, négatif après"}.`],
+        solution: `$f'(x) = ${poly(D)}$ s'annule en $${nb(r)}$ ; son coefficient directeur $${nb(2 * a)}$ est ${2 * a > 0 ? "positif" : "négatif"} : ${bonne}.` };
+    }
+    if (t === "extremum") {
+      const q = pick(["ou", "val"]);
+      return { enonce: `On pose $f(x) = ${poly([a, b, c])}$. ${q === "ou" ? `En quelle valeur de $x$ la fonction $f$ atteint-elle son ${a > 0 ? "minimum" : "maximum"}${fr2 ? " (nombre décimal ou fraction)" : ""} ?` : `Quel est le ${a > 0 ? "minimum" : "maximum"} de $f$ ?`}`, mode: "nombre", prefixe: q === "ou" ? "$x =$" : `${a > 0 ? "Minimum" : "Maximum"} :`, attendu: q === "ou" ? r : v,
+        erreurs: [{ valeur: q === "ou" ? v : r, message: q === "ou" ? "On demande l'abscisse (là où $f'$ s'annule), pas la valeur de $f$." : "On demande la valeur $f(x_0)$, pas l'abscisse." }, { valeur: q === "ou" ? -r : c, message: q === "ou" ? "Résous $f'(x) = 0$ avec soin." : "Le terme constant $c$ est $f(0)$, pas l'extremum." }, ...(q === "ou" && fr2 ? approx(r) : [])],
+        aides: [`$f'(x) = ${poly(D)}$ s'annule en $x = ${nb(r)}$ en changeant de signe.`, `$a = ${nb(a)}$ : $f$ est ${a > 0 ? "décroissante puis croissante : minimum" : "croissante puis décroissante : maximum"} en $${nb(r)}$.`, q === "ou" ? "C'est l'abscisse demandée." : `Calcule $f(${nb(r)})$.`],
+        solution: `$f'(x) = ${poly(D)} = 0 \\Leftrightarrow x = ${nb(r)}$. $f'$ est ${2 * a > 0 ? "négative puis positive" : "positive puis négative"} : $f$ admet un ${a > 0 ? "minimum" : "maximum"} en $x = ${nb(r)}$, qui vaut $f(${nb(r)}) = ${nb(v)}$.` };
+    }
+    const bonne = a > 0 ? `décroissante sur $]-\\infty\\,;${nb(r)}]$, croissante sur $[${nb(r)}\\,;+\\infty[$` : `croissante sur $]-\\infty\\,;${nb(r)}]$, décroissante sur $[${nb(r)}\\,;+\\infty[$`;
+    const ch = choix4(bonne, [a > 0 ? `croissante sur $]-\\infty\\,;${nb(r)}]$, décroissante sur $[${nb(r)}\\,;+\\infty[$` : `décroissante sur $]-\\infty\\,;${nb(r)}]$, croissante sur $[${nb(r)}\\,;+\\infty[$`, `${a > 0 ? "croissante" : "décroissante"} sur $\\mathbb{R}$`, `${a > 0 ? "décroissante" : "croissante"} sur $]-\\infty\\,;${nb(v)}]$, ${a > 0 ? "croissante" : "décroissante"} sur $[${nb(v)}\\,;+\\infty[$`]);
+    return { enonce: `On pose $f(x) = ${poly([a, b, c])}$. En étudiant le signe de $f'(x)$, donne le sens de variation de $f$.`, mode: "choix", choix: ch.choix, attendu: ch.attendu, figureSolution: figSV,
+      aides: [`$f'(x) = ${poly(D)}$.`, `$f'(x) = 0$ pour $x = ${nb(r)}$ ; $f'$ est ${2 * a > 0 ? "négative avant, positive après" : "positive avant, négative après"}.`, "$f$ est croissante là où $f' > 0$, décroissante là où $f' < 0$."],
+      solution: `$f'(x) = ${poly(D)}$ est ${2 * a > 0 ? "négative sur $]-\\infty\\,;" + nb(r) + "]$ et positive après" : "positive sur $]-\\infty\\,;" + nb(r) + "]$ et négative après"} : $f$ est ${bonne}, avec un ${a > 0 ? "minimum" : "maximum"} $f(${nb(r)}) = ${nb(v)}$.` };
+  });
+
+  def("yr-cubique", () => {
+    // f'(x) = 3a(x − r1)(x − r2) : f(x) = a x³ − (3a/2)(r1 + r2) x² + 3a r1 r2 x + d, avec r1 + r2 pair
+    const a = pick([1, 1, -1]), r1 = rand(-3, 1), r2 = r1 + pick([2, 4]), d = rand(-5, 5);
+    const P = [a, -1.5 * a * (r1 + r2), 3 * a * r1 * r2, d], D = deriv(P);
+    const f = (x) => evalP(P, x), v1 = f(r1), v2 = f(r2);
+    const ext = 3 * a > 0; // f' positif à l'extérieur des racines
+    const t = pick(["tableau", "tableau", "extremum", "racines"]);
+    const figSV = tabSV(["−∞", nbS(r1), nbS(r2), "+∞"], [ext ? "+" : "-", "0", ext ? "-" : "+", "0", ext ? "+" : "-"], ["", nbS(v1), nbS(v2), ""], "f");
+    if (t === "racines") return { enonce: `On pose $f(x) = ${poly(P)}$. On admet que $f'(x) = ${nb(3 * a)}(x ${plus(-r1)})(x ${plus(-r2)})$. Pour quelles valeurs de $x$ a-t-on $f'(x) = 0$ (séparées par « ; ») ?`, mode: "ensemble", attendu: [r1, r2],
+      aides: ["$f'(x)$ est donnée sous forme factorisée.", "Un produit est nul si et seulement si l'un des facteurs est nul.", `$x ${plus(-r1)} = 0$ ou $x ${plus(-r2)} = 0$.`],
+      solution: `$f'(x) = 0 \\Leftrightarrow x = ${nb(r1)}$ ou $x = ${nb(r2)}$. En ces points, la tangente à la courbe est horizontale.` };
+    if (t === "extremum") {
+      const q = pick(["max", "min"]);
+      const xM = ext ? r1 : r2, xm = ext ? r2 : r1; // maximum local en xM, minimum local en xm
+      const att = q === "max" ? f(xM) : f(xm), ou = q === "max" ? xM : xm;
+      return { enonce: `On pose $f(x) = ${poly(P)}$, avec $f'(x) = ${nb(3 * a)}(x ${plus(-r1)})(x ${plus(-r2)})$. Quel est le ${q === "max" ? "maximum" : "minimum"} local de $f$ (la valeur de $f$ en haut de la bosse${q === "max" ? "" : ", ou plutôt au fond du creux"}) ?`, mode: "nombre", prefixe: `${q === "max" ? "Maximum" : "Minimum"} local :`, attendu: att,
+        erreurs: [{ valeur: ou, message: "On demande la valeur de $f$, pas l'abscisse où elle est atteinte." }, { valeur: q === "max" ? f(xm) : f(xM), message: q === "max" ? "Ça, c'est le minimum local." : "Ça, c'est le maximum local." }],
+        aides: [`$f'$ s'annule en $${nb(r1)}$ et $${nb(r2)}$ ; elle est ${ext ? "positive à l'extérieur, négative entre" : "négative à l'extérieur, positive entre"}.`, `$f$ est donc ${ext ? "croissante, décroissante, croissante" : "décroissante, croissante, décroissante"} : ${q === "max" ? "maximum" : "minimum"} local en $x = ${nb(ou)}$.`, `Calcule $f(${nb(ou)})$.`],
+        solution: `Tableau de signes de $f'$ : ${ext ? "$+$, $0$, $-$, $0$, $+$" : "$-$, $0$, $+$, $0$, $-$"}. Le ${q === "max" ? "maximum" : "minimum"} local est atteint en $x = ${nb(ou)}$ et vaut $f(${nb(ou)}) = ${nb(att)}$.` };
+    }
+    const bonne = ext ? `croissante sur $]-\\infty\\,;${nb(r1)}]$, décroissante sur $[${nb(r1)}\\,;${nb(r2)}]$, croissante sur $[${nb(r2)}\\,;+\\infty[$` : `décroissante sur $]-\\infty\\,;${nb(r1)}]$, croissante sur $[${nb(r1)}\\,;${nb(r2)}]$, décroissante sur $[${nb(r2)}\\,;+\\infty[$`;
+    const ch = choix4(bonne, [ext ? `décroissante sur $]-\\infty\\,;${nb(r1)}]$, croissante sur $[${nb(r1)}\\,;${nb(r2)}]$, décroissante sur $[${nb(r2)}\\,;+\\infty[$` : `croissante sur $]-\\infty\\,;${nb(r1)}]$, décroissante sur $[${nb(r1)}\\,;${nb(r2)}]$, croissante sur $[${nb(r2)}\\,;+\\infty[$`, `${ext ? "croissante" : "décroissante"} sur $\\mathbb{R}$`, `${ext ? "croissante" : "décroissante"} sur $]-\\infty\\,;${nb(v1)}]$, ${ext ? "décroissante" : "croissante"} sur $[${nb(v1)}\\,;${nb(v2)}]$`]);
+    return { enonce: `On pose $f(x) = ${poly(P)}$. On admet que $f'(x) = ${nb(3 * a)}(x ${plus(-r1)})(x ${plus(-r2)})$. Quel est le sens de variation de $f$ ?`, mode: "choix", choix: ch.choix, attendu: ch.attendu, figureSolution: figSV,
+      aides: [`Racines de $f'$ : $${nb(r1)}$ et $${nb(r2)}$.`, `Signe de $f'$ : celui de $${nb(3 * a)}$ à l'extérieur des racines, contraire entre.`, "Croissante là où $f' > 0$, décroissante là où $f' < 0$."],
+      solution: `$f'(x)$ est ${ext ? "positive" : "négative"} à l'extérieur de $[${nb(r1)}\\,;${nb(r2)}]$ et ${ext ? "négative" : "positive"} entre. Donc $f$ est ${bonne}. Valeurs aux extremums : $f(${nb(r1)}) = ${nb(v1)}$, $f(${nb(r2)}) = ${nb(v2)}$.` };
+  });
+
+  def("yr-lecture", () => {
+    const t = pick(["tableau", "tableau", "courbe"]);
+    const r1 = rand(-4, 0), r2 = r1 + rand(2, 5), ext = pick([true, false]);
+    if (t === "tableau") {
+      const fig = tabSigne(["−∞", nbS(r1), nbS(r2), "+∞"], [ext ? "+" : "-", "0", ext ? "-" : "+", "0", ext ? "+" : "-"], "f′(x)");
+      const q = pick(["var", "ext"]);
+      if (q === "ext") {
+        const bonne = ext ? `un maximum local en $x = ${nb(r1)}$ et un minimum local en $x = ${nb(r2)}$` : `un minimum local en $x = ${nb(r1)}$ et un maximum local en $x = ${nb(r2)}$`;
+        const ch = choix4(bonne, [ext ? `un minimum local en $x = ${nb(r1)}$ et un maximum local en $x = ${nb(r2)}$` : `un maximum local en $x = ${nb(r1)}$ et un minimum local en $x = ${nb(r2)}$`, "aucun extremum", `un extremum en $x = ${nb((r1 + r2) / 2)}$ seulement`]);
+        return { enonce: `Voici le tableau de signes de $f'$. Que peut-on dire des extremums de $f$ ?`, figure: fig, mode: "choix", choix: ch.choix, attendu: ch.attendu,
+          aides: ["Là où $f'$ passe de $+$ à $-$, $f$ passe de croissante à décroissante : maximum local.", "Là où $f'$ passe de $-$ à $+$ : minimum local.", `Regarde le changement de signe en $${nb(r1)}$ puis en $${nb(r2)}$.`],
+          solution: `En $${nb(r1)}$, $f'$ passe de ${ext ? "$+$ à $-$ : maximum" : "$-$ à $+$ : minimum"} local ; en $${nb(r2)}$, de ${ext ? "$-$ à $+$ : minimum" : "$+$ à $-$ : maximum"} local. $f$ admet donc ${bonne}.` };
+      }
+      const bonne = ext ? `croissante sur $]-\\infty\\,;${nb(r1)}]$ et sur $[${nb(r2)}\\,;+\\infty[$, décroissante sur $[${nb(r1)}\\,;${nb(r2)}]$` : `décroissante sur $]-\\infty\\,;${nb(r1)}]$ et sur $[${nb(r2)}\\,;+\\infty[$, croissante sur $[${nb(r1)}\\,;${nb(r2)}]$`;
+      const ch = choix4(bonne, [ext ? `décroissante sur $]-\\infty\\,;${nb(r1)}]$ et sur $[${nb(r2)}\\,;+\\infty[$, croissante sur $[${nb(r1)}\\,;${nb(r2)}]$` : `croissante sur $]-\\infty\\,;${nb(r1)}]$ et sur $[${nb(r2)}\\,;+\\infty[$, décroissante sur $[${nb(r1)}\\,;${nb(r2)}]$`, `${ext ? "positive" : "négative"} sur $]-\\infty\\,;${nb(r1)}]$ et $[${nb(r2)}\\,;+\\infty[$`, `croissante sur $\\mathbb{R}$`]);
+      return { enonce: `Voici le tableau de signes de $f'$. Quel est le sens de variation de $f$ ?`, figure: fig, mode: "choix", choix: ch.choix, attendu: ch.attendu,
+        aides: ["$f' > 0$ : $f$ croissante ; $f' < 0$ : $f$ décroissante.", "Le tableau de signes de $f'$ donne le tableau de variations de $f$.", "Attention : le tableau parle du **signe** de $f'$, pas de celui de $f$."],
+        solution: `Sur les intervalles où $f'$ est ${ext ? "positive" : "négative"}, $f$ est ${ext ? "croissante" : "décroissante"} ; entre les racines, c'est l'inverse : $f$ est ${bonne}.` };
+    }
+    const P = paraboleQ(), q = pick(["signe", "zero"]);
+    const fig = figParabole(P);
+    if (q === "zero") return { enonce: `Voici la courbe de $f$. Pour quelle valeur de $x$ a-t-on $f'(x) = 0$ ?`, figure: fig, mode: "nombre", prefixe: "$x =$", attendu: P.h,
+      erreurs: [{ valeur: P.v, message: "On demande l'abscisse du point où la tangente est horizontale, pas l'ordonnée." }], aides: ["$f'(x) = 0$ là où la tangente est horizontale.", "Sur une parabole, c'est au sommet.", `Le sommet a pour abscisse $${nb(P.h)}$.`], solution: `La tangente est horizontale au sommet, d'abscisse $${nb(P.h)}$ : $f'(${nb(P.h)}) = 0$.` };
+    const x = pick([P.h - rand(1, 3), P.h + rand(1, 3)]);
+    if (Math.abs(x) > 5 || Math.abs(P.f(x)) > 6) return GEN["yr-lecture"]();
+    const s = P.s * (x - P.h) > 0 ? "positif" : "négatif";
+    const ch = choix4(`$f'(${nb(x)})$ est ${s}`, [`$f'(${nb(x)})$ est ${s === "positif" ? "négatif" : "positif"}`, `$f'(${nb(x)}) = 0$`, `$f'(${nb(x)}) = ${nb(P.f(x))}$`]);
+    return { enonce: `Voici la courbe de $f$. Sans calcul, que peut-on dire de $f'(${nb(x)})$ ?`, figure: fig, mode: "choix", choix: ch.choix, attendu: ch.attendu,
+      aides: ["Le signe de $f'(x)$ est celui de la pente de la tangente en $x$.", `En $x = ${nb(x)}$, la courbe ${s === "positif" ? "monte" : "descend"} (de gauche à droite).`, "Courbe qui monte : $f' > 0$ ; qui descend : $f' < 0$."],
+      solution: `Autour de $x = ${nb(x)}$, la courbe ${s === "positif" ? "monte" : "descend"} : la tangente a une pente ${s === "positif" ? "positive" : "négative"}, donc $f'(${nb(x)})$ est ${s}. (La valeur $f(${nb(x)}) = ${nb(P.f(x))}$ n'a rien à voir avec $f'(${nb(x)})$.)` };
+  });
+
+  def("yr-optimisation", () => {
+    const S = pick([
+      { ctx: (k) => `Un terrain rectangulaire est entouré de $${4 * k}$ m de clôture. On note $x$ sa largeur et $A(x) = x(${2 * k} - x) = -x^2 + ${2 * k}x$ son aire (en m²).`, k: () => rand(5, 15), P: (k) => [-1, 2 * k, 0], xq: (k) => k, vq: (k) => k * k, u: "m²", uv: "m" },
+      { ctx: (k) => `Le bénéfice d'une entreprise (en milliers d'euros) pour $x$ tonnes produites est $B(x) = -2x^2 + ${4 * k}x - ${k * k}$.`, k: () => rand(3, 10), P: (k) => [-2, 4 * k, -k * k], xq: (k) => k, vq: (k) => k * k, u: "milliers d'€", uv: "t" },
+      { ctx: (k) => `Le coût moyen de production (en €) de $x$ centaines d'objets est $C(x) = x^2 - ${2 * k}x + ${k * k + 5}$.`, k: () => rand(3, 12), P: (k) => [1, -2 * k, k * k + 5], xq: (k) => k, vq: () => 5, u: "€", uv: "centaines d'objets" },
+      { ctx: (k) => `Une boîte sans couvercle est fabriquée dans un carré de carton de $${6 * k}$ cm de côté en découpant des carrés de côté $x$ aux coins ; son volume est $V(x) = 4x^3 - ${24 * k}x^2 + ${36 * k * k}x$ (en cm³), pour $0 < x < ${3 * k}$.`, k: () => rand(1, 4), P: (k) => [4, -24 * k, 36 * k * k, 0], xq: (k) => k, vq: (k) => 16 * k ** 3, u: "cm³", uv: "cm" }
+    ]);
+    const k = S.k(), P = S.P(k), D = deriv(P), q = pick(["ou", "ou", "val"]);
+    const xq = S.xq(k), vq = S.vq(k), nomF = S.ctx(k).match(/\$([A-Z])\(x\)/)[1];
+    const cube = P.length === 4;
+    return { enonce: `${S.ctx(k)} ${q === "ou" ? `Pour quelle valeur de $x$ la grandeur est-elle ${P[0] > 0 && !cube ? "minimale" : "maximale"} ?` : `Quelle est la valeur ${P[0] > 0 && !cube ? "minimale" : "maximale"} de cette grandeur${cube ? " (sur $]0\\,;" + 3 * k + "[$)" : ""} ?`}`, mode: "nombre", prefixe: q === "ou" ? "$x =$" : (P[0] > 0 && !cube ? "Minimum :" : "Maximum :"), attendu: q === "ou" ? xq : vq, suffixe: q === "ou" ? S.uv : S.u,
+      erreurs: [{ valeur: q === "ou" ? vq : xq, message: q === "ou" ? "On demande la valeur de $x$, pas celle de la grandeur." : "On demande la valeur de la grandeur, pas celle de $x$." }, ...(cube ? [{ valeur: q === "ou" ? 3 * k : evalP(P, 3 * k), message: `$x = ${3 * k}$ annule aussi la dérivée, mais hors de l'intervalle d'étude (volume nul).` }] : [])],
+      aides: [`Dérive : $${nomF}'(x) = ${poly(D)}$.`, cube ? `$${nomF}'(x) = ${nb(D[0])}(x - ${k})(x - ${3 * k})$ : elle s'annule en $x = ${k}$ (et en $${3 * k}$, hors intervalle).` : `$${nomF}'(x) = 0 \\Leftrightarrow x = ${nb(xq)}$.`, q === "ou" ? "La dérivée change de signe en cette valeur : c'est l'extremum." : `Calcule $${nomF}(${nb(xq)})$.`],
+      solution: `$${nomF}'(x) = ${poly(D)}$${cube ? ` $= ${nb(D[0])}(x - ${k})(x - ${3 * k})$` : ""}. ${cube ? `Sur $]0\\,;${3 * k}[$, $${nomF}'$ est positive avant $${k}$ et négative après` : `$${nomF}'$ s'annule en $x = ${nb(xq)}$ en passant ${P[0] > 0 ? "du négatif au positif" : "du positif au négatif"}`} : la grandeur est ${P[0] > 0 && !cube ? "minimale" : "maximale"} pour $x = ${nb(xq)}$ ${S.uv}, et vaut alors $${nomF}(${nb(xq)}) = ${nb(vq)}$ ${S.u}.` };
+  });
+
+  def("yr-vrai-faux", () => vraiFaux4([
+    ["La dérivée de $x^2$ est $2x$.", true, "formule usuelle."],
+    ["La dérivée de $x^3$ est $3x^2$.", true, "formule usuelle."],
+    ["La dérivée de $5x^2 - 3x + 7$ est $10x - 3$.", true, "terme à terme, la constante disparaît."],
+    ["Si $f'(x) > 0$ sur un intervalle, $f$ est croissante sur cet intervalle.", true, "c'est le lien signe de la dérivée / variations."],
+    ["Si $f$ admet un maximum en $a$ (à l'intérieur de l'intervalle), alors $f'(a) = 0$.", true, "la tangente y est horizontale."],
+    ["Pour $f(x) = x^2 - 6x$, $f'(x) = 0$ pour $x = 3$.", true, "$2x - 6 = 0$."],
+    ["La dérivée d'une constante est $0$.", true, "une fonction constante ne varie pas."],
+    ["La dérivée de $4x$ est $4$.", true, "$(kx)' = k$."],
+    ["La dérivée de $x^3$ est $x^2$.", false, "c'est $3x^2$."],
+    ["La dérivée de $x^2 + 5$ est $2x + 5$.", false, "la constante $5$ a pour dérivée $0$ : $2x$."],
+    ["Si $f'(a) = 0$, alors $f$ admet forcément un extremum en $a$.", false, "$x^3$ en $0$ : dérivée nulle mais pas d'extremum ; il faut que $f'$ change de signe."],
+    ["Si $f'(x) < 0$, alors $f(x) < 0$.", false, "le signe de $f'$ renseigne sur les variations de $f$, pas sur son signe."],
+    ["La dérivée de $2x^3$ est $6x^3$.", false, "c'est $6x^2$ : le degré baisse."],
+    ["Une fonction décroissante a une dérivée positive.", false, "sa dérivée est négative."]
+  ], ["$(x^n)' = nx^{n - 1}$, constante $\\to 0$, $(kf)' = kf'$.", "Signe de $f'$ $\\to$ variations de $f$.", "Extremum : $f'$ s'annule **en changeant de signe**."]));
+
+  /* Figures du cours (chapitre 10) */
+  FIGURES["yr-cours-cubique"] = () => {
+    const f = (x) => x ** 3 - 3 * x;
+    let s = graph({ xmin: -2.6, xmax: 2.6, ymin: -3.6, ymax: 3.6, h: 290, curves: [{ f, a: -2.15, b: 2.15, label: "y = x³ − 3x", closed: false }, { f: () => 2, a: -1.7, b: -0.3, closed: false }, { f: () => -2, a: 0.3, b: 1.7, closed: false }], marques: [{ x: -1.8, y: -2.7, texte: "f′ > 0" }, { x: 0, y: 1.2, texte: "f′ < 0" }, { x: 1.8, y: 2.7, texte: "f′ > 0" }], points: [{ x: -1, y: 2, label: "max 2", gauche: true }, { x: 1, y: -2, label: "min −2" }], aria: "Courbe de x³ − 3x : monte, descend entre −1 et 1, remonte ; tangentes horizontales au maximum (−1 ; 2) et au minimum (1 ; −2)" });
+    [1, 2].forEach((i) => { s = tiret(s, i); });
+    return s;
+  };
+  FIGURES["yr-cours-tabsv"] = () => tabSV(["−∞", "−1", "1", "+∞"], ["+", "0", "−", "0", "+"], ["", "2", "−2", ""]);
+  FIGURES["yr-cours-parabole"] = () => {
+    const f = (x) => x * x - 4 * x + 1;
+    return tiret(graph({ xmin: -1.6, xmax: 5.6, ymin: -4.6, ymax: 6.6, h: 290, curves: [{ f, a: -1.1, b: 5.1, label: "y = x² − 4x + 1", closed: false }, { f: () => -3, a: 0.8, b: 3.2, closed: false }], marques: [{ x: 0, y: 4.5, texte: "f′ < 0" }, { x: 4.2, y: 4.5, texte: "f′ > 0" }], points: [{ x: 2, y: -3, label: "min −3 en x = 2" }], aria: "Parabole y = x² − 4x + 1 : f′(x) = 2x − 4, négative avant 2, positive après ; minimum −3 en x = 2" }), 1);
+  };
+  FIGURES["yr-cours-formules"] = () => {
+    const L = [["f(x)", "f′(x)"], ["k (constante)", "0"], ["x", "1"], ["x²", "2x"], ["x³", "3x²"], ["k·u(x)", "k·u′(x)"], ["u(x) + v(x)", "u′(x) + v′(x)"]];
+    let s = `<svg class="graph" viewBox="0 0 320 ${26 * L.length + 10}" role="img" aria-label="Tableau des dérivées usuelles : constante 0, x donne 1, x² donne 2x, x³ donne 3x², k u donne k u′, u + v donne u′ + v′">`;
+    L.forEach((l, i) => { s += `<rect x="10" y="${5 + 26 * i}" width="150" height="26" style="fill:${i === 0 ? "var(--lagon)" : "var(--surface)"};fill-opacity:${i === 0 ? 0.15 : 1};stroke:var(--doux);stroke-width:1"/><rect x="160" y="${5 + 26 * i}" width="150" height="26" style="fill:${i === 0 ? "var(--lagon)" : "var(--surface)"};fill-opacity:${i === 0 ? 0.15 : 1};stroke:var(--doux);stroke-width:1"/><text class="g-label" x="85" y="${22 + 26 * i}" text-anchor="middle" style="font-weight:${i === 0 ? 700 : 400}">${l[0]}</text><text class="g-label" x="235" y="${22 + 26 * i}" text-anchor="middle" style="font-weight:${i === 0 ? 700 : 400};fill:var(--lagon)">${l[1]}</text>`; });
     return s + `</svg>`;
   };
 
