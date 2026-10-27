@@ -114,6 +114,7 @@ table.valeurs { border-collapse: collapse; background: var(--surface); font-vari
 .valeurs th, .valeurs td { border: 1px solid var(--trait); padding: 6px 10px; text-align: center; }
 .valeurs th { background: var(--fond); }
 .katex { font-size: 1.08em; }
+.katex .ponct { font-family: var(--f-texte); font-size: calc(1em / 1.08); font-style: normal; } /* ponctuation qui suit une formule (app.js, colleFin) */
 .katex-display { overflow-x: auto; overflow-y: hidden; }
 
 /* Programmes Python */

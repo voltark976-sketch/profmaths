@@ -13,14 +13,14 @@ window.MOTEURS = {
   "cinquieme": ["assets/exercices-base.js","assets/exercices-college.js","assets/exercices-cinquieme.js"],
   "quatrieme": ["assets/exercices-base.js","assets/exercices-college.js","assets/exercices-quatrieme.js"],
   "troisieme": ["assets/exercices-base.js","assets/exercices-college.js","assets/exercices-quatrieme.js","assets/exercices-troisieme.js"],
-  "seconde": ["assets/exercices-base.js","assets/exercices.js"],
-  "automatismes": ["assets/exercices-base.js","assets/exercices.js"],
-  "premiere": ["assets/exercices-base.js","assets/exercices.js"],
+  "seconde": ["assets/exercices-base.js","assets/lycee/seconde.js"],
+  "automatismes": ["assets/exercices-base.js","assets/lycee/automatismes.js"],
+  "premiere": ["assets/exercices-base.js","assets/lycee/premiere.js"],
   "tronc": ["assets/exercices-base.js","assets/exercices-tronc.js"],
   "techno": ["assets/exercices-base.js","assets/exercices-techno.js"],
-  "terminale-spe": ["assets/exercices-base.js","assets/exercices.js"],
+  "terminale-spe": ["assets/exercices-base.js","assets/lycee/terminale-spe.js"],
   "expertes": ["assets/exercices-base.js","assets/exercices-expertes.js"],
-  "terminale": ["assets/exercices-base.js","assets/exercices.js"]
+  "terminale": ["assets/exercices-base.js","assets/lycee/terminale.js"]
 };
 window.MANIFESTE = {
   "cp-nombres": {"niveau":"cp","fichier":"data/cp/nombres.js","series":5,"qcm":24},

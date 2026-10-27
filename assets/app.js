@@ -238,7 +238,7 @@
     if (tt) return `<code class="tt">${esc(tt[1].replace(/\\([_{}#%&$ ])/g, "$1"))}</code>`;
     if (!display && src.includes(" ; ") && !/\\left|\\right|\\begin/.test(src)) {
       const parts = decoupeListe(src);
-      if (parts.length > 1) return parts.map((p) => tex(p)).join(" ; ");
+      if (parts.length > 1) return parts.map((p, k) => (k < parts.length - 1 ? colle(tex(p), "", "\u00a0;") : tex(p))).join(" "); // « ; » dans le nombre qui précède
     }
     if (window.katex) {
       // Intervalles : ]a ; b[ s'écrit comme d'habitude, l'espacement des crochets est corrigé ici
@@ -248,17 +248,28 @@
     }
     return `<code>${esc(src)}</code>`;
   }
+  // Ponctuation collée à une formule KaTeX (« ( » avant, « . » ou « ), » après) : placée DANS son premier ou son dernier
+  // bloc (.base), sinon Chrome peut couper la ligne entre les deux sur un téléphone (« . » seul en début de ligne ;
+  // le caractère « word joiner » n'y suffit pas)
+  function colle(html, avant, apres) {
+    const debut = '<span class="katex-html" aria-hidden="true"><span class="base">', fin = "</span></span></span>";
+    const i = html.indexOf(debut);
+    if (!html.startsWith('<span class="katex">') || i < 0 || !html.endsWith(fin)) return esc(avant || "") + html + esc(apres || "");
+    if (apres) html = html.slice(0, -fin.length) + `<span class="ponct">${esc(apres)}</span>` + fin;
+    if (avant) html = html.slice(0, i + debut.length) + `<span class="ponct">${esc(avant)}</span>` + html.slice(i + debut.length);
+    return html;
+  }
   function inline(s) {
-    const maths = [];
+    const maths = [], avant = [], apres = [];
     // Typographie sur petit écran : espace insécable devant « ? ! : ; » et à l'intérieur des guillemets,
     // et aucune coupure de ligne entre une formule et la ponctuation qui la suit (pas de « . » seul en début de ligne)
     const t = String(s).replace(/\$([^$]+)\$/g, (_, m) => "\u0000" + (maths.push(m) - 1) + "\u0000")
       .replace(/ ([?!:;»])/g, " $1").replace(/« /g, "« ")
-      .replace(/\u0000(\d+)\u0000(?=[.,;:!?)%» ])/g, "\u0000$1\u0000⁠")
+      .replace(/\u0000(\d+)\u0000((?:\u00a0?[.,;:!?)%»])+)/g, (_, i, p) => { apres[i] = p; return "\u0000" + i + "\u0000"; })
+      .replace(/\((?=\u0000(\d+)\u0000)/g, (_, i) => { avant[i] = "("; return ""; })
       // ni coupure entre un nombre (ou une formule) et son unité : « 45 °C », « 12 km/h », « 30 élèves »
-      .replace(/(\d|\u0000) (?=(?:°C|°|%|€|[kcmd]?m[²³]?|[kmc]?g|[mcd]?L|h|min|s|ha|m\/s|km\/h|mg\/L|ans?|jours?|mois|heures?|minutes?|secondes?)(?![A-Za-zÀ-ÿ0-9]))/g, "$1\u00a0")
-      .replace(/\((?=\u0000)/g, "(\u2060"); // ni entre « ( » et la formule qui suit
-    return esc(t).replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>").replace(/\u0000(\d+)\u0000/g, (_, i) => tex(maths[+i]));
+      .replace(/(\d|\u0000) (?=(?:°C|°|%|€|[kcmd]?m[²³]?|[kmc]?g|[mcd]?L|h|min|s|ha|m\/s|km\/h|mg\/L|ans?|jours?|mois|heures?|minutes?|secondes?)(?![A-Za-zÀ-ÿ0-9]))/g, "$1\u00a0");
+    return esc(t).replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>").replace(/\u0000(\d+)\u0000/g, (_, i) => colle(tex(maths[+i]), avant[i], apres[i]));
   }
   // Étiquette devant la case réponse : « x_I = », « P(Ā ∩ B) ≈ », « Q₃ − Q₁ = » sont écrits en maths (KaTeX),
   // « Moyenne : » ou « Médiane ≈ » restent du texte. Aucune notation ne doit s'afficher brute.
@@ -335,7 +346,8 @@
   /* ---------- Chargement à la demande (rapide en 3G) ----------
      Au démarrage, index.html ne charge que le catalogue, data/manifeste.js et le moteur du site.
      À l'ouverture d'un chapitre : son fichier (data/…), KaTeX et les outils communs (assets/exercices-base.js, 7 ko).
-     Les générateurs de son niveau (MOTEURS du manifeste) arrivent pour les onglets Exercices, QCM et Défi,
+     Les générateurs de son niveau (MOTEURS du manifeste ; au lycée, assets/lycee/<niveau>.js tiré d'assets/exercices.js)
+     arrivent pour les onglets Exercices, QCM et Défi,
      ou pour une figure du cours qui en a besoin. Les fichiers déjà téléchargés restent en cache (sw.js). */
   const VERSION = (/[?&]v=([^&]+)/.exec((document.currentScript || {}).src || "") || [])[1] || "";
   const BASE = "assets/exercices-base.js", KATEX = "assets/katex/katex.min.js";

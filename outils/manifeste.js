@@ -4,7 +4,8 @@
   Le site ne charge plus tous les chapitres au démarrage : il lit ce manifeste, puis
   télécharge le fichier d'un chapitre seulement quand on l'ouvre (plus rapide en 3G).
 
-  À relancer après avoir ajouté ou modifié un chapitre :   node outils/manifeste.js
+  Il refait aussi les générateurs du lycée découpés par niveau (assets/lycee/*.js, voir outils/lycee.js).
+  À relancer après avoir ajouté ou modifié un chapitre, ou modifié assets/exercices.js :   node outils/manifeste.js
   (sans argument : écrit le fichier ; avec --verifier : vérifie seulement, sans rien écrire)
 */
 const fs = require("fs"), path = require("path"), vm = require("vm");
@@ -35,19 +36,21 @@ for (const f of fichiers) {
 
 // Moteur d'exercices de chaque niveau : fichiers à charger, dans l'ordre, avant d'afficher ses exercices.
 // École : outils de l'école + fichier du niveau (champ exercices du catalogue). Collège : outils du collège + fichiers
-// du niveau. Lycée : le gros fichier des générateurs du lycée. Un champ « exercices » (texte ou liste) dans le
-// catalogue remplace la liste par défaut.
+// du niveau. Lycée : assets/lycee/<niveau>.js, la partie d'assets/exercices.js utile au niveau, fabriquée plus bas
+// par outils/lycee.js. Un champ « exercices » (texte ou liste) dans le catalogue remplace la liste par défaut.
 const BASE = "assets/exercices-base.js";
 const COLLEGE = { sixieme: [], cinquieme: ["assets/exercices-cinquieme.js"], quatrieme: ["assets/exercices-quatrieme.js"], troisieme: ["assets/exercices-quatrieme.js", "assets/exercices-troisieme.js"] };
-const moteurs = {};
+const lycee = require("./lycee.js");
+const moteurs = {}, niveauxLycee = [];
 for (const n of CATALOGUE.niveaux) {
   const propre = n.exercices ? [].concat(n.exercices) : null;
   let m;
   if (n.groupe === "ecole") m = ["assets/exercices-ecole.js"].concat(propre || []);
   else if (n.groupe === "college") m = ["assets/exercices-college.js"].concat(propre || COLLEGE[n.id] || []);
-  else m = propre || ["assets/exercices.js"];
+  else if (propre) m = propre;
+  else { m = [lycee.fichierNiveau(n.id)]; niveauxLycee.push(n.id); }
   moteurs[n.id] = [BASE].concat(m.filter((f) => f !== BASE));
-  for (const f of moteurs[n.id]) if (!fs.existsSync(path.join(racine, f))) { console.error(`✗ ${n.nom} : fichier d'exercices introuvable ${f}`); process.exitCode = 1; }
+  for (const f of moteurs[n.id]) if (!niveauxLycee.includes(n.id) && !fs.existsSync(path.join(racine, f))) { console.error(`✗ ${n.nom} : fichier d'exercices introuvable ${f}`); process.exitCode = 1; }
 }
 
 // Manifeste dans l'ordre du catalogue ; seuls les chapitres « disponible » y figurent
@@ -71,9 +74,24 @@ window.MANIFESTE = {
 ${Object.entries(man).map(([k, v]) => `  ${JSON.stringify(k)}: ${JSON.stringify(v)}`).join(",\n")}
 };
 `;
+// Générateurs du lycée découpés par niveau (assets/lycee/*.js), refaits à partir d'assets/exercices.js
+const fabriques = lycee.fabriquer(racine, CATALOGUE, man, niveauxLycee);
+const verifier = process.argv.includes("--verifier");
+const anciens = fs.existsSync(path.join(racine, lycee.dossier)) ? fs.readdirSync(path.join(racine, lycee.dossier)).map((f) => `${lycee.dossier}/${f}`).filter((f) => !fabriques[f]) : [];
+for (const [f, texte] of Object.entries(fabriques)) {
+  const p = path.join(racine, f), avant = fs.existsSync(p) ? fs.readFileSync(p, "utf8").replace(/\r\n/g, "\n") : "";
+  if (avant === texte) continue;
+  if (verifier) { console.error(`✗ ${f} n'est pas à jour (assets/exercices.js ou un chapitre a changé) : lance   node outils/manifeste.js`); process.exitCode = 1; }
+  else { fs.mkdirSync(path.dirname(p), { recursive: true }); fs.writeFileSync(p, texte); console.log(`✓ ${f} écrit (${Math.round(texte.length / 1024)} ko)`); }
+}
+for (const f of anciens) {
+  if (verifier) { console.error(`✗ ${f} ne sert plus : lance   node outils/manifeste.js`); process.exitCode = 1; }
+  else { fs.unlinkSync(path.join(racine, f)); console.log(`✓ ${f} supprimé (niveau absent)`); }
+}
+
 const dest = path.join(racine, "data/manifeste.js");
 const actuel = fs.existsSync(dest) ? fs.readFileSync(dest, "utf8").replace(/\r\n/g, "\n") : ""; // copie de travail en CRLF possible
-if (process.argv.includes("--verifier")) {
+if (verifier) {
   if (actuel !== sortie) { console.error("✗ data/manifeste.js n'est pas à jour : lance   node outils/manifeste.js"); process.exitCode = 1; }
   else console.log(`✓ data/manifeste.js à jour (${Object.keys(man).length} chapitres)`);
 } else {
