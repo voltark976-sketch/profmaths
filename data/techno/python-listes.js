@@ -39,6 +39,7 @@ window.CHAPITRES["techno-python-listes"] = {
     {
       titre: "Fonctions : entrées et sortie",
       figure: "yl-cours-fonction",
+      video: { titre: "Vidéo d'Yvan Monka : utiliser les fonctions en Python", youtube: "https://youtu.be/UYE9Do3-5XE" },
       texte:
         "Une **fonction** Python reçoit des **entrées** (ses paramètres) et **renvoie** une sortie avec $\\texttt{return}$ :\n\n" +
         "```python\ndef prix(x):             # entrée : x, le montant des achats\n    if x < 50:\n        return x + 6     # frais de port\n    else:\n        return x\n\nprint(prix(30))          # 36\nprint(prix(80))          # 80\n```\n\n" +
@@ -89,6 +90,7 @@ window.CHAPITRES["techno-python-listes"] = {
     },
     {
       titre: "Sélectionner des données",
+      video: { titre: "Vidéo d'Yvan Monka : créer une liste en compréhension en Python", youtube: "https://youtu.be/TzVQgK6RSXc" },
       texte:
         "Un fichier de données réelles (tableur, CSV) se lit comme une liste de lignes. Pour **extraire** une information, on filtre puis on compte ou on additionne :\n\n" +
         "```python\nages = [15, 17, 16, 18, 15, 17, 16, 16]\nmajeurs = [a for a in ages if a >= 18]\nprint(len(majeurs))          # 1\n```\n\n" +

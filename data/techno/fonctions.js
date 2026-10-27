@@ -93,6 +93,7 @@ window.CHAPITRES["techno-fonctions"] = {
     },
     {
       titre: "Python : une solution par balayage",
+      video: { titre: "Vidéo d'Yvan Monka : utiliser les boucles en Python", youtube: "https://youtu.be/i_imOJ9Vw0U" },
       texte:
         "Quand on ne sait pas résoudre $f(x) = k$ exactement, on **balaie** : on calcule $f(x)$ pour des valeurs régulièrement espacées jusqu'à dépasser $k$.\n\n" +
         "```python\ndef f(x):\n    return x ** 2 - 2\n\nx = 1\nwhile f(x) < 0:        # on cherche où x² − 2 devient positif\n    x = x + 0.01\nprint(x)                # 1.42 : la solution √2 est entre 1,41 et 1,42\n```\n\n" +

@@ -68,6 +68,7 @@ window.CHAPITRES["techno-variables-aleatoires"] = {
     {
       titre: "Simuler des échantillons : la fluctuation",
       figure: "yx-cours-fluctuation",
+      video: { titre: "Vidéo d'Yvan Monka : estimer une probabilité avec la loi des grands nombres", youtube: "https://youtu.be/mFwXs_EMYes" },
       texte:
         "Un **échantillon de taille $n$** d'une loi de Bernoulli de paramètre $p$ est une liste de $n$ résultats indépendants ($0$ ou $1$). La **fréquence observée** des $1$ est $f = \\dfrac{\\text{nombre de } 1}{n}$. Elle est proche de $p$, mais **change d'un échantillon à l'autre** : c'est la **fluctuation d'échantillonnage**.\n\n" +
         "En simulant $N$ échantillons (plusieurs centaines), on représente les fréquences par un histogramme : elles se répartissent autour de $p$. Si $s$ est l'**écart-type** de ces fréquences, on observe environ :\n\n" +

@@ -67,6 +67,7 @@ window.CHAPITRES["techno-ensembles-logique"] = {
     {
       titre: "Couples et produit cartésien",
       figure: "ye-cours-produit",
+      video: { titre: "Vidéo d'Yvan Monka : appliquer le principe multiplicatif pour dénombrer", youtube: "https://youtu.be/wzo1XXXaaqY" },
       texte:
         "Un **couple** $(x\\,;y)$ est une liste de deux éléments **dans un ordre** : $(1\\,;2) \\neq (2\\,;1)$. Les coordonnées d'un point sont un couple.\n\n" +
         "Le **produit cartésien** $A \\times B$ est l'ensemble de tous les couples $(x\\,;y)$ avec $x \\in A$ et $y \\in B$. Si $A$ a $p$ éléments et $B$ en a $q$, alors $A \\times B$ a $p \\times q$ éléments.\n\n" +

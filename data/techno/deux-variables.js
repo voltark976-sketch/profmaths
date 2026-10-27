@@ -65,6 +65,7 @@ window.CHAPITRES["techno-deux-variables"] = {
     },
     {
       titre: "Interpoler, extrapoler",
+      video: { titre: "Vidéo d'Yvan Monka : ajustement par les points moyens, interpolation et extrapolation", youtube: "https://youtu.be/ESHY4QPgriw" },
       texte:
         "Avec l'équation $y = ax + b$ de la droite d'ajustement, on **estime** des valeurs inconnues :\n\n" +
         "- **interpolation** : pour un $x$ situé dans la plage des données (entre la plus petite et la plus grande valeur observée) ;\n" +

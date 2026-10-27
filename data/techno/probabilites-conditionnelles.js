@@ -83,6 +83,7 @@ window.CHAPITRES["techno-probabilites-conditionnelles"] = {
     },
     {
       titre: "Python : simuler et compter",
+      video: { titre: "Vidéo d'Yvan Monka : créer un compteur en Python", youtube: "https://youtu.be/6m04wQqKBBc" },
       texte:
         "On peut estimer une probabilité conditionnelle par simulation :\n\n" +
         "```python\nfrom random import random\n\nnA, nAB = 0, 0\nfor k in range(10000):\n    A = random() < 0.3                 # machine A ?\n    if A:\n        D = random() < 0.1             # défaut sachant A\n    else:\n        D = random() < 0.05            # défaut sachant B\n    if A:\n        nA = nA + 1\n        if D:\n            nAB = nAB + 1\nprint(nAB / nA)                        # proche de P_A(D) = 0,1\n```\n\n" +
