@@ -504,7 +504,7 @@
     h += piedDePage();
     $app.innerHTML = h;
   }
-  const piedDePage = () => `<footer class="pied">${liensReseaux("rs-liste rs-pied")}<a href="https://drive.google.com/drive/folders/1mTeWgDGTv4hNYrD_ozxN9-cSDDGH_Oqn" target="_blank" rel="noopener">Cours et corrigés (Drive)</a><p class="pied-note">Site gratuit et sans publicité, fait par un professeur de mathématiques de Mayotte. Les chapitres déjà ouverts restent lisibles sans connexion.</p></footer>`;
+  const piedDePage = () => `<footer class="pied">${liensReseaux("rs-liste rs-pied")}<a class="rs rs-drive" href="https://drive.google.com/drive/folders/1mTeWgDGTv4hNYrD_ozxN9-cSDDGH_Oqn" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#00ac47" d="M8 3l3.9 6.6-7.4 11.9L1 15.5z"/><path fill="#ffba00" d="M8 3h8l7 12.5h-7.6z"/><path fill="#2684fc" d="M4.5 21.5l3.5-6h15l-3.5 6z"/></svg><span>Cours et corrigés</span></a><p class="pied-note">Site gratuit et sans publicité, fait par un professeur de mathématiques de Mayotte. Les chapitres déjà ouverts restent lisibles sans connexion.</p></footer>`;
 
   /* ---------- Pages Collège et Lycée : les classes de chaque cycle ---------- */
   function pageCycle(k) {
