@@ -449,17 +449,17 @@
   ];
   const liensReseaux = (cls) => `<span class="${cls}">${RESEAUX.map((r) => `<a class="rs rs-${r.id}" href="${r.url}" target="_blank" rel="noopener">${r.ico}<span>${r.nom}</span></a>`).join("")}</span>`;
   // Invitation à s'abonner à la chaîne : rare et jamais en pleine série. Elle n'apparaît que sur un bilan
-  // (série d'exercices ou QCM) bien réussi, après au moins 4 activités terminées et 7 jours depuis la dernière.
+  // (série d'exercices ou QCM) bien réussi, après 6 séries ou 3 QCM terminés et 7 jours depuis la dernière.
   // Plus jamais après « S'abonner », « Déjà abonné » ou 2 fermetures. Jamais pour les professeurs.
-  const CLE_ABO = "profmaths:abonnement", ABO_ACTIVITES = 4, ABO_DELAI = 7 * 864e5, ABO_REFUS = 2;
+  const CLE_ABO = "profmaths:abonnement", ABO_SEUIL = { s: 6, q: 3 }, ABO_DELAI = 7 * 864e5, ABO_REFUS = 2;
   const lireAbo = () => { try { return JSON.parse(localStorage.getItem(CLE_ABO) || "{}") || {}; } catch (er) { return null; } };
   const ecrireAbo = (a) => { try { localStorage.setItem(CLE_ABO, JSON.stringify(a)); return true; } catch (er) { return false; } };
-  function inviteAbo(reussi) {
+  function inviteAbo(sorte, reussi) { // sorte : "s" (série d'exercices) ou "q" (QCM)
     const e = Compte.eleve(), a = lireAbo();
     if ((e && e.prof) || !a || a.fini) return "";
-    a.n = (a.n || 0) + 1;
-    const montrer = reussi && a.n >= ABO_ACTIVITES && Date.now() - (a.vu || 0) >= ABO_DELAI;
-    if (montrer) { a.n = 0; a.vu = Date.now(); }
+    a[sorte] = (a[sorte] || 0) + 1;
+    const montrer = reussi && a[sorte] >= ABO_SEUIL[sorte] && Date.now() - (a.vu || 0) >= ABO_DELAI;
+    if (montrer) { a.s = 0; a.q = 0; a.vu = Date.now(); }
     if (!ecrireAbo(a) || !montrer) return "";
     return `<div class="abo"><p><strong>Ça t'aide ?</strong> Retrouve toutes les vidéos de cours sur ma chaîne YouTube.</p>
       <p class="abo-btns"><a class="abo-oui" href="${YT_PROF}?sub_confirmation=1" target="_blank" rel="noopener" data-abo="oui"><span aria-hidden="true">▶</span> S'abonner</a><button type="button" data-abo="deja">Déjà abonné</button></p>
@@ -1456,7 +1456,7 @@
         <div class="exo-actions"><button class="btn" id="encore">Recommencer</button><button class="btn-sec" id="retour">Autres séries</button></div></div>`;
       p.querySelector("#encore").addEventListener("click", () => lancerSerie(p, c, id, ex));
       p.querySelector("#retour").addEventListener("click", () => vueExercices(p, c, id));
-      p.querySelector(".bilan").insertAdjacentHTML("beforeend", inviteAbo(st >= 2));
+      p.querySelector(".bilan").insertAdjacentHTML("beforeend", inviteAbo("s", st >= 2));
     }
     question();
   }
@@ -1566,7 +1566,7 @@
       form.dataset.corrige = "1";
       const fin = p.querySelector(".qcm-fin");
       fin.innerHTML = `<div class="bilan"><p class="eyebrow">Ton score</p><p class="gros">${bon}<span>/${qs.length}</span></p>${record && bon ? `<p class="record">Nouveau record !</p>` : ""}<p>+${gain} XP${coef < 1 ? ` (QCM ${texteCoef(coef)})` : ""}. ${bon >= 8 ? "Excellent, le chapitre est bien compris." : bon >= 5 ? "Bien. Relis les explications des questions ratées." : "Revois le cours et la fiche méthode, puis retente ta chance."}</p><button class="btn" type="submit">Nouveau QCM</button></div>`;
-      fin.insertAdjacentHTML("beforeend", inviteAbo(bon >= 0.6 * tot));
+      fin.insertAdjacentHTML("beforeend", inviteAbo("q", bon >= 0.6 * tot));
       fin.scrollIntoView({ behavior: "smooth", block: "center" });
     });
   }
