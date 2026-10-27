@@ -661,7 +661,7 @@
   FIGURES["xg-cours-plan"] = () => planC({ xmin: -4.4, xmax: 4.4, ymin: -3.4, ymax: 3.4,
     points: [ptC(3, 2, "M(3 + 2i)"), ptC(3, -2, "M'(3 − 2i)"), ptC(-2, 1, "A(−2 + i)", { gauche: true })],
     fleches: [{ x1: -2, y1: 1, x2: 3, y2: 2, label: "", c: 1 }], segs: [[3, 2, 3, -2, true]],
-    textes: [{ x: 0.5, y: 2.1, t: "AM : 5 + i", dy: -6 }],
+    textes: [{ x: 0.7, y: 1.1, t: "vecteur AM : 5 + i", dy: 10 }],
     aria: "Plan complexe : M d'affixe 3 + 2i, son symétrique M' d'affixe 3 − 2i (conjugué), et le vecteur AM d'affixe 5 + i" });
   FIGURES["xg-cours-module"] = () => planC({ xmin: -1.4, xmax: 4.4, ymin: -1.4, ymax: 3.6,
     points: [ptC(3, 2, "M(a + ib)")], segs: [[0, 0, 3, 2], [3, 0, 3, 2, true], [0, 2, 3, 2, true]],
@@ -1476,8 +1476,8 @@
       const k = rand(6, 60), a = rand(2, 40), g = pgcd(k, a), att = k / g;
       return { enonce: `Quel est le plus petit entier naturel non nul $n$ tel que $${k}$ divise $${a}n$ ?`, mode: "nombre", prefixe: "$n =$", attendu: att,
         erreurs: [{ valeur: k, message: g > 1 ? `$${k}$ et $${a}$ ont des facteurs communs : on peut faire plus petit.` : "C'est le bon raisonnement… vérifie le calcul." }, { valeur: g, message: "Ça, c'est le PGCD. Utilise-le pour simplifier." }, { valeur: k * a, message: "On cherche le plus petit $n$." }],
-        aides: [`$\\text{PGCD}(${k}\\,;${a}) = ${g}$.`, g > 1 ? `Divise par $${g}$ : ${k / g}$ divise ${coef(a / g, "n")}$, avec $${k / g}$ et $${a / g}$ premiers entre eux.` : `$${k}$ et $${a}$ sont premiers entre eux.`, `Théorème de Gauss : $${k / g}$ divise alors $n$.`],
-        solution: `$\\text{PGCD}(${k}\\,;${a}) = ${g}$.${g > 1 ? ` On écrit $${k} = ${g} \\times ${k / g}$ et $${a} = ${g} \\times ${a / g}$ : ${k}$ divise ${a}n$ si et seulement si ${k / g}$ divise ${coef(a / g, "n")}$.` : ""}\n\nComme $${k / g}$ et $${a / g}$ sont premiers entre eux, le théorème de Gauss donne : $${k / g}$ divise $n$. Le plus petit $n$ non nul est $${att}$.` };
+        aides: [`$\\text{PGCD}(${k}\\,;${a}) = ${g}$.`, g > 1 ? `Divise par $${g}$ : $${k / g}$ divise $${coef(a / g, "n")}$, avec $${k / g}$ et $${a / g}$ premiers entre eux.` : `$${k}$ et $${a}$ sont premiers entre eux.`, `Théorème de Gauss : $${k / g}$ divise alors $n$.`],
+        solution: `$\\text{PGCD}(${k}\\,;${a}) = ${g}$.${g > 1 ? ` On écrit $${k} = ${g} \\times ${k / g}$ et $${a} = ${g} \\times ${a / g}$ : $${k}$ divise $${a}n$ si et seulement si $${k / g}$ divise $${coef(a / g, "n")}$.` : ""}\n\nComme $${k / g}$ et $${a / g}$ sont premiers entre eux, le théorème de Gauss donne : $${k / g}$ divise $n$. Le plus petit $n$ non nul est $${att}$.` };
     }
     // a x = b y avec a, b premiers entre eux
     let a, b; do { a = rand(3, 25); b = rand(3, 25); } while (a === b || pgcd(a, b) !== 1);
@@ -1940,4 +1940,130 @@
   FIGURES["xr-cours-graphe"] = () => grapheG({ sommets: enCercle(5), aretes: [["A", "B"], ["A", "C"], ["B", "C"], ["C", "D"], ["D", "E"], ["B", "E"]], aria: "Graphe à 5 sommets A, B, C, D, E et 6 arêtes : A–B, A–C, B–C, C–D, D–E, B–E ; degrés 2, 3, 3, 2, 2" });
   FIGURES["xr-cours-complet"] = () => { const S = enCercle(5), E = []; for (let a = 0; a < 5; a++) for (let b = a + 1; b < 5; b++) E.push([NOMS[a], NOMS[b]]); return grapheG({ sommets: S, aretes: E, aria: "Graphe complet à 5 sommets : chaque sommet est relié aux 4 autres, 10 arêtes en tout" }); };
   FIGURES["xr-cours-oriente"] = () => grapheG({ sommets: enCercle(4), aretes: [["A", "B"], ["B", "C"], ["C", "A"], ["A", "D"], ["D", "C"], ["C", "D"]], oriente: true, aria: "Graphe orienté à 4 sommets avec les arcs A→B, B→C, C→A, A→D, D→C et C→D" });
+
+
+  /* ---------- Chapitre 11 : suites de matrices et chaînes de Markov (préfixe xk) ---------- */
+  const mArr = (M) => M.map((l) => l.map((v) => arr(v, 8)));
+  // Contextes à deux états : [état 1, état 2, phrase « on passe de … », lettres]
+  const CTX2 = [
+    { e: ["prend le bus", "va à pied"], l: ["B", "P"], qui: "Chaque matin, un élève de Koungou", unite: "matin", un: "un", suiv: "le suivant" },
+    { e: ["est ensoleillé", "est pluvieux"], l: ["S", "R"], qui: "À Mamoudzou, pendant la saison des pluies, un jour", unite: "jour", un: "un", suiv: "le suivant" },
+    { e: ["prend la barge", "prend l'amphidrome"], l: ["B", "A"], qui: "Chaque jour, un habitant de Petite-Terre qui traverse", unite: "jour", un: "un", suiv: "le suivant" },
+    { e: ["joue au football", "joue au basket"], l: ["F", "K"], qui: "Chaque semaine, un adhérent du club de Sada", unite: "semaine", un: "une", suiv: "la suivante" },
+    { e: ["mange à la cantine", "mange dehors"], l: ["C", "D"], qui: "Chaque midi, un élève du lycée", unite: "midi", un: "un", suiv: "le suivant" }
+  ];
+  const dec = (k) => k / 10; // probabilités en dixièmes
+  const P2 = () => { const a = rand(1, 8), b = rand(1, 8); return { a: dec(a), b: dec(b), ai: a, bi: b, P: [[arr(1 - dec(a)), dec(a)], [dec(b), arr(1 - dec(b))]] }; };
+  const figMarkov2 = (P, L) => grapheG({ sommets: [[L[0], 85, 110], [L[1], 235, 110]], aretes: [[L[0], L[0], nbS(P[0][0])], [L[0], L[1], nbS(P[0][1])], [L[1], L[0], nbS(P[1][0])], [L[1], L[1], nbS(P[1][1])]], oriente: true, h: 200, boucles: { [L[0]]: Math.PI, [L[1]]: 0 }, aria: `Graphe probabiliste à deux états ${L[0]} et ${L[1]} : de ${L[0]} vers ${L[0]} ${nbS(P[0][0])}, de ${L[0]} vers ${L[1]} ${nbS(P[0][1])}, de ${L[1]} vers ${L[0]} ${nbS(P[1][0])}, de ${L[1]} vers ${L[1]} ${nbS(P[1][1])}` });
+  const figMarkov3 = (P, L) => grapheG({ sommets: [[L[0], 160, 40], [L[1], 70, 190], [L[2], 250, 190]], aretes: [0, 1, 2].flatMap((i) => [0, 1, 2].filter((j) => P[i][j] > 0).map((j) => [L[i], L[j], nbS(P[i][j])])), oriente: true, h: 240, boucles: { [L[0]]: -Math.PI / 2, [L[1]]: Math.PI * 0.8, [L[2]]: Math.PI * 0.2 }, aria: `Graphe probabiliste à trois états ${L.join(", ")}` });
+  // Matrice 3 × 3 stochastique à coefficients en dixièmes
+  const P3 = () => Array.from({ length: 3 }, () => { const a = rand(0, 8), b = rand(0, 10 - a); return shuffle([a, b, 10 - a - b]).map(dec); });
+
+  def("xk-suite", () => {
+    const t = pick(["sans", "sans", "avec"]);
+    const A = [[pick([-1, 1, 2, 3]), pick([-2, -1, 1, 2])], [pick([-1, 1, 2]), pick([-1, 1, 2, 3])]], U0 = [[rand(-4, 5)], [rand(-4, 5)]], Cc = t === "avec" ? [[rand(-4, 4)], [rand(-4, 4)]] : [[0], [0]];
+    const U1 = mAdd(mMul(A, U0), Cc), U2 = mAdd(mMul(A, U1), Cc), quoi = pick([0, 1]), att = U2[quoi][0];
+    const rel = `U_{n+1} = AU_n${t === "avec" ? " + C" : ""}`;
+    return { enonce: `On définit $U_0 = ${mat(U0)}$ et, pour tout entier $n$, $${rel}$ avec $A = ${mat(A)}$${t === "avec" ? ` et $C = ${mat(Cc)}$` : ""}. On note $U_n = \\begin{pmatrix} u_n \\\\ v_n \\end{pmatrix}$. Que vaut $${quoi ? "v_2" : "u_2"}$ ?`, mode: "nombre", prefixe: `$${quoi ? "v_2" : "u_2"} =$`, attendu: att,
+      erreurs: [{ valeur: U1[quoi][0], message: "Ça, c'est pour $U_1$ : il faut encore une étape." }, { valeur: U2[1 - quoi][0], message: `Ça, c'est $${quoi ? "u_2" : "v_2"}$.` }, { valeur: mMul(mMul(A, A), U0)[quoi][0] + 2 * Cc[quoi][0], message: "Calcule pas à pas : $U_2 = AU_1 + C$, et non $A^2U_0 + 2C$." }],
+      aides: [`Calcule d'abord $U_1 = AU_0${t === "avec" ? " + C" : ""}$.`, `$U_1 = ${mat(U1)}$.`, `Puis $U_2 = AU_1${t === "avec" ? " + C" : ""}$ : produit ligne par colonne.`],
+      solution: `$U_1 = ${mat(A)}${mat(U0)}${t === "avec" ? ` + ${mat(Cc)}` : ""} = ${mat(U1)}$.\n\n$U_2 = ${mat(A)}${mat(U1)}${t === "avec" ? ` + ${mat(Cc)}` : ""} = ${mat(U2)}$.\n\nDonc $${quoi ? "v_2" : "u_2"} = ${nb(att)}$.` };
+  });
+
+  def("xk-limite", () => {
+    // L = AL + C avec A = [[a, b], [c, d]] en dixièmes et L entier
+    let A, L, Cc; do {
+      A = [[dec(rand(1, 6)), dec(rand(0, 3))], [dec(rand(0, 3)), dec(rand(1, 6))]]; L = [[rand(5, 60)], [rand(5, 60)]];
+      Cc = mArr(mAdd(L, mMul(A, L), 1, -1));
+    } while (Math.abs(det2([[1 - A[0][0], -A[0][1]], [-A[1][0], 1 - A[1][1]]])) < 1e-9);
+    const quoi = pick([0, 1]), att = L[quoi][0];
+    const IA = mArr([[1 - A[0][0], -A[0][1]], [-A[1][0], 1 - A[1][1]]]);
+    return { enonce: `On considère la suite de matrices colonnes définie par $U_{n+1} = AU_n + C$ avec $A = ${mat(A)}$ et $C = ${mat(Cc)}$. On cherche la matrice colonne constante $L = \\begin{pmatrix} x \\\\ y \\end{pmatrix}$ telle que $L = AL + C$. Que vaut $${quoi ? "y" : "x"}$ ?`, mode: "nombre", prefixe: `$${quoi ? "y" : "x"} =$`, attendu: att,
+      erreurs: [{ valeur: L[1 - quoi][0], message: `Ça, c'est la valeur de $${quoi ? "x" : "y"}$.` }, { valeur: arr(Cc[quoi][0] / (1 + A[quoi][quoi]), 6), message: "On résout $(I - A)L = C$ : attention au signe, c'est $1 - a$ sur la diagonale." }],
+      aides: ["$L = AL + C$ équivaut à $L - AL = C$, soit $(I_2 - A)L = C$.", `$I_2 - A = ${mat(IA)}$.`, "Résous le système correspondant (ou calcule $(I_2 - A)^{-1}C$)."],
+      solution: `$(I_2 - A)L = C$ s'écrit $\\begin{cases} ${nb(IA[0][0])}x ${IA[0][1] < 0 ? "-" : "+"} ${nb(Math.abs(IA[0][1]))}y = ${nb(Cc[0][0])} \\\\ ${nb(IA[1][0])}x ${IA[1][1] < 0 ? "-" : "+"} ${nb(Math.abs(IA[1][1]))}y = ${nb(Cc[1][0])} \\end{cases}$.\n\nOn trouve $x = ${L[0][0]}$ et $y = ${L[1][0]}$ : $L = ${mat(L)}$.\n\nVérification : $AL + C = ${mat(mArr(mMul(A, L)))} + ${mat(Cc)} = ${mat(L)}$.`.replace(/ 0x [+-] /g, " ").replace(/[+-] 0y = /g, "= ") };
+  });
+
+  def("xk-transition", () => {
+    const K = pick(CTX2), [s1, s2] = K.l; let M; do { M = P2(); } while (M.ai === M.bi || M.ai === 5 || M.bi === 5);
+    const bonne = `$${mat(M.P)}$`;
+    const T = [[M.P[0][0], M.P[1][0]], [M.P[0][1], M.P[1][1]]];
+    const f = [`$${mat(T)}$`, `$${mat([[M.P[0][1], M.P[0][0]], [M.P[1][0], M.P[1][1]]])}$`, `$${mat([[M.P[0][0], M.P[0][1]], [M.P[1][1], M.P[1][0]]])}$`, `$${mat([[M.a, arr(1 - M.a)], [M.b, arr(1 - M.b)]])}$`];
+    const ch = choix4(bonne, f.filter((x) => x !== bonne));
+    return { enonce: `${K.qui} ${K.e[0]} (état ${s1}) ou ${K.e[1]} (état ${s2}). S'il ${K.e[0]} ${K.un} ${K.unite}, il ${K.e[1]} ${K.suiv} avec la probabilité $${nb(M.a)}$. S'il ${K.e[1]}, il ${K.e[0]} ${K.suiv} avec la probabilité $${nb(M.b)}$. Quelle est la matrice de transition (états rangés dans l'ordre ${s1}, ${s2}) ?`, mode: "choix", choix: ch.choix, attendu: ch.attendu,
+      aides: ["Le coefficient $p_{ij}$ est la probabilité de passer de l'état $i$ (ligne) à l'état $j$ (colonne).", "La somme de chaque **ligne** vaut $1$.", `Ligne ${s1} : rester en ${s1} avec $1 - ${nb(M.a)} = ${nb(M.P[0][0])}$, passer en ${s2} avec $${nb(M.a)}$.`],
+      solution: `Ligne ${s1} (départ ${s1}) : $${nb(M.P[0][0])}$ vers ${s1}, $${nb(M.P[0][1])}$ vers ${s2}. Ligne ${s2} : $${nb(M.P[1][0])}$ vers ${s1}, $${nb(M.P[1][1])}$ vers ${s2}.\n\n$P = ${mat(M.P)}$ : chaque ligne a pour somme $1$.`,
+      figureSolution: figMarkov2(M.P, K.l) };
+  });
+
+  def("xk-graphe", () => {
+    if (Math.random() < 0.5) {
+      const K = pick(CTX2), M = P2(), i = rand(0, 1), j = rand(0, 1);
+      const P = M.P.map((l) => l.slice()), L = K.l;
+      const fig = grapheG({ sommets: [[L[0], 85, 110], [L[1], 235, 110]], aretes: [[L[0], L[0], i === 0 && j === 0 ? "?" : nbS(P[0][0])], [L[0], L[1], i === 0 && j === 1 ? "?" : nbS(P[0][1])], [L[1], L[0], i === 1 && j === 0 ? "?" : nbS(P[1][0])], [L[1], L[1], i === 1 && j === 1 ? "?" : nbS(P[1][1])]], oriente: true, h: 200, boucles: { [L[0]]: Math.PI, [L[1]]: 0 }, aria: `Graphe probabiliste à deux états ${L[0]} et ${L[1]}, une probabilité est remplacée par un point d'interrogation` });
+      return { enonce: `Ce graphe probabiliste représente une chaîne de Markov à deux états ${L[0]} et ${L[1]}. Quelle probabilité remplace le point d'interrogation ?`, figure: fig, mode: "nombre", prefixe: "Probabilité :", attendu: P[i][j],
+        erreurs: [{ valeur: P[1 - i][j], message: "On complète avec les flèches qui **partent** du même sommet." }, { valeur: arr(1 - P[1 - i][1 - j]), message: "La somme des probabilités des flèches qui partent d'un même sommet vaut $1$." }],
+        aides: ["Les probabilités des flèches qui partent d'un même sommet ont pour somme $1$.", `Repère le sommet de départ de la flèche marquée « ? » : ${L[i]}.`, `L'autre flèche issue de ${L[i]} porte $${nb(P[i][1 - j])}$.`],
+        solution: `Depuis ${L[i]} : $${nb(P[i][1 - j])} + ? = 1$, donc $? = ${nb(P[i][j])}$.` };
+    }
+    const P = P3(), L = ["A", "B", "C"], i = rand(0, 2), j = rand(0, 2);
+    return { enonce: `Ce graphe probabiliste représente une chaîne de Markov à trois états (on n'a pas dessiné les flèches de probabilité nulle). Quel est le coefficient $p_{${L[i]}${L[j]}}$ de la matrice de transition (ligne ${L[i]}, colonne ${L[j]}) ?`, figure: figMarkov3(P, L), mode: "nombre", prefixe: `$p_{${L[i]}${L[j]}} =$`, attendu: P[i][j],
+      erreurs: [{ valeur: P[j][i], message: "Attention au sens : ligne = départ, colonne = arrivée." }, { valeur: 1, message: "C'est la somme d'une ligne qui vaut $1$." }],
+      aides: ["$p_{ij}$ est la probabilité de passer de l'état $i$ à l'état $j$.", `Cherche la flèche qui part de ${L[i]} et arrive en ${L[j]}.`, "S'il n'y a pas de flèche, la probabilité est nulle."],
+      solution: `La flèche de ${L[i]} vers ${L[j]} ${P[i][j] ? `porte $${nb(P[i][j])}$` : "n'existe pas : la probabilité est $0$"}.\n\nMatrice de transition : $P = ${mat(P)}$.` };
+  });
+
+  def("xk-distribution", () => {
+    if (Math.random() < 0.55) {
+      const M = P2(), p0 = dec(rand(0, 10)), pi0 = [[p0, arr(1 - p0)]], n = pick([1, 1, 2]), quoi = pick([0, 1]);
+      const pin = mArr(mMul(pi0, mPow(M.P, n))), att = pin[0][quoi];
+      const pi1 = mArr(mMul(pi0, M.P));
+      return { enonce: `Une chaîne de Markov à deux états $1$ et $2$ a pour matrice de transition $P = ${mat(M.P)}$ et pour distribution initiale $\\pi_0 = ${mat(pi0)}$. Quelle est la ${quoi ? "deuxième" : "première"} composante de $\\pi_${n}$ (probabilité d'être dans l'état $${quoi + 1}$ après $${n}$ transition${n > 1 ? "s" : ""}) ?`, mode: "nombre", prefixe: `Probabilité :`, attendu: att,
+        erreurs: [{ valeur: arr(mMul(M.P, [[pi0[0][0]], [pi0[0][1]]])[quoi][0]), message: "On multiplie la **ligne** $\\pi_0$ par $P$ (à droite) : $\\pi_1 = \\pi_0 P$." }, { valeur: pin[0][1 - quoi], message: "Ça, c'est l'autre composante." }, { valeur: n === 2 ? pi1[0][quoi] : pi0[0][quoi], message: n === 2 ? "Ça, c'est après une seule transition." : "Ça, c'est la distribution initiale." }],
+        aides: ["$\\pi_{n+1} = \\pi_n P$ : on multiplie la matrice ligne par $P$.", `$\\pi_1 = \\pi_0 P = ${mat(pi1)}$${n === 2 ? "" : " : c'est la réponse à lire"}.`, n === 2 ? "Recommence : $\\pi_2 = \\pi_1 P$." : "Lis la composante demandée."],
+        solution: `$\\pi_1 = \\pi_0 P = ${mat(pi1)}$.${n === 2 ? `\n\n$\\pi_2 = \\pi_1 P = ${mat(pin)}$.` : ""}\n\nLa composante cherchée vaut $${nb(att)}$.` };
+    }
+    const P = P3(), a = rand(0, 10), b = rand(0, 10 - a), pi0 = [[dec(a), dec(b), dec(10 - a - b)]], quoi = rand(0, 2);
+    const pi1 = mArr(mMul(pi0, P)), att = pi1[0][quoi];
+    return { enonce: `Une chaîne de Markov à trois états a pour matrice de transition $P = ${mat(P)}$ et pour distribution initiale $\\pi_0 = ${mat(pi0)}$. Quelle est la composante numéro $${quoi + 1}$ de $\\pi_1$ ?`, mode: "nombre", prefixe: "Probabilité :", attendu: att,
+      erreurs: [{ valeur: arr(P[quoi].reduce((s, v, k) => s + v * pi0[0][k], 0)), message: "On multiplie la ligne $\\pi_0$ par la **colonne** $" + (quoi + 1) + "$ de $P$." }, { valeur: pi0[0][quoi], message: "Ça, c'est la distribution initiale." }],
+      aides: ["$\\pi_1 = \\pi_0 P$.", `La composante $${quoi + 1}$ de $\\pi_1$ est le produit de $\\pi_0$ par la colonne $${quoi + 1}$ de $P$.`, `Calcule $${pi0[0].map((v, k) => `${nb(v)} \\times ${nb(P[k][quoi])}`).join(" + ")}$.`],
+      solution: `Composante $${quoi + 1}$ de $\\pi_1$ : $${pi0[0].map((v, k) => `${nb(v)} \\times ${nb(P[k][quoi])}`).join(" + ")} = ${nb(att)}$.\n\n$\\pi_1 = ${mat(pi1)}$.` };
+  });
+
+  def("xk-pn", () => {
+    const deux = Math.random() < 0.5, P = deux ? P2().P : P3(), k = P.length, i = rand(0, k - 1), j = rand(0, k - 1), P2m = mArr(mMul(P, P)), att = P2m[i][j];
+    return { enonce: `Une chaîne de Markov a pour matrice de transition $P = ${mat(P)}$. Quelle est la probabilité de passer de l'état $${i + 1}$ à l'état $${j + 1}$ en **deux** transitions ?`, mode: "nombre", prefixe: "Probabilité :", attendu: att,
+      erreurs: [{ valeur: P[i][j], message: "Ça, c'est en une seule transition." }, { valeur: arr(P[i][j] ** 2), message: "On ne met pas le coefficient au carré : c'est le coefficient de $P^2$." }, { valeur: P2m[j][i], message: "Attention au sens : ligne $" + (i + 1) + "$ (départ), colonne $" + (j + 1) + "$ (arrivée)." }],
+      aides: ["La probabilité de passer de $i$ à $j$ en $n$ transitions est le coefficient $(i\\,;j)$ de $P^n$.", `Ici, c'est le coefficient $(${i + 1}\\,;${j + 1})$ de $P^2$ : ligne $${i + 1}$ de $P$ fois colonne $${j + 1}$ de $P$.`, "Chaque terme correspond à un état intermédiaire possible."],
+      solution: `$(P^2)_{${i + 1}${j + 1}} = ${P[i].map((v, q) => `${nb(v)} \\times ${nb(P[q][j])}`).join(" + ")} = ${nb(att)}$.\n\nChaque produit correspond à un chemin $${i + 1} \\to q \\to ${j + 1}$ par un état intermédiaire $q$.` };
+  });
+
+  def("xk-invariante", () => {
+    const M = P2(), quoi = pick([0, 1]);
+    const s = M.ai + M.bi, att = quoi ? M.ai / s : M.bi / s;
+    return { enonce: `Une chaîne de Markov à deux états a pour matrice de transition $P = ${mat(M.P)}$. On cherche sa distribution invariante $\\pi = \\begin{pmatrix} x & y \\end{pmatrix}$, telle que $\\pi P = \\pi$ et $x + y = 1$. Que vaut $${quoi ? "y" : "x"}$ ? Donne la valeur exacte (fraction).`, mode: "nombre", prefixe: `$${quoi ? "y" : "x"} =$`, attendu: att,
+      erreurs: [{ valeur: quoi ? M.bi / s : M.ai / s, message: `Ça, c'est la valeur de $${quoi ? "x" : "y"}$.` }, { valeur: quoi ? M.a : M.b, message: "Il faut résoudre le système $\\pi P = \\pi$ avec $x + y = 1$." }, { valeur: arr(att, 2), message: "C'est une valeur approchée : donne la fraction exacte." }],
+      aides: ["$\\pi P = \\pi$ donne, pour la première composante : $" + nb(M.P[0][0]) + "x + " + nb(M.P[1][0]) + "y = x$.", `Simplifie : $${nb(M.a)}x = ${nb(M.b)}y$.`, "Avec $x + y = 1$, remplace $y$ par $1 - x$ et résous."],
+      solution: `$\\pi P = \\pi$ donne $${nb(M.P[0][0])}x + ${nb(M.P[1][0])}y = x$, soit $${nb(M.a)}x = ${nb(M.b)}y$.\n\nAvec $y = 1 - x$ : $${nb(M.a)}x = ${nb(M.b)} - ${nb(M.b)}x$, donc $${coef(arr(M.a + M.b), "x")} =${nb(M.b)}$ et $x = ${frac(M.bi, s)}$, puis $y = ${frac(M.ai, s)}$.\n\n$\\pi = \\begin{pmatrix} ${frac(M.bi, s)} & ${frac(M.ai, s)} \\end{pmatrix}$.` };
+  });
+
+  def("xk-vrai-faux", () => vraiFaux4([
+    ["La somme des coefficients de chaque ligne d'une matrice de transition vaut $1$.", true, "depuis un état, on va forcément dans l'un des états."],
+    ["Si $\\pi_0$ est la distribution initiale, la distribution après $n$ transitions est $\\pi_0 P^n$.", true, "car $\\pi_{n+1} = \\pi_n P$ (récurrence)."],
+    ["Le coefficient $(i\\,;j)$ de $P^n$ est la probabilité de passer de $i$ à $j$ en $n$ transitions.", true, "c'est la propriété démontrée dans le cours."],
+    ["Une distribution invariante $\\pi$ vérifie $\\pi P = \\pi$.", true, "c'est la définition : si on part de $\\pi$, on reste en $\\pi$."],
+    ["Si $U_{n+1} = AU_n$, alors $U_n = A^nU_0$.", true, "par récurrence, comme pour une suite géométrique."],
+    ["Les coefficients d'une matrice de transition sont compris entre $0$ et $1$.", true, "ce sont des probabilités."],
+    ["La somme de chaque colonne d'une matrice de transition vaut $1$.", false, "ce sont les **lignes** qui ont pour somme $1$ (avec la convention du programme)."],
+    ["La distribution après une transition est $P\\pi_0$.", false, "$\\pi_0$ est une matrice **ligne** : on calcule $\\pi_0 P$."],
+    ["La probabilité de passer de $i$ à $j$ en deux transitions est $p_{ij}^2$.", false, "c'est le coefficient $(i\\,;j)$ de $P^2$, qui tient compte de tous les états intermédiaires."],
+    ["Si $U_{n+1} = AU_n + C$, alors $U_n = A^nU_0 + nC$.", false, "on passe par la suite constante $L$ : $U_n - L = A^n(U_0 - L)$."],
+    ["Dans un graphe probabiliste, la somme des probabilités des flèches qui arrivent sur un sommet vaut $1$.", false, "c'est la somme des flèches qui **partent** d'un sommet qui vaut $1$."],
+    ["Une chaîne de Markov n'a jamais de distribution invariante.", false, "toute chaîne à deux ou trois états en a au moins une."]
+  ], ["Une matrice de transition : lignes = départ, colonnes = arrivée, chaque ligne a pour somme $1$.", "La distribution est une matrice ligne, multipliée à droite par $P$.", "Un contre-exemple suffit pour une affirmation fausse."]));
+
+  /* Figures du cours (chapitre 11) */
+  FIGURES["xk-cours-markov2"] = () => figMarkov2([[0.7, 0.3], [0.4, 0.6]], ["S", "R"]);
+  FIGURES["xk-cours-markov3"] = () => figMarkov3([[0.5, 0.3, 0.2], [0.1, 0.8, 0.1], [0.4, 0, 0.6]], ["A", "B", "C"]);
 })();
