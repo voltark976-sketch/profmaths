@@ -1087,7 +1087,7 @@
 
   def("xc-nature", () => {
     const K = configABC();
-    const ch = choix4(NATURES[K.nat], NATURES.filter((_, k) => k !== K.nat));
+    const ch = choix4(NATURES[K.nat], shuffle(NATURES.filter((_, k) => k !== K.nat)));
     const mq = Math.sqrt(qVal(K.q[0]) ** 2 + qVal(K.q[1]) ** 2);
     const expl = ["Le quotient est un **réel** : les vecteurs $\\overrightarrow{AB}$ et $\\overrightarrow{AC}$ sont colinéaires, donc $A$, $B$, $C$ sont alignés.",
       `Le quotient vaut $${cTexQ(K.q)}$ : son module est $1$, donc $AC = AB$, et c'est un imaginaire pur, donc $(AB) \\perp (AC)$. Le triangle est rectangle isocèle en $A$.`,
@@ -1262,4 +1262,401 @@
     cercles: [{ x: 1, y: 1, r: 2 }], points: [ptC(1, 1, "Ω(1 + i)"), ptC(-2, -2, "A"), ptC(3, -2, "B")], segs: [[0.5, -3.4, 0.5, 4.4, true], [-2, -2, 3, -2]],
     textes: [{ x: 0.6, y: 3.9, t: "AM = BM", ancre: "start", dx: 4 }],
     aria: "Le cercle |z − (1 + i)| = 2, et la médiatrice de [AB], ensemble des points tels que AM = BM" });
+
+
+  /* ---------- Chapitre 6 : divisibilité et congruences (préfixe xd) ---------- */
+  const diviseurs = (n) => { const d = []; for (let k = 1; k <= Math.abs(n); k++) if (n % k === 0) d.push(k); return d; };
+  const liste = (L) => L.map((x) => `$${nb(x)}$`).join(" ; ");
+  const JOURS = ["lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi", "dimanche"];
+  const LETTRES = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+  def("xd-diviseurs", () => {
+    const t = pick(["nombre", "nombre", "Z", "commun"]);
+    if (t === "commun") {
+      let a, b; do { a = rand(12, 90); b = rand(12, 90); } while (a === b || pgcd(a, b) < 2);
+      const D = diviseurs(pgcd(a, b));
+      return { enonce: `Combien d'entiers naturels divisent à la fois $${a}$ et $${b}$ ?`, mode: "nombre", prefixe: "Nombre de diviseurs communs :", attendu: D.length,
+        erreurs: [{ valeur: D.length - 1, message: "N'oublie pas $1$, qui divise tous les entiers." }, { valeur: diviseurs(a).length + diviseurs(b).length, message: "On cherche les diviseurs **communs**, pas tous les diviseurs." }],
+        aides: [`Liste les diviseurs de $${a}$.`, `Liste les diviseurs de $${b}$, puis garde ceux qui sont dans les deux listes.`, `Les diviseurs communs sont les diviseurs de $\\text{PGCD}(${a}\\,;${b}) = ${pgcd(a, b)}$.`],
+        solution: `Diviseurs de $${a}$ : ${liste(diviseurs(a))}.\n\nDiviseurs de $${b}$ : ${liste(diviseurs(b))}.\n\nDiviseurs communs : ${liste(D)}, soit $${D.length}$ entiers.` };
+    }
+    const n = pick([rand(12, 99), rand(100, 240), pick([36, 48, 60, 72, 84, 90, 96, 100, 120, 144, 180, 210])]), D = diviseurs(n);
+    const Z = t === "Z";
+    return { enonce: `Combien ${Z ? "d'entiers **relatifs**" : "d'entiers naturels"} divisent $${n}$ ?`, mode: "nombre", prefixe: "Nombre de diviseurs :", attendu: Z ? 2 * D.length : D.length,
+      erreurs: Z ? [{ valeur: D.length, message: "Dans $\\mathbb{Z}$, chaque diviseur positif $d$ va avec son opposé $-d$." }, { valeur: 2 * D.length - 2, message: "N'oublie pas $1$, $-1$, $" + n + "$ et $-" + n + "$." }] : [{ valeur: D.length - 2, message: `N'oublie pas $1$ et $${n}$ eux-mêmes.` }, { valeur: 2 * D.length, message: "On ne compte que les diviseurs positifs (entiers naturels)." }, { valeur: D.length - 1, message: "Il en manque un : $1$ ou le nombre lui-même ?" }],
+      aides: ["Cherche les diviseurs par paires : si $d \\times d' = " + n + "$, alors $d$ et $d'$ divisent $" + n + "$.", `Il suffit de tester les entiers $d$ tels que $d^2 \\leqslant ${n}$, c'est-à-dire $d \\leqslant ${Math.floor(Math.sqrt(n))}$.`, Z ? "Dans $\\mathbb{Z}$, double le nombre de diviseurs positifs." : "Compte tous les diviseurs trouvés, sans oublier $1$ et " + n + "."],
+      solution: `Diviseurs positifs de $${n}$ : ${liste(D)}, soit $${D.length}$ diviseurs.${Z ? `\n\nDans $\\mathbb{Z}$, on ajoute leurs opposés : $${2 * D.length}$ diviseurs.` : ""}` };
+  });
+
+  def("xd-division", () => {
+    const b = rand(3, 25), neg = Math.random() < 0.5, q0 = rand(2, 40), r0 = rand(0, b - 1), a = neg ? -(q0 * b + r0) : q0 * b + r0;
+    const q = Math.floor(a / b), r = a - b * q, quoi = pick(["r", "r", "q"]);
+    const att = quoi === "r" ? r : q;
+    return { enonce: `Dans la division euclidienne de $${nb(a)}$ par $${b}$, quel est le ${quoi === "r" ? "reste" : "quotient"} ?`, mode: "nombre", prefixe: quoi === "r" ? "Reste $r$ =" : "Quotient $q$ =", attendu: att,
+      erreurs: quoi === "r" ? [{ valeur: a % b, message: "Le reste doit vérifier $0 \\leqslant r < " + b + "$ : il ne peut pas être négatif." }, { valeur: q, message: "Ça, c'est le quotient." }, { valeur: Math.abs(a) % b, message: "Pour un nombre négatif, le quotient est plus petit : vérifie $a = bq + r$." }] : [{ valeur: Math.trunc(a / b), message: "Avec $" + nb(a) + " = " + b + " \\times " + pr(Math.trunc(a / b)) + " + r$, le reste serait négatif : il faut prendre le quotient juste en dessous." }, { valeur: r, message: "Ça, c'est le reste." }],
+      aides: [`On cherche $q$ et $r$ entiers avec $${nb(a)} = ${b}q + r$ et $0 \\leqslant r < ${b}$.`, neg ? `$${b}q$ doit être le plus grand multiple de $${b}$ inférieur ou égal à $${nb(a)}$ (attention, $${nb(a)}$ est négatif).` : `$${b}q$ est le plus grand multiple de $${b}$ inférieur ou égal à $${a}$.`, `Le multiple cherché est $${nb(b * q)}$.`],
+      solution: `$${nb(a)} = ${b} \\times ${pr(q)} + ${r}$ avec $0 \\leqslant ${r} < ${b}$.\n\nLe quotient est $${nb(q)}$ et le reste $${r}$.${neg && r ? ` (Et non $${nb(a)} = ${b} \\times ${pr(Math.trunc(a / b))} ${plus(a % b)}$ : ce reste serait négatif.)` : ""}` };
+  });
+
+  def("xd-combinaison", () => {
+    // n + a divise b n + c  ⇔  n + a divise K = c - a b
+    const a = rand(1, 6), b = rand(2, 6), K = pick([4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 18, 20, 21, 24]), c = K + a * b;
+    const sol = diviseurs(K).filter((d) => d >= a).map((d) => d - a);
+    return { enonce: `Détermine tous les entiers naturels $n$ tels que $n + ${a}$ divise $${b}n + ${c}$. Sépare les réponses par « ; ».`, mode: "ensemble", prefixe: "$n \\in$", attendu: sol,
+      aides: [`Écris $${b}n + ${c}$ en faisant apparaître $n + ${a}$ : $${b}n + ${c} = ${b}(n + ${a}) + ${K}$.`, `Si $n + ${a}$ divise $${b}n + ${c}$ et $${b}(n + ${a})$, il divise leur différence $${K}$.`, `$n + ${a}$ est donc un diviseur de $${K}$ supérieur ou égal à $${a}$ (car $n \\geqslant 0$).`],
+      solution: `$${b}n + ${c} = ${b}(n + ${a}) + ${K}$. Si $n + ${a}$ divise $${b}n + ${c}$, il divise la combinaison $(${b}n + ${c}) - ${b}(n + ${a}) = ${K}$. Réciproquement, si $n + ${a}$ divise $${K}$, il divise $${b}(n + ${a}) + ${K}$.\n\nDiviseurs de $${K}$ : ${liste(diviseurs(K))}. Ceux qui sont supérieurs ou égaux à $${a}$ donnent $n = d - ${a}$ : ${sol.length ? liste(sol) : "aucun"}.` };
+  });
+
+  def("xd-congruence", () => {
+    const t = pick(["vrai", "vrai", "jour", "jour"]);
+    if (t === "jour") {
+      const j0 = rand(0, 6), d = rand(15, 400), j1 = (j0 + d) % 7, qui = pick(["Le marché de Mamoudzou", "Le premier jour du ramadan", "Une fête de village à Sada", "Le match de Koungou", "Le départ de la barge spéciale", "La rentrée de " + prenom()]);
+      const ch = choix4(JOURS[j1], shuffle(JOURS.filter((_, k) => k !== j1)));
+      return { enonce: `Aujourd'hui, nous sommes un **${JOURS[j0]}**. ${qui} a lieu dans $${d}$ jours. Quel jour de la semaine sera-t-on ?`, mode: "choix", choix: ch.choix.map((x) => x[0].toUpperCase() + x.slice(1)), attendu: ch.attendu,
+        aides: ["Les jours de la semaine reviennent tous les $7$ jours : on travaille modulo $7$.", `Cherche le reste de la division de $${d}$ par $7$.`, `$${d} = 7 \\times ${Math.floor(d / 7)} + ${d % 7}$ : avance de $${d % 7}$ jour${d % 7 > 1 ? "s" : ""} à partir du ${JOURS[j0]}.`],
+        solution: `$${d} = 7 \\times ${Math.floor(d / 7)} + ${d % 7}$, donc $${d} \\equiv ${d % 7}\\ [7]$ : dans $${d}$ jours, on sera le même jour que dans $${d % 7}$ jour${d % 7 > 1 ? "s" : ""}, c'est-à-dire un **${JOURS[j1]}**.` };
+    }
+    const n = rand(4, 17), a = pick([rand(20, 500), -rand(5, 200)]), r = mod(a, n);
+    const bonne = `$${nb(a)} \\equiv ${r}\\ [${n}]$`;
+    const f = [`$${nb(a)} \\equiv ${(r + 1) % n}\\ [${n}]$`, `$${nb(a)} \\equiv ${a % n === r ? (r + 2) % n : a % n}\\ [${n}]$`, `$${nb(a)} \\equiv ${(r + n - 1) % n}\\ [${n}]$`, `$${nb(a)} \\equiv ${(r + 3) % n}\\ [${n}]$`];
+    const ch = choix4(bonne, f.filter((x) => x !== bonne));
+    return { enonce: "Laquelle de ces congruences est **vraie** ?", mode: "choix", choix: ch.choix, attendu: ch.attendu,
+      aides: ["$a \\equiv b\\ [n]$ signifie que $n$ divise $a - b$.", `Cherche le reste de la division euclidienne de $${nb(a)}$ par $${n}$ (entre $0$ et $${n - 1}$).`, `$${nb(a)} = ${n} \\times ${pr(Math.floor(a / n))} + ${r}$.`],
+      solution: `$${nb(a)} = ${n} \\times ${pr(Math.floor(a / n))} + ${r}$, donc $${nb(a)} - ${r}$ est un multiple de $${n}$ : $${nb(a)} \\equiv ${r}\\ [${n}]$.\n\nLes autres restes proposés sont différents de $${r}$ et compris entre $0$ et $${n - 1}$ : ils sont faux.` };
+  });
+
+  def("xd-reste-puissance", () => {
+    const n = pick([3, 4, 5, 7, 8, 9, 10, 11, 13]), a = rand(2, 60), k = rand(10, 2027);
+    // cycle des puissances de a modulo n
+    const ar = mod(a, n), P = [1]; let x = 1;
+    for (let j = 1; j <= 40; j++) { x = (x * ar) % n; P.push(x); }
+    // période p à partir du rang m (puissances finalement périodiques)
+    let m = 0, p = 0;
+    for (let i = 0; i <= 12 && !p; i++) for (let q = 1; q <= 24; q++) if (P.slice(i, i + 12).every((v, j) => v === P[i + j + q])) { m = i; p = q; break; }
+    const r = k >= m ? P[m + ((k - m) % p)] : P[k];
+    const cyc = P.slice(m, m + p);
+    return { enonce: `Quel est le reste de la division euclidienne de $${a}^{${k}}$ par $${n}$ ?`, mode: "nombre", prefixe: "Reste :", attendu: r,
+      erreurs: [{ valeur: ar, message: `Ça, c'est le reste de $${a}$ : il faut tenir compte de la puissance.` }, { valeur: k % n, message: "On ne divise pas l'exposant par $" + n + "$ : on cherche la période des restes des puissances." }, P[k % 10] === r ? null : { valeur: P[k % 10], message: "Vérifie la période des restes." }],
+      aides: [`Commence par réduire la base : $${a} \\equiv ${ar}\\ [${n}]$.`, `Calcule les restes des premières puissances de $${ar}$ modulo $${n}$ : ${P.slice(0, Math.min(m + p + 1, 8)).map((v, j) => `$${ar}^{${j}} \\equiv ${v}$`).join(", ")}.`, `Les restes se répètent avec une période de $${p}$${m ? ` à partir de l'exposant $${m}$` : ""} : regarde le reste de $${k}${m ? ` - ${m}` : ""}$ dans la division par $${p}$.`],
+      solution: `$${a} \\equiv ${ar}\\ [${n}]$, donc $${a}^{${k}} \\equiv ${ar}^{${k}}\\ [${n}]$.\n\nLes restes des puissances de $${ar}$ modulo $${n}$ forment le cycle ${liste(cyc)} (période $${p}$${m ? `, à partir de l'exposant $${m}$` : ""}).\n\n${p === 1 ? `Le reste est donc toujours $${r}$.` : `$${k - m} = ${p} \\times ${Math.floor((k - m) / p)} + ${(k - m) % p}$, donc $${a}^{${k}} \\equiv ${ar}^{${m + ((k - m) % p)}} \\equiv ${r}\\ [${n}]$.`}\n\nLe reste est $${r}$.` };
+  });
+
+  def("xd-equation", () => {
+    const n = rand(5, 13), a = rand(2, n - 1), b = rand(0, n - 1);
+    const sol = []; for (let x = 0; x < n; x++) if ((a * x - b) % n === 0) sol.push(x);
+    return { enonce: `Résous la congruence $${a}x \\equiv ${b}\\ [${n}]$, pour $x$ entier compris entre $0$ et $${n - 1}$. Sépare les solutions par « ; » (ou écris « aucun »).`, mode: "ensemble", prefixe: "$x \\in$", attendu: sol,
+      aides: [`Fais un tableau : pour chaque $x$ de $0$ à $${n - 1}$, calcule le reste de $${a}x$ modulo $${n}$.`, `Garde les valeurs de $x$ pour lesquelles ce reste vaut $${b}$.`, pgcd(a, n) > 1 ? `Comme $${a}$ et $${n}$ ont un diviseur commun $${pgcd(a, n)}$, il peut y avoir plusieurs solutions… ou aucune.` : `$${a}$ et $${n}$ sont premiers entre eux : il y a exactement une solution.`],
+      solution: `Restes de $${a}x$ modulo $${n}$ pour $x = 0, 1, \\dots, ${n - 1}$ : ${Array.from({ length: n }, (_, x) => `$${(a * x) % n}$`).join(" ; ")}.\n\n${sol.length ? `Le reste vaut $${b}$ pour $x = ${sol.join("$ et $x = ")}$.` : `Le reste ne vaut jamais $${b}$ : il n'y a **aucune** solution.`}` };
+  });
+
+  def("xd-critere", () => {
+    const t = pick(["9", "9", "3", "11", "chiffre9", "chiffre3", "4"]);
+    const N = rand(10000, 9999999), s = String(N), som = [...s].reduce((x, c) => x + +c, 0);
+    if (t === "chiffre9" || t === "chiffre3") {
+      const m = t === "chiffre9" ? 9 : 3, chiffres = String(rand(1000, 99999)).split(""), pos = rand(1, chiffres.length - 1);
+      chiffres[pos] = "x"; const reste = chiffres.reduce((a2, c) => a2 + (c === "x" ? 0 : +c), 0);
+      const sol = []; for (let x = 0; x <= 9; x++) if ((reste + x) % m === 0) sol.push(x);
+      const nomb = chiffres.map((c) => (c === "x" ? "\\boxed{x}" : c)).join("");
+      return { enonce: `Le nombre $${nomb}$ s'écrit avec un chiffre inconnu $x$. Pour quelles valeurs de $x$ (de $0$ à $9$) est-il divisible par $${m}$ ? Sépare les réponses par « ; ».`, mode: "ensemble", prefixe: "$x \\in$", attendu: sol,
+        aides: [`$10 \\equiv 1\\ [${m}]$, donc un nombre est congru à la somme de ses chiffres modulo $${m}$.`, `La somme des chiffres connus vaut $${reste}$.`, `Il faut que $${reste} + x$ soit un multiple de $${m}$, avec $0 \\leqslant x \\leqslant 9$.`],
+        solution: `Comme $10 \\equiv 1\\ [${m}]$, le nombre est congru à la somme de ses chiffres : $${reste} + x$.\n\n$${reste} + x$ est multiple de $${m}$ pour $x = ${sol.join("$, $x = ")}$.` };
+    }
+    let r, expl, m;
+    if (t === "9" || t === "3") { m = +t; r = N % m; expl = `$10 \\equiv 1\\ [${m}]$, donc $10^k \\equiv 1\\ [${m}]$ : un nombre est congru à la somme de ses chiffres. Ici $${[...s].join(" + ")} = ${som}$ et $${som} \\equiv ${r}\\ [${m}]$.`; }
+    else if (t === "11") { m = 11; r = N % 11; const alt = [...s].reverse().reduce((x, c, i) => x + (i % 2 ? -1 : 1) * +c, 0); expl = `$10 \\equiv -1\\ [11]$, donc $10^k \\equiv (-1)^k\\ [11]$ : on fait la somme alternée des chiffres, en partant des unités : $${alt}$, et $${alt} \\equiv ${r}\\ [11]$.`; }
+    else { m = 4; r = N % 4; expl = `$100 = 4 \\times 25 \\equiv 0\\ [4]$ : seul le nombre formé par les deux derniers chiffres compte. $${s.slice(-2)} \\equiv ${r}\\ [4]$.`; }
+    return { enonce: `Quel est le reste de la division de $${nb(N)}$ par $${m}$ ? (Utilise un critère, sans poser la division.)`, mode: "nombre", prefixe: "Reste :", attendu: r,
+      erreurs: [{ valeur: som, message: "Il faut encore prendre le reste de cette somme." }, N % 10 % m === r ? null : { valeur: N % 10 % m, message: "Un seul chiffre ne suffit pas : utilise le bon critère." }, { valeur: (r + 1) % m, message: "Vérifie ton calcul." }],
+      aides: [t === "11" ? "$10 \\equiv -1\\ [11]$." : t === "4" ? "$100 \\equiv 0\\ [4]$." : `$10 \\equiv 1\\ [${m}]$.`, t === "11" ? "Fais la somme alternée des chiffres : unités moins dizaines plus centaines…" : t === "4" ? "Seuls les deux derniers chiffres comptent." : "Additionne les chiffres du nombre.", `Prends le reste du résultat modulo $${m}$ (entre $0$ et $${m - 1}$).`],
+      solution: `${expl}\n\nLe reste est $${r}$.` };
+  });
+
+  def("xd-chiffrement", () => {
+    const a = pick([3, 5, 7, 9, 11, 15, 17, 19, 21, 23, 25]), b = rand(0, 25), x = rand(0, 25), y = (a * x + b) % 26;
+    const L = LETTRES[x], M = LETTRES[y];
+    return { enonce: `On code une lettre de rang $x$ (A = $0$, B = $1$, …, Z = $25$) par la lettre de rang $y$, reste de $${a}x + ${b}$ modulo $26$. Quel est le rang $y$ de la lettre qui code **${L}** ?`, mode: "nombre", prefixe: "$y =$", attendu: y,
+      erreurs: [{ valeur: a * x + b, message: "Il faut prendre le reste modulo $26$ (entre $0$ et $25$)." }, { valeur: (a * (x + 1) + b) % 26, message: "Attention : A a le rang $0$, pas $1$." }, { valeur: (a * x) % 26, message: "N'oublie pas d'ajouter $" + b + "$." }],
+      aides: [`${L} a pour rang $x = ${x}$.`, `$${a} \\times ${x} + ${b} = ${a * x + b}$.`, "Prends le reste de la division par $26$."],
+      solution: `$x = ${x}$ (lettre ${L}), puis $${a} \\times ${x} + ${b} = ${a * x + b} = 26 \\times ${Math.floor((a * x + b) / 26)} + ${y}$.\n\nDonc $y = ${y}$ : ${L} est codée par **${M}**.` };
+  });
+
+  def("xd-vrai-faux", () => vraiFaux4([
+    ["Si $a$ divise $b$ et $b$ divise $c$, alors $a$ divise $c$.", true, "si $b = ka$ et $c = k'b$, alors $c = (k'k)a$."],
+    ["Si $d$ divise $a$ et $b$, alors $d$ divise $3a - 5b$.", true, "un diviseur commun divise toute combinaison linéaire $au + bv$."],
+    ["$-7$ divise $21$.", true, "$21 = (-7) \\times (-3)$."],
+    ["$2^{10} \\equiv 1\\ [3]$.", true, "$2 \\equiv -1\\ [3]$, donc $2^{10} \\equiv (-1)^{10} = 1\\ [3]$."],
+    ["Si $a \\equiv b\\ [n]$, alors $a^2 \\equiv b^2\\ [n]$.", true, "les congruences sont compatibles avec la multiplication."],
+    ["Le reste de la division euclidienne de $-17$ par $5$ est $3$.", true, "$-17 = 5 \\times (-4) + 3$ avec $0 \\leqslant 3 < 5$."],
+    ["Pour tout entier $n$, $n(n + 1)$ est pair.", true, "un des deux entiers consécutifs est pair."],
+    ["$10 \\equiv -1\\ [11]$.", true, "$10 - (-1) = 11$."],
+    ["Le reste de la division euclidienne de $-17$ par $5$ est $-2$.", false, "un reste est toujours positif : $-17 = 5 \\times (-4) + 3$, le reste est $3$."],
+    ["Si $a$ divise $b + c$, alors $a$ divise $b$ et $a$ divise $c$.", false, "contre-exemple : $2$ divise $1 + 3$ mais ne divise ni $1$ ni $3$."],
+    ["Si $ab \\equiv 0\\ [n]$, alors $a \\equiv 0\\ [n]$ ou $b \\equiv 0\\ [n]$.", false, "contre-exemple : $2 \\times 3 \\equiv 0\\ [6]$, alors que ni $2$ ni $3$ ne sont divisibles par $6$."],
+    ["Si $2a \\equiv 2b\\ [8]$, alors $a \\equiv b\\ [8]$.", false, "contre-exemple : $2 \\times 0 \\equiv 2 \\times 4\\ [8]$, mais $0 \\not\\equiv 4\\ [8]$. On ne simplifie pas une congruence en général."],
+    ["$0$ n'est divisible par aucun entier.", false, "$0 = 0 \\times k$ : $0$ est divisible par tous les entiers."],
+    ["$26 \\equiv 4\\ [7]$.", false, "$26 - 4 = 22$ n'est pas un multiple de $7$ ; en fait $26 \\equiv 5\\ [7]$."],
+    ["Un entier est divisible par $4$ dès que son chiffre des unités l'est.", false, "contre-exemple : $14$ se termine par $4$ mais n'est pas divisible par $4$ ; il faut regarder les deux derniers chiffres."]
+  ], ["Revenir aux définitions : $a$ divise $b$ si $b = ka$ ; $a \\equiv b\\ [n]$ si $n$ divise $a - b$.", "Un reste de division euclidienne est toujours entre $0$ et $b - 1$.", "Cherche un contre-exemple avec de petits nombres."]));
+
+  /* Figures du cours (chapitre 6) */
+  FIGURES["xd-cours-division"] = () => {
+    // 23 = 5 × 4 + 3 : quatre paquets de 5 et un reste de 3
+    let s = `<svg class="graph" viewBox="0 0 320 120" role="img" aria-label="Division euclidienne de 23 par 5 : quatre paquets de 5 et un reste de 3, donc 23 = 5 × 4 + 3">`;
+    for (let k = 0; k < 23; k++) { const g = Math.floor(k / 5), x = 14 + k * 12 + g * 8; s += `<circle cx="${x}" cy="46" r="5" style="fill:${g < 4 ? "var(--lagon)" : "var(--ylang)"}"/>`; }
+    for (let g = 0; g < 4; g++) { const x0 = 8 + g * 68; s += `<rect x="${x0}" y="34" width="60" height="24" rx="6" style="fill:none;stroke:var(--lagon);stroke-width:1.5"/>`; }
+    s += `<text x="120" y="84" text-anchor="middle" style="font:700 12px var(--f-texte);fill:var(--lagon)">4 paquets de 5 (quotient q = 4)</text>`;
+    s += `<text x="300" y="84" text-anchor="end" style="font:700 12px var(--f-texte);fill:var(--ylang)">reste r = 3</text>`;
+    s += `<text x="160" y="108" text-anchor="middle" style="font:700 13px var(--f-texte);fill:var(--encre)">23 = 5 × 4 + 3, avec 0 ≤ 3 &lt; 5</text>`;
+    return s + "</svg>";
+  };
+  FIGURES["xd-cours-horloge"] = () => {
+    // horloge modulo 7 : jours de la semaine
+    let s = `<svg class="graph" viewBox="0 0 320 230" role="img" aria-label="Les jours de la semaine forment un cycle de 7 : deux dates dont l'écart est un multiple de 7 tombent le même jour">`;
+    const cx0 = 160, cy0 = 115, R = 80, noms = ["lun", "mar", "mer", "jeu", "ven", "sam", "dim"];
+    s += `<circle cx="${cx0}" cy="${cy0}" r="${R}" style="fill:none;stroke:var(--trait);stroke-width:2;stroke-dasharray:5 4"/>`;
+    noms.forEach((nm, k) => { const t = -Math.PI / 2 + (2 * Math.PI * k) / 7, x = cx0 + R * Math.cos(t), y = cy0 + R * Math.sin(t); s += `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="17" style="fill:var(--surface);stroke:var(--lagon);stroke-width:2"/><text x="${x.toFixed(1)}" y="${(y + 4).toFixed(1)}" text-anchor="middle" style="font:700 11px var(--f-texte);fill:var(--encre)">${nm}</text><text x="${(cx0 + (R - 34) * Math.cos(t)).toFixed(1)}" y="${(cy0 + (R - 34) * Math.sin(t) + 4).toFixed(1)}" text-anchor="middle" style="font:11px var(--f-texte);fill:var(--doux)">${k}</text>`; });
+    s += `<text x="${cx0}" y="${cy0 + 4}" text-anchor="middle" style="font:700 12px var(--f-texte);fill:var(--lagon)">modulo 7</text>`;
+    return s + "</svg>";
+  };
+
+
+  /* ---------- Chapitre 7 : PGCD, théorèmes de Bézout et de Gauss (préfixe xb) ---------- */
+  // Algorithme d'Euclide étendu : [g, u, v] avec au + bv = g
+  const euclideEtendu = (a, b) => { let [r0, r1, u0, u1, v0, v1] = [a, b, 1, 0, 0, 1]; while (r1) { const q = Math.floor(r0 / r1); [r0, r1] = [r1, r0 - q * r1]; [u0, u1] = [u1, u0 - q * u1]; [v0, v1] = [v1, v0 - q * v1]; } return [r0, u0, v0]; };
+  // Étapes de l'algorithme d'Euclide : lignes « a = b × q + r »
+  const etapesEuclide = (a, b) => { const L = []; while (b) { L.push(`$${nb(a)} = ${nb(b)} \\times ${Math.floor(a / b)} + ${nb(a % b)}$`); [a, b] = [b, a % b]; } return L; };
+  const ppcm = (a, b) => (a / pgcd(a, b)) * b;
+
+  def("xb-pgcd", () => {
+    const g = pick([1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 12, 13, 14, 15, 17, 18, 21, 24]);
+    let p, q; do { p = rand(3, 90); q = rand(3, 90); } while (p === q || pgcd(p, q) !== 1);
+    const a = g * Math.max(p, q), b = g * Math.min(p, q);
+    const E = etapesEuclide(a, b);
+    return { enonce: `Calcule $\\text{PGCD}(${nb(a)}\\,;${nb(b)})$.`, mode: "nombre", prefixe: "PGCD :", attendu: g,
+      erreurs: [{ valeur: ppcm(a, b), message: "Ça, c'est le PPCM (plus petit multiple commun). On cherche le plus grand diviseur commun." }, { valeur: b, message: `$${nb(b)}$ ne divise pas $${nb(a)}$ : il ne peut pas être le PGCD.` }, { valeur: a % b, message: "Ce n'est que le premier reste : continue l'algorithme d'Euclide jusqu'à un reste nul." }],
+      aides: ["Algorithme d'Euclide : $\\text{PGCD}(a\\,;b) = \\text{PGCD}(b\\,;r)$, où $r$ est le reste de la division de $a$ par $b$.", `Première étape : ${E[0]}.`, "Recommence jusqu'à obtenir un reste nul : le PGCD est le dernier reste non nul."],
+      solution: `Algorithme d'Euclide :\n\n${E.join("\n\n")}\n\nLe dernier reste non nul est $${g}$ : $\\text{PGCD}(${nb(a)}\\,;${nb(b)}) = ${g}$.` };
+  });
+
+  def("xb-premiers", () => {
+    const paires = [];
+    let bon; do { bon = [rand(6, 99), rand(6, 99)]; } while (pgcd(...bon) !== 1 || bon[0] === bon[1]);
+    while (paires.length < 3) { const g = pick([2, 3, 5, 7, 11, 13]), x = [g * rand(2, 20), g * rand(2, 20)]; if (x[0] !== x[1] && x[0] < 140 && x[1] < 140) paires.push(x); }
+    const tx = ([a, b]) => `$${a}$ et $${b}$`;
+    const ch = choix4(tx(bon), paires.map(tx));
+    return { enonce: "Lequel de ces couples est formé de deux nombres **premiers entre eux** ?", mode: "choix", choix: ch.choix, attendu: ch.attendu,
+      aides: ["Deux nombres sont premiers entre eux quand leur PGCD vaut $1$ : leur seul diviseur commun positif est $1$.", "Cherche un diviseur commun évident : $2$ (pairs), $3$ (somme des chiffres), $5$ (finissent par $0$ ou $5$)…", "Pour être sûr, calcule le PGCD avec l'algorithme d'Euclide."],
+      solution: `$\\text{PGCD}(${bon[0]}\\,;${bon[1]}) = 1$ : ${tx(bon)} sont premiers entre eux.\n\n${paires.map(([a, b]) => `- $\\text{PGCD}(${a}\\,;${b}) = ${pgcd(a, b)}$.`).join("\n")}` };
+  });
+
+  def("xb-bezout", () => {
+    let a, b; do { a = rand(5, 60); b = rand(5, 60); } while (a === b || pgcd(a, b) !== 1);
+    const [, u0, v0] = euclideEtendu(a, b), k = rand(-2, 2), u = u0 + k * b, v = v0 - k * a, quoi = pick(["v", "u"]);
+    const enonce = quoi === "v" ? `$${a}$ et $${b}$ sont premiers entre eux. Trouve l'entier $v$ tel que $${a} \\times ${pr(u)} + ${b}v = 1$.` : `$${a}$ et $${b}$ sont premiers entre eux. Trouve l'entier $u$ tel que $${a}u + ${b} \\times ${pr(v)} = 1$.`;
+    const att = quoi === "v" ? v : u;
+    return { enonce, mode: "nombre", prefixe: `$${quoi} =$`, attendu: att,
+      erreurs: [{ valeur: -att, message: "Attention au signe." }, { valeur: quoi === "v" ? (1 + a * u) / b : (1 + b * v) / a, message: "En isolant le terme inconnu, on soustrait : $" + (quoi === "v" ? `${b}v = 1 - ${a} \\times ${pr(u)}` : `${a}u = 1 - ${b} \\times ${pr(v)}`) + "$." }],
+      aides: [quoi === "v" ? `Calcule $${a} \\times ${pr(u)} = ${a * u}$.` : `Calcule $${b} \\times ${pr(v)} = ${b * v}$.`, quoi === "v" ? `Alors $${b}v = 1 - ${pr(a * u)} = ${1 - a * u}$.` : `Alors $${a}u = 1 - ${pr(b * v)} = ${1 - b * v}$.`, `Divise par $${quoi === "v" ? b : a}$.`],
+      solution: quoi === "v" ? `$${b}v = 1 - ${a} \\times ${pr(u)} = ${1 - a * u}$, donc $v = \\dfrac{${1 - a * u}}{${b}} = ${v}$.\n\nVérification : $${a} \\times ${pr(u)} + ${b} \\times ${pr(v)} = ${a * u} ${plus(b * v)} = 1$.` : `$${a}u = 1 - ${b} \\times ${pr(v)} = ${1 - b * v}$, donc $u = \\dfrac{${1 - b * v}}{${a}} = ${u}$.\n\nVérification : $${a} \\times ${pr(u)} + ${b} \\times ${pr(v)} = ${a * u} ${plus(b * v)} = 1$.` };
+  });
+
+  def("xb-inverse", () => {
+    let n, a; do { n = rand(7, 31); a = rand(2, n - 1); } while (pgcd(a, n) !== 1);
+    let inv = 1; while ((a * inv) % n !== 1) inv++;
+    const [, u] = euclideEtendu(a, n);
+    return { enonce: `Détermine l'inverse de $${a}$ modulo $${n}$, c'est-à-dire l'entier $x$ entre $0$ et $${n - 1}$ tel que $${a}x \\equiv 1\\ [${n}]$.`, mode: "nombre", prefixe: "$x =$", attendu: inv,
+      erreurs: [{ valeur: n - inv, message: `Vérifie : $${a} \\times ${n - inv} = ${a * (n - inv)} \\equiv ${(a * (n - inv)) % n}\\ [${n}]$, pas $1$.` }, { valeur: u, message: "Ce coefficient de Bézout convient, mais il faut le ramener entre $0$ et $" + (n - 1) + "$." }, { valeur: a, message: "On cherche $x$ tel que $" + a + "x \\equiv 1$." }],
+      aides: [`$${a}$ et $${n}$ sont premiers entre eux : d'après Bézout, il existe $u$, $v$ avec $${a}u + ${n}v = 1$, donc $${a}u \\equiv 1\\ [${n}]$.`, n <= 13 ? `Teste les valeurs de $x$ : $${a} \\times 1$, $${a} \\times 2$… modulo $${n}$.` : `L'algorithme d'Euclide étendu donne $${a} \\times ${pr(u)} + ${n} \\times ${pr((1 - a * u) / n)} = 1$.`, "Ramène $u$ entre $0$ et $" + (n - 1) + "$ en ajoutant ou retirant des multiples de $" + n + "$."],
+      solution: `$${a} \\times ${pr(u)} + ${n} \\times ${pr((1 - a * u) / n)} = 1$, donc $${a} \\times ${pr(u)} \\equiv 1\\ [${n}]$.\n\n$${u} \\equiv ${inv}\\ [${n}]$ : l'inverse est $${inv}$. Vérification : $${a} \\times ${inv} = ${a * inv} = ${n} \\times ${Math.floor((a * inv) / n)} + 1$.` };
+  });
+
+  def("xb-gauss", () => {
+    const t = pick(["plusPetit", "plusPetit", "choix"]);
+    if (t === "plusPetit") {
+      const k = rand(6, 60), a = rand(2, 40), g = pgcd(k, a), att = k / g;
+      return { enonce: `Quel est le plus petit entier naturel non nul $n$ tel que $${k}$ divise $${a}n$ ?`, mode: "nombre", prefixe: "$n =$", attendu: att,
+        erreurs: [{ valeur: k, message: g > 1 ? `$${k}$ et $${a}$ ont des facteurs communs : on peut faire plus petit.` : "C'est le bon raisonnement… vérifie le calcul." }, { valeur: g, message: "Ça, c'est le PGCD. Utilise-le pour simplifier." }, { valeur: k * a, message: "On cherche le plus petit $n$." }],
+        aides: [`$\\text{PGCD}(${k}\\,;${a}) = ${g}$.`, g > 1 ? `Divise par $${g}$ : ${k / g}$ divise ${coef(a / g, "n")}$, avec $${k / g}$ et $${a / g}$ premiers entre eux.` : `$${k}$ et $${a}$ sont premiers entre eux.`, `Théorème de Gauss : $${k / g}$ divise alors $n$.`],
+        solution: `$\\text{PGCD}(${k}\\,;${a}) = ${g}$.${g > 1 ? ` On écrit $${k} = ${g} \\times ${k / g}$ et $${a} = ${g} \\times ${a / g}$ : ${k}$ divise ${a}n$ si et seulement si ${k / g}$ divise ${coef(a / g, "n")}$.` : ""}\n\nComme $${k / g}$ et $${a / g}$ sont premiers entre eux, le théorème de Gauss donne : $${k / g}$ divise $n$. Le plus petit $n$ non nul est $${att}$.` };
+    }
+    // a x = b y avec a, b premiers entre eux
+    let a, b; do { a = rand(3, 25); b = rand(3, 25); } while (a === b || pgcd(a, b) !== 1);
+    const bonne = `$${b}$ divise $x$`;
+    const ch = choix4(bonne, [`$${a}$ divise $x$`, `$${a * b}$ divise $x$`, `$x = ${b}$`, `$${b}$ divise $y$`]);
+    return { enonce: `$x$ et $y$ sont des entiers tels que $${a}x = ${b}y$. Que peut-on affirmer ?`, mode: "choix", choix: ch.choix, attendu: ch.attendu,
+      aides: [`$${b}$ divise $${b}y$, donc $${b}$ divise $${a}x$.`, `$\\text{PGCD}(${a}\\,;${b}) = 1$.`, "Théorème de Gauss : si $c$ divise $ab$ et $c$ est premier avec $a$, alors $c$ divise $b$."],
+      solution: `$${b}$ divise $${b}y = ${a}x$. Comme $${b}$ et $${a}$ sont premiers entre eux, le théorème de Gauss donne : **$${b}$ divise $x$** (et de même $${a}$ divise $y$).\n\n$x = ${b}$ n'est qu'un cas particulier : $x = ${2 * b}$, $y = ${2 * a}$ convient aussi.` };
+  });
+
+  def("xb-diophante", () => {
+    let a, b; do { a = rand(2, 15); b = rand(2, 15); } while (a === b || pgcd(a, b) !== 1);
+    const c = rand(1, 60), [, u, v] = euclideEtendu(a, b);
+    const x0 = u * c, y0 = v * c; // solution particulière
+    // forme réduite de la solution particulière : x0 ramené entre 0 et b-1
+    const q = Math.floor(x0 / b), xr = x0 - q * b, yr = y0 + q * a;
+    const lin = (c0, k, s) => (c0 ? `${nb(c0)} ${s} ${k}k` : `${s === "-" ? "-" : ""}${k}k`); // c0 + k·k ou c0 - k·k
+    const couple = (k1, s1, k2, s2) => `(${lin(xr, k1, s1)}\\,;${lin(yr, k2, s2)})`;
+    const sol = couple(b, "+", a, "-");
+    const bonne = `$${sol}$, $k \\in \\mathbb{Z}$`;
+    const f = [couple(a, "+", b, "-"), couple(b, "+", a, "+"), couple(b, "-", a, "-")].map((x) => `$${x}$, $k \\in \\mathbb{Z}$`).concat([`$(${nb(xr)}\\,;${nb(yr)})$ seulement`]);
+    const ch = choix4(bonne, f);
+    const xmoins = xr ? `x - ${nb(xr)}` : "x", ymoins2 = yr ? `y - ${pr(yr)}` : "y";
+    const ymoins = yr ? `${pr(yr)} - y` : "-y";
+    return { enonce: `On cherche les couples d'entiers $(x\\,;y)$ tels que $${a}x + ${b}y = ${c}$. On remarque que $(${nb(xr)}\\,;${nb(yr)})$ est une solution. Quelles sont toutes les solutions ?`, mode: "choix", choix: ch.choix, attendu: ch.attendu,
+      aides: [`Soustrais : $${a}(${xmoins}) + ${b}(${ymoins2}) = 0$, donc $${a}(${xmoins}) = ${b}(${ymoins})$.`, `$${b}$ divise $${a}(${xmoins})$ et $\\text{PGCD}(${a}\\,;${b}) = 1$ : par Gauss, $${xmoins} = ${b}k$.`, `En remplaçant, $${ymoins} = ${a}k$.`],
+      solution: `$${a}x + ${b}y = ${c}$ et $${a} \\times ${pr(xr)} + ${b} \\times ${pr(yr)} = ${c}$. Par différence : $${a}(${xmoins}) = ${b}(${ymoins})$.\n\n$${b}$ divise $${a}(${xmoins})$ et est premier avec $${a}$ : d'après le théorème de Gauss, $${xmoins} = ${b}k$ avec $k$ entier. Alors $${a} \\times ${b}k = ${b}(${ymoins})$, d'où $y = ${lin(yr, a, "-")}$.\n\nRéciproquement, ces couples conviennent : $S = \\{${sol},\\ k \\in \\mathbb{Z}\\}$.` };
+  });
+
+  def("xb-diophante-n", () => {
+    let a, b; do { a = rand(2, 9); b = rand(2, 12); } while (a === b || pgcd(a, b) !== 1);
+    const c = rand(20, 120);
+    const sol = []; for (let x = 0; a * x <= c; x++) if ((c - a * x) % b === 0) sol.push([x, (c - a * x) / b]);
+    const [o1, o2, lieu] = pick([["mangues", "ananas", "au marché de Mamoudzou"], ["cahiers", "stylos", "à la papeterie de Dzaoudzi"], ["tickets de bus", "tickets de barge", "au guichet"], ["bouteilles d'eau", "brochettes", "à la buvette du stade de Cavani"], ["samoussas", "jus de fruits", "à la vente de gâteaux du lycée"]]);
+    return { enonce: `${prenom()} dépense exactement $${c}$ € ${lieu} en achetant des ${o1} à $${a}$ € pièce et des ${o2} à $${b}$ € pièce (au moins zéro de chaque). De combien de façons est-ce possible ?`,
+      mode: "nombre", prefixe: "Nombre de possibilités :", attendu: sol.length,
+      erreurs: [{ valeur: sol.length + 1, message: "Vérifie chaque cas : les deux nombres doivent être des entiers positifs ou nuls." }, { valeur: Math.max(0, sol.length - 1), message: "N'oublie pas les cas où l'un des deux nombres est nul." }],
+      aides: [`Avec $x$ ${o1} et $y$ ${o2} : $${a}x + ${b}y = ${c}$, avec $x$ et $y$ entiers naturels.`, `Pour chaque $x$ de $0$ à $${Math.floor(c / a)}$, regarde si $${c} - ${a}x$ est un multiple de $${b}$.`, `Les solutions entières s'écrivent $x = x_0 + ${b}k$ : elles sont espacées de $${b}$.`],
+      solution: `On résout $${a}x + ${b}y = ${c}$ avec $x \\geqslant 0$ et $y \\geqslant 0$.\n\n${sol.length ? `Les couples $(x\\,;y)$ qui conviennent sont : ${sol.map(([x, y]) => `$(${x}\\,;${y})$`).join(", ")}.\n\nIl y a donc $${sol.length}$ possibilité${sol.length > 1 ? "s" : ""}.` : "Aucun couple ne convient : il y a $0$ possibilité."}` };
+  });
+
+  def("xb-vrai-faux", () => vraiFaux4([
+    ["$\\text{PGCD}(a\\,;b) = \\text{PGCD}(b\\,;r)$, où $r$ est le reste de la division de $a$ par $b$.", true, "c'est le principe de l'algorithme d'Euclide."],
+    ["Si $\\text{PGCD}(a\\,;b) = 1$, il existe des entiers $u$ et $v$ tels que $au + bv = 1$.", true, "c'est le théorème de Bézout."],
+    ["Si $a$ divise $bc$ et que $a$ est premier avec $b$, alors $a$ divise $c$.", true, "c'est le théorème de Gauss."],
+    ["Deux entiers consécutifs sont toujours premiers entre eux.", true, "$(n + 1) - n = 1$ : un diviseur commun divise $1$."],
+    ["Si $3$ et $4$ divisent $n$, alors $12$ divise $n$.", true, "$3$ et $4$ sont premiers entre eux, donc leur produit divise $n$."],
+    ["$5$ a un inverse modulo $12$.", true, "$5 \\times 5 = 25 \\equiv 1\\ [12]$."],
+    ["Le PGCD de deux entiers divise toute combinaison $au + bv$.", true, "il divise $a$ et $b$, donc toute combinaison linéaire."],
+    ["L'équation $4x + 6y = 1$ a des solutions entières.", false, "$4x + 6y$ est toujours pair : il ne peut pas valoir $1$ (le PGCD $2$ ne divise pas $1$)."],
+    ["Si $2$ et $6$ divisent $n$, alors $12$ divise $n$.", false, "contre-exemple : $n = 6$ ; $2$ et $6$ ne sont pas premiers entre eux."],
+    ["Si $6$ divise $ab$, alors $6$ divise $a$ ou $6$ divise $b$.", false, "contre-exemple : $6$ divise $2 \\times 3$."],
+    ["$\\text{PGCD}(12\\,;18) = 36$.", false, "$36$ est le PPCM ; le PGCD vaut $6$."],
+    ["$4$ a un inverse modulo $10$.", false, "$4x$ est toujours pair, donc jamais congru à $1$ modulo $10$ : $4$ et $10$ ne sont pas premiers entre eux."],
+    ["Si $au + bv = 2$, alors $\\text{PGCD}(a\\,;b) = 2$.", false, "on sait seulement que le PGCD divise $2$ : contre-exemple $3 \\times 2 + 4 \\times (-1) = 2$, alors que $\\text{PGCD}(3\\,;4) = 1$."],
+    ["Les couples d'entiers solutions de $ax + by = c$ sont en nombre fini.", false, "quand il y en a une, il y en a une infinité : $(x_0 + b'k\\,;y_0 - a'k)$."]
+  ], ["Rappelle les énoncés exacts de Bézout et de Gauss, avec leurs hypothèses.", "Pour un contre-exemple, essaie de petits nombres comme $2$, $3$, $4$, $6$.", "« Premiers entre eux » signifie PGCD égal à $1$."]));
+
+  /* Figure du cours (chapitre 7) */
+  FIGURES["xb-cours-euclide"] = () => {
+    // rectangle 21 × 8 découpé en carrés : 21 = 8×2 + 5, 8 = 5×1 + 3, 5 = 3×1 + 2, 3 = 2×1 + 1, 2 = 1×2
+    const u = 13.6, x0 = 10, y0 = 14; let s = `<svg class="graph" viewBox="0 0 320 150" role="img" aria-label="Un rectangle de 21 sur 8 découpé en carrés de plus en plus petits : 8, 8, 5, 3, 2, 1, 1 ; le dernier carré mesure 1, c'est le PGCD de 21 et 8">`;
+    const carres = [[0, 0, 8], [8, 0, 8], [16, 0, 5], [16, 5, 3], [19, 5, 2], [19, 7, 1], [20, 7, 1]];
+    const coul = ["var(--lagon)", "var(--lagon)", "var(--courbe2)", "var(--ylang)", "var(--bon)", "var(--encre)", "var(--encre)"];
+    carres.forEach(([x, y, c], k) => { s += `<rect x="${(x0 + x * u).toFixed(1)}" y="${(y0 + y * u).toFixed(1)}" width="${(c * u).toFixed(1)}" height="${(c * u).toFixed(1)}" style="fill:${coul[k]};fill-opacity:0.18;stroke:${coul[k]};stroke-width:1.5"/>`; if (c > 1) s += `<text x="${(x0 + (x + c / 2) * u).toFixed(1)}" y="${(y0 + (y + c / 2) * u + 4).toFixed(1)}" text-anchor="middle" style="font:700 ${c > 2 ? 13 : 10}px var(--f-texte);fill:var(--encre)">${c}</text>`; });
+    s += `<text x="160" y="142" text-anchor="middle" style="font:700 12px var(--f-texte);fill:var(--encre)">PGCD(21 ; 8) = 1 : le plus petit carré</text>`;
+    return s + "</svg>";
+  };
+
+
+  /* ---------- Chapitre 8 : nombres premiers (préfixe xn) ---------- */
+  const estPremier = (n) => { if (n < 2) return false; for (let d = 2; d * d <= n; d++) if (n % d === 0) return false; return true; };
+  const PREMIERS = Array.from({ length: 400 }, (_, k) => k).filter(estPremier);
+  const facteurs = (n) => { const F = []; for (let p = 2; p * p <= n; p++) { let e = 0; while (n % p === 0) { n /= p; e++; } if (e) F.push([p, e]); } if (n > 1) F.push([n, 1]); return F; };
+  const decompTex = (F) => F.map(([p, e]) => (e === 1 ? nb(p) : `${p}^{${e}}`)).join(" \\times ");
+  // Composés « trompeurs » (sans petit facteur évident 2, 3, 5)
+  const COMPOSES = [49, 77, 91, 119, 121, 133, 143, 161, 169, 187, 203, 209, 217, 221, 247, 253, 259, 287, 289, 299, 301, 319, 323, 329, 341, 343, 361, 371, 377, 391, 403, 407, 413, 427, 437, 451, 469, 473, 481, 493, 497, 511, 517, 527, 529, 533, 539, 551, 553, 559, 581, 583, 589];
+
+  def("xn-premier", () => {
+    const p = pick(PREMIERS.filter((x) => x > 50));
+    const f = shuffle(COMPOSES.slice()).slice(0, 3).map((x) => `$${x}$`);
+    const ch = choix4(`$${p}$`, f);
+    const autres = ch.choix.filter((_, k) => k !== ch.attendu).map((s) => +s.replace(/\$/g, ""));
+    return { enonce: "Lequel de ces nombres est **premier** ?", mode: "choix", choix: ch.choix, attendu: ch.attendu,
+      aides: ["Un nombre premier n'a que deux diviseurs : $1$ et lui-même.", "Pour tester $n$, il suffit d'essayer les nombres premiers $p$ tels que $p^2 \\leqslant n$.", "Essaie $7$, $11$, $13$, $17$, $19$… sur chaque proposition."],
+      solution: `$${p}$ n'est divisible par aucun nombre premier $p$ tel que $p^2 \\leqslant ${p}$ : il est premier.\n\n${autres.map((x) => { const d = facteurs(x)[0][0]; return `- $${x} = ${d} \\times ${x / d}$ n'est pas premier.`; }).join("\n")}` };
+  });
+
+  def("xn-test", () => {
+    const n = rand(30, 2000), r = Math.floor(Math.sqrt(n)), p = [...PREMIERS].reverse().find((x) => x <= r);
+    const suiv = PREMIERS.find((x) => x > r);
+    return { enonce: `Pour savoir si $${nb(n)}$ est premier, on teste sa divisibilité par les nombres premiers dans l'ordre croissant. Quel est le **plus grand** nombre premier qu'il faut essayer, au maximum ?`, mode: "nombre", prefixe: "Plus grand premier à tester :", attendu: p,
+      erreurs: [{ valeur: suiv, message: `$${suiv}^2 = ${suiv * suiv} > ${n}$ : ce n'est pas la peine d'aller jusque-là.` }, { valeur: r, message: estPremier(r) ? "C'est bien la borne, mais vérifie." : `$${r}$ n'est pas premier : on ne teste que des nombres premiers.` }, { valeur: Math.floor(n / 2), message: "Inutile d'aller jusqu'à la moitié : la racine carrée suffit." }],
+      aides: ["Si $n$ n'est pas premier, il a un diviseur premier $p$ tel que $p^2 \\leqslant n$.", `$\\sqrt{${n}} \\approx ${nb(+Math.sqrt(n).toFixed(2))}$.`, `Cherche le plus grand nombre premier inférieur ou égal à $${r}$.`],
+      solution: `Si $${nb(n)}$ a un diviseur autre que $1$ et lui-même, il en a un premier $p$ avec $p^2 \\leqslant ${nb(n)}$, c'est-à-dire $p \\leqslant \\sqrt{${nb(n)}} \\approx ${nb(+Math.sqrt(n).toFixed(2))}$.\n\nLe plus grand nombre premier à tester est donc $${p}$ ($${suiv}^2 = ${suiv * suiv} > ${nb(n)}$).${estPremier(n) ? ` En testant, on trouve que $${nb(n)}$ est premier.` : ` Ici, $${nb(n)} = ${decompTex(facteurs(n))}$ n'est pas premier.`}` };
+  });
+
+  def("xn-decomposition", () => {
+    let F; do { const ps = shuffle([2, 3, 5, 7, 11, 13].slice()).slice(0, rand(2, 3)).sort((x, y) => x - y); F = ps.map((p) => [p, p < 6 ? rand(1, 4) : rand(1, 2)]); } while (F.reduce((s, [p, e]) => s * p ** e, 1) > 6000);
+    const n = F.reduce((s, [p, e]) => s * p ** e, 1);
+    const bonne = `$${decompTex(F)}$`;
+    const f1 = F.map(([p, e], k) => [p, k === 0 ? e + 1 : e]), f2 = F.map(([p, e], k) => [p, k === F.length - 1 && e > 1 ? e - 1 : e]);
+    const f3 = F[0][0] === 2 && F[0][1] >= 2 ? `$4 \\times ${decompTex([[2, F[0][1] - 2]].filter(([, e]) => e).concat(F.slice(1)))}$`.replace("$4 \\times $", "$4$") : `$${decompTex(F.map(([p, e]) => [p, e + (e === 1 ? 1 : 0)]))}$`;
+    const f4 = `$${F.map(([p, e]) => `${p} \\times ${e}`).join(" \\times ")}$`;
+    const ch = choix4(bonne, [`$${decompTex(f1)}$`, `$${decompTex(f2)}$`, f3, f4]);
+    return { enonce: `Quelle est la décomposition de $${nb(n)}$ en produit de facteurs premiers ?`, mode: "choix", choix: ch.choix, attendu: ch.attendu,
+      aides: ["Divise par $2$ tant que c'est possible, puis par $3$, par $5$, par $7$…", "Chaque facteur de la décomposition doit être un nombre **premier** ($4$, $6$, $9$ ne le sont pas).", "Vérifie en recalculant le produit."],
+      solution: `En divisant successivement par les nombres premiers : $${nb(n)} = ${decompTex(F)}$.\n\nVérification : ${F.map(([p, e]) => `$${p}^{${e}} = ${p ** e}$`).join(", ")} et le produit vaut bien $${nb(n)}$.` };
+  });
+
+  def("xn-nombre-diviseurs", () => {
+    const k = rand(1, 3), ps = shuffle([2, 3, 5, 7, 11, 13, 17].slice()).slice(0, k + 1).sort((x, y) => x - y);
+    const F = ps.map((p) => [p, rand(1, 5)]), att = F.reduce((s, [, e]) => s * (e + 1), 1);
+    return { enonce: `On donne $n = ${decompTex(F)}$. Combien $n$ a-t-il de diviseurs positifs ?`, mode: "nombre", prefixe: "Nombre de diviseurs :", attendu: att,
+      erreurs: [{ valeur: F.reduce((s, [, e]) => s * e, 1), message: "Il faut ajouter $1$ à chaque exposant : l'exposant $0$ est aussi possible." }, { valeur: F.reduce((s, [, e]) => s + e + 1, 0), message: "On multiplie les nombres de choix, on ne les additionne pas." }, { valeur: F.reduce((s, [, e]) => s + e, 0), message: "Un diviseur s'écrit avec les mêmes facteurs premiers et des exposants de $0$ jusqu'à ceux de $n$ : compte les choix pour chaque exposant." }],
+      aides: [`Un diviseur de $n$ s'écrit $${F.map(([p], i) => `${p}^{${"abcd"[i]}}`).join(" \\times ")}$ avec des exposants compris entre $0$ et ceux de $n$.`, `Il y a ${F.map(([p, e]) => `$${e + 1}$ choix pour l'exposant de $${p}$`).join(", ")}.`, "Principe multiplicatif : multiplie les nombres de choix."],
+      solution: `Un diviseur s'écrit $${F.map(([p], i) => `${p}^{${"abcd"[i]}}`).join(" \\times ")}$ avec ${F.map(([, e], i) => `$0 \\leqslant ${"abcd"[i]} \\leqslant ${e}$`).join(", ")}.\n\nNombre de diviseurs : $${F.map(([, e]) => `(${e} + 1)`).join(" \\times ")} = ${att}$.` };
+  });
+
+  def("xn-pgcd-decomp", () => {
+    const ps = [2, 3, 5, 7].slice(0, rand(3, 4));
+    const A = ps.map((p) => [p, rand(0, 4)]), B = ps.map((p) => [p, rand(0, 4)]);
+    const clean = (F) => F.filter(([, e]) => e);
+    if (!clean(A).length || !clean(B).length) { A[0][1] = 2; B[0][1] = 1; }
+    const quoi = pick(["PGCD", "PGCD", "PPCM"]);
+    const G = ps.map((p, i) => [p, quoi === "PGCD" ? Math.min(A[i][1], B[i][1]) : Math.max(A[i][1], B[i][1])]);
+    const val = G.reduce((s, [p, e]) => s * p ** e, 1), autre = ps.map((p, i) => [p, quoi === "PGCD" ? Math.max(A[i][1], B[i][1]) : Math.min(A[i][1], B[i][1])]).reduce((s, [p, e]) => s * p ** e, 1);
+    const tex = (F) => decompTex(clean(F)) || "1";
+    return { enonce: `On donne $a = ${tex(A)}$ et $b = ${tex(B)}$. Calcule le ${quoi} de $a$ et $b$ (donne sa valeur, pas sa décomposition).`, mode: "nombre", prefixe: `${quoi} :`, attendu: val,
+      erreurs: [{ valeur: autre, message: quoi === "PGCD" ? "Ça, c'est le PPCM : pour le PGCD, on prend le **plus petit** exposant de chaque facteur." : "Ça, c'est le PGCD : pour le PPCM, on prend le **plus grand** exposant de chaque facteur." }, { valeur: A.reduce((s, [p, e]) => s * p ** e, 1) * B.reduce((s, [p, e]) => s * p ** e, 1), message: "Le produit $ab$ n'est pas le " + quoi + "." }],
+      aides: [`Pour le ${quoi}, on garde chaque facteur premier avec le **plus ${quoi === "PGCD" ? "petit" : "grand"}** de ses deux exposants.`, `${ps.map((p, i) => `$${p}$ : exposants $${A[i][1]}$ et $${B[i][1]}$`).join(" ; ")}.`, `Le ${quoi} vaut $${tex(G)}$ : calcule ce produit.`],
+      solution: `On prend, pour chaque facteur premier, le plus ${quoi === "PGCD" ? "petit" : "grand"} exposant : ${quoi} $= ${tex(G)} = ${nb(val)}$.` };
+  });
+
+  def("xn-fermat", () => {
+    const p = pick([5, 7, 11, 13, 17, 19, 23, 29, 31]), k = rand(50, 3000);
+    let a; do { a = rand(2, 60); } while (a % p === 0);
+    const e = k % (p - 1), ar = mod(a, p);
+    let r = 1; for (let j = 0; j < e; j++) r = (r * ar) % p;
+    return { enonce: `$${p}$ est un nombre premier. À l'aide du petit théorème de Fermat, détermine le reste de la division de $${a}^{${k}}$ par $${p}$.`, mode: "nombre", prefixe: "Reste :", attendu: r,
+      erreurs: [{ valeur: 1, message: `$${a}^{${p - 1}} \\equiv 1\\ [${p}]$, mais l'exposant $${k}$ n'est pas forcément un multiple de $${p - 1}$.` }, { valeur: ar, message: "Ça, c'est le reste de la base seulement." }, { valeur: (() => { let x = 1; for (let j = 0; j < k % p; j++) x = (x * ar) % p; return x; })(), message: `On divise l'exposant par $p - 1 = ${p - 1}$, pas par $${p}$.` }],
+      aides: [`$${a}$ n'est pas divisible par $${p}$, donc d'après Fermat : $${a}^{${p - 1}} \\equiv 1\\ [${p}]$.`, `$${k} = ${p - 1} \\times ${Math.floor(k / (p - 1))} + ${e}$, donc $${a}^{${k}} \\equiv ${a}^{${e}}\\ [${p}]$.`, `Calcule $${a}^{${e}}$ modulo $${p}$, en remplaçant d'abord $${a}$ par $${ar}$.`],
+      solution: `$${p}$ est premier et ne divise pas $${a}$ : $${a}^{${p - 1}} \\equiv 1\\ [${p}]$ (petit théorème de Fermat).\n\n$${k} = ${p - 1} \\times ${Math.floor(k / (p - 1))} + ${e}$, donc $${a}^{${k}} = \\left(${a}^{${p - 1}}\\right)^{${Math.floor(k / (p - 1))}} \\times ${a}^{${e}} \\equiv ${a}^{${e}}\\ [${p}]$.\n\nAvec $${a} \\equiv ${ar}\\ [${p}]$ : $${ar}^{${e}} \\equiv ${r}\\ [${p}]$. Le reste est $${r}$.` };
+  });
+
+  def("xn-carre", () => {
+    let F; do { const ps = shuffle([2, 3, 5, 7, 11].slice()).slice(0, rand(2, 3)).sort((x, y) => x - y); F = ps.map((p) => [p, rand(1, 4)]); } while (F.every(([, e]) => e % 2 === 0) || F.reduce((s, [p, e]) => s * p ** e, 1) > 20000);
+    const n = F.reduce((s, [p, e]) => s * p ** e, 1), k = F.filter(([, e]) => e % 2).reduce((s, [p]) => s * p, 1);
+    return { enonce: `Quel est le plus petit entier naturel non nul $k$ tel que $${nb(n)} \\times k$ soit le carré d'un entier ?`, mode: "nombre", prefixe: "$k =$", attendu: k,
+      erreurs: [{ valeur: n, message: "Ça marche, mais on peut faire plus petit." }, { valeur: F.filter(([, e]) => e % 2).reduce((s, [p]) => s * p * p, 1), message: "Un seul facteur suffit pour rendre chaque exposant pair." }],
+      aides: [`Décompose : $${nb(n)} = ${decompTex(F)}$.`, "Un entier est un carré si et seulement si tous les exposants de sa décomposition sont pairs.", "Multiplie par chaque facteur premier qui a un exposant impair."],
+      solution: `$${nb(n)} = ${decompTex(F)}$. Les exposants impairs sont ceux de ${F.filter(([, e]) => e % 2).map(([p]) => `$${p}$`).join(", ")}.\n\nIl faut multiplier par $k = ${F.filter(([, e]) => e % 2).map(([p]) => p).join(" \\times ")} = ${k}$ : on obtient $${decompTex(F.map(([p, e]) => [p, e + (e % 2)]))} = ${nb(n * k)} = ${nb(Math.sqrt(n * k))}^2$.` };
+  });
+
+  def("xn-vrai-faux", () => vraiFaux4([
+    ["Il existe une infinité de nombres premiers.", true, "c'est le théorème d'Euclide, démontré dans le cours."],
+    ["Tout entier $n \\geqslant 2$ admet au moins un diviseur premier.", true, "son plus petit diviseur supérieur à $1$ est premier."],
+    ["Si un nombre premier $p$ divise $ab$, alors $p$ divise $a$ ou $p$ divise $b$.", true, "si $p$ ne divise pas $a$, il est premier avec $a$ et Gauss donne $p \\mid b$."],
+    ["$2^{12} \\equiv 1\\ [13]$.", true, "$13$ est premier et ne divise pas $2$ : petit théorème de Fermat."],
+    ["$2$ est le seul nombre premier pair.", true, "tout autre nombre pair est divisible par $2$."],
+    ["$91$ n'est pas premier.", true, "$91 = 7 \\times 13$."],
+    ["$360$ a $24$ diviseurs positifs.", true, "$360 = 2^3 \\times 3^2 \\times 5$, donc $(3 + 1)(2 + 1)(1 + 1) = 24$."],
+    ["$1$ est un nombre premier.", false, "un nombre premier a exactement deux diviseurs ; $1$ n'en a qu'un."],
+    ["Tous les nombres impairs sont premiers.", false, "contre-exemple : $9 = 3 \\times 3$."],
+    ["$2^n - 1$ est premier pour tout entier $n \\geqslant 2$.", false, "contre-exemple : $2^4 - 1 = 15 = 3 \\times 5$."],
+    ["Pour savoir si $n$ est premier, il faut tester tous les entiers jusqu'à $\\dfrac{n}{2}$.", false, "il suffit de tester les nombres premiers $p$ tels que $p^2 \\leqslant n$."],
+    ["$6^{4} \\equiv 1\\ [4]$, d'après le petit théorème de Fermat.", false, "$4$ n'est pas premier et divise $6^4$ : en fait $6^4 \\equiv 0\\ [4]$."],
+    ["La décomposition de $12$ en facteurs premiers est $2 \\times 6$.", false, "$6$ n'est pas premier : $12 = 2^2 \\times 3$."],
+    ["Le produit de deux nombres premiers peut être premier.", false, "$pq$ a au moins les diviseurs $1$, $p$, $q$ et $pq$."]
+  ], ["Rappelle-toi : un nombre premier a exactement deux diviseurs positifs.", "Le petit théorème de Fermat exige un module **premier**.", "Cherche un contre-exemple avec de petits nombres."]));
+
+  /* Figure du cours (chapitre 8) */
+  FIGURES["xn-cours-crible"] = () => {
+    let s = `<svg class="graph" viewBox="0 0 320 320" role="img" aria-label="Crible d'Ératosthène de 1 à 100 : les 25 nombres premiers sont mis en couleur">`;
+    for (let k = 1; k <= 100; k++) {
+      const i = (k - 1) % 10, j = Math.floor((k - 1) / 10), x = 10 + i * 30, y = 10 + j * 30, pr0 = estPremier(k);
+      s += `<rect x="${x}" y="${y}" width="28" height="28" rx="4" style="fill:${pr0 ? "var(--lagon)" : "var(--surface)"};fill-opacity:${pr0 ? 0.85 : 1};stroke:var(--trait)"/>`;
+      s += `<text x="${x + 14}" y="${y + 18.5}" text-anchor="middle" style="font:${pr0 ? 700 : 400} 11px var(--f-texte);fill:${pr0 ? "var(--surface)" : "var(--doux)"}">${k}</text>`;
+    }
+    return s + "</svg>";
+  };
 })();
