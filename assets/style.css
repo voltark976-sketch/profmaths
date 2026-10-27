@@ -536,9 +536,34 @@ a.chap:hover .go { transform: translateX(3px); }
 .promo-jeu .promo-ico { background: linear-gradient(135deg, #e0a526, #c2501f); }
 .promo-jeu .eyebrow { color: var(--ylang); }
 .promo-jeu .promo-btn { background: var(--ylang); color: #fff; }
-.promo-yt .promo-ico { background: #e62117; }
-.promo-yt .eyebrow { color: #d1291f; }
-.promo-yt .promo-btn { background: #e62117; color: #fff; }
+/* Réseaux de ProfMaths : YouTube, Instagram, TikTok (accueil, bandeau, pied de page) */
+.rs-liste { display: flex; flex-wrap: wrap; gap: 8px; }
+.rs { display: inline-flex; align-items: center; gap: 6px; padding: 7px 12px; border-radius: 999px; font: 700 0.88rem/1 var(--f-texte); text-decoration: none; white-space: nowrap; transition: transform 0.15s; }
+.rs:hover { transform: translateY(-2px); }
+.rs svg { width: 18px; height: 18px; flex: none; fill: currentColor; }
+.hero-rs { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; margin: 14px 0 0; }
+.hero-rs-t { font-size: 0.88rem; color: rgba(255, 255, 255, 0.86); }
+.hero .rs { color: #fff; background: rgba(255, 255, 255, 0.16); border: 1px solid rgba(255, 255, 255, 0.3); }
+@media (max-width: 440px) { .hero-rs-t { flex-basis: 100%; } .hero-rs .rs-liste { gap: 6px; } .hero .rs { padding: 6px 7px; gap: 4px; font-size: 0.8rem; } .hero .rs svg { width: 16px; height: 16px; } }
+.reseaux { padding: 16px; border-radius: 18px; background: var(--surface); border: 1px solid color-mix(in srgb, var(--trait) 70%, transparent); box-shadow: var(--ombre); }
+.reseaux-t { margin: 0; font-size: 0.95rem; color: var(--doux); }
+.reseaux-t strong { color: var(--encre); }
+.rs-grand { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 14px; }
+.rs-grand .rs { flex-direction: column; justify-content: center; gap: 6px; padding: 12px 4px; border-radius: 14px; color: #fff; font-size: 0.86rem; }
+.rs-grand .rs svg { width: 28px; height: 28px; }
+.rs-grand .rs-yt { background: #e62117; }
+.rs-grand .rs-ig { background: linear-gradient(45deg, #f09433, #dc2743 50%, #8a3ab9); }
+.rs-grand .rs-tt { background: #111; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18); }
+.rs-grand .rs-tt svg { filter: drop-shadow(-1.5px -1px 0 #25f4ee) drop-shadow(1.5px 1px 0 #fe2c55); }
+.pied .rs { color: var(--encre); background: var(--surface); border: 1px solid var(--trait); padding: 6px 10px; }
+.pied .rs-yt svg { color: #e62117; }
+.pied .rs-ig svg { color: #d6249f; }
+.decouvrir-mini { margin-top: 12px; }
+.decouvrir-mini .promo { align-items: center; padding: 12px 14px; gap: 12px; box-shadow: none; }
+.decouvrir-mini .promo-ico { width: 34px; height: 34px; border-radius: 10px; font-size: 1rem; }
+.decouvrir-mini .promo-t strong { font-size: 1rem; }
+.decouvrir-mini .promo-t > span { font-size: 0.86rem; }
+.decouvrir-mini .go { margin-left: auto; }
 .promo-monka .promo-ico { background: #8a9ba0; }
 .promo-monka .eyebrow { color: var(--doux); }
 /* Accueil : deux grandes cartes, Collège et Lycée */
@@ -565,7 +590,8 @@ a.chap:hover .go { transform: translateX(3px); }
   .carte-niv { flex-direction: column; align-items: stretch; gap: 8px; border-left-width: 1px; border-top: 5px solid var(--ac); padding: 16px; }
   .carte-niv .carte-niv-t { gap: 4px; }
   .carte-niv .go { align-self: flex-end; margin-top: auto; }
-  .decouvrir { grid-template-columns: 1.15fr 1fr 1fr; align-items: stretch; }
+  .decouvrir { grid-template-columns: 1fr 1fr; align-items: stretch; }
+  .rs-grand { max-width: 34rem; }
   .cartes-cycle { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
   .carte-cycle { min-height: 13rem; padding: 24px 24px 20px; }
   .carte-cycle strong { font-size: 2.6rem; }
