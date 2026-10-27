@@ -918,3 +918,14 @@ table.suivi { border-collapse: collapse; background: var(--surface); font-varian
 /* Clavier et lecteurs d'écran : le choix sélectionné dans un QCM est aussi visible au focus */
 .opt:focus-within { border-color: var(--ac); }
 .opt input:focus-visible { outline: 3px solid var(--ylang); outline-offset: 2px; }
+
+/* Invitation à s'abonner à la chaîne (rare, sur un bilan réussi) */
+.abo { position: relative; margin: 16px 0 0; padding: 10px 40px 10px 14px; border: 1px dashed var(--trait); border-radius: var(--r); font-size: 0.92rem; color: var(--doux); text-align: left; animation: monte 0.3s ease both; }
+.abo p { margin: 0; }
+.abo strong { color: var(--encre); }
+.abo-btns { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px !important; }
+.abo-btns a, .abo-btns button { display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 4px 12px; border-radius: 999px; font: inherit; font-size: 0.88rem; text-decoration: none; cursor: pointer; }
+.abo-oui { background: #c4302b; color: #fff; font-weight: 600; }
+.abo-btns button { border: 1px solid var(--trait); background: none; color: var(--doux); }
+.abo-x { position: absolute; top: 4px; right: 4px; width: 32px; height: 32px; border: 0; border-radius: 50%; background: none; color: var(--doux); font-size: 1.2rem; line-height: 1; cursor: pointer; }
+.abo-x:hover, .abo-btns button:hover { background: var(--trait); }

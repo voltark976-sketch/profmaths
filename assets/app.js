@@ -448,6 +448,34 @@
     { id: "tt", nom: "TikTok", url: "https://www.tiktok.com/@profmathsq1p", ico: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16.6 2h-3.4v13.4a2.9 2.9 0 1 1-2.9-2.9c.3 0 .6 0 .9.1V9.1a6.3 6.3 0 1 0 5.4 6.3V8.6a8 8 0 0 0 4.7 1.5V6.7a4.7 4.7 0 0 1-4.7-4.7z"/></svg>` }
   ];
   const liensReseaux = (cls) => `<span class="${cls}">${RESEAUX.map((r) => `<a class="rs rs-${r.id}" href="${r.url}" target="_blank" rel="noopener">${r.ico}<span>${r.nom}</span></a>`).join("")}</span>`;
+  // Invitation à s'abonner à la chaîne : rare et jamais en pleine série. Elle n'apparaît que sur un bilan
+  // (série d'exercices ou QCM) bien réussi, après au moins 4 activités terminées et 7 jours depuis la dernière.
+  // Plus jamais après « S'abonner », « Déjà abonné » ou 2 fermetures. Jamais pour les professeurs.
+  const CLE_ABO = "profmaths:abonnement", ABO_ACTIVITES = 4, ABO_DELAI = 7 * 864e5, ABO_REFUS = 2;
+  const lireAbo = () => { try { return JSON.parse(localStorage.getItem(CLE_ABO) || "{}") || {}; } catch (er) { return null; } };
+  const ecrireAbo = (a) => { try { localStorage.setItem(CLE_ABO, JSON.stringify(a)); return true; } catch (er) { return false; } };
+  function inviteAbo(reussi) {
+    const e = Compte.eleve(), a = lireAbo();
+    if ((e && e.prof) || !a || a.fini) return "";
+    a.n = (a.n || 0) + 1;
+    const montrer = reussi && a.n >= ABO_ACTIVITES && Date.now() - (a.vu || 0) >= ABO_DELAI;
+    if (montrer) { a.n = 0; a.vu = Date.now(); }
+    if (!ecrireAbo(a) || !montrer) return "";
+    return `<div class="abo"><p><strong>Ça t'aide ?</strong> Retrouve toutes les vidéos de cours sur ma chaîne YouTube.</p>
+      <p class="abo-btns"><a class="abo-oui" href="${YT_PROF}?sub_confirmation=1" target="_blank" rel="noopener" data-abo="oui"><span aria-hidden="true">▶</span> S'abonner</a><button type="button" data-abo="deja">Déjà abonné</button></p>
+      <button type="button" class="abo-x" data-abo="non" aria-label="Fermer">×</button></div>`;
+  }
+  document.addEventListener("click", (ev) => {
+    const b = ev.target.closest("[data-abo]");
+    if (!b) return;
+    const a = lireAbo() || {};
+    if (b.dataset.abo === "non") a.refus = (a.refus || 0) + 1;
+    if (b.dataset.abo !== "non" || a.refus >= ABO_REFUS) a.fini = 1;
+    ecrireAbo(a);
+    const boite = b.closest(".abo");
+    // après le clic (le lien vers YouTube doit d'abord s'ouvrir)
+    setTimeout(() => { if (b.dataset.abo === "non") boite.remove(); else boite.innerHTML = `<p>Merci, c'est noté ! Bon entraînement.</p>`; });
+  });
   const ACCROCHES = {
     sixieme: "Nombres, fractions, géométrie : les bases",
     cinquieme: "Nouveau programme 2026",
@@ -1428,6 +1456,7 @@
         <div class="exo-actions"><button class="btn" id="encore">Recommencer</button><button class="btn-sec" id="retour">Autres séries</button></div></div>`;
       p.querySelector("#encore").addEventListener("click", () => lancerSerie(p, c, id, ex));
       p.querySelector("#retour").addEventListener("click", () => vueExercices(p, c, id));
+      p.querySelector(".bilan").insertAdjacentHTML("beforeend", inviteAbo(st >= 2));
     }
     question();
   }
@@ -1537,6 +1566,7 @@
       form.dataset.corrige = "1";
       const fin = p.querySelector(".qcm-fin");
       fin.innerHTML = `<div class="bilan"><p class="eyebrow">Ton score</p><p class="gros">${bon}<span>/${qs.length}</span></p>${record && bon ? `<p class="record">Nouveau record !</p>` : ""}<p>+${gain} XP${coef < 1 ? ` (QCM ${texteCoef(coef)})` : ""}. ${bon >= 8 ? "Excellent, le chapitre est bien compris." : bon >= 5 ? "Bien. Relis les explications des questions ratées." : "Revois le cours et la fiche méthode, puis retente ta chance."}</p><button class="btn" type="submit">Nouveau QCM</button></div>`;
+      fin.insertAdjacentHTML("beforeend", inviteAbo(bon >= 0.6 * tot));
       fin.scrollIntoView({ behavior: "smooth", block: "center" });
     });
   }
