@@ -39,7 +39,7 @@ window.CHAPITRES["techno-fonction-derivee"] = {
     },
     {
       titre: "Dériver un polynôme",
-      video: { titre: "Vidéo d'Yvan Monka : fonction dérivée d'un polynôme de degré 3", youtube: "https://youtu.be/1fOGueiO_zk" },
+      video: { titre: "Vidéo d'Yvan Monka : dériver une fonction (Première techno)", youtube: "https://youtu.be/uTk3T_GfwYo" },
       texte:
         "Deux règles suffisent pour tous les polynômes de degré au plus $3$ :\n\n" +
         "- **produit par une constante** : $(k \\times u)' = k \\times u'$. Ainsi $(5x^2)' = 5 \\times 2x = 10x$ ;\n" +

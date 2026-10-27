@@ -77,7 +77,7 @@ window.CHAPITRES["techno-python-listes"] = {
     },
     {
       titre: "Simuler avec $\\texttt{random()}$",
-      video: { titre: "Vidéo d'Yvan Monka : simuler une expérience avec Python", youtube: "https://youtu.be/EXEcSJE31QY" },
+      video: { titre: "Vidéo d'Yvan Monka : estimer une probabilité par échantillonnage (simulation)", youtube: "https://youtu.be/EXEcSJE31QY" },
       texte:
         "$\\texttt{random()}$ (du module $\\texttt{random}$) renvoie un nombre au hasard entre $0$ et $1$ ; la probabilité qu'il soit inférieur à $p$ vaut $p$. On simule donc une **loi de Bernoulli** de paramètre $p$ (résultat $1$ avec la probabilité $p$, sinon $0$) :\n\n" +
         "```python\nfrom random import random\n\ndef bernoulli(p):\n    if random() < p:\n        return 1\n    else:\n        return 0\n\nL = [bernoulli(0.3) for k in range(100)]   # échantillon de taille 100\nprint(sum(L) / 100)                        # fréquence des 1, proche de 0,3\n```\n\n" +

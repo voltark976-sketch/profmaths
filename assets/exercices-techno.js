@@ -171,14 +171,15 @@
     let s = `<svg class="graph" viewBox="0 0 ${W} ${H}" role="img" aria-label="${o.aria || "Arbre pondéré"}">`;
     const yc = H / 2;
     o.n1.forEach(([nom, p], k) => {
-      s += `<line x1="${x0}" y1="${yc}" x2="${x1}" y2="${yA(k)}" style="stroke:var(--encre);stroke-width:1.4"/>` + lab((x0 + x1) / 2 - 6, (yc + yA(k)) / 2 + (yA(k) < yc ? -4 : 12), p, true) + `<text class="g-label" x="${x1 + 8}" y="${yA(k) + 4}" style="font-weight:700">${nom}</text>`;
+      s += `<line x1="${x0}" y1="${yc}" x2="${x1}" y2="${yA(k)}" style="stroke:var(--encre);stroke-width:1.4"/>` + lab((x0 + x1) / 2 - 6, (yc + yA(k)) / 2 + (yA(k) < yc ? -4 : 12), p, true) + `<text class="g-label" x="${x1 + 8}" y="${yA(k) + 4}" style="font-weight:700">${nomEv(nom)}</text>`;
       (o.n2[k] || []).forEach(([nom2, p2], j) => {
         const y = yB(k, j);
-        s += `<line x1="${x1 + 30}" y1="${yA(k)}" x2="${x2}" y2="${y}" style="stroke:var(--encre);stroke-width:1.4"/>` + lab((x1 + 30 + x2) / 2, (yA(k) + y) / 2 + (j === 0 ? -4 : 12), p2, true) + `<text class="g-label" x="${x2 + 8}" y="${y + 4}" style="font-weight:700">${nom2}</text>`;
+        s += `<line x1="${x1 + 30}" y1="${yA(k)}" x2="${x2}" y2="${y}" style="stroke:var(--encre);stroke-width:1.4"/>` + lab((x1 + 30 + x2) / 2, (yA(k) + y) / 2 + (j === 0 ? -4 : 12), p2, true) + `<text class="g-label" x="${x2 + 8}" y="${y + 4}" style="font-weight:700">${nomEv(nom2)}</text>`;
       });
     });
     return s + `</svg>`;
   }
+  const nomEv = (t) => (String(t).endsWith("̄") ? `<tspan style="text-decoration:overline">${String(t).slice(0, -1)}</tspan>` : t); // « M̄ » écrit avec une vraie barre
   const barre = (t) => `<tspan style="text-decoration:overline">${t}</tspan>`;
 
   /* ---------- Figures : nuage de points ---------- */
@@ -487,15 +488,18 @@
 
   /* Figures du cours (chapitre 1) */
   FIGURES["ye-cours-ensembles"] = () => {
-    const W = 320, H = 210;
-    let s = `<svg class="graph" viewBox="0 0 ${W} ${H}" role="img" aria-label="Ensembles de nombres emboîtés : N dans Z dans D dans Q dans R">`;
-    const E = [["ℝ", 150, 100, "√2, π"], ["ℚ", 122, 82, "1/3, −2/7"], ["𝔻", 96, 66, "0,5 ; −3,25"], ["ℤ", 70, 50, "−3, −12"], ["ℕ", 44, 34, "0, 1, 2, 7"]];
-    E.forEach(([n, rx, ry, ex], k) => { s += `<ellipse cx="${160 + (150 - rx) * 0.9}" cy="105" rx="${rx}" ry="${ry}" style="fill:var(--lagon);fill-opacity:0.07;stroke:var(--lagon);stroke-width:1.5"/>`; });
-    E.forEach(([n, rx, ry, ex], k) => { const cx = 160 + (150 - rx) * 0.9; s += `<text class="g-label" x="${cx - rx + 8}" y="${k === 4 ? 110 : 105 - ry + 16}" style="font-weight:700;font-size:13px">${n}</text><text class="g-label" x="${cx - rx + 8}" y="${k === 4 ? 124 : 105 - ry + 30}" style="font-size:10px">${ex}</text>`; });
+    const W = 320, H = 200;
+    let s = `<svg class="graph" viewBox="0 0 ${W} ${H}" role="img" aria-label="Ensembles de nombres emboîtés : N dans Z dans D dans Q dans R, avec des exemples">`;
+    const E = [["ℝ", "√2", "π"], ["ℚ", "1/3", "−2/7"], ["D", "0,5", "−3,25"], ["ℤ", "−3", "−12"], ["ℕ", "0", "7"]];
+    E.forEach(([n, e1, e2], k) => {
+      const x = 6 + 56 * k, y = 6 + 12 * k, w = W - 12 - 64 * k, h = H - 12 - 24 * k;
+      s += `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="12" style="fill:var(--lagon);fill-opacity:0.07;stroke:var(--lagon);stroke-width:1.5"/>`;
+      s += `<text class="g-label" x="${x + 8}" y="${y + 22}" style="font-weight:700;font-size:14px">${n}</text><text class="g-label" x="${x + 8}" y="${y + 40}" style="font-size:10px">${e1}</text><text class="g-label" x="${x + 8}" y="${y + 54}" style="font-size:10px">${e2}</text>`;
+    });
     return s + `</svg>`;
   };
   FIGURES["ye-cours-venn"] = () => venn({ a: "A seul", ab: "A ∩ B", b: "B seul", hors: "ni A ni B", aria: "Deux disques A et B dans un rectangle E : zones A seul, A inter B, B seul, et en dehors des deux" });
-  FIGURES["ye-cours-intervalles"] = () => graphePlus({ xmin: -1.6, xmax: 6.6, ymin: -0.6, ymax: 2.6, h: 200, padB: 18, aria: "Sur une droite graduée : I = [1 ; 4] en haut, J = ]2 ; 6[ en dessous, I inter J = ]2 ; 4] en bas" }, (X, Y) => {
+  FIGURES["ye-cours-intervalles"] = () => graphePlus({ xmin: -1.6, xmax: 6.6, ymin: -0.6, ymax: 2.6, ystep: 10, yetiq: 100, h: 200, padB: 18, aria: "Sur une droite graduée : I = [1 ; 4] en haut, J = ]2 ; 6[ en dessous, I inter J = ]2 ; 4] en bas" }, (X, Y) => {
     const seg = (a, b, y, ga, gb, c, nom) => `<line x1="${X(a)}" y1="${Y(y)}" x2="${X(b)}" y2="${Y(y)}" style="stroke:${c};stroke-width:4"/><text class="g-label" x="${X(a) - 6}" y="${Y(y) + 4}" text-anchor="end" style="fill:${c};font-weight:700">${nom}</text><text class="g-label" x="${X(a)}" y="${Y(y) + 5}" text-anchor="middle" style="fill:${c};font-weight:700;font-size:15px">${ga ? "[" : "]"}</text><text class="g-label" x="${X(b)}" y="${Y(y) + 5}" text-anchor="middle" style="fill:${c};font-weight:700;font-size:15px">${gb ? "]" : "["}</text>`;
     return seg(1, 4, 2, true, true, "var(--lagon)", "I") + seg(2, 6, 1.2, false, false, "var(--ylang)", "J") + seg(2, 4, 0.4, false, true, "var(--faux)", "I ∩ J");
   });
@@ -511,10 +515,10 @@
   };
   FIGURES["ye-cours-implication"] = () => {
     const W = 320, H = 150;
-    let s = `<svg class="graph" viewBox="0 0 ${W} ${H}" role="img" aria-label="Les carrés sont inclus dans les rectangles : être un carré implique être un rectangle, la réciproque est fausse">`;
+    let s = `<svg class="graph" viewBox="0 0 ${W} ${H + 24}" role="img" aria-label="Les carrés sont inclus dans les rectangles : être un carré implique être un rectangle, la réciproque est fausse">`;
     s += `<ellipse cx="160" cy="80" rx="140" ry="58" style="fill:var(--ylang);fill-opacity:0.12;stroke:var(--ylang);stroke-width:1.6"/><ellipse cx="120" cy="86" rx="68" ry="36" style="fill:var(--lagon);fill-opacity:0.15;stroke:var(--lagon);stroke-width:1.6"/>`;
     s += `<text class="g-label" x="120" y="82" text-anchor="middle" style="font-weight:700;fill:var(--lagon)">carrés</text><text class="g-label" x="120" y="98" text-anchor="middle" style="font-size:10px">(P)</text><text class="g-label" x="240" y="52" text-anchor="middle" style="font-weight:700;fill:var(--ylang)">rectangles</text><text class="g-label" x="240" y="68" text-anchor="middle" style="font-size:10px">(Q)</text>`;
-    s += `<text class="g-label" x="160" y="140" text-anchor="middle">P ⟹ Q : carré ⟹ rectangle (vrai) ; Q ⟹ P faux</text>`;
+    s += `<text class="g-label" x="160" y="162" text-anchor="middle">P ⟹ Q : carré ⟹ rectangle (vrai) ; Q ⟹ P faux</text>`;
     return s + `</svg>`;
   };
 
@@ -1417,7 +1421,7 @@
     [2, 5, 8, 11, 14].forEach((v, k) => { s += `<rect x="${12 + k * 62}" y="100" width="40" height="28" rx="6" style="fill:var(--surface);stroke:var(--ylang);stroke-width:1.5"/><text class="g-label" x="${32 + k * 62}" y="119" text-anchor="middle" style="font-weight:700">${v}</text>`; if (k < 4) s += `<text class="g-label" x="${63 + k * 62}" y="119" text-anchor="middle" style="fill:var(--ylang);font-size:10px">+3</text>`; s += `<text class="g-label" x="${32 + k * 62}" y="143" text-anchor="middle" style="font-size:10px">u(${k})</text>`; });
     return s + `</svg>`;
   };
-  FIGURES["ys-cours-lineaire-expo"] = () => nuage([0, 1, 2, 3, 4, 5, 6], [2, 4, 8, 16, 32, 64, 128].map((v) => v / 4), { xlabel: "n", ylabel: "u(n)", xstep: 1, ystep: 4, points: [0, 1, 2, 3, 4, 5, 6].map((n) => ({ x: n, y: 3 + 4 * n })).concat([0, 1, 2, 3, 4, 5, 6].map((n) => ({ x: n, y: 0.5 * 2 ** n }))), aria: "Deux nuages : points alignés de la suite 3 + 4n (linéaire) et points de la suite 0,5 × 2^n qui montent de plus en plus vite (exponentielle)" });
+  FIGURES["ys-cours-lineaire-expo"] = () => nuage([0, 1, 2, 3, 4, 5, 6], [2, 4, 8, 16, 32, 64, 128].map((v) => v / 4), { xlabel: "n", ylabel: "u(n)", xstep: 1, ystep: 4, points: [0, 1, 2, 3, 4, 5, 6].map((n) => ({ x: n, y: 3 + 4 * n, label: n === 6 ? "3 + 4n" : "" })).concat([0, 1, 2, 3, 4, 5, 6].map((n) => ({ x: n, y: 0.5 * 2 ** n, label: n === 6 ? "0,5 × 2ⁿ" : "" }))), aria: "Deux nuages : points alignés de la suite 3 + 4n (linéaire) et points de la suite 0,5 × 2^n qui montent de plus en plus vite (exponentielle)" });
 
   /* ---------- Chapitre 6 : suites arithmétiques et géométriques (préfixe yg) ---------- */
   const RAISONS_Q = [2, 3, 4, 5, 1.5, 1.2, 1.1, 0.5, 0.8, 0.9, 0.75, 1.25, 1.05];
@@ -1653,7 +1657,7 @@
   /* Figures du cours (chapitre 6) */
   FIGURES["yg-cours-arith"] = () => nuage([0, 1, 2, 3, 4, 5, 6], [2, 5, 8, 11, 14, 17, 20], { xlabel: "n", ylabel: "u(n)", xstep: 1, ystep: 2, curves: [{ f: (x) => 3 * x + 2, a: -0.3, b: 6.3, closed: false }], aria: "Suite arithmétique u(0) = 2, raison 3 : points alignés sur la droite y = 3x + 2" });
   FIGURES["yg-cours-geo"] = () => nuage([0, 1, 2, 3, 4, 5, 6], [2, 3, 4.5, 6.75, 10.125, 15.1875, 22.78], { xlabel: "n", ylabel: "u(n)", xstep: 1, ystep: 2, aria: "Suite géométrique u(0) = 2, raison 1,5 : les points montent de plus en plus vite" });
-  FIGURES["yg-cours-compare"] = () => nuage([0, 1, 2, 3, 4, 5, 6, 7, 8], [1, 2, 4, 8, 16, 32, 64, 128, 256].map((v) => v / 8), { xlabel: "n", ylabel: "u(n)", xstep: 1, ystep: 4, points: [0, 1, 2, 3, 4, 5, 6, 7, 8].map((n) => ({ x: n, y: 4 + 3 * n })).concat([0, 1, 2, 3, 4, 5, 6, 7, 8].map((n) => ({ x: n, y: 2 ** n / 8 }))), aria: "Comparaison : suite arithmétique 4 + 3n (points alignés) et suite géométrique 0,125 × 2^n, d'abord en dessous puis qui dépasse largement" });
+  FIGURES["yg-cours-compare"] = () => nuage([0, 1, 2, 3, 4, 5, 6, 7, 8], [1, 2, 4, 8, 16, 32, 64, 128, 256].map((v) => v / 8), { xlabel: "n", ylabel: "u(n)", xstep: 1, ystep: 4, points: [0, 1, 2, 3, 4, 5, 6, 7, 8].map((n) => ({ x: n, y: 4 + 3 * n, label: n === 8 ? "4 + 3n" : "" })).concat([0, 1, 2, 3, 4, 5, 6, 7, 8].map((n) => ({ x: n, y: 2 ** n / 8, label: n === 8 ? "2ⁿ ÷ 8" : "" }))), aria: "Comparaison : suite arithmétique 4 + 3n (points alignés) et suite géométrique 0,125 × 2^n, d'abord en dessous puis qui dépasse largement" });
 
   /* ---------- Chapitre 7 : fonctions, courbes et taux de variation (préfixe yf) ---------- */
   // Fonctions simples : { tex, f, nom }
@@ -1840,7 +1844,7 @@
 
   def("yf-balayage", () => {
     const t = pick(["tableau", "tableau", "python"]);
-    const F = pick([{ tex: "x^2 - 2", f: (x) => x * x - 2, k: 0, rac: Math.SQRT2 }, { tex: "x^2 - 5", f: (x) => x * x - 5, k: 0, rac: Math.sqrt(5) }, { tex: "x^3 - 3", f: (x) => x ** 3 - 3, k: 0, rac: Math.cbrt(3) }, { tex: "x^2 + x", f: (x) => x * x + x, k: 3, rac: (-1 + Math.sqrt(13)) / 2 }, { tex: "x^3", f: (x) => x ** 3, k: 10, rac: Math.cbrt(10) }, { tex: "x^2 - 7", f: (x) => x * x - 7, k: 0, rac: Math.sqrt(7) }]);
+    const F = pick([{ tex: "x^2 - 2", f: (x) => x * x - 2, k: 0, rac: Math.SQRT2 }, { tex: "x^2 - 5", f: (x) => x * x - 5, k: 0, rac: Math.sqrt(5) }, { tex: "x^3 - 3", f: (x) => x ** 3 - 3, k: 0, rac: Math.cbrt(3) }, { tex: "x^2 + x", f: (x) => x * x + x, k: 3, rac: (-1 + Math.sqrt(13)) / 2 }, { tex: "x^3", f: (x) => x ** 3, k: 10, rac: Math.cbrt(10) }, { tex: "x^2 - 7", f: (x) => x * x - 7, k: 0, rac: Math.sqrt(7) }, { tex: "x^2 - 3", f: (x) => x * x - 3, k: 0, rac: Math.sqrt(3) }, { tex: "x^2 - 10", f: (x) => x * x - 10, k: 0, rac: Math.sqrt(10) }, { tex: "x^3 + x", f: (x) => x ** 3 + x, k: 5, rac: 1.5159802 }, { tex: "x^2 + 2x", f: (x) => x * x + 2 * x, k: 5, rac: -1 + Math.sqrt(6) }, { tex: "x^3", f: (x) => x ** 3, k: 20, rac: Math.cbrt(20) }, { tex: "x^2 - 11", f: (x) => x * x - 11, k: 0, rac: Math.sqrt(11) }]);
     const pas = pick([0.1, 0.01]), lo = Math.floor(F.rac / pas) * pas, hi = arr(lo + pas);
     if (t === "python") {
       const code = `def f(x):\n    return ${F.tex.replace(/\^(\d)/g, " ** $1").replace(/x \*\* 2/g, "x ** 2")}\n\nx = ${Math.floor(F.rac)}\nwhile f(x) < ${F.k}:\n    x = x + ${pas}\nprint(x)`;
@@ -1878,7 +1882,7 @@
   ], ["Image : on part de $x$ ; antécédent : on cherche $x$.", "Taux de variation : variation des images sur variation de $x$.", "Croissante : même ordre ; décroissante : ordre inverse."]));
 
   /* Figures du cours (chapitre 7) */
-  FIGURES["yf-cours-secante"] = () => tiret(graph({ xmin: -1.6, xmax: 4.6, ymin: -2.6, ymax: 6.6, h: 300, curves: [{ f: (x) => 0.5 * x * x - x + 1, a: -1.3, b: 4.2, label: "C<tspan class=\"sub\" dy=\"3\">f</tspan>", closed: false }, { f: (x) => 1 + 1.5 * (x - 1) + 0.5 * 0, a: 0, b: 4.4, closed: false }], points: [{ x: 1, y: 0.5, label: "A(1 ; 0,5)", gauche: true }, { x: 3, y: 2.5, label: "B(3 ; 2,5)" }], aria: "Courbe de f et sécante (AB) : taux de variation entre 1 et 3 égal à (2,5 − 0,5)/(3 − 1) = 1" }).replace(/<path class="g-curve g-curve-1"[^>]*d="[^"]*"/, (m) => m), 1);
+  FIGURES["yf-cours-secante"] = () => tiret(graph({ xmin: -1.6, xmax: 4.6, ymin: -2.6, ymax: 6.6, h: 300, curves: [{ f: (x) => 0.5 * x * x - x + 1, a: -1.3, b: 4.2, label: "C<tspan class=\"sub\" dy=\"3\">f</tspan>", closed: false }, { f: (x) => 0.5 + (x - 1), a: -0.4, b: 4.4, closed: false }], points: [{ x: 1, y: 0.5, label: "A(1 ; 0,5)", gauche: true }, { x: 3, y: 2.5, label: "B(3 ; 2,5)" }], aria: "Courbe de f et sécante (AB) : taux de variation entre 1 et 3 égal à (2,5 − 0,5)/(3 − 1) = 1" }), 1);
   FIGURES["yf-cours-temperature"] = () => graph({ xmin: 5, xmax: 20.8, ymin: 16, ymax: 34.4, xstep: 1, ystep: 1, xetiq: 2, yetiq: 2, h: 280, xlabel: "heure", ylabel: "°C", curves: [{ f: (t) => 32 - 0.25 * (t - 14) ** 2, a: 6, b: 20, closed: false }], hlines: [{ y: 28, label: "28 °C" }], points: [{ x: 14, y: 32, label: "max 32 °C" }], aria: "Température de 6 h à 20 h : maximum 32 °C à 14 h ; au-dessus de 28 °C entre 10 h et 18 h" });
   FIGURES["yf-cours-croissante"] = () => graph({ xmin: -0.6, xmax: 5.6, ymin: -0.6, ymax: 5.6, h: 260, curves: [{ f: (x) => 0.2 * x * x + 0.2, a: 0, b: 5, label: "f croissante", closed: false }], points: [{ x: 1, y: 0.4, label: "f(1)", gauche: true }, { x: 4, y: 3.4, label: "f(4)" }], aria: "Fonction croissante : 1 < 4 et f(1) < f(4), la sécante monte" });
 
@@ -2083,7 +2087,7 @@
 
   /* Figures du cours (chapitre 8) */
   FIGURES["yp-cours-orientation"] = () => graph({ xmin: -3.6, xmax: 3.6, ymin: -5.6, ymax: 5.6, h: 280, curves: [{ f: (x) => 0.5 * x * x, a: -3.2, b: 3.2, label: "a > 0", closed: false }, { f: (x) => -0.5 * x * x, a: -3.2, b: 3.2, label: "a < 0", closed: false }], points: [{ x: 0, y: 0, label: "sommet (0 ; 0)" }], aria: "Deux paraboles de sommet l'origine : y = 0,5x² tournée vers le haut, y = −0,5x² tournée vers le bas" });
-  FIGURES["yp-cours-factorisee"] = () => graph({ xmin: -2.6, xmax: 6.6, ymin: -5.6, ymax: 6.6, h: 300, curves: [{ f: (x) => (x - 1) * (x - 5), a: -0.4, b: 6.4, label: "y = (x − 1)(x − 5)", closed: false }, { f: () => 0, a: 3, b: 3, closed: false }], points: [{ x: 1, y: 0, label: "1", gauche: true }, { x: 5, y: 0, label: "5" }, { x: 3, y: -4, label: "sommet (3 ; −4)" }], hlines: [], aria: "Parabole y = (x − 1)(x − 5) : racines 1 et 5, axe de symétrie x = 3, sommet (3 ; −4)" });
+  FIGURES["yp-cours-factorisee"] = () => graph({ xmin: -2.6, xmax: 6.6, ymin: -5.6, ymax: 6.6, h: 300, curves: [{ f: (x) => (x - 1) * (x - 5), a: -0.4, b: 6.4, label: "y = (x − 1)(x − 5)", closed: false }], points: [{ x: 1, y: 0, label: "1", gauche: true }, { x: 5, y: 0, label: "5" }, { x: 3, y: -4, label: "sommet (3 ; −4)" }], hlines: [], aria: "Parabole y = (x − 1)(x − 5) : racines 1 et 5, axe de symétrie x = 3, sommet (3 ; −4)" });
   FIGURES["yp-cours-signe"] = () => tabSigne(["−∞", "1", "5", "+∞"], ["+", "0", "−", "0", "+"], "", [["x − 1", ["−", "0", "+", "", "+"]], ["x − 5", ["−", "", "−", "0", "+"]], ["f(x)", ["+", "0", "−", "0", "+"]]]);
   FIGURES["yp-cours-trajectoire"] = () => graph({ xmin: -0.5, xmax: 4.7, ymin: -1.5, ymax: 22, xstep: 0.5, ystep: 2, xetiq: 1, yetiq: 4, h: 280, xlabel: "t (s)", ylabel: "h (m)", curves: [{ f: (t) => -5 * t * t + 20 * t, a: 0, b: 4, closed: false }], points: [{ x: 2, y: 20, label: "max 20 m à t = 2 s" }, { x: 4, y: 0, label: "sol à t = 4 s", gauche: true }], aria: "Hauteur d'une balle h(t) = −5t² + 20t : maximum 20 m à 2 s, retour au sol à 4 s" });
 
@@ -2413,6 +2417,639 @@
     let s = `<svg class="graph" viewBox="0 0 320 ${26 * L.length + 10}" role="img" aria-label="Tableau des dérivées usuelles : constante 0, x donne 1, x² donne 2x, x³ donne 3x², k u donne k u′, u + v donne u′ + v′">`;
     L.forEach((l, i) => { s += `<rect x="10" y="${5 + 26 * i}" width="150" height="26" style="fill:${i === 0 ? "var(--lagon)" : "var(--surface)"};fill-opacity:${i === 0 ? 0.15 : 1};stroke:var(--doux);stroke-width:1"/><rect x="160" y="${5 + 26 * i}" width="150" height="26" style="fill:${i === 0 ? "var(--lagon)" : "var(--surface)"};fill-opacity:${i === 0 ? 0.15 : 1};stroke:var(--doux);stroke-width:1"/><text class="g-label" x="85" y="${22 + 26 * i}" text-anchor="middle" style="font-weight:${i === 0 ? 700 : 400}">${l[0]}</text><text class="g-label" x="235" y="${22 + 26 * i}" text-anchor="middle" style="font-weight:${i === 0 ? 700 : 400};fill:var(--lagon)">${l[1]}</text>`; });
     return s + `</svg>`;
+  };
+
+  /* ---------- Chapitre 11 : statistiques à deux variables (préfixe yn) ---------- */
+  // Série (x ; y) presque affine : xs réguliers, y = a x + b + bruit ; moyennes « rondes » quand c'est possible
+  const CONTEXTES2V = [
+    { x: "année (rang)", y: "nombre de touristes (milliers)", xs: (n) => Array.from({ length: n }, (_, k) => k + 1), a: () => pick([2, 3, 4, 5]), b: () => rand(20, 40), nom: "rang de l'année $x$ et nombre de touristes $y$ (en milliers) venus à Mayotte" },
+    { x: "tension (V)", y: "intensité (mA)", xs: (n) => Array.from({ length: n }, (_, k) => 2 * (k + 1)), a: () => pick([3, 4, 5]), b: () => 0, nom: "tension $x$ (en V) aux bornes d'un conducteur et intensité $y$ (en mA)" },
+    { x: "dépenses de publicité (k€)", y: "ventes (k€)", xs: (n) => Array.from({ length: n }, (_, k) => 5 * (k + 1)), a: () => pick([2, 3, 4]), b: () => rand(10, 30), nom: "dépenses de publicité $x$ et chiffre d'affaires $y$ (en k€) d'une entreprise de Mamoudzou" },
+    { x: "âge (mois)", y: "taille (cm)", xs: (n) => Array.from({ length: n }, (_, k) => 3 * (k + 1)), a: () => pick([2, 3]), b: () => rand(45, 55), nom: "âge $x$ (en mois) et taille $y$ (en cm) d'un enfant suivi à la PMI" },
+    { x: "concentration (mg/L)", y: "absorbance (×100)", xs: (n) => Array.from({ length: n }, (_, k) => k + 1), a: () => pick([6, 8, 10, 12]), b: () => rand(0, 5), nom: "concentration $x$ (en mg/L) d'une solution et absorbance $y$ (×100) mesurée au laboratoire" }
+  ];
+  function serie2v(n) {
+    const C = pick(CONTEXTES2V), N = n || rand(5, 7), xs = C.xs(N), a = C.a(), b = C.b();
+    const bruit = Array.from({ length: N }, () => rand(-2, 2));
+    // somme du bruit nulle → point moyen exactement sur la droite y = ax + b
+    const s = bruit.reduce((t, v) => t + v, 0); bruit[N - 1] -= s;
+    const ys = xs.map((x, k) => a * x + b + bruit[k]);
+    return { C, xs, ys, a, b, mx: moyenne(xs), my: moyenne(ys) };
+  }
+  const tab2v = (S) => ({ lignes: [["x",...S.xs.map(nb)], ["y", ...S.ys.map(nb)]] });
+  const figNuage = (S, extra) => nuage(S.xs, S.ys, Object.assign({ xlabel: "x", ylabel: "y", aria: `Nuage de points : ${S.xs.map((x, k) => `(${nbS(x)} ; ${nbS(S.ys[k])})`).join(", ")}` }, extra || {}));
+
+  def("yn-point-moyen", () => {
+    const S = serie2v(), q = pick(["x", "y", "y"]);
+    if (!Number.isInteger(S.mx * 100) || !Number.isInteger(S.my * 100)) return GEN["yn-point-moyen"]();
+    const att = q === "x" ? S.mx : S.my, L = q === "x" ? S.xs : S.ys;
+    return { enonce: `Le tableau donne le ${S.C.nom}. Calcule ${q === "x" ? "l'abscisse $\\bar{x}$" : "l'ordonnée $\\bar{y}$"} du point moyen $G$ du nuage.`, tableau: tab2v(S), mode: "nombre", prefixe: q === "x" ? "$\\bar{x} =$" : "$\\bar{y} =$", attendu: att,
+      erreurs: [{ valeur: L.reduce((t, v) => t + v, 0), message: `Divise la somme par le nombre de points, $${L.length}$.` }, { valeur: q === "x" ? S.my : S.mx, message: q === "x" ? "Ça, c'est $\\bar{y}$." : "Ça, c'est $\\bar{x}$." }],
+      aides: [`Le point moyen $G(\\bar{x}\\,;\\bar{y})$ a pour coordonnées les moyennes des $x$ et des $y$.`, `On additionne les $${L.length}$ valeurs : $${L.map(nb).join("$ + $")}$.`, `La somme vaut $${nb(L.reduce((t, v) => t + v, 0))}$.`],
+      solution: `Somme des $${L.length}$ valeurs : $${L.map(nb).join("$ + $")}$ $= ${nb(L.reduce((t, v) => t + v, 0))}$. Donc ${q === "x" ? "$\\bar{x}$" : "$\\bar{y}$"} $= \\dfrac{${nb(L.reduce((t, v) => t + v, 0))}}{${L.length}} = ${nb(att)}$. Le point moyen est $G(${nb(S.mx)}\\,;${nb(S.my)})$.` };
+  });
+
+  def("yn-nuage", () => {
+    const S = serie2v(), t = pick(["forme", "lire", "lire", "plus"]);
+    if (t === "lire") { const k = rand(0, S.xs.length - 1); return { enonce: `Le nuage représente le ${S.C.nom}. Lis l'ordonnée du point d'abscisse $${nb(S.xs[k])}$.`, figure: figNuage(S), mode: "nombre", prefixe: "$y =$", attendu: S.ys[k], erreurs: [{ valeur: S.xs[k], message: "L'ordonnée se lit sur l'axe vertical." }], aides: [`Repère $x = ${nb(S.xs[k])}$ sur l'axe horizontal.`, "Monte jusqu'au point du nuage.", "Lis sa hauteur sur l'axe vertical."], solution: `Le point d'abscisse $${nb(S.xs[k])}$ a pour ordonnée $${nb(S.ys[k])}$.` }; }
+    if (t === "plus") { const k = S.ys.indexOf(Math.max(...S.ys)); return { enonce: `Le nuage représente le ${S.C.nom}. Quelle est l'abscisse du point le plus haut ?`, figure: figNuage(S), mode: "nombre", prefixe: "$x =$", attendu: S.xs[k], erreurs: [{ valeur: S.ys[k], message: "On demande l'abscisse, pas l'ordonnée." }], aides: ["Repère le point le plus haut du nuage.", "Lis son abscisse sur l'axe horizontal.", `Il a pour ordonnée $${nb(S.ys[k])}$.`], solution: `Le point le plus haut est $(${nb(S.xs[k])}\\,;${nb(S.ys[k])})$ : son abscisse est $${nb(S.xs[k])}$.` }; }
+    const forme = pick(["affine", "affine", "aucune", "courbe"]);
+    let xs = S.xs, ys = S.ys;
+    if (forme === "aucune") ys = xs.map(() => rand(10, 60));
+    if (forme === "courbe") ys = xs.map((x, k) => Math.round(3 * 2 ** (k * 0.7)));
+    const bonne = forme === "affine" ? "les points sont presque alignés : un ajustement affine est pertinent" : forme === "aucune" ? "les points sont dispersés sans direction : un ajustement affine n'est pas pertinent" : "les points suivent une courbe qui monte de plus en plus vite : un ajustement affine n'est pas pertinent";
+    const ch = choix4(bonne, ["les points sont presque alignés : un ajustement affine est pertinent", "les points sont dispersés sans direction : un ajustement affine n'est pas pertinent", "les points suivent une courbe qui monte de plus en plus vite : un ajustement affine n'est pas pertinent", "un ajustement affine est toujours pertinent"].filter((s) => s !== bonne));
+    return { enonce: `Voici un nuage de points. Que peut-on dire ?`, figure: nuage(xs, ys, { xlabel: "x", ylabel: "y", aria: `Nuage de points ${forme === "affine" ? "presque alignés" : forme === "aucune" ? "dispersés" : "en courbe croissante de plus en plus vite"}` }), mode: "choix", choix: ch.choix, attendu: ch.attendu,
+      aides: ["Un ajustement affine consiste à remplacer le nuage par une droite.", "Il n'est pertinent que si les points sont à peu près alignés.", "Imagine une règle posée sur le nuage : passe-t-elle près de tous les points ?"],
+      solution: `Ici, ${bonne}.` };
+  });
+
+  def("yn-ajustement", () => {
+    const S = serie2v(), t = pick(["interpoler", "extrapoler", "extrapoler", "inverse"]);
+    const a = S.a, b = S.b, eq = `y = ${aff(a, b)}`;
+    if (t === "inverse") {
+      const yv = a * (S.xs[S.xs.length - 1] + rand(2, 6)) + b, x = (yv - b) / a;
+      return { enonce: `Pour le ${S.C.nom}, on retient l'ajustement affine $${eq}$. Selon ce modèle, pour quelle valeur de $x$ obtient-on $y = ${nb(yv)}$ ?`, figure: figNuage(S, { curves: [{ f: (z) => a * z + b, a: S.xs[0] - 0.5, b: S.xs[S.xs.length - 1] + 0.5, closed: false }] }), mode: "nombre", prefixe: "$x =$", attendu: x,
+        erreurs: [{ valeur: a * yv + b, message: `Tu as calculé l'image de $${nb(yv)}$ ; il faut résoudre $${aff(a, b)} = ${nb(yv)}$.` }, { valeur: (yv + b) / a, message: "Attention au signe en isolant $x$." }],
+        aides: [`On résout $${aff(a, b)} = ${nb(yv)}$.`, `$${coef(a, "x")} = ${nb(yv - b)}$.`, `$x = \\dfrac{${nb(yv - b)}}{${a}}$.`],
+        solution: `$${aff(a, b)} = ${nb(yv)} \\Leftrightarrow ${coef(a, "x")} = ${nb(yv - b)} \\Leftrightarrow x = ${nb(x)}$.` };
+    }
+    const x = t === "interpoler" ? S.xs[0] + (S.xs[1] - S.xs[0]) * (rand(1, S.xs.length - 2) + 0.5) : S.xs[S.xs.length - 1] + (S.xs[1] - S.xs[0]) * rand(2, 5);
+    const y = arr(a * x + b);
+    return { enonce: `Pour le ${S.C.nom}, on retient l'ajustement affine $${eq}$. ${t === "interpoler" ? `Estime $y$ pour $x = ${nb(x)}$ (interpolation, à l'intérieur des données).` : `Estime $y$ pour $x = ${nb(x)}$ (extrapolation, au-delà des données).`}`, figure: figNuage(S, { curves: [{ f: (z) => a * z + b, a: S.xs[0] - 0.5, b: S.xs[S.xs.length - 1] + 0.5, closed: false }] }), mode: "nombre", prefixe: "$y \\approx$", attendu: y,
+      erreurs: [{ valeur: arr((x - b) / a), message: "On calcule l'image de $x$ par la droite : remplace $x$ dans l'équation." }, { valeur: arr(a * x - b), message: "Attention au signe de l'ordonnée à l'origine." }],
+      aides: [`On remplace $x$ par $${nb(x)}$ dans $${eq}$.`, `$${a} \\times ${nb(x)} ${plus(b)}$.`, t === "extrapoler" ? "Une extrapolation suppose que la tendance continue : c'est une estimation à prendre avec prudence." : "On reste dans la zone des données : l'estimation est raisonnable."],
+      solution: `$y = ${a} \\times ${nb(x)} ${plus(b)} = ${nb(y)}$. ${t === "extrapoler" ? "C'est une extrapolation : elle n'a de sens que si la tendance observée se poursuit." : "C'est une interpolation, à l'intérieur de la plage des données."}` };
+  });
+
+  def("yn-droite-g", () => {
+    const S = serie2v();
+    if (!Number.isInteger(S.mx * 100) || !Number.isInteger(S.my * 100)) return GEN["yn-droite-g"]();
+    const t = pick(["p", "p", "choisir"]);
+    if (t === "choisir") {
+      const bonne = `$y = ${aff(S.a, S.b)}$`;
+      const ch = choix4(bonne, [`$y = ${aff(S.a, S.b + 5)}$`, `$y = ${aff(S.a + 1, S.b)}$`, `$y = ${aff(-S.a, S.my + S.a * S.mx)}$`, `$y = ${aff(S.a, S.my)}$`].filter((s) => s !== bonne));
+      return { enonce: `Le tableau donne le ${S.C.nom}, de point moyen $G(${nb(S.mx)}\\,;${nb(S.my)})$. Parmi ces droites, laquelle passe par $G$ et suit la tendance du nuage ?`, tableau: tab2v(S), mode: "choix", choix: ch.choix, attendu: ch.attendu,
+        aides: ["Une bonne droite d'ajustement passe par le point moyen $G$.", `Vérifie pour chaque droite si $x = ${nb(S.mx)}$ donne $y = ${nb(S.my)}$.`, "Le nuage monte : le coefficient directeur doit être positif et proche de la pente des points."],
+        solution: `$${S.a} \\times ${nb(S.mx)} ${plus(S.b)} = ${nb(S.my)}$ : la droite ${bonne} passe par $G$, et sa pente $${S.a}$ suit celle du nuage.` };
+    }
+    return { enonce: `Le tableau donne le ${S.C.nom}. On ajuste le nuage par une droite de coefficient directeur $${S.a}$ passant par le point moyen $G$. Calcule son ordonnée à l'origine $p$ (équation $y = ${S.a}x + p$).`, tableau: tab2v(S), mode: "nombre", prefixe: "$p =$", attendu: S.b,
+      erreurs: [{ valeur: S.my, message: "$p$ n'est pas $\\bar{y}$ : il faut que $G$ vérifie l'équation, $\\bar{y} = " + S.a + "\\bar{x} + p$." }, { valeur: S.my + S.a * S.mx, message: "Attention au signe : $p = \\bar{y} - " + S.a + "\\bar{x}$." }],
+      aides: ["Calcule d'abord le point moyen $G(\\bar{x}\\,;\\bar{y})$.", `$G(${nb(S.mx)}\\,;${nb(S.my)})$.`, `$G$ est sur la droite : $${nb(S.my)} = ${S.a} \\times ${nb(S.mx)} + p$.`],
+      solution: `$\\bar{x} = ${nb(S.mx)}$ et $\\bar{y} = ${nb(S.my)}$. La droite passe par $G$ : $${nb(S.my)} = ${S.a} \\times ${nb(S.mx)} + p$, donc $p = ${nb(S.my)} - ${nb(S.a * S.mx)} = ${nb(S.b)}$. Droite d'ajustement : $y = ${aff(S.a, S.b)}$.` };
+  });
+
+  def("yn-mayer", () => {
+    const S = serie2v(6), x1 = moyenne(S.xs.slice(0, 3)), y1 = moyenne(S.ys.slice(0, 3)), x2 = moyenne(S.xs.slice(3)), y2 = moyenne(S.ys.slice(3));
+    if (![x1, y1, x2, y2].every((v) => Number.isInteger(v * 100))) return GEN["yn-mayer"]();
+    const m = (y2 - y1) / (x2 - x1);
+    if (!Number.isInteger(m * 100)) return GEN["yn-mayer"]();
+    const q = pick(["g1", "pente", "pente"]);
+    if (q === "g1") { const quoi = pick(["x", "y"]); return { enonce: `Méthode de Mayer : on partage le nuage en deux groupes de $3$ points (les $3$ premiers, les $3$ derniers). Calcule ${quoi === "x" ? "l'abscisse" : "l'ordonnée"} du point moyen $G_1$ du premier groupe.`, tableau: tab2v(S), mode: "nombre", prefixe: quoi === "x" ? "$x_{G_1} =$" : "$y_{G_1} =$", attendu: quoi === "x" ? x1 : y1, erreurs: [{ valeur: quoi === "x" ? S.mx : S.my, message: "Ça, c'est la moyenne de tout le nuage : on ne prend que les $3$ premiers points." }], aides: ["$G_1$ est le point moyen des $3$ premiers points.", `Moyenne de $${(quoi === "x" ? S.xs : S.ys).slice(0, 3).map(nb).join("$, $")}$.`, "Somme divisée par $3$."], solution: `$${quoi === "x" ? "x" : "y"}_{G_1} = \\dfrac{${(quoi === "x" ? S.xs : S.ys).slice(0, 3).map(nb).join(" + ")}}{3} = ${nb(quoi === "x" ? x1 : y1)}$.` }; }
+    return { enonce: `Méthode de Mayer : les points moyens des deux moitiés du nuage sont $G_1(${nb(x1)}\\,;${nb(y1)})$ et $G_2(${nb(x2)}\\,;${nb(y2)})$. Quel est le coefficient directeur de la droite de Mayer $(G_1G_2)$ ?`, mode: "nombre", prefixe: "$m =$", attendu: m,
+      erreurs: [{ valeur: y2 - y1, message: "Divise par la différence des abscisses." }, { valeur: (x2 - x1) / (y2 - y1), message: "Les ordonnées au numérateur : $\\dfrac{y_2 - y_1}{x_2 - x_1}$." }],
+      aides: ["$m = \\dfrac{y_{G_2} - y_{G_1}}{x_{G_2} - x_{G_1}}$.", `$\\dfrac{${nb(y2)} - ${nb(y1)}}{${nb(x2)} - ${nb(x1)}}$.`, `$\\dfrac{${nb(y2 - y1)}}{${nb(x2 - x1)}}$.`],
+      solution: `$m = \\dfrac{${nb(y2)} - ${nb(y1)}}{${nb(x2)} - ${nb(x1)}} = \\dfrac{${nb(y2 - y1)}}{${nb(x2 - x1)}} = ${nb(m)}$. La droite de Mayer passe aussi par le point moyen $G$ de tout le nuage.` };
+  });
+
+  def("yn-moindres-carres", () => {
+    const xs = [1, 2, 3, 4], a = pick([2, 3, 4]), b = rand(1, 6), e = shuffle([1, -1, 0, 0]);
+    const ys = xs.map((x, k) => a * x + b + e[k]);
+    const t = pick(["somme", "somme", "comparer"]);
+    if (t === "comparer") {
+      const d1 = [a, b], d2 = [a, b + pick([2, -2])], S = ([m, p]) => xs.reduce((s, x, k) => s + (ys[k] - (m * x + p)) ** 2, 0);
+      const s1 = S(d1), s2 = S(d2), bonne = s1 < s2 ? `$y = ${aff(d1[0], d1[1])}$` : `$y = ${aff(d2[0], d2[1])}$`;
+      const ch = choix4(bonne, [s1 < s2 ? `$y = ${aff(d2[0], d2[1])}$` : `$y = ${aff(d1[0], d1[1])}$`, "Les deux se valent", "On ne peut pas comparer deux droites"]);
+      return { enonce: `Nuage : $${xs.map((x, k) => `(${x}\\,;${ys[k]})`).join("$, $")}$. Selon le critère des moindres carrés (somme des carrés des écarts verticaux la plus petite), quelle droite ajuste le mieux : $y = ${aff(d1[0], d1[1])}$ ou $y = ${aff(d2[0], d2[1])}$ ?`, mode: "choix", choix: ch.choix, attendu: ch.attendu,
+        aides: ["Pour chaque point, écart vertical $= y_i - (mx_i + p)$.", "On additionne les carrés de ces écarts pour chaque droite.", `Sommes : $${s1}$ pour la première, $${s2}$ pour la seconde.`],
+        solution: `Somme des carrés des écarts : $${s1}$ pour $y = ${aff(d1[0], d1[1])}$ et $${s2}$ pour $y = ${aff(d2[0], d2[1])}$. La meilleure au sens des moindres carrés est ${bonne}.` };
+    }
+    const sum = xs.reduce((s, x, k) => s + (ys[k] - (a * x + b)) ** 2, 0);
+    return { enonce: `Nuage : $${xs.map((x, k) => `(${x}\\,;${ys[k]})`).join("$, $")}$. Pour la droite $y = ${aff(a, b)}$, calcule la somme des carrés des écarts $\\sum (y_i - (${a}x_i ${plus(b)}))^2$.`, mode: "nombre", prefixe: "Somme :", attendu: sum,
+      erreurs: [{ valeur: xs.reduce((s, x, k) => s + (ys[k] - (a * x + b)), 0), message: "Il faut élever chaque écart au carré avant d'additionner (sinon les écarts se compensent)." }, { valeur: xs.reduce((s, x, k) => s + Math.abs(ys[k] - (a * x + b)), 0), message: "Le critère utilise les carrés des écarts, pas leurs valeurs absolues." }],
+      aides: [`Pour chaque $x_i$, calcule $${a}x_i ${plus(b)}$ puis l'écart avec $y_i$.`, `Écarts : $${xs.map((x, k) => nb(ys[k] - (a * x + b))).join("$, $")}$.`, "Élève au carré et additionne."],
+      solution: `Écarts : $${xs.map((x, k) => nb(ys[k] - (a * x + b))).join("$, $")}$. Carrés : $${xs.map((x, k) => (ys[k] - (a * x + b)) ** 2).join(" + ")} = ${sum}$. La droite des moindres carrés est celle qui rend cette somme la plus petite possible.` };
+  });
+
+  def("yn-critique", () => vraiFaux4([
+    ["Une droite d'ajustement passe par le point moyen du nuage.", true, "c'est le cas de la droite des moindres carrés et de la droite de Mayer."],
+    ["Estimer une valeur entre les données s'appelle une interpolation.", true, "on reste dans la plage observée."],
+    ["Une extrapolation lointaine peut être fausse si la tendance change.", true, "le modèle n'est validé que sur la plage des données."],
+    ["Un ajustement affine n'est pertinent que si le nuage est à peu près rectiligne.", true, "sinon une droite représente mal les données."],
+    ["La méthode des moindres carrés minimise la somme des carrés des écarts verticaux.", true, "c'est sa définition."],
+    ["Le point moyen a pour coordonnées $(\\bar{x}\\,;\\bar{y})$.", true, "les moyennes des deux séries."],
+    ["En physique, la droite d'étalonnage permet de retrouver une concentration à partir d'une mesure.", true, "on lit l'antécédent sur la droite."],
+    ["Avec un ajustement affine de la taille d'un enfant, on peut prédire sa taille à $40$ ans.", false, "la croissance s'arrête : l'extrapolation n'a plus de sens."],
+    ["Deux grandeurs dont le nuage est rectiligne sont forcément liées par une cause.", false, "un lien statistique n'est pas une preuve de causalité."],
+    ["La droite d'ajustement passe par tous les points du nuage.", false, "elle passe au plus près, pas forcément par les points."],
+    ["Pour la méthode des moindres carrés, on additionne les écarts sans les élever au carré.", false, "les écarts positifs et négatifs se compenseraient."],
+    ["Un nuage de points se trace en reliant les points dans l'ordre.", false, "on place les points sans les relier."],
+    ["Il n'existe qu'une seule façon d'ajuster un nuage par une droite.", false, "au jugé, Mayer, moindres carrés… donnent des droites voisines."]
+  ], ["Pense à ce qu'est une droite d'ajustement : une approximation du nuage.", "Interpolation : dans les données ; extrapolation : au-delà.", "Corrélation n'est pas causalité."]));
+
+  /* Figures du cours (chapitre 11) */
+  FIGURES["yn-cours-nuage"] = () => nuage([1, 2, 3, 4, 5, 6], [32, 36, 37, 42, 44, 49], { xlabel: "rang", ylabel: "milliers", ystep: 5, curves: [{ f: (x) => 3.3 * x + 28.67, a: 0.5, b: 6.5, closed: false }], points: [1, 2, 3, 4, 5, 6].map((x, k) => ({ x, y: [32, 36, 37, 42, 44, 49][k] })).concat([{ x: 3.5, y: 40, label: "G(3,5 ; 40)" }]), aria: "Nuage de 6 points presque alignés, point moyen G(3,5 ; 40) et droite d'ajustement" });
+  FIGURES["yn-cours-ecarts"] = () => {
+    const xs = [1, 2, 3, 4], ys = [5, 6, 10, 11], f = (x) => 2.2 * x + 2.5;
+    return graphePlus({ xmin: -0.3, xmax: 5, ymin: -0.6, ymax: 13, xstep: 1, ystep: 1, yetiq: 2, h: 260, curves: [{ f, a: 0.3, b: 4.7, closed: false }], points: xs.map((x, k) => ({ x, y: ys[k] })), aria: "Quatre points et une droite ; les écarts verticaux entre chaque point et la droite sont tracés en pointillés" }, (X, Y) => xs.map((x, k) => `<line x1="${X(x)}" y1="${Y(ys[k])}" x2="${X(x)}" y2="${Y(f(x))}" style="stroke:var(--faux);stroke-width:1.6;stroke-dasharray:3 3"/>`).join(""));
+  };
+  FIGURES["yn-cours-mayer"] = () => nuage([1, 2, 3, 4, 5, 6], [4, 7, 7, 11, 12, 15], { xlabel: "x", ylabel: "y", points: [1, 2, 3, 4, 5, 6].map((x, k) => ({ x, y: [4, 7, 7, 11, 12, 15][k] })).concat([{ x: 2, y: 6, label: "G₁" }, { x: 5, y: 38 / 3, label: "G₂" }]), curves: [{ f: (x) => 6 + (20 / 9) * (x - 2), a: 0.5, b: 6.5, closed: false }], aria: "Méthode de Mayer : G1 point moyen des 3 premiers points, G2 des 3 derniers, droite (G1G2)" });
+
+  /* ---------- Chapitre 12 : probabilités conditionnelles et indépendance (préfixe yi) ---------- */
+  const pTex = (x) => nb(arr(x, 6)); // probabilité décimale
+  // Tableau croisé d'effectifs : deux critères A/Ā et B/B̄
+  const CROISES = [
+    { pop: "élèves d'un lycée", A: ["internes", "externes"], B: ["en Seconde", "en Première"], nA: "I", nB: "S" },
+    { pop: "clients d'un supermarché", A: ["qui ont la carte de fidélité", "sans carte"], B: ["qui paient par carte bancaire", "qui paient en espèces"], nA: "F", nB: "C" },
+    { pop: "personnes testées au dispensaire", A: ["malades", "non malades"], B: ["avec un test positif", "avec un test négatif"], nA: "M", nB: "T" },
+    { pop: "habitants interrogés", A: ["qui vivent à Petite-Terre", "qui vivent à Grande-Terre"], B: ["qui prennent la barge chaque jour", "qui ne la prennent pas chaque jour"], nA: "P", nB: "B" },
+    { pop: "licenciés d'un club", A: ["filles", "garçons"], B: ["qui font du handball", "qui font du football"], nA: "F", nB: "H" }
+  ];
+  function croise() {
+    const C = pick(CROISES), a = rand(4, 30), b = rand(4, 30), c = rand(4, 30), d = rand(4, 30);
+    const N = a + b + c + d;
+    return { C, a, b, c, d, N, lignes: [["", `${C.nB}`, `\\overline{${C.nB}}`, "Total"], [`${C.nA}`, a, b, a + b], [`\\overline{${C.nA}}`, c, d, c + d], ["Total", a + c, b + d, N]] };
+  }
+
+  def("yi-tableau", () => {
+    const T = croise(), C = T.C, nA = C.nA, nB = C.nB;
+    const Q = pick([
+      ["P(" + nA + " \\cap " + nB + ")", T.a, T.N, `les ${C.pop} ${C.A[0]} **et** ${C.B[0]}`],
+      ["P_{" + nA + "}(" + nB + ")", T.a, T.a + T.b, `parmi les ${C.A[0]}, ceux ${C.B[0]}`],
+      ["P_{" + nB + "}(" + nA + ")", T.a, T.a + T.c, `parmi ceux ${C.B[0]}, les ${C.A[0]}`],
+      ["P(" + nB + ")", T.a + T.c, T.N, `ceux ${C.B[0]}`],
+      ["P_{\\overline{" + nA + "}}(" + nB + ")", T.c, T.c + T.d, `parmi les ${C.A[1]}, ceux ${C.B[0]}`],
+      ["P(" + nA + " \\cup " + nB + ")", T.a + T.b + T.c, T.N, `ceux qui sont ${C.A[0]} **ou** ${C.B[0]}`]
+    ]);
+    const att = Q[1] / Q[2];
+    return { enonce: `Le tableau croisé donne la répartition de $${T.N}$ ${C.pop} : $${nA}$ désigne ceux ${C.A[0]}, $${nB}$ ceux ${C.B[0]}. On choisit une personne au hasard. Calcule $${Q[0]}$ (fraction).`, tableau: { lignes: T.lignes }, mode: "nombre", prefixe: `$${Q[0]} =$`, attendu: att,
+      erreurs: [{ valeur: Q[1] / T.N, message: "Une probabilité conditionnelle se calcule dans la sous-population : le dénominateur n'est pas l'effectif total." }, { valeur: Q[1] / (T.a + T.c === Q[2] ? T.a + T.b : T.a + T.c), message: "Attention à l'ordre : $P_A(B)$ se calcule **parmi** les $A$." }, ...approx(att)],
+      aides: ["$P_A(B)$ : probabilité de $B$ **sachant** $A$ : on se restreint aux individus de $A$.", `Ici on compte ${Q[3]}.`, `Effectif favorable : $${Q[1]}$ ; effectif de référence : $${Q[2]}$.`],
+      solution: `$${Q[0]} = \\dfrac{${Q[1]}}{${Q[2]}}${pgcd(Q[1], Q[2]) > 1 ? " = " + frac(Q[1], Q[2]) : ""}$ : on compte ${Q[3]}.` };
+  });
+
+  // [A au subjonctif, B au subjonctif, A à l'indicatif, B à l'indicatif, lettre A, lettre B]
+  const DISTINGUER = [
+    ["l'élève soit interne", "il soit en Seconde", "l'élève est interne", "il est en Seconde", "I", "S"],
+    ["la personne soit malade", "son test soit positif", "la personne est malade", "son test est positif", "M", "T"],
+    ["le client ait la carte de fidélité", "il paie par carte bancaire", "le client a la carte de fidélité", "il paie par carte bancaire", "F", "C"],
+    ["l'œuf vienne de l'élevage A", "il soit fêlé", "l'œuf vient de l'élevage A", "il est fêlé", "A", "F"],
+    ["l'habitant vive à Petite-Terre", "il prenne la barge chaque jour", "l'habitant vit à Petite-Terre", "il prend la barge chaque jour", "P", "B"],
+    ["le licencié soit une fille", "elle fasse du handball", "le licencié est une fille", "il fait du handball", "F", "H"],
+    ["la pièce vienne de la machine A", "elle soit défectueuse", "la pièce vient de la machine A", "elle est défectueuse", "A", "D"],
+    ["le jour soit pluvieux", "le bus soit en retard", "le jour est pluvieux", "le bus est en retard", "R", "L"],
+    ["le salarié soit à temps partiel", "il soit une femme", "le salarié est à temps partiel", "c'est une femme", "T", "F"],
+    ["l'élève soit en STMG", "il mange à la cantine", "l'élève est en STMG", "il mange à la cantine", "S", "C"],
+    ["le colis soit envoyé en express", "il arrive en retard", "le colis est envoyé en express", "il arrive en retard", "E", "R"],
+    ["le touriste vienne de La Réunion", "il loge à Mamoudzou", "le touriste vient de La Réunion", "il loge à Mamoudzou", "R", "M"]
+  ];
+  def("yi-distinguer", () => {
+    const c = pick(DISTINGUER), [sA, sB, iA, iB, A, B] = c;
+    const t = pick(["inter", "condAB", "condBA", "condAB", "condBA"]);
+    const Q = {
+      inter: [`la probabilité que ${sA} **et** que ${sB}`, `$P(${A} \\cap ${B})$`, `les deux événements sur toute la population : $P(${A} \\cap ${B})$`],
+      condAB: [`la probabilité que ${sB.replace(/^il |^elle |^son /, (m) => m)}, **sachant que** ${iA}`, `$P_{${A}}(${B})$`, `on sait que $${A}$ est réalisé : il va en indice, $P_{${A}}(${B})$`],
+      condBA: [`la probabilité que ${sA}, **sachant que** ${iB}`, `$P_{${B}}(${A})$`, `on sait que $${B}$ est réalisé : il va en indice, $P_{${B}}(${A})$`]
+    }[t];
+    const opts = [`$P(${A} \\cap ${B})$`, `$P_{${A}}(${B})$`, `$P_{${B}}(${A})$`, `$P(${B})$`, `$P(${A})$`];
+    const ch = choix4(Q[1], shuffle(opts.filter((o) => o !== Q[1])));
+    return { enonce: `On choisit un individu au hasard ; $${A}$ : « ${iA.replace(/^(l'|le |la )/, (m) => m)} », $${B}$ : « ${iB} ». Comment note-t-on ${Q[0]} ?`.replace(/que (il|elle) /g, "qu'$1 "), mode: "choix", choix: ch.choix, attendu: ch.attendu,
+      aides: ["« $A$ et $B$ » sur toute la population : $P(A \\cap B)$.", "« $B$ sachant $A$ » : on se restreint à $A$, qu'on écrit en indice : $P_A(B)$.", "Repère les mots « et » ou « sachant que » : ce qui suit « sachant que » va en indice."],
+      solution: `Ici ${Q[2]}. À ne pas confondre avec les autres écritures : $P_{${A}}(${B})$ et $P_{${B}}(${A})$ sont en général différentes.` };
+  });
+
+  // Arbre pondéré à deux niveaux : p(A), p_A(B), p_Ā(B)
+  function arbreDonnees() {
+    const pA = pick([0.1, 0.2, 0.25, 0.3, 0.4, 0.5, 0.6, 0.7, 0.75, 0.8]), pBA = pick([0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.95]), pBnA = pick([0.05, 0.1, 0.15, 0.2, 0.3, 0.4, 0.5, 0.6, 0.8]);
+    return { pA, pBA, pBnA, pB: arr(pA * pBA + (1 - pA) * pBnA, 6) };
+  }
+  const CTX_ARBRE = [
+    { A: "M", B: "T", txt: (D) => `Dans une population, $${pTex(D.pA * 100)}\\,\\%$ des personnes sont atteintes d'une maladie (événement $M$). Un test est positif (événement $T$) pour $${pTex(D.pBA * 100)}\\,\\%$ des malades et pour $${pTex(D.pBnA * 100)}\\,\\%$ des personnes saines.` },
+    { A: "A", B: "D", txt: (D) => `Une usine a deux machines : la machine A fabrique $${pTex(D.pA * 100)}\\,\\%$ des pièces, la machine B le reste. $${pTex(D.pBA * 100)}\\,\\%$ des pièces de A et $${pTex(D.pBnA * 100)}\\,\\%$ des pièces de B sont défectueuses (événement $D$). On note $A$ l'événement « la pièce vient de A ».` },
+    { A: "R", B: "V", txt: (D) => `Un matin de saison des pluies pris au hasard, il pleut à Mamoudzou avec la probabilité $${pTex(D.pA)}$ (événement $R$). S'il pleut, ${prenom()} prend la voiture avec la probabilité $${pTex(D.pBA)}$ ; sinon avec la probabilité $${pTex(D.pBnA)}$ (événement $V$).` },
+    { A: "S", B: "C", txt: (D) => `Au lycée, $${pTex(D.pA * 100)}\\,\\%$ des élèves sont en série STMG (événement $S$). $${pTex(D.pBA * 100)}\\,\\%$ des élèves de STMG et $${pTex(D.pBnA * 100)}\\,\\%$ des autres mangent à la cantine (événement $C$).` }
+  ];
+  const figArbre = (D, ctx, masque) => arbre({ n1: [[ctx.A, masque === "pA" ? "?" : nbS(D.pA)], [`${ctx.A}̄`, masque === "pnA" ? "?" : nbS(arr(1 - D.pA))]], n2: [[[ctx.B, masque === "pBA" ? "?" : nbS(D.pBA)], [`${ctx.B}̄`, masque === "pnBA" ? "?" : nbS(arr(1 - D.pBA))]], [[ctx.B, nbS(D.pBnA)], [`${ctx.B}̄`, masque === "pnBnA" ? "?" : nbS(arr(1 - D.pBnA))]]], aria: `Arbre pondéré : ${ctx.A} puis ${ctx.B}` });
+
+  def("yi-arbre", () => {
+    const D = arbreDonnees(), ctx = pick(CTX_ARBRE), t = pick(["completer", "inter", "inter", "lire"]);
+    if (ctx.txt(D).includes("un jour sur cent")) return GEN["yi-arbre"]();
+    if (t === "completer") {
+      const q = pick(["pnA", "pnBA", "pnBnA"]), att = q === "pnA" ? arr(1 - D.pA) : q === "pnBA" ? arr(1 - D.pBA) : arr(1 - D.pBnA);
+      return { enonce: `${ctx.txt(D)} Complète l'arbre : quelle probabilité remplace le « ? » ?`, figure: figArbre(D, ctx, q), mode: "nombre", prefixe: "? =", attendu: att,
+        erreurs: [{ valeur: q === "pnA" ? D.pA : q === "pnBA" ? D.pBA : D.pBnA, message: "Les probabilités des branches issues d'un même nœud ont pour somme $1$." }],
+        aides: ["La somme des probabilités des branches issues d'un même nœud vaut $1$.", "Repère la branche « sœur » du « ? ».", "Calcule $1 -$ cette probabilité."],
+        solution: `Les branches issues d'un même nœud ont une somme égale à $1$ : $? = 1 - ${pTex(1 - att)} = ${pTex(att)}$.` };
+    }
+    if (t === "lire") {
+      const bonne = `$P_{${ctx.A}}(${ctx.B}) = ${pTex(D.pBA)}$`;
+      const ch = choix4(bonne, [`$P(${ctx.A} \\cap ${ctx.B}) = ${pTex(D.pBA)}$`, `$P(${ctx.B}) = ${pTex(D.pBA)}$`, `$P_{${ctx.B}}(${ctx.A}) = ${pTex(D.pBA)}$`]);
+      return { enonce: `${ctx.txt(D)} Que représente le nombre $${pTex(D.pBA)}$ écrit sur la branche de $${ctx.A}$ vers $${ctx.B}$ ?`, figure: figArbre(D, ctx), mode: "choix", choix: ch.choix, attendu: ch.attendu,
+        aides: ["Sur une branche du deuxième niveau, on écrit une probabilité conditionnelle.", `La branche part de $${ctx.A}$ : on sait que $${ctx.A}$ est réalisé.`, "Elle mène à $" + ctx.B + "$."],
+        solution: `Les probabilités du deuxième niveau sont conditionnelles : sur la branche $${ctx.A} \\to ${ctx.B}$, on lit ${bonne}.` };
+    }
+    const att = arr(D.pA * D.pBA, 6);
+    return { enonce: `${ctx.txt(D)} Calcule $P(${ctx.A} \\cap ${ctx.B})$.`, figure: figArbre(D, ctx), mode: "nombre", prefixe: `$P(${ctx.A} \\cap ${ctx.B}) =$`, attendu: att,
+      erreurs: [{ valeur: arr(D.pA + D.pBA, 6), message: "Le long d'un chemin, on **multiplie** les probabilités." }, { valeur: D.pBA, message: "Ça, c'est $P_{" + ctx.A + "}(" + ctx.B + ")$ : il faut multiplier par $P(" + ctx.A + ")$." }, { valeur: D.pB, message: "Ça, c'est $P(" + ctx.B + ")$ (les deux chemins). On veut seulement le chemin $" + ctx.A + " \\to " + ctx.B + "$." }],
+      aides: [`$P(${ctx.A} \\cap ${ctx.B})$ correspond au chemin $${ctx.A} \\to ${ctx.B}$.`, "On multiplie les probabilités le long du chemin : $P(A \\cap B) = P(A) \\times P_A(B)$.", `$${pTex(D.pA)} \\times ${pTex(D.pBA)}$.`],
+      solution: `$P(${ctx.A} \\cap ${ctx.B}) = P(${ctx.A}) \\times P_{${ctx.A}}(${ctx.B}) = ${pTex(D.pA)} \\times ${pTex(D.pBA)} = ${pTex(att)}$.` };
+  });
+
+  def("yi-totales", () => {
+    const D = arbreDonnees(), ctx = pick(CTX_ARBRE);
+    if (ctx.txt(D).includes("un jour sur cent")) return GEN["yi-totales"]();
+    const t = pick(["totale", "totale", "inverse"]);
+    if (t === "inverse") {
+      const pAB = arr(D.pA * D.pBA, 6), att = pAB / D.pB, arrondi = !Number.isInteger(arr(att * 1000, 6));
+      const v = arrondi ? Math.round(att * 1000) / 1000 : arr(att, 6);
+      return { enonce: `${ctx.txt(D)} On a $P(${ctx.B}) = ${pTex(D.pB)}$. Calcule $P_{${ctx.B}}(${ctx.A})$${arrondi ? " (arrondi au millième)" : ""}.`, figure: figArbre(D, ctx), mode: "nombre", prefixe: `$P_{${ctx.B}}(${ctx.A}) ${arrondi ? "\\approx" : "="}$`, attendu: v, tolerance: arrondi ? 0.0005 : 1e-9,
+        erreurs: [{ valeur: D.pBA, message: "Ça, c'est $P_{" + ctx.A + "}(" + ctx.B + ")$, lu sur l'arbre. On veut l'inverse." }, { valeur: arr(pAB, 3), message: "Il faut diviser $P(" + ctx.A + " \\cap " + ctx.B + ")$ par $P(" + ctx.B + ")$." }],
+        aides: ["$P_B(A) = \\dfrac{P(A \\cap B)}{P(B)}$.", `$P(${ctx.A} \\cap ${ctx.B}) = ${pTex(D.pA)} \\times ${pTex(D.pBA)} = ${pTex(pAB)}$.`, `$\\dfrac{${pTex(pAB)}}{${pTex(D.pB)}}$.`],
+        solution: `$P_{${ctx.B}}(${ctx.A}) = \\dfrac{P(${ctx.A} \\cap ${ctx.B})}{P(${ctx.B})} = \\dfrac{${pTex(pAB)}}{${pTex(D.pB)}} ${arrondi ? "\\approx" : "="} ${nb(v)}$.` };
+    }
+    return { enonce: `${ctx.txt(D)} Calcule $P(${ctx.B})$ avec la formule des probabilités totales.`, figure: figArbre(D, ctx), mode: "nombre", prefixe: `$P(${ctx.B}) =$`, attendu: D.pB,
+      erreurs: [{ valeur: arr(D.pA * D.pBA, 6), message: "Il y a **deux** chemins qui mènent à $" + ctx.B + "$ : additionne-les." }, { valeur: arr(D.pBA + D.pBnA, 6), message: "Chaque chemin se calcule en multipliant ; on ne peut pas additionner directement les probabilités conditionnelles." }, { valeur: arr((1 - D.pA) * D.pBnA, 6), message: "Il manque le chemin passant par $" + ctx.A + "$." }],
+      aides: [`Deux chemins mènent à $${ctx.B}$ : $${ctx.A} \\to ${ctx.B}$ et $\\overline{${ctx.A}} \\to ${ctx.B}$.`, `$P(${ctx.A} \\cap ${ctx.B}) = ${pTex(D.pA)} \\times ${pTex(D.pBA)}$ et $P(\\overline{${ctx.A}} \\cap ${ctx.B}) = ${pTex(1 - D.pA)} \\times ${pTex(D.pBnA)}$.`, "Additionne les deux."],
+      solution: `$P(${ctx.B}) = P(${ctx.A} \\cap ${ctx.B}) + P(\\overline{${ctx.A}} \\cap ${ctx.B}) = ${pTex(D.pA)} \\times ${pTex(D.pBA)} + ${pTex(1 - D.pA)} \\times ${pTex(D.pBnA)} = ${pTex(D.pA * D.pBA)} + ${pTex((1 - D.pA) * D.pBnA)} = ${pTex(D.pB)}$.` };
+  });
+
+  def("yi-independance", () => {
+    const t = pick(["tester", "tester", "utiliser", "tableau"]);
+    if (t === "utiliser") {
+      const pA = pick([0.2, 0.3, 0.4, 0.5, 0.6, 0.25]), pB = pick([0.1, 0.2, 0.5, 0.4, 0.8, 0.75]);
+      const q = pick(["inter", "cond"]);
+      const att = q === "inter" ? arr(pA * pB, 6) : pB;
+      return { enonce: `$A$ et $B$ sont deux événements **indépendants**, avec $P(A) = ${pTex(pA)}$ et $P(B) = ${pTex(pB)}$. Calcule ${q === "inter" ? "$P(A \\cap B)$" : "$P_A(B)$"}.`, mode: "nombre", prefixe: q === "inter" ? "$P(A \\cap B) =$" : "$P_A(B) =$", attendu: att,
+        erreurs: q === "inter" ? [{ valeur: arr(pA + pB, 6), message: "Pour des événements indépendants, $P(A \\cap B) = P(A) \\times P(B)$ : on multiplie." }] : [{ valeur: arr(pA * pB, 6), message: "Indépendants : savoir que $A$ est réalisé ne change rien, $P_A(B) = P(B)$." }, { valeur: pA, message: "$P_A(B) = P(B)$, pas $P(A)$." }],
+        aides: ["Indépendance : $P_A(B) = P(B)$ (savoir $A$ ne change pas la probabilité de $B$).", "Conséquence : $P(A \\cap B) = P(A) \\times P_A(B) = P(A) \\times P(B)$.", q === "inter" ? `$${pTex(pA)} \\times ${pTex(pB)}$.` : `$P_A(B) = P(B)$.`],
+        solution: q === "inter" ? `Indépendants : $P(A \\cap B) = P(A) \\times P(B) = ${pTex(pA)} \\times ${pTex(pB)} = ${pTex(att)}$.` : `Indépendants : $P_A(B) = P(B) = ${pTex(pB)}$.` };
+    }
+    if (t === "tableau") {
+      const indep = pick([true, false]), k = rand(2, 5), m = rand(2, 4);
+      let a, b, c, d;
+      if (indep) { const u = rand(2, 6), v = rand(2, 6); a = u * k; b = u * m; c = v * k; d = v * m; } else { a = rand(5, 25); b = rand(5, 25); c = rand(5, 25); d = rand(5, 25); if (a * d === b * c) return GEN["yi-independance"](); }
+      const N = a + b + c + d, pBA = a / (a + b), pB = (a + c) / N;
+      const bonne = indep ? `oui, car $P_A(B) = P(B) = ${frac(a + c, N)}$` : `non, car $P_A(B) = ${frac(a, a + b)}$ et $P(B) = ${frac(a + c, N)}$ sont différentes`;
+      const ch = choix4(bonne, [indep ? `non, car $P(A) \\neq P(B)$` : `oui, car $P_A(B) = P(B)$`, "oui, car $A$ et $B$ n'ont aucun élément commun", "on ne peut pas savoir avec un tableau"]);
+      return { enonce: `On choisit un individu au hasard dans la population décrite par ce tableau. Les événements $A$ et $B$ sont-ils indépendants ?`, tableau: { lignes: [["", "B", "\\overline{B}", "Total"], ["A", a, b, a + b], ["\\overline{A}", c, d, c + d], ["Total", a + c, b + d, N]] }, mode: "choix", choix: ch.choix, attendu: ch.attendu,
+        aides: ["Calcule $P_A(B)$ (parmi les $A$) et $P(B)$ (sur tout le monde).", `$P_A(B) = \\dfrac{${a}}{${a + b}}$ et $P(B) = \\dfrac{${a + c}}{${N}}$.`, "Indépendants si et seulement si ces deux probabilités sont égales."],
+        solution: `$P_A(B) = \\dfrac{${a}}{${a + b}} = ${frac(a, a + b)}$ et $P(B) = \\dfrac{${a + c}}{${N}} = ${frac(a + c, N)}$. ${indep ? "Elles sont égales : $A$ et $B$ sont indépendants." : "Elles sont différentes : $A$ et $B$ ne sont pas indépendants."}` };
+    }
+    const pA = pick([0.2, 0.3, 0.4, 0.5, 0.6]), pB = pick([0.2, 0.25, 0.4, 0.5, 0.75]);
+    const indep = pick([true, false]), pAB = indep ? arr(pA * pB, 6) : arr(pA * pB + pick([-0.04, -0.02, 0.02, 0.05]), 6);
+    if (pAB <= 0) return GEN["yi-independance"]();
+    const bonne = indep ? `oui : $P(A) \\times P(B) = ${pTex(pA * pB)} = P(A \\cap B)$` : `non : $P(A) \\times P(B) = ${pTex(pA * pB)} \\neq P(A \\cap B)$`;
+    const ch = choix4(bonne, [indep ? `non : $P(A) + P(B) \\neq P(A \\cap B)$` : `oui : $P(A \\cap B) \\neq 0$`, `oui : $P(A) \\neq P(B)$`, `non : $P(A \\cap B) \\neq 0$`]);
+    return { enonce: `On a $P(A) = ${pTex(pA)}$, $P(B) = ${pTex(pB)}$ et $P(A \\cap B) = ${pTex(pAB)}$. Les événements $A$ et $B$ sont-ils indépendants ?`, mode: "choix", choix: ch.choix, attendu: ch.attendu,
+      aides: ["$A$ et $B$ sont indépendants si et seulement si $P(A \\cap B) = P(A) \\times P(B)$.", `$P(A) \\times P(B) = ${pTex(pA)} \\times ${pTex(pB)} = ${pTex(pA * pB)}$.`, `Compare avec $P(A \\cap B) = ${pTex(pAB)}$.`],
+      solution: `$P(A) \\times P(B) = ${pTex(pA * pB)}$ ${indep ? "est égal à" : "est différent de"} $P(A \\cap B) = ${pTex(pAB)}$ : ${indep ? "les événements sont indépendants" : "les événements ne sont pas indépendants"}. (Ou : $P_A(B) = \\dfrac{${pTex(pAB)}}{${pTex(pA)}} = ${pTex(pAB / pA)}$, à comparer avec $P(B) = ${pTex(pB)}$.)` };
+  });
+
+  def("yi-vrai-faux", () => vraiFaux4([
+    ["$P_A(B) = \\dfrac{P(A \\cap B)}{P(A)}$ quand $P(A) \\neq 0$.", true, "c'est la définition."],
+    ["Sur un arbre, les probabilités des branches issues d'un même nœud ont pour somme $1$.", true, "on a envisagé tous les cas."],
+    ["$P(A \\cap B) = P(A) \\times P_A(B)$.", true, "on multiplie le long d'un chemin."],
+    ["$P(B) = P(A \\cap B) + P(\\overline{A} \\cap B)$.", true, "formule des probabilités totales."],
+    ["Si $A$ et $B$ sont indépendants, $P(A \\cap B) = P(A) \\times P(B)$.", true, "c'est la caractérisation de l'indépendance."],
+    ["Si $P_A(B) = P(B)$ (avec $P(A)$ et $P(B)$ non nulles), alors $P_B(A) = P(A)$.", true, "l'indépendance est symétrique."],
+    ["Sur un arbre, les probabilités du second niveau sont des probabilités conditionnelles.", true, "elles dépendent de la branche du premier niveau."],
+    ["$P_A(B) = P_B(A)$ pour tous événements $A$ et $B$.", false, "en général non : la proportion de malades parmi les positifs n'est pas celle des positifs parmi les malades."],
+    ["$P(A \\cap B) = P(A) + P(B)$.", false, "on multiplie, et seulement pour des événements indépendants : $P(A) \\times P(B)$."],
+    ["Deux événements incompatibles (sans issue commune) sont indépendants.", false, "si $A$ est réalisé, $B$ ne peut pas l'être : $P_A(B) = 0 \\neq P(B)$."],
+    ["Pour calculer $P(B)$ avec un arbre, on prend un seul chemin qui mène à $B$.", false, "il faut additionner tous les chemins qui mènent à $B$."],
+    ["$P_A(B)$ se calcule en divisant par l'effectif total.", false, "on divise par l'effectif de $A$."],
+    ["Si $P(A) = 0{,}5$ et $P(B) = 0{,}4$, alors $P(A \\cap B) = 0{,}2$.", false, "seulement si $A$ et $B$ sont indépendants."]
+  ], ["Distingue $P(A \\cap B)$, $P_A(B)$ et $P_B(A)$.", "Arbre : on multiplie le long d'un chemin, on additionne les chemins.", "Indépendance : $P_A(B) = P(B)$."]));
+
+  /* Figures du cours (chapitre 12) */
+  FIGURES["yi-cours-arbre"] = () => arbre({ n1: [["M", "0,1"], ["M̄", "0,9"]], n2: [[["T", "0,95"], ["T̄", "0,05"]], [["T", "0,02"], ["T̄", "0,98"]]], aria: "Arbre : M avec 0,1 puis T avec 0,95 ; M barre avec 0,9 puis T avec 0,02" });
+  FIGURES["yi-cours-totales"] = () => arbre({ n1: [["A", "0,3"], ["Ā", "0,7"]], n2: [[["D", "0,1"], ["D̄", "0,9"]], [["D", "0,05"], ["D̄", "0,95"]]], aria: "Arbre : machine A 0,3 puis défaut 0,1 ; machine B 0,7 puis défaut 0,05 ; P(D) = 0,03 + 0,035 = 0,065" });
+
+  /* ---------- Chapitre 13 : répétition d'épreuves de Bernoulli (préfixe yb) ---------- */
+  const EPREUVES = [
+    { e: "on lance une pièce truquée", s: "obtenir Pile", p: () => pick([0.6, 0.7, 0.4, 0.3]), lettre: "P" },
+    { e: "un joueur tire au but", s: "marquer", p: () => pick([0.7, 0.8, 0.6, 0.75]), lettre: "M" },
+    { e: "on interroge une personne au hasard à Mamoudzou", s: "elle parle shimaoré", p: () => pick([0.8, 0.9, 0.7]), lettre: "S" },
+    { e: "on teste une ampoule", s: "elle est défectueuse", p: () => pick([0.1, 0.05, 0.2]), lettre: "D" },
+    { e: "un vol pour La Réunion part", s: "il est à l'heure", p: () => pick([0.8, 0.9, 0.85]), lettre: "H" }
+  ];
+  const binom = (n, k) => { let r = 1; for (let i = 1; i <= k; i++) r = (r * (n - k + i)) / i; return r; };
+  // Arbre de n épreuves (n ≤ 3 dessiné) : feuilles en colonne
+  function arbreN(n, p, L) {
+    const W = 320, feuilles = 2 ** n, H = Math.max(160, feuilles * 22 + 20), dx = (W - 60) / n;
+    let s = `<svg class="graph" viewBox="0 0 ${W} ${H}" role="img" aria-label="Arbre de ${n} épreuves identiques et indépendantes, succès ${L} de probabilité ${nbS(p)}">`;
+    const yF = (i) => 14 + (i + 0.5) * ((H - 28) / feuilles);
+    const noeud = (niv, j) => { const span = feuilles / 2 ** niv; return yF(j * span + span / 2 - 0.5); };
+    for (let niv = 1; niv <= n; niv++) for (let j = 0; j < 2 ** niv; j++) {
+      const x1 = 10 + (niv - 1) * dx, x2 = 10 + niv * dx - 14, y1 = niv === 1 ? H / 2 : noeud(niv - 1, j >> 1), y2 = noeud(niv, j), succ = j % 2 === 0;
+      s += `<line x1="${x1 + (niv === 1 ? 0 : 14)}" y1="${y1.toFixed(1)}" x2="${x2}" y2="${y2.toFixed(1)}" style="stroke:var(--encre);stroke-width:1.2"/><text class="g-label" x="${x2 + 3}" y="${(y2 + 4).toFixed(1)}" style="font-weight:700${succ ? ";fill:var(--lagon)" : ""}">${succ ? L : `<tspan style="text-decoration:overline">${L}</tspan>`}</text>`;
+      if (n <= 2 || niv === 1) s += `<text class="g-label" x="${((x1 + x2) / 2).toFixed(1)}" y="${((y1 + y2) / 2 + (succ ? -3 : 11)).toFixed(1)}" text-anchor="middle" style="font-size:10px;paint-order:stroke;stroke:var(--surface);stroke-width:3px">${succ ? nbS(p) : nbS(arr(1 - p))}</text>`;
+    }
+    return s + `</svg>`;
+  }
+
+  def("yb-reconnaitre", () => {
+    const S = pick([
+      ["On lance une pièce et on regarde si on obtient Pile.", true, "deux issues (Pile : succès, Face : échec)"],
+      ["On lance un dé et on regarde si on obtient un nombre pair.", true, "deux issues : pair (succès) ou impair (échec), $p = 0{,}5$"],
+      ["On interroge une personne et on note si elle a voté.", true, "deux issues : a voté ou non"],
+      ["On tire une carte et on regarde si c'est un cœur.", true, "succès « cœur », $p = \\dfrac{1}{4}$"],
+      ["On lance un dé et on note le nombre obtenu.", false, "six issues possibles, pas deux"],
+      ["On mesure la taille d'un élève.", false, "le résultat est un nombre quelconque, pas un succès ou un échec"],
+      ["On tire une boule dans une urne de $3$ couleurs et on note la couleur.", false, "trois issues"],
+      ["On note la température à midi.", false, "une infinité de résultats possibles"]
+    ]);
+    const t = pick(["epreuve", "independance", "parametre", "parametre"]);
+    if (t === "parametre") {
+      const P = pick([
+        () => { const r = rand(1, 9), b = rand(2, 12); return [`Une urne contient $${r}$ boule(s) rouge(s) et $${b}$ boule(s) blanche(s). On tire une boule ; succès : « elle est rouge ».`, r, r + b, `$${r}$ boule(s) rouge(s) sur $${r + b}$`]; },
+        () => { const k = rand(2, 6); return [`On lance un dé équilibré ; succès : « obtenir au moins $${k}$ ».`, 7 - k, 6, `les faces $${k}$ à $6$, soit $${7 - k}$ faces sur $6$`]; },
+        () => { const n = pick([8, 10, 12, 20]), k = rand(1, n - 1); return [`Une roue a $${n}$ secteurs égaux dont $${k}$ sont gagnants. Succès : « tomber sur un secteur gagnant ».`, k, n, `$${k}$ secteurs sur $${n}$`]; },
+        () => { const N = pick([20, 25, 30, 32, 35]), f = rand(3, N - 5); return [`Dans une classe de $${N}$ élèves, $${f}$ sont des filles. On choisit un élève au hasard ; succès : « c'est une fille ».`, f, N, `$${f}$ filles sur $${N}$ élèves`]; }
+      ])();
+      const p = P[1] / P[2];
+      return { enonce: `${P[0]} Quel est le paramètre $p$ de cette épreuve de Bernoulli (fraction) ?`, mode: "nombre", prefixe: "$p =$", attendu: p,
+        erreurs: [{ valeur: 1 - p, message: "Ça, c'est la probabilité de l'échec." }, { valeur: P[1] / (P[2] - P[1]), message: "On divise par le nombre **total** d'issues." }, ...approx(p)],
+        aides: ["Le paramètre $p$ est la probabilité du succès.", "Situation d'équiprobabilité : $p = \\dfrac{\\text{issues favorables}}{\\text{issues possibles}}$.", `Issues favorables : ${P[3]}.`],
+        solution: `$p = \\dfrac{${P[1]}}{${P[2]}}${pgcd(P[1], P[2]) > 1 ? " = " + frac(P[1], P[2]) : ""}$ (${P[3]}). L'échec a pour probabilité $1 - p = ${frac(P[2] - P[1], P[2])}$.` };
+    }
+    if (t === "independance") {
+      const I = pick([["On lance $3$ fois une pièce.", true, "le résultat d'un lancer n'influence pas les autres"], ["On tire $2$ boules **avec remise** dans une urne.", true, "on remet la boule : la composition de l'urne ne change pas"], ["On tire $2$ boules **sans remise** dans une urne de $5$ boules.", false, "après le premier tirage l'urne a changé : la deuxième épreuve dépend de la première"], ["On tire $3$ cartes d'un paquet sans les remettre.", false, "le paquet change à chaque tirage"], ["On interroge successivement $4$ personnes au hasard dans une grande ville.", true, "la population est si grande que les choix sont considérés comme indépendants"]]);
+      const ch = choix4(I[1] ? "oui, les épreuves sont identiques et indépendantes" : "non, les épreuves ne sont pas indépendantes", ["oui, les épreuves sont identiques et indépendantes", "non, les épreuves ne sont pas indépendantes", "non, il n'y a jamais d'indépendance avec un hasard", "oui, dès qu'il y a plusieurs épreuves"].filter((x) => x !== (I[1] ? "oui, les épreuves sont identiques et indépendantes" : "non, les épreuves ne sont pas indépendantes")));
+      return { enonce: `${I[0]} Peut-on modéliser par une répétition d'épreuves identiques et indépendantes ?`, mode: "choix", choix: ch.choix, attendu: ch.attendu,
+        aides: ["Épreuves identiques : mêmes issues, mêmes probabilités à chaque fois.", "Indépendantes : le résultat d'une épreuve ne modifie pas les probabilités des suivantes.", "Un tirage sans remise modifie l'urne."],
+        solution: `${I[1] ? "Oui" : "Non"} : ${I[2]}.` };
+    }
+    const bonne = S[1] ? "oui, c'est une épreuve de Bernoulli" : "non, ce n'est pas une épreuve de Bernoulli";
+    const ch = choix4(bonne, ["oui, c'est une épreuve de Bernoulli", "non, ce n'est pas une épreuve de Bernoulli", "oui, toute expérience aléatoire en est une", "non, car il faut au moins deux épreuves"].filter((x) => x !== bonne));
+    return { enonce: `${S[0]} Est-ce une épreuve de Bernoulli ?`, mode: "choix", choix: ch.choix, attendu: ch.attendu,
+      aides: ["Une épreuve de Bernoulli a exactement **deux issues** : succès ou échec.", "On peut toujours regrouper les issues en « succès » et « échec » si la question porte sur un seul événement.", "Regarde ce qu'on **note** à la fin de l'expérience."],
+      solution: `${S[1] ? "Oui" : "Non"} : ${S[2]}.` };
+  });
+
+  def("yb-chemin", () => {
+    const E = pick(EPREUVES), p = E.p(), n = rand(2, 4), L = E.lettre;
+    if (E.frac) return GEN["yb-chemin"]();
+    const t = pick(["tous", "aucun", "un-chemin", "un-chemin"]);
+    if (t === "tous" || t === "aucun") {
+      const q = t === "tous" ? p : arr(1 - p), att = arr(q ** n, 6);
+      return { enonce: `${E.e.charAt(0).toUpperCase() + E.e.slice(1)} ; la probabilité de « ${E.s} » est $${pTex(p)}$. On répète $${n}$ fois cette épreuve de façon indépendante. Quelle est la probabilité ${t === "tous" ? `que les $${n}$ épreuves soient des succès` : `qu'il n'y ait **aucun** succès`} ?`, figure: n <= 3 ? arbreN(n, p, L) : undefined, mode: "nombre", prefixe: "Probabilité :", attendu: att,
+        erreurs: [{ valeur: arr(n * q, 6), message: "Le long d'un chemin, on multiplie : $" + pTex(q) + "^{" + n + "}$, pas $" + n + " \\times " + pTex(q) + "$." }, { valeur: arr((1 - q) ** n, 6), message: t === "tous" ? "Ça, c'est la probabilité de n'avoir que des échecs." : "Ça, c'est la probabilité de n'avoir que des succès." }],
+        aides: [`Le chemin correspondant est ${t === "tous" ? `$${Array(n).fill(L).join("")}$` : `$${Array(n).fill("\\overline{" + L + "}").join("")}$`}.`, `Chaque branche a pour probabilité $${pTex(q)}$.`, `On multiplie : $${pTex(q)}^{${n}}$.`],
+        solution: `Un seul chemin, de probabilité $${pTex(q)}^{${n}} = ${pTex(att)}$.` };
+    }
+    const seq = Array.from({ length: n }, () => pick([true, false])), k = seq.filter(Boolean).length;
+    const att = arr(p ** k * (1 - p) ** (n - k), 6);
+    const mot = seq.map((b) => (b ? L : `\\overline{${L}}`)).join("");
+    return { enonce: `${E.e.charAt(0).toUpperCase() + E.e.slice(1)} ; la probabilité de « ${E.s} » (noté $${L}$) est $${pTex(p)}$. On répète $${n}$ fois cette épreuve de façon indépendante. Quelle est la probabilité du résultat $${mot}$ (dans cet ordre) ?`, mode: "nombre", prefixe: `$P(${mot}) =$`, attendu: att,
+      erreurs: [{ valeur: arr(binom(n, k) * att, 6), message: "On demande ce chemin précis (dans cet ordre), pas tous les chemins avec le même nombre de succès." }, { valeur: arr(k * p + (n - k) * (1 - p), 6), message: "On multiplie les probabilités le long du chemin." }],
+      aides: [`Chaque $${L}$ a pour probabilité $${pTex(p)}$, chaque $\\overline{${L}}$ a pour probabilité $${pTex(1 - p)}$.`, "Les épreuves sont indépendantes : on multiplie.", `$${seq.map((b) => pTex(b ? p : 1 - p)).join(" \\times ")}$.`],
+      solution: `$P(${mot}) = ${seq.map((b) => pTex(b ? p : 1 - p)).join(" \\times ")} = ${pTex(att)}$.` };
+  });
+
+  def("yb-k-succes", () => {
+    const E = pick(EPREUVES), p = E.frac ? pick([0.5, 0.3]) : E.p(), n = rand(2, 4), L = E.lettre;
+    const t = pick(["exactement", "exactement", "au-moins-un", "chemins"]);
+    if (t === "chemins") {
+      const k = rand(1, n - 1), c = binom(n, k);
+      return { enonce: `On répète $${n}$ fois une épreuve de Bernoulli (succès $${L}$). Combien de chemins de l'arbre comportent exactement $${k}$ succès ?`, figure: n <= 3 ? arbreN(n, p, L) : undefined, mode: "nombre", prefixe: "Nombre de chemins :", attendu: c,
+        erreurs: [{ valeur: 2 ** n, message: "Ça, c'est le nombre total de chemins." }, { valeur: k, message: "Compte les chemins, pas les succès." }, { valeur: n, message: k === 1 || k === n - 1 ? "Presque : compte bien toutes les places possibles." : "Énumère les chemins." }],
+        aides: [`L'arbre a $2^{${n}} = ${2 ** n}$ chemins.`, `Un chemin avec $${k}$ succès : choisir à quelles épreuves (parmi $${n}$) ont lieu les succès.`, n <= 3 ? "Compte-les sur l'arbre." : `Énumère : ${k === 1 ? `le succès peut être à la 1re, 2e, 3e ou 4e épreuve` : "liste les positions possibles"}.`],
+        solution: `Il y a $${c}$ façons de placer $${k}$ succès parmi $${n}$ épreuves, donc $${c}$ chemins.` };
+    }
+    if (t === "au-moins-un") {
+      const att = arr(1 - (1 - p) ** n, 6);
+      return { enonce: `${E.e.charAt(0).toUpperCase() + E.e.slice(1)} ; la probabilité de « ${E.s} » est $${pTex(p)}$. On répète $${n}$ fois de façon indépendante. Quelle est la probabilité d'obtenir **au moins un** succès ?`, mode: "nombre", prefixe: "Probabilité :", attendu: att,
+        erreurs: [{ valeur: arr((1 - p) ** n, 6), message: "Ça, c'est la probabilité de n'avoir **aucun** succès. « Au moins un » est l'événement contraire." }, { valeur: arr(n * p, 6), message: "On ne peut pas additionner : utilise l'événement contraire." }, { valeur: arr(p ** n, 6), message: "Ça, c'est « que des succès »." }],
+        aides: ["« Au moins un succès » est le contraire de « aucun succès ».", `$P(\\text{aucun}) = ${pTex(1 - p)}^{${n}}$.`, `$P(\\text{au moins un}) = 1 - ${pTex(1 - p)}^{${n}}$.`],
+        solution: `$P(\\text{au moins un succès}) = 1 - P(\\text{aucun}) = 1 - ${pTex(1 - p)}^{${n}} = 1 - ${pTex((1 - p) ** n)} = ${pTex(att)}$.` };
+    }
+    const k = rand(1, n - 1), c = binom(n, k), att = arr(c * p ** k * (1 - p) ** (n - k), 6);
+    return { enonce: `${E.e.charAt(0).toUpperCase() + E.e.slice(1)} ; on prend comme probabilité de succès « ${E.s} » $p = ${pTex(p)}$. On répète $${n}$ fois de façon indépendante. Quelle est la probabilité d'obtenir **exactement** $${k}$ succès ?`, figure: n <= 3 ? arbreN(n, p, L) : undefined, mode: "nombre", prefixe: "Probabilité :", attendu: att,
+      erreurs: [{ valeur: arr(p ** k * (1 - p) ** (n - k), 6), message: `C'est la probabilité d'**un** chemin. Il y a $${c}$ chemins avec $${k}$ succès : additionne-les.` }, { valeur: arr(p ** k, 6), message: "N'oublie pas les échecs sur le chemin." }],
+      aides: [`Chaque chemin avec $${k}$ succès et $${n - k}$ échec(s) a pour probabilité $${pTex(p)}^{${k}} \\times ${pTex(1 - p)}^{${n - k}}$.`, `Il y a $${c}$ tels chemins.`, `$${c} \\times ${pTex(p ** k * (1 - p) ** (n - k))}$.`],
+      solution: `Chaque chemin avec $${k}$ succès vaut $${pTex(p)}^{${k}} \\times ${pTex(1 - p)}^{${n - k}} = ${pTex(p ** k * (1 - p) ** (n - k))}$, et il y en a $${c}$ : $P = ${c} \\times ${pTex(p ** k * (1 - p) ** (n - k))} = ${pTex(att)}$.` };
+  });
+
+  def("yb-contexte", () => {
+    const n = pick([2, 3, 3, 4]), p = pick([0.7, 0.8, 0.9, 0.6]), ctx = pick([
+      [`${prenom()} prend la barge ${n} jours de suite ; chaque jour, elle part à l'heure avec la probabilité`, "la barge part à l'heure", "jours"],
+      [`Un QCM a ${n} questions ; ${prenom()} connaît la réponse à chaque question avec la probabilité`, "la réponse est juste", "questions"],
+      [`On plante ${n} boutures de vanille ; chacune prend racine avec la probabilité`, "la bouture prend", "boutures"]
+    ]);
+    const t = pick(["tous", "aucun", "au-moins"]);
+    const att = t === "tous" ? arr(p ** n, 6) : t === "aucun" ? arr((1 - p) ** n, 6) : arr(1 - (1 - p) ** n, 6);
+    const arrondi = !Number.isInteger(att * 10000), v = arrondi ? Math.round(att * 1000) / 1000 : att;
+    return { enonce: `${ctx[0]} $${pTex(p)}$, de façon indépendante. Quelle est la probabilité que ${t === "tous" ? `ce soit le cas pour tous (les $${n}$ ${ctx[2]})` : t === "aucun" ? `ce ne soit le cas pour aucun` : `ce soit le cas pour au moins un`}${arrondi ? " (arrondi au millième)" : ""} ?`, mode: "nombre", prefixe: "Probabilité :", attendu: v, tolerance: arrondi ? 0.0005 : 1e-9,
+      erreurs: [{ valeur: arr(n * p, 6), message: "Pour des épreuves indépendantes, on multiplie les probabilités, on ne les additionne pas." }, { valeur: arr(1 - att, 3), message: "C'est la probabilité de l'événement contraire." }],
+      aides: [`Succès : « ${ctx[1]} », $p = ${pTex(p)}$ ; échec : $${pTex(1 - p)}$.`, t === "au-moins" ? "Passe par le contraire : « aucun »." : "Un seul chemin dans l'arbre : on multiplie.", t === "tous" ? `$${pTex(p)}^{${n}}$.` : t === "aucun" ? `$${pTex(1 - p)}^{${n}}$.` : `$1 - ${pTex(1 - p)}^{${n}}$.`],
+      solution: t === "tous" ? `$${pTex(p)}^{${n}} ${arrondi ? "\\approx" : "="} ${nb(v)}$.` : t === "aucun" ? `$${pTex(1 - p)}^{${n}} ${arrondi ? "\\approx" : "="} ${nb(v)}$.` : `$1 - ${pTex(1 - p)}^{${n}} = 1 - ${pTex((1 - p) ** n)} ${arrondi ? "\\approx" : "="} ${nb(v)}$.` };
+  });
+
+  def("yb-vrai-faux", () => vraiFaux4([
+    ["Une épreuve de Bernoulli a exactement deux issues.", true, "succès et échec."],
+    ["Si la probabilité du succès est $p$, celle de l'échec est $1 - p$.", true, "les deux issues sont contraires."],
+    ["Pour $3$ épreuves indépendantes, l'arbre a $8$ chemins.", true, "$2^3 = 8$."],
+    ["La probabilité de « que des succès » en $n$ épreuves est $p^n$.", true, "un seul chemin, $n$ branches de probabilité $p$."],
+    ["« Au moins un succès » est l'événement contraire de « aucun succès ».", true, "donc $P = 1 - (1 - p)^n$."],
+    ["Avec $3$ épreuves, il y a $3$ chemins avec exactement $1$ succès.", true, "le succès peut être à la 1re, 2e ou 3e épreuve."],
+    ["Tirer deux boules avec remise donne deux épreuves indépendantes.", true, "l'urne retrouve sa composition."],
+    ["Lancer un dé et noter le nombre obtenu est une épreuve de Bernoulli.", false, "il y a six issues."],
+    ["Avec $p = 0{,}5$ et $2$ épreuves, la probabilité d'exactement $1$ succès est $0{,}25$.", false, "deux chemins : $2 \\times 0{,}25 = 0{,}5$."],
+    ["Tirer deux boules sans remise donne deux épreuves indépendantes.", false, "l'urne change après le premier tirage."],
+    ["La probabilité d'au moins un succès en $3$ épreuves est $3p$.", false, "c'est $1 - (1 - p)^3$ ; $3p$ peut même dépasser $1$."],
+    ["Sur un arbre, on additionne les probabilités le long d'un chemin.", false, "on les multiplie."]
+  ], ["Deux issues, épreuves identiques et indépendantes.", "Chemin : produit ; plusieurs chemins : somme.", "« Au moins un » : passe par le contraire."]));
+
+
+  // Probabilités à plus de 4 décimales : réponse arrondie au millième (annoncée dans la consigne)
+  const millieme = (q) => {
+    if (q.mode === "nombre" && !Number.isInteger(arr(q.attendu * 10000, 6))) {
+      const v = Math.round(q.attendu * 1000) / 1000;
+      q.enonce = q.enonce.replace(/ ?$/, " (arrondie au millième) ?");
+      q.solution += ` Arrondie au millième : $${nb(v)}$.`;
+      q.attendu = v; q.tolerance = 0.0005;
+      q.erreurs = (q.erreurs || []).filter((e) => Math.abs(e.valeur - v) >= 0.0005);
+    }
+    return q;
+  };
+  ["yb-chemin", "yb-k-succes"].forEach((n) => { const g = GEN[n]; GEN[n] = (i) => millieme(g(i)); });
+
+  /* Figures du cours (chapitre 13) */
+  FIGURES["yb-cours-arbre2"] = () => arbreN(2, 0.8, "M");
+  FIGURES["yb-cours-arbre3"] = () => arbreN(3, 0.6, "S");
+
+  /* ---------- Chapitre 14 : variables aléatoires et loi de Bernoulli (préfixe yx) ---------- */
+  // Loi de probabilité : valeurs et probabilités (décimales à 2 chiffres, somme 1)
+  function loiAlea() {
+    const n = rand(3, 4), vals = shuffle([-5, -3, -2, -1, 0, 1, 2, 3, 4, 5, 8, 10, 15, 20]).slice(0, n).sort((a, b) => a - b);
+    let reste = 100; const ps = [];
+    for (let k = 0; k < n - 1; k++) { const v = pick([5, 10, 15, 20, 25, 30, 35, 40].filter((x) => x < reste - 5 * (n - 1 - k))); if (v === undefined) return loiAlea(); ps.push(v); reste -= v; }
+    ps.push(reste);
+    return { vals, ps: ps.map((v) => v / 100), E: arr(vals.reduce((s, v, k) => s + v * ps[k] / 100, 0), 6) };
+  }
+  const tabLoi = (L, nom = "X") => ({ lignes: [["x_i", ...L.vals.map(nb)], [`P(${nom} = x_i)`, ...L.ps.map(pTex)]] });
+
+  def("yx-loi", () => {
+    const L = loiAlea(), t = pick(["manquante", "manquante", "egal", "inf", "sup"]);
+    if (t === "manquante") {
+      const k = rand(0, L.vals.length - 1), T = tabLoi(L); T.lignes[1][k + 1] = "?";
+      return { enonce: `Voici la loi de probabilité d'une variable aléatoire $X$. Quelle valeur remplace le « ? » ?`, tableau: T, mode: "nombre", prefixe: "? =", attendu: L.ps[k],
+        erreurs: [{ valeur: arr(L.ps.reduce((s, v, j) => (j === k ? s : s + v), 0), 6), message: "La somme de toutes les probabilités vaut $1$ : le « ? » vaut $1$ moins la somme des autres." }],
+        aides: ["La somme des probabilités d'une loi vaut $1$.", `Somme des probabilités connues : $${pTex(L.ps.reduce((s, v, j) => (j === k ? s : s + v), 0))}$.`, "Retire cette somme à $1$."],
+        solution: `$? = 1 - ${pTex(L.ps.reduce((s, v, j) => (j === k ? s : s + v), 0))} = ${pTex(L.ps[k])}$.` };
+    }
+    if (t === "egal") { const k = rand(0, L.vals.length - 1); return { enonce: `Voici la loi de probabilité de $X$. Que vaut $P(X = ${nb(L.vals[k])})$ ?`, tableau: tabLoi(L), mode: "nombre", prefixe: `$P(X = ${nb(L.vals[k])}) =$`, attendu: L.ps[k], erreurs: [{ valeur: L.vals[k], message: "On demande une probabilité, lue sur la seconde ligne." }], aides: ["$P(X = a)$ se lit directement dans le tableau.", `Colonne $x_i = ${nb(L.vals[k])}$.`, "Lis la seconde ligne."], solution: `On lit $P(X = ${nb(L.vals[k])}) = ${pTex(L.ps[k])}$.` }; }
+    const k = rand(1, L.vals.length - 2), a = L.vals[k];
+    const att = t === "inf" ? arr(L.ps.slice(0, k + 1).reduce((s, v) => s + v, 0), 6) : arr(L.ps.slice(k + 1).reduce((s, v) => s + v, 0), 6);
+    return { enonce: `Voici la loi de probabilité de $X$. Calcule $P(X ${t === "inf" ? "\\leqslant" : ">"} ${nb(a)})$.`, tableau: tabLoi(L), mode: "nombre", prefixe: `$P(X ${t === "inf" ? "\\leqslant" : ">"} ${nb(a)}) =$`, attendu: att,
+      erreurs: [{ valeur: t === "inf" ? arr(att - L.ps[k], 6) : arr(att + L.ps[k], 6), message: t === "inf" ? `$\\leqslant$ : la valeur $${nb(a)}$ est comprise.` : `$>$ strict : la valeur $${nb(a)}$ n'est pas comprise.` }, { valeur: L.ps[k], message: "On additionne toutes les valeurs concernées, pas seulement $" + nb(a) + "$." }, { valeur: arr(1 - att, 6), message: "Ça, c'est l'événement contraire." }],
+      aides: [`$\\{X ${t === "inf" ? "\\leqslant" : ">"} ${nb(a)}\\}$ : les valeurs ${t === "inf" ? `inférieures ou égales à $${nb(a)}$` : `strictement supérieures à $${nb(a)}$`}.`, `Ce sont $${(t === "inf" ? L.vals.slice(0, k + 1) : L.vals.slice(k + 1)).map(nb).join("$, $")}$.`, "Additionne leurs probabilités."],
+      solution: `$P(X ${t === "inf" ? "\\leqslant" : ">"} ${nb(a)}) = ${(t === "inf" ? L.ps.slice(0, k + 1) : L.ps.slice(k + 1)).map(pTex).join(" + ")} = ${pTex(att)}$.` };
+  });
+
+  def("yx-esperance", () => {
+    const L = loiAlea();
+    return { enonce: `Voici la loi de probabilité d'une variable aléatoire $X$. Calcule son espérance $E(X)$.`, tableau: tabLoi(L), mode: "nombre", prefixe: "$E(X) =$", attendu: L.E,
+      erreurs: [{ valeur: arr(L.vals.reduce((s, v) => s + v, 0) / L.vals.length, 6), message: "Ce n'est pas la moyenne simple des valeurs : chaque valeur est pondérée par sa probabilité." }, { valeur: arr(L.vals.reduce((s, v) => s + v, 0), 6), message: "Multiplie chaque valeur par sa probabilité." }],
+      aides: ["$E(X) = x_1 \\times P(X = x_1) + x_2 \\times P(X = x_2) + \\dots$", `$${L.vals.map((v, k) => `${pr(v)} \\times ${pTex(L.ps[k])}`).join(" + ")}$.`, `Les produits : $${L.vals.map((v, k) => pTex(v * L.ps[k])).join("$ ; $")}$.`],
+      solution: `$E(X) = ${L.vals.map((v, k) => `${pr(v)} \\times ${pTex(L.ps[k])}`).join(" + ")} = ${nb(L.E)}$.` };
+  });
+
+  def("yx-jeu", () => {
+    const mise = pick([1, 2, 3, 5]), t = pick(["urne", "de", "roue"]);
+    let issues;
+    if (t === "urne") { const r = rand(1, 3), v = rand(2, 4), n = rand(4, 8), N = r + v + n, gR = pick([10, 15, 20]), gV = pick([2, 3, 5]); issues = { txt: `Une urne contient $${r}$ boule(s) rouge(s), $${v}$ verte(s) et $${n}$ noire(s). On paie $${mise}$ € pour tirer une boule : une rouge rapporte $${gR}$ €, une verte $${gV}$ €, une noire rien.`, g: [gR - mise, gV - mise, -mise], p: [r / N, v / N, n / N], N, eff: [r, v, n] }; }
+    else if (t === "de") { const g6 = pick([6, 8, 10, 12]), g5 = pick([2, 3, 4]); issues = { txt: `On paie $${mise}$ € pour lancer un dé équilibré : un $6$ rapporte $${g6}$ €, un $5$ rapporte $${g5}$ €, les autres faces rien.`, g: [g6 - mise, g5 - mise, -mise], p: [1 / 6, 1 / 6, 4 / 6], N: 6, eff: [1, 1, 4] }; }
+    else { const a = pick([1, 2]), b = pick([2, 3]), c = 8 - a - b, gA = pick([12, 16, 20]), gB = pick([4, 5, 6]); issues = { txt: `À la kermesse, une roue a $8$ secteurs égaux : $${a}$ rapporte(nt) $${gA}$ €, $${b}$ rapportent $${gB}$ €, les autres rien. Un tour coûte $${mise}$ €.`, g: [gA - mise, gB - mise, -mise], p: [a / 8, b / 8, c / 8], N: 8, eff: [a, b, c] }; }
+    const E = issues.g.reduce((s, g, k) => s + g * issues.p[k], 0), Ex = issues.g.reduce((s, g, k) => s + g * issues.eff[k], 0) / issues.N;
+    const q = pick(["esp", "esp", "equitable"]);
+    if (q === "equitable") {
+      const bonne = Math.abs(E) < 1e-9 ? "équitable : l'espérance du gain est nulle" : E > 0 ? "favorable au joueur : l'espérance du gain est positive" : "défavorable au joueur : l'espérance du gain est négative";
+      const ch = choix4(bonne, ["équitable : l'espérance du gain est nulle", "favorable au joueur : l'espérance du gain est positive", "défavorable au joueur : l'espérance du gain est négative", "impossible à juger sans jouer"].filter((x) => x !== bonne));
+      return { enonce: `${issues.txt} On note $G$ le gain algébrique du joueur (gain moins mise). Le jeu est-il équitable ?`, mode: "choix", choix: ch.choix, attendu: ch.attendu,
+        aides: [`Valeurs de $G$ : $${issues.g.map(nb).join("$, $")}$ (on retire la mise).`, `Probabilités : $${issues.eff.map((e) => frac(e, issues.N)).join("$, $")}$.`, "Calcule $E(G)$ : nulle → équitable ; positive → favorable au joueur."],
+        solution: `$E(G) = ${issues.g.map((g, k) => `${pr(g)} \\times ${frac(issues.eff[k], issues.N)}`).join(" + ")} = ${frac(Math.round(Ex * issues.N), issues.N)}$. Le jeu est ${bonne}.` };
+    }
+    const fr2 = !Number.isInteger(arr(E * 100, 6));
+    return { enonce: `${issues.txt} On note $G$ le gain algébrique du joueur (gain moins mise). Calcule $E(G)$${fr2 ? " (fraction)" : ""}.`, mode: "nombre", prefixe: "$E(G) =$", attendu: E, suffixe: "€",
+      erreurs: [{ valeur: arr(E + mise, 6), message: "Le gain algébrique tient compte de la mise : retire-la de chaque gain." }, { valeur: arr(issues.g.reduce((s, g) => s + g, 0) / 3, 6), message: "Pondère chaque gain par sa probabilité." }, ...(fr2 ? approx(E) : [])],
+      aides: [`Valeurs de $G$ : $${issues.g.map(nb).join("$, $")}$.`, `Probabilités : $${issues.eff.map((e) => frac(e, issues.N)).join("$, $")}$.`, "$E(G) = \\sum g_i \\times P(G = g_i)$."],
+      solution: `$E(G) = ${issues.g.map((g, k) => `${pr(g)} \\times ${frac(issues.eff[k], issues.N)}`).join(" + ")} = ${frac(Math.round(Ex * issues.N), issues.N)}$ €. En moyenne, sur un grand nombre de parties, le joueur ${E > 0 ? "gagne" : E < 0 ? "perd" : "ne gagne ni ne perd"} ${E === 0 ? "" : `environ $${nb(arr(Math.abs(E), 2))}$ € par partie`}.` };
+  });
+
+  def("yx-bernoulli", () => {
+    const t = pick(["reconnaitre", "esperance", "loi", "loi"]);
+    const p = pick([0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9]);
+    if (t === "reconnaitre") {
+      const S = pick([["$X$ vaut $1$ si un client choisi au hasard est satisfait, $0$ sinon", true], ["$X$ est le résultat d'un dé à six faces", false], ["$X$ vaut $1$ si la pièce tombe sur Pile, $0$ sinon", true], ["$X$ est le nombre de Pile en $3$ lancers", false], ["$X$ vaut $1$ si un œuf est fêlé, $0$ sinon", true], ["$X$ est la somme de deux dés", false]]);
+      const bonne = S[1] ? "oui : $X$ ne prend que les valeurs $0$ et $1$" : "non : $X$ prend plus de deux valeurs";
+      const ch = choix4(bonne, ["oui : $X$ ne prend que les valeurs $0$ et $1$", "non : $X$ prend plus de deux valeurs", "oui : toute variable aléatoire suit une loi de Bernoulli", "non : une loi de Bernoulli n'a qu'une valeur"].filter((x) => x !== bonne));
+      return { enonce: `${S[0]}. $X$ suit-elle une loi de Bernoulli ?`, mode: "choix", choix: ch.choix, attendu: ch.attendu,
+        aides: ["Une loi de Bernoulli de paramètre $p$ : $X$ vaut $1$ (succès) avec la probabilité $p$, $0$ (échec) sinon.", "Compte les valeurs possibles de $X$.", "Deux valeurs, $0$ et $1$ : Bernoulli."],
+        solution: `${S[1] ? "Oui" : "Non"} : ${bonne.split(" : ")[1]}.` };
+    }
+    if (t === "esperance") return { enonce: `$X$ suit une loi de Bernoulli de paramètre $p = ${pTex(p)}$. Que vaut $E(X)$ ?`, mode: "nombre", prefixe: "$E(X) =$", attendu: p,
+      erreurs: [{ valeur: arr(1 - p, 6), message: "$E(X) = 1 \\times p + 0 \\times (1 - p)$ : c'est $p$." }, { valeur: 0.5, message: "L'espérance dépend de $p$." }],
+      aides: ["Loi : $P(X = 1) = p$ et $P(X = 0) = 1 - p$.", "$E(X) = 1 \\times P(X = 1) + 0 \\times P(X = 0)$.", "$= p$."],
+      solution: `$E(X) = 1 \\times ${pTex(p)} + 0 \\times ${pTex(1 - p)} = ${pTex(p)}$ : l'espérance d'une loi de Bernoulli est son paramètre $p$.` };
+    const v = pick([0, 1]);
+    return { enonce: `$X$ suit une loi de Bernoulli de paramètre $p = ${pTex(p)}$. Que vaut $P(X = ${v})$ ?`, mode: "nombre", prefixe: `$P(X = ${v}) =$`, attendu: v ? p : arr(1 - p, 6),
+      erreurs: [{ valeur: v ? arr(1 - p, 6) : p, message: "$P(X = 1) = p$ (succès) et $P(X = 0) = 1 - p$ (échec)." }],
+      aides: ["$X = 1$ : succès, probabilité $p$.", "$X = 0$ : échec, probabilité $1 - p$.", `$p = ${pTex(p)}$.`],
+      solution: `$P(X = ${v}) = ${v ? `p = ${pTex(p)}` : `1 - p = ${pTex(1 - p)}`}$.` };
+  });
+
+  def("yx-echantillon", () => {
+    const t = pick(["frequence", "frequence", "ecart", "taille", "interpreter"]);
+    const p = pick([0.2, 0.25, 0.3, 0.4, 0.5, 0.6, 0.7, 0.75, 0.8]), n = pick([25, 50, 100, 200, 400]);
+    if (t === "frequence") {
+      const k = Math.round(n * p) + rand(-Math.ceil(Math.sqrt(n) / 2), Math.ceil(Math.sqrt(n) / 2)), f = arr(k / n, 6);
+      return { enonce: `On simule un échantillon de taille $${n}$ d'une loi de Bernoulli de paramètre $${pTex(p)}$ : on obtient $${k}$ fois la valeur $1$. Quelle est la fréquence observée des $1$ ?`, mode: "nombre", prefixe: "$f =$", attendu: f,
+        erreurs: [{ valeur: p, message: "Ça, c'est le paramètre du modèle. La fréquence observée est $\\dfrac{" + k + "}{" + n + "}$." }, { valeur: k, message: "Divise par la taille de l'échantillon." }],
+        aides: ["Fréquence $=$ nombre de $1$ $\\div$ taille de l'échantillon.", `$\\dfrac{${k}}{${n}}$.`, "Elle fluctue autour de $p$ d'un échantillon à l'autre."],
+        solution: `$f = \\dfrac{${k}}{${n}} = ${nb(f)}$ ; elle est proche de $p = ${pTex(p)}$ mais pas égale : c'est la fluctuation d'échantillonnage.` };
+    }
+    if (t === "taille") {
+      const k = pick([2, 3, 4, 5]);
+      return { enonce: `L'écart-type des fréquences observées dans des échantillons de taille $n$ est de l'ordre de $\\dfrac{1}{\\sqrt{n}}$. Par combien faut-il multiplier la taille des échantillons pour diviser cette dispersion par $${k}$ ?`, mode: "nombre", prefixe: "Multiplier par", attendu: k * k,
+        erreurs: [{ valeur: k, message: "La dispersion varie comme $\\dfrac{1}{\\sqrt{n}}$ : diviser par $" + k + "$ demande de multiplier $n$ par $" + k + "^2$." }, { valeur: 2 * k, message: "C'est le carré de $" + k + "$." }],
+        aides: ["$\\dfrac{1}{\\sqrt{N}} = \\dfrac{1}{" + k + "} \\times \\dfrac{1}{\\sqrt{n}}$ revient à $\\sqrt{N} = " + k + "\\sqrt{n}$.", "On élève au carré.", `$N = ${k}^2 \\times n$.`],
+        solution: `Pour diviser $\\dfrac{1}{\\sqrt{n}}$ par $${k}$, il faut $\\sqrt{N} = ${k}\\sqrt{n}$, soit $N = ${k * k}n$ : multiplier la taille par $${k * k}$.` };
+    }
+    if (t === "ecart") {
+      const s = pick([0.02, 0.03, 0.04, 0.05]), k = pick([1, 2, 3]), q = pick(["bas", "haut"]);
+      const att = q === "bas" ? arr(p - k * s, 6) : arr(p + k * s, 6);
+      return { enonce: `On simule $1\\,000$ échantillons d'une loi de Bernoulli de paramètre $p = ${pTex(p)}$ ; l'écart-type des fréquences observées est $s = ${pTex(s)}$. Quelle est la borne ${q === "bas" ? "inférieure" : "supérieure"} de l'intervalle $[p - ${k}s\\,;p + ${k}s]$ ?`, mode: "nombre", prefixe: "Borne :", attendu: att,
+        erreurs: [{ valeur: q === "bas" ? arr(p + k * s, 6) : arr(p - k * s, 6), message: q === "bas" ? "La borne inférieure est $p - " + k + "s$." : "La borne supérieure est $p + " + k + "s$." }, { valeur: q === "bas" ? arr(p - s, 6) : arr(p + s, 6), message: `N'oublie pas le facteur $${k}$.` }],
+        aides: [`$${k}s = ${k} \\times ${pTex(s)} = ${pTex(k * s)}$.`, q === "bas" ? "Borne inférieure : $p - " + k + "s$." : "Borne supérieure : $p + " + k + "s$.", `$${pTex(p)} ${q === "bas" ? "-" : "+"} ${pTex(k * s)}$.`],
+        solution: `$[p - ${k}s\\,;p + ${k}s] = [${pTex(p - k * s)}\\,;${pTex(p + k * s)}]$. ${k === 1 ? "Environ deux tiers des échantillons" : k === 2 ? "Environ $95\\,\\%$ des échantillons" : "Presque tous les échantillons ($99{,}7\\,\\%$)"} ont une fréquence dans cet intervalle.` };
+    }
+    const s = arr(Math.sqrt(p * (1 - p) / n), 3), f = pick([arr(p + 0.5 * s, 3), arr(p + 3.5 * s, 3), arr(p - 3.5 * s, 3), arr(p - 0.8 * s, 3)]);
+    const dist = Math.abs(f - p) / s, rare = dist > 3;
+    const bonne = rare ? "une situation rare dans le cadre du modèle : on peut douter du modèle" : "une situation fréquente dans le cadre du modèle : rien d'anormal";
+    const ch = choix4(bonne, ["une situation rare dans le cadre du modèle : on peut douter du modèle", "une situation fréquente dans le cadre du modèle : rien d'anormal", "la preuve certaine que le modèle est faux", "impossible : la fréquence devrait être exactement $p$"].filter((x) => x !== bonne));
+    return { enonce: `On modélise par une loi de Bernoulli de paramètre $p = ${pTex(p)}$. Sur des simulations d'échantillons de taille $${n}$, l'écart-type des fréquences est $s \\approx ${nb(s)}$. Une enquête réelle sur $${n}$ personnes donne la fréquence $${nb(f)}$. C'est :`, mode: "choix", choix: ch.choix, attendu: ch.attendu,
+      aides: ["Calcule la distance $|f - p|$ et compare-la à $s$, $2s$, $3s$.", `$|${nb(f)} - ${pTex(p)}| = ${nb(arr(Math.abs(f - p), 3))}$, soit environ $${nb(arr(dist, 1))}s$.`, "Au-delà de $3s$, c'est très rare sous le modèle ; dans $2s$, c'est fréquent."],
+      solution: `$|f - p| \\approx ${nb(arr(dist, 1))}\\,s$ : ${rare ? "plus de $3s$, ce qui arrive très rarement si le modèle est bon. On peut douter du modèle, sans certitude." : "moins de $2s$ : c'est une fluctuation ordinaire, compatible avec le modèle."}` };
+  });
+
+  def("yx-python", () => {
+    const t = pick(["moyenne", "compter", "compter", "sortie", "sortie", "taille"]);
+    const p = pick([0.2, 0.3, 0.4, 0.5, 0.6, 0.7]), n = pick([50, 100, 200]);
+    if (t === "sortie") {
+      const L = Array.from({ length: rand(8, 12) }, () => (Math.random() < p ? 1 : 0)), code = `L = ${lst(L)}\nprint(sum(L) / len(L))`;
+      const f = arr(L.reduce((s, v) => s + v, 0) / L.length, 6), fr2 = !Number.isInteger(arr(f * 100, 6));
+      return { enonce: `Un échantillon simulé d'une loi de Bernoulli est rangé dans une liste. Qu'affiche ce programme${fr2 ? " (arrondi au centième)" : ""} ?\n\n${py(code)}`, mode: "nombre", prefixe: "Affichage :", attendu: fr2 ? Math.round(f * 100) / 100 : f, tolerance: fr2 ? 0.005 : 1e-9,
+        erreurs: [{ valeur: L.reduce((s, v) => s + v, 0), message: "$\\texttt{sum(L)}$ compte les $1$ ; il est ensuite divisé par la longueur." }, { valeur: L.length, message: "$\\texttt{len(L)}$ est la taille, pas le résultat." }],
+        aides: ["$\\texttt{sum(L)}$ : nombre de $1$ dans la liste.", `$\\texttt{len(L)} = ${L.length}$.`, "Le programme affiche la fréquence des $1$."],
+        solution: `$\\texttt{sum(L)} = ${L.reduce((s, v) => s + v, 0)}$ et $\\texttt{len(L)} = ${L.length}$ : le programme affiche la fréquence $\\dfrac{${L.reduce((s, v) => s + v, 0)}}{${L.length}} ${fr2 ? "\\approx" : "="} ${nb(fr2 ? Math.round(f * 100) / 100 : f)}$.` };
+    }
+    if (t === "taille") {
+      const n1 = pick([25, 50, 100, 200]), k = pick([2, 3, 4]), s1 = arr(Math.sqrt(p * (1 - p) / n1), 3);
+      return { enonce: `Avec $\\texttt{F = [frequence(${n1}, ${p}) for j in range(1000)]}$, on trouve un écart-type des fréquences $s \\approx ${nb(s1)}$. Quelle taille d'échantillon faut-il prendre dans $\\texttt{frequence(n, ${p})}$ pour obtenir un écart-type environ $${k}$ fois plus petit ?`, mode: "nombre", prefixe: "$n =$", attendu: n1 * k * k,
+        erreurs: [{ valeur: n1 * k, message: "La dispersion est en $\\dfrac{1}{\\sqrt{n}}$ : il faut multiplier $n$ par $" + k + "^2$." }, { valeur: n1 / k, message: "Une taille plus **grande** réduit la dispersion." }],
+        aides: ["L'écart-type est de l'ordre de $\\dfrac{1}{\\sqrt{n}}$.", `Diviser par $${k}$ : multiplier $\\sqrt{n}$ par $${k}$.`, `Donc multiplier $n$ par $${k * k}$.`],
+        solution: `Il faut multiplier la taille par $${k}^2 = ${k * k}$ : $n = ${n1} \\times ${k * k} = ${n1 * k * k}$.` };
+    }
+    if (t === "moyenne") {
+      const bonne = py(`def frequence(n, p):\n    L = [bernoulli(p) for k in range(n)]\n    return sum(L) / n`);
+      const ch = choix4(bonne, [py(`def frequence(n, p):\n    L = [bernoulli(p) for k in range(n)]\n    return sum(L)`), py(`def frequence(n, p):\n    L = [bernoulli(p)] * n\n    return sum(L) / n`), py(`def frequence(n, p):\n    return p / n`)]);
+      return { enonce: `La fonction $\\texttt{bernoulli(p)}$ renvoie $1$ avec la probabilité $p$, sinon $0$. Quelle fonction renvoie la fréquence des $1$ dans un échantillon de taille $n$ (on l'appellera avec $\\texttt{frequence(${n}, ${p})}$) ?`, mode: "choix", choix: ch.choix, attendu: ch.attendu,
+        aides: ["Il faut $n$ tirages **différents** : une liste en compréhension.", "$\\texttt{sum(L)}$ compte les $1$.", "La fréquence est ce nombre divisé par $n$."],
+        solution: "On fabrique l'échantillon avec une liste en compréhension (un tirage à chaque tour), on compte les $1$ avec $\\texttt{sum}$, et on divise par $n$." };
+    }
+    const k = pick([1, 2]);
+    const code = `N = 1000\nF = [frequence(${n}, ${p}) for j in range(N)]\ns = ecart_type(F)\nc = 0\nfor f in F:\n    if abs(f - ${p}) <= ${k} * s:\n        c = c + 1\nprint(c / N)`;
+    const att = k === 1 ? 68 : 95;
+    const ch = choix4(`environ $${nb(att / 100)}$`, [`environ $${nb(k === 1 ? 0.95 : 0.68)}$`, "environ $0{,}5$", "exactement $1$"]);
+    return { enonce: `Que peut-on s'attendre à voir affiché par ce programme (proportion d'échantillons dont la fréquence est à moins de $${k}s$ de $p$) ?\n\n${py(code)}`, mode: "choix", choix: ch.choix, attendu: ch.attendu,
+      aides: ["$\\texttt{F}$ contient $1\\,000$ fréquences d'échantillons ; $\\texttt{s}$ leur écart-type.", "On compte les fréquences à distance au plus $" + k + "s$ de $p$, puis on divise par $N$.", "Rappel des simulations : environ $68\\,\\%$ dans $[p - s\\,;p + s]$, $95\\,\\%$ dans $[p - 2s\\,;p + 2s]$, $99{,}7\\,\\%$ dans $3s$."],
+      solution: `Le programme calcule la proportion d'échantillons dont la fréquence est dans $[p - ${k}s\\,;p + ${k}s]$ : on observe environ $${att}\\,\\%$, soit environ $${nb(att / 100)}$ (la valeur exacte varie d'une exécution à l'autre).` };
+  });
+
+  def("yx-vrai-faux", () => vraiFaux4([
+    ["La somme des probabilités d'une loi de probabilité vaut $1$.", true, "toutes les valeurs possibles sont envisagées."],
+    ["$E(X) = \\sum x_i \\times P(X = x_i)$.", true, "c'est la définition de l'espérance."],
+    ["Si $X$ suit une loi de Bernoulli de paramètre $0{,}3$, alors $E(X) = 0{,}3$.", true, "$1 \\times 0{,}3 + 0 \\times 0{,}7$."],
+    ["Un jeu est équitable quand l'espérance du gain algébrique est nulle.", true, "en moyenne on ne gagne ni ne perd."],
+    ["La fréquence observée des $1$ dans un échantillon fluctue d'un échantillon à l'autre.", true, "c'est la fluctuation d'échantillonnage."],
+    ["Plus l'échantillon est grand, moins les fréquences observées sont dispersées.", true, "l'écart-type est de l'ordre de $\\dfrac{1}{\\sqrt{n}}$."],
+    ["Environ $95\\,\\%$ des fréquences d'échantillons sont à moins de $2s$ de $p$.", true, "c'est ce qu'on observe sur les simulations."],
+    ["$P(X \\leqslant 3)$ ne comprend pas la valeur $3$.", false, "$\\leqslant$ : $3$ est comprise."],
+    ["L'espérance est la moyenne simple des valeurs de $X$.", false, "c'est une moyenne pondérée par les probabilités."],
+    ["Une loi de Bernoulli prend trois valeurs.", false, "deux : $0$ et $1$."],
+    ["Dans un échantillon de taille $100$ d'une loi de Bernoulli de paramètre $0{,}4$, on obtient forcément $40$ fois $1$.", false, "on obtient environ $40$, avec des fluctuations."],
+    ["Pour diviser par $2$ la dispersion des fréquences, il suffit de doubler la taille de l'échantillon.", false, "il faut la multiplier par $4$."],
+    ["Une fréquence à plus de $3s$ de $p$ prouve que le modèle est faux.", false, "c'est rare mais possible : on peut douter, pas conclure avec certitude."]
+  ], ["Loi : somme des probabilités égale à $1$ ; espérance : moyenne pondérée.", "Bernoulli : valeurs $0$ et $1$, espérance $p$.", "Fluctuation : environ $95\\,\\%$ dans $2s$, dispersion en $\\dfrac{1}{\\sqrt{n}}$."]));
+
+  /* Figures du cours (chapitre 14) */
+  FIGURES["yx-cours-loi"] = () => graph({ xmin: -4, xmax: 12, ymin: 0, ymax: 0.6, xstep: 1, ystep: 0.1, xetiq: 2, yetiq: 0.1, h: 240, bars: [{ x: -2, y: 0.5 }, { x: 3, y: 0.3 }, { x: 10, y: 0.2 }], points: [{ x: -2, y: 0.5, label: "0,5" }, { x: 3, y: 0.3, label: "0,3" }, { x: 10, y: 0.2, label: "0,2" }], xlabel: "gain", aria: "Diagramme en bâtons de la loi du gain : −2 avec 0,5 ; 3 avec 0,3 ; 10 avec 0,2" });
+  FIGURES["yx-cours-fluctuation"] = () => {
+    // histogramme approximatif des fréquences de 1000 échantillons de taille 100, p = 0,4
+    const cl = [0.25, 0.28, 0.31, 0.34, 0.37, 0.4, 0.43, 0.46, 0.49, 0.52], eff = [3, 12, 45, 120, 230, 260, 190, 95, 35, 10];
+    return graphePlus({ xmin: 0.22, xmax: 0.57, ymin: 0, ymax: 290, xstep: 0.03, ystep: 50, xetiq: 0.06, yetiq: 50, h: 250, padL: 34, rects: cl.map((c, k) => ({ a: c, b: c + 0.03, h: eff[k] })), xlabel: "f", aria: "Histogramme des fréquences observées de 1 000 échantillons de taille 100 avec p = 0,4 : centré sur 0,4, la plupart entre 0,3 et 0,5" }, (X, Y) => `<line x1="${X(0.4)}" y1="${Y(0)}" x2="${X(0.4)}" y2="${Y(285)}" style="stroke:var(--faux);stroke-width:2;stroke-dasharray:5 3"/><text class="g-label" x="${X(0.4) + 4}" y="${Y(275)}" style="fill:var(--faux)">p = 0,4</text><line x1="${X(0.302)}" y1="${Y(25)}" x2="${X(0.498)}" y2="${Y(25)}" style="stroke:var(--lagon);stroke-width:2"/><text class="g-label" x="${X(0.4)}" y="${Y(25) - 4}" text-anchor="middle" style="fill:var(--lagon)">p ± 2s</text>`);
   };
 
 })();
