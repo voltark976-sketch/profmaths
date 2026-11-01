@@ -510,7 +510,7 @@
     "terminale-spe": "Limites, intégrales : cap sur le bac",
     expertes: "Complexes, arithmétique, graphes",
     terminale: "Garder les maths pour tes études",
-    snt: "Comprendre Internet et le Web"
+    snt: "Réseaux sociaux, Internet, le Web"
   };
 
   const chapitresEnLigne = (n) => n.chapitres.filter((ch) => ch.statut === "disponible" && dispo(ch.id)).length;
@@ -524,7 +524,7 @@
   };
   // Adresse d'un cycle : sa page de classes, ou directement la classe quand il n'en a qu'une
   const lienCycle = (k) => { const nivs = CYCLES[k].niveaux(); return nivs.length === 1 ? `#niveau-${nivs[0].id}` : `#${k}`; };
-  const COURT = { "Première spécialité": "Première spé", "Première tronc commun": "Première tronc commun", "Première technologique": "Première techno", "Terminale spécialité": "Terminale spé", "Terminale maths complémentaires": "Terminale compl.", "SNT Seconde": "Internet · Le Web" };
+  const COURT = { "Première spécialité": "Première spé", "Première tronc commun": "Première tronc commun", "Première technologique": "Première techno", "Terminale spécialité": "Terminale spé", "Terminale maths complémentaires": "Terminale compl.", "SNT Seconde": "Réseaux sociaux · Internet · Web" };
   const carteNiveau = (href, id, nom, nb) => `<a class="carte-niv" href="${href}" data-niv="${esc(id)}"><span class="pastille-niv" aria-hidden="true"></span><span class="carte-niv-t"><strong>${esc(nom)}</strong>${ACCROCHES[id] ? `<span class="accroche">${esc(ACCROCHES[id])}</span>` : ""}<span class="meta">${nb ? `${nb} chapitre${nb > 1 ? "s" : ""} en ligne` : "En préparation"}</span></span><span class="go" aria-hidden="true">→</span></a>`;
 
   function pageAccueil() {
@@ -1261,6 +1261,7 @@
     if (onglet === "cours" || onglet === "methode") {
       // Le cours s'affiche sans attendre les générateurs ; une figure qui en a besoin arrive dès qu'ils sont là
       ({ cours: vueCours, methode: vueMethode })[onglet](p, c, id);
+      activerFigures(p);
       if (p.querySelector("[data-figure]")) assurerMoteur(id).then(() => { if (memePage(h0)) remplirFigures(p); }).catch(() => {});
       else prechargerMoteur(id);
       return;
@@ -1278,7 +1279,10 @@
       const d = FIGURES[f.dataset.figure];
       if (d) { f.innerHTML = d(); f.classList.remove("fig-attente"); f.removeAttribute("data-figure"); } else f.remove();
     });
+    activerFigures(p);
   }
+  // Figures interactives (activités de SNT : graphe à explorer, fil d'actualité…) : leur moteur les branche après l'affichage
+  const activerFigures = (p) => { if (window.PM_EXO && typeof window.PM_EXO.activer === "function") window.PM_EXO.activer(p); };
 
   function vueCours(p, c, id) {
     let h = `<div class="ressources">`;

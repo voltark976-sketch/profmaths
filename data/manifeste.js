@@ -275,6 +275,7 @@ window.MANIFESTE = {
   "terminale-lois-densite": {"niveau":"terminale","fichier":"data/terminale/lois-densite.js","series":11,"qcm":26},
   "terminale-repartition-richesses": {"niveau":"terminale","fichier":"data/terminale/repartition-richesses.js","series":7,"qcm":25},
   "terminale-echantillonnage": {"niveau":"terminale","fichier":"data/terminale/echantillonnage-synthese.js","series":9,"qcm":22},
+  "snt-reseaux-sociaux": {"niveau":"snt","fichier":"data/snt/reseaux-sociaux.js","series":13,"qcm":33},
   "snt-internet": {"niveau":"snt","fichier":"data/snt/internet.js","series":14,"qcm":34},
   "snt-web": {"niveau":"snt","fichier":"data/snt/web.js","series":13,"qcm":36}
 };

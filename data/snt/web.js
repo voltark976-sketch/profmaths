@@ -1,27 +1,30 @@
 /*
-  CHAPITRE : SNT (Seconde) — Thème 2 : Le Web
+  CHAPITRE : SNT (Seconde) — Chapitre 3 : Le Web
   --------------------------------------------
   Programme de SNT de 2019 (arrêté du 17-1-2019, BO spécial n° 1 du 22 janvier 2019), thème « Le Web » :
   repères historiques, notions juridiques, hypertexte, HTML et CSS, URL, requête HTTP, modèle client/serveur,
   moteurs de recherche, paramètres de sécurité d'un navigateur.
   Écriture : formules et nombres entre $...$ (antislash doublé), code en ligne entre accents graves `...`, blocs ```html.
-  seances : déroulé du chapitre (suite de l'alternance du chapitre 1 : 2 h, 1 h, 2 h, 1 h, 2 h).
+  seances : déroulé du chapitre (suite de l'alternance du chapitre 2 : 2 h, 1 h, 2 h, 1 h, 2 h).
   Vidéos : Les Bons Profs, MOOC SNT (Inria), Novelclass, Cookie connecté, Radio-Canada.
   Générateurs : préfixe sw- dans assets/exercices-snt.js ; figures « sw-cours-… ».
 */
 window.CHAPITRES = window.CHAPITRES || {};
 window.CHAPITRES["snt-web"] = {
   niveau: "SNT Seconde",
-  numero: 2,
+  numero: 3,
   titre: "Le Web",
   accroche: "Des milliards de pages reliées par des liens. Comment une page est-elle écrite, demandée, envoyée, trouvée par un moteur de recherche ? Et comment naviguer sans se faire piéger ?",
 
   playlist: "",
   drive: "",
-  pdfs: [],
+  pdfs: [
+    { titre: "Le cours complet à imprimer", url: "assets/pdf/snt-web-cours.pdf" },
+    { titre: "Exercices corrigés à imprimer", url: "assets/pdf/snt-web-exercices.pdf" }
+  ],
 
   /* ---------- 0. DÉROULÉ EN SÉANCES ---------- */
-  seancesNote: "Cinq séances, une par semaine, dans la suite de l'alternance du chapitre 1 : 2 h, 1 h, 2 h, 1 h, 2 h (8 h en tout). Chaque partie du cours porte le numéro de la séance où on la travaille. Une séance de 2 h est faite de deux parties d'une heure.",
+  seancesNote: "Cinq séances, une par semaine, dans la suite de l'alternance du chapitre 2 (Internet) : 2 h, 1 h, 2 h, 1 h, 2 h (8 h en tout). Chaque partie du cours porte le numéro de la séance où on la travaille. Une séance de 2 h est faite de deux parties d'une heure.",
   seances: [
     {
       duree: "2 h", titre: "Le Web : histoire, hypertexte et droit d'auteur",
@@ -124,7 +127,7 @@ window.CHAPITRES["snt-web"] = {
       texte:
         "Chaque ressource du Web a une adresse unique, l'**URL** (Uniform Resource Locator). Elle se décompose ainsi :\n\n" +
         "- le **protocole**, avant `://` : `http` ou `https` ;\n" +
-        "- le **nom de domaine** du serveur, jusqu'au premier `/` : le DNS le traduit en adresse IP (chapitre 1) ;\n" +
+        "- le **nom de domaine** du serveur, jusqu'au premier `/` : le DNS le traduit en adresse IP (chapitre 2) ;\n" +
         "- le **chemin** : les dossiers puis le **fichier** sur le serveur ;\n" +
         "- d'éventuels **paramètres** après `?`, sous la forme `nom=valeur`, séparés par `&` ;\n" +
         "- une éventuelle **ancre** après `#`, qui vise un endroit de la page.\n\n" +

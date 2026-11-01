@@ -1048,4 +1048,483 @@
     txt(160, 20, "Avant les requêtes : étapes 1 et 2", { taille: 10, gras: false }) + txt(160, 124, "Classement : popularité, pertinence, ordre des mots", { taille: 10, gras: false }),
     "Un moteur de recherche : 1 explorer le Web avec des robots, 2 indexer les mots des pages, 3 classer les pages à chaque requête selon popularité, pertinence et ordre des mots");
 
+
+  /* =====================================================================
+     CHAPITRE : LES RÉSEAUX SOCIAUX (sr-)
+     ===================================================================== */
+
+  /* ---------- Graphes d'amitié fictifs ---------- */
+  const PRENOMS = ["Anli", "Inès", "Lina", "Saïd", "Mia", "Léa", "Tom", "Naël", "Ali", "Zoé", "Hugo", "Yaya", "Rose", "Nour", "Eva", "Ilan", "Sami", "Maya", "Issa", "Kaïs"];
+  function grapheAmis() {
+    for (let essai = 0; essai < 200; essai++) {
+      const P = pick(PLANS), n = P.pos.length;
+      const idx = shuffle(P.liens.map((_, k) => k)).slice(0, rand(n, Math.min(P.liens.length, n + 3)));
+      if (P.croise.some(([a, b]) => idx.includes(a) && idx.includes(b))) continue;
+      const noms = shuffle(PRENOMS.slice()).slice(0, n);
+      const L = idx.map((k) => [noms[P.liens[k][0]], noms[P.liens[k][1]]]);
+      if (Object.keys(distances(noms, L, noms[0]).D).length < n) continue;
+      const ecc = {}; noms.forEach((x) => (ecc[x] = Math.max(...Object.values(distances(noms, L, x).D))));
+      return { noms, L, ecc, noeuds: P.pos.map((p, k) => ({ id: noms[k], x: p[0], y: p[1] })), V: distances(noms, L, noms[0]).V };
+    }
+    throw new Error("graphe introuvable");
+  }
+  const dessinAmis = (G, o = {}) => reseauSVG(G.noeuds.map((x) => Object.assign({}, x, { marque: (o.marque || []).includes(x.id) })), G.L, { r: 19, aria: o.aria || `Graphe d'amitié entre ${G.noms.join(", ")} ; un trait relie deux amis` });
+  const AIDES_G = ["Un trait relie deux personnes amies. La **distance** entre deux personnes est le plus petit nombre de traits pour aller de l'une à l'autre.", "L'**excentricité** d'une personne est sa plus grande distance aux autres. Le **rayon** est la plus petite excentricité, le **diamètre** la plus grande, et le **centre** est formé des personnes d'excentricité minimale."];
+  const tabEcc = (G) => G.noms.slice().sort().map((x) => `${x} : $${G.ecc[x]}$`).join(", ");
+
+  def("sr-degre", () => {
+    const G = grapheAmis(), t = pick(["amis", "amis", "communs", "communs", "max"]);
+    const [x, y] = shuffle(G.noms.slice()), Vx = G.V[x];
+    if (t === "amis") return { enonce: `Sur ce réseau social, combien d'amis a ${x} ?`, figure: dessinAmis(G, { marque: [x] }), mode: "nombre", prefixe: "Nombre d'amis :", attendu: Vx.length,
+      erreurs: [{ valeur: Vx.length + 1, message: `On ne compte pas ${x} lui-même ou elle-même.` }],
+      aides: [AIDES_G[0], `Compte les traits qui partent de ${x}.`, `Ses amis sont : ${Vx.slice().sort().join(", ")}.`], solution: `${x} est relié à ${Vx.slice().sort().join(", ")} : ${pluriel(Vx.length, "ami")}. En théorie des graphes, c'est le **degré** du sommet.` };
+    if (t === "communs") {
+      const C = Vx.filter((v) => G.V[y].includes(v));
+      return { enonce: `Combien d'amis en commun ont ${x} et ${y} ?`, figure: dessinAmis(G, { marque: [x, y] }), mode: "nombre", prefixe: "Amis en commun :", attendu: C.length,
+        erreurs: [{ valeur: Vx.length + G.V[y].length, message: "On cherche les personnes amies **des deux à la fois**." }],
+        aides: ["Un ami en commun est relié à la fois à " + x + " et à " + y + ".", `Amis de ${x} : ${Vx.slice().sort().join(", ")}.`, `Amis de ${y} : ${G.V[y].slice().sort().join(", ")}.`],
+        solution: C.length ? `Amis communs : ${C.sort().join(", ")}, soit ${pluriel(C.length, "personne")}. Les réseaux s'en servent pour proposer « des personnes que tu pourrais connaître ».` : `Aucune personne n'est amie des deux : $0$ ami en commun.` };
+    }
+    const deg = G.noms.map((v) => G.V[v].length), mx = Math.max(...deg), gagnants = G.noms.filter((v) => G.V[v].length === mx);
+    if (gagnants.length !== 1) return null;
+    const c = choix4(gagnants[0], shuffle(G.noms.filter((v) => v !== gagnants[0])));
+    return { enonce: "Qui a le plus d'amis sur ce réseau ?", figure: dessinAmis(G), mode: "choix", choix: c.choix, attendu: c.attendu, aides: [AIDES_G[0], "Compte les traits qui partent de chaque personne.", "Commence par les personnes au milieu du dessin."],
+      solution: `Nombre d'amis : ${G.noms.slice().sort().map((v) => `${v} : $${G.V[v].length}$`).join(", ")}. C'est **${gagnants[0]}** qui en a le plus.` };
+  });
+  def("sr-distance", () => {
+    const G = grapheAmis(), [x, y] = shuffle(G.noms.slice()), { D, V } = distances(G.noms, G.L, x);
+    if (D[y] < 2 && Math.random() < 0.7) return null;
+    const ch = unChemin(V, D, x, y);
+    return { enonce: `Quelle est la distance entre ${x} et ${y} ?`, figure: dessinAmis(G, { marque: [x, y] }), mode: "nombre", prefixe: "Distance :", attendu: D[y],
+      erreurs: [{ valeur: D[y] - 1, message: "Tu as compté les intermédiaires ; la distance compte les traits (les liens)." }, { valeur: D[y] + 1, message: "Il existe un chemin plus court." }],
+      aides: [AIDES_G[0], `Pars de ${x} : ses amis sont à distance $1$, les amis de ses amis à distance $2$…`, `Amis de ${x} : ${V[x].slice().sort().join(", ")}.`],
+      solution: `Un plus court chemin : ${ch.join(" → ")}. La distance est ${m$(D[y])}${D[y] > 1 ? ` (${pluriel(D[y] - 1, "intermédiaire")})` : ""}.` };
+  });
+  def("sr-excentricite", () => {
+    const G = grapheAmis(), x = pick(G.noms), { D } = distances(G.noms, G.L, x), loin = G.noms.filter((v) => D[v] === G.ecc[x]);
+    return { enonce: `Quelle est l'**excentricité** de ${x}, c'est-à-dire sa plus grande distance à une autre personne du réseau ?`, figure: dessinAmis(G, { marque: [x] }), mode: "nombre", prefixe: "Excentricité :", attendu: G.ecc[x],
+      erreurs: [{ valeur: G.V[x].length, message: "C'est le nombre d'amis ; on cherche la plus grande distance." }, { valeur: G.ecc[x] - 1, message: "Vérifie la personne la plus éloignée : il faut un trait de plus." }].filter((e) => e.valeur !== G.ecc[x]),
+      aides: [AIDES_G[0], `Écris la distance de ${x} à chaque personne.`, "L'excentricité est la plus grande de ces distances."],
+      solution: `Distances depuis ${x} : ${G.noms.filter((v) => v !== x).sort().map((v) => `${v} $${D[v]}$`).join(", ")}. La plus grande vaut ${m$(G.ecc[x])} (${loin.sort().join(", ")}) : c'est l'excentricité de ${x}.` };
+  });
+  def("sr-rayon-diametre", () => {
+    const G = grapheAmis(), E = Object.values(G.ecc), r = Math.min(...E), d = Math.max(...E), centre = G.noms.filter((v) => G.ecc[v] === r).sort();
+    const t = pick(["rayon", "diametre", "centre", "centre"]);
+    const fig = dessinAmis(G), sol = `Excentricités : ${tabEcc(G)}. Rayon $= ${r}$ (la plus petite), diamètre $= ${d}$ (la plus grande), centre : ${centre.join(", ")}.`;
+    if (t === "centre") {
+      if (centre.length === 1) {
+        const c = choix4(centre[0], shuffle(G.noms.filter((v) => v !== centre[0])).sort((a, b) => G.ecc[a] - G.ecc[b]));
+        return { enonce: "Qui est au **centre** de ce réseau (la personne dont l'excentricité est la plus petite) ?", figure: fig, mode: "choix", choix: c.choix, attendu: c.attendu, aides: [AIDES_G[1], "Calcule l'excentricité des personnes qui semblent au milieu du réseau.", "Le centre peut toucher tout le monde en un minimum d'étapes."], solution: sol };
+      }
+      return { enonce: "Combien de personnes forment le **centre** de ce réseau (personnes d'excentricité minimale) ?", figure: fig, mode: "nombre", prefixe: "Nombre de personnes :", attendu: centre.length, erreurs: [{ valeur: 1, message: "Plusieurs personnes peuvent avoir la même excentricité minimale." }],
+        aides: [AIDES_G[1], "Calcule l'excentricité de chaque personne.", "Compte celles qui ont la plus petite."], solution: sol };
+    }
+    const att = t === "rayon" ? r : d;
+    return { enonce: `Quel est le **${t === "rayon" ? "rayon" : "diamètre"}** de ce réseau ?`, figure: fig, mode: "nombre", prefixe: `${t === "rayon" ? "Rayon" : "Diamètre"} :`, attendu: att,
+      erreurs: [{ valeur: t === "rayon" ? d : r, message: t === "rayon" ? "C'est le diamètre (la plus grande excentricité) ; le rayon est la plus petite." : "C'est le rayon ; le diamètre est la plus grande excentricité (la plus grande distance entre deux personnes)." }],
+      aides: [AIDES_G[1], "Calcule l'excentricité de chaque personne.", t === "rayon" ? "Garde la plus petite." : "Garde la plus grande : c'est aussi la plus grande distance entre deux personnes."], solution: sol };
+  });
+
+  /* ---------- Confidentialité : qui voit ma publication ? ---------- */
+  const CONF = [
+    ["Ton compte est **public**. Qui peut voir tes publications ?", "n'importe qui, même sans compte", ["seulement tes amis", "seulement tes abonnés", "personne"], "Public veut dire public.", "Un compte public est visible par tout le monde, et ses publications peuvent être copiées ou retrouvées par un moteur de recherche."],
+    ["Une application de quiz demande l'accès à ta liste d'amis et à tes photos. Que fais-tu ?", "je refuse : un quiz n'a pas besoin de ces données", ["j'accepte, c'est gratuit", "j'accepte, de toute façon c'est un jeu", "j'accepte puis je donne mon mot de passe"], "Demande-toi si l'application a vraiment besoin de ces données.", "Les applications tierces récupèrent souvent bien plus de données que nécessaire ; on vérifie leurs autorisations dans les paramètres."],
+    ["Quel réglage limite le plus ce qu'un inconnu voit de toi ?", "passer son compte en privé", ["ajouter une photo de profil", "publier plus souvent", "activer la localisation"], "Un compte privé filtre les abonnés.", "Avec un compte privé, tu choisis qui peut te suivre et voir tes publications."],
+    ["Pourquoi désactiver le partage de position en direct sur un réseau social ?", "pour qu'on ne sache pas où tu es à tout moment", ["pour avoir plus d'abonnés", "pour que les photos soient plus belles", "parce que c'est obligatoire"], "Pense à ta sécurité physique.", "Ta position en direct dit où tu habites, où tu vas au lycée, quand tu n'es pas chez toi."],
+    ["Une photo de toi a été publiée par un ami sans ton accord. Que peux-tu faire ?", "lui demander de la retirer et la signaler à la plateforme si besoin", ["rien, c'est son compte", "publier une photo de lui en retour", "supprimer ton compte"], "Le droit à l'image existe aussi en ligne.", "On ne publie pas l'image de quelqu'un sans son accord ; la plateforme doit retirer un contenu signalé qui viole ce droit."],
+    ["Dans les paramètres, « Qui peut m'envoyer des messages : mes amis seulement » sert à :", "éviter les messages d'inconnus", ["recevoir plus de publicités", "cacher sa photo de profil", "supprimer ses anciens messages"], "Lis bien le réglage.", "Limiter les messages aux amis protège des arnaques et du harcèlement par des inconnus."],
+    ["Tu veux savoir ce qu'un réseau social sait de toi. Que fais-tu ?", "je télécharge mes données depuis les paramètres", ["je demande à un ami", "je supprime l'application", "je change mon mot de passe"], "Le RGPD te donne un droit d'accès.", "En Europe, chacun peut obtenir une copie de ses données (droit d'accès) et demander leur effacement."],
+    ["Les identifications (« tags ») sur les photos :", "peuvent être soumises à ta validation dans les paramètres", ["ne se règlent pas", "sont toujours anonymes", "n'existent que sur LinkedIn"], "Cherche le réglage « Identifications ».", "On peut demander à valider chaque identification avant qu'elle apparaisse sur son profil."]
+  ];
+  def("sr-confidentialite", () => {
+    if (Math.random() < 0.3) return banque(CONF, "", ["Les paramètres de confidentialité décident qui voit quoi : public, amis, amis d'amis, moi seul.", "Protéger ses données, c'est d'abord en montrer le moins possible aux inconnus."]);
+    const G = grapheAmis(), x = pick(G.noms), { D } = distances(G.noms, G.L, x), amisAmis = Math.random() < 0.6;
+    const vu = G.noms.filter((v) => v !== x && D[v] <= (amisAmis ? 2 : 1));
+    return { enonce: `${x} publie une photo avec la confidentialité « **${amisAmis ? "amis de mes amis" : "amis"}** ». Combien de personnes de ce réseau, à part ${x}, peuvent la voir ?`, figure: dessinAmis(G, { marque: [x] }), mode: "nombre", prefixe: "Nombre de personnes :", attendu: vu.length,
+      erreurs: [{ valeur: G.V[x].length, message: "« Amis de mes amis » ajoute les amis des amis : distance $2$." }, { valeur: G.noms.length - 1, message: "Les personnes trop éloignées (distance $3$ ou plus) ne la voient pas." }].filter((e) => e.valeur !== vu.length),
+      aides: [amisAmis ? "« Amis de mes amis » : les personnes à distance $1$ ou $2$." : "« Amis » : les personnes à distance $1$.", `Amis de ${x} : ${G.V[x].slice().sort().join(", ")}.`, amisAmis ? "Ajoute les amis de ces amis, sans compter deux fois la même personne." : "Compte-les."],
+      solution: `Peuvent la voir : ${vu.sort().join(", ")}, soit ${pluriel(vu.length, "personne")}.${amisAmis ? " « Amis d'amis » touche vite beaucoup de monde : sur un vrai réseau, avec $200$ amis qui en ont $200$ chacun, cela peut faire des dizaines de milliers de personnes." : ""}` };
+  });
+
+  /* ---------- Petit monde et expérience de Milgram ---------- */
+  const MILGRAM = [
+    ["En quelle année Stanley Milgram a-t-il réalisé son expérience du « petit monde » ?", "1967", ["1987", "2004", "1937"], "C'est bien avant Internet.", "Milgram publie son expérience en 1967 : des lettres devaient atteindre un inconnu de Boston en passant de connaissance en connaissance."],
+    ["Dans l'expérience de Milgram, combien d'intermédiaires en moyenne les lettres arrivées ont-elles traversés ?", "environ $5$ (d'où « six degrés de séparation »)", ["environ $50$", "environ $500$", "aucun"], "Pense à l'expression « six degrés de séparation ».", "Les lettres arrivées étaient passées par environ $5$ intermédiaires, soit environ $6$ liens : c'est l'origine de l'expression « six degrés de séparation »."],
+    ["Que devaient faire les participants de l'expérience de Milgram ?", "envoyer la lettre à une connaissance plus proche du destinataire", ["envoyer la lettre directement au destinataire", "publier la lettre dans un journal", "téléphoner au destinataire"], "Ils ne connaissaient pas le destinataire.", "Chacun envoyait la lettre à une personne qu'il connaissait personnellement et qui lui semblait plus proche du destinataire."],
+    ["En 2016, Facebook a calculé la distance moyenne entre deux de ses utilisateurs. Elle valait environ :", "$3{,}5$", ["$35$", "$350$", "$0{,}5$"], "C'est encore moins que six.", "Avec plus d'un milliard d'utilisateurs, la distance moyenne mesurée était d'environ $3{,}57$ : le monde est encore plus « petit » en ligne."],
+    ["Un réseau est un « petit monde » quand :", "deux personnes quelconques sont reliées par un chemin court", ["il a peu de membres", "tout le monde est ami avec tout le monde", "il est réservé à une seule ville"], "Pense au diamètre.", "Même avec des milliards de personnes, quelques intermédiaires suffisent : le diamètre (ou la distance moyenne) est petit."]
+  ];
+  def("sr-milgram", () => {
+    const t = pick(["puissance", "puissance", "seuil", "chaine", "chaine", "banque"]);
+    if (t === "banque") return banque(MILGRAM, "", ["Expérience de Milgram (1967) : des lettres passent de connaissance en connaissance jusqu'à un destinataire inconnu.", "Idée du petit monde : quelques intermédiaires suffisent à relier deux personnes."]);
+    if (t === "puissance") {
+      const n = pick([20, 50, 100, 150, 200, 300]), k = pick([2, 3, 3, 4]), att = n ** k;
+      if (att > 1e10) return null;
+      return { enonce: `On suppose que chaque personne connaît ${m$(n)} personnes, toutes différentes (pas de connaissances communes, pour simplifier). Combien de personnes peut-on atteindre en exactement ${m$(k)} étapes (amis d'amis…) ?`, mode: "nombre", prefixe: "Nombre de personnes :", attendu: att,
+        erreurs: [{ valeur: n * k, message: "À chaque étape, chaque personne en touche " + n + " nouvelles : on **multiplie** par " + n + " à chaque étape." }, { valeur: k ** n > 1e15 ? -1 : k ** n, message: "C'est $" + n + "$ multiplié par lui-même $" + k + "$ fois." }],
+        aides: [`Étape $1$ : $${n}$ personnes. Étape $2$ : chacune en connaît $${n}$, soit $${n} \\times ${n} = ${nb(n * n)}$.`, `En $${k}$ étapes : $${n}^{${k}}$.`, `Calcule $${n}^{${k}}$.`],
+        solution: `$${n}^{${k}} = ${nb(att)}$ personnes. Le nombre grandit extrêmement vite : c'est l'idée du petit monde.` };
+    }
+    if (t === "seuil") {
+      const n = pick([30, 50, 100, 150, 200, 500, 1000]); let k = 1; while (n ** k < 8e9) k++;
+      return { enonce: `Chaque personne connaît ${m$(n)} personnes, toutes différentes. Combien d'étapes faut-il au minimum pour que le nombre de personnes atteintes dépasse la population mondiale (environ $8$ milliards) ?`, mode: "nombre", prefixe: "Nombre d'étapes :", attendu: k,
+        erreurs: [{ valeur: k - 1, message: `$${n}^{${k - 1}} = ${nb(n ** (k - 1))}$ : pas encore $8$ milliards.` }],
+        aides: [`En $k$ étapes on atteint $${n}^k$ personnes.`, "$8$ milliards $= 8\\,000\\,000\\,000$.", `Calcule $${n}^{${k - 1}}$ et $${n}^{${k}}$.`],
+        solution: `$${n}^{${k - 1}} = ${nb(n ** (k - 1))} < 8\\,000\\,000\\,000$ mais $${n}^{${k}} = ${nb(n ** k)}$ dépasse $8$ milliards : il faut ${m$(k)} étapes. En réalité, les amis de nos amis sont souvent nos amis, donc il en faut un peu plus : environ six.` };
+    }
+    const noms = shuffle(PRENOMS.slice()), k = rand(2, 6), ch = noms.slice(0, k + 2), liens = pick([true, false]);
+    return { enonce: `Une lettre suit la chaîne de connaissances : ${ch.join(" → ")}. Combien ${liens ? "de **liens** (passages de main en main)" : "d'**intermédiaires** (personnes entre l'expéditeur et le destinataire)"} y a-t-il ?`, mode: "nombre", prefixe: liens ? "Liens :" : "Intermédiaires :", attendu: liens ? k + 1 : k,
+      erreurs: [{ valeur: liens ? k : k + 1, message: liens ? "On compte les flèches, pas les personnes du milieu." : "On ne compte pas l'expéditeur et le destinataire, seulement les personnes entre les deux." }, { valeur: k + 2, message: "On ne compte pas toutes les personnes de la chaîne." }],
+      aides: ["Expéditeur : le premier ; destinataire : le dernier.", liens ? "Compte les flèches →." : "Compte les personnes entre le premier et le dernier.", `Il y a ${m$(k + 2)} personnes dans la chaîne.`],
+      solution: `${m$(k + 2)} personnes, donc ${pluriel(k + 1, "lien")} et ${pluriel(k, "intermédiaire")}. Milgram mesurait environ $5$ intermédiaires, soit $6$ liens.` };
+  });
+
+  /* ---------- Modèle économique ---------- */
+  const ECO = [
+    ["Quelle est la principale source de revenus de la plupart des réseaux sociaux gratuits ?", "la publicité ciblée", ["les dons des utilisateurs", "les impôts", "la vente de téléphones"], "Pense à ce que tu vois entre deux publications.", "Les annonceurs paient pour montrer leurs publicités aux personnes qui les intéressent ; c'est l'essentiel des revenus."],
+    ["Que signifie le slogan « Quand c'est gratuit, c'est toi le produit » ?", "tu paies avec tes données et ton attention", ["les réseaux sociaux te paient", "tu dois acheter un produit", "le service est vraiment gratuit pour tout le monde"], "Que vend le réseau aux annonceurs ?", "Le réseau vend aux annonceurs l'accès à ton attention, ciblée grâce à tes données."],
+    ["Pourquoi un réseau social veut-il que tu restes le plus longtemps possible ?", "plus tu restes, plus tu vois de publicités", ["pour économiser ta batterie", "pour que tu sois plus intelligent", "parce que la loi l'oblige"], "Temps passé = publicités vues.", "Défilement infini, vidéos qui s'enchaînent, notifications : tout est fait pour capter l'attention."],
+    ["Laquelle de ces données aide le plus à cibler une publicité ?", "les publications que tu aimes et le temps passé sur chacune", ["la couleur de ton téléphone", "le nombre de lettres de ton prénom", "l'heure de ton réveil"], "Qu'est-ce qui révèle tes goûts ?", "Tes « j'aime », ce que tu regardes longtemps, tes recherches et ta position permettent de deviner tes centres d'intérêt."],
+    ["Quelle autre source de revenus existe sur certains réseaux sociaux ?", "les abonnements payants et les achats dans l'application", ["les amendes", "la vente d'électricité", "les cotisations obligatoires"], "Certains proposent une version « premium ».", "Abonnements (badge, fonctions en plus), cadeaux virtuels en direct, commissions sur les ventes complètent la publicité."],
+    ["Un « influenceur » qui fait la promotion d'un produit contre de l'argent doit :", "l'indiquer clairement (publicité, collaboration commerciale)", ["le cacher", "ne rien dire si le produit est bon", "le dire seulement en privé"], "C'est une loi de 2023.", "En France, la loi du 9 juin 2023 oblige à signaler clairement les contenus sponsorisés."],
+    ["Pourquoi un réseau social veut-il connaître ta position ?", "pour te montrer des publicités de commerces proches", ["pour t'envoyer du courrier", "pour régler l'heure", "pour mesurer ta vitesse de connexion"], "Pense aux publicités « près de chez toi ».", "La position est une donnée très précieuse pour la publicité locale."],
+    ["Un réseau social vaut des centaines de milliards d'euros alors qu'il est gratuit, parce que :", "il possède l'attention et les données de milliards d'utilisateurs", ["il vend des ordinateurs", "l'État le finance", "ses utilisateurs paient chaque message"], "Que vend-il ?", "Sa valeur vient du nombre d'utilisateurs et de ce qu'il sait d'eux, qui permet une publicité très ciblée."],
+    ["Les séries de jours consécutifs (« flammes ») servent surtout à :", "te faire revenir chaque jour sur l'application", ["mesurer ton niveau scolaire", "économiser des données", "protéger ton compte"], "Que se passe-t-il si tu rates un jour ?", "La peur de perdre sa série pousse à ouvrir l'application tous les jours : plus de temps, plus de publicités."],
+    ["Qui paie vraiment un réseau social gratuit ?", "les annonceurs", ["les utilisateurs, en euros", "l'État", "les opérateurs téléphoniques"], "Qui achète les espaces de publicité ?", "Ce sont les annonceurs qui paient ; les utilisateurs « paient » en attention et en données."]
+  ];
+  def("sr-economie", () => {
+    const t = pick(["banque", "banque", "arpu", "cpm", "pubs"]);
+    if (t === "banque") return banque(ECO, "", ["Modèle économique : le service est gratuit, les annonceurs paient pour atteindre les utilisateurs.", "Plus le réseau connaît ses utilisateurs, plus la publicité est ciblée… et chère."]);
+    if (t === "arpu") {
+      const U = pick([0.5, 1, 2, 2.5, 3, 4]), a = pick([10, 12, 15, 20, 25, 30, 40, 45, 50]), R = U * a;
+      return { enonce: `Un réseau social (fictif) a ${m$(U)} milliard${U >= 2 ? "s" : ""} d'utilisateurs et gagne ${m$(R)} milliards d'euros par an grâce à la publicité. Combien gagne-t-il en moyenne par utilisateur et par an ?`, mode: "nombre", prefixe: "Par utilisateur :", suffixe: "€", attendu: a,
+        erreurs: [{ valeur: R * U, message: "On partage les revenus entre les utilisateurs : c'est une division." }, { valeur: +(U / R).toFixed(6), message: "Revenus $\\div$ nombre d'utilisateurs, pas l'inverse." }],
+        aides: ["Revenu moyen par utilisateur $=$ revenus $\\div$ nombre d'utilisateurs.", "Les deux sont en milliards : les milliards se simplifient.", `Calcule $${nb(R)} \\div ${nb(U)}$.`],
+        solution: `$${nb(R)}$ milliards $\\div ${nb(U)}$ milliard${U >= 2 ? "s" : ""} $= ${nb(a)}$ € par utilisateur et par an. Chaque utilisateur « rapporte » donc environ ${m$(a)} € de publicité.` };
+    }
+    if (t === "cpm") {
+      const c = pick([2, 3, 4, 5, 6, 8, 10]), N = pick([10, 20, 50, 100, 200, 500]) * 1000;
+      return { enonce: `Une marque paie ${m$(c)} € pour $1\\,000$ affichages de sa publicité. Combien paie-t-elle pour ${m$(N)} affichages ?`, mode: "nombre", prefixe: "Coût :", suffixe: "€", attendu: (c * N) / 1000,
+        erreurs: [{ valeur: c * N, message: `Le prix ${m$(c)} € est pour $1\\,000$ affichages, pas pour un seul.` }],
+        aides: ["C'est une situation de proportionnalité.", `$${nb(N)}$ affichages, c'est $${nb(N / 1000)}$ fois $1\\,000$ affichages.`, `Calcule $${nb(N / 1000)} \\times ${c}$.`],
+        solution: `$${nb(N)} \\div 1\\,000 = ${nb(N / 1000)}$, et $${nb(N / 1000)} \\times ${c} = ${nb((c * N) / 1000)}$ €.` };
+    }
+    const h = pick([1, 2, 3]), mi = pick([0, 30]), k = pick([2, 3, 5, 6]), T = h * 60 + mi;
+    if (T % k) return null;
+    return { enonce: `Ibrahim passe ${m$(h)} h${mi ? ` ${m$(mi)}` : ""} par jour sur un réseau social. Une publicité apparaît en moyenne toutes les ${m$(k)} minutes. Combien de publicités voit-il par jour ?`, mode: "nombre", prefixe: "Publicités :", attendu: T / k,
+      erreurs: [{ valeur: T * k, message: "On cherche combien de fois " + k + " minutes « entrent » dans le temps passé : division." }, { valeur: (h * 100 + mi) / k, message: "Une heure fait $60$ minutes, pas $100$." }],
+      aides: ["Convertis le temps en minutes.", `${m$(h)} h${mi ? ` ${m$(mi)}` : ""} $= ${T}$ minutes.`, `Calcule $${T} \\div ${k}$.`],
+      solution: `$${T} \\div ${k} = ${T / k}$ publicités par jour, soit environ ${m$((T / k) * 365)} par an. C'est ce temps d'attention que le réseau vend aux annonceurs.` };
+  });
+
+  /* ---------- Identité numérique, traces, authentification ---------- */
+  const TRACES = [
+    ["tu publies une photo de ton anniversaire", 0], ["tu écris un commentaire sous une vidéo", 0], ["tu mets un « j'aime » sous une publication", 0], ["tu remplis ta biographie sur ton profil", 0], ["tu partages une vidéo dans ta story", 0], ["tu changes ta photo de profil", 0], ["tu réponds à un sondage dans une story", 0], ["tu rejoins un groupe public", 0],
+    ["l'application enregistre ta position quand tu te déplaces", 1], ["le réseau note combien de temps tu regardes chaque vidéo", 1], ["un site enregistre ton adresse IP et ton navigateur", 1], ["un moteur de recherche garde l'historique de tes recherches", 1], ["un cookie te suit de site en site", 1], ["ton téléphone envoie la liste de tes applications installées", 1], ["une enceinte connectée enregistre tes demandes vocales", 1], ["la carte de fidélité d'un magasin enregistre tes achats", 1],
+    ["un ami t'identifie sur une photo de soirée", 2], ["une camarade publie une vidéo de la classe où tu apparais", 2], ["le club de foot met ton nom dans les résultats en ligne", 2], ["un article du journal local cite ton nom", 2], ["un camarade te mentionne dans un commentaire", 2], ["le lycée publie la photo de classe sur son site", 2],
+    ["tu discutes avec un ami dans la cour, sans téléphone", 3], ["tu écris dans ton journal intime en papier", 3], ["tu lis un livre papier à la maison", 3]
+  ];
+  const TYPES_T = ["une trace volontaire (que tu laisses toi-même)", "une trace involontaire (enregistrée sans que tu t'en rendes compte)", "une trace laissée par quelqu'un d'autre", "aucune trace numérique"];
+  const IDENTITE = [
+    ["L'identité numérique, c'est :", "l'ensemble des traces qu'on laisse en ligne", ["seulement son pseudo", "seulement son mot de passe", "sa carte d'identité scannée"], "Pense à tout ce qu'on trouve sur toi en ligne.", "Profils, publications, commentaires, photos où l'on apparaît, données enregistrées : tout cela forme l'identité numérique."],
+    ["L'e-réputation, c'est :", "l'image qu'une personne ou une entreprise a sur Internet", ["la vitesse de sa connexion", "le nombre de ses appareils", "le prix de son abonnement"], "« e » comme électronique.", "C'est ce que les autres pensent de toi en voyant ce qu'on trouve en ligne : un futur employeur peut chercher ton nom."],
+    ["S'identifier, c'est :", "dire qui on est (donner son identifiant)", ["prouver qui on est", "créer un compte", "changer de mot de passe"], "Identifier, c'est nommer.", "L'identification annonce l'identité (identifiant, adresse électronique) ; l'authentification la prouve."],
+    ["S'authentifier, c'est :", "prouver qu'on est bien la personne annoncée (mot de passe, code reçu…)", ["dire son nom", "publier une photo", "accepter les cookies"], "Authentique veut dire vrai.", "Mot de passe, code reçu par SMS, empreinte digitale : ce sont des moyens d'authentification."],
+    ["La double authentification consiste à :", "demander en plus du mot de passe un code reçu sur un autre appareil", ["écrire deux fois son mot de passe", "avoir deux comptes", "utiliser deux navigateurs"], "Deux preuves valent mieux qu'une.", "Même si le mot de passe est volé, le pirate n'a pas le code envoyé sur ton téléphone : le compte reste protégé."],
+    ["Pour qu'un mot de passe soit robuste, il vaut mieux :", "qu'il soit long, sans mot du dictionnaire ni information personnelle", ["qu'il contienne ton prénom et ta date de naissance", "qu'il soit le même partout", "qu'il soit court pour s'en souvenir"], "La longueur compte beaucoup.", "Une phrase de passe longue (plusieurs mots au hasard) est difficile à deviner et facile à retenir ; un mot de passe différent par site."],
+    ["Un faux compte qui utilise le nom et les photos de quelqu'un d'autre, c'est :", "une usurpation d'identité, punie par la loi", ["un pseudonyme autorisé", "une blague sans conséquence", "un compte certifié"], "Se faire passer pour quelqu'un…", "L'usurpation d'identité en ligne est un délit (article 226-4-1 du code pénal) : 1 an de prison et 15 000 € d'amende."],
+    ["Tu veux faire supprimer de vieilles publications gênantes. Quel droit t'aide ?", "le droit à l'effacement (droit à l'oubli)", ["le droit de vote", "le droit d'auteur", "le droit du travail"], "Ce droit vient du RGPD.", "Le RGPD permet de demander l'effacement de ses données, renforcé pour ce qui a été publié quand on était mineur. La CNIL peut aider."],
+    ["Une photo publiée « pour rire » à 14 ans peut-elle gêner plus tard ?", "oui : elle peut être copiée et retrouvée des années après", ["non, tout s'efface au bout d'un an", "non, les photos ne sont pas des données", "seulement si elle est en couleur"], "Pense aux captures d'écran et aux moteurs de recherche.", "Ce qui est publié peut être copié, partagé, archivé : l'e-réputation se construit dès maintenant."],
+    ["Pourquoi utiliser un pseudonyme plutôt que son vrai nom sur un réseau de jeux ?", "pour limiter ce qu'un inconnu peut apprendre sur soi", ["parce que c'est obligatoire", "pour gagner plus de points", "pour que le réseau ne collecte aucune donnée"], "Que voit un inconnu ?", "Un pseudonyme protège l'identité civile ; le réseau, lui, collecte quand même des données."],
+    ["Un message te demande ton mot de passe « pour vérifier ton compte ». C'est :", "une tentative d'hameçonnage : aucun service ne demande ton mot de passe ainsi", ["une procédure normale", "un message de la CNIL", "une obligation légale"], "Un service sérieux ne demande jamais ton mot de passe.", "On ne donne jamais son mot de passe, même à un ami ou à un faux « support technique »."],
+    ["Que trouve un employeur en tapant ton nom dans un moteur de recherche ?", "ton identité numérique publique : profils, photos, commentaires publics", ["rien, c'est interdit", "seulement ton CV", "seulement tes notes du lycée"], "Ce qui est public est visible par tous.", "D'où l'intérêt de vérifier régulièrement ce qu'on trouve sur soi et de régler sa confidentialité."],
+    ["Quel organisme français protège les données personnelles ?", "la CNIL", ["la SNCF", "le CNES", "l'INSEE"], "Commission nationale de l'informatique et des libertés.", "La CNIL conseille, contrôle les entreprises et reçoit les plaintes des citoyens."]
+  ];
+  def("sr-identite", () => {
+    if (Math.random() < 0.5) return banque(IDENTITE, "", ["Identité numérique : tout ce qu'on peut savoir de toi en ligne. Identification : dire qui on est ; authentification : le prouver.", "Le RGPD et la CNIL protègent tes données personnelles."]);
+    const [a, k] = pick(TRACES), c = choix4(TYPES_T[k], TYPES_T.filter((_, j) => j !== k));
+    return { enonce: `Quand ${a}, cela laisse :`, mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: ["Trace volontaire : ce que tu publies toi-même. Trace involontaire : ce que les services enregistrent sur toi. Trace héritée : ce que les autres publient sur toi.", "Demande-toi qui agit : toi, une machine, ou une autre personne ?", "Sans appareil connecté, rien n'est enregistré en ligne."],
+      solution: `C'est ${TYPES_T[k]}. ${["Tu choisis de la laisser, mais elle peut être copiée et rester très longtemps.", "Les services numériques enregistrent beaucoup de choses sans le dire clairement : c'est pour cela qu'il faut régler ses paramètres.", "Ton identité numérique dépend aussi des autres : on peut leur demander de retirer un contenu.", "Rien n'est enregistré par un service numérique."][k]}` };
+  });
+
+  /* ---------- Mots de passe : combien de possibilités ? ---------- */
+  const MOTS_PHRASE = ["Mangue", "Lagon", "Baobab", "Tortue", "Volcan", "Ylang", "Pirogue", "Corail", "Mangrove", "Dauphin", "Vanille", "Coco"];
+  def("sr-motdepasse", () => {
+    const t = pick(["code", "code", "temps", "robuste", "robuste", "lettres"]);
+    if (t === "code") {
+      const L = pick([3, 4, 5, 6, 7, 8]);
+      return { enonce: `Un code n'utilise que des chiffres de $0$ à $9$ et compte ${m$(L)} chiffres. Combien de codes différents existe-t-il ?`, mode: "nombre", prefixe: "Nombre de codes :", attendu: 10 ** L,
+        erreurs: [{ valeur: 10 * L, message: "Chaque chiffre a $10$ possibilités et elles se **multiplient**." }, { valeur: 10 ** L - 1, message: "On compte aussi le code avec que des $0$." }],
+        aides: ["Pour le premier chiffre : $10$ possibilités ; pour chacune, $10$ pour le deuxième…", `Il y a donc $10^{${L}}$ codes.`, `$10^{${L}} = 1$ suivi de $${L}$ zéros.`],
+        solution: `$10 \\times 10 \\times \\dots$ ($${L}$ fois) $= 10^{${L}} = ${nb(10 ** L)}$ codes.` };
+    }
+    if (t === "temps") {
+      const L = pick([4, 6]), v = pick([1, 10, 100, 1000]), att = 10 ** L / v;
+      return { enonce: `Un pirate essaie tous les codes de ${m$(L)} chiffres, au rythme de ${m$(v)} essai${v > 1 ? "s" : ""} par seconde. Combien de secondes lui faut-il **au maximum** ?`, mode: "nombre", prefixe: "Temps :", suffixe: "s", attendu: att,
+        erreurs: [{ valeur: 10 ** L * v, message: "Temps $=$ nombre d'essais $\\div$ vitesse." }],
+        aides: [`Il y a $10^{${L}} = ${nb(10 ** L)}$ codes possibles.`, `Il en teste $${nb(v)}$ par seconde.`, `Calcule $${nb(10 ** L)} \\div ${nb(v)}$.`],
+        solution: `$${nb(10 ** L)} \\div ${nb(v)} = ${nb(att)}$ s${att >= 3600 ? `, soit environ ${m$(Math.round(att / 3600))} h` : att >= 120 ? `, soit environ ${m$(Math.round(att / 60))} min` : ""}. C'est pour cela que les téléphones bloquent après quelques erreurs.` };
+    }
+    if (t === "lettres") {
+      const [c, nom] = pick([[26, "lettres minuscules"], [52, "lettres minuscules et majuscules"], [62, "lettres minuscules, majuscules et chiffres"]]), L = pick([6, 8, 10, 12]);
+      const cf = choix4(`$${c}^{${L}}$`, [`$${L}^{${c}}$`, `$${c} \\times ${L}$`, `$${c} + ${L}$`, `$${L}^{2}$`]);
+      return { enonce: `Un mot de passe de ${m$(L)} caractères utilise des ${nom} (${m$(c)} caractères possibles). Combien y a-t-il de mots de passe possibles ?`, mode: "choix", choix: cf.choix, attendu: cf.attendu,
+        aides: [`Chaque caractère a $${c}$ possibilités.`, "Les possibilités des différents caractères se multiplient.", `$${c}$ multiplié par lui-même $${L}$ fois.`],
+        solution: `$${c} \\times ${c} \\times \\dots$ ($${L}$ fois) $= ${c}^{${L}}$, soit environ $${(c ** L).toExponential(1).replace(".", "{,}").replace(/e\+(\d+)/, " \\times 10^{$1}")}$. Ajouter des caractères possibles et surtout allonger le mot de passe fait exploser ce nombre.` };
+    }
+    const m = shuffle(MOTS_PHRASE.slice()), p = shuffle(PRENOMS.slice())[0];
+    const fort = `${m[0]}-${m[1]}-${rand(10, 99)}-${m[2]}!`;
+    const c = choix4(cd(fort), shuffle([cd("azerty"), cd("123456789"), cd(p + "2010"), cd("motdepasse"), cd(p.toLowerCase() + rand(1, 31)), cd(m[3].toLowerCase()), cd("Mayotte976")]));
+    return { enonce: "Lequel de ces mots de passe est le plus **robuste** ?", mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: ["Les pirates essaient d'abord les mots de passe courants, les mots du dictionnaire et les prénoms avec des dates.", "Plus un mot de passe est long et varié, plus il y a de possibilités.", "Une suite de plusieurs mots au hasard, avec chiffres et symboles, est à la fois longue et facile à retenir."],
+      solution: `${cd(fort)} : ${m$(fort.length)} caractères, plusieurs mots sans lien, des chiffres et des symboles. Les autres sont courts, courants (\`azerty\`, \`123456789\`) ou faciles à deviner (prénom, date, mot du dictionnaire).` };
+  });
+
+  /* ---------- Bulle de filtre ---------- */
+  const THEMES_F = ["foot", "musique", "jeux vidéo", "cuisine", "sciences", "humour", "mode", "actualité"];
+  const BULLE = [
+    ["Pourquoi ton fil d'actualité ne ressemble-t-il pas à celui de ton voisin ?", "il dépend de tes amis, de tes abonnements et de tes « j'aime »", ["c'est le hasard total", "tout le monde voit le même fil", "il dépend de la marque du téléphone"], "Qui choisit ce que tu vois ?", "L'algorithme du réseau choisit les publications selon tes relations et tes réactions passées."],
+    ["Une bulle de filtre, c'est :", "le fait de ne plus voir que des contenus proches de ce qu'on aime déjà", ["un filtre photo", "une application anti-virus", "un groupe de discussion privé"], "On s'enferme sans s'en rendre compte.", "En montrant surtout ce qui nous plaît, l'algorithme réduit la diversité des points de vue."],
+    ["Comment sortir un peu de sa bulle de filtre ?", "suivre des sources variées et chercher activement d'autres points de vue", ["liker encore plus les mêmes contenus", "ne suivre que ses amis proches", "désactiver son écran"], "Varier ses abonnements.", "Diversifier ses sources, comparer plusieurs médias, utiliser le fil « chronologique » quand il existe."],
+    ["Pourquoi une fausse information circule-t-elle souvent plus vite qu'une vraie ?", "elle provoque plus d'émotion, donc plus de partages", ["elle est vérifiée par l'algorithme", "elle est plus courte à télécharger", "les réseaux la mettent en avant volontairement par erreur"], "Qu'est-ce que l'algorithme favorise ?", "Les contenus qui choquent ou font réagir sont plus partagés, et l'algorithme met en avant ce qui fait réagir."],
+    ["Avant de partager une information choquante, il faut :", "vérifier sa source et la chercher sur d'autres sites fiables", ["la partager vite pour prévenir tout le monde", "regarder seulement le nombre de « j'aime »", "faire confiance à l'ami qui l'a envoyée"], "Qui l'a publiée en premier ?", "Une information vérifiée vient d'une source identifiable et est reprise par des médias sérieux."]
+  ];
+  def("sr-bulle", () => {
+    if (Math.random() < 0.25) return banque(BULLE, "", ["Ton fil est choisi par un algorithme à partir de tes amis, de tes abonnements et de tes réactions.", "Plus tu réagis à un type de contenu, plus tu en vois : c'est la bulle de filtre."]);
+    const T = shuffle(THEMES_F.slice()).slice(0, 3), l = [rand(2, 9), rand(1, 6), rand(1, 5)], tot = l[0] + l[1] + l[2], N = tot * pick([2, 3, 4, 5, 6]);
+    const k = rand(0, 2);
+    const fig = tableHTML([["Thème", "Tes « j'aime » cette semaine"]].concat(T.map((x, j) => [x, String(l[j])])));
+    return { enonce: `L'algorithme d'un réseau (fictif) remplit ton fil proportionnellement à tes « j'aime » de la semaine. Sur tes ${m$(N)} prochaines publications, combien parleront de **${T[k]}** ?`, figure: fig, mode: "nombre", prefixe: "Publications :", attendu: (N * l[k]) / tot,
+      erreurs: [{ valeur: l[k], message: "On applique la proportion des « j'aime » au nombre de publications." }, { valeur: N / 3, message: "Les thèmes ne sont pas à égalité : ils dépendent de tes « j'aime »." }].filter((e) => Math.abs(e.valeur - (N * l[k]) / tot) > 1e-9),
+      aides: [`En tout : $${l.join(" + ")} = ${tot}$ « j'aime ».`, `Proportion de ${T[k]} : $\\dfrac{${l[k]}}{${tot}}$.`, `Calcule $${N} \\times ${l[k]} \\div ${tot}$.`],
+      solution: `$${N} \\times \\dfrac{${l[k]}}{${tot}} = ${nb((N * l[k]) / tot)}$ publications. Plus tu aimes un thème, plus il prend de place : ton fil se resserre sur lui.` };
+  });
+
+  /* ---------- Cyberviolence : formes, loi, ressources ---------- */
+  const CYBER = [
+    ["Des messages moqueurs répétés sont envoyés chaque jour à un élève sur une messagerie.", "le cyberharcèlement"], ["Des dizaines de comptes inconnus inondent de commentaires insultants la publication d'une personne, chacun une seule fois.", "le harcèlement en meute (raid numérique)"], ["Quelqu'un crée un faux profil avec le nom et les photos d'une camarade pour publier à sa place.", "l'usurpation d'identité"], ["Une photo intime envoyée en privé est partagée à toute la classe sans l'accord de la personne.", "la diffusion d'images intimes sans consentement"],
+    ["Un inconnu menace de publier une photo intime si on ne lui envoie pas d'argent ou d'autres photos.", "la sextorsion (chantage)"], ["Des commentaires visent une personne à cause de sa couleur de peau, de sa religion ou de son origine.", "les propos discriminatoires (haineux)"], ["Une bagarre est filmée et la vidéo est publiée pour humilier la victime.", "le happy slapping (vidéo d'agression)"], ["Quelqu'un publie l'adresse et le numéro de téléphone d'une personne pour qu'on vienne l'embêter.", "la divulgation de données personnelles (doxing)"],
+    ["Un groupe de discussion est créé exprès pour se moquer d'un élève qui n'en fait pas partie.", "le cyberharcèlement"], ["On envoie des messages ou photos à caractère sexuel à quelqu'un qui n'a rien demandé.", "l'envoi de contenus sexuels non sollicités"]
+  ];
+  const FORMES = [...new Set(CYBER.map((c) => c[1]))];
+  const PEINES = ["1 an de prison et 15 000 € d'amende", "2 ans de prison et 30 000 € d'amende", "3 ans de prison et 45 000 € d'amende", "10 ans de prison et 150 000 € d'amende"];
+  const CAS_LOI = [
+    ["Un adulte harcèle un collègue par des messages répétés, sans passer par Internet, sans incapacité de travail.", 0, "C'est le cas de base de l'article 222-33-2-2."],
+    ["Un adulte harcèle un autre adulte par des messages répétés sur un réseau social.", 1, "L'utilisation d'un service en ligne est une circonstance aggravante."],
+    ["Un adulte harcèle un adolescent de 14 ans, en face à face.", 1, "Une victime mineure est une circonstance aggravante."],
+    ["Un adulte harcèle un adolescent de 15 ans sur un réseau social.", 2, "Deux circonstances aggravantes : victime mineure et service en ligne."],
+    ["Un adulte harcèle en ligne une personne âgée dont la fragilité est connue.", 2, "Deux circonstances : personne vulnérable et service en ligne."],
+    ["Un élève est harcelé par des élèves de son lycée et fait une tentative de suicide.", 3, "Harcèlement scolaire (article 222-33-2-3) ayant conduit à une tentative de suicide."]
+  ];
+  const RESSOURCES = [
+    ["Quel numéro gratuit et anonyme appeler en cas de harcèlement ou de cyberharcèlement ?", "le 3018", ["le 18", "le 112", "le 3615"], "Numéro national contre le harcèlement.", "Le 3018 (gratuit, anonyme, 7 jours sur 7, aussi par tchat et application) aide les victimes et les témoins, et peut faire supprimer des contenus."],
+    ["Sur quelle plateforme de l'État signaler un contenu illicite en ligne (menaces, haine, pédocriminalité) ?", "Pharos", ["Pronote", "Parcoursup", "Ameli"], "Plateforme de la police et de la gendarmerie.", "internet-signalement.gouv.fr (Pharos) transmet les signalements à des enquêteurs."],
+    ["Tu es victime de messages humiliants. Quelle est la **première** chose utile à faire ?", "garder des preuves (captures d'écran) et en parler à un adulte de confiance", ["répondre par des insultes", "tout supprimer immédiatement", "ne rien dire à personne"], "Il faudra pouvoir prouver.", "Captures d'écran avec la date et le nom du compte, puis en parler : parents, CPE, professeur, infirmière, 3018. Ensuite bloquer et signaler."],
+    ["Tu es témoin d'un cyberharcèlement dans un groupe de ta classe. Que fais-tu ?", "je ne partage pas, je soutiens la victime et je préviens un adulte", ["je like pour rester dans le groupe", "je partage pour que tout le monde soit au courant", "je ne fais rien, ce n'est pas mon problème"], "Le témoin a un vrai pouvoir.", "Liker ou partager, c'est participer. Soutenir la victime et alerter un adulte peut tout arrêter."],
+    ["Que permet le bouton « Signaler » d'un réseau social ?", "demander à la plateforme de retirer un contenu ou un compte qui enfreint ses règles", ["envoyer le contenu à tous ses amis", "rendre le contenu plus visible", "porter plainte automatiquement"], "La plateforme a des obligations.", "Les plateformes doivent traiter les signalements ; en Europe, le règlement sur les services numériques (DSA) renforce ces obligations."],
+    ["Qui peut porter plainte pour cyberharcèlement ?", "la victime (avec ses parents si elle est mineure), au commissariat ou à la gendarmerie", ["seulement un avocat", "seulement le lycée", "personne si le harceleur est mineur"], "Un mineur peut être poursuivi.", "On peut porter plainte même contre un harceleur mineur ; les preuves (captures) sont précieuses."]
+  ];
+  def("sr-cyber", () => {
+    const t = pick(["forme", "forme", "loi", "ressource", "ressource"]);
+    if (t === "ressource") return banque(RESSOURCES, "", ["Contre la cyberviolence : garder des preuves, en parler, bloquer, signaler, appeler le 3018.", "Victime ou témoin, on n'est jamais seul : adultes du lycée, parents, 3018, Pharos."]);
+    if (t === "loi") {
+      const [cas, k, ex] = pick(CAS_LOI), c = choix4(PEINES[k], PEINES.filter((_, j) => j !== k));
+      return { enonce: `${cas} Quelle peine maximale l'auteur, majeur, encourt-il ?`, mode: "choix", choix: c.choix, attendu: c.attendu,
+        aides: ["Article 222-33-2-2 du code pénal : 1 an et 15 000 € ; 2 ans et 30 000 € avec une circonstance aggravante (victime mineure, personne vulnérable, service en ligne…) ; 3 ans et 45 000 € avec deux circonstances.", "Le harcèlement scolaire (article 222-33-2-3) va jusqu'à 10 ans et 150 000 € s'il conduit la victime au suicide ou à une tentative.", "Compte les circonstances aggravantes."],
+        solution: `**${PEINES[k]}**. ${ex} (Un auteur mineur encourt en principe la moitié de ces peines, mais il peut être jugé.)` };
+    }
+    const [s, f] = pick(CYBER), c = choix4(f, shuffle(FORMES.filter((x) => x !== f)));
+    return { enonce: `${s} De quelle forme de cyberviolence s'agit-il ?`, mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: ["Harcèlement : des actes répétés (ou commis par plusieurs personnes) qui dégradent la vie de la victime.", "Repère ce qui est fait : répéter, se faire passer pour quelqu'un, diffuser une image, menacer, discriminer…", "Toutes ces formes sont punies par la loi."],
+      solution: `C'est **${f}**. Toutes les formes de cyberviolence sont des délits ; la victime peut porter plainte, et le 3018 aide victimes et témoins.` };
+  });
+
+  /* ---------- Les réseaux sociaux existants ---------- */
+  // [nom, caractéristique, année de création, palier d'utilisateurs (0 : plusieurs milliards, 1 : plus d'un milliard, 2 : quelques centaines de millions, 3 : une à deux centaines de millions)]
+  const RS = [["Facebook", "des profils, des amis et des groupes, créé dans une université américaine", 2004, 0], ["YouTube", "des vidéos longues publiées sur des chaînes", 2005, 0], ["WhatsApp", "une messagerie chiffrée de bout en bout, avec des groupes", 2009, 0], ["Instagram", "des photos, des stories et des vidéos courtes (Reels)", 2010, 0], ["TikTok", "des vidéos courtes verticales choisies par un algorithme très puissant", 2016, 1], ["Snapchat", "des messages et des photos éphémères qui disparaissent après lecture", 2011, 2], ["LinkedIn", "un réseau professionnel : CV, recrutement, contacts de travail", 2003, 2], ["X (ex-Twitter)", "des messages courts publics, racheté par Elon Musk en 2022", 2006, 2], ["Pinterest", "des tableaux d'images épinglées pour trouver des idées", 2010, 2], ["Discord", "des serveurs de discussion écrite et vocale pour des communautés", 2015, 3], ["Twitch", "la diffusion de jeux vidéo et d'émissions en direct", 2011, 3]];
+  const PALIERS = ["plusieurs milliards d'utilisateurs", "plus d'un milliard d'utilisateurs", "quelques centaines de millions d'utilisateurs", "une à deux centaines de millions d'utilisateurs"];
+  def("sr-reseaux", () => {
+    const t = pick(["carac", "nom", "ancien", "plus", "ordre"]);
+    if (t === "carac" || t === "nom") {
+      const r = pick(RS), aut = shuffle(RS.filter((x) => x !== r));
+      const c = t === "carac" ? choix4(r[0], aut.map((x) => x[0])) : choix4(r[1], aut.map((x) => x[1]));
+      return { enonce: t === "carac" ? `Quel réseau social est connu pour ${r[1]} ?` : `Qu'est-ce qui caractérise ${r[0]} ?`, mode: "choix", choix: c.choix, attendu: c.attendu,
+        aides: ["Chaque réseau social a sa spécialité : messages, photos, vidéos courtes ou longues, travail, direct…", "Pense à ce qu'on y publie le plus souvent.", "Élimine ceux que tu connais bien."], solution: `**${r[0]}** (créé en ${r[2]}) : ${r[1]}.` };
+    }
+    if (t === "ancien") {
+      let E; do { E = shuffle(RS.slice()).slice(0, 4); } while (new Set(E.map((x) => x[2])).size < 4);
+      const tri = E.slice().sort((a, b) => a[2] - b[2]), c = choix4(tri[0][0], tri.slice(1).map((x) => x[0]));
+      return { enonce: "Lequel de ces réseaux sociaux est le plus **ancien** ?", mode: "choix", choix: c.choix, attendu: c.attendu,
+        aides: ["Les premiers grands réseaux datent du début des années 2000.", "TikTok et Discord sont parmi les plus récents.", "Facebook date de 2004."], solution: `Dans l'ordre : ${tri.map((x) => `${x[0]} (${x[2]})`).join(", ")}.` };
+    }
+    if (t === "plus") {
+      for (let k = 0; k < 50; k++) {
+        const E = shuffle(RS.slice()).slice(0, 4), tri = E.slice().sort((a, b) => a[3] - b[3]);
+        if (tri[1][3] - tri[0][3] < 2) continue;
+        const c = choix4(tri[0][0], tri.slice(1).map((x) => x[0]));
+        return { enonce: "Lequel de ces réseaux sociaux a le **plus d'utilisateurs** dans le monde ?", mode: "choix", choix: c.choix, attendu: c.attendu,
+          aides: ["Les plus grands réseaux comptent plusieurs milliards d'utilisateurs chaque mois, pour environ $8$ milliards d'humains.", "Les réseaux de Meta (Facebook, Instagram, WhatsApp) et YouTube sont les plus utilisés.", "Les réseaux spécialisés (travail, direct, communautés) sont plus petits."],
+          solution: `${tri[0][0]} a ${PALIERS[tri[0][3]]}. Les autres : ${tri.slice(1).map((x) => `${x[0]} (${PALIERS[x[3]]})`).join(" ; ")}. Ordres de grandeur annoncés par les entreprises en 2025.` };
+      }
+      return null;
+    }
+    const r = pick(RS.filter((x) => x[3] === 0 || x[3] === 3)), V = r[3] === 0 ? ["environ $3$ milliards", "environ $3$ millions", "environ $30\\,000$", "environ $300$ milliards"] : ["environ $200$ millions", "environ $2\\,000$", "environ $20$ milliards", "environ $200\\,000$"];
+    const c = choix4(V[0], V.slice(1));
+    return { enonce: `Quel est l'ordre de grandeur du nombre d'utilisateurs de ${r[0]} chaque mois dans le monde ?`, mode: "choix", choix: c.choix, attendu: c.attendu,
+      aides: ["La Terre compte environ $8$ milliards d'habitants : aucun réseau ne peut avoir plus d'utilisateurs.", r[3] === 0 ? "C'est l'un des plus grands réseaux du monde." : "C'est un réseau plus spécialisé.", "Élimine les nombres beaucoup trop petits pour un réseau mondial."],
+      solution: `${r[0]} : ${V[0].replace(/\$/g, "")} d'utilisateurs par mois (ordre de grandeur annoncé en 2025).`.replace(/(\d) (\d{3})/g, "$1 $2") };
+  });
+
+  /* ---------- Vrai ou faux : réseaux sociaux ---------- */
+  const VF_RS = [
+    ["Une publication supprimée peut avoir été copiée par d'autres avant.", true, "Captures d'écran, partages, archives : ce qui est publié peut circuler sans nous."],
+    ["La plupart des réseaux sociaux gratuits vivent de la publicité ciblée.", true, "Les annonceurs paient pour atteindre les utilisateurs grâce à leurs données."],
+    ["Le fil d'actualité dépend des amis et des « j'aime » de chacun.", true, "L'algorithme personnalise ce qu'il montre."],
+    ["Dans un « petit monde », deux personnes sont reliées par peu d'intermédiaires.", true, "Environ six liens dans l'expérience de Milgram, moins de quatre sur Facebook."],
+    ["La double authentification protège un compte même si le mot de passe est volé.", true, "Il faut aussi le code reçu sur un autre appareil."],
+    ["Le cyberharcèlement est puni par la loi, même s'il est commis par plusieurs personnes qui n'agissent qu'une fois chacune.", true, "L'article 222-33-2-2 vise aussi le harcèlement en meute."],
+    ["Le 3018 est un numéro gratuit et anonyme contre le harcèlement.", true, "Il aide les victimes et les témoins, 7 jours sur 7."],
+    ["En Europe, on peut demander à un réseau social une copie de ses données.", true, "C'est le droit d'accès du RGPD."],
+    ["Le rayon d'un graphe est inférieur ou égal à son diamètre.", true, "Le rayon est la plus petite excentricité, le diamètre la plus grande."],
+    ["Liker ou partager un message humiliant, c'est participer au harcèlement.", true, "Le témoin qui relaie amplifie la violence."],
+    ["Un compte privé rend ses publications invisibles même pour ses abonnés acceptés.", false, "Les abonnés acceptés voient les publications ; ce sont les inconnus qui ne les voient pas."],
+    ["Ce qui est publié en story disparaît définitivement de partout après 24 h.", false, "Une capture d'écran suffit à la garder ; la plateforme peut aussi la conserver."],
+    ["Un réseau social gratuit ne gagne pas d'argent.", false, "Il gagne beaucoup d'argent avec la publicité et les données."],
+    ["Tout le monde voit le même fil d'actualité.", false, "Chaque fil est personnalisé par l'algorithme."],
+    ["Le centre d'un graphe est toujours formé d'une seule personne.", false, "Plusieurs personnes peuvent avoir la même excentricité minimale."],
+    ["Un mot de passe court mais avec un symbole est toujours plus sûr qu'une longue phrase de passe.", false, "La longueur augmente beaucoup plus le nombre de possibilités."],
+    ["Un harceleur mineur ne risque rien.", false, "Un mineur peut être poursuivi ; la peine maximale est en principe divisée par deux."],
+    ["On peut publier la photo d'un camarade sans lui demander.", false, "Le droit à l'image impose son accord."],
+    ["L'expérience de Milgram a été réalisée sur Facebook.", false, "Elle date de 1967, avec des lettres papier."],
+    ["Bloquer un harceleur efface les preuves de ses messages.", false, "Il faut d'abord faire des captures d'écran, puis bloquer et signaler."],
+    ["En France, avant 15 ans, l'inscription à un réseau social demande aussi l'accord d'un parent.", true, "La loi Informatique et libertés fixe à 15 ans l'âge où l'on peut consentir seul à l'utilisation de ses données ; la loi du 7 juillet 2023 sur la « majorité numérique » veut renforcer ce contrôle."],
+    ["Les réseaux sociaux sont autorisés à tout savoir de ses utilisateurs sans leur accord.", false, "Le RGPD impose d'informer les utilisateurs et, souvent, de demander leur consentement."]
+  ];
+  def("sr-vrai-faux", () => vraiFaux4(VF_RS, ["Un seul mot (« toujours », « définitivement », « tout le monde ») peut rendre une affirmation fausse.", "Pense à la loi (harcèlement, droit à l'image, RGPD), aux graphes (rayon, diamètre, centre) et au modèle économique.", "Élimine les affirmations dont tu es sûr."]));
+
+  /* =====================================================================
+     FIGURES DU COURS ET ACTIVITÉS INTERACTIVES (réseaux sociaux)
+     ===================================================================== */
+  FIGURES["sr-cours-frise"] = () => frise([[1997, "SixDegrees, le premier réseau social"], [2003, "LinkedIn"], [2004, "Facebook"], [2005, "YouTube"], [2006, "Twitter (X depuis 2023)"], [2009, "WhatsApp"], [2010, "Instagram"], [2011, "Snapchat"], [2016, "TikTok (Douyin en Chine)"]], "Frise des réseaux sociaux : SixDegrees 1997, LinkedIn 2003, Facebook 2004, YouTube 2005, Twitter 2006, WhatsApp 2009, Instagram 2010, Snapchat 2011, TikTok 2016");
+  FIGURES["sr-cours-panorama"] = () => tableHTML([["Réseau", "Ce qu'on y fait", "Utilisateurs par mois"], ["Facebook", "profils, amis, groupes", "≈ 3 milliards"], ["YouTube", "vidéos sur des chaînes", "≈ 2,5 milliards"], ["WhatsApp", "messagerie, groupes", "≈ 3 milliards"], ["Instagram", "photos, stories, Reels", "≈ 2 à 3 milliards"], ["TikTok", "vidéos courtes", "plus d'1 milliard"], ["Snapchat", "messages éphémères", "≈ 900 millions"], ["LinkedIn", "réseau professionnel", "≈ 1 milliard d'inscrits"], ["X", "messages courts publics", "quelques centaines de millions"], ["Discord", "communautés, vocal", "≈ 200 millions"]]);
+  const GRAPHE_CLASSE = { noeuds: [["Anli", 34, 52], ["Zoé", 34, 160], ["Lina", 100, 106], ["Tom", 108, 26], ["Naël", 160, 168], ["Rose", 218, 106], ["Maya", 236, 30], ["Hugo", 292, 84], ["Sami", 284, 176]], liens: [["Anli", "Lina"], ["Anli", "Tom"], ["Zoé", "Lina"], ["Tom", "Lina"], ["Anli", "Zoé"], ["Lina", "Naël"], ["Naël", "Rose"], ["Rose", "Maya"], ["Rose", "Hugo"], ["Maya", "Hugo"], ["Hugo", "Sami"], ["Rose", "Sami"]] };
+  const GC_IDS = GRAPHE_CLASSE.noeuds.map((n) => n[0]);
+  const dessinClasse = (depuis) => {
+    const D = depuis ? distances(GC_IDS, GRAPHE_CLASSE.liens, depuis).D : null, P = {};
+    GRAPHE_CLASSE.noeuds.forEach(([id, x, y]) => (P[id] = { x, y }));
+    let s = GRAPHE_CLASSE.liens.map(([a, b]) => `<line x1="${P[a].x}" y1="${P[a].y}" x2="${P[b].x}" y2="${P[b].y}" style="stroke:var(--doux);stroke-width:2"/>`).join("");
+    const FOND = ["var(--ylang)", "color-mix(in srgb, var(--lagon) 85%, var(--surface))", "color-mix(in srgb, var(--lagon) 55%, var(--surface))", "color-mix(in srgb, var(--lagon) 30%, var(--surface))", "color-mix(in srgb, var(--lagon) 12%, var(--surface))"];
+    GRAPHE_CLASSE.noeuds.forEach(([id, x, y]) => {
+      const d = D ? D[id] : null;
+      s += `<g class="act-noeud" data-id="${id}" role="button" tabindex="0" aria-label="${id}${d !== null ? `, distance ${d}` : ""}" style="cursor:pointer"><circle cx="${x}" cy="${y}" r="20" style="fill:${d === null ? "var(--lagon-pale)" : FOND[Math.min(d, 4)]};stroke:${d === 0 ? "var(--ylang)" : "var(--lagon)"};stroke-width:2"/>` + txt(x, y + 4, id, { taille: 11, couleur: d !== null && d <= 1 ? "var(--surface)" : undefined }) + (d ? `<circle cx="${x + 16}" cy="${y - 16}" r="8" style="fill:var(--surface);stroke:var(--lagon)"/>` + txt(x + 16, y - 12.5, String(d), { taille: 10 }) : "") + `</g>`;
+    });
+    return svg(320, 200, s, depuis ? `Graphe de la classe : distances depuis ${depuis}` : "Graphe d'amitié de neuf élèves : Anli, Zoé, Lina et Tom d'un côté, Rose, Maya, Hugo et Sami de l'autre, reliés par Naël");
+  };
+  FIGURES["sr-cours-graphe"] = () => dessinClasse(null);
+  FIGURES["sr-cours-distances"] = () => dessinClasse("Lina");
+  FIGURES["sr-act-graphe"] = () => `<div class="act" data-activite="graphe"><p class="act-t">🔎 Touche un élève : chacun prend la couleur de sa distance à lui. Trouve qui est au centre de la classe !</p><div class="act-zone">${dessinClasse(null)}</div><p class="act-info" aria-live="polite">Aucun élève exploré pour l'instant.</p><p class="act-bilan"></p></div>`;
+  FIGURES["sr-cours-milgram"] = () => {
+    const E = [["Omaha", 40, 40], ["voisin", 120, 40], ["collègue", 200, 40], ["cousin", 280, 40], ["médecin", 280, 120], ["ami", 200, 120], ["Boston", 120, 120]];
+    let s = "";
+    E.forEach(([t, x, y], k) => { if (k) { const [, x0, y0] = E[k - 1]; s += fleche(x0 + (x > x0 ? 32 : x < x0 ? -32 : 0), y0 + (y > y0 ? 16 : 0), x + (x > x0 ? -34 : x < x0 ? 34 : 0), y - (y > y0 ? 16 : 0), { couleur: "var(--lagon)" }); } s += boite(x - 32, y - 15, 64, 30, t, { taille: 10, fond: k === 0 || k === E.length - 1 ? "var(--ylang-pale)" : "var(--lagon-pale)", trait: k === 0 || k === E.length - 1 ? "var(--ylang)" : "var(--lagon)" }); });
+    s += txt(160, 172, "5 intermédiaires, 6 liens : « six degrés de séparation »", { taille: 10, gras: false });
+    return svg(320, 182, s, "Chaîne de Milgram : d'Omaha à Boston, la lettre passe par un voisin, un collègue, un cousin, un médecin et un ami : cinq intermédiaires, six liens");
+  };
+  FIGURES["sr-cours-economie"] = () => svg(320, 190,
+    boite(110, 8, 100, 40, ["Réseau social", "(gratuit)"], { taille: 10, inter: 12, fond: "var(--ylang-pale)", trait: "var(--ylang)" }) + boite(6, 132, 110, 46, ["Utilisateurs"], { taille: 11 }) + boite(204, 132, 110, 46, ["Annonceurs"], { taille: 11 }) +
+    fleche(70, 128, 120, 52, { couleur: "var(--lagon)" }) + txt(56, 84, "temps, données,", { taille: 9, gras: false }) + txt(56, 96, "« j'aime »", { taille: 9, gras: false }) +
+    fleche(200, 52, 250, 128, { couleur: "var(--lagon)" }) + txt(264, 84, "profils ciblés", { taille: 9, gras: false }) +
+    fleche(242, 128, 192, 54) + txt(186, 100, "€", { taille: 13 }) + fleche(202, 162, 118, 162) + txt(160, 154, "publicités ciblées", { taille: 9, gras: false }),
+    "Modèle économique : les utilisateurs donnent leur temps et leurs données au réseau gratuit ; le réseau vend des profils ciblés aux annonceurs, qui paient et diffusent des publicités ciblées vers les utilisateurs");
+  FIGURES["sr-cours-traces"] = () => tableHTML([["Volontaires", "Involontaires", "Laissées par d'autres"], ["publications, commentaires, « j'aime », profil", "position, temps passé, adresse IP, cookies, recherches", "photos où l'on t'identifie, vidéos, articles"]]);
+  FIGURES["sr-cours-auth"] = () => svg(320, 150,
+    boite(8, 10, 140, 54, ["1. Identification", "« Je suis anli.m »"], { taille: 10, inter: 14 }) + boite(172, 10, 140, 54, ["2. Authentification", "« Voici mon mot de passe »"], { taille: 10, inter: 14, fond: "var(--ylang-pale)", trait: "var(--ylang)" }) + fleche(150, 37, 170, 37) +
+    boite(90, 90, 140, 50, ["3. Double authentification", "code reçu sur le téléphone"], { taille: 10, inter: 14, fond: "var(--surface)", trait: "var(--bon)" }) + fleche(242, 66, 200, 88, { tirets: true }),
+    "Identification (dire qui on est), authentification (le prouver par un mot de passe), double authentification (un code reçu sur le téléphone en plus)");
+  FIGURES["sr-cours-bulle"] = () => svg(320, 170,
+    boite(10, 60, 80, 44, ["Tu aimes", "du foot"], { taille: 10, inter: 13 }) + boite(120, 10, 80, 44, ["L'algorithme", "le note"], { taille: 10, inter: 13, fond: "var(--ylang-pale)", trait: "var(--ylang)" }) + boite(230, 60, 80, 44, ["Il te montre", "plus de foot"], { taille: 10, inter: 13 }) + boite(120, 112, 80, 44, ["Tu vois moins", "le reste"], { taille: 10, inter: 13, fond: "var(--surface)", trait: "var(--faux)" }) +
+    fleche(80, 58, 118, 36, { couleur: "var(--lagon)" }) + fleche(202, 36, 240, 58, { couleur: "var(--lagon)" }) + fleche(240, 106, 202, 128, { couleur: "var(--lagon)" }) + fleche(118, 128, 80, 106, { couleur: "var(--lagon)" }),
+    "Bulle de filtre : tu aimes du foot, l'algorithme le note, il te montre plus de foot, tu vois moins le reste, et tu aimes encore plus de foot");
+  FIGURES["sr-cours-ressources"] = () => tableHTML([["Ressource", "Pour quoi faire"], ["Un adulte du lycée (CPE, professeur, infirmière), tes parents", "en parler, être protégé"], ["3018 (gratuit, anonyme, 7 j/7)", "conseils, aide pour faire retirer des contenus"], ["Bouton « Signaler » du réseau", "faire retirer un contenu ou un compte"], ["internet-signalement.gouv.fr (Pharos)", "signaler un contenu illicite à la police"], ["Commissariat, gendarmerie", "porter plainte (avec des captures d'écran)"]]);
+
+  // Fil d'actualité : comptes suivis et « j'aime » → publications montrées
+  const FIL = [["⚽", "Foot", ["Le résumé du match de samedi", "Top 10 des plus beaux buts", "La rumeur de transfert du jour", "Le geste technique à apprendre", "Le classement après la journée", "Interview du capitaine"]], ["🎮", "Jeux vidéo", ["Astuce pour finir le niveau 12", "Test du nouveau jeu de course", "Tournoi en ligne ce soir", "Les 5 jeux les plus attendus", "Record battu en direct", "Mise à jour : ce qui change"]], ["🎵", "Musique", ["Nouveau clip de ton artiste préféré", "Playlist pour réviser", "Concert à Mamoudzou samedi", "Apprends ce refrain en 1 minute", "Les sons du moment", "Coulisses d'un enregistrement"]], ["🔬", "Sciences", ["Pourquoi le lagon est-il turquoise ?", "Une éclipse visible le mois prochain", "Comment naît un volcan ?", "Les baleines à bosse sont de retour", "Une fusée décolle ce soir", "Le cerveau en 3 chiffres"]], ["🍲", "Cuisine", ["Le mataba en 5 étapes", "Jus de corossol maison", "Gâteau au coco facile", "Brochettes du soir", "Le secret d'un bon riz", "Dessert à la mangue"]], ["😂", "Humour", ["Quand le prof annonce une interro surprise", "Le chat qui a peur d'un concombre", "Les élèves le lundi matin", "Quand le Wi-Fi coupe en plein jeu", "Le chien qui fait ses devoirs", "Imitation du réveil à 6 h"]], ["🌍", "Actualité", ["Météo : fortes pluies annoncées", "Reportage : la mangrove en danger", "Le point sur l'actualité du jour", "Ce qui change à la rentrée", "Débat : les écrans au lycée", "Un récif protégé de plus"]], ["💄", "Beauté", ["Tuto coiffure en 2 minutes", "Protéger sa peau au soleil", "Test de 5 vernis", "Routine du matin en 3 gestes", "Les tresses de la semaine", "Maquillage pour une fête"]]];
+  FIGURES["sr-act-fil"] = () => `<div class="act" data-activite="fil"><p class="act-t">📱 Choisis les comptes que tu suis, puis « aime » des publications : regarde ton fil changer.</p><div class="act-chips" role="group" aria-label="Comptes suivis"></div><div class="act-jauge" aria-live="polite"></div><ol class="act-fil"></ol><button type="button" class="btn-sec act-raz">Recommencer</button></div>`;
+  // Confidentialité : réglages d'un profil fictif et ce que voit un ami ou un inconnu
+  const PROFIL = [["📷", "Photo de profil", "une photo de Nadjma au bord du lagon"], ["🎂", "Date de naissance", "12 mars 2011"], ["🏫", "Lycée et classe", "Lycée de Mamoudzou, 2nde 4"], ["📍", "Position en direct", "en ce moment : plage de Moya"], ["📞", "Numéro de téléphone", "06 39 xx xx xx"], ["🏖️", "Photos de vacances", "12 photos, maison visible"]];
+  FIGURES["sr-act-confidentialite"] = () => `<div class="act" data-activite="confidentialite"><p class="act-t">🔒 Règle le profil (fictif) de Nadjma, puis regarde ce qu'un inconnu voit.</p><div class="act-reglages"></div><div class="act-vue" role="group" aria-label="Point de vue"><button type="button" class="filtre" data-vue="ami" aria-pressed="false">Vu par un ami</button><button type="button" class="filtre" data-vue="inconnu" aria-pressed="true">Vu par un inconnu</button></div><div class="act-profil" aria-live="polite"></div></div>`;
+  // Mot de passe : temps pour tout essayer, au rythme de 10 milliards d'essais par seconde
+  const COURANTS = ["azerty", "123456", "123456789", "motdepasse", "password", "qwerty", "soleil", "doudou", "mayotte", "football", "bonjour", "iloveyou", "000000", "111111", "loulou", "chouchou"];
+  FIGURES["sr-act-motdepasse"] = () => `<div class="act" data-activite="motdepasse"><p class="act-t">🔑 Tape un mot de passe <strong>inventé</strong> (jamais ton vrai !) : combien de temps un ordinateur mettrait-il à le trouver ?</p><input class="act-mdp" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="ex. Mangue-Lagon-42!" aria-label="Mot de passe à tester"><div class="act-force"><span></span></div><p class="act-info" aria-live="polite">Rien n'est envoyé : le calcul se fait sur ton appareil.</p></div>`;
+
+  const ACTIVITES = {
+    graphe(el) {
+      const vus = {};
+      const zone = el.querySelector(".act-zone"), info = el.querySelector(".act-info"), bilan = el.querySelector(".act-bilan");
+      const choisir = (id) => {
+        const D = distances(GC_IDS, GRAPHE_CLASSE.liens, id).D, e = Math.max(...Object.values(D)); vus[id] = e;
+        zone.innerHTML = dessinClasse(id); brancher();
+        const n = Object.keys(vus).length;
+        info.innerHTML = `Depuis <strong>${id}</strong> : la personne la plus éloignée est à distance <strong>${e}</strong>, c'est son <strong>excentricité</strong>.<br>Exploré${n > 1 ? "s" : ""} : ${Object.entries(vus).map(([k, v]) => `${k} ${v}`).join(" · ")} (${n}/9)`;
+        if (n === 9) { const E = Object.values(vus), r = Math.min(...E), d = Math.max(...E); bilan.innerHTML = `🎉 Rayon $= ${r}$ (plus petite excentricité), diamètre $= ${d}$ (plus grande), centre : <strong>${GC_IDS.filter((k) => vus[k] === r).join(", ")}</strong>. Il relie les deux groupes d'amis !`.replace(/\$([^$]+)\$/g, (m, t) => (window.katex ? window.katex.renderToString(t) : t)); }
+        else bilan.textContent = n >= 3 ? "Continue : le centre est l'élève dont l'excentricité est la plus petite." : "";
+      };
+      const brancher = () => zone.querySelectorAll(".act-noeud").forEach((g) => { g.addEventListener("click", () => choisir(g.dataset.id)); g.addEventListener("keydown", (ev) => { if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); choisir(g.dataset.id); } }); });
+      brancher();
+    },
+    fil(el) {
+      let suivis, aime;
+      const chips = el.querySelector(".act-chips"), jauge = el.querySelector(".act-jauge"), liste = el.querySelector(".act-fil");
+      const raz = () => { suivis = new Set([0, 2, 5]); aime = FIL.map(() => 0); rendre(); };
+      const rendre = () => {
+        chips.innerHTML = FIL.map((f, k) => `<button type="button" class="filtre" data-k="${k}" aria-pressed="${suivis.has(k)}">${f[0]} ${esc(f[1])}</button>`).join("");
+        chips.querySelectorAll("button").forEach((b) => b.addEventListener("click", () => { const k = +b.dataset.k; if (suivis.has(k)) suivis.delete(k); else suivis.add(k); rendre(); }));
+        const poids = FIL.map((_, k) => (suivis.has(k) ? 1 + 2 * aime[k] : 0)), tot = poids.reduce((a, b) => a + b, 0);
+        if (!tot) { jauge.innerHTML = "Tu ne suis personne : ton fil est vide. Les réseaux te proposeraient alors… ce qui est populaire."; liste.innerHTML = ""; return; }
+        // 8 publications réparties selon les poids (plus forts restes)
+        const N = 8, part = poids.map((p) => (p * N) / tot), nb2 = part.map(Math.floor);
+        let reste = N - nb2.reduce((a, b) => a + b, 0);
+        part.map((p, k) => [p - Math.floor(p), k]).sort((a, b) => b[0] - a[0]).forEach(([, k]) => { if (reste > 0 && poids[k]) { nb2[k]++; reste--; } });
+        // publications de chaque thème, puis mélange équilibré : à chaque tour, le thème qui a le plus de publications restantes
+        const files = nb2.map((n, k) => Array.from({ length: n }, (_, j) => [k, FIL[k][2][(j + 2 * aime[k]) % 6], j > 0 && aime[k] > 0]));
+        const posts = []; let dernier = -1;
+        while (posts.length < N) { const k = files.map((f, j) => [f.length - (j === dernier ? 0.5 : 0), j]).sort((a, b) => b[0] - a[0])[0][1]; posts.push(files[k].shift()); dernier = k; }
+        const themes = nb2.filter((n) => n > 0).length, maxi = Math.max(...nb2), kmax = nb2.indexOf(maxi);
+        jauge.innerHTML = `<div class="act-barre">${nb2.map((n, k) => (n ? `<span style="flex:${n}" title="${esc(FIL[k][1])}">${FIL[k][0]}</span>` : "")).join("")}</div><p>${themes} thème${themes > 1 ? "s" : ""} sur 8 dans ton fil.${maxi / N >= 0.6 ? ` <strong>${FIL[kmax][0]} ${esc(FIL[kmax][1])} occupe ${Math.round((100 * maxi) / N)} % de ton fil : tu entres dans une bulle de filtre.</strong>` : ""}</p>`;
+        liste.innerHTML = posts.map(([k, t, sugg]) => `<li class="act-post"><span class="act-post-ico" aria-hidden="true">${FIL[k][0]}</span><span class="act-post-t">${sugg ? '<span class="act-sugg">Suggéré pour toi</span>' : ""}${esc(t)}</span><button type="button" class="act-like" data-k="${k}" aria-label="J'aime (${esc(FIL[k][1])})">♥ ${aime[k] || ""}</button></li>`).join("");
+        liste.querySelectorAll(".act-like").forEach((b) => b.addEventListener("click", () => { aime[+b.dataset.k]++; rendre(); }));
+      };
+      el.querySelector(".act-raz").addEventListener("click", raz);
+      raz();
+    },
+    confidentialite(el) {
+      const reg = PROFIL.map(() => 0); let vue = "inconnu"; // 0 public, 1 amis, 2 moi seul
+      const R = el.querySelector(".act-reglages"), P = el.querySelector(".act-profil"), NIV = ["Public", "Amis", "Moi seul"];
+      R.innerHTML = PROFIL.map((f, k) => `<label class="act-reglage"><span>${f[0]} ${esc(f[1])}</span><select data-k="${k}">${NIV.map((n, j) => `<option value="${j}">${n}</option>`).join("")}</select></label>`).join("");
+      const rendre = () => {
+        const voit = (k) => reg[k] === 0 || (reg[k] === 1 && vue === "ami");
+        const vis = PROFIL.filter((_, k) => voit(k)), nbInconnu = reg.filter((r) => r === 0).length;
+        P.innerHTML = `<div class="act-carte"><p class="act-carte-t">Nadjma, 15 ans</p>${vis.length ? `<ul>${vis.map((f) => `<li>${f[0]} <strong>${esc(f[1])}</strong> : ${esc(f[2])}</li>`).join("")}</ul>` : "<p>Ce profil est privé.</p>"}</div>` +
+          `<p class="act-info">Un inconnu voit ${nbInconnu} information${nbInconnu > 1 ? "s" : ""} sur 6. ${nbInconnu >= 4 ? "⚠️ <strong>Profil très exposé</strong> : un inconnu sait qui elle est, où elle étudie… et où elle se trouve." : nbInconnu >= 2 ? "Attention : " + (reg[3] === 0 ? "la <strong>position en direct</strong> ne devrait jamais être publique." : "réduis encore ce qui est public.") : "✅ Bien réglé : les inconnus ne voient presque rien."}</p>`;
+      };
+      R.querySelectorAll("select").forEach((s) => s.addEventListener("change", () => { reg[+s.dataset.k] = +s.value; rendre(); }));
+      el.querySelectorAll(".act-vue button").forEach((b) => b.addEventListener("click", () => { vue = b.dataset.vue; el.querySelectorAll(".act-vue button").forEach((x) => x.setAttribute("aria-pressed", x === b)); rendre(); }));
+      rendre();
+    },
+    motdepasse(el) {
+      const inp = el.querySelector(".act-mdp"), barre = el.querySelector(".act-force span"), info = el.querySelector(".act-info");
+      const duree = (s) => { const U = [[3.15e7 * 1e9, "milliards d'années"], [3.15e7 * 1e6, "millions d'années"], [3.15e7, "ans"], [86400, "jours"], [3600, "heures"], [60, "minutes"], [1, "secondes"]]; if (s < 1) return "moins d'une seconde"; for (const [v, n] of U) if (s >= v) { const q = s / v; return `environ ${q >= 1000 ? q.toExponential(0).replace(/e+(d+)/, " × 10<sup>$1</sup>") : Math.round(q)} ${n}`; } return ""; };
+      inp.addEventListener("input", () => {
+        const m = inp.value; if (!m) { barre.style.width = "0"; info.textContent = "Rien n'est envoyé : le calcul se fait sur ton appareil."; return; }
+        let c = 0; if (/[a-z]/.test(m)) c += 26; if (/[A-Z]/.test(m)) c += 26; if (/\d/.test(m)) c += 10; if (/[^a-zA-Z0-9]/.test(m)) c += 33;
+        const courant = COURANTS.includes(m.toLowerCase()) || /^(.)\1+$/.test(m), s = courant ? 0 : Math.pow(c, m.length) / 2 / 1e10;
+        const bits = courant ? 0 : m.length * Math.log2(c);
+        barre.style.width = Math.min(100, (bits / 90) * 100) + "%"; barre.style.background = bits < 40 ? "var(--faux)" : bits < 65 ? "var(--ylang)" : "var(--bon)";
+        info.innerHTML = courant ? "⚠️ Ce mot de passe fait partie des plus courants : il est trouvé <strong>immédiatement</strong>." : `${m.length} caractères, ${c} caractères possibles : ${c}<sup>${m.length}</sup> combinaisons. À 10 milliards d'essais par seconde : <strong>${duree(s)}</strong> en moyenne.${m.length < 12 ? " Allonge-le !" : ""}`;
+      });
+    }
+  };
+  window.PM_EXO.activer = (racine) => (racine || document).querySelectorAll("[data-activite]:not([data-actif])").forEach((el) => { el.dataset.actif = "1"; if (ACTIVITES[el.dataset.activite]) ACTIVITES[el.dataset.activite](el); });
+
 })();

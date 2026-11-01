@@ -1,5 +1,5 @@
 /*
-  CHAPITRE : SNT (Seconde) — Thème 1 : Internet
+  CHAPITRE : SNT (Seconde) — Chapitre 2 : Internet
   ----------------------------------------------
   Programme de SNT de 2019 (arrêté du 17-1-2019, BO spécial n° 1 du 22 janvier 2019), thème « Internet » :
   protocole TCP/IP (paquets, routage), adresses symboliques et serveurs DNS, réseaux pair-à-pair,
@@ -12,13 +12,16 @@
 window.CHAPITRES = window.CHAPITRES || {};
 window.CHAPITRES["snt-internet"] = {
   niveau: "SNT Seconde",
-  numero: 1,
+  numero: 2,
   titre: "Internet",
   accroche: "Ton message WhatsApp traverse l'océan en une fraction de seconde. Comment ? Adresses IP, paquets, routeurs, DNS : le chapitre ouvre la boîte noire du réseau mondial.",
 
   playlist: "",
   drive: "",
-  pdfs: [],
+  pdfs: [
+    { titre: "Le cours complet à imprimer", url: "assets/pdf/snt-internet-cours.pdf" },
+    { titre: "Exercices corrigés à imprimer", url: "assets/pdf/snt-internet-exercices.pdf" }
+  ],
 
   /* ---------- 0. DÉROULÉ EN SÉANCES ---------- */
   seancesNote: "Cinq séances, une par semaine, en alternant 1 h et 2 h (7 h en tout). Chaque partie du cours porte le numéro de la séance où on la travaille. Une séance de 2 h est faite de deux parties d'une heure.",
@@ -66,7 +69,7 @@ window.CHAPITRES["snt-internet"] = {
         "Un **réseau** est un ensemble d'appareils reliés pour échanger des informations. À la maison ou au lycée, le **réseau local** relie les téléphones, ordinateurs et imprimantes à une **box** ou à un routeur, par câble ou par Wi-Fi.\n\n" +
         "**Internet** relie entre eux des millions de réseaux : réseaux locaux, réseaux des opérateurs (Orange, SFR, Free…), réseaux d'universités et d'entreprises. C'est un **réseau de réseaux**, mondial, que personne ne possède en entier. Des **routeurs** font passer les données d'un réseau à l'autre, et des câbles en fibre optique, souvent sous-marins, relient les continents : Mayotte est reliée au reste d'Internet par des câbles sous-marins.\n\n" +
         "Ce qui fait l'unité d'Internet, ce n'est pas un câble mais un ensemble de règles communes, les **protocoles**, d'abord **IP** (Internet Protocol) et **TCP** (Transmission Control Protocol). Tout appareil qui « parle » IP peut être joint par tous les autres : ordinateurs, téléphones, consoles, caméras, montres…\n\n" +
-        "**Internet n'est pas le Web.** Le Web (les pages et les liens, chapitre 2) est **une application** qui utilise Internet, comme le courriel, les messageries, les jeux en ligne, la visioconférence ou la vidéo à la demande.",
+        "**Internet n'est pas le Web.** Le Web (les pages et les liens, chapitre 3) est **une application** qui utilise Internet, comme le courriel, les messageries, les jeux en ligne, la visioconférence ou la vidéo à la demande.",
       exemple: {
         enonce: "Envoyer un message sur une messagerie, regarder une série en streaming, consulter une page Wikipédia : lesquelles de ces activités utilisent Internet ? Lesquelles utilisent le Web ?",
         solution: "Les trois utilisent **Internet** (le réseau). Seule la consultation de Wikipédia dans un navigateur utilise le **Web** ; la messagerie et l'application de streaming utilisent Internet avec leurs propres protocoles."
@@ -83,7 +86,7 @@ window.CHAPITRES["snt-internet"] = {
         "- **1971** : en France, le réseau **Cyclades**, de Louis Pouzin, invente l'idée d'envoyer les données en petits paquets indépendants (les datagrammes) ; la même année, le premier courrier électronique avec le signe @ est envoyé.\n" +
         "- **1974** : Vint Cerf et Bob Kahn décrivent les protocoles **TCP/IP**, qui permettent de relier des réseaux différents.\n" +
         "- **1er janvier 1983** : ArpaNet adopte TCP/IP. C'est la **naissance d'Internet**. En 1984, le système de noms de domaine (**DNS**) arrive.\n" +
-        "- **1989** : Tim Berners-Lee invente le **Web** au CERN (chapitre 2).\n" +
+        "- **1989** : Tim Berners-Lee invente le **Web** au CERN (chapitre 3).\n" +
         "- Ensuite, Internet se répand dans les foyers (modems, ADSL), puis dans les poches avec le Wi-Fi (1997), les smartphones (2007), la 4G (2012 en France) et la 5G (2020).\n\n" +
         "Pendant ce temps, la France avait son propre réseau, le **Minitel** (généralisé à partir de 1982), arrêté en 2012."
     },

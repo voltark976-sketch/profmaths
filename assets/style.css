@@ -946,3 +946,32 @@ table.suivi { border-collapse: collapse; background: var(--surface); font-varian
 .fig table.valeurs td, .fig table.valeurs th { padding: 5px 7px; }
 .fig .tt-cell { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; text-align: left; }
 [data-niv="snt"] pre.code { white-space: pre-wrap; overflow-wrap: anywhere; } /* code HTML lisible sans défilement sur téléphone */
+/* SNT : activités interactives du cours (graphe à explorer, fil d'actualité, confidentialité, mot de passe) */
+.act { display: grid; gap: 10px; }
+.act-t { margin: 0; font-weight: 700; color: var(--encre); }
+.act-info, .act-bilan { margin: 0; font-size: 0.92rem; color: var(--encre); }
+.act-bilan:empty { display: none; }
+.act-noeud:focus-visible circle { stroke: var(--ylang); stroke-width: 3.5; }
+.act-chips, .act-vue { display: flex; flex-wrap: wrap; gap: 6px; }
+.act .filtre { font-size: 0.85rem; padding: 6px 10px; }
+.act-barre { display: flex; height: 26px; border-radius: 8px; overflow: hidden; border: 1px solid var(--trait); }
+.act-barre span { display: grid; place-items: center; min-width: 0; background: var(--lagon-pale); border-right: 1px solid var(--surface); font-size: 0.9rem; }
+.act-barre span:nth-child(even) { background: var(--ylang-pale); }
+.act-jauge p { margin: 6px 0 0; font-size: 0.9rem; }
+.act-fil { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.act-post { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border: 1px solid var(--trait); border-radius: 10px; background: var(--fond); }
+.act-post-ico { font-size: 1.3rem; }
+.act-post-t { flex: 1; min-width: 0; font-size: 0.92rem; }
+.act-sugg { display: block; font-size: 0.72rem; font-weight: 700; color: var(--ylang); text-transform: uppercase; letter-spacing: 0.04em; }
+.act-like { flex: none; border: 1px solid var(--trait); background: var(--surface); color: var(--faux); border-radius: 999px; padding: 4px 10px; font: 700 0.9rem var(--f-texte); cursor: pointer; }
+.act-raz { justify-self: start; }
+.act-reglages { display: grid; gap: 6px; }
+.act-reglage { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 0.92rem; }
+.act-reglage select { flex: none; padding: 4px 6px; border-radius: 8px; border: 1px solid var(--trait); background: var(--surface); color: var(--encre); font: inherit; }
+.act-carte { border: 1px solid var(--trait); border-radius: 12px; padding: 10px 12px; background: var(--fond); }
+.act-carte-t { margin: 0 0 4px; font-weight: 800; }
+.act-carte ul { margin: 0; padding-left: 1.1em; font-size: 0.9rem; }
+.act-mdp { width: 100%; box-sizing: border-box; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--trait); background: var(--surface); color: var(--encre); font: 1rem ui-monospace, Menlo, Consolas, monospace; }
+.act-force { height: 10px; border-radius: 6px; background: var(--trait); overflow: hidden; }
+.act-force span { display: block; height: 100%; width: 0; transition: width 0.2s; }
+.fig .act { padding: 4px; }
