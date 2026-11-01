@@ -1297,6 +1297,25 @@ window.CATALOGUE = {
           drive: ""
         }
       ]
+    },
+    {
+      // SNT (sciences numériques et technologie, Seconde) : derrière sa propre carte « SNT » sur l'accueil (groupe « snt »).
+      // Programme de 2019 (arrêté du 17-1-2019, BO spécial n° 1 du 22 janvier 2019), toujours en vigueur en 2026-2027 ;
+      // un programme révisé (avec l'IA) est annoncé pour la rentrée 2027. Chapitres dans l'ordre des thèmes du programme.
+      id: "snt",
+      nom: "SNT Seconde",
+      groupe: "snt",
+      intro: "Sciences numériques et technologie, dans l'ordre des thèmes du programme officiel. Chaque chapitre : un cours complet découpé en séances de 1 h et de 2 h, des vidéos, des exercices corrigés avec indices, un QCM et une fiche méthode.",
+      exercices: "assets/exercices-snt.js",
+      chapitres: [
+        { id: "snt-internet", numero: 1, titre: "Internet", statut: "disponible", drive: "" },
+        { id: "snt-web", numero: 2, titre: "Le Web", statut: "disponible", drive: "" },
+        { id: "snt-reseaux-sociaux", numero: 3, titre: "Les réseaux sociaux", statut: "bientot", drive: "" },
+        { id: "snt-donnees", numero: 4, titre: "Les données structurées et leur traitement", statut: "bientot", drive: "" },
+        { id: "snt-localisation", numero: 5, titre: "Localisation, cartographie et mobilité", statut: "bientot", drive: "" },
+        { id: "snt-objets-connectes", numero: 6, titre: "Informatique embarquée et objets connectés", statut: "bientot", drive: "" },
+        { id: "snt-photographie", numero: 7, titre: "La photographie numérique", statut: "bientot", drive: "" }
+      ]
     }
   ]
 };

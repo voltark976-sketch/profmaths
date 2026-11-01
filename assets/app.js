@@ -263,13 +263,17 @@
     const maths = [], avant = [], apres = [];
     // Typographie sur petit écran : espace insécable devant « ? ! : ; » et à l'intérieur des guillemets,
     // et aucune coupure de ligne entre une formule et la ponctuation qui la suit (pas de « . » seul en début de ligne)
-    const t = String(s).replace(/\$([^$]+)\$/g, (_, m) => "\u0000" + (maths.push(m) - 1) + "\u0000")
+    // Code en ligne entre deux accents graves (SNT : `<p>`, `https://…`) : mis de côté, affiché tel quel en police machine
+    const codes = [];
+    const t = String(s).replace(/(?<!`)`([^`\n]+)`(?!`)/g, (_, c) => "\u0001" + (codes.push(c) - 1) + "\u0001")
+      .replace(/\$([^$]+)\$/g, (_, m) => "\u0000" + (maths.push(m) - 1) + "\u0000")
       .replace(/ ([?!:;»])/g, " $1").replace(/« /g, "« ")
       .replace(/\u0000(\d+)\u0000((?:\u00a0?[.,;:!?)%»])+)/g, (_, i, p) => { apres[i] = p; return "\u0000" + i + "\u0000"; })
       .replace(/\((?=\u0000(\d+)\u0000)/g, (_, i) => { avant[i] = "("; return ""; })
       // ni coupure entre un nombre (ou une formule) et son unité : « 45 °C », « 12 km/h », « 30 élèves »
       .replace(/(\d|\u0000) (?=(?:°C|°|%|€|[kcmd]?m[²³]?|[kmc]?g|[mcd]?L|h|min|s|ha|m\/s|km\/h|mg\/L|ans?|jours?|mois|heures?|minutes?|secondes?)(?![A-Za-zÀ-ÿ0-9]))/g, "$1\u00a0");
-    return esc(t).replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>").replace(/\u0000(\d+)\u0000/g, (_, i) => colle(tex(maths[+i]), avant[i], apres[i]));
+    return esc(t).replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>").replace(/\u0000(\d+)\u0000/g, (_, i) => colle(tex(maths[+i]), avant[i], apres[i]))
+      .replace(/\u0001(\d+)\u0001/g, (_, i) => `<code class="tt">${esc(codes[+i])}</code>`);
   }
   // Étiquette devant la case réponse : « x_I = », « P(Ā ∩ B) ≈ », « Q₃ − Q₁ = » sont écrits en maths (KaTeX),
   // « Moyenne : » ou « Médiane ≈ » restent du texte. Aucune notation ne doit s'afficher brute.
@@ -505,7 +509,8 @@
     techno: "Les maths des séries techno",
     "terminale-spe": "Limites, intégrales : cap sur le bac",
     expertes: "Complexes, arithmétique, graphes",
-    terminale: "Garder les maths pour tes études"
+    terminale: "Garder les maths pour tes études",
+    snt: "Comprendre Internet et le Web"
   };
 
   const chapitresEnLigne = (n) => n.chapitres.filter((ch) => ch.statut === "disponible" && dispo(ch.id)).length;
@@ -513,9 +518,13 @@
   const CYCLES = {
     ecole: { nom: "Primaire", sous: "Du CP au CM2", glyphe: "+", lead: "Choisis ta classe. Chaque chapitre suit le programme officiel du primaire en vigueur cette année.", niveaux: () => CATALOGUE.niveaux.filter((n) => n.groupe === "ecole") },
     college: { nom: "Collège", sous: "De la 6e à la 3e", glyphe: "÷", lead: "Choisis ta classe. Chaque chapitre suit le programme officiel en vigueur cette année.", niveaux: () => CATALOGUE.niveaux.filter((n) => n.groupe === "college") },
-    lycee: { nom: "Lycée", sous: "De la Seconde à la Terminale", glyphe: "∫", lead: "Choisis ta classe. Les chapitres sont rangés dans l'ordre des playlists de la chaîne.", niveaux: () => CATALOGUE.niveaux.filter((n) => !n.groupe) }
+    lycee: { nom: "Lycée", sous: "De la Seconde à la Terminale", glyphe: "∫", lead: "Choisis ta classe. Les chapitres sont rangés dans l'ordre des playlists de la chaîne.", niveaux: () => CATALOGUE.niveaux.filter((n) => !n.groupe) },
+    // SNT (sciences numériques et technologie, Seconde) : une seule classe, la carte ouvre directement ses chapitres
+    snt: { nom: "SNT", sous: "Sciences numériques · Seconde", glyphe: "</>", lead: "Sciences numériques et technologie, en Seconde.", niveaux: () => CATALOGUE.niveaux.filter((n) => n.groupe === "snt") }
   };
-  const COURT = { "Première spécialité": "Première spé", "Première tronc commun": "Première tronc commun", "Première technologique": "Première techno", "Terminale spécialité": "Terminale spé", "Terminale maths complémentaires": "Terminale compl." };
+  // Adresse d'un cycle : sa page de classes, ou directement la classe quand il n'en a qu'une
+  const lienCycle = (k) => { const nivs = CYCLES[k].niveaux(); return nivs.length === 1 ? `#niveau-${nivs[0].id}` : `#${k}`; };
+  const COURT = { "Première spécialité": "Première spé", "Première tronc commun": "Première tronc commun", "Première technologique": "Première techno", "Terminale spécialité": "Terminale spé", "Terminale maths complémentaires": "Terminale compl.", "SNT Seconde": "Internet · Le Web" };
   const carteNiveau = (href, id, nom, nb) => `<a class="carte-niv" href="${href}" data-niv="${esc(id)}"><span class="pastille-niv" aria-hidden="true"></span><span class="carte-niv-t"><strong>${esc(nom)}</strong>${ACCROCHES[id] ? `<span class="accroche">${esc(ACCROCHES[id])}</span>` : ""}<span class="meta">${nb ? `${nb} chapitre${nb > 1 ? "s" : ""} en ligne` : "En préparation"}</span></span><span class="go" aria-hidden="true">→</span></a>`;
 
   function pageAccueil() {
@@ -526,12 +535,12 @@
     let h = `<section class="hero"><div class="hero-in"><p class="eyebrow">Maths de l'école au lycée · Mayotte</p><h1>Une vidéo, un cours, des exercices. À ton rythme.</h1><p class="lead">Choisis ton niveau : tous ses chapitres s'affichent, dans l'ordre du programme.</p>
       <ul class="chiffres"><li><b>${dispos.length}</b> chapitres</li><li><b>${totSeries}</b> séries d'exercices</li><li><b>${nbQcm}</b> questions de QCM</li></ul></div>${DECOR_HERO}</section>`;
     // Deux grandes cartes, Collège et Lycée : chacune ouvre la page qui regroupe ses classes
-    h += `<h2 class="titre-bloc">Choisis ton niveau</h2><nav class="cartes-cycle" aria-label="Collège ou lycée">`;
+    h += `<h2 class="titre-bloc">Choisis ton niveau</h2><nav class="cartes-cycle" aria-label="Primaire, collège, lycée ou SNT">`;
     Object.keys(CYCLES).forEach((k) => {
       const C = CYCLES[k], nivs = C.niveaux();
       if (!nivs.length) return;
       const nb = nivs.reduce((s, n) => s + chapitresEnLigne(n), 0);
-      h += `<a class="carte-cycle" href="#${k}" data-niv="${k}"><span class="cycle-glyphe" aria-hidden="true">${C.glyphe}</span>
+      h += `<a class="carte-cycle" href="${lienCycle(k)}" data-niv="${k}"><span class="cycle-glyphe" aria-hidden="true">${C.glyphe}</span>
         <span class="eyebrow">${esc(C.sous)}</span><strong>${esc(C.nom)}</strong>
         <span class="cycle-classes">${nivs.map((n) => `<span>${esc(COURT[n.nom] || n.nom)}</span>`).join("")}</span>
         <span class="cycle-pied"><span class="meta">${nb ? `${nb} chapitre${nb > 1 ? "s" : ""} en ligne` : "En préparation"}</span><span class="go" aria-hidden="true">→</span></span></a>`;
@@ -566,8 +575,8 @@
   /* ---------- Page d'un niveau : tous ses chapitres ---------- */
   function pageNiveau(n) {
     document.title = `${n.nom} · ProfMaths`;
-    const cycle = n.groupe || "lycee";
-    let h = `<a class="retour" href="#${cycle}">← ${CYCLES[cycle].nom}</a>
+    const cycle = n.groupe || "lycee", seul = CYCLES[cycle].niveaux().length === 1;
+    let h = `<a class="retour" href="#${seul ? "" : cycle}">← ${seul ? "Accueil" : CYCLES[cycle].nom}</a>
       <header class="niv-head"><p class="eyebrow">${CYCLES[cycle].nom}</p><h1><span class="pastille-niv" aria-hidden="true"></span>${esc(n.nom)}</h1>${n.intro ? `<p class="lead">${esc(n.intro)}</p>` : `<p class="lead">Choisis ton chapitre. Ils sont rangés dans l'ordre de la playlist.</p>`}</header>
       <ol class="chapitres chapitres-niv">`;
     if (!n.chapitres.length) h += `<li><div class="chap chap-off"><span class="num num-a">…</span><span class="chap-t"><strong>Les chapitres arrivent bientôt</strong><span class="meta">En attendant, révise avec les vidéos d'<a href="${YT_MONKA}" target="_blank" rel="noopener">Yvan Monka</a>.</span></span></div></li>`;
@@ -1277,8 +1286,19 @@
     (c.liens || []).forEach((l) => { h += `<a class="pdf" href="${l.url}" target="_blank" rel="noopener"><span class="pdf-ico lien" aria-hidden="true">${l.type === "video" ? "▶" : "JEU"}</span><span>${esc(l.titre)}</span></a>`; });
     if (c.playlist) h += `<a class="pdf" href="${c.playlist}" target="_blank" rel="noopener"><span class="pdf-ico yt" aria-hidden="true">▶</span><span>Playlist du chapitre sur YouTube</span></a>`;
     h += `</div>`;
+    // Déroulé en séances (SNT : séances de 1 h et de 2 h en alternance), replié pour ne pas allonger la page
+    if (c.seances && c.seances.length) {
+      h += `<section class="seances"><h2>Le chapitre en ${c.seances.length} séances</h2>${c.seancesNote ? `<p class="muted">${inline(c.seancesNote)}</p>` : ""}`;
+      c.seances.forEach((se, k) => {
+        h += `<details class="seance"><summary><span class="tag">Séance ${k + 1} · ${esc(se.duree)}</span> ${inline(se.titre)}</summary>
+          ${se.objectifs ? `<p class="seance-t">Objectifs</p><ul>${se.objectifs.map((o) => `<li>${inline(o)}</li>`).join("")}</ul>` : ""}
+          ${se.deroule ? `<p class="seance-t">Déroulé</p><ol>${se.deroule.map((o) => `<li>${inline(o)}</li>`).join("")}</ol>` : ""}
+          ${se.maison ? `<p class="seance-t">À la maison</p>${md(se.maison)}` : ""}</details>`;
+      });
+      h += `</section>`;
+    }
     c.cours.forEach((s, i) => {
-      h += `<article class="notion"><h2><span class="n">${i + 1}</span><span class="t">${inline(s.titre)}</span></h2><div class="notion-texte">${md(s.texte)}${s.video ? `<div class="video-aide">${video(s.video)}<p class="muted">${esc(s.video.titre)}</p></div>` : ""}</div><aside class="notion-cote">${s.figure ? figure(s.figure) : ""}`;
+      h += `<article class="notion"><h2><span class="n">${i + 1}</span><span class="t">${inline(s.titre)}${s.seance ? ` <span class="tag-seance">séance ${s.seance}</span>` : ""}</span></h2><div class="notion-texte">${md(s.texte)}${s.video ? `<div class="video-aide">${video(s.video)}<p class="muted">${esc(s.video.titre)}</p></div>` : ""}</div><aside class="notion-cote">${s.figure ? figure(s.figure) : ""}`;
       if (s.exemple) {
         h += `<div class="exemple"><p class="tag">Exemple</p>${md(s.exemple.enonce)}
           <details><summary>Voir la réponse</summary>${md(s.exemple.solution)}${s.exemple.tableau ? tableau(s.exemple.tableau) : ""}</details></div>`;
