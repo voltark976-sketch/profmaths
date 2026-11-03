@@ -177,7 +177,7 @@ window.MANIFESTE = {
   "seconde-tableaux-croises": {"niveau":"seconde","fichier":"data/seconde/tableaux-croises.js","series":8,"qcm":30,"eval":"data/seconde/evaluation/tableaux-croises.js"},
   "seconde-colinearite": {"niveau":"seconde","fichier":"data/seconde/colinearite.js","series":7,"qcm":27,"eval":"data/seconde/evaluation/colinearite.js"},
   "seconde-droites": {"niveau":"seconde","fichier":"data/seconde/droites.js","series":8,"qcm":27,"eval":"data/seconde/evaluation/droites.js"},
-  "seconde-fonctions-reference": {"niveau":"seconde","fichier":"data/seconde/fonctions-reference.js","series":6,"qcm":28},
+  "seconde-fonctions-reference": {"niveau":"seconde","fichier":"data/seconde/fonctions-reference.js","series":6,"qcm":28,"eval":"data/seconde/evaluation/fonctions-reference.js"},
   "seconde-signes": {"niveau":"seconde","fichier":"data/seconde/signes.js","series":7,"qcm":26},
   "seconde-probabilites-conditionnelles": {"niveau":"seconde","fichier":"data/seconde/probabilites-conditionnelles.js","series":6,"qcm":28},
   "seconde-statistiques-2": {"niveau":"seconde","fichier":"data/seconde/statistiques-2.js","series":7,"qcm":27},
