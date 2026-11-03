@@ -253,7 +253,7 @@ window.MANIFESTE = {
   "expertes-complexes-algebrique": {"niveau":"expertes","fichier":"data/expertes/complexes-algebrique.js","series":8,"qcm":23,"eval":"data/expertes/evaluation/complexes-algebrique.js"},
   "expertes-complexes-geometrique": {"niveau":"expertes","fichier":"data/expertes/complexes-geometrique.js","series":8,"qcm":22,"eval":"data/expertes/evaluation/complexes-geometrique.js"},
   "expertes-complexes-trigonometrie": {"niveau":"expertes","fichier":"data/expertes/complexes-trigonometrie.js","series":8,"qcm":21,"eval":"data/expertes/evaluation/complexes-trigonometrie.js"},
-  "expertes-equations-polynomiales": {"niveau":"expertes","fichier":"data/expertes/equations-polynomiales.js","series":8,"qcm":20},
+  "expertes-equations-polynomiales": {"niveau":"expertes","fichier":"data/expertes/equations-polynomiales.js","series":8,"qcm":20,"eval":"data/expertes/evaluation/equations-polynomiales.js"},
   "expertes-complexes-geometrie": {"niveau":"expertes","fichier":"data/expertes/complexes-geometrie.js","series":7,"qcm":20},
   "expertes-divisibilite-congruences": {"niveau":"expertes","fichier":"data/expertes/divisibilite-congruences.js","series":9,"qcm":20},
   "expertes-pgcd-bezout-gauss": {"niveau":"expertes","fichier":"data/expertes/pgcd-bezout-gauss.js","series":8,"qcm":20},
