@@ -131,12 +131,15 @@
   if (/^#(compte|suivi|demandes|comptes|frequentation|avatar)\b/.test(location.hash)) lancerCompte();
 
   /* ---------- Apparence : le choix des thèmes ---------- */
-  // Sans choix enregistré, le site suit le réglage clair/sombre de l'appareil (« Auto »).
-  // Le bouton rond de la barre du haut ouvre un menu de pastilles. Chaque thème autre que
-  // Clair et Sombre a sa feuille assets/theme-<id>.css, téléchargée seulement quand on le choisit
+  // Sans choix enregistré, le site prend le thème Mayotte, dont index.html charge la feuille pour tout
+  // le monde ; « Auto » suit le réglage clair/sombre de l'appareil.
+  // Le bouton rond de la barre du haut ouvre un menu de pastilles. Les autres thèmes (sauf Clair et
+  // Sombre) ont leur feuille assets/theme-<id>.css, téléchargée seulement quand on les choisit
   // (index.html la charge au démarrage si c'est le thème enregistré). Pour ajouter un thème :
   // une entrée ci-dessous et une feuille theme-<id>.css (voir LISEZMOI.md).
-  const CLE_THEME = "profmaths:theme";
+  // Nouvelle clé le 3 novembre 2026 (« profmaths:theme » avant) : tout le monde est repassé une fois sur Mayotte.
+  const CLE_THEME = "profmaths:apparence", THEME_DEFAUT = "mayotte";
+  try { localStorage.removeItem("profmaths:theme"); } catch (e) {}
   // nom : affiché dans le menu ; apercu : pastille (fond, bandeau, accent) ; sombre : fond foncé
   const THEMES = {
     light: { nom: "Clair", apercu: "#f2f6f6,#0a7c76,#c98a08" },
@@ -156,7 +159,7 @@
     const c = id === "auto" ? ["#f2f6f6", "#0c1a1c", "#0a7c76"] : THEMES[id].apercu.split(",");
     return `linear-gradient(135deg, ${c[0]} 0 44%, ${c[1]} 44% 74%, ${c[2]} 74%)`;
   };
-  const themeChoisi = () => { try { const t = localStorage.getItem(CLE_THEME); return THEMES[t] ? t : "auto"; } catch (e) { return "auto"; } };
+  const themeChoisi = () => { try { const t = localStorage.getItem(CLE_THEME); return t === "auto" || THEMES[t] ? t : THEME_DEFAUT; } catch (e) { return THEME_DEFAUT; } };
   const themeActuel = () => document.documentElement.dataset.theme || (sombreSysteme.matches ? "dark" : "light");
   const boutonTheme = document.getElementById("theme-btn");
   const menuTheme = document.getElementById("theme-menu");
@@ -194,7 +197,7 @@
   function choisirTheme(t) {
     if (t === "auto" || !THEMES[t]) {
       delete document.documentElement.dataset.theme;
-      try { localStorage.removeItem(CLE_THEME); } catch (e) {}
+      try { localStorage.setItem(CLE_THEME, "auto"); } catch (e) {}
       return majTheme();
     }
     chargerTheme(t, () => {

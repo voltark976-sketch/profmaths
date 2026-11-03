@@ -1,31 +1,8 @@
-// Calcule les dessins du bandeau du thème « Mayotte » (cocotier, reflet du soleil, maquis, îlots,
-// Grande-Terre et le mont Choungui, plage) et les remplace dans assets/theme-mayotte.css.
-// Chaque dessin y est précédé d'un repère /* dessin:nom */ ; le reste du fichier (couleurs, placement,
-// animation) n'est pas touché. Dessins originaux.
-// Usage : node outils/mayotte/decor.js assets/theme-mayotte.css   (sans fichier : affiche les dessins)
-const fs = require("fs");
-let graine = 7;
-const alea = () => { graine = (graine * 16807) % 2147483647; return graine / 2147483647; };
-const n1 = (x) => { const v = Math.round(x * 10) / 10; return (Object.is(v, -0) ? 0 : v).toString().replace(/^(-?)0\./, "$1."); };
-// colle des nombres sans espace inutile (un signe moins sépare déjà)
-const colle = (l) => l.reduce((s, p, i) => s + (i && !p.startsWith("-") ? " " : "") + p, "");
-const nums = (...xs) => colle(xs.map(n1));
-// points -> déplacements relatifs ; k > 1 : coordonnées multipliées par k et entières
-const relatif = (pts, k = 1) => {
-  const ar = (v) => (k === 1 ? Math.round(v * 10) / 10 : Math.round(v * k));
-  const fmt = (v) => (k === 1 ? n1(v) : String(Math.round(v)));
-  const r = [];
-  let px = ar(pts[0][0]), py = ar(pts[0][1]);
-  for (let i = 1; i < pts.length; i++) {
-    const x = ar(pts[i][0]), y = ar(pts[i][1]);
-    r.push(colle([fmt(x - px), fmt(y - py)])); px = x; py = y;
-  }
-  return colle(r);
-};
-const entiers = (k) => (...xs) => colle(xs.map((v) => String(Math.round(v * k))));
-const svg = (vb, corps, extra = "") => `<svg xmlns='http://www.w3.org/2000/svg' viewBox='${vb}'${extra}>${corps}</svg>`;
-const bez = (t, a, b, c) => [(1 - t) ** 2 * a[0] + 2 * (1 - t) * t * b[0] + t * t * c[0], (1 - t) ** 2 * a[1] + 2 * (1 - t) * t * b[1] + t * t * c[1]];
-const der = (t, a, b, c) => [2 * (1 - t) * (b[0] - a[0]) + 2 * t * (c[0] - b[0]), 2 * (1 - t) * (b[1] - a[1]) + 2 * t * (c[1] - b[1])];
+// Dessins du bandeau du thème « Mayotte » : cocotier, reflet du soleil, maquis, îlots,
+// Grande-Terre et le mont Choungui, plage. Dessins originaux.
+// Usage : node outils/decors/mayotte.js   (réécrit les dessins dans assets/theme-mayotte.css)
+const { hasard, n1, colle, nums, entiers, relatif, svg, bez, der, ecrire } = require("./commun");
+const alea = hasard(7);
 
 /* ---------- Cocotier : tronc courbe annelé, palmes qui s'arquent puis retombent ---------- */
 function cocotier(o) {
@@ -124,22 +101,4 @@ const grandeTerre = svg("0 0 230 28", `<path d='M0 28V9.5C14 7.6 26 9.4 40 7.6S6
 /* ---------- Plage au premier plan, liseré d'écume ---------- */
 const plage = svg("0 0 400 26", `<defs><linearGradient id='s' x1='0' y1='0' x2='0' y2='1'><stop offset='0' stop-color='#f7ddb0'/><stop offset='1' stop-color='#e8bb82'/></linearGradient></defs><path d='M0 10C50 12 110 15 180 15.4S310 14 350 11.6 390 9.2 400 9.6V26H0z' fill='url(#s)'/><path d='M0 10C50 12 110 15 180 15.4S310 14 350 11.6 390 9.2 400 9.6' fill='none' stroke='#fff' stroke-opacity='.8' stroke-width='1.6' vector-effect='non-scaling-stroke'/>`, " preserveAspectRatio='none'");
 
-const DESSINS = { "ilot-sable": ilotSable, "ilot-boise": ilotBoise, "ilot-loin": ilotLoin, "grande-terre": grandeTerre, reflet: refletDessin, cocotier: cocotierDessin, "maquis-droite": maquisDroite, "maquis-gauche": maquisGauche, plage };
-const url = (s) => {
-  if (/["%\n]/.test(s)) throw new Error("caractère interdit dans un dessin");
-  return `url("data:image/svg+xml;utf8,${s.replace(/#/g, "%23")}")`;
-};
-
-const fichier = process.argv[2];
-if (!fichier) {
-  for (const [nom, s] of Object.entries(DESSINS)) console.log(`/* dessin:${nom} */ ${url(s)}\n`);
-} else {
-  let css = fs.readFileSync(fichier, "utf8");
-  for (const [nom, s] of Object.entries(DESSINS)) {
-    const re = new RegExp(`(/\\* dessin:${nom} \\*/ )url\\("data:image/svg\\+xml;utf8,[^"]*"\\)`);
-    if (!re.test(css)) throw new Error(`repère /* dessin:${nom} */ introuvable dans ${fichier}`);
-    css = css.replace(re, (m, avant) => avant + url(s));
-  }
-  fs.writeFileSync(fichier, css);
-  console.log(`${fichier} : ${Object.keys(DESSINS).length} dessins remplacés`);
-}
+ecrire("mayotte", { "ilot-sable": ilotSable, "ilot-boise": ilotBoise, "ilot-loin": ilotLoin, "grande-terre": grandeTerre, reflet: refletDessin, cocotier: cocotierDessin, "maquis-droite": maquisDroite, "maquis-gauche": maquisGauche, plage });

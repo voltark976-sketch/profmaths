@@ -6,7 +6,7 @@
 <title>ProfMaths</title>
 <meta name="apple-mobile-web-app-title" content="ProfMaths">
 <meta name="application-name" content="ProfMaths">
-<meta name="theme-color" content="#f2f6f6">
+<meta name="theme-color" content="#f7eedc">
 <meta name="description" content="Cours en vidéo, exercices interactifs et QCM de mathématiques pour l'école (CP à CM2), le collège (6e à 3e) et le lycée (Seconde, Première, Terminale).">
 <link rel="icon" href="assets/icone.svg" type="image/svg+xml">
 <link rel="icon" href="assets/icone-192.png" type="image/png" sizes="192x192">
@@ -27,7 +27,8 @@
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bricolage+Grotesque:opsz,wght@12..96,800&display=swap" onload="this.onload=null;this.rel='stylesheet'"><noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bricolage+Grotesque:opsz,wght@12..96,800&display=swap"></noscript>
 <link rel="stylesheet" href="assets/katex/katex.min.css?v=202611030530">
 <link rel="stylesheet" href="assets/style.css?v=202611030530">
-<script>try { var t = localStorage.getItem("profmaths:theme"); if (t === "image") t = "ruines"; if (/^[a-z]+$/.test(t || "")) { document.documentElement.dataset.theme = t; if (t === "dark") document.querySelector('meta[name="theme-color"]').content = "#0c1a1c"; if (t !== "light" && t !== "dark") document.write('<link rel="stylesheet" id="css-theme-' + t + '" href="assets/theme-' + t + '.css?v=202611030530">'); } } catch (e) {}</script>
+<link rel="stylesheet" id="css-theme-mayotte" href="assets/theme-mayotte.css?v=202611030530">
+<script>var t = null; try { t = localStorage.getItem("profmaths:apparence"); } catch (e) {} if (!t) t = "mayotte"; if (t !== "auto" && /^[a-z]+$/.test(t)) { document.documentElement.dataset.theme = t; if (t === "light") document.querySelector('meta[name="theme-color"]').content = "#f2f6f6"; if (t === "dark") document.querySelector('meta[name="theme-color"]').content = "#0c1a1c"; if (t !== "light" && t !== "dark" && !document.getElementById("css-theme-" + t)) document.write('<link rel="stylesheet" id="css-theme-' + t + '" href="assets/theme-' + t + '.css?v=202611030530">'); }</script>
 </head>
 <body>
 <!--CORPS-->

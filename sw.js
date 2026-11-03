@@ -11,7 +11,7 @@
 */
 const VERSION = new URL(self.location.href).searchParams.get("v") || "0";
 const CACHE = "profmaths-" + VERSION;
-const COQUILLE = ["./", "assets/style.css", "assets/katex/katex.min.css", "data/config-comptes.js", "data/catalogue.js", "data/jeux.js", "data/manifeste.js", "data/niveaux.js", "assets/avatar.js", "assets/compte.js", "assets/app.js"];
+const COQUILLE = ["./", "assets/style.css", "assets/theme-mayotte.css", "assets/katex/katex.min.css", "data/config-comptes.js", "data/catalogue.js", "data/jeux.js", "data/manifeste.js", "data/niveaux.js", "assets/avatar.js", "assets/compte.js", "assets/app.js"];
 const v = (f) => (f === "./" ? "./" : f + "?v=" + VERSION);
 
 self.addEventListener("install", (e) => {

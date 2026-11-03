@@ -1,8 +1,9 @@
 /* Thème « Mayotte » : coucher de soleil sur le lagon. Le soleil se couche dans la mer et s'y reflète,
    Grande-Terre et le mont Choungui au loin, îlots sur le lagon turquoise, plage, maquis et cocotier
    au premier plan. Création originale, uniquement CSS et SVG en ligne : téléchargé seulement si on le choisit.
-   Les dessins suivent chacun un repère « dessin:… » : ils sont calculés par outils/mayotte/decor.js
-   (node outils/mayotte/decor.js assets/theme-mayotte.css). Le reste se retouche directement ici. */
+   Les dessins suivent chacun un repère « dessin:… » : ils sont calculés par outils/decors/mayotte.js
+   (node outils/decors/mayotte.js). Le reste se retouche directement ici.
+   C'est le thème par défaut : index.html charge cette feuille pour tout le monde. */
 :root[data-theme="mayotte"] {
   color-scheme: light;
   --fond: #fbf3e4; --surface: #fffdf8; --encre: #23302c; --doux: #5f6d66; --trait: #e9dcc4;
