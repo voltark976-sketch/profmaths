@@ -270,7 +270,7 @@ window.MANIFESTE = {
   "terminale-derivation-composees": {"niveau":"terminale","fichier":"data/terminale/derivation-composees.js","series":7,"qcm":26,"eval":"data/terminale/evaluation/derivation-composees.js"},
   "terminale-logarithme": {"niveau":"terminale","fichier":"data/terminale/logarithme.js","series":9,"qcm":26,"eval":"data/terminale/evaluation/logarithme.js"},
   "terminale-convexite": {"niveau":"terminale","fichier":"data/terminale/convexite.js","series":7,"qcm":24,"eval":"data/terminale/evaluation/convexite.js"},
-  "terminale-loi-geometrique": {"niveau":"terminale","fichier":"data/terminale/loi-geometrique.js","series":9,"qcm":23},
+  "terminale-loi-geometrique": {"niveau":"terminale","fichier":"data/terminale/loi-geometrique.js","series":9,"qcm":23,"eval":"data/terminale/evaluation/loi-geometrique.js"},
   "terminale-primitives-ed": {"niveau":"terminale","fichier":"data/terminale/primitives-equations-differentielles.js","series":9,"qcm":27},
   "terminale-integration": {"niveau":"terminale","fichier":"data/terminale/integration.js","series":12,"qcm":24},
   "terminale-lois-densite": {"niveau":"terminale","fichier":"data/terminale/lois-densite.js","series":11,"qcm":26},
