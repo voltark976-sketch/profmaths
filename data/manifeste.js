@@ -181,7 +181,7 @@ window.MANIFESTE = {
   "seconde-signes": {"niveau":"seconde","fichier":"data/seconde/signes.js","series":7,"qcm":26,"eval":"data/seconde/evaluation/signes.js"},
   "seconde-probabilites-conditionnelles": {"niveau":"seconde","fichier":"data/seconde/probabilites-conditionnelles.js","series":6,"qcm":28,"eval":"data/seconde/evaluation/probabilites-conditionnelles.js"},
   "seconde-statistiques-2": {"niveau":"seconde","fichier":"data/seconde/statistiques-2.js","series":7,"qcm":27,"eval":"data/seconde/evaluation/statistiques-2.js"},
-  "seconde-synthese": {"niveau":"seconde","fichier":"data/seconde/synthese.js","series":9,"qcm":31},
+  "seconde-synthese": {"niveau":"seconde","fichier":"data/seconde/synthese.js","series":9,"qcm":31,"eval":"data/seconde/evaluation/synthese.js"},
   "auto-calcul-numerique": {"niveau":"automatismes","fichier":"data/automatismes/calcul-numerique.js","series":8,"qcm":35},
   "auto-calcul-algebrique": {"niveau":"automatismes","fichier":"data/automatismes/calcul-algebrique.js","series":11,"qcm":39},
   "auto-proportions": {"niveau":"automatismes","fichier":"data/automatismes/proportions.js","series":4,"qcm":26},
