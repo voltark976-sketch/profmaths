@@ -247,7 +247,7 @@ window.MANIFESTE = {
   "terminale-spe-primitives": {"niveau":"terminale-spe","fichier":"data/terminale-spe/primitives.js","series":8,"qcm":27,"eval":"data/terminale-spe/evaluation/primitives.js"},
   "terminale-spe-equations-differentielles": {"niveau":"terminale-spe","fichier":"data/terminale-spe/equations-differentielles.js","series":8,"qcm":35,"eval":"data/terminale-spe/evaluation/equations-differentielles.js"},
   "terminale-spe-trigonometrie": {"niveau":"terminale-spe","fichier":"data/terminale-spe/trigonometrie.js","series":9,"qcm":29,"eval":"data/terminale-spe/evaluation/trigonometrie.js"},
-  "terminale-spe-integration": {"niveau":"terminale-spe","fichier":"data/terminale-spe/integration.js","series":11,"qcm":29},
+  "terminale-spe-integration": {"niveau":"terminale-spe","fichier":"data/terminale-spe/integration.js","series":11,"qcm":29,"eval":"data/terminale-spe/evaluation/integration.js"},
   "terminale-spe-denombrement": {"niveau":"terminale-spe","fichier":"data/terminale-spe/denombrement.js","series":12,"qcm":34},
   "terminale-spe-grands-nombres": {"niveau":"terminale-spe","fichier":"data/terminale-spe/grands-nombres.js","series":8,"qcm":22},
   "expertes-complexes-algebrique": {"niveau":"expertes","fichier":"data/expertes/complexes-algebrique.js","series":8,"qcm":23},
