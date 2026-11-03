@@ -185,7 +185,7 @@ window.MANIFESTE = {
   "auto-calcul-numerique": {"niveau":"automatismes","fichier":"data/automatismes/calcul-numerique.js","series":8,"qcm":35,"eval":"data/automatismes/evaluation/calcul-numerique.js"},
   "auto-calcul-algebrique": {"niveau":"automatismes","fichier":"data/automatismes/calcul-algebrique.js","series":11,"qcm":39,"eval":"data/automatismes/evaluation/calcul-algebrique.js"},
   "auto-proportions": {"niveau":"automatismes","fichier":"data/automatismes/proportions.js","series":4,"qcm":26,"eval":"data/automatismes/evaluation/proportions.js"},
-  "auto-evolutions": {"niveau":"automatismes","fichier":"data/automatismes/evolutions.js","series":6,"qcm":26},
+  "auto-evolutions": {"niveau":"automatismes","fichier":"data/automatismes/evolutions.js","series":6,"qcm":26,"eval":"data/automatismes/evaluation/evolutions.js"},
   "auto-fonctions": {"niveau":"automatismes","fichier":"data/automatismes/fonctions.js","series":12,"qcm":30},
   "auto-geometrie": {"niveau":"automatismes","fichier":"data/automatismes/geometrie.js","series":8,"qcm":27},
   "auto-statistiques": {"niveau":"automatismes","fichier":"data/automatismes/statistiques.js","series":8,"qcm":31},
