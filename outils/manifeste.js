@@ -34,6 +34,23 @@ for (const f of fichiers) {
   }
 }
 
+// Entraînement des chapitres du lycée (onglets « Révisions express » et « Entraînement évaluation ») :
+// data/<niveau>/evaluation/*.js, qui remplissent window.EVALUATIONS[id du chapitre] ; le site ne les charge qu'à l'ouverture de ces onglets
+const evals = {};
+for (const d of fs.readdirSync(path.join(racine, "data"), { withFileTypes: true })) {
+  const dossier = path.join(racine, "data", d.name, "evaluation");
+  if (!d.isDirectory() || !fs.existsSync(dossier)) continue;
+  for (const f of fs.readdirSync(dossier)) {
+    if (!f.endsWith(".js")) continue;
+    const fichier = `data/${d.name}/evaluation/${f}`, w = { EVALUATIONS: {} };
+    try { vm.runInNewContext(lire(fichier), { window: w }); } catch (e) { console.error(`✗ ${fichier} : ${e.message}`); process.exitCode = 1; continue; }
+    for (const id of Object.keys(w.EVALUATIONS)) {
+      if (evals[id]) { console.error(`✗ l'entraînement de « ${id} » est défini dans ${evals[id]} et dans ${fichier}`); process.exitCode = 1; }
+      evals[id] = fichier;
+    }
+  }
+}
+
 // Moteur d'exercices de chaque niveau : fichiers à charger, dans l'ordre, avant d'afficher ses exercices.
 // École : outils de l'école + fichier du niveau (champ exercices du catalogue). Collège : outils du collège + fichiers
 // du niveau. Lycée : assets/lycee/<niveau>.js, la partie d'assets/exercices.js utile au niveau, fabriquée plus bas
@@ -58,14 +75,16 @@ const man = {};
 for (const n of CATALOGUE.niveaux) for (const ch of n.chapitres) {
   if (ch.statut !== "disponible") continue;
   if (!parId[ch.id]) { console.error(`✗ ${n.nom} : le chapitre « ${ch.id} » (${ch.titre}) est « disponible » mais aucun fichier data/ ne le définit`); process.exitCode = 1; continue; }
-  man[ch.id] = Object.assign({ niveau: n.id }, parId[ch.id]);
+  man[ch.id] = Object.assign({ niveau: n.id }, parId[ch.id], evals[ch.id] ? { eval: evals[ch.id] } : {});
 }
 for (const id of Object.keys(parId)) if (!man[id]) console.warn(`· ${parId[id].fichier} définit « ${id} », absent du catalogue ou pas « disponible » : il ne sera pas chargé`);
+for (const id of Object.keys(evals)) if (!man[id]) console.warn(`· ${evals[id]} est l'entraînement de « ${id} », chapitre absent du catalogue ou pas « disponible » : il ne sera pas chargé`);
 
 const sortie = `/*
   FICHIER FABRIQUÉ AUTOMATIQUEMENT par   node outils/manifeste.js   — ne pas modifier à la main.
   MOTEURS : fichiers d'exercices de chaque niveau. MANIFESTE : pour chaque chapitre disponible, son niveau,
-  son fichier, son nombre de séries et de questions de QCM. Le site charge ces fichiers seulement quand on ouvre le chapitre.
+  son fichier, son nombre de séries et de questions de QCM, et son fichier d'entraînement (eval) s'il en a un.
+  Le site charge ces fichiers seulement quand on ouvre le chapitre (l'entraînement : quand on ouvre ses onglets).
 */
 window.MOTEURS = {
 ${Object.entries(moteurs).map(([k, v]) => `  ${JSON.stringify(k)}: ${JSON.stringify(v)}`).join(",\n")}

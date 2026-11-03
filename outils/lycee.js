@@ -230,6 +230,8 @@ function besoinsParNiveau(racine, CATALOGUE, MANIFESTE, niveaux) {
       const w = { CHAPITRES: {} };
       vm.runInNewContext(fs.readFileSync(path.join(racine, m.fichier), "utf8"), { window: w });
       textes(w.CHAPITRES[ch.id], mots);
+      // entraînement du chapitre (Révisions express, Entraînement évaluation) : figures nommées qu'il cite
+      if (m.eval) { const e = { EVALUATIONS: {} }; vm.runInNewContext(fs.readFileSync(path.join(racine, m.eval), "utf8"), { window: e }); textes(e.EVALUATIONS[ch.id], mots); }
       // figures écrites dans du HTML du cours : data-figure="nom"
       for (const x of JSON.stringify(w.CHAPITRES[ch.id]).matchAll(/data-figure=\\?["']([\w-]+)/g)) mots.add(x[1]);
     }

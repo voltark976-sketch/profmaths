@@ -1,7 +1,8 @@
 /*
   FICHIER FABRIQUÉ AUTOMATIQUEMENT par   node outils/manifeste.js   — ne pas modifier à la main.
   MOTEURS : fichiers d'exercices de chaque niveau. MANIFESTE : pour chaque chapitre disponible, son niveau,
-  son fichier, son nombre de séries et de questions de QCM. Le site charge ces fichiers seulement quand on ouvre le chapitre.
+  son fichier, son nombre de séries et de questions de QCM, et son fichier d'entraînement (eval) s'il en a un.
+  Le site charge ces fichiers seulement quand on ouvre le chapitre (l'entraînement : quand on ouvre ses onglets).
 */
 window.MOTEURS = {
   "cp": ["assets/exercices-base.js","assets/exercices-ecole.js","assets/exercices-cp.js"],
@@ -194,7 +195,7 @@ window.MANIFESTE = {
   "premiere-second-degre": {"niveau":"premiere","fichier":"data/premiere/second-degre.js","series":9,"qcm":28},
   "premiere-suites-arithmetiques": {"niveau":"premiere","fichier":"data/premiere/suites-arithmetiques.js","series":5,"qcm":28},
   "premiere-probabilites": {"niveau":"premiere","fichier":"data/premiere/probabilites.js","series":8,"qcm":26},
-  "premiere-second-degre-2": {"niveau":"premiere","fichier":"data/premiere/second-degre-2.js","series":15,"qcm":25},
+  "premiere-second-degre-2": {"niveau":"premiere","fichier":"data/premiere/second-degre-2.js","series":15,"qcm":25,"eval":"data/premiere/evaluation/second-degre-2.js"},
   "premiere-suites-geometriques": {"niveau":"premiere","fichier":"data/premiere/suites-geometriques.js","series":12,"qcm":27},
   "premiere-derivation-1": {"niveau":"premiere","fichier":"data/premiere/derivation-1.js","series":9,"qcm":33},
   "premiere-trigonometrie": {"niveau":"premiere","fichier":"data/premiere/trigonometrie.js","series":8,"qcm":31},

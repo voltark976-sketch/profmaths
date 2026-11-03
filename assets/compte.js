@@ -153,7 +153,7 @@
     pour chaque onglet de chapitre ouvert, pour le jeu, et pour la classe d'un élève connecté.
     Le professeur n'est pas compté, ni les essais sur l'ordinateur (localhost). */
   const CLE_VUS = "profmaths:vus";
-  const ONGLETS_COMPTES = ["cours", "exercices", "qcm", "defi", "methode"];
+  const ONGLETS_COMPTES = ["cours", "exercices", "qcm", "defi", "revisions", "evaluation", "methode"]; // les mêmes que dans firestore.rules (visitesChap)
   const ESSAI_LOCAL = location.protocol === "file:" || /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname);
   let pretVisites = false, attenteVisites = [];
   function visitesPretes() {

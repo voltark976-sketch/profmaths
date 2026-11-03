@@ -274,7 +274,10 @@
       .replace(/\u0000(\d+)\u0000((?:\u00a0?[.,;:!?)%»])+)/g, (_, i, p) => { apres[i] = p; return "\u0000" + i + "\u0000"; })
       .replace(/\((?=\u0000(\d+)\u0000)/g, (_, i) => { avant[i] = "("; return ""; })
       // ni coupure entre un nombre (ou une formule) et son unité : « 45 °C », « 12 km/h », « 30 élèves »
-      .replace(/(\d|\u0000) (?=(?:°C|°|%|€|[kcmd]?m[²³]?|[kmc]?g|[mcd]?L|h|min|s|ha|m\/s|km\/h|mg\/L|ans?|jours?|mois|heures?|minutes?|secondes?)(?![A-Za-zÀ-ÿ0-9]))/g, "$1\u00a0");
+      .replace(/(\d|\u0000) (?=(?:°C|°|%|€|[kcmd]?m[²³]?|[kmc]?g|[mcd]?L|h|min|s|ha|m\/s|km\/h|mg\/L|ans?|jours?|mois|heures?|minutes?|secondes?)(?![A-Za-zÀ-ÿ0-9]))/g, "$1\u00a0")
+      // après une formule, l'espace insécable ne suffit pas (Chrome coupe quand même : « $500$ » puis « € » à la ligne) :
+      // l'unité, et la ponctuation qui la suit, entrent dans la formule comme la ponctuation ci-dessus
+      .replace(/\u0000(\d+)\u0000\u00a0((?:°C|°|%|€|[kcmd]?m[²³]?|[kmc]?g|[mcd]?L|h|min|s|ha|m\/s|km\/h|mg\/L|ans?|jours?|mois|heures?|minutes?|secondes?)(?:\u00a0?[.,;:!?)%»])*)(?=\s|$)/g, (m, i, u) => { if (apres[i]) return m; apres[i] = "\u00a0" + u; return "\u0000" + i + "\u0000"; });
     return esc(t).replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>").replace(/\u0000(\d+)\u0000/g, (_, i) => colle(tex(maths[+i]), avant[i], apres[i]))
       .replace(/\u0001(\d+)\u0001/g, (_, i) => `<code class="tt">${esc(codes[+i])}</code>`);
   }
@@ -348,6 +351,18 @@
     { id: "defi", nom: "Défi" },
     { id: "methode", nom: "Méthode" }
   ];
+  // Lycée : un chapitre qui a son fichier d'entraînement (data/<niveau>/evaluation/…, champ « eval » du manifeste)
+  // remplace le Défi par « Révisions express » (le défi chrono y reste) et ajoute « Entraînement évaluation »
+  const ONGLETS_EVAL = [
+    { id: "cours", nom: "Cours" },
+    { id: "exercices", nom: "Exercices" },
+    { id: "qcm", nom: "QCM" },
+    { id: "revisions", nom: "Révisions" },
+    { id: "evaluation", nom: "Évaluation" },
+    { id: "methode", nom: "Méthode" }
+  ];
+  const fichierEval = (id) => (MAN[id] && MAN[id].eval) || "";
+  const ongletsDe = (id) => (fichierEval(id) || (window.EVALUATIONS && window.EVALUATIONS[id]) ? ONGLETS_EVAL : ONGLETS);
   let minuterieJeu = null; // chrono du jeu en cours, arrêté quand on change de page
 
   /* ---------- Chargement à la demande (rapide en 3G) ----------
@@ -419,7 +434,7 @@
     else pageAccueil();
     // Fréquentation anonyme (une fois par appareil et par jour)
     if (chap === "jeu") Compte.visite("jeu");
-    else if (chap && dispo(chap)) Compte.visite(chap, ONGLETS.some((o) => o.id === onglet) ? onglet : "cours");
+    else if (chap && dispo(chap)) Compte.visite(chap, ongletsDe(chap).some((o) => o.id === onglet) ? onglet : onglet === "defi" && fichierEval(chap) ? "revisions" : "cours");
     else Compte.visite();
     // Couleur du niveau (Seconde, Première...) pour habiller la page niveau et la page chapitre
     const niv = CATALOGUE.niveaux.find((n) => "niveau-" + n.id === chap || n.chapitres.some((ch) => ch.id === chap));
@@ -1205,7 +1220,7 @@
     jours.forEach((x) => Object.entries(x.classes || {}).forEach(([g, n]) => { classes[g] = (classes[g] || 0) + (+n || 0); }));
     const eleves = Object.values(classes).reduce((s, n) => s + n, 0);
     // Onglets ouverts, par chapitre puis par niveau
-    const OC = ["cours", "exercices", "qcm", "defi", "methode"];
+    const OC = ["cours", "exercices", "qcm", "defi", "revisions", "evaluation", "methode"];
     const parChap = {};
     lus.forEach((x) => { const c = parChap[x.ch] || (parChap[x.ch] = { total: 0 }); OC.forEach((o) => { c[o] = (c[o] || 0) + (+x[o] || 0); c.total += +x[o] || 0; }); });
     const niveaux = CATALOGUE.niveaux.map((n) => ({ id: n.id, nom: n.nom, chaps: n.chapitres.filter((ch) => parChap[ch.id]).map((ch) => Object.assign({ id: ch.id, titre: ch.titre }, parChap[ch.id])) }))
@@ -1227,11 +1242,11 @@
       <div class="freq-axe"><span>${dateCourte(serie[0].j)}</span><span>${dateCourte(auj)}</span></div>
       <p class="muted" id="freq-info" aria-live="polite">Record : <strong>${record.n}</strong> visite${record.n > 1 ? "s" : ""} le ${dateLongue(record.j)}. Touche une barre pour voir son jour.</p>` : vide}
       <h2>Par niveau</h2>
-      <p class="muted">Onglets de chapitre ouverts (cours, exercices, QCM, défi, méthode).${jeu ? ` Jeu Les Salles : ${nb(jeu)} visite${jeu > 1 ? "s" : ""}.` : ""}</p>
+      <p class="muted">Onglets de chapitre ouverts (cours, exercices, QCM, défi, révisions express, entraînement évaluation, méthode).${jeu ? ` Jeu Les Salles : ${nb(jeu)} visite${jeu > 1 ? "s" : ""}.` : ""}</p>
       ${niveaux.some((n) => n.total) ? `<ul class="freq-niv">${niveaux.map((n) => `<li data-niv="${esc(n.id)}"><span>${esc(n.nom)}</span><span class="piste"><i style="width:${(n.total / maxNiv) * 100}%"></i></span><b>${nb(n.total)}</b></li>`).join("")}</ul>` : vide}
       <h2>Par chapitre</h2>
       <div class="suivi-choix"><label>Niveau <select id="f-niv"><option value="">Tous les niveaux</option>${niveaux.map((n) => `<option value="${esc(n.id)}"${n.id === freqChoix.niveau ? " selected" : ""}>${esc(n.nom)}</option>`).join("")}</select></label></div>
-      ${chapsVus.length ? `<div class="scroll-x"><table class="suivi freq-chap"><thead><tr><th>Chapitre</th><th>Cours</th><th>Exos</th><th>QCM</th><th>Défi</th><th>Méthode</th><th>Total</th></tr></thead><tbody>${chapsVus.map((c) => `<tr><th scope="row"><a href="#${esc(c.id)}">${esc(c.titre)}</a></th>${OC.map((o) => `<td>${c[o] ? nb(c[o]) : "·"}</td>`).join("")}<td><strong>${nb(c.total)}</strong></td></tr>`).join("")}</tbody></table></div>` : vide}
+      ${chapsVus.length ? `<div class="scroll-x"><table class="suivi freq-chap"><thead><tr><th>Chapitre</th><th>Cours</th><th>Exos</th><th>QCM</th><th>Défi</th><th>Révisions</th><th>Éval.</th><th>Méthode</th><th>Total</th></tr></thead><tbody>${chapsVus.map((c) => `<tr><th scope="row"><a href="#${esc(c.id)}">${esc(c.titre)}</a></th>${OC.map((o) => `<td>${c[o] ? nb(c[o]) : "·"}</td>`).join("")}<td><strong>${nb(c.total)}</strong></td></tr>`).join("")}</tbody></table></div>` : vide}
       <h2>Élèves connectés, par classe</h2>
       ${eleves ? `<ul class="freq-classes">${Object.entries(classes).sort((a, b) => b[1] - a[1]).map(([g, n]) => `<li><span>${esc(g)}</span><b>${nb(n)}</b></li>`).join("")}</ul>` : `<p class="muted">Aucun élève connecté sur cette période.</p>`}
       <p class="muted">Ces chiffres sont anonymes : aucun nom n'est enregistré, seulement des compteurs. Un appareil compte une fois par jour pour le site et une fois par jour pour chaque onglet de chapitre ; un élève connecté compte une fois par jour pour sa classe. Ordinateurs : ${nb(pc)} · téléphones et tablettes : ${nb(tel)}. Tes propres visites (compte professeur) ne sont pas comptées.</p></section>`;
@@ -1252,17 +1267,20 @@
   function pageChapitre(id, onglet) {
     const c = CHAPITRES[id];
     document.title = `${c.titre} · ProfMaths`;
-    if (!ONGLETS.some((o) => o.id === onglet)) onglet = "cours";
+    const ongl = ongletsDe(id);
+    if (onglet === "defi" && ongl === ONGLETS_EVAL) onglet = "revisions"; // anciens liens vers le Défi d'un chapitre du lycée
+    if (!ongl.some((o) => o.id === onglet)) onglet = "cours";
     const b = bilanChapitre(id);
     const nivChap = CATALOGUE.niveaux.find((n) => n.chapitres.some((ch) => ch.id === id));
     let h = `<a class="retour" href="#${nivChap ? "niveau-" + esc(nivChap.id) : ""}">← ${nivChap ? esc(nivChap.nom) : "Accueil"} : tous les chapitres</a>
       <header class="chap-head">${c.numero ? `<span class="chap-filigrane" aria-hidden="true" data-romain="${romain(c.numero)}">${c.numero}</span>` : ""}<p class="eyebrow">${esc(c.niveau)} · ${c.numero ? `Chapitre&nbsp;${c.numero}` : esc(c.periode || "Toute l'année")}</p><h1>${esc(c.titre)}</h1><p class="lead">${inline(c.accroche)}</p>
       <p class="score-chap">${etoiles(Math.round((b.got / b.total) * 5), 5)} <span>${b.got}/${b.total} étoiles d'exercices</span></p></header>
-      <nav class="onglets" aria-label="Parties du chapitre">${ONGLETS.map((o) => `<a href="#${id}.${o.id}" ${o.id === onglet ? 'aria-current="page"' : ""}>${o.nom}</a>`).join("")}</nav>
+      <nav class="onglets${ongl.length > 5 ? " onglets-6" : ""}" aria-label="Parties du chapitre">${ongl.map((o) => `<a href="#${id}.${o.id}" ${o.id === onglet ? 'aria-current="page"' : ""}>${o.nom}</a>`).join("")}</nav>
       <div class="panneau" id="panneau"></div>` + piedDePage();
     $app.innerHTML = h;
     const p = document.getElementById("panneau");
     const h0 = location.hash;
+    if (onglet === "revisions" || onglet === "evaluation") return vueEntrainement(p, c, id, onglet);
     if (onglet === "cours" || onglet === "methode") {
       // Le cours s'affiche sans attendre les générateurs ; une figure qui en a besoin arrive dès qu'ils sont là
       ({ cours: vueCours, methode: vueMethode })[onglet](p, c, id);
@@ -1631,7 +1649,9 @@
   const nombreFr = (x) => String(+(+x).toFixed(6)).replace("-", "−").replace(".", ",");
   function bonneReponse(q) {
     if (q.mode === "choix") return inline(q.choix[q.attendu]);
-    const v = q.mode === "ensemble" ? (q.attendu.length ? q.attendu.map(nombreFr).join(" ; ") : "aucun") : nombreFr(q.attendu);
+    // valeur exacte : une fraction s'écrit en fraction (1/30 et non 0,033333) ; un arrondi accepté reste en décimal
+    const ecrire = (x) => { const t = (q.tolerance || 0) < 1e-6 && nombreTex(x); return t ? tex(t) : nombreFr(x); };
+    const v = q.mode === "ensemble" ? (q.attendu.length ? q.attendu.map(ecrire).join(" ; ") : "aucun") : ecrire(q.attendu);
     return `<strong>${v}</strong>${q.suffixe ? " " + inline(q.suffixe) : ""}`;
   }
   // Renvoie true (juste), false (faux) ou null (réponse illisible : pas de pénalité)
@@ -1655,18 +1675,23 @@
     p.innerHTML = `<div class="defi-chap"><p class="intro">${inline(J.accroche)}</p>
       <ul class="regles"><li><b>⏱</b> ${J.duree} secondes</li><li><b class="coeur">♥</b> ${J.vies} vies</li><li><b>×3</b> bonus de série</li></ul>
       <p class="defi-rec">${rec ? `Ton record sur ce chapitre : <strong>${rec} pts</strong>` : "Tu n'as pas encore joué sur ce chapitre."}</p>
-      <button class="btn" id="go">Lancer le défi</button></div>
-      <section class="classement"><h2 class="jeu-choix-t">Classement général</h2>
+      <button class="btn" id="go">Lancer le défi</button></div>` + htmlClassement();
+    brancherClassement(p);
+    p.querySelector("#go").addEventListener("click", () => lancerChrono(J, t, { cible: p, retour: () => vueDefi(p, c, id), retourTexte: "Défi", libelle: c.titre }));
+  }
+
+  // Classement du défi chrono (top 10, filtre par classe) : sous le Défi, ou replié en bas des Révisions express
+  const htmlClassement = () => `<section class="classement"><h2 class="jeu-choix-t">Classement général</h2>
         <div class="filtres" role="group" aria-label="Classement">${[""].concat(Compte.classes).map((cl) => `<button class="filtre" data-c="${esc(cl)}" aria-pressed="${cl === filtreClassement}">${cl ? esc(classeCourte(cl)) : "Tous"}</button>`).join("")}</div>
         <ol class="top" id="top"></ol>
         <p class="muted">Les points de classement sont la somme des records sur les défis de tous les chapitres${Compte.eleve() ? ` (toi : <strong>${Compte.pointsJeux(prog.jeux)} pts</strong>)` : ""}. Seul le top 10 s'affiche.</p></section>`;
+  function brancherClassement(p) {
     p.querySelectorAll(".filtre").forEach((b) => b.addEventListener("click", () => {
       filtreClassement = b.dataset.c;
       p.querySelectorAll(".filtre").forEach((x) => x.setAttribute("aria-pressed", x === b));
       afficherClassement();
     }));
     afficherClassement();
-    p.querySelector("#go").addEventListener("click", () => lancerChrono(J, t, { cible: p, retour: () => vueDefi(p, c, id), retourTexte: "Défi", libelle: c.titre }));
   }
 
   let filtreClassement = "";
@@ -1708,7 +1733,7 @@
       <div class="chrono" aria-hidden="true"><span id="barre"></span></div>
       <div class="jeu-info"><span id="temps"></span><span id="multi"></span></div>
       <div id="zone"></div></div>`;
-    if ($c !== $app) window.scrollTo(0, Math.max(0, $c.getBoundingClientRect().top + window.scrollY - 110));
+    if ($c !== $app) defilerVers($c);
     const $zone = $c.querySelector("#zone"), $barre = $c.querySelector("#barre"), $temps = $c.querySelector("#temps");
     $c.querySelector("#quitter").addEventListener("click", () => { clearInterval(minuterieJeu); minuterieJeu = null; activiteEnCours = false; o.retour(); });
     const multi = () => (serie >= 6 ? 3 : serie >= 3 ? 2 : 1);
@@ -1798,6 +1823,190 @@
       minuterieJeu = setInterval(tic, 250);
     }, 700);
     tic();
+  }
+
+  /* ---------- Révisions express et entraînement évaluation (chapitres du lycée) ----------
+     Contenu dans window.EVALUATIONS[id] (data/<niveau>/evaluation/<chapitre>.js, champ « eval » du manifeste),
+     téléchargé seulement à l'ouverture de l'un des deux onglets. Les questions flash et le défi chrono
+     ont besoin des générateurs du niveau, chargés au moment où l'élève les lance. */
+  const FLASH_N = 10;
+  const ptsTexte = (n) => `${String(n).replace(".", ",")} point${n >= 2 ? "s" : ""}`;
+  // Figure d'un fichier d'entraînement : une fonction qui reçoit les outils communs (PM_EXO.graph…), ou un nom de FIGURES
+  const figureEval = (f) => (typeof f === "function" ? `<figure class="fig">${f(window.PM_EXO || {})}</figure>` : figure(f));
+  const evalDe = (id) => window.EVALUATIONS && window.EVALUATIONS[id];
+  // Une longue formule est coupée en morceaux aux signes =, ⟺, <, ⩽… de premier niveau : chaque morceau reste entier
+  // sur téléphone (style.css), la ligne ne se coupe qu'entre deux morceaux, jamais au milieu d'une parenthèse
+  const RELATIONS = ["\\iff", "\\Leftrightarrow", "\\Rightarrow", "\\leqslant", "\\geqslant", "\\approx", "\\neq"];
+  function coupeRelations(s) {
+    return String(s == null ? "" : s).replace(/```[\s\S]*?```|\$([^$]+)\$/g, (m, f) => {
+      if (f === undefined || f.length < 24) return m;
+      const morceaux = []; let d = 0, cur = "";
+      for (let i = 0; i < f.length; i++) {
+        if (f[i] === "\\") {
+          const mot = (f.slice(i).match(/^\\[a-zA-Z]+/) || [f.slice(i, i + 2)])[0];
+          if (mot === "\\left") d++; else if (mot === "\\right") d--;
+          if (d === 0 && RELATIONS.includes(mot) && cur.trim()) { morceaux.push(cur); cur = ""; }
+          cur += mot; i += mot.length - 1; continue;
+        }
+        if (f[i] === "{") d++; else if (f[i] === "}") d--;
+        if (d === 0 && "=<>".includes(f[i]) && cur.trim()) { morceaux.push(cur); cur = ""; }
+        cur += f[i];
+      }
+      morceaux.push(cur);
+      return morceaux.length > 1 ? morceaux.map((x) => `$${x.trim()}$`).join(" ") : m;
+    });
+  }
+  const mdEval = (s) => md(coupeRelations(s));
+  // Remonte au début du panneau, juste sous la barre du haut et les onglets collants (deux rangées sur téléphone)
+  function defilerVers(el) {
+    const nav = document.querySelector(".onglets"), haut = nav ? (parseFloat(getComputedStyle(nav).top) || 0) + nav.offsetHeight : 110;
+    window.scrollTo(0, Math.max(0, el.getBoundingClientRect().top + window.scrollY - haut - 8));
+  }
+
+  function vueEntrainement(p, c, id, onglet) {
+    const h0 = location.hash;
+    const afficher = () => {
+      const e = evalDe(id);
+      if (!e) { p.innerHTML = msgReseau("Cette partie du chapitre n'a pas pu se charger."); return; }
+      (onglet === "revisions" ? vueRevisions : vueEvaluation)(p, c, id, e);
+      // une figure nommée qui vient des générateurs du niveau est dessinée dès qu'ils sont là
+      if (p.querySelector("[data-figure]")) assurerMoteur(id).then(() => { if (memePage(h0)) remplirFigures(p); }).catch(() => {});
+      else if (onglet === "revisions") prechargerMoteur(id);
+    };
+    if (evalDe(id) || !fichierEval(id)) return afficher();
+    p.innerHTML = msgAttente("Chargement…");
+    chargerScript(fichierEval(id)).then(() => { if (memePage(h0)) afficher(); })
+      .catch(() => { if (memePage(h0)) p.innerHTML = msgReseau("Cette partie du chapitre n'a pas pu se charger."); });
+  }
+
+  // Lance f quand les générateurs du chapitre sont chargés (questions flash, défi chrono)
+  function avecMoteur(p, id, bouton, f) {
+    if (moteurPret(id)) return f();
+    const h0 = location.hash, texte = bouton.textContent;
+    bouton.disabled = true; bouton.textContent = "Chargement…";
+    assurerMoteur(id).then(() => { if (memePage(h0)) f(); })
+      .catch(() => { bouton.disabled = false; bouton.textContent = texte; if (memePage(h0)) bouton.insertAdjacentHTML("afterend", msgReseau("Les questions n'ont pas pu se charger.")); });
+  }
+
+  /* Onglet « Révisions express » : l'essentiel, les pièges, puis questions flash ou défi chrono */
+  function vueRevisions(p, c, id, e) {
+    const r = e.revisions || {}, J = JEUX.chrono, rec = prog.jeux["chrono:" + id];
+    const faites = c.exercices.filter((x) => (prog.exo[id + ":" + x.type] || 0) >= 3).length;
+    let h = `<p class="intro">${inline(r.intro || "L'essentiel du chapitre en quelques minutes : relis, repère les pièges, puis teste-toi.")}</p>`;
+    if (r.essentiel && r.essentiel.length) h += `<section class="rev-bloc"><h2>L'essentiel</h2><div class="rev-cartes">${r.essentiel.map((x) => `<article class="rev-carte"><h3>${inline(x.titre)}</h3>${mdEval(x.texte)}${x.figure ? figureEval(x.figure) : ""}</article>`).join("")}</div></section>`;
+    if (r.pieges && r.pieges.length) h += `<section class="rev-bloc erreurs"><h2>Les pièges à éviter</h2><ul>${r.pieges.map((x) => `<li>${inline(coupeRelations(x))}</li>`).join("")}</ul></section>`;
+    h += `<section class="rev-bloc rev-test"><h2>Je me teste</h2><div class="rev-modes">
+        <div class="rev-mode"><p class="rev-mode-t">${FLASH_N} questions flash</p><p class="muted">Tirées des exercices du chapitre, corrigées tout de suite, sans chrono.</p><button class="btn" id="flash">C'est parti</button></div>
+        <div class="rev-mode"><p class="rev-mode-t">Défi chrono</p><p class="muted">${J.duree} secondes, ${J.vies} vies, bonus de série : ton record compte pour le classement.${rec ? ` Ton record : <strong>${rec} pts</strong>.` : ""}</p><button class="btn-sec" id="chrono">Lancer le défi</button></div>
+      </div>${c.exercices.length ? `<p class="muted rev-series">Séries d'exercices maîtrisées (3 étoiles) : <strong>${faites}/${c.exercices.length}</strong>. <a href="#${id}.exercices">Voir les séries</a></p>` : ""}</section>
+      <details class="rev-classement"><summary>Classement du défi chrono</summary><div id="rev-top"></div></details>
+      <a class="suite" href="#${id}.evaluation">Je m'entraîne pour l'évaluation →</a>`;
+    p.innerHTML = h;
+    const retour = () => { vueRevisions(p, c, id, e); defilerVers(p.querySelector(".rev-test") || p); };
+    p.querySelector("#flash").addEventListener("click", (ev) => avecMoteur(p, id, ev.currentTarget, () => lancerFlash(p, c, id, retour)));
+    p.querySelector("#chrono").addEventListener("click", (ev) => avecMoteur(p, id, ev.currentTarget, () => lancerChrono(J, themeChapitre(J, id, c.titre), { cible: p, retour, retourTexte: "Révisions", libelle: c.titre })));
+    const cl = p.querySelector(".rev-classement");
+    cl.addEventListener("toggle", () => { if (cl.open && !cl.dataset.pret) { cl.dataset.pret = "1"; p.querySelector("#rev-top").innerHTML = htmlClassement(); brancherClassement(p); } });
+  }
+
+  /* Questions flash : tirées tour à tour de chaque série du chapitre, sans chrono ni points
+     (les points se gagnent dans les séries, le QCM et le défi chrono) */
+  function lancerFlash(p, c, id, retour) {
+    const series = themeChapitre(JEUX.chrono, id, c.titre).series, vus = new Set(), ordre = [];
+    if (!series.length) return retour();
+    while (ordre.length < FLASH_N) ordre.push(...shuffle(series));
+    activiteEnCours = true;
+    let i = 0, bonnes = 0;
+    function question() {
+      const q = tirerSansDoublon(() => GEN[ordre[i]](Math.floor(Math.random() * 5)), vus);
+      let repondu = false;
+      p.innerHTML = `<div class="exo">
+        <div class="exo-top"><button class="lien" id="quitter">← Révisions</button><span class="progression">Question ${i + 1}/${FLASH_N}</span><span class="pts">${bonnes} juste${bonnes > 1 ? "s" : ""}</span></div>
+        <div class="pastilles">${Array.from({ length: FLASH_N }, (_, k) => `<span class="${k < i ? "ok" : k === i ? "cur" : ""}"></span>`).join("")}</div>
+        <div class="enonce">${md(q.enonce)}</div>
+        ${q.tableau ? tableau(q.tableau) : ""}
+        ${q.figure ? `<figure class="fig" id="fig">${q.figure}</figure>` : ""}
+        ${champReponse(q)}
+        <div class="retour-rep" id="fb" role="status" aria-live="polite"></div>
+        <div class="exo-actions"><button class="btn-sec" id="passer">Je ne sais pas</button><button class="btn" id="suivant" hidden>${i + 1 < FLASH_N ? "Question suivante →" : "Voir mon bilan →"}</button></div>
+      </div>`;
+      const fb = p.querySelector("#fb"), bPasser = p.querySelector("#passer"), bSuiv = p.querySelector("#suivant");
+      defilerVers(p);
+      p.querySelector("#quitter").addEventListener("click", () => { activiteEnCours = false; retour(); });
+      function repondre(val, passe) {
+        if (repondu) return;
+        const ok = passe ? false : juger(q, val);
+        if (ok === null) { fb.className = "retour-rep info"; fb.textContent = q.mode === "ensemble" ? "Écris les nombres séparés par « ; », ou « aucun »." : "Écris un nombre, par exemple −3 ou 2,5."; return; }
+        repondu = true;
+        if (ok) bonnes++;
+        p.querySelectorAll("input, .opt, .touche, .saisie .btn").forEach((el) => (el.disabled = true));
+        if (q.mode === "choix") {
+          if (!passe && !ok) p.querySelector(`.opt[data-k="${val}"]`).classList.add("barre-opt");
+          p.querySelector(`.opt[data-k="${q.attendu}"]`).classList.add("opt-bonne");
+        }
+        fb.className = "retour-rep " + (ok ? "bon" : passe ? "info" : "faux");
+        fb.innerHTML = (ok ? "<strong>Juste !</strong>" : `<strong>${passe ? "La réponse" : "Pas tout à fait"}.</strong> Bonne réponse : ${bonneReponse(q)}`)
+          + `<details${ok ? "" : " open"}><summary>${ok ? "Voir la rédaction" : "La solution"}</summary><div class="solution">${md(q.solution)}</div></details>`;
+        if (q.figureSolution) { const f = p.querySelector("#fig"); if (f) f.innerHTML = q.figureSolution; else fb.insertAdjacentHTML("beforeend", `<figure class="fig">${q.figureSolution}</figure>`); }
+        p.querySelector(".pts").textContent = `${bonnes} juste${bonnes > 1 ? "s" : ""}`;
+        bPasser.hidden = true; bSuiv.hidden = false; bSuiv.focus();
+      }
+      if (q.mode === "choix") p.querySelectorAll(".opt").forEach((b) => b.addEventListener("click", () => repondre(+b.dataset.k)));
+      else {
+        const inp = p.querySelector("#rep");
+        p.querySelector(".saisie").addEventListener("submit", (ev) => { ev.preventDefault(); repondre(inp.value); });
+        brancherTouches(p, inp);
+      }
+      bPasser.addEventListener("click", () => repondre(null, true));
+      bSuiv.addEventListener("click", () => { i++; if (i < FLASH_N) question(); else bilan(); });
+    }
+    function bilan() {
+      activiteEnCours = false;
+      const msg = bonnes >= 9 ? "Excellent : le chapitre est bien en place." : bonnes >= 7 ? "Bien ! Relis les solutions des questions ratées." : bonnes >= 4 ? "C'est un début : relis l'essentiel, puis retravaille les séries qui coincent." : "Reprends le cours et la fiche méthode, puis réessaie.";
+      p.innerHTML = `<div class="bilan"><p class="eyebrow">Questions flash · ${esc(c.titre)}</p><p class="gros">${bonnes}<span>/${FLASH_N}</span></p><p>${msg}</p>
+        <div class="exo-actions"><button class="btn" id="encore">Encore ${FLASH_N} questions</button><button class="btn-sec" id="retour">Révisions</button></div></div>`;
+      p.querySelector("#encore").addEventListener("click", () => lancerFlash(p, c, id, retour));
+      p.querySelector("#retour").addEventListener("click", retour);
+    }
+    question();
+  }
+
+  /* Onglet « Entraînement évaluation » : deux ou trois exercices type contrôle ou bac, avec indice et corrigé par question */
+  function vueEvaluation(p, c, id, e) {
+    const ev = e.evaluation || {}, exos = ev.exercices || [];
+    const duree = exos.reduce((s, x) => s + (x.duree || 0), 0);
+    let h = `<p class="intro">${inline(ev.intro || `${exos.length} exercice${exos.length > 1 ? "s" : ""} comme en contrôle${duree ? ` (${duree} min en tout)` : ""}. Cherche d'abord sur une feuille, puis ouvre l'indice ou le corrigé de chaque question.`)}</p>`;
+    exos.forEach((x, k) => {
+      const qs = (x.questions || []).map((q) => {
+        if (q.partie) return `<li class="eval-partie"><h3>${inline(q.partie)}</h3>${q.texte ? mdEval(q.texte) : ""}${q.figure ? figureEval(q.figure) : ""}${q.tableau ? tableau(q.tableau) : ""}</li>`;
+        return `<li class="eval-q"><div class="eval-q-txt">${q.n ? `<span class="eval-n">${esc(q.n)}</span>` : ""}<div class="eval-q-corps">${mdEval(q.texte)}${q.figure ? figureEval(q.figure) : ""}${q.tableau ? tableau(q.tableau) : ""}</div></div>
+          <div class="eval-q-btn">${q.indice ? `<button type="button" class="btn-mini" data-ouvre="indice" aria-expanded="false">Indice</button>` : ""}<button type="button" class="btn-mini" data-ouvre="corrige" aria-expanded="false">Corrigé</button>${q.points !== undefined ? `<span class="eval-pts">${ptsTexte(q.points)}</span>` : ""}</div>
+          ${q.indice ? `<div class="aide eval-indice" hidden><span class="tag">Indice</span>${mdEval(q.indice)}</div>` : ""}
+          <div class="eval-corrige" hidden><span class="tag">Corrigé</span>${mdEval(q.corrige)}${q.tableauCorrige ? tableau(q.tableauCorrige) : ""}${q.figureCorrige ? figureEval(q.figureCorrige) : ""}${q.corrigeFin ? mdEval(q.corrigeFin) : ""}</div></li>`;
+      }).join("");
+      h += `<article class="eval-exo"><header class="eval-tete"><p class="eyebrow">Exercice ${k + 1}${x.duree ? ` · ${x.duree} min` : ""}${x.points ? ` · ${ptsTexte(x.points)}` : ""}</p><h2>${inline(x.titre)}</h2>
+          <p class="eval-calc">${x.calculatrice ? "Calculatrice autorisée" : "Sans calculatrice"}</p></header>
+        ${x.contexte ? `<div class="eval-contexte">${mdEval(x.contexte)}</div>` : ""}${x.figure ? figureEval(x.figure) : ""}${x.tableau ? tableau(x.tableau) : ""}
+        <ol class="eval-qs">${qs}</ol>
+        <div class="eval-fin"><button type="button" class="btn-sec" data-tout="1">Afficher tout le corrigé</button></div></article>`;
+    });
+    h += `<a class="suite" href="#${id}.revisions">Revoir l'essentiel du chapitre →</a>`;
+    p.innerHTML = h;
+    p.addEventListener("click", (evt) => {
+      const b = evt.target.closest("[data-ouvre]");
+      if (b) {
+        const bloc = b.closest(".eval-q").querySelector(".eval-" + b.dataset.ouvre), ouvrir = bloc.hidden;
+        bloc.hidden = !ouvrir; b.setAttribute("aria-expanded", String(ouvrir));
+        return;
+      }
+      const t = evt.target.closest("[data-tout]");
+      if (!t) return;
+      const art = t.closest(".eval-exo"), ouvrir = t.dataset.tout === "1";
+      art.querySelectorAll(".eval-corrige").forEach((d) => { d.hidden = !ouvrir; });
+      art.querySelectorAll('[data-ouvre="corrige"]').forEach((x) => x.setAttribute("aria-expanded", String(ouvrir)));
+      t.dataset.tout = ouvrir ? "0" : "1";
+      t.textContent = ouvrir ? "Masquer le corrigé" : "Afficher tout le corrigé";
+    });
   }
 
   route();

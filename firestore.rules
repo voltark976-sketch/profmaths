@@ -120,11 +120,11 @@ service cloud.firestore {
       allow create: if jour(request.resource.data.j)
         && request.resource.data.ch is string && request.resource.data.ch.matches('[a-z0-9-]{1,60}')
         && id == request.resource.data.j + '_' + request.resource.data.ch
-        && request.resource.data.keys().hasOnly(['j', 'ch', 'cours', 'exercices', 'qcm', 'defi', 'methode'])
+        && request.resource.data.keys().hasOnly(['j', 'ch', 'cours', 'exercices', 'qcm', 'defi', 'revisions', 'evaluation', 'methode'])
         && request.resource.data.keys().size() == 3
-        && vaut1('cours') && vaut1('exercices') && vaut1('qcm') && vaut1('defi') && vaut1('methode');
-      allow update: if modifies().hasOnly(['cours', 'exercices', 'qcm', 'defi', 'methode']) && modifies().size() == 1
-        && plusUn('cours') && plusUn('exercices') && plusUn('qcm') && plusUn('defi') && plusUn('methode');
+        && vaut1('cours') && vaut1('exercices') && vaut1('qcm') && vaut1('defi') && vaut1('revisions') && vaut1('evaluation') && vaut1('methode');
+      allow update: if modifies().hasOnly(['cours', 'exercices', 'qcm', 'defi', 'revisions', 'evaluation', 'methode']) && modifies().size() == 1
+        && plusUn('cours') && plusUn('exercices') && plusUn('qcm') && plusUn('defi') && plusUn('revisions') && plusUn('evaluation') && plusUn('methode');
     }
   }
 }
