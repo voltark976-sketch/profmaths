@@ -197,7 +197,7 @@ window.MANIFESTE = {
   "premiere-probabilites": {"niveau":"premiere","fichier":"data/premiere/probabilites.js","series":8,"qcm":26,"eval":"data/premiere/evaluation/probabilites.js"},
   "premiere-second-degre-2": {"niveau":"premiere","fichier":"data/premiere/second-degre-2.js","series":15,"qcm":25,"eval":"data/premiere/evaluation/second-degre-2.js"},
   "premiere-suites-geometriques": {"niveau":"premiere","fichier":"data/premiere/suites-geometriques.js","series":12,"qcm":27,"eval":"data/premiere/evaluation/suites-geometriques.js"},
-  "premiere-derivation-1": {"niveau":"premiere","fichier":"data/premiere/derivation-1.js","series":9,"qcm":33},
+  "premiere-derivation-1": {"niveau":"premiere","fichier":"data/premiere/derivation-1.js","series":9,"qcm":33,"eval":"data/premiere/evaluation/derivation-1.js"},
   "premiere-trigonometrie": {"niveau":"premiere","fichier":"data/premiere/trigonometrie.js","series":8,"qcm":31},
   "premiere-derivation-2": {"niveau":"premiere","fichier":"data/premiere/derivation-2.js","series":7,"qcm":31},
   "premiere-variations": {"niveau":"premiere","fichier":"data/premiere/variations-courbes.js","series":8,"qcm":31},
