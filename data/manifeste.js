@@ -265,7 +265,7 @@ window.MANIFESTE = {
   "terminale-lois-discretes": {"niveau":"terminale","fichier":"data/terminale/lois-discretes.js","series":11,"qcm":36,"eval":"data/terminale/evaluation/lois-discretes.js"},
   "terminale-arithmetico-geometriques": {"niveau":"terminale","fichier":"data/terminale/arithmetico-geometriques.js","series":6,"qcm":26,"eval":"data/terminale/evaluation/arithmetico-geometriques.js"},
   "terminale-limites-continuite": {"niveau":"terminale","fichier":"data/terminale/limites-continuite.js","series":8,"qcm":28,"eval":"data/terminale/evaluation/limites-continuite.js"},
-  "terminale-inference-bayesienne": {"niveau":"terminale","fichier":"data/terminale/inference-bayesienne.js","series":8,"qcm":26},
+  "terminale-inference-bayesienne": {"niveau":"terminale","fichier":"data/terminale/inference-bayesienne.js","series":8,"qcm":26,"eval":"data/terminale/evaluation/inference-bayesienne.js"},
   "terminale-deux-variables": {"niveau":"terminale","fichier":"data/terminale/deux-variables.js","series":7,"qcm":26},
   "terminale-derivation-composees": {"niveau":"terminale","fichier":"data/terminale/derivation-composees.js","series":7,"qcm":26},
   "terminale-logarithme": {"niveau":"terminale","fichier":"data/terminale/logarithme.js","series":9,"qcm":26},
