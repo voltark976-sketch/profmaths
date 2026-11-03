@@ -166,7 +166,7 @@ window.CHAPITRES["techno-fonction-derivee"] = {
         "Première ligne : $x$ et les racines ; deuxième : signe de $f'$ ; troisième : flèches de $f$.",
         "Calculer les valeurs de $f$ aux racines de $f'$ (extremums) et aux bornes."
       ],
-      exemple: "$f(x) = x^3 - 12x$ : $f'(x) = 3x^2 - 12 = 3(x - 2)(x + 2)$, max local $f(-2) = 16$, min local $f(2) = -16$."
+      exemple: "Pour $f(x) = x^3 - 12x$, on a $f'(x) = 3x^2 - 12 = 3(x - 2)(x + 2)$ ; maximum local $f(-2) = 16$, minimum local $f(2) = -16$."
     },
     {
       titre: "Trouver un extremum",
