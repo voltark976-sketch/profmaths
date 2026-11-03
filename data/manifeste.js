@@ -246,7 +246,7 @@ window.MANIFESTE = {
   "terminale-spe-logarithme": {"niveau":"terminale-spe","fichier":"data/terminale-spe/logarithme.js","series":10,"qcm":29,"eval":"data/terminale-spe/evaluation/logarithme.js"},
   "terminale-spe-primitives": {"niveau":"terminale-spe","fichier":"data/terminale-spe/primitives.js","series":8,"qcm":27,"eval":"data/terminale-spe/evaluation/primitives.js"},
   "terminale-spe-equations-differentielles": {"niveau":"terminale-spe","fichier":"data/terminale-spe/equations-differentielles.js","series":8,"qcm":35,"eval":"data/terminale-spe/evaluation/equations-differentielles.js"},
-  "terminale-spe-trigonometrie": {"niveau":"terminale-spe","fichier":"data/terminale-spe/trigonometrie.js","series":9,"qcm":29},
+  "terminale-spe-trigonometrie": {"niveau":"terminale-spe","fichier":"data/terminale-spe/trigonometrie.js","series":9,"qcm":29,"eval":"data/terminale-spe/evaluation/trigonometrie.js"},
   "terminale-spe-integration": {"niveau":"terminale-spe","fichier":"data/terminale-spe/integration.js","series":11,"qcm":29},
   "terminale-spe-denombrement": {"niveau":"terminale-spe","fichier":"data/terminale-spe/denombrement.js","series":12,"qcm":34},
   "terminale-spe-grands-nombres": {"niveau":"terminale-spe","fichier":"data/terminale-spe/grands-nombres.js","series":8,"qcm":22},
