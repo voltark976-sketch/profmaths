@@ -262,7 +262,7 @@ window.MANIFESTE = {
   "expertes-graphes": {"niveau":"expertes","fichier":"data/expertes/graphes.js","series":6,"qcm":18},
   "expertes-suites-matrices-markov": {"niveau":"expertes","fichier":"data/expertes/suites-matrices-markov.js","series":8,"qcm":18},
   "terminale-suites": {"niveau":"terminale","fichier":"data/terminale/suites.js","series":10,"qcm":28,"eval":"data/terminale/evaluation/suites.js"},
-  "terminale-lois-discretes": {"niveau":"terminale","fichier":"data/terminale/lois-discretes.js","series":11,"qcm":36},
+  "terminale-lois-discretes": {"niveau":"terminale","fichier":"data/terminale/lois-discretes.js","series":11,"qcm":36,"eval":"data/terminale/evaluation/lois-discretes.js"},
   "terminale-arithmetico-geometriques": {"niveau":"terminale","fichier":"data/terminale/arithmetico-geometriques.js","series":6,"qcm":26},
   "terminale-limites-continuite": {"niveau":"terminale","fichier":"data/terminale/limites-continuite.js","series":8,"qcm":28},
   "terminale-inference-bayesienne": {"niveau":"terminale","fichier":"data/terminale/inference-bayesienne.js","series":8,"qcm":26},
