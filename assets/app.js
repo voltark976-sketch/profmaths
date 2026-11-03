@@ -963,10 +963,21 @@
   }
   const choixDuree = (val) => [["0", "Aucun", (l) => !val(l)], ["5", "5 min ou plus", (l) => val(l) >= 300], ["15", "15 min ou plus", (l) => val(l) >= 900], ["30", "30 min ou plus", (l) => val(l) >= 1800], ["60", "1 h ou plus", (l) => val(l) >= 3600]];
   const choixNombre = (val, seuils) => [["0", "0", (l) => !val(l)]].concat(seuils.map((n) => [String(n), `${n} ou plus`, (l) => val(l) >= n]));
-  // Tableau triable (touche un titre) et filtrable (ligne sous les titres).
+  // Colonnes masquées par le professeur, par tableau (gardées sur son appareil) ; la première colonne (nom) reste toujours
+  const CLE_COLONNES = "profmaths:colonnes:";
+  let colonnesOuvert = false; // la liste des colonnes reste ouverte après un changement
+  function colonnesCachees(cle) {
+    try { const v = JSON.parse(localStorage.getItem(CLE_COLONNES + cle) || "[]"); return Array.isArray(v) ? v : []; } catch (e) { return []; }
+  }
+  // Tableau triable (touche un titre), filtrable (ligne sous les titres) et dont on choisit les colonnes affichées.
   // cols : [{ id, titre, val(l) = valeur de tri, html(l, i), classe(l), choix = "texte" | [[valeur, libellé, test(l)]], desc = premier tri décroissant }]
-  function tableauSuivi(cols, lignes, classeTable, detail, opts) {
-    suiviCols = cols;
+  // opts.cle : nom sous lequel sont gardées les colonnes masquées (par défaut classeTable)
+  function tableauSuivi(toutes, lignes, classeTable, detail, opts) {
+    suiviCols = toutes;
+    const cle = (opts && opts.cle) || classeTable, cachees = colonnesCachees(cle);
+    const cols = toutes.filter((c, j) => j === 0 || !cachees.includes(c.id));
+    const choixCols = `<details class="suivi-colonnes"${colonnesOuvert ? " open" : ""}><summary>Colonnes affichées (${cols.length - 1} sur ${toutes.length - 1})</summary><div>${toutes.slice(1).map((c) => `<label${c.aide ? ` title="${esc(c.aide)}"` : ""}><input type="checkbox" data-colonne="${c.id}" data-cle="${esc(cle)}"${cachees.includes(c.id) ? "" : " checked"}> ${c.titre}</label>`).join("")}</div></details>`;
+    colonnesOuvert = false;
     const choix = (opts && opts.choix) || suiviChoix, mots = Object.assign({ pl: "élèves", vide: "Aucun élève pour l'instant.", filtre: "Aucun élève ne correspond aux filtres." }, opts && opts.mots);
     const f = choix.filtres, t = choix.tri;
     const visibles = lignes.filter((l) => cols.every((c) => {
@@ -984,7 +995,7 @@
       : `<select data-filtre="${c.id}" aria-label="Filtrer : ${esc(c.aide || c.titre)}"${f[c.id] ? ` class="actif"` : ""}><option value="">Tous</option>${c.choix.map((o) => `<option value="${o[0]}"${f[c.id] === o[0] ? " selected" : ""}>${o[1]}</option>`).join("")}</select>`}</th>`).join("");
     const corps = visibles.map((l, i) => `<tr${l.cls ? ` class="${l.cls}"` : ""}>${cols.map((c, j) => j === 0 ? `<th scope="row">${c.html(l, i)}</th>` : `<td${c.classe && c.classe(l) ? ` class="${c.classe(l)}"` : ""}>${c.html(l, i)}</td>`).join("")}</tr>${detail ? detail(l, i) : ""}`).join("");
     const vide = lignes.length ? mots.filtre : mots.vide;
-    return `<p class="suivi-compte muted">${nbFiltres ? `<strong>${visibles.length}</strong> ${mots.pl} affichés sur ${lignes.length} · <button type="button" class="lien" id="s-effacer">Effacer les filtres</button>` : `${lignes.length} ${mots.pl} · touche un titre de colonne pour trier, la ligne du dessous pour filtrer.`}</p>
+    return `${choixCols}<p class="suivi-compte muted">${nbFiltres ? `<strong>${visibles.length}</strong> ${mots.pl} affichés sur ${lignes.length} · <button type="button" class="lien" id="s-effacer">Effacer les filtres</button>` : `${lignes.length} ${mots.pl} · touche un titre de colonne pour trier, la ligne du dessous pour filtrer.`}</p>
       <div class="scroll-x"><table class="suivi ${classeTable}"><thead><tr>${entete}</tr><tr class="suivi-filtres">${filtres}</tr></thead><tbody>${corps || `<tr><td colspan="${cols.length}">${vide}</td></tr>`}</tbody></table></div>`;
   }
   function afficherSuivi() {
@@ -1131,6 +1142,8 @@
     return { moy, med: n % 2 ? s[(n - 1) / 2] : (s[n / 2 - 1] + s[n / 2]) / 2, min: s[0], max: s[n - 1], et: Math.sqrt(s.reduce((a, b) => a + (b - moy) ** 2, 0) / n) };
   }
   const dateLongue = (j) => new Date(j + "T00:00").toLocaleDateString("fr-FR", { day: "numeric", month: "long" });
+  const SANS_DONNEES = "Aucune donnée de niveau pour l'instant : les XP et le temps par chapitre sont comptés depuis la mise à jour du 3 novembre 2026 au soir. Les chiffres apparaîtront dès qu'un élève connecté fera une série, un QCM ou un défi.";
+  const notationVide = (N) => !N.lignes.some((l) => l.xp > 0 || l.tps > 0);
   function suiviNotation(choix, infos) {
     const N = notationGroupe(suiviChoix.groupe), r = N.r;
     const periode = N.du || N.au ? `${N.du ? `du ${dateLongue(N.du)}` : "depuis le début"}${N.au ? ` au ${dateLongue(N.au)}` : " à aujourd'hui"}` : "depuis le début du comptage";
@@ -1155,6 +1168,7 @@
     $app.innerHTML = `<section class="page-suivi"><p class="eyebrow">Compte professeur · <a href="#frequentation">Fréquentation du site</a></p><h1>Suivi des élèves</h1>
       ${choix(`<label>Au <input type="date" id="s-au" value="${esc(N.au)}"></label>`)}
       <p class="lead">Notation de la classe <strong>${esc(N.g)}</strong> : chapitres de <strong>${esc(N.niv ? N.niv.nom : "niveau inconnu")}</strong>${N.avecAutos && r.autos ? " et Automatismes" : ""}, ${periode}.</p>
+      ${notationVide(N) ? `<p class="alerte-notation">${SANS_DONNEES}</p>` : ""}
       ${reglages}
       <p class="muted">Note = 20 × (${virgule(r.poids)} % × XP ÷ ${N.refXp || "?"} + ${virgule(100 - r.poids)} % × temps ÷ ${N.refT ? duree(N.refT * 60) : "?"}), chaque rapport plafonné à 1, arrondie au demi-point.
         ${N.autoXp || N.autoT ? `Une case vide prend ce qu'a fait le ${RANG_REF}e élève le plus actif de la classe.` : ""} Les réglages sont gardés sur cet appareil, pour cette classe.
@@ -1236,6 +1250,14 @@
     }));
     const eff = document.getElementById("s-effacer");
     if (eff) eff.addEventListener("click", () => { choix.filtres = {}; redessiner(); });
+    // Colonnes affichées : une colonne masquée ne filtre plus
+    $app.querySelectorAll("[data-colonne]").forEach((el) => el.addEventListener("change", () => {
+      const cle = el.dataset.cle, id = el.dataset.colonne, cachees = colonnesCachees(cle).filter((x) => x !== id);
+      if (!el.checked) { cachees.push(id); delete choix.filtres[id]; }
+      try { localStorage.setItem(CLE_COLONNES + cle, JSON.stringify(cachees)); } catch (e) { /* rien */ }
+      colonnesOuvert = true;
+      redessiner();
+    }));
   }
   // Durée en secondes -> « 8 min », « 1 h 05 »
   function duree(s) {
@@ -1277,6 +1299,9 @@
       const actif = tPeriode > 0 || vus.length > 0 || dernier >= debut;
       return { x, tPeriode, tTotal, dernier, nb: vus.filter((id) => id !== "jeu").length, xp: +x.xp || 0, actif, detail, cls: x.jamais ? "jamais" : actif ? "" : "inactif" };
     });
+    // XP et temps dans les chapitres du niveau de la classe, et note (même calcul que la vue « Notation », même période)
+    const N = notationGroupe(suiviChoix.groupe), parUidNote = new Map(N.lignes.map((l) => [l.x.uid, l]));
+    lignes.forEach((l) => { const n = parUidNote.get(l.x.uid) || { xp: 0, tps: 0, note: 0 }; l.nxp = n.xp; l.ntps = n.tps; l.note = n.note; });
     const actifs = lignes.filter((l) => l.actif).length, tempsClasse = lignes.reduce((s, l) => s + l.tPeriode, 0);
     const nom = (x) => `${esc(x.nom || "")} ${esc(x.prenom || x.identifiant || "")}`;
     const court = suiviChoix.depuis ? "période" : "7 j";
@@ -1288,14 +1313,19 @@
       { id: "tper", titre: `Temps ${court}`, aide: `Temps actif ${periode}`, desc: true, val: (l) => l.tPeriode, html: (l) => (l.tPeriode ? duree(l.tPeriode) : "–"), choix: choixDuree((l) => l.tPeriode) },
       { id: "ttot", titre: "Temps total", aide: "Temps actif depuis le début", desc: true, val: (l) => l.tTotal, html: (l) => (l.tTotal ? duree(l.tTotal) : "–"), choix: choixDuree((l) => l.tTotal) },
       { id: "nb", titre: "Chapitres", aide: `Chapitres ouverts ou travaillés ${periode}`, desc: true, val: (l) => l.nb, html: (l) => l.nb || "–", choix: choixNombre((l) => l.nb, [1, 2, 3, 5]) },
-      { id: "xp", titre: "XP", aide: "Points d'expérience", desc: true, val: (l) => l.xp, html: (l) => l.xp, choix: choixNombre((l) => l.xp, [50, 100, 200, 500]) }
+      { id: "xp", titre: "XP", aide: "Points d'expérience", desc: true, val: (l) => l.xp, html: (l) => l.xp, choix: choixNombre((l) => l.xp, [50, 100, 200, 500]) },
+      { id: "nxp", titre: "XP niveau", aide: `XP gagnés dans les chapitres de ${N.niv ? N.niv.nom : "son niveau"}`, desc: true, val: (l) => l.nxp, html: (l) => l.nxp || "–", choix: choixNombre((l) => l.nxp, [50, 100, 200, 500]) },
+      { id: "ntps", titre: "Temps niveau", aide: `Temps actif dans les chapitres de ${N.niv ? N.niv.nom : "son niveau"}`, desc: true, val: (l) => l.ntps, html: (l) => (l.ntps ? duree(l.ntps * 60) : "–"), choix: choixDuree((l) => l.ntps * 60) },
+      { id: "nnote", titre: "Note /20", aide: "Note au prorata des XP et du temps du niveau (réglages dans la vue Notation)", desc: true, val: (l) => l.note, html: (l) => virgule(l.note),
+        choix: [["<8", "Moins de 8", (l) => l.note < 8], ["8-12", "De 8 à moins de 12", (l) => l.note >= 8 && l.note < 12], ["12-16", "De 12 à moins de 16", (l) => l.note >= 12 && l.note < 16], ["16+", "16 ou plus", (l) => l.note >= 16]] }
     ];
     const detail = (l, i) => (l.detail ? `<tr class="suivi-detail" id="sd-${i}" hidden><td colspan="${cols.length}"><ul>${l.detail}</ul></td></tr>` : "");
     const chapsClasse = Object.entries(parChap).filter(([, v]) => v.eleves || v.temps).sort((a, b) => b[1].eleves - a[1].eleves || b[1].temps - a[1].temps);
     $app.innerHTML = `<section class="page-suivi"><p class="eyebrow">Compte professeur · <a href="#frequentation">Fréquentation du site</a></p><h1>Suivi des élèves</h1>
       ${choix()}
       <div class="freq-tuiles"><div class="freq-tuile"><b>${actifs}/${liste.length}</b><span>élèves actifs ${periode}</span></div>${infos.avecListe ? `<div class="freq-tuile"><b>${infos.jamais}</b><span>jamais connecté${infos.jamais > 1 ? "s" : ""} au site</span></div>` : ""}<div class="freq-tuile"><b>${tempsClasse ? duree(tempsClasse) : "0 min"}</b><span>temps passé par la classe</span></div><div class="freq-tuile"><b>${actifs && tempsClasse ? duree(tempsClasse / actifs) : "–"}</b><span>par élève actif</span></div></div>
-      <p class="muted">Actif = venu sur le site connecté, ou a fait une série ou un QCM, ${periode}. Temps = temps actif sur le site (page ouverte et utilisée, vidéos comprises). Chapitres = chapitres ouverts ou travaillés (série, QCM) sur la période. Touche un nom pour voir le détail par chapitre.${infos.avecListe ? " Les élèves jamais connectés sont en grisé." : " Un élève n'apparaît qu'après sa première connexion (lance « creer-comptes.js --classes » pour voir aussi les autres)."}</p>
+      <p class="muted">Actif = venu sur le site connecté, ou a fait une série ou un QCM, ${periode}. Temps = temps actif sur le site (page ouverte et utilisée, vidéos comprises). Chapitres = chapitres ouverts ou travaillés (série, QCM) sur la période. Touche un nom pour voir le détail par chapitre. XP niveau, Temps niveau et Note ne comptent que les chapitres de ${esc(N.niv ? N.niv.nom : "niveau de la classe")}${N.avecAutos && N.r.autos ? " et les Automatismes" : ""} (formule et réglages dans « Notation » de la liste des chapitres, Excel aussi).${infos.avecListe ? " Les élèves jamais connectés sont en grisé." : " Un élève n'apparaît qu'après sa première connexion (lance « creer-comptes.js --classes » pour voir aussi les autres)."}</p>
+      ${notationVide(N) ? `<p class="alerte-notation">${SANS_DONNEES}</p>` : ""}
       ${tableauSuivi(cols, lignes, "suivi-site", detail)}
       <h2>Chapitres travaillés par la classe</h2>
       ${chapsClasse.length ? `<div class="scroll-x"><table class="suivi freq-chap"><thead><tr><th>Chapitre</th><th>Élèves (${court})</th><th>Temps total</th></tr></thead><tbody>${chapsClasse.map(([id, v]) => `<tr><th scope="row">${dispo(id) ? `<a href="#${esc(id)}">${esc(titres[id] || id)}</a>` : esc(titres[id] || id)}</th><td>${v.eleves || "·"}</td><td>${v.temps ? duree(v.temps) : "·"}</td></tr>`).join("")}</tbody></table></div>` : `<p class="muted">Rien pour l'instant.</p>`}
@@ -1385,7 +1415,7 @@
       <div class="freq-tuiles"><div class="freq-tuile"><b>${lignes.length}</b><span>comptes au total</span></div><div class="freq-tuile"><b>${nb("eleve")}</b><span>élèves de tes classes</span></div><div class="freq-tuile"><b>${nb("autre")}</b><span>autres élèves</span></div><div class="freq-tuile"><b>${nb("prof")}${attente ? ` <small>+${attente}</small>` : ""}</b><span>professeurs${attente ? ` (${attente} demande${attente > 1 ? "s" : ""} en attente)` : ""}</span></div><div class="freq-tuile"><b>${actifs7}</b><span>actifs ces 7 jours</span></div><div class="freq-tuile"><b>${tempsTotal ? duree(tempsTotal) : "0 min"}</b><span>temps passé au total${temps7 ? `, dont ${duree(temps7)} ces 7 jours` : ""}</span></div></div>
       ${(d.manquants || []).length ? `<p class="alerte">Certaines listes n'ont pas pu être lues (${d.manquants.map((c) => ({ eleves: "élèves des classes", classes: "listes de classes", inscrits: "autres élèves", demandesProf: "demandes de comptes professeurs", profs: "professeurs" }[c] || c)).join(", ")}) : les règles Firebase du site ne sont sans doute pas à jour (voir LISEZMOI, firebase deploy --only firestore:rules). Le reste du tableau est affiché.</p>` : ""}
       <p class="muted">Tous les comptes connus du site : les élèves de tes classes (y compris jamais connectés, en grisé), les élèves inscrits eux-mêmes, les professeurs et les demandes de compte professeur. Temps = temps actif sur le site connecté (page ouverte et utilisée, vidéos comprises).</p>
-      ${tableauSuivi(cols, lignes, "suivi-site", null, { choix: comptesChoix, mots: { pl: "comptes", vide: "Aucun compte pour l'instant.", filtre: "Aucun compte ne correspond aux filtres." } })}
+      ${tableauSuivi(cols, lignes, "suivi-site", null, { cle: "comptes", choix: comptesChoix, mots: { pl: "comptes", vide: "Aucun compte pour l'instant.", filtre: "Aucun compte ne correspond aux filtres." } })}
       <p class="btns-prof"><button class="btn-sec" id="c-maj" type="button">Actualiser</button></p>
       <p class="muted">Le temps est mesuré depuis la mise à jour du site d'octobre 2026 pour les élèves des classes, et depuis celle de fin octobre 2026 pour les autres élèves et les professeurs. Un professeur créé avec outils/comptes n'apparaît qu'après sa première connexion suivant cette mise à jour. Les élèves ne voient pas ces durées.</p></section>`;
     document.getElementById("c-maj").addEventListener("click", pageComptes);
