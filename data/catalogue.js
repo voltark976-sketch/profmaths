@@ -1023,7 +1023,8 @@ window.CATALOGUE = {
         code: "BAC",
         intro: "Des sujets complets du baccalauréat de spécialité : quatre heures, calculatrice autorisée, quatre exercices indépendants. Pour les sujets officiels, l'énoncé s'ouvre sur le site du ministère ; le corrigé détaillé est en ligne et en PDF à imprimer.",
         liste: [
-          { id: "terminale-2026-j1", titre: "Bac 2026, jour 1 (sujet officiel)", officiel: { url: "https://www.education.gouv.fr/sites/default/files/document/baccalaureat-general-2026-mathematiques-517598.pdf", source: "ministère", ko: 458 }, periode: "16 juin 2026, métropole, La Réunion et Mayotte · corrigé ProfMaths", duree: "4 heures", source: "data/terminale-spe/sujets/bac-2026-jour-1.js", pdf: { corrige: "sujets/terminale-spe/bac-2026-jour-1-corrige.pdf" }, ko: { corrige: 291 } }
+          { id: "terminale-2026-j1", titre: "Bac 2026, jour 1 (sujet officiel)", officiel: { url: "https://www.education.gouv.fr/sites/default/files/document/baccalaureat-general-2026-mathematiques-517598.pdf", source: "ministère", ko: 458 }, periode: "16 juin 2026, métropole, La Réunion et Mayotte · corrigé ProfMaths", duree: "4 heures", source: "data/terminale-spe/sujets/bac-2026-jour-1.js", pdf: { corrige: "sujets/terminale-spe/bac-2026-jour-1-corrige.pdf" }, ko: { corrige: 291 } },
+          { id: "terminale-2026-j2", titre: "Bac 2026, jour 2 (sujet officiel)", officiel: { url: "https://www.education.gouv.fr/sites/default/files/document/baccalaureat-general-2026-mathematiques-jour-2-517817.pdf", source: "ministère", ko: 470 }, periode: "17 juin 2026, métropole, La Réunion et Mayotte · corrigé ProfMaths", duree: "4 heures", source: "data/terminale-spe/sujets/bac-2026-jour-2.js", pdf: { corrige: "sujets/terminale-spe/bac-2026-jour-2-corrige.pdf" }, ko: { corrige: 299 } }
         ]
       },
       chapitres: [
