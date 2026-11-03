@@ -230,7 +230,7 @@ window.MANIFESTE = {
   "techno-fonctions": {"niveau":"techno","fichier":"data/techno/fonctions.js","series":9,"qcm":21,"eval":"data/techno/evaluation/fonctions.js"},
   "techno-second-degre": {"niveau":"techno","fichier":"data/techno/second-degre.js","series":7,"qcm":21,"eval":"data/techno/evaluation/second-degre.js"},
   "techno-nombre-derive": {"niveau":"techno","fichier":"data/techno/nombre-derive.js","series":6,"qcm":20,"eval":"data/techno/evaluation/nombre-derive.js"},
-  "techno-fonction-derivee": {"niveau":"techno","fichier":"data/techno/fonction-derivee.js","series":7,"qcm":21},
+  "techno-fonction-derivee": {"niveau":"techno","fichier":"data/techno/fonction-derivee.js","series":7,"qcm":21,"eval":"data/techno/evaluation/fonction-derivee.js"},
   "techno-deux-variables": {"niveau":"techno","fichier":"data/techno/deux-variables.js","series":7,"qcm":20},
   "techno-probabilites-conditionnelles": {"niveau":"techno","fichier":"data/techno/probabilites-conditionnelles.js","series":6,"qcm":19},
   "techno-epreuves-bernoulli": {"niveau":"techno","fichier":"data/techno/epreuves-bernoulli.js","series":5,"qcm":19},
