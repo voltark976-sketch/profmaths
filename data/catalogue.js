@@ -11,6 +11,9 @@
   Les niveaux avec groupe: "ecole" (CP à CM2) sont derrière la carte « École » (page #ecole). Leurs chapitres
   ne sont pas dans index.html : source = fichier du chapitre, chargé à l'ouverture avec les générateurs du niveau
   (champ exercices) ; series = nombre de séries affiché avant le chargement.
+  Un niveau peut avoir une rubrique de sujets complets (champ sujets : rubrique, code de la pastille, intro, liste).
+  Chaque sujet : id (page #sujet-<id>), titre, periode, duree, source (fichier qui remplit window.SUJETS[id]),
+  pdf (énoncé et corrigé, fabriqués par node outils/sujets-pdf.js) et ko (poids des PDF, écrit par le même outil).
   Un niveau avec groupe: "college" (6e, 5e, 4e, 3e) n'a pas sa propre carte sur l'accueil :
   il est rangé derrière la carte « Collège » (page #college). Les autres niveaux sont
   rangés derrière la carte « Lycée » (page #lycee).
@@ -621,6 +624,14 @@ window.CATALOGUE = {
     {
       id: "seconde",
       nom: "Seconde",
+      sujets: {
+        rubrique: "Sujets type devoir commun",
+        code: "DC",
+        intro: "Des sujets complets comme les devoirs communs de Seconde, à faire en temps limité. Chaque sujet a son corrigé détaillé, en ligne et en PDF à imprimer.",
+        liste: [
+          { id: "seconde-dc-1", titre: "Devoir commun n° 1", periode: "Milieu d'année : chapitres 1 à 9", duree: "2 heures", source: "data/seconde/sujets/devoir-commun-1.js", pdf: { enonce: "sujets/seconde/devoir-commun-1-enonce.pdf", corrige: "sujets/seconde/devoir-commun-1-corrige.pdf" }, ko: { enonce: 154, corrige: 247 } }
+        ]
+      },
       chapitres: [
         {
           id: "seconde-ensembles",

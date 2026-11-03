@@ -435,13 +435,15 @@
     else if (Object.prototype.hasOwnProperty.call(CYCLES, chap)) pageCycle(chap);
     else if (chap && charge(chap)) pageChapitre(chap, onglet || "cours");
     else if (chap && CATALOGUE.niveaux.some((n) => "niveau-" + n.id === chap)) pageNiveau(CATALOGUE.niveaux.find((n) => "niveau-" + n.id === chap));
+    else if (chap && CATALOGUE.niveaux.some((n) => "sujets-" + n.id === chap && sujetsDe(n).length)) pageSujets(CATALOGUE.niveaux.find((n) => "sujets-" + n.id === chap));
+    else if (chap && chap.startsWith("sujet-") && trouverSujet(chap.slice(6))) { const t = trouverSujet(chap.slice(6)); pageSujet(t.n, t.s, onglet); }
     else pageAccueil();
     // Fréquentation anonyme (une fois par appareil et par jour)
     if (chap === "jeu") Compte.visite("jeu");
     else if (chap && dispo(chap)) Compte.visite(chap, ongletsDe(chap).some((o) => o.id === onglet) ? onglet : onglet === "defi" && fichierEval(chap) ? "revisions" : "cours");
     else Compte.visite();
     // Couleur du niveau (Seconde, Première...) pour habiller la page niveau et la page chapitre
-    const niv = CATALOGUE.niveaux.find((n) => "niveau-" + n.id === chap || n.chapitres.some((ch) => ch.id === chap));
+    const niv = CATALOGUE.niveaux.find((n) => "niveau-" + n.id === chap || "sujets-" + n.id === chap || sujetsDe(n).some((s) => "sujet-" + s.id === chap) || n.chapitres.some((ch) => ch.id === chap));
     if (niv) $app.dataset.niv = niv.id; else if (Object.prototype.hasOwnProperty.call(CYCLES, chap)) $app.dataset.niv = chap; else delete $app.dataset.niv;
     // La page est affichée : le service de comptes peut démarrer
     setTimeout(lancerCompte, 300);
@@ -603,7 +605,12 @@
     let h = `<a class="retour" href="#${seul ? "" : cycle}">← ${seul ? "Accueil" : CYCLES[cycle].nom}</a>
       <header class="niv-head"><p class="eyebrow">${CYCLES[cycle].nom}</p><h1><span class="pastille-niv" aria-hidden="true"></span>${esc(n.nom)}</h1>${n.intro ? `<p class="lead">${esc(n.intro)}</p>` : `<p class="lead">Choisis ton chapitre. Ils sont rangés dans l'ordre de la playlist.</p>`}</header>
       <ol class="chapitres chapitres-niv">`;
-    if (!n.chapitres.length) h += `<li><div class="chap chap-off"><span class="num num-a">…</span><span class="chap-t"><strong>Les chapitres arrivent bientôt</strong><span class="meta">En attendant, révise avec les vidéos d'<a href="${YT_MONKA}" target="_blank" rel="noopener">Yvan Monka</a>.</span></span></div></li>`;
+    // Rubrique des sujets complets (devoir commun, type bac) : en tête de liste, dans une autre couleur
+    if (sujetsDe(n).length) {
+      const k = sujetsDe(n).length;
+      h += `<li><a class="chap chap-sujets" href="#sujets-${esc(n.id)}"><span class="num num-a">${esc(n.sujets.code || "S")}</span><span class="chap-t"><strong>${esc(n.sujets.rubrique)}</strong><span class="meta">${k} sujet${k > 1 ? "s" : ""} complet${k > 1 ? "s" : ""} · corrigé en ligne et en PDF</span></span><span class="go" aria-hidden="true">→</span></a></li>`;
+    }
+    if (!n.chapitres.length) h +=`<li><div class="chap chap-off"><span class="num num-a">…</span><span class="chap-t"><strong>Les chapitres arrivent bientôt</strong><span class="meta">En attendant, révise avec les vidéos d'<a href="${YT_MONKA}" target="_blank" rel="noopener">Yvan Monka</a>.</span></span></div></li>`;
     n.chapitres.forEach((ch) => {
       const enLigne = ch.statut === "disponible" && dispo(ch.id);
       const num = ch.code ? `<span class="num num-a">${esc(ch.code)}</span>` : ch.numero ? `<span class="num">${ch.numero}</span>` : `<span class="num num-a">A</span>`;
@@ -619,6 +626,48 @@
     });
     h += `</ol>` + piedDePage();
     $app.innerHTML = h;
+  }
+
+  /* ---------- Sujets complets d'un niveau (champ sujets du catalogue) ---------- */
+  // #sujets-<niveau> : la liste ; #sujet-<id> : le sujet en ligne ; #sujet-<id>.corrige : tous les corrigés ouverts (PDF du corrigé)
+  const sujetsDe = (n) => (n && n.sujets && n.sujets.liste) || [];
+  const trouverSujet = (id) => { for (const n of CATALOGUE.niveaux) { const s = sujetsDe(n).find((x) => x.id === id); if (s) return { n, s }; } return null; };
+  const liensPdf = (s) => (s.pdf ? `<div class="ressources">${["enonce", "corrige"].filter((k) => s.pdf[k]).map((k) =>
+    `<a class="pdf" href="${esc(s.pdf[k])}${VERSION ? "?v=" + VERSION : ""}" target="_blank" rel="noopener"><span class="pdf-ico" aria-hidden="true">PDF</span><span>${k === "enonce" ? "Énoncé à imprimer" : "Corrigé détaillé"}${s.ko && s.ko[k] ? ` · ${s.ko[k]} ko` : ""}</span></a>`).join("")}</div>` : "");
+  function pageSujets(n) {
+    const r = n.sujets;
+    document.title = `${r.rubrique} · ${n.nom} · ProfMaths`;
+    let h = `<a class="retour" href="#niveau-${esc(n.id)}">← ${esc(n.nom)} : tous les chapitres</a>
+      <header class="niv-head"><p class="eyebrow">${esc(n.nom)}</p><h1><span class="pastille-niv" aria-hidden="true"></span>${esc(r.rubrique)}</h1>${r.intro ? `<p class="lead">${esc(r.intro)}</p>` : ""}</header>
+      <ol class="sujets">`;
+    sujetsDe(n).forEach((s) => {
+      h += `<li class="sujet-carte"><a class="chap chap-sujets" href="#sujet-${esc(s.id)}"><span class="num num-a">${esc(r.code || "S")}</span><span class="chap-t"><strong>${esc(s.titre)}</strong><span class="meta">${esc(s.periode || "")}${s.duree ? ` · ${esc(s.duree)}` : ""}</span></span><span class="go" aria-hidden="true">→</span></a>${liensPdf(s)}</li>`;
+    });
+    h += `</ol>` + piedDePage();
+    $app.innerHTML = h;
+  }
+  function pageSujet(n, s, mode) {
+    const corrige = mode === "corrige";
+    document.title = `${s.titre}${corrige ? " (corrigé)" : ""} · ${n.nom} · ProfMaths`;
+    const tete = `<a class="retour" href="#sujets-${esc(n.id)}">← ${esc(n.sujets.rubrique)}</a>
+      <header class="chap-head"><p class="eyebrow">${esc(n.nom)} · ${esc(n.sujets.rubrique)}</p><h1>${esc(s.titre)}${corrige ? " : corrigé" : ""}</h1>${s.periode ? `<p class="lead">${esc(s.periode)}${s.duree ? ` · ${esc(s.duree)}` : ""}</p>` : ""}</header>`;
+    const h0 = location.hash;
+    const afficher = () => {
+      const d = window.SUJETS && window.SUJETS[s.id];
+      if (!d) { $app.innerHTML = tete + msgReseau("Le sujet n'a pas pu se charger."); return; }
+      let h = tete + liensPdf(s) + `<div class="sujet-corps"><section class="sujet-consignes">${d.entete ? `<p class="sujet-entete">${inline(d.entete)}</p>` : ""}${d.consignes ? mdEval(d.consignes) : ""}${corrige ? "" : `<p class="muted sujet-conseil">En ligne : cherche d'abord sur une feuille, en temps limité, puis ouvre l'indice ou le corrigé de chaque question.</p>`}</section>`;
+      (d.exercices || []).forEach((x, k) => { h += htmlExoEval(x, k, corrige); });
+      h += `</div><a class="suite" href="#sujets-${esc(n.id)}">Tous les sujets →</a>`;
+      $app.innerHTML = h;
+      const corps = $app.querySelector(".sujet-corps");
+      brancherEval(corps);
+      corps.dataset.pret = "1"; // repère pour outils/sujets-pdf.js : le sujet est affiché
+    };
+    if (window.SUJETS && window.SUJETS[s.id] && scriptsFaits.has(KATEX) && scriptsFaits.has(BASE)) return afficher();
+    $app.innerHTML = tete + msgAttente("Chargement du sujet…");
+    Promise.all([chargerScript(s.source), chargerScript(KATEX), chargerScript(BASE)]).then(majMoteur)
+      .then(() => { if (memePage(h0)) afficher(); })
+      .catch(() => { if (memePage(h0)) $app.innerHTML = tete + msgReseau("Le sujet n'a pas pu se charger."); });
   }
 
   /* ---------- Niveau et avatar ---------- */
@@ -1976,26 +2025,32 @@
   }
 
   /* Onglet « Entraînement évaluation » : deux ou trois exercices type contrôle ou bac, avec indice et corrigé par question */
+  // Un exercice (onglet Évaluation ou sujet complet). x.numero remplace « Exercice k » ; ouvert : corrigés déjà affichés (PDF du corrigé)
+  function htmlExoEval(x, k, ouvert) {
+    const qs = (x.questions || []).map((q) => {
+      if (q.partie) return `<li class="eval-partie"><h3>${inline(q.partie)}</h3>${q.texte ? mdEval(q.texte) : ""}${q.figure ? figureEval(q.figure) : ""}${q.tableau ? tableau(q.tableau) : ""}</li>`;
+      return `<li class="eval-q"><div class="eval-q-txt">${q.n ? `<span class="eval-n">${esc(q.n)}</span>` : ""}<div class="eval-q-corps">${mdEval(q.texte)}${q.figure ? figureEval(q.figure) : ""}${q.tableau ? tableau(q.tableau) : ""}</div></div>
+        <div class="eval-q-btn">${q.indice ? `<button type="button" class="btn-mini" data-ouvre="indice" aria-expanded="false">Indice</button>` : ""}<button type="button" class="btn-mini" data-ouvre="corrige" aria-expanded="${ouvert ? "true" : "false"}">Corrigé</button>${q.points !== undefined ? `<span class="eval-pts">${ptsTexte(q.points)}</span>` : ""}</div>
+        ${q.indice ? `<div class="aide eval-indice" hidden><span class="tag">Indice</span>${mdEval(q.indice)}</div>` : ""}
+        <div class="eval-corrige"${ouvert ? "" : " hidden"}><span class="tag">Corrigé</span>${mdEval(q.corrige)}${q.tableauCorrige ? tableau(q.tableauCorrige) : ""}${q.figureCorrige ? figureEval(q.figureCorrige) : ""}${q.corrigeFin ? mdEval(q.corrigeFin) : ""}</div></li>`;
+    }).join("");
+    return `<article class="eval-exo"><header class="eval-tete"><p class="eyebrow">${x.numero ? esc(x.numero) : `Exercice ${k + 1}`}${x.duree ? ` · ${x.duree} min` : ""}${x.points ? ` · ${ptsTexte(x.points)}` : ""}</p><h2>${inline(x.titre)}</h2>
+        <p class="eval-calc">${x.calculatrice ? "Calculatrice autorisée" : "Sans calculatrice"}</p></header>
+      ${x.contexte ? `<div class="eval-contexte">${mdEval(x.contexte)}</div>` : ""}${x.figure ? figureEval(x.figure) : ""}${x.tableau ? tableau(x.tableau) : ""}
+      <ol class="eval-qs">${qs}</ol>
+      <div class="eval-fin"><button type="button" class="btn-sec" data-tout="${ouvert ? "0" : "1"}">${ouvert ? "Masquer le corrigé" : "Afficher tout le corrigé"}</button></div></article>`;
+  }
   function vueEvaluation(p, c, id, e) {
     const ev = e.evaluation || {}, exos = ev.exercices || [];
     const duree = exos.reduce((s, x) => s + (x.duree || 0), 0);
     let h = `<p class="intro">${inline(ev.intro || `${exos.length} exercice${exos.length > 1 ? "s" : ""} comme en contrôle${duree ? ` (${duree} min en tout)` : ""}. Cherche d'abord sur une feuille, puis ouvre l'indice ou le corrigé de chaque question.`)}</p>`;
-    exos.forEach((x, k) => {
-      const qs = (x.questions || []).map((q) => {
-        if (q.partie) return `<li class="eval-partie"><h3>${inline(q.partie)}</h3>${q.texte ? mdEval(q.texte) : ""}${q.figure ? figureEval(q.figure) : ""}${q.tableau ? tableau(q.tableau) : ""}</li>`;
-        return `<li class="eval-q"><div class="eval-q-txt">${q.n ? `<span class="eval-n">${esc(q.n)}</span>` : ""}<div class="eval-q-corps">${mdEval(q.texte)}${q.figure ? figureEval(q.figure) : ""}${q.tableau ? tableau(q.tableau) : ""}</div></div>
-          <div class="eval-q-btn">${q.indice ? `<button type="button" class="btn-mini" data-ouvre="indice" aria-expanded="false">Indice</button>` : ""}<button type="button" class="btn-mini" data-ouvre="corrige" aria-expanded="false">Corrigé</button>${q.points !== undefined ? `<span class="eval-pts">${ptsTexte(q.points)}</span>` : ""}</div>
-          ${q.indice ? `<div class="aide eval-indice" hidden><span class="tag">Indice</span>${mdEval(q.indice)}</div>` : ""}
-          <div class="eval-corrige" hidden><span class="tag">Corrigé</span>${mdEval(q.corrige)}${q.tableauCorrige ? tableau(q.tableauCorrige) : ""}${q.figureCorrige ? figureEval(q.figureCorrige) : ""}${q.corrigeFin ? mdEval(q.corrigeFin) : ""}</div></li>`;
-      }).join("");
-      h += `<article class="eval-exo"><header class="eval-tete"><p class="eyebrow">Exercice ${k + 1}${x.duree ? ` · ${x.duree} min` : ""}${x.points ? ` · ${ptsTexte(x.points)}` : ""}</p><h2>${inline(x.titre)}</h2>
-          <p class="eval-calc">${x.calculatrice ? "Calculatrice autorisée" : "Sans calculatrice"}</p></header>
-        ${x.contexte ? `<div class="eval-contexte">${mdEval(x.contexte)}</div>` : ""}${x.figure ? figureEval(x.figure) : ""}${x.tableau ? tableau(x.tableau) : ""}
-        <ol class="eval-qs">${qs}</ol>
-        <div class="eval-fin"><button type="button" class="btn-sec" data-tout="1">Afficher tout le corrigé</button></div></article>`;
-    });
+    exos.forEach((x, k) => { h += htmlExoEval(x, k); });
     h += `<a class="suite" href="#${id}.revisions">Revoir l'essentiel du chapitre →</a>`;
     p.innerHTML = h;
+    brancherEval(p);
+  }
+  // Boutons Indice, Corrigé et « Afficher tout le corrigé » des exercices affichés dans p
+  function brancherEval(p) {
     p.addEventListener("click", (evt) => {
       const b = evt.target.closest("[data-ouvre]");
       if (b) {

@@ -1033,3 +1033,35 @@ table.suivi { border-collapse: collapse; background: var(--surface); font-varian
 .eval-exo pre.code, .rev-bloc pre.code { padding: 8px 8px 8px 10px; font-size: 0.84rem; } /* 28 caractères par ligne tiennent à 360 px, même dans un corrigé */
 .eval-fin { margin-top: 12px; }
 .eval-fin .btn-sec { width: 100%; }
+
+/* ---------- Sujets complets d'un niveau (devoir commun, type bac) ---------- */
+/* L'entrée de la rubrique et les cartes des sujets sont en ylang, pour se distinguer des chapitres du niveau */
+a.chap.chap-sujets { background: var(--ylang-pale); border: 1.5px solid var(--ylang); }
+a.chap.chap-sujets .num { background: var(--ylang); color: var(--surface); }
+a.chap.chap-sujets .go { color: var(--ylang); }
+a.chap.chap-sujets:hover { border-color: var(--ylang); }
+.sujets { list-style: none; margin: 20px 0 0; padding: 0; display: grid; gap: 16px; }
+.sujet-carte .ressources { margin: 8px 0 0; }
+.sujet-consignes { margin: 6px 0 4px; padding: 12px 14px; border-radius: var(--r); background: var(--surface); border: 1px solid var(--trait); }
+.sujet-entete { margin-top: 0; font-weight: 700; }
+.sujet-conseil { font-size: 0.9rem; }
+
+/* Impression et PDF des sujets (outils/sujets-pdf.js) : page blanche, sans le site autour ni les boutons */
+@media print {
+  @page { size: A4; margin: 14mm; }
+  :root, :root[data-theme] { --fond: #fff; --surface: #fff; --encre: #13282c; --doux: #4a6064; --trait: #c9d6d7; --lagon: #0a7c76; --lagon-pale: #e4f1ef;
+    --ylang: #a87206; --ylang-pale: #fbefd2; --bon: #1d7a3f; --bon-pale: #eef7f0; --faux: #b23a2c; --faux-pale: #fbe5e1; --courbe2: #c2501f; --ombre: none; --ombre-haut: none; color-scheme: light; }
+  html, body { background: #fff !important; }
+  body::before, body::after { display: none !important; }
+  .barre-haut, .pied, .evite, .retour, .ressources, .eval-q-btn, .eval-fin, .suite, .sujet-conseil, .theme-menu { display: none !important; }
+  html { font-size: 13.5px; }
+  .chap-head { margin: 0 0 8px !important; padding: 0 !important; background: none !important; border: 0 !important; box-shadow: none !important; }
+  .chap-head h1 { font-size: 1.7rem; }
+  .sujet-consignes { padding: 8px 12px; }
+  .eval-exo { margin-top: 10px; padding: 8px 12px; box-shadow: none; border: 1px solid var(--trait); border-top: 3px solid var(--ac); }
+  .eval-q { padding: 6px 0; }
+  .eval-corrige { margin-top: 6px; padding: 6px 10px; }
+  .eval-q, figure, table, pre { break-inside: avoid; }
+  .eval-tete, .eval-contexte { break-after: avoid; }
+  a { color: inherit; text-decoration: none; }
+}
