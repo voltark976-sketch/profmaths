@@ -508,6 +508,15 @@ window.CATALOGUE = {
       nom: "3e",
       groupe: "college",
       intro: "Programme de 3e en vigueur en 2026-2027 (cycle 4, programme de 2020), celui du brevet 2027, en 16 chapitres ; les vidéos et les cours PDF sont ceux d'Yvan Monka.",
+      sujets: {
+        rubrique: "Sujets type brevet",
+        code: "DNB",
+        intro: "Des sujets complets au format de l'épreuve de mathématiques du brevet depuis 2026 : deux heures, une partie d'automatismes en 20 minutes sans calculatrice, puis des exercices de raisonnement avec calculatrice. Chaque sujet a son corrigé détaillé, en ligne et en PDF à imprimer. Pour les sujets officiels, l'énoncé s'ouvre sur le site du ministère.",
+        liste: [
+          { id: "troisieme-brevet-1", titre: "Sujet type brevet n° 1", periode: "Programme de 3e, format du brevet depuis 2026", duree: "2 heures", source: "data/troisieme/sujets/sujet-type-brevet-1.js", pdf: { enonce: "sujets/troisieme/sujet-type-brevet-1-enonce.pdf", corrige: "sujets/troisieme/sujet-type-brevet-1-corrige.pdf" }, ko: { enonce: 145, corrige: 208 } },
+          { id: "troisieme-dnb-ag-2026", titre: "Brevet 2026, Antilles et Guyane (sujet officiel)", officiel: { url: "https://www.education.gouv.fr/sites/default/files/document/diplome-national-du-brevet-2026-mathematiques-serie-generale-518657.pdf", source: "ministère", ko: 495 }, periode: "Session 2026, série générale : même programme et même format que le sujet de Mayotte, corrigé ProfMaths", duree: "2 heures", source: "data/troisieme/sujets/antilles-guyane-2026.js", pdf: { corrige: "sujets/troisieme/antilles-guyane-2026-corrige.pdf" }, ko: { corrige: 230 } }
+        ]
+      },
       chapitres: [
         {
           id: "troisieme-calcul-numerique",
