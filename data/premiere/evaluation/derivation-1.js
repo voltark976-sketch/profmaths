@@ -102,8 +102,8 @@ window.EVALUATIONS["premiere-derivation-1"] = {
             n: "5.", points: 1,
             texte:
               "On exécute ce programme. Que vont afficher les quatre pentes, environ ? Que confirme-t-il ?\n\n" +
-              "```python\ndef d(t):\n    return 5 * t**2\n\nfor h in [1, 0.1, 0.01, 0.001]:\n    print((d(2 + h) - d(2)) / h)\n```",
-            indice: "Chaque pente est le taux $20 + 5h$ de la question 4, pour une valeur de $h$.",
+              "```python\ndef d(t):\n    return 5 * t**2\n\nh = 1\nfor k in range(4):\n    a = d(2 + h) - d(2)\n    print(a / h)\n    h = h / 10\n```",
+            indice: "$h$ prend les valeurs $1$, $0{,}1$, $0{,}01$ et $0{,}001$. Chaque pente est le taux $20 + 5h$ de la question 4.",
             corrige: "Les pentes valent $20 + 5h$ : environ $25$, $20{,}5$, $20{,}05$ et $20{,}005$ (à de minuscules erreurs d'arrondi de Python près). Elles se rapprochent de $20$ quand $h$ diminue : cela confirme $d'(2) = 20$."
           },
           {

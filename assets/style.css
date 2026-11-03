@@ -1029,5 +1029,6 @@ table.suivi { border-collapse: collapse; background: var(--surface); font-varian
 .eval-corrige .tag { color: var(--bon); }
 .eval-exo table.valeurs { font-size: 0.88rem; } /* tableaux de signes et de variations : tiennent à 360 px */
 .eval-exo table.valeurs th, .eval-exo table.valeurs td { padding: 5px 4px; min-width: 1.4em; }
+.eval-exo pre.code, .rev-bloc pre.code { padding: 8px 8px 8px 10px; font-size: 0.84rem; } /* 28 caractères par ligne tiennent à 360 px, même dans un corrigé */
 .eval-fin { margin-top: 12px; }
 .eval-fin .btn-sec { width: 100%; }

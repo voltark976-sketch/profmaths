@@ -133,7 +133,7 @@ window.EVALUATIONS["premiere-second-degre"] = {
               "```python\ndef passe(x, h):\n    return ...\n```",
             indice: "Le bateau passe si la hauteur de l'arche en $x$ est au moins égale à $h$.",
             corrige:
-              "```python\ndef passe(x, h):\n    return -0.25 * x * (x - 8) >= h\n```\n\n" +
+              "```python\ndef passe(x, h):\n    y = -0.25 * x * (x - 8)\n    return y >= h\n```\n\n" +
               "$\\texttt{passe(1, 3)}$ renvoie $\\texttt{False}$ : à $1$ m du pied gauche, l'arche ne mesure que $1{,}75$ m."
           }
         ]

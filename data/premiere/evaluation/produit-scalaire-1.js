@@ -97,7 +97,7 @@ window.EVALUATIONS["premiere-produit-scalaire-1"] = {
             n: "5.", points: 1,
             texte:
               "Que renvoie ce programme ?\n\n" +
-              "```python\ndef prodscal(u, v):\n    return u[0] * v[0] + u[1] * v[1]\n\nprint(prodscal((-2, -2), (2, -2)))\n```",
+              "```python\ndef prodscal(u, v):\n    a = u[0] * v[0]\n    b = u[1] * v[1]\n    return a + b\n\nu = (-2, -2)\nv = (2, -2)\nprint(prodscal(u, v))\n```",
             indice: "Les deux couples sont les coordonnées de $\\overrightarrow{CA}$ et $\\overrightarrow{CB}$.",
             corrige: "$(-2) \\times 2 + (-2) \\times (-2) = -4 + 4 = 0$ : le programme affiche $\\texttt{0}$, comme à la question 3."
           }

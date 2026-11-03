@@ -132,7 +132,7 @@ window.EVALUATIONS["seconde-vecteurs"] = {
             n: "5.", points: 1,
             texte:
               "Que renvoie $\\texttt{distance(1, 2, 4, 6)}$ ?\n\n" +
-              "```python\nfrom math import sqrt\n\ndef distance(xA, yA, xB, yB):\n    dx = xB - xA\n    dy = yB - yA\n    return sqrt(dx**2 + dy**2)\n```",
+              "```python\nfrom math import sqrt\n\ndef distance(xA, yA, xB, yB):\n    dx = xB - xA\n    dy = yB - yA\n    d2 = dx**2 + dy**2\n    return sqrt(d2)\n```",
             indice: "C'est la distance entre $M$ et $I$.",
             corrige: "$\\sqrt{3^2 + 4^2} = \\sqrt{25}$ : la fonction renvoie $\\texttt{5.0}$, la distance $MI$ de la question 1."
           }

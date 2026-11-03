@@ -164,9 +164,9 @@ window.EVALUATIONS["premiere-epreuve-anticipee"] = {
             n: "5.", points: 1.5,
             texte:
               "Que calcule ce programme ? Autour de quelle valeur sera le nombre affiché ?\n\n" +
-              "```python\nfrom random import random\n\ndef partie():\n    n = 1\n    while random() >= 0.5 and n < 4:\n        n = n + 1\n    return n\n\ns = 0\nfor k in range(10000):\n    s = s + partie()\nprint(s / 10000)\n```",
-            indice: "$\\texttt{random() >= 0.5}$ simule « face ». Que fait la boucle finale avec les résultats des parties ?",
-            corrige: "$\\texttt{partie()}$ simule une partie et renvoie le nombre de lancers : on relance tant qu'on obtient « face » et qu'on n'a pas fait $4$ lancers. Le programme affiche la moyenne du nombre de lancers sur $10\\,000$ parties : d'après la loi des grands nombres, elle sera proche de $E(X) = 1{,}875$."
+              "```python\nfrom random import random\n\ndef partie():\n    n = 1\n    while n < 4:\n        if random() < 0.5:\n            return n\n        n = n + 1\n    return n\n\ns = 0\nfor k in range(10000):\n    s = s + partie()\nprint(s / 10000)\n```",
+            indice: "$\\texttt{random() < 0.5}$ simule « pile », qui arrête la partie. Que fait la boucle finale avec les résultats des parties ?",
+            corrige: "$\\texttt{partie()}$ simule une partie et renvoie le nombre de lancers : elle s'arrête au premier « pile », ou quand $4$ lancers sont faits. Le programme affiche la moyenne du nombre de lancers sur $10\\,000$ parties : d'après la loi des grands nombres, elle sera proche de $E(X) = 1{,}875$."
           }
         ]
       }

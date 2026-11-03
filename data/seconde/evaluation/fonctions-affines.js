@@ -139,9 +139,9 @@ window.EVALUATIONS["seconde-fonctions-affines"] = {
             n: "5.", points: 1,
             texte:
               "Que fait ce programme ? Combien de lignes affiche-t-il ?\n\n" +
-              "```python\nfor x in range(0, 9):\n    print(x, 8 * x, 4 * x + 20, 45)\n```",
-            indice: "$\\texttt{range(0, 9)}$ donne les entiers de $0$ à $8$.",
-            corrige: "Il affiche, pour $x$ allant de $0$ à $8$, le nombre de séances et les prix des trois formules : $9$ lignes, un tableau de valeurs qui permet de vérifier la question 4."
+              "```python\nfor x in range(0, 9):\n    a = 8 * x\n    b = 4 * x + 20\n    print(x, a, b, 45)\n```",
+            indice: "$\\texttt{range(0, 9)}$ donne les entiers de $0$ à $8$. Que représentent $\\texttt{a}$ et $\\texttt{b}$ ?",
+            corrige: "Pour $x$ allant de $0$ à $8$, il affiche le nombre de séances et les prix des trois formules ($\\texttt{a}$ pour A, $\\texttt{b}$ pour B, $45$ pour C) : $9$ lignes, un tableau de valeurs qui permet de vérifier la question 4."
           }
         ]
       },

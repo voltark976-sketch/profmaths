@@ -173,7 +173,7 @@ window.MANIFESTE = {
   "seconde-fonctions-affines": {"niveau":"seconde","fichier":"data/seconde/fonctions-affines.js","series":11,"qcm":32,"eval":"data/seconde/evaluation/fonctions-affines.js"},
   "seconde-vecteurs": {"niveau":"seconde","fichier":"data/seconde/vecteurs.js","series":8,"qcm":30,"eval":"data/seconde/evaluation/vecteurs.js"},
   "seconde-statistiques": {"niveau":"seconde","fichier":"data/seconde/statistiques.js","series":10,"qcm":30,"eval":"data/seconde/evaluation/statistiques.js"},
-  "seconde-variations": {"niveau":"seconde","fichier":"data/seconde/variations.js","series":9,"qcm":32},
+  "seconde-variations": {"niveau":"seconde","fichier":"data/seconde/variations.js","series":9,"qcm":32,"eval":"data/seconde/evaluation/variations.js"},
   "seconde-tableaux-croises": {"niveau":"seconde","fichier":"data/seconde/tableaux-croises.js","series":8,"qcm":30},
   "seconde-colinearite": {"niveau":"seconde","fichier":"data/seconde/colinearite.js","series":7,"qcm":27},
   "seconde-droites": {"niveau":"seconde","fichier":"data/seconde/droites.js","series":8,"qcm":27},
