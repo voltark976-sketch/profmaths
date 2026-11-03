@@ -1844,7 +1844,7 @@
       for (let i = 0; i < f.length; i++) {
         if (f[i] === "\\") {
           const mot = (f.slice(i).match(/^\\[a-zA-Z]+/) || [f.slice(i, i + 2)])[0];
-          if (mot === "\\left") d++; else if (mot === "\\right") d--;
+          if (mot === "\\left" || mot === "\\begin") d++; else if (mot === "\\right" || mot === "\\end") d--; // jamais de coupure dans un système \begin{cases}
           if (d === 0 && par === 0 && RELATIONS.includes(mot) && cur.trim()) { morceaux.push(cur); cur = ""; }
           cur += mot; i += mot.length - 1; continue;
         }
