@@ -189,7 +189,7 @@ window.MANIFESTE = {
   "auto-fonctions": {"niveau":"automatismes","fichier":"data/automatismes/fonctions.js","series":12,"qcm":30,"eval":"data/automatismes/evaluation/fonctions.js"},
   "auto-geometrie": {"niveau":"automatismes","fichier":"data/automatismes/geometrie.js","series":8,"qcm":27,"eval":"data/automatismes/evaluation/geometrie.js"},
   "auto-statistiques": {"niveau":"automatismes","fichier":"data/automatismes/statistiques.js","series":8,"qcm":31,"eval":"data/automatismes/evaluation/statistiques.js"},
-  "auto-probabilites": {"niveau":"automatismes","fichier":"data/automatismes/probabilites.js","series":6,"qcm":26},
+  "auto-probabilites": {"niveau":"automatismes","fichier":"data/automatismes/probabilites.js","series":6,"qcm":26,"eval":"data/automatismes/evaluation/probabilites.js"},
   "seconde-automatismes": {"niveau":"automatismes","fichier":"data/seconde/automatismes.js","series":11,"qcm":33},
   "premiere-suites": {"niveau":"premiere","fichier":"data/premiere/suites.js","series":7,"qcm":30,"eval":"data/premiere/evaluation/suites.js"},
   "premiere-second-degre": {"niveau":"premiere","fichier":"data/premiere/second-degre.js","series":9,"qcm":28,"eval":"data/premiere/evaluation/second-degre.js"},
