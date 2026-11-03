@@ -1,14 +1,14 @@
 /*
-  SUJET OFFICIEL : Première spécialité — Épreuve anticipée de mathématiques, métropole, 12 juin 2026 (26-MATSPEGEME1)
+  SUJET OFFICIEL : Première spécialité — Épreuve anticipée de mathématiques du 12 juin 2026, métropole, La Réunion et Mayotte (26-MATSPEGEME1)
   Page #sujet-premiere-metropole-2026 ; PDF du corrigé fabriqué par outils/sujets-pdf.js. Même format que sujet-zero-1.js :
   l'énoncé n'est pas recopié (champ officiel du catalogue), chaque question n'a qu'un court rappel, avec un indice et
-  le corrigé rédigé par ProfMaths. Le sujet donne les points des exercices (5, 5 et 4) : leur répartition entre les
+  le corrigé rédigé par ProfMaths. Énoncé : PDF publié par le ministère (page « les sujets des examens 2026 »). Le sujet donne les points des exercices (5, 5 et 4) : leur répartition entre les
   questions est indicative. Partie 1 : QCM de 8 questions (0,75 point chacune), propositions a à d.
 */
 window.SUJETS = window.SUJETS || {};
 window.SUJETS["premiere-metropole-2026"] = {
-  entete: "Première spécialité · Épreuve anticipée de mathématiques, métropole, 12 juin 2026 (sujet officiel) · Durée : 2 heures, sans calculatrice",
-  consignes: "**Sujet officiel** de la première session de l'épreuve anticipée, passé en métropole le 12 juin 2026. Son énoncé n'est pas recopié ici : ouvre-le ou imprime-le, fais le sujet en $2$ heures sans calculatrice, puis compare ta copie avec ce corrigé, question par question.\n\nDans ce sujet, la partie 1 est un QCM de huit questions. En juin 2027, elle sera faite de questions à réponses courtes, sans propositions : entraîne-toi à trouver chaque réponse avant de regarder les propositions. Le sujet donne les points de chaque exercice ; leur répartition entre les questions est indicative.",
+  entete: "Première spécialité · Épreuve anticipée de mathématiques du 12 juin 2026 (sujet officiel) · Durée : 2 heures, sans calculatrice",
+  consignes: "**Sujet officiel** de la première session de l'épreuve anticipée, passé le 12 juin 2026 en métropole, à La Réunion et à Mayotte. Le ministère l'a publié sur son site. Son énoncé n'est pas recopié ici : ouvre-le ou imprime-le, fais le sujet en $2$ heures sans calculatrice, puis compare ta copie avec ce corrigé, question par question.\n\nDans ce sujet, la partie 1 est un QCM de huit questions. En juin 2027, elle sera faite de questions à réponses courtes, sans propositions : entraîne-toi à trouver chaque réponse avant de regarder les propositions. Le sujet donne les points de chaque exercice ; leur répartition entre les questions est indicative.",
   exercices: [
     {
       numero: "Partie 1", titre: "Automatismes (QCM)",
