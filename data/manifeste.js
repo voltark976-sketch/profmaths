@@ -242,7 +242,7 @@ window.MANIFESTE = {
   "terminale-spe-loi-binomiale": {"niveau":"terminale-spe","fichier":"data/terminale-spe/loi-binomiale.js","series":12,"qcm":27,"eval":"data/terminale-spe/evaluation/loi-binomiale.js"},
   "terminale-spe-limites-fonctions": {"niveau":"terminale-spe","fichier":"data/terminale-spe/limites-fonctions.js","series":8,"qcm":26,"eval":"data/terminale-spe/evaluation/limites-fonctions.js"},
   "terminale-spe-continuite": {"niveau":"terminale-spe","fichier":"data/terminale-spe/continuite.js","series":7,"qcm":26,"eval":"data/terminale-spe/evaluation/continuite.js"},
-  "terminale-spe-espace-2": {"niveau":"terminale-spe","fichier":"data/terminale-spe/espace-2.js","series":9,"qcm":22},
+  "terminale-spe-espace-2": {"niveau":"terminale-spe","fichier":"data/terminale-spe/espace-2.js","series":9,"qcm":22,"eval":"data/terminale-spe/evaluation/espace-2.js"},
   "terminale-spe-logarithme": {"niveau":"terminale-spe","fichier":"data/terminale-spe/logarithme.js","series":10,"qcm":29},
   "terminale-spe-primitives": {"niveau":"terminale-spe","fichier":"data/terminale-spe/primitives.js","series":8,"qcm":27},
   "terminale-spe-equations-differentielles": {"niveau":"terminale-spe","fichier":"data/terminale-spe/equations-differentielles.js","series":8,"qcm":35},
