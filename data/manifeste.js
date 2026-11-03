@@ -149,7 +149,7 @@ window.MANIFESTE = {
   "quatrieme-equations": {"niveau":"quatrieme","fichier":"data/quatrieme/equations.js","series":4,"qcm":21},
   "quatrieme-statistiques": {"niveau":"quatrieme","fichier":"data/quatrieme/statistiques.js","series":4,"qcm":21},
   "quatrieme-informatique": {"niveau":"quatrieme","fichier":"data/quatrieme/informatique.js","series":4,"qcm":21},
-  "troisieme-calcul-numerique": {"niveau":"troisieme","fichier":"data/troisieme/calcul-numerique.js","series":4,"qcm":24},
+  "troisieme-calcul-numerique": {"niveau":"troisieme","fichier":"data/troisieme/calcul-numerique.js","series":4,"qcm":24,"eval":"data/troisieme/evaluation/calcul-numerique.js"},
   "troisieme-developper": {"niveau":"troisieme","fichier":"data/troisieme/developper.js","series":4,"qcm":22},
   "troisieme-factoriser": {"niveau":"troisieme","fichier":"data/troisieme/factoriser.js","series":4,"qcm":22},
   "troisieme-equations": {"niveau":"troisieme","fichier":"data/troisieme/equations.js","series":4,"qcm":22},
