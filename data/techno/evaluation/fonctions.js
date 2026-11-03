@@ -98,7 +98,7 @@ window.EVALUATIONS = window.EVALUATIONS || {};
           duree: 25, points: 7, calculatrice: false,
           contexte: "À Mayotte, la marée fait beaucoup varier la hauteur d'eau. Un jour donné, la hauteur d'eau dans un port, en mètres, est modélisée par une fonction $H$ de l'heure $t$, pour $t \\in [0\\,;12]$ (de minuit à midi). Sa courbe est tracée ci-dessous (modèle fictif).",
           figure: (o) => o.graph({
-            xmin: -0.5, xmax: 12.6, ymin: 0, ymax: 4.6, xstep: 1, ystep: 0.2, yetiq: 1, h: 280, padL: 26,
+            xmin: -0.5, xmax: 14, ymin: 0, ymax: 4.6, xstep: 1, ystep: 0.2, yetiq: 1, h: 280, padL: 26, // de la place à droite pour le nom de la droite y = 3,1
             xlabel: "t", ylabel: "H(t)",
             hlines: [{ y: 3.1, label: "y = 3,1" }],
             curves: [{ f: H, a: 0, b: 12, label: "H", lx: 9.4, dx: 18, dy: 6 }],
