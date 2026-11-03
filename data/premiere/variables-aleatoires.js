@@ -63,7 +63,7 @@ window.CHAPITRES["premiere-variables-aleatoires"] = {
         "Attention : $E(X)$ n'est pas forcément une valeur prise par $X$.",
       exemple: {
         enonce: "Calcule l'espérance du gain $X$ à la tombola.",
-        solution: "$E(X) = \\dfrac{1 \\times 98 + 5 \\times 18 + 20 \\times 3 + 174 \\times (-2)}{200}$ $= \\dfrac{98 + 90 + 60 - 348}{200} = -0{,}5$.\n\nEn moyenne, un acheteur perd $0{,}50$ € par billet."
+        solution: "Pour chaque gain, on multiplie par le nombre de billets : $1 \\times 98 = 98$, $5 \\times 18 = 90$, $20 \\times 3 = 60$ et $174 \\times (-2) = -348$.\n\n$E(X) = \\dfrac{98 + 90 + 60 - 348}{200} = \\dfrac{-100}{200} = -0{,}5$.\n\nEn moyenne, un acheteur perd $0{,}50$ € par billet."
       }
     },
     {
@@ -91,7 +91,7 @@ window.CHAPITRES["premiere-variables-aleatoires"] = {
         "Sur les deux schémas, les lois ont la même espérance $2$, mais la seconde est plus dispersée : $V = 0{,}5$ pour la première et $V = 4$ pour la seconde.",
       exemple: {
         enonce: "Calcule $V(X)$ et $\\sigma(X)$ pour la tombola, sachant que $E(X) = -0{,}5$.",
-        solution: "$E(X^2) = \\dfrac{98^2 + 5 \\times 18^2 + 20 \\times 3^2 + 174 \\times 4}{200} = \\dfrac{12\\,100}{200} = 60{,}5$.\n\n$V(X) = 60{,}5 - (-0{,}5)^2 = 60{,}25$ et $\\sigma(X) \\approx 7{,}76$ € : les gains sont très dispersés (beaucoup de petites pertes, un gros lot)."
+        solution: "Avec les carrés des gains : $98^2 = 9\\,604$, $5 \\times 18^2 = 1\\,620$, $20 \\times 3^2 = 180$ et $174 \\times (-2)^2 = 696$, soit $12\\,100$ en tout. Donc $E(X^2) = \\dfrac{12\\,100}{200} = 60{,}5$.\n\n$V(X) = 60{,}5 - (-0{,}5)^2 = 60{,}25$ et $\\sigma(X) \\approx 7{,}76$ € : les gains sont très dispersés (beaucoup de petites pertes, un gros lot)."
       }
     },
     {
