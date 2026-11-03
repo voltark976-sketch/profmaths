@@ -939,7 +939,7 @@
 
   /* ---------- Page professeur : qui a fait quoi (devoirs) ---------- */
   let suiviCache = null; // { eleves (fiches des élèves déjà connectés), classes (listes écrites par outils/comptes) }
-  const suiviChoix = { groupe: "", chap: "*", depuis: "", tri: { col: "nom", sens: 1 }, filtres: {} };
+  const suiviChoix = { groupe: "", chap: "*", depuis: "", au: "", tri: { col: "nom", sens: 1 }, filtres: {} };
   let suiviCols = []; // colonnes du tableau affiché (pour le tri)
   async function pageSuivi() {
     document.title = "Suivi des élèves · ProfMaths";
@@ -997,24 +997,19 @@
         .then(() => { if (location.hash === "#suivi") afficherSuivi(); });
       return;
     }
-    const donnees = suiviCache || {}, fiches = donnees.eleves || [], classes = donnees.classes || {};
-    const groupeDe = (x) => x.groupe || x.classe || "?";
+    const classes = (suiviCache || {}).classes || {};
     // Classes du professeur (même sans élève encore connecté), classes des listes et classes présentes dans les fiches
-    const groupes = [...new Set(((Compte.eleve() || {}).groupes || []).concat(Object.keys(classes), fiches.map(groupeDe)))].sort();
+    const groupes = groupesProf();
     if (!groupes.includes(suiviChoix.groupe)) suiviChoix.groupe = groupes[0] || "";
     const chaps = [];
     CATALOGUE.niveaux.forEach((n) => n.chapitres.forEach((ch) => { if (dispo(ch.id)) chaps.push({ id: ch.id, titre: ch.titre, niveau: n.nom }); }));
-    if (suiviChoix.chap !== "*" && !chaps.some((c) => c.id === suiviChoix.chap)) suiviChoix.chap = "*";
-    // Élèves de la classe : fiches des élèves déjà connectés, complétées par la liste de classe (élèves jamais connectés, marqués « jamais »)
-    const parUid = new Map(fiches.filter((x) => groupeDe(x) === suiviChoix.groupe).map((x) => [x.uid, x]));
-    const liste0 = (classes[suiviChoix.groupe] || {}).eleves || {};
-    Object.keys(liste0).forEach((uid) => { if (!parUid.has(uid)) parUid.set(uid, Object.assign({ uid, groupe: suiviChoix.groupe, jamais: true }, liste0[uid])); });
-    const liste = [...parUid.values()];
+    if (suiviChoix.chap !== "*" && suiviChoix.chap !== "note" && !chaps.some((c) => c.id === suiviChoix.chap)) suiviChoix.chap = "*";
+    const liste = elevesGroupe(suiviChoix.groupe);
     const infos = { avecListe: !!classes[suiviChoix.groupe], jamais: liste.filter((x) => x.jamais).length };
     const choix = (extra) => `<div class="suivi-choix">
         <label>Classe <select id="s-groupe">${groupes.map((g) => `<option${g === suiviChoix.groupe ? " selected" : ""}>${esc(g)}</option>`).join("")}</select></label>
-        <label>Chapitre <select id="s-chap"><option value="*"${suiviChoix.chap === "*" ? " selected" : ""}>Tout le site</option>${chaps.map((ch) => `<option value="${esc(ch.id)}"${ch.id === suiviChoix.chap ? " selected" : ""}>${esc(ch.niveau)} · ${esc(ch.titre)}</option>`).join("")}</select></label>
-        <label>${suiviChoix.chap === "*" ? "Depuis le" : "Fait depuis le"} <input type="date" id="s-depuis" value="${esc(suiviChoix.depuis)}"></label>${extra || ""}
+        <label>Chapitre <select id="s-chap"><option value="*"${suiviChoix.chap === "*" ? " selected" : ""}>Tout le site</option><option value="note"${suiviChoix.chap === "note" ? " selected" : ""}>Notation (chapitres du niveau)</option>${chaps.map((ch) => `<option value="${esc(ch.id)}"${ch.id === suiviChoix.chap ? " selected" : ""}>${esc(ch.niveau)} · ${esc(ch.titre)}</option>`).join("")}</select></label>
+        <label>${suiviChoix.chap === "*" ? "Depuis le" : suiviChoix.chap === "note" ? "Du" : "Fait depuis le"} <input type="date" id="s-depuis" value="${esc(suiviChoix.depuis)}"></label>${extra || ""}
         <button class="btn-sec" id="s-maj" type="button">Actualiser</button>
       </div>`;
     const brancher = () => {
@@ -1026,6 +1021,7 @@
       brancherTableau(suiviChoix, afficherSuivi);
     };
     if (suiviChoix.chap === "*") { suiviSite(liste, choix, infos); brancher(); return; }
+    if (suiviChoix.chap === "note") { suiviNotation(choix, infos); brancher(); return; }
     const c = CHAPITRES[suiviChoix.chap];
     const depuis = suiviChoix.depuis ? new Date(suiviChoix.depuis + "T00:00").getTime() : 0;
     const date = (t) => new Date(t).toLocaleDateString("fr-FR", { day: "numeric", month: "short" });
@@ -1070,6 +1066,158 @@
       ${tableauSuivi(cols, lignes, "suivi-chap")}</section>`;
     brancher();
   }
+  // Élèves d'une classe : fiches des élèves déjà connectés, complétées par la liste de classe (élèves jamais connectés, marqués « jamais »)
+  function elevesGroupe(g) {
+    const donnees = suiviCache || {}, fiches = donnees.eleves || [], classes = donnees.classes || {};
+    const parUid = new Map(fiches.filter((x) => (x.groupe || x.classe || "?") === g).map((x) => [x.uid, x]));
+    const liste0 = (classes[g] || {}).eleves || {};
+    Object.keys(liste0).forEach((uid) => { if (!parUid.has(uid)) parUid.set(uid, Object.assign({ uid, groupe: g, jamais: true }, liste0[uid])); });
+    return [...parUid.values()];
+  }
+  // Classes visibles par le professeur (les seules dont les fiches ont été lues)
+  function groupesProf() {
+    const d = suiviCache || {}, fiches = d.eleves || [], classes = d.classes || {};
+    return [...new Set(((Compte.eleve() || {}).groupes || []).concat(Object.keys(classes), fiches.map((x) => x.groupe || x.classe || "?")))].sort();
+  }
+
+  /* ---------- Notation : XP et temps dans les chapitres du niveau de la classe, note sur 20 ----------
+    Note = 20 × (p × min(1, XP ÷ XP de référence) + (1 − p) × min(1, temps ÷ temps de référence)), arrondie au demi-point.
+    p = poids des XP (50 % par défaut). Référence par défaut : ce qu'a fait le 3e élève le plus actif de la classe ;
+    le professeur peut la fixer (réglages gardés sur son appareil, par classe). XP et temps viennent de temps.xj et temps.jc
+    (par jour et par chapitre, enregistrés depuis novembre 2026, voir compte.js). */
+  const CLE_NOTATION = "profmaths:notation:";
+  const RANG_REF = 3;
+  function reglagesNotation(g) {
+    let r = {};
+    try { r = JSON.parse(localStorage.getItem(CLE_NOTATION + g) || "{}") || {}; } catch (e) { r = {}; }
+    return { poids: r.poids !== "" && Number.isFinite(+r.poids) && r.poids != null ? Math.min(100, Math.max(0, +r.poids)) : 50, refXp: +r.refXp > 0 ? +r.refXp : 0, refT: +r.refT > 0 ? +r.refT : 0, autos: r.autos !== false };
+  }
+  function garderNotation(g, r) { try { localStorage.setItem(CLE_NOTATION + g, JSON.stringify(r)); } catch (e) { /* rien */ } }
+  // Niveau de la classe : celui inscrit dans les comptes (« Seconde », « Première spécialité »…), qui est aussi le nom du niveau du catalogue
+  function niveauGroupe(g, liste) {
+    const cg = ((suiviCache || {}).classes || {})[g];
+    const cl = (cg && cg.classe) || (liste.find((x) => x.classe) || {}).classe || "";
+    return CATALOGUE.niveaux.find((n) => n.nom === cl) || null;
+  }
+  const minutes = (sec) => Math.round((+sec || 0) / 6) / 10; // minutes à une décimale (les mêmes dans le tableau Excel)
+  const arrondiDemi = (x) => Math.round(x * 2) / 2;
+  function notationGroupe(g) {
+    const liste = elevesGroupe(g), niv = niveauGroupe(g, liste), r = reglagesNotation(g);
+    const avecAutos = !!niv && (niv.id === "seconde" || niv.id === "premiere");
+    const ids = new Set(niv ? niv.chapitres.map((c) => c.id) : []);
+    if (avecAutos && r.autos) (CATALOGUE.niveaux.find((n) => n.id === "automatismes") || { chapitres: [] }).chapitres.forEach((c) => ids.add(c.id));
+    const du = suiviChoix.depuis || "", au = suiviChoix.au || "";
+    const dans = (j) => (!du || j >= du) && (!au || j <= au);
+    const lignes = liste.map((x) => {
+      const t = x.temps || {}, xj = t.xj || {}, jc = t.jc || {}, chs = new Set();
+      let xp = 0, sec = 0;
+      for (const j in xj) if (dans(j)) for (const c in xj[j]) if (ids.has(c)) { xp += +xj[j][c] || 0; chs.add(c); }
+      for (const j in jc) if (dans(j)) for (const c in jc[j]) if (ids.has(c)) { sec += +jc[j][c] || 0; chs.add(c); }
+      return { x, xp: Math.round(xp), tps: minutes(sec), nb: chs.size, cls: x.jamais ? "jamais" : "" };
+    });
+    // Référence automatique : valeur du 3e meilleur élève (ou du dernier s'il y en a moins de 3 qui ont travaillé)
+    const auto = (val) => { const v = lignes.map(val).filter((y) => y > 0).sort((a, b) => b - a); return v.length ? v[Math.min(RANG_REF, v.length) - 1] : 0; };
+    const refXp = r.refXp || auto((l) => l.xp), refT = r.refT || auto((l) => l.tps), p = r.poids / 100;
+    lignes.forEach((l) => {
+      const a = refXp > 0 ? Math.min(1, l.xp / refXp) : 0, b = refT > 0 ? Math.min(1, l.tps / refT) : 0;
+      l.note = arrondiDemi(20 * (p * a + (1 - p) * b));
+    });
+    return { g, niv, ids, r, avecAutos, du, au, lignes, refXp, refT, autoXp: !r.refXp, autoT: !r.refT, p };
+  }
+  const virgule = (x, d) => String(d == null ? x : (+x).toFixed(d)).replace(".", ",");
+  function statsNotes(v) {
+    if (!v.length) return null;
+    const s = [...v].sort((a, b) => a - b), n = s.length, moy = s.reduce((a, b) => a + b, 0) / n;
+    return { moy, med: n % 2 ? s[(n - 1) / 2] : (s[n / 2 - 1] + s[n / 2]) / 2, min: s[0], max: s[n - 1], et: Math.sqrt(s.reduce((a, b) => a + (b - moy) ** 2, 0) / n) };
+  }
+  const dateLongue = (j) => new Date(j + "T00:00").toLocaleDateString("fr-FR", { day: "numeric", month: "long" });
+  function suiviNotation(choix, infos) {
+    const N = notationGroupe(suiviChoix.groupe), r = N.r;
+    const periode = N.du || N.au ? `${N.du ? `du ${dateLongue(N.du)}` : "depuis le début"}${N.au ? ` au ${dateLongue(N.au)}` : " à aujourd'hui"}` : "depuis le début du comptage";
+    const nom = (x) => `${esc(x.nom || "")} ${esc(x.prenom || x.identifiant || "")}`;
+    const cols = [
+      { id: "nom", titre: "Élève", aide: "Nom de l'élève", val: (l) => `${l.x.nom || ""} ${l.x.prenom || l.x.identifiant || ""}`.toLowerCase(), html: (l) => nom(l.x), choix: "texte" },
+      { id: "nxp", titre: "XP niveau", aide: "XP gagnés dans les chapitres du niveau", desc: true, val: (l) => l.xp, html: (l) => l.xp || "–", choix: choixNombre((l) => l.xp, [50, 100, 200, 500]) },
+      { id: "ntps", titre: "Temps niveau", aide: "Temps actif dans les chapitres du niveau", desc: true, val: (l) => l.tps, html: (l) => (l.tps ? duree(l.tps * 60) : "–"), choix: choixDuree((l) => l.tps * 60) },
+      { id: "nnb", titre: "Chapitres", aide: "Chapitres du niveau travaillés", desc: true, val: (l) => l.nb, html: (l) => l.nb || "–", choix: choixNombre((l) => l.nb, [1, 2, 3, 5]) },
+      { id: "nnote", titre: "Note /20", aide: "Note au prorata des XP et du temps", desc: true, val: (l) => l.note, html: (l) => `<strong>${virgule(l.note)}</strong>`,
+        choix: [["<8", "Moins de 8", (l) => l.note < 8], ["8-12", "De 8 à moins de 12", (l) => l.note >= 8 && l.note < 12], ["12-16", "De 12 à moins de 16", (l) => l.note >= 12 && l.note < 16], ["16+", "16 ou plus", (l) => l.note >= 16]] }
+    ];
+    const st = statsNotes(N.lignes.map((l) => l.note));
+    const tuile = (b, t) => `<div class="freq-tuile"><b>${b}</b><span>${t}</span></div>`;
+    const champ = (id, lib, val, attrs) => `<label>${lib} <input id="${id}" ${attrs} value="${esc(val)}"></label>`;
+    const reglages = `<div class="suivi-choix notation-reglages">
+        ${champ("n-poids", "Poids des XP (%)", r.poids, 'type="number" min="0" max="100" step="5" inputmode="numeric"')}
+        ${champ("n-refxp", "XP pour 20/20", r.refXp || "", `type="number" min="1" step="10" inputmode="numeric" placeholder="auto : ${N.refXp || "–"}"`)}
+        ${champ("n-reft", "Minutes pour 20/20", r.refT || "", `type="number" min="1" step="5" inputmode="numeric" placeholder="auto : ${N.refT ? Math.round(N.refT) : "–"}"`)}
+        ${N.avecAutos ? `<label class="case-notation"><input type="checkbox" id="n-autos"${r.autos ? " checked" : ""}> Compter les Automatismes</label>` : ""}
+      </div>`;
+    $app.innerHTML = `<section class="page-suivi"><p class="eyebrow">Compte professeur · <a href="#frequentation">Fréquentation du site</a></p><h1>Suivi des élèves</h1>
+      ${choix(`<label>Au <input type="date" id="s-au" value="${esc(N.au)}"></label>`)}
+      <p class="lead">Notation de la classe <strong>${esc(N.g)}</strong> : chapitres de <strong>${esc(N.niv ? N.niv.nom : "niveau inconnu")}</strong>${N.avecAutos && r.autos ? " et Automatismes" : ""}, ${periode}.</p>
+      ${reglages}
+      <p class="muted">Note = 20 × (${virgule(r.poids)} % × XP ÷ ${N.refXp || "?"} + ${virgule(100 - r.poids)} % × temps ÷ ${N.refT ? duree(N.refT * 60) : "?"}), chaque rapport plafonné à 1, arrondie au demi-point.
+        ${N.autoXp || N.autoT ? `Une case vide prend ce qu'a fait le ${RANG_REF}e élève le plus actif de la classe.` : ""} Les réglages sont gardés sur cet appareil, pour cette classe.
+        XP et temps par chapitre ne sont comptés que depuis la mise à jour de novembre 2026.${N.niv ? "" : " Le niveau de cette classe est inconnu : aucun chapitre n'est compté."}${infos.avecListe ? " Les élèves jamais connectés sont en grisé." : ""}</p>
+      <div class="freq-tuiles">${st ? tuile(virgule(st.moy, 1), "moyenne de la classe") + tuile(virgule(st.med), "note médiane") + tuile(`${virgule(st.min)} à ${virgule(st.max)}`, "note la plus basse et la plus haute") : ""}${infos.avecListe ? tuile(infos.jamais, `jamais connecté${infos.jamais > 1 ? "s" : ""}`) : ""}</div>
+      <p class="btns-prof"><button class="btn" type="button" id="n-excel">Télécharger en Excel</button>${groupesProf().length > 1 ? ` <button class="btn-sec" type="button" id="n-excel-tout">Excel de toutes mes classes</button>` : ""}</p>
+      ${tableauSuivi(cols, N.lignes, "suivi-note")}</section>`;
+    const garder = (modif) => { garderNotation(N.g, Object.assign({}, r, modif)); afficherSuivi(); };
+    const nombre = (id, cle) => { const el = document.getElementById(id); if (el) el.addEventListener("change", () => garder({ [cle]: el.value === "" ? "" : +el.value })); };
+    nombre("n-poids", "poids"); nombre("n-refxp", "refXp"); nombre("n-reft", "refT");
+    const autos = document.getElementById("n-autos");
+    if (autos) autos.addEventListener("change", () => garder({ autos: autos.checked }));
+    const au = document.getElementById("s-au");
+    au.addEventListener("change", () => { suiviChoix.au = au.value; afficherSuivi(); });
+    document.getElementById("n-excel").addEventListener("click", (ev) => exporterNotation([N.g], ev.currentTarget));
+    const tout = document.getElementById("n-excel-tout");
+    if (tout) tout.addEventListener("click", (ev) => exporterNotation(groupesProf(), ev.currentTarget));
+  }
+  // Fichier Excel : une feuille par classe (réglages, élèves, note en formule, statistiques)
+  async function exporterNotation(groupes, bouton) {
+    const texte = bouton.textContent;
+    bouton.disabled = true; bouton.textContent = "Préparation…";
+    try {
+      await chargerScript("assets/xlsx.js");
+      const auj = jourISO(new Date()), fr = (j) => j.split("-").reverse().join("/");
+      const feuilles = groupes.map((g) => {
+        const N = notationGroupe(g);
+        const L = N.lignes.slice().sort((a, b) => `${a.x.nom || ""} ${a.x.prenom || ""}`.localeCompare(`${b.x.nom || ""} ${b.x.prenom || ""}`, "fr"));
+        const d0 = 10, d1 = d0 + Math.max(L.length, 1) - 1; // lignes des élèves (numéros Excel)
+        const lignes = [
+          [{ v: `Notation · classe ${g}${N.niv ? ` (${N.niv.nom})` : ""}`, s: 1 }],
+          [`Période : ${N.du ? "du " + fr(N.du) : "depuis le début du comptage"} au ${fr(N.au || auj)}`],
+          [`Chapitres comptés : ${N.niv ? N.niv.nom : "niveau inconnu"}${N.avecAutos && N.r.autos ? " et Automatismes" : ""} (${N.ids.size} chapitres)`],
+          [],
+          [{ v: "Poids des XP", s: 1 }, N.p, "Le poids du temps est 1 moins ce nombre."],
+          [{ v: "XP pour 20/20", s: 1 }, N.refXp, N.autoXp ? `Valeur du ${RANG_REF}e élève le plus actif. Tu peux la changer : les notes se recalculent.` : "Valeur choisie sur le site. Tu peux la changer : les notes se recalculent."],
+          [{ v: "Minutes pour 20/20", s: 1 }, N.refT, N.autoT ? `Valeur du ${RANG_REF}e élève le plus actif. Tu peux la changer : les notes se recalculent.` : "Valeur choisie sur le site. Tu peux la changer : les notes se recalculent."],
+          [],
+          ["Nom", "Prénom", "XP du niveau", "Temps du niveau (min)", "Chapitres travaillés", "Note /20", "Déjà connecté"].map((v) => ({ v, s: 2 }))
+        ];
+        L.forEach((l, i) => {
+          const k = d0 + i;
+          lignes.push([l.x.nom || "", l.x.prenom || l.x.identifiant || "", l.xp, { v: l.tps, s: 3 }, l.nb,
+            { v: l.note, s: 4, f: `ROUND(2*20*($B$5*IF($B$6>0,MIN(1,C${k}/$B$6),0)+(1-$B$5)*IF($B$7>0,MIN(1,D${k}/$B$7),0)),0)/2` }, l.x.jamais ? "non" : "oui"]);
+        });
+        if (!L.length) lignes.push(["Aucun élève"]);
+        const st = (col, val) => { const s = statsNotes(L.map(val)); return s ? [["moy", "AVERAGE"], ["med", "MEDIAN"], ["min", "MIN"], ["max", "MAX"], ["et", "STDEVP"]].map(([c, f]) => ({ v: Math.round(s[c] * 100) / 100, f: `${f}(${col}${d0}:${col}${d1})`, s: 3 })) : []; };
+        const sx = st("C", (l) => l.xp), stt = st("D", (l) => l.tps), sn = st("F", (l) => l.note);
+        lignes.push([]);
+        ["Moyenne", "Médiane", "Minimum", "Maximum", "Écart-type"].forEach((t, i) => lignes.push([{ v: t, s: 1 }, null, sx[i] || null, stt[i] || null, null, sn[i] || null]));
+        lignes.push([{ v: "Jamais connectés", s: 1 }, null, null, null, null, null, { v: L.filter((l) => l.x.jamais).length, f: `COUNTIF(G${d0}:G${d1},"non")` }]);
+        return { nom: g, largeurs: [22, 18, 13, 21, 19, 10, 14], lignes };
+      });
+      const blob = window.PM_XLSX(feuilles), a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = `notation-${groupes.length === 1 ? groupes[0].replace(/[^A-Za-z0-9-]+/g, "-") : "classes"}-${auj}.xlsx`;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(a.href), 60e3);
+    } catch (e) {
+      alert("Le fichier Excel n'a pas pu être préparé. Vérifie la connexion internet puis réessaie.");
+    } finally { bouton.disabled = false; bouton.textContent = texte; }
+  }
+
   // Tri (un titre de colonne ; même colonne = sens inverse) et filtres (la ligne sous les titres) d'un tableauSuivi ;
   // choix = { tri, filtres } modifié sur place, redessiner() réaffiche la page
   function brancherTableau(choix, redessiner) {
