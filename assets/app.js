@@ -1101,7 +1101,7 @@
   function reglagesNotation(g) {
     let r = {};
     try { r = JSON.parse(localStorage.getItem(CLE_NOTATION + g) || "{}") || {}; } catch (e) { r = {}; }
-    return { poids: r.poids !== "" && Number.isFinite(+r.poids) && r.poids != null ? Math.min(100, Math.max(0, +r.poids)) : 50, refXp: +r.refXp > 0 ? +r.refXp : 0, refT: +r.refT > 0 ? +r.refT : 0, autos: r.autos !== false };
+    return { poids: r.poids !== "" && Number.isFinite(+r.poids) && r.poids != null ? Math.min(100, Math.max(0, +r.poids)) : 50, refXp: +r.refXp > 0 ? +r.refXp : 0, refT: +r.refT > 0 ? +r.refT : 0, autos: r.autos !== false, estim: r.estim !== false };
   }
   function garderNotation(g, r) { try { localStorage.setItem(CLE_NOTATION + g, JSON.stringify(r)); } catch (e) { /* rien */ } }
   // Niveau de la classe : celui inscrit dans les comptes (« Seconde », « Première spécialité »…), qui est aussi le nom du niveau du catalogue
@@ -1112,6 +1112,26 @@
   }
   const minutes = (sec) => Math.round((+sec || 0) / 6) / 10; // minutes à une décimale (les mêmes dans le tableau Excel)
   const arrondiDemi = (x) => Math.round(x * 2) / 2;
+  /* Avant la mise à jour du 3 novembre 2026, le site ne gardait que le total des XP et le temps par jour (le temps par chapitre
+    s'effaçait souvent). On estime la part du niveau de la classe dans ce passé :
+    - XP : (XP totaux − XP enregistrés par chapitre depuis) × part du niveau dans les meilleurs résultats de l'élève
+      (étoiles des séries, meilleur QCM, record au défi, pondérés comme les XP qu'ils rapportent) ;
+    - temps : (temps total par jour − temps enregistré par chapitre depuis) × part du niveau dans le temps par chapitre qui reste
+      (à défaut, la part des XP). */
+  const DEBUT_NOTATION = "2026-11-03";
+  const XP_ETOILES = [10, 28, 40, 47]; // XP probables d'une série de 5 questions selon ses étoiles (0 à 3)
+  function estimationAvant(x, ids) {
+    const poids = {}, ajout = (c, v) => { if (v > 0) poids[c] = (poids[c] || 0) + v; };
+    for (const k in x.exo || {}) ajout(k.split(":")[0], XP_ETOILES[Math.max(0, Math.min(3, +x.exo[k] || 0))]);
+    for (const c in x.qcm || {}) ajout(c, (+x.qcm[c] || 0) * XP.bonneReponseQcm);
+    for (const k in x.jeux || {}) if (k.startsWith("chrono:")) ajout(k.slice(7), (+x.jeux[k] || 0) * 0.2);
+    const part = (o) => { let tout = 0, niv = 0; for (const c in o) { const v = +o[c] || 0; tout += v; if (ids.has(c)) niv += v; } return tout > 0 ? niv / tout : null; };
+    const somme = (o) => Object.values(o || {}).reduce((a, v) => a + (+v || 0), 0);
+    const t = x.temps || {}, pXp = part(poids), pT = part(t.ch || {});
+    const xpAvant = Math.max(0, (+x.xp || 0) - somme(t.xp));
+    const secAvant = Math.max(0, somme(t.j) - Object.values(t.jc || {}).reduce((a, o) => a + somme(o), 0));
+    return { xp: xpAvant * (pXp || 0), sec: secAvant * (pT != null ? pT : pXp || 0) };
+  }
   function notationGroupe(g) {
     const liste = elevesGroupe(g), niv = niveauGroupe(g, liste), r = reglagesNotation(g);
     const avecAutos = !!niv && (niv.id === "seconde" || niv.id === "premiere");
@@ -1124,7 +1144,14 @@
       let xp = 0, sec = 0;
       for (const j in xj) if (dans(j)) for (const c in xj[j]) if (ids.has(c)) { xp += +xj[j][c] || 0; chs.add(c); }
       for (const j in jc) if (dans(j)) for (const c in jc[j]) if (ids.has(c)) { sec += +jc[j][c] || 0; chs.add(c); }
-      return { x, xp: Math.round(xp), tps: minutes(sec), nb: chs.size, cls: x.jamais ? "jamais" : "" };
+      // Estimation d'avant la mise à jour, si la période la contient
+      let est = null;
+      if (r.estim && (!du || du < DEBUT_NOTATION) && !x.jamais) {
+        est = estimationAvant(x, ids); xp += est.xp; sec += est.sec;
+        for (const k in x.exo || {}) { const c = k.split(":")[0]; if (ids.has(c)) chs.add(c); }
+        for (const c in x.qcm || {}) if (ids.has(c)) chs.add(c);
+      }
+      return { x, xp: Math.round(xp), tps: minutes(sec), nb: chs.size, estXp: est ? Math.round(est.xp) : 0, estTps: est ? minutes(est.sec) : 0, cls: x.jamais ? "jamais" : "" };
     });
     // Référence automatique : valeur du 3e meilleur élève (ou du dernier s'il y en a moins de 3 qui ont travaillé)
     const auto = (val) => { const v = lignes.map(val).filter((y) => y > 0).sort((a, b) => b - a); return v.length ? v[Math.min(RANG_REF, v.length) - 1] : 0; };
@@ -1133,7 +1160,7 @@
       const a = refXp > 0 ? Math.min(1, l.xp / refXp) : 0, b = refT > 0 ? Math.min(1, l.tps / refT) : 0;
       l.note = arrondiDemi(20 * (p * a + (1 - p) * b));
     });
-    return { g, niv, ids, r, avecAutos, du, au, lignes, refXp, refT, autoXp: !r.refXp, autoT: !r.refT, p };
+    return { g, niv, ids, r, avecAutos, du, au, lignes, refXp, refT, autoXp: !r.refXp, autoT: !r.refT, p, estim: r.estim && (!du || du < DEBUT_NOTATION) };
   }
   const virgule = (x, d) => String(d == null ? x : (+x).toFixed(d)).replace(".", ",");
   function statsNotes(v) {
@@ -1163,6 +1190,7 @@
         ${champ("n-poids", "Poids des XP (%)", r.poids, 'type="number" min="0" max="100" step="5" inputmode="numeric"')}
         ${champ("n-refxp", "XP pour 20/20", r.refXp || "", `type="number" min="1" step="10" inputmode="numeric" placeholder="auto : ${N.refXp || "–"}"`)}
         ${champ("n-reft", "Minutes pour 20/20", r.refT || "", `type="number" min="1" step="5" inputmode="numeric" placeholder="auto : ${N.refT ? Math.round(N.refT) : "–"}"`)}
+        <label class="case-notation"><input type="checkbox" id="n-estim"${r.estim ? " checked" : ""}> Estimer avant le 3 novembre</label>
         ${N.avecAutos ? `<label class="case-notation"><input type="checkbox" id="n-autos"${r.autos ? " checked" : ""}> Compter les Automatismes</label>` : ""}
       </div>`;
     $app.innerHTML = `<section class="page-suivi"><p class="eyebrow">Compte professeur · <a href="#frequentation">Fréquentation du site</a></p><h1>Suivi des élèves</h1>
@@ -1172,7 +1200,7 @@
       ${reglages}
       <p class="muted">Note = 20 × (${virgule(r.poids)} % × XP ÷ ${N.refXp || "?"} + ${virgule(100 - r.poids)} % × temps ÷ ${N.refT ? duree(N.refT * 60) : "?"}), chaque rapport plafonné à 1, arrondie au demi-point.
         ${N.autoXp || N.autoT ? `Une case vide prend ce qu'a fait le ${RANG_REF}e élève le plus actif de la classe.` : ""} Les réglages sont gardés sur cet appareil, pour cette classe.
-        XP et temps par chapitre ne sont comptés que depuis la mise à jour de novembre 2026.${N.niv ? "" : " Le niveau de cette classe est inconnu : aucun chapitre n'est compté."}${infos.avecListe ? " Les élèves jamais connectés sont en grisé." : ""}</p>
+        ${N.estim ? "Avant le 3 novembre 2026, le site ne gardait que le total des XP et du temps : leur part dans le niveau est estimée d'après les meilleurs résultats de l'élève (étoiles, QCM, défi) et le temps par chapitre restant ; depuis, ils sont comptés exactement." : "XP et temps par chapitre ne sont comptés que depuis la mise à jour du 3 novembre 2026."}${N.niv ? "" : " Le niveau de cette classe est inconnu : aucun chapitre n'est compté."}${infos.avecListe ? " Les élèves jamais connectés sont en grisé." : ""}</p>
       <div class="freq-tuiles">${st ? tuile(virgule(st.moy, 1), "moyenne de la classe") + tuile(virgule(st.med), "note médiane") + tuile(`${virgule(st.min)} à ${virgule(st.max)}`, "note la plus basse et la plus haute") : ""}${infos.avecListe ? tuile(infos.jamais, `jamais connecté${infos.jamais > 1 ? "s" : ""}`) : ""}</div>
       <p class="btns-prof"><button class="btn" type="button" id="n-excel">Télécharger en Excel</button>${groupesProf().length > 1 ? ` <button class="btn-sec" type="button" id="n-excel-tout">Excel de toutes mes classes</button>` : ""}</p>
       ${tableauSuivi(cols, N.lignes, "suivi-note")}</section>`;
@@ -1181,6 +1209,8 @@
     nombre("n-poids", "poids"); nombre("n-refxp", "refXp"); nombre("n-reft", "refT");
     const autos = document.getElementById("n-autos");
     if (autos) autos.addEventListener("change", () => garder({ autos: autos.checked }));
+    const estim = document.getElementById("n-estim");
+    estim.addEventListener("change", () => garder({ estim: estim.checked }));
     const au = document.getElementById("s-au");
     au.addEventListener("change", () => { suiviChoix.au = au.value; afficherSuivi(); });
     document.getElementById("n-excel").addEventListener("click", (ev) => exporterNotation([N.g], ev.currentTarget));
@@ -1202,7 +1232,7 @@
           [{ v: `Notation · classe ${g}${N.niv ? ` (${N.niv.nom})` : ""}`, s: 1 }],
           [`Période : ${N.du ? "du " + fr(N.du) : "depuis le début du comptage"} au ${fr(N.au || auj)}`],
           [`Chapitres comptés : ${N.niv ? N.niv.nom : "niveau inconnu"}${N.avecAutos && N.r.autos ? " et Automatismes" : ""} (${N.ids.size} chapitres)`],
-          [],
+          [N.estim ? "Avant le 3 novembre 2026 : XP et temps du niveau estimés (le site ne gardait que les totaux) ; depuis : comptés exactement." : "XP et temps comptés depuis le 3 novembre 2026."],
           [{ v: "Poids des XP", s: 1 }, N.p, "Le poids du temps est 1 moins ce nombre."],
           [{ v: "XP pour 20/20", s: 1 }, N.refXp, N.autoXp ? `Valeur du ${RANG_REF}e élève le plus actif. Tu peux la changer : les notes se recalculent.` : "Valeur choisie sur le site. Tu peux la changer : les notes se recalculent."],
           [{ v: "Minutes pour 20/20", s: 1 }, N.refT, N.autoT ? `Valeur du ${RANG_REF}e élève le plus actif. Tu peux la changer : les notes se recalculent.` : "Valeur choisie sur le site. Tu peux la changer : les notes se recalculent."],
