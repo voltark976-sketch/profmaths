@@ -216,7 +216,7 @@ window.MANIFESTE = {
   "tronc-ajustement-affine": {"niveau":"tronc","fichier":"data/tronc/ajustement-affine.js","series":7,"qcm":20,"eval":"data/tronc/evaluation/ajustement-affine.js"},
   "tronc-probabilites-conditionnelles": {"niveau":"tronc","fichier":"data/tronc/probabilites-conditionnelles.js","series":6,"qcm":19,"eval":"data/tronc/evaluation/probabilites-conditionnelles.js"},
   "tronc-epreuves-bernoulli": {"niveau":"tronc","fichier":"data/tronc/epreuves-bernoulli.js","series":5,"qcm":19,"eval":"data/tronc/evaluation/epreuves-bernoulli.js"},
-  "tronc-suites-arithmetiques": {"niveau":"tronc","fichier":"data/tronc/suites-arithmetiques.js","series":13,"qcm":19},
+  "tronc-suites-arithmetiques": {"niveau":"tronc","fichier":"data/tronc/suites-arithmetiques.js","series":13,"qcm":19,"eval":"data/tronc/evaluation/suites-arithmetiques.js"},
   "tronc-fonctions-affines": {"niveau":"tronc","fichier":"data/tronc/fonctions-affines.js","series":9,"qcm":19},
   "tronc-second-degre": {"niveau":"tronc","fichier":"data/tronc/second-degre.js","series":7,"qcm":21},
   "tronc-suites-geometriques": {"niveau":"tronc","fichier":"data/tronc/suites-geometriques.js","series":13,"qcm":19},
