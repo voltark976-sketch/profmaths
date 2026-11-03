@@ -1157,6 +1157,14 @@ window.CATALOGUE = {
       nom: "Terminale maths expertes",
       intro: "Option maths expertes (programme de 2019, en vigueur jusqu'en 2027) : nombres complexes, arithmétique, graphes et matrices, dans l'ordre du programme officiel. Vidéos et cours PDF d'Yvan Monka, en attendant ceux de la chaîne.",
       exercices: "assets/exercices-expertes.js",
+      sujets: {
+        rubrique: "Sujets type bac",
+        code: "BAC",
+        intro: "Des sujets complets de deux heures, avec calculatrice, sur le programme de maths expertes (complexes, arithmétique, matrices et graphes), à faire en temps limité. Chaque sujet a son corrigé détaillé, en ligne et en PDF à imprimer.",
+        liste: [
+          { id: "expertes-1", titre: "Sujet type bac n° 1", periode: "Complexes, équation diophantienne, chaîne de Markov", duree: "2 heures", source: "data/expertes/sujets/sujet-type-bac-1.js", pdf: { enonce: "sujets/expertes/sujet-type-bac-1-enonce.pdf", corrige: "sujets/expertes/sujet-type-bac-1-corrige.pdf" }, ko: { enonce: 121, corrige: 221 } }
+        ]
+      },
       chapitres: [
         {
           id: "expertes-complexes-algebrique",
