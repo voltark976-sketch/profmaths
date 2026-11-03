@@ -257,6 +257,10 @@
   function colle(html, avant, apres) {
     const debut = '<span class="katex-html" aria-hidden="true"><span class="base">', fin = "</span></span></span>";
     const i = html.indexOf(debut);
+    // Code Python en ligne (\texttt) : Chrome peut couper entre le code et la ponctuation qui suit (« annee(10) » puis « , » à la ligne).
+    // Un code court et sa ponctuation sont mis dans un bloc insécable ; un long code garde le droit de passer à la ligne.
+    const tt = /^<code class="tt">([\s\S]*)<\/code>$/.exec(html);
+    if (tt && (avant || apres) && tt[1].length <= 24) return `<span class="colle-tt">${esc(avant || "")}${html}${esc(apres || "")}</span>`;
     if (!html.startsWith('<span class="katex">') || i < 0 || !html.endsWith(fin)) return esc(avant || "") + html + esc(apres || "");
     if (apres) html = html.slice(0, -fin.length) + `<span class="ponct">${esc(apres)}</span>` + fin;
     if (avant) html = html.slice(0, i + debut.length) + `<span class="ponct">${esc(avant)}</span>` + html.slice(i + debut.length);
