@@ -256,7 +256,7 @@ window.MANIFESTE = {
   "expertes-equations-polynomiales": {"niveau":"expertes","fichier":"data/expertes/equations-polynomiales.js","series":8,"qcm":20,"eval":"data/expertes/evaluation/equations-polynomiales.js"},
   "expertes-complexes-geometrie": {"niveau":"expertes","fichier":"data/expertes/complexes-geometrie.js","series":7,"qcm":20,"eval":"data/expertes/evaluation/complexes-geometrie.js"},
   "expertes-divisibilite-congruences": {"niveau":"expertes","fichier":"data/expertes/divisibilite-congruences.js","series":9,"qcm":20,"eval":"data/expertes/evaluation/divisibilite-congruences.js"},
-  "expertes-pgcd-bezout-gauss": {"niveau":"expertes","fichier":"data/expertes/pgcd-bezout-gauss.js","series":8,"qcm":20},
+  "expertes-pgcd-bezout-gauss": {"niveau":"expertes","fichier":"data/expertes/pgcd-bezout-gauss.js","series":8,"qcm":20,"eval":"data/expertes/evaluation/pgcd-bezout-gauss.js"},
   "expertes-nombres-premiers": {"niveau":"expertes","fichier":"data/expertes/nombres-premiers.js","series":8,"qcm":20},
   "expertes-matrices": {"niveau":"expertes","fichier":"data/expertes/matrices.js","series":9,"qcm":20},
   "expertes-graphes": {"niveau":"expertes","fichier":"data/expertes/graphes.js","series":6,"qcm":18},
