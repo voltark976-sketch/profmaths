@@ -165,7 +165,7 @@ window.MANIFESTE = {
   "troisieme-transformations": {"niveau":"troisieme","fichier":"data/troisieme/transformations.js","series":4,"qcm":24},
   "troisieme-espace": {"niveau":"troisieme","fichier":"data/troisieme/espace.js","series":4,"qcm":24},
   "troisieme-informatique": {"niveau":"troisieme","fichier":"data/troisieme/informatique.js","series":4,"qcm":24},
-  "seconde-ensembles": {"niveau":"seconde","fichier":"data/seconde/ensembles.js","series":10,"qcm":33},
+  "seconde-ensembles": {"niveau":"seconde","fichier":"data/seconde/ensembles.js","series":10,"qcm":33,"eval":"data/seconde/evaluation/ensembles.js"},
   "seconde-fonctions": {"niveau":"seconde","fichier":"data/seconde/fonctions.js","series":11,"qcm":34},
   "seconde-information-chiffree": {"niveau":"seconde","fichier":"data/seconde/information-chiffree.js","series":9,"qcm":30},
   "seconde-arithmetique": {"niveau":"seconde","fichier":"data/seconde/arithmetique.js","series":8,"qcm":32},
