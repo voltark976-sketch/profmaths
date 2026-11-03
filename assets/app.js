@@ -44,12 +44,13 @@
     if (ev.key !== CLE || !ev.newValue) return;
     try { prog = Object.assign({ xp: 0, exo: {}, qcm: {}, jeux: {}, quand: {} }, Compte.fusion(prog, JSON.parse(ev.newValue))); majXP(); } catch (e) {}
   });
-  // Ajoute des XP (nombre entier) et annonce un passage de niveau
-  function gagnerXP(pts) {
+  // Ajoute des XP (nombre entier) et annonce un passage de niveau ; chap : chapitre où ils sont gagnés (notation du professeur)
+  function gagnerXP(pts, chap) {
     pts = Math.max(0, Math.round(pts));
     if (!pts) return 0;
     const avant = AV.niveau(prog.xp).niveau;
     prog.xp += pts; save();
+    if (chap) Compte.xpChapitre(chap, pts);
     const apres = AV.niveau(prog.xp).niveau;
     if (apres > avant) annoncerNiveau(avant, apres);
     return pts;
@@ -1574,7 +1575,7 @@
       const coef = coefRejeu(premiere, record, avant >= 3);
       prog.exo[k] = Math.max(avant, st);
       prog.quand = Object.assign({}, prog.quand, { [k]: Date.now() }); // suivi des devoirs par le professeur
-      const xpSerie = gagnerXP(score * (XP.question / 10) * coef);
+      const xpSerie = gagnerXP(score * (XP.question / 10) * coef, id);
       save();
       const noteCoef = coef < 1 ? `Série ${texteCoef(coef, true)}.` : "";
       const msg = st === 3 ? "Série maîtrisée. Tu peux passer à la suivante." : st === 2 ? "Très bien ! Encore un essai pour la troisième étoile ?" : st === 1 ? "C'est un bon début. Relis la fiche méthode puis recommence." : "Pas de panique : regarde la vidéo et le cours, puis réessaie.";
@@ -1687,7 +1688,7 @@
       const coef = coefRejeu(avant === undefined, bon > avant, avant >= tot);
       prog.qcm[id] = Math.max(avant || 0, bon);
       prog.quand = Object.assign({}, prog.quand, { ["qcm:" + id]: Date.now() });
-      const gain = gagnerXP(bon * XP.bonneReponseQcm * coef);
+      const gain = gagnerXP(bon * XP.bonneReponseQcm * coef, id);
       save();
       form.dataset.corrige = "1";
       const fin = p.querySelector(".qcm-fin");
@@ -1862,7 +1863,7 @@
       const deja = partieDuJour();
       const coef = record || deja < XP.defisPleinTarif ? 1 : XP.defiApres;
       prog.jeux[k] = Math.max(ancien, score);
-      const gain = gagnerXP(bonnes * XP.bonneReponseDefi * coef);
+      const gain = gagnerXP(bonnes * XP.bonneReponseDefi * coef, theme.id);
       save();
       $c.innerHTML = `<div class="bilan"><p class="eyebrow">${esc(J.titre)} · ${esc(o.libelle)}</p><p>${esc(raison)}</p><p class="gros">${score}<span> pts</span></p>${record && score ? `<p class="record">Nouveau record !</p>` : ancien ? `<p class="muted">Ton record : ${ancien} pts</p>` : ""}
         <p>${bonnes} bonne${bonnes > 1 ? "s" : ""} réponse${bonnes > 1 ? "s" : ""} sur ${n}. +${gain} XP${coef < 1 ? ` (déjà ${XP.defisPleinTarif} défis aujourd'hui sans nouveau record : ${divise(coef)} jusqu'à demain)` : ""}.</p>
