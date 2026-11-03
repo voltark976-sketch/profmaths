@@ -629,7 +629,7 @@ window.CATALOGUE = {
         code: "DC",
         intro: "Des sujets complets comme les devoirs communs de Seconde, à faire en temps limité. Chaque sujet a son corrigé détaillé, en ligne et en PDF à imprimer.",
         liste: [
-          { id: "seconde-dc-1", titre: "Devoir commun n° 1", periode: "Milieu d'année : chapitres 1 à 9", duree: "2 heures", source: "data/seconde/sujets/devoir-commun-1.js", pdf: { enonce: "sujets/seconde/devoir-commun-1-enonce.pdf", corrige: "sujets/seconde/devoir-commun-1-corrige.pdf" }, ko: { enonce: 154, corrige: 247 } }
+          { id: "seconde-dc-1", titre: "Devoir commun n° 1", periode: "Milieu d'année : chapitres 1 à 9", duree: "2 heures", source: "data/seconde/sujets/devoir-commun-1.js", pdf: { enonce: "sujets/seconde/devoir-commun-1-enonce.pdf", corrige: "sujets/seconde/devoir-commun-1-corrige.pdf" }, ko: { enonce: 154, corrige: 237 } }
         ]
       },
       chapitres: [
@@ -841,7 +841,7 @@ window.CATALOGUE = {
         code: "BAC",
         intro: "Des sujets complets au format de l'épreuve anticipée de mathématiques : deux heures sans calculatrice, des automatismes puis des exercices rédigés. Chaque sujet a son corrigé détaillé, en ligne et en PDF à imprimer.",
         liste: [
-          { id: "premiere-ea-1", titre: "Sujet type épreuve anticipée n° 1", periode: "Programme de Première spécialité, format de la session 2028", duree: "2 heures", source: "data/premiere/sujets/epreuve-anticipee-1.js", pdf: { enonce: "sujets/premiere/epreuve-anticipee-1-enonce.pdf", corrige: "sujets/premiere/epreuve-anticipee-1-corrige.pdf" }, ko: { enonce: 158, corrige: 222 } }
+          { id: "premiere-ea-1", titre: "Sujet type épreuve anticipée n° 1", periode: "Programme de Première spécialité, format de la session 2028", duree: "2 heures", source: "data/premiere/sujets/epreuve-anticipee-1.js", pdf: { enonce: "sujets/premiere/epreuve-anticipee-1-enonce.pdf", corrige: "sujets/premiere/epreuve-anticipee-1-corrige.pdf" }, ko: { enonce: 166, corrige: 232 } }
         ]
       },
       chapitres: [
