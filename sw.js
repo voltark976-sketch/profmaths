@@ -11,6 +11,7 @@
 */
 const VERSION = new URL(self.location.href).searchParams.get("v") || "0";
 const CACHE = "profmaths-" + VERSION;
+const RACINE = new URL("./", self.location.href).pathname; // dossier du site : « / » en local, « /profmaths/ » en ligne
 const COQUILLE = ["./", "assets/style.css", "assets/theme-mayotte.css", "assets/katex/katex.min.css", "data/config-comptes.js", "data/catalogue.js", "data/jeux.js", "data/manifeste.js", "data/niveaux.js", "assets/avatar.js", "assets/compte.js", "assets/app.js"];
 const v = (f) => (f === "./" ? "./" : f + "?v=" + VERSION);
 
@@ -39,8 +40,9 @@ self.addEventListener("fetch", (e) => {
   const memeOrigine = url.origin === self.location.origin;
   if (!memeOrigine && !PERENNE.test(url.href)) return;
 
-  // La page elle-même : réseau d'abord, cache en secours (hors ligne)
-  if (req.mode === "navigate" || (memeOrigine && /\/(index\.html)?$/.test(url.pathname) && !url.pathname.includes("les-salles"))) {
+  // La page du site elle-même : réseau d'abord, cache en secours (hors ligne). Seulement elle : le jeu ouvert
+  // dans un cadre ou un PDF sont aussi des « navigations », et ne doivent pas prendre sa place dans le cache
+  if (memeOrigine && (url.pathname === RACINE || url.pathname === RACINE + "index.html")) {
     e.respondWith(fetch(new Request(req, { cache: "no-cache" })).then((r) => { if (r.ok) { const copie = r.clone(); caches.open(CACHE).then((c) => c.put("./", copie)); } return r; })
       .catch(() => caches.match("./", { ignoreSearch: true }).then((r) => r || caches.match(req))));
     return;
