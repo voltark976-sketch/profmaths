@@ -260,7 +260,7 @@ window.MANIFESTE = {
   "expertes-nombres-premiers": {"niveau":"expertes","fichier":"data/expertes/nombres-premiers.js","series":8,"qcm":20,"eval":"data/expertes/evaluation/nombres-premiers.js"},
   "expertes-matrices": {"niveau":"expertes","fichier":"data/expertes/matrices.js","series":9,"qcm":20,"eval":"data/expertes/evaluation/matrices.js"},
   "expertes-graphes": {"niveau":"expertes","fichier":"data/expertes/graphes.js","series":6,"qcm":18,"eval":"data/expertes/evaluation/graphes.js"},
-  "expertes-suites-matrices-markov": {"niveau":"expertes","fichier":"data/expertes/suites-matrices-markov.js","series":8,"qcm":18},
+  "expertes-suites-matrices-markov": {"niveau":"expertes","fichier":"data/expertes/suites-matrices-markov.js","series":8,"qcm":18,"eval":"data/expertes/evaluation/suites-matrices-markov.js"},
   "terminale-suites": {"niveau":"terminale","fichier":"data/terminale/suites.js","series":10,"qcm":28,"eval":"data/terminale/evaluation/suites.js"},
   "terminale-lois-discretes": {"niveau":"terminale","fichier":"data/terminale/lois-discretes.js","series":11,"qcm":36,"eval":"data/terminale/evaluation/lois-discretes.js"},
   "terminale-arithmetico-geometriques": {"niveau":"terminale","fichier":"data/terminale/arithmetico-geometriques.js","series":6,"qcm":26,"eval":"data/terminale/evaluation/arithmetico-geometriques.js"},
