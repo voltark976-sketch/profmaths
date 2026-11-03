@@ -1005,6 +1005,14 @@ window.CATALOGUE = {
       nom: "Première technologique",
       intro: "Tronc commun de mathématiques des séries technologiques (STMG, STI2D, STL, ST2S, STHR…), nouveau programme 2026 (BO n° 14 du 2 avril 2026) suivi dans l'ordre du texte officiel : logique, Python, automatismes, suites, fonctions, dérivation, statistiques et probabilités. Vidéos de la chaîne quand elles existent, sinon d'Yvan Monka.",
       exercices: "assets/exercices-techno.js",
+      sujets: {
+        rubrique: "Sujets type bac",
+        code: "BAC",
+        intro: "Des sujets complets de l'épreuve anticipée de mathématiques de la voie technologique : deux heures sans calculatrice, des automatismes puis des exercices rédigés. Pour les sujets officiels, l'énoncé s'ouvre sur le site du ministère ; le corrigé détaillé est en ligne et en PDF à imprimer.",
+        liste: [
+          { id: "techno-2026", titre: "Sujet du 12 juin 2026 (sujet officiel)", officiel: { url: "https://www.education.gouv.fr/sites/default/files/document/baccalaureat-technologique-2026-mathematiques-epreuve-anticipee-517406.pdf", source: "ministère", ko: 276 }, periode: "Toutes séries, métropole, La Réunion et Mayotte : première session de l'épreuve, partie 1 en QCM, corrigé ProfMaths", duree: "2 heures", source: "data/techno/sujets/epreuve-anticipee-2026.js", pdf: { corrige: "sujets/techno/epreuve-anticipee-2026-corrige.pdf" }, ko: { corrige: 231 } }
+        ]
+      },
       chapitres: [
         { id: "techno-ensembles-logique", numero: 1, titre: "Ensembles et logique", statut: "disponible", drive: "" },
         { id: "techno-python-listes", numero: 2, titre: "Python : fonctions et listes", statut: "disponible", drive: "" },
