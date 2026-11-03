@@ -224,7 +224,7 @@ window.MANIFESTE = {
   "techno-ensembles-logique": {"niveau":"techno","fichier":"data/techno/ensembles-logique.js","series":12,"qcm":23,"eval":"data/techno/evaluation/ensembles-logique.js"},
   "techno-python-listes": {"niveau":"techno","fichier":"data/techno/python-listes.js","series":9,"qcm":24,"eval":"data/techno/evaluation/python-listes.js"},
   "techno-evolutions": {"niveau":"techno","fichier":"data/techno/evolutions.js","series":9,"qcm":22,"eval":"data/techno/evaluation/evolutions.js"},
-  "techno-calcul-graphiques": {"niveau":"techno","fichier":"data/techno/calcul-graphiques.js","series":8,"qcm":23},
+  "techno-calcul-graphiques": {"niveau":"techno","fichier":"data/techno/calcul-graphiques.js","series":8,"qcm":23,"eval":"data/techno/evaluation/calcul-graphiques.js"},
   "techno-suites": {"niveau":"techno","fichier":"data/techno/suites.js","series":8,"qcm":21},
   "techno-suites-arithmetiques-geometriques": {"niveau":"techno","fichier":"data/techno/suites-arithmetiques-geometriques.js","series":11,"qcm":22},
   "techno-fonctions": {"niveau":"techno","fichier":"data/techno/fonctions.js","series":9,"qcm":21},
