@@ -199,7 +199,7 @@ window.MANIFESTE = {
   "premiere-suites-geometriques": {"niveau":"premiere","fichier":"data/premiere/suites-geometriques.js","series":12,"qcm":27,"eval":"data/premiere/evaluation/suites-geometriques.js"},
   "premiere-derivation-1": {"niveau":"premiere","fichier":"data/premiere/derivation-1.js","series":9,"qcm":33,"eval":"data/premiere/evaluation/derivation-1.js"},
   "premiere-trigonometrie": {"niveau":"premiere","fichier":"data/premiere/trigonometrie.js","series":8,"qcm":31,"eval":"data/premiere/evaluation/trigonometrie.js"},
-  "premiere-derivation-2": {"niveau":"premiere","fichier":"data/premiere/derivation-2.js","series":7,"qcm":31},
+  "premiere-derivation-2": {"niveau":"premiere","fichier":"data/premiere/derivation-2.js","series":7,"qcm":31,"eval":"data/premiere/evaluation/derivation-2.js"},
   "premiere-variations": {"niveau":"premiere","fichier":"data/premiere/variations-courbes.js","series":8,"qcm":31},
   "premiere-produit-scalaire-1": {"niveau":"premiere","fichier":"data/premiere/produit-scalaire-1.js","series":8,"qcm":31},
   "premiere-exponentielle": {"niveau":"premiere","fichier":"data/premiere/exponentielle.js","series":8,"qcm":33},
