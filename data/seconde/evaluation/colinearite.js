@@ -110,8 +110,8 @@
             {
               n: "5.", points: 1.5,
               texte: "Trouve deux réels $a$ et $b$ tels que $\\overrightarrow{AE} = a\\overrightarrow{AB} + b\\overrightarrow{AD}$.",
-              indice: "Calcule les coordonnées de $\\overrightarrow{AE}$, puis écris l'égalité coordonnée par coordonnée : tu obtiens un système de deux équations.",
-              corrige: "$\\overrightarrow{AE}\\begin{pmatrix} 8 \\\\ 9 \\end{pmatrix}$, donc $3a + 2b = 8$ et $2a + 5b = 9$. En multipliant la première équation par $2$ et la seconde par $3$ : $6a + 4b = 16$ et $6a + 15b = 27$. Par différence, $11b = 11$, donc $b = 1$, puis $3a = 8 - 2 = 6$ et $a = 2$. Ainsi $\\overrightarrow{AE} = 2\\overrightarrow{AB} + \\overrightarrow{AD}$, ce qui est cohérent avec $\\overrightarrow{AE} = \\overrightarrow{AD} + \\overrightarrow{DE}$ et $\\overrightarrow{DE} = 2\\overrightarrow{AB}$."
+              indice: "Passe par le point $D$ avec la relation de Chasles : $\\overrightarrow{AE} = \\overrightarrow{AD} + \\overrightarrow{DE}$, et pense à la question 3.",
+              corrige: "Avec la relation de Chasles : $\\overrightarrow{AE} = \\overrightarrow{AD} + \\overrightarrow{DE} = \\overrightarrow{AD} + 2\\overrightarrow{AB}$, donc $a = 2$ et $b = 1$. Vérification avec les coordonnées : $2\\begin{pmatrix} 3 \\\\ 2 \\end{pmatrix} + \\begin{pmatrix} 2 \\\\ 5 \\end{pmatrix} = \\begin{pmatrix} 8 \\\\ 9 \\end{pmatrix}$, ce sont bien les coordonnées de $\\overrightarrow{AE}$. Comme $\\overrightarrow{AB}$ et $\\overrightarrow{AD}$ ne sont pas colinéaires, cette écriture est la seule possible."
             }
           ]
         },
