@@ -232,7 +232,7 @@ window.MANIFESTE = {
   "techno-nombre-derive": {"niveau":"techno","fichier":"data/techno/nombre-derive.js","series":6,"qcm":20,"eval":"data/techno/evaluation/nombre-derive.js"},
   "techno-fonction-derivee": {"niveau":"techno","fichier":"data/techno/fonction-derivee.js","series":7,"qcm":21,"eval":"data/techno/evaluation/fonction-derivee.js"},
   "techno-deux-variables": {"niveau":"techno","fichier":"data/techno/deux-variables.js","series":7,"qcm":20,"eval":"data/techno/evaluation/deux-variables.js"},
-  "techno-probabilites-conditionnelles": {"niveau":"techno","fichier":"data/techno/probabilites-conditionnelles.js","series":6,"qcm":19},
+  "techno-probabilites-conditionnelles": {"niveau":"techno","fichier":"data/techno/probabilites-conditionnelles.js","series":6,"qcm":19,"eval":"data/techno/evaluation/probabilites-conditionnelles.js"},
   "techno-epreuves-bernoulli": {"niveau":"techno","fichier":"data/techno/epreuves-bernoulli.js","series":5,"qcm":19},
   "techno-variables-aleatoires": {"niveau":"techno","fichier":"data/techno/variables-aleatoires.js","series":7,"qcm":19},
   "terminale-spe-suites-recurrence": {"niveau":"terminale-spe","fichier":"data/terminale-spe/suites-recurrence.js","series":10,"qcm":33,"eval":"data/terminale-spe/evaluation/suites-recurrence.js"},
