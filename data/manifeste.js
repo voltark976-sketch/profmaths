@@ -273,7 +273,7 @@ window.MANIFESTE = {
   "terminale-loi-geometrique": {"niveau":"terminale","fichier":"data/terminale/loi-geometrique.js","series":9,"qcm":23,"eval":"data/terminale/evaluation/loi-geometrique.js"},
   "terminale-primitives-ed": {"niveau":"terminale","fichier":"data/terminale/primitives-equations-differentielles.js","series":9,"qcm":27,"eval":"data/terminale/evaluation/primitives-equations-differentielles.js"},
   "terminale-integration": {"niveau":"terminale","fichier":"data/terminale/integration.js","series":12,"qcm":24,"eval":"data/terminale/evaluation/integration.js"},
-  "terminale-lois-densite": {"niveau":"terminale","fichier":"data/terminale/lois-densite.js","series":11,"qcm":26},
+  "terminale-lois-densite": {"niveau":"terminale","fichier":"data/terminale/lois-densite.js","series":11,"qcm":26,"eval":"data/terminale/evaluation/lois-densite.js"},
   "terminale-repartition-richesses": {"niveau":"terminale","fichier":"data/terminale/repartition-richesses.js","series":7,"qcm":25},
   "terminale-echantillonnage": {"niveau":"terminale","fichier":"data/terminale/echantillonnage-synthese.js","series":9,"qcm":22},
   "snt-reseaux-sociaux": {"niveau":"snt","fichier":"data/snt/reseaux-sociaux.js","series":13,"qcm":33},
