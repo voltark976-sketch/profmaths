@@ -106,43 +106,43 @@ window.EVALUATIONS["premiere-exponentielle"] = {
       {
         titre: "Étude d'une fonction",
         duree: 25, points: 7, calculatrice: false,
-        contexte: "On considère la fonction $f$ définie sur $\\mathbb{R}$ par $f(x) = (x - 1)e^x$. On donne $e \\approx 2{,}7$.",
+        contexte: "On considère la fonction $f$ définie sur $\\mathbb{R}$ par $f(x) = (2 - x)e^x$. On donne $e \\approx 2{,}7$.",
         questions: [
           {
             n: "1.", points: 1,
-            texte: "Calcule $f(0)$ et $f(1)$.",
+            texte: "Calcule $f(0)$ et $f(2)$.",
             indice: "$e^0 = 1$.",
-            corrige: "$f(0) = (0 - 1)e^0 = -1$ et $f(1) = 0 \\times e^1 = 0$."
+            corrige: "$f(0) = (2 - 0)e^0 = 2$ et $f(2) = 0 \\times e^2 = 0$."
           },
           {
             n: "2.", points: 1.5,
-            texte: "Montre que, pour tout réel $x$, $f'(x) = xe^x$.",
-            indice: "Formule du produit avec $u(x) = x - 1$ et $v(x) = e^x$.",
-            corrige: "$u'(x) = 1$ et $v'(x) = e^x$, donc $f'(x) = 1 \\times e^x + (x - 1)e^x = (1 + x - 1)e^x = xe^x$."
+            texte: "Montre que, pour tout réel $x$, $f'(x) = (1 - x)e^x$.",
+            indice: "Formule du produit avec $u(x) = 2 - x$ et $v(x) = e^x$.",
+            corrige: "$u'(x) = -1$ et $v'(x) = e^x$, donc $f'(x) = -1 \\times e^x + (2 - x)e^x = (-1 + 2 - x)e^x = (1 - x)e^x$."
           },
           {
             n: "3.", points: 2,
-            texte: "Étudie le signe de $f'(x)$ et dresse le tableau de variations de $f$. Quel est le minimum de $f$ ?",
-            indice: "$e^x > 0$ pour tout $x$ : $f'(x)$ a le signe de $x$.",
-            corrige: "$e^x > 0$, donc $f'(x)$ a le signe de $x$ : négatif sur $]-\\infty\\,;0[$, positif sur $]0\\,;+\\infty[$. $f$ décroît sur $]-\\infty\\,;0]$ puis croît sur $[0\\,;+\\infty[$ : son minimum est $f(0) = -1$, atteint en $0$.",
-            tableauCorrige: { lignes: [["x", "-\\infty", "", "0", "", "+\\infty"], ["f'(x)", "", "-", "0", "+", ""], ["f(x)", "", "\\searrow", "-1", "\\nearrow", ""]] }
+            texte: "Étudie le signe de $f'(x)$ et dresse le tableau de variations de $f$. Quel est le maximum de $f$ ?",
+            indice: "$e^x > 0$ pour tout $x$ : $f'(x)$ a le signe de $1 - x$.",
+            corrige: "$e^x > 0$, donc $f'(x)$ a le signe de $1 - x$ : positif sur $]-\\infty\\,;1[$, négatif sur $]1\\,;+\\infty[$. $f$ croît sur $]-\\infty\\,;1]$ puis décroît sur $[1\\,;+\\infty[$ : son maximum est $f(1) = e$, environ $2{,}7$, atteint en $1$.",
+            tableauCorrige: { lignes: [["x", "-\\infty", "", "1", "", "+\\infty"], ["f'(x)", "", "+", "0", "-", ""], ["f(x)", "", "\\nearrow", "e", "\\searrow", ""]] }
           },
           {
             n: "4.", points: 1.5,
-            texte: "Détermine une équation de la tangente à la courbe de $f$ au point d'abscisse $1$.",
-            indice: "$y = f'(1)(x - 1) + f(1)$, avec $f'(1) = 1 \\times e^1$.",
-            corrige: "$f(1) = 0$ et $f'(1) = e$, donc la tangente a pour équation $y = e(x - 1)$, soit $y = ex - e$ (environ $y = 2{,}7x - 2{,}7$)."
+            texte: "Détermine une équation de la tangente à la courbe de $f$ au point d'abscisse $0$.",
+            indice: "$y = f'(0)(x - 0) + f(0)$.",
+            corrige: "$f(0) = 2$ et $f'(0) = (1 - 0)e^0 = 1$, donc la tangente a pour équation $y = x + 2$."
           },
           {
             n: "5.", points: 1,
             texte: "Résous l'inéquation $f(x) > 0$.",
-            indice: "$e^x > 0$ : le signe de $f(x)$ est celui de $x - 1$.",
-            corrige: "$e^x > 0$, donc $f(x) > 0 \\iff x - 1 > 0 \\iff x > 1$. $S = ]1\\,;+\\infty[$ : la courbe est au-dessus de l'axe des abscisses à droite de $1$."
+            indice: "$e^x > 0$ : le signe de $f(x)$ est celui de $2 - x$.",
+            corrige: "$e^x > 0$, donc $f(x) > 0 \\iff 2 - x > 0 \\iff x < 2$. $S = ]-\\infty\\,;2[$ : la courbe est au-dessus de l'axe des abscisses à gauche de $2$."
           }
         ]
       },
       {
-        titre: "Approcher le nombre e avec Euler",
+titre: "Approcher le nombre e avec Euler",
         duree: 20, points: 6, calculatrice: false,
         contexte: "La fonction exponentielle vérifie $\\exp' = \\exp$ et $\\exp(0) = 1$. Avec la méthode d'Euler de pas $h$, on suit la tangente : $y(x + h) \\approx y(x) + h\\,y'(x)$, donc ici $y(x + h) \\approx (1 + h) \\times y(x)$, en partant de $y(0) = 1$.",
         questions: [
