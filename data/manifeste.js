@@ -250,7 +250,7 @@ window.MANIFESTE = {
   "terminale-spe-integration": {"niveau":"terminale-spe","fichier":"data/terminale-spe/integration.js","series":11,"qcm":29,"eval":"data/terminale-spe/evaluation/integration.js"},
   "terminale-spe-denombrement": {"niveau":"terminale-spe","fichier":"data/terminale-spe/denombrement.js","series":12,"qcm":34,"eval":"data/terminale-spe/evaluation/denombrement.js"},
   "terminale-spe-grands-nombres": {"niveau":"terminale-spe","fichier":"data/terminale-spe/grands-nombres.js","series":8,"qcm":22,"eval":"data/terminale-spe/evaluation/grands-nombres.js"},
-  "expertes-complexes-algebrique": {"niveau":"expertes","fichier":"data/expertes/complexes-algebrique.js","series":8,"qcm":23},
+  "expertes-complexes-algebrique": {"niveau":"expertes","fichier":"data/expertes/complexes-algebrique.js","series":8,"qcm":23,"eval":"data/expertes/evaluation/complexes-algebrique.js"},
   "expertes-complexes-geometrique": {"niveau":"expertes","fichier":"data/expertes/complexes-geometrique.js","series":8,"qcm":22},
   "expertes-complexes-trigonometrie": {"niveau":"expertes","fichier":"data/expertes/complexes-trigonometrie.js","series":8,"qcm":21},
   "expertes-equations-polynomiales": {"niveau":"expertes","fichier":"data/expertes/equations-polynomiales.js","series":8,"qcm":20},
