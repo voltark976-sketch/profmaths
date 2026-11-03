@@ -228,7 +228,7 @@ window.MANIFESTE = {
   "techno-suites": {"niveau":"techno","fichier":"data/techno/suites.js","series":8,"qcm":21,"eval":"data/techno/evaluation/suites.js"},
   "techno-suites-arithmetiques-geometriques": {"niveau":"techno","fichier":"data/techno/suites-arithmetiques-geometriques.js","series":11,"qcm":22,"eval":"data/techno/evaluation/suites-arithmetiques-geometriques.js"},
   "techno-fonctions": {"niveau":"techno","fichier":"data/techno/fonctions.js","series":9,"qcm":21,"eval":"data/techno/evaluation/fonctions.js"},
-  "techno-second-degre": {"niveau":"techno","fichier":"data/techno/second-degre.js","series":7,"qcm":21},
+  "techno-second-degre": {"niveau":"techno","fichier":"data/techno/second-degre.js","series":7,"qcm":21,"eval":"data/techno/evaluation/second-degre.js"},
   "techno-nombre-derive": {"niveau":"techno","fichier":"data/techno/nombre-derive.js","series":6,"qcm":20},
   "techno-fonction-derivee": {"niveau":"techno","fichier":"data/techno/fonction-derivee.js","series":7,"qcm":21},
   "techno-deux-variables": {"niveau":"techno","fichier":"data/techno/deux-variables.js","series":7,"qcm":20},
