@@ -631,7 +631,7 @@ window.CATALOGUE = {
         code: "DC",
         intro: "Des sujets complets comme les devoirs communs de Seconde, à faire en temps limité. Chaque sujet a son corrigé détaillé, en ligne et en PDF à imprimer.",
         liste: [
-          { id: "seconde-dc-1", titre: "Devoir commun n° 1", periode: "Milieu d'année : chapitres 1 à 9", duree: "2 heures", source: "data/seconde/sujets/devoir-commun-1.js", pdf: { enonce: "sujets/seconde/devoir-commun-1-enonce.pdf", corrige: "sujets/seconde/devoir-commun-1-corrige.pdf" }, ko: { enonce: 154, corrige: 246 } }
+          { id: "seconde-dc-1", titre: "Devoir commun n° 1", periode: "Milieu d'année : chapitres 1 à 9", duree: "2 heures", source: "data/seconde/sujets/devoir-commun-1.js", pdf: { enonce: "sujets/seconde/devoir-commun-1-enonce.pdf", corrige: "sujets/seconde/devoir-commun-1-corrige.pdf" }, ko: { enonce: 153, corrige: 237 } }
         ]
       },
       chapitres: [
@@ -844,7 +844,8 @@ window.CATALOGUE = {
         intro: "Des sujets complets au format de l'épreuve anticipée de mathématiques : deux heures sans calculatrice, des automatismes puis des exercices rédigés. Chaque sujet a son corrigé détaillé, en ligne et en PDF à imprimer. Pour les sujets officiels, l'énoncé s'ouvre sur le site d'origine.",
         liste: [
           { id: "premiere-ea-1", titre: "Sujet type épreuve anticipée n° 1", periode: "Programme de Première spécialité, format de la session 2028", duree: "2 heures", source: "data/premiere/sujets/epreuve-anticipee-1.js", pdf: { enonce: "sujets/premiere/epreuve-anticipee-1-enonce.pdf", corrige: "sujets/premiere/epreuve-anticipee-1-corrige.pdf" }, ko: { enonce: 165, corrige: 232 } },
-          { id: "premiere-sz-1", titre: "Sujet zéro n° 1 (sujet officiel)", officiel: { url: "https://eduscol.education.gouv.fr/sites/default/files/document/sujet-specialite-1pdf-112050.pdf", source: "Eduscol", ko: 268 }, periode: "Énoncé officiel d'Eduscol, partie 1 en QCM, corrigé ProfMaths", duree: "2 heures", source: "data/premiere/sujets/sujet-zero-1.js", pdf: { corrige: "sujets/premiere/sujet-zero-1-corrige.pdf" }, ko: { corrige: 262 } }
+          { id: "premiere-sz-1", titre: "Sujet zéro n° 1 (sujet officiel)", officiel: { url: "https://eduscol.education.gouv.fr/sites/default/files/document/sujet-specialite-1pdf-112050.pdf", source: "Eduscol", ko: 268 }, periode: "Énoncé officiel d'Eduscol, partie 1 en QCM, corrigé ProfMaths", duree: "2 heures", source: "data/premiere/sujets/sujet-zero-1.js", pdf: { corrige: "sujets/premiere/sujet-zero-1-corrige.pdf" }, ko: { corrige: 262 } },
+          { id: "premiere-sz-2", titre: "Sujet zéro n° 2 (sujet officiel)", officiel: { url: "https://eduscol.education.gouv.fr/sites/default/files/document/sujet-specialite-2pdf-112053.pdf", source: "Eduscol", ko: 384 }, periode: "Énoncé officiel d'Eduscol, partie 1 en QCM, corrigé ProfMaths", duree: "2 heures", source: "data/premiere/sujets/sujet-zero-2.js", pdf: { corrige: "sujets/premiere/sujet-zero-2-corrige.pdf" }, ko: { corrige: 237 } }
         ]
       },
       chapitres: [

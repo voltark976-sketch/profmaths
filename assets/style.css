@@ -1065,6 +1065,8 @@ a.chap.chap-sujets:hover { border-color: var(--ylang); }
   .eval-q { padding: 6px 0; }
   .eval-corrige { margin-top: 6px; padding: 6px 10px; }
   .eval-q, figure, table, pre { break-inside: avoid; }
-  .eval-tete, .eval-contexte { break-after: avoid; }
+  /* l'en-tête d'un exercice (ou d'une partie A, B…) ne reste pas seul en bas de page : il part avec la suite */
+  .eval-tete, .eval-partie { break-inside: avoid; }
+  .eval-tete, .eval-contexte, .eval-partie { break-after: avoid; }
   a { color: inherit; text-decoration: none; }
 }
