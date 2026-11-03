@@ -194,7 +194,7 @@ window.MANIFESTE = {
   "premiere-suites": {"niveau":"premiere","fichier":"data/premiere/suites.js","series":7,"qcm":30,"eval":"data/premiere/evaluation/suites.js"},
   "premiere-second-degre": {"niveau":"premiere","fichier":"data/premiere/second-degre.js","series":9,"qcm":28,"eval":"data/premiere/evaluation/second-degre.js"},
   "premiere-suites-arithmetiques": {"niveau":"premiere","fichier":"data/premiere/suites-arithmetiques.js","series":5,"qcm":28,"eval":"data/premiere/evaluation/suites-arithmetiques.js"},
-  "premiere-probabilites": {"niveau":"premiere","fichier":"data/premiere/probabilites.js","series":8,"qcm":26},
+  "premiere-probabilites": {"niveau":"premiere","fichier":"data/premiere/probabilites.js","series":8,"qcm":26,"eval":"data/premiere/evaluation/probabilites.js"},
   "premiere-second-degre-2": {"niveau":"premiere","fichier":"data/premiere/second-degre-2.js","series":15,"qcm":25,"eval":"data/premiere/evaluation/second-degre-2.js"},
   "premiere-suites-geometriques": {"niveau":"premiere","fichier":"data/premiere/suites-geometriques.js","series":12,"qcm":27},
   "premiere-derivation-1": {"niveau":"premiere","fichier":"data/premiere/derivation-1.js","series":9,"qcm":33},

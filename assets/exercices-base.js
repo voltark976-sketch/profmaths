@@ -282,7 +282,27 @@
   // Coefficient binomial (aussi utilisé par la figure de la loi binomiale ci-dessus)
   const C = (n, k) => { if (k < 0 || k > n) return 0; let r = 1; for (let i = 1; i <= k; i++) r = (r * (n - k + i)) / i; return Math.round(r); };
 
+  // Arbre pondéré à deux niveaux (onglet Entraînement évaluation du lycée) : noms = les k événements du premier niveau
+  // puis les 2 du second (« ~A » : A barre), probas = les k probabilités du premier niveau puis 2 par nœud (texte, « ? » en orange)
+  function arbreProba(noms, probas, aria) {
+    const k = noms.length - 2, W = 320, H = 40 + 85 * k, x0 = 14, x1 = 120, x2 = 270, d = k > 2 ? 26 : 30;
+    const nom = (t) => (t[0] === "~" ? `<tspan style="text-decoration:overline">${t.slice(1)}</tspan>` : t);
+    let s = `<svg class="graph" viewBox="0 0 ${W} ${H}" role="img" aria-label="${aria || "Arbre pondéré à deux épreuves"}">`;
+    const br = (xa, ya, xb, yb, t) => {
+      s += `<line x1="${xa}" y1="${ya}" x2="${xb - 14}" y2="${yb}" style="stroke:var(--doux);stroke-width:1.6"/>`;
+      s += `<text class="g-label" x="${(xa + xb - 14) / 2}" y="${(ya + yb) / 2 - 5}" text-anchor="middle" style="fill:${t === "?" ? "var(--ylang)" : "var(--encre)"}">${t}</text>`;
+    };
+    for (let i = 0; i < k; i++) {
+      const y = 20 + ((H - 40) / k) * (i + 0.5);
+      br(x0, H / 2, x1, y, probas[i]);
+      br(x1 + 10, y, x2, y - d, probas[k + 2 * i]); br(x1 + 10, y, x2, y + d, probas[k + 2 * i + 1]);
+      s += `<text class="g-clabel" x="${x1 - 8}" y="${y + 4}">${nom(noms[i])}</text>`;
+      s += `<text class="g-clabel" x="${x2 - 8}" y="${y - d + 4}">${nom(noms[k])}</text><text class="g-clabel" x="${x2 - 8}" y="${y + d + 4}">${nom(noms[k + 1])}</text>`;
+    }
+    return s + `</svg>`;
+  }
+
   window.PM_EXO = window.PM_EXO || {};
   window.PM_EXO.GEN = window.PM_EXO.GEN || {};
-  Object.assign(window.PM_EXO, { FIGURES, graph, shuffle, outils: { rand, pick, randNZ, shuffle, par, sg, poly, interv, nbAxe, commenceVoyelle, deN, queN, leN, laN, largeurTexte, boiteTexte, seCoupent, graph, FIGURES, parabole, C } });
+  Object.assign(window.PM_EXO, { FIGURES, graph, shuffle, arbreProba, outils: { rand, pick, randNZ, shuffle, par, sg, poly, interv, nbAxe, commenceVoyelle, deN, queN, leN, laN, largeurTexte, boiteTexte, seCoupent, graph, FIGURES, parabole, C, arbreProba } });
 })();
