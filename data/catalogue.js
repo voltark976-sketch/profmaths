@@ -631,7 +631,8 @@ window.CATALOGUE = {
         code: "DC",
         intro: "Des sujets complets comme les devoirs communs de Seconde, à faire en temps limité. Chaque sujet a son corrigé détaillé, en ligne et en PDF à imprimer.",
         liste: [
-          { id: "seconde-dc-1", titre: "Devoir commun n° 1", periode: "Milieu d'année : chapitres 1 à 9", duree: "2 heures", source: "data/seconde/sujets/devoir-commun-1.js", pdf: { enonce: "sujets/seconde/devoir-commun-1-enonce.pdf", corrige: "sujets/seconde/devoir-commun-1-corrige.pdf" }, ko: { enonce: 153, corrige: 237 } }
+          { id: "seconde-dc-1", titre: "Devoir commun n° 1", periode: "Milieu d'année : chapitres 1 à 9", duree: "2 heures", source: "data/seconde/sujets/devoir-commun-1.js", pdf: { enonce: "sujets/seconde/devoir-commun-1-enonce.pdf", corrige: "sujets/seconde/devoir-commun-1-corrige.pdf" }, ko: { enonce: 153, corrige: 237 } },
+          { id: "seconde-dc-2", titre: "Devoir commun n° 2", periode: "Fin d'année : chapitres 10 à 16 et automatismes de l'année", duree: "2 heures", source: "data/seconde/sujets/devoir-commun-2.js", pdf: { enonce: "sujets/seconde/devoir-commun-2-enonce.pdf", corrige: "sujets/seconde/devoir-commun-2-corrige.pdf" }, ko: { enonce: 164, corrige: 251 } }
         ]
       },
       chapitres: [
