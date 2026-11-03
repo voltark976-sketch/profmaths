@@ -168,7 +168,7 @@ window.MANIFESTE = {
   "seconde-ensembles": {"niveau":"seconde","fichier":"data/seconde/ensembles.js","series":10,"qcm":33,"eval":"data/seconde/evaluation/ensembles.js"},
   "seconde-fonctions": {"niveau":"seconde","fichier":"data/seconde/fonctions.js","series":11,"qcm":34,"eval":"data/seconde/evaluation/fonctions.js"},
   "seconde-information-chiffree": {"niveau":"seconde","fichier":"data/seconde/information-chiffree.js","series":9,"qcm":30,"eval":"data/seconde/evaluation/information-chiffree.js"},
-  "seconde-arithmetique": {"niveau":"seconde","fichier":"data/seconde/arithmetique.js","series":8,"qcm":32},
+  "seconde-arithmetique": {"niveau":"seconde","fichier":"data/seconde/arithmetique.js","series":8,"qcm":32,"eval":"data/seconde/evaluation/arithmetique.js"},
   "seconde-calcul-litteral": {"niveau":"seconde","fichier":"data/seconde/calcul-litteral.js","series":11,"qcm":41},
   "seconde-fonctions-affines": {"niveau":"seconde","fichier":"data/seconde/fonctions-affines.js","series":11,"qcm":32},
   "seconde-vecteurs": {"niveau":"seconde","fichier":"data/seconde/vecteurs.js","series":8,"qcm":30},
