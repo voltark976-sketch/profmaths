@@ -188,6 +188,9 @@
     (eleves, inscrits ou profs ; celui d'un élève est visible par son professeur, tous par prof.maths) :
     temps.j[jour] (total du jour) et temps.ch[chapitre] (total par chapitre, « jeu » pour Les Salles),
     temps.der[chapitre] (dernier jour où l'élève y a passé du temps).
+    Depuis novembre 2026, pour la notation par le professeur : temps.jc[jour][chapitre] (temps du jour dans un chapitre),
+    temps.xp[chapitre] (XP gagnés dans un chapitre) et temps.xj[jour][chapitre] (XP du jour dans un chapitre).
+    Ils sont rangés dans « temps » pour ne pas toucher aux champs autorisés par les règles Firestore.
     Envoi groupé toutes les 5 minutes et quand on quitte la page ; en attendant, il est gardé sur l'appareil. */
   const CLE_TEMPS = "profmaths:temps";
   const PAS_TEMPS = 15, INACTIF = 3 * 60e3, ENVOI_TEMPS = 300; // secondes, millisecondes, secondes
@@ -199,7 +202,8 @@
   const identite = () => (eleve && eleve.prof ? { identifiant: eleve.identifiant, prenom: eleve.prenom || "", nom: eleve.nom || "" } : {});
   function attenteTemps() {
     const a = lireJSON(CLE_TEMPS, null);
-    return a && eleve && a.uid === eleve.uid && a.j && a.ch && a.der ? a : { uid: eleve.uid, n: 0, j: {}, ch: {}, der: {} };
+    const a0 = a && eleve && a.uid === eleve.uid && a.j && a.ch && a.der ? a : { uid: eleve.uid, n: 0, j: {}, ch: {}, der: {} };
+    return Object.assign({ jc: {}, xp: {}, xj: {} }, a0);
   }
   setInterval(() => {
     if (!compteTemps() || document.visibilityState !== "visible") return;
@@ -208,20 +212,28 @@
     const a = attenteTemps(), j = new Date().toLocaleDateString("fr-CA");
     a.n += PAS_TEMPS;
     a.j[j] = (a.j[j] || 0) + PAS_TEMPS;
-    if (pageTemps) { a.ch[pageTemps] = (a.ch[pageTemps] || 0) + PAS_TEMPS; a.der[pageTemps] = j; }
+    if (pageTemps) {
+      a.ch[pageTemps] = (a.ch[pageTemps] || 0) + PAS_TEMPS; a.der[pageTemps] = j;
+      const jc = a.jc[j] || (a.jc[j] = {}); jc[pageTemps] = (jc[pageTemps] || 0) + PAS_TEMPS;
+    }
     ecrireJSON(CLE_TEMPS, a);
     if (a.n >= ENVOI_TEMPS) envoyerTemps();
   }, PAS_TEMPS * 1000);
   function envoyerTemps() {
     if (!compteTemps()) return;
     const a = attenteTemps();
-    if (!a.n) return;
+    if (!a.n && !Object.keys(a.xp).length) return;
     try { localStorage.removeItem(CLE_TEMPS); } catch (e) {}
-    const plus = (v) => firebase.firestore.FieldValue.increment(v), j = {}, ch = {};
-    for (const k in a.j) j[k] = plus(a.j[k]);
-    for (const k in a.ch) ch[k] = plus(a.ch[k]);
+    const plus = (v) => firebase.firestore.FieldValue.increment(v);
+    const plusTout = (o) => { const r = {}; for (const k in o) r[k] = plus(o[k]); return r; };
+    const parJour = (o) => { const r = {}; for (const k in o) r[k] = plusTout(o[k]); return r; };
+    // Une table vide n'est pas envoyée : avec « merge », Firestore remplacerait la table existante par une table vide
+    // (le temps par chapitre était effacé quand un envoi ne contenait que du temps passé hors des chapitres)
+    const temps = {}, mettre = (k, v) => { if (Object.keys(v).length) temps[k] = v; };
+    mettre("j", plusTout(a.j)); mettre("ch", plusTout(a.ch)); mettre("der", a.der);
+    mettre("jc", parJour(a.jc)); mettre("xp", plusTout(a.xp)); mettre("xj", parJour(a.xj));
     fiche(eleve)
-      .set(Object.assign({ temps: { j, ch, der: a.der }, vuLe: firebase.firestore.FieldValue.serverTimestamp() }, identite()), { merge: true })
+      .set(Object.assign(Object.keys(temps).length ? { temps } : {}, { vuLe: firebase.firestore.FieldValue.serverTimestamp() }, identite()), { merge: true })
       .catch(() => {}); // refusé : ces quelques minutes sont perdues, sans gêner l'élève
   }
   document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden") envoyerTemps(); });
@@ -265,6 +277,14 @@
     demo: !CFG.firebase,
     classes: CFG.classes || [],
     erreurCompte: () => { const m = erreurCompte; erreurCompte = ""; return m; },
+    // XP gagnés dans un chapitre (compte connecté) : envoyés avec le temps, lus par le professeur pour la notation
+    xpChapitre(chap, pts) {
+      if (!compteTemps() || !chap || !(pts > 0)) return;
+      const a = attenteTemps(), j = new Date().toLocaleDateString("fr-CA");
+      a.xp[chap] = (a.xp[chap] || 0) + pts;
+      const xj = a.xj[j] || (a.xj[j] = {}); xj[chap] = (xj[chap] || 0) + pts;
+      ecrireJSON(CLE_TEMPS, a);
+    },
     eleve: () => eleve,
     fusion,
 
