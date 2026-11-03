@@ -275,7 +275,7 @@ window.MANIFESTE = {
   "terminale-integration": {"niveau":"terminale","fichier":"data/terminale/integration.js","series":12,"qcm":24,"eval":"data/terminale/evaluation/integration.js"},
   "terminale-lois-densite": {"niveau":"terminale","fichier":"data/terminale/lois-densite.js","series":11,"qcm":26,"eval":"data/terminale/evaluation/lois-densite.js"},
   "terminale-repartition-richesses": {"niveau":"terminale","fichier":"data/terminale/repartition-richesses.js","series":7,"qcm":25,"eval":"data/terminale/evaluation/repartition-richesses.js"},
-  "terminale-echantillonnage": {"niveau":"terminale","fichier":"data/terminale/echantillonnage-synthese.js","series":9,"qcm":22},
+  "terminale-echantillonnage": {"niveau":"terminale","fichier":"data/terminale/echantillonnage-synthese.js","series":9,"qcm":22,"eval":"data/terminale/evaluation/echantillonnage-synthese.js"},
   "snt-reseaux-sociaux": {"niveau":"snt","fichier":"data/snt/reseaux-sociaux.js","series":13,"qcm":33},
   "snt-internet": {"niveau":"snt","fichier":"data/snt/internet.js","series":14,"qcm":34},
   "snt-web": {"niveau":"snt","fichier":"data/snt/web.js","series":13,"qcm":36}
