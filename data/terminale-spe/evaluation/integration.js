@@ -18,11 +18,11 @@ window.EVALUATIONS["terminale-spe-integration"] = {
       },
       {
         titre: "Propriétés",
-        texte: "Chasles : $\\displaystyle\\int_a^b f + \\int_b^c f = \\int_a^c f$. Linéarité : on peut sortir les constantes et séparer une somme. Positivité : si $f \\leqslant g$ sur $[a\\,;b]$ avec $a \\leqslant b$, alors $\\displaystyle\\int_a^b f \\leqslant \\int_a^b g$."
+        texte: "Chasles : $\\displaystyle\\int_a^b f + \\int_b^c f = \\displaystyle\\int_a^c f$. Linéarité : on peut sortir les constantes et séparer une somme. Positivité : si $f \\leqslant g$ sur $[a\\,;b]$ avec $a \\leqslant b$, alors $\\displaystyle\\int_a^b f \\leqslant \\displaystyle\\int_a^b g$."
       },
       {
         titre: "Intégration par parties",
-        texte: "$\\displaystyle\\int_a^b uv' = \\left[uv\\right]_a^b - \\int_a^b u'v$. On choisit pour $u$ la partie qui se simplifie en la dérivant, par exemple $x$ dans $xe^x$."
+        texte: "$\\displaystyle\\int_a^b uv' = \\displaystyle\\left[uv\\right]_a^b - \\int_a^b u'v$. On choisit pour $u$ la partie qui se simplifie en la dérivant, par exemple $x$ dans $xe^x$."
       },
       {
         titre: "Valeur moyenne",
