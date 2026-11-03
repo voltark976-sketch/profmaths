@@ -302,7 +302,68 @@
     return s + `</svg>`;
   }
 
+  // Figure de géométrie en pixels (onglets Révisions et Entraînement évaluation du collège, sans les générateurs du niveau).
+  // o = { W, H, pts: { A: [x, y] }, polys: [["A", "B", "C"]] (surface teintée), teintes: [[…]] (teinte orangée),
+  //   segs: [["A", "B"]], caches: [["A", "B"]] (pointillés), droites: [["A", "B", k]] (prolongée de k × AB de chaque côté, 0,3 par défaut),
+  //   droitAngle: [["A", "I", "B"]], codes: [["A", "B", n]] (n traits), angles: [["A", "I", "B", "35°", r]] (arc en I, texte facultatif),
+  //   cotes: [["A", "B", "5 cm", "C"]] (texte au milieu de [AB], du côté opposé au point C, ou au centre de la figure),
+  //   cercles: [["O", r]], ellipses: [["O", rx, ry, true]] (true : moitié arrière en pointillés), textes: [[x, y, "texte", ancre]],
+  //   sansPoint: ["O"] (ni point ni nom), sansDisque: true (noms sans points), decal: { A: [dx, dy] }, aria }
+  function figGeo(o) {
+    const W = o.W || 320, H = o.H || 200, P = o.pts, r1 = (v) => +(+v).toFixed(1), noms = Object.keys(P);
+    const G = [0, 1].map((i) => noms.reduce((s, n) => s + P[n][i], 0) / noms.length);
+    const u = (a, b) => { const dx = b[0] - a[0], dy = b[1] - a[1], L = Math.hypot(dx, dy) || 1; return [dx / L, dy / L]; };
+    const ln = (a, b, c) => `<line class="${c}" x1="${r1(a[0])}" y1="${r1(a[1])}" x2="${r1(b[0])}" y2="${r1(b[1])}"/>`;
+    const ancreDe = (nx) => (nx > 0.35 ? "start" : nx < -0.35 ? "end" : "middle");
+    const txt = (x, y, t, ancre, c) => `<text class="${c || "g-label"}" x="${r1(x)}" y="${r1(y)}"${ancre && ancre !== "start" ? ` text-anchor="${ancre}"` : ""}${t === "?" ? ' style="fill:var(--ylang)"' : ""}>${t}</text>`;
+    const poly = (t, c) => `<polygon class="${c}" points="${t.map((n) => P[n].map(r1).join(",")).join(" ")}"/>`;
+    let s = `<svg class="graph geo" viewBox="0 0 ${W} ${H}" role="img" aria-label="${o.aria || "Figure de géométrie"}">`;
+    (o.polys || []).forEach((t) => { s += poly(t, "g-poly"); });
+    (o.teintes || []).forEach((t) => { s += poly(t, "g-poly g-poly-image"); });
+    (o.cercles || []).forEach(([c, r]) => { s += `<circle class="g-cercle" cx="${r1(P[c][0])}" cy="${r1(P[c][1])}" r="${r}"/>`; });
+    (o.ellipses || []).forEach(([c, rx, ry, demi]) => {
+      const [x, y] = P[c];
+      if (!demi) { s += `<ellipse class="g-arc-plein" cx="${r1(x)}" cy="${r1(y)}" rx="${rx}" ry="${ry}"/>`; return; }
+      s += `<path class="g-cache-arc" d="M${r1(x - rx)} ${r1(y)} A${rx} ${ry} 0 0 1 ${r1(x + rx)} ${r1(y)}"/><path class="g-arc-plein" d="M${r1(x - rx)} ${r1(y)} A${rx} ${ry} 0 0 0 ${r1(x + rx)} ${r1(y)}"/>`;
+    });
+    (o.droites || []).forEach(([a, b, k]) => {
+      const A = P[a], B = P[b], d = [B[0] - A[0], B[1] - A[1]]; k = k == null ? 0.3 : k;
+      s += ln([A[0] - k * d[0], A[1] - k * d[1]], [B[0] + k * d[0], B[1] + k * d[1]], "g-droite");
+    });
+    (o.caches || []).forEach(([a, b]) => { s += ln(P[a], P[b], "g-cache"); });
+    (o.segs || []).forEach(([a, b]) => { s += ln(P[a], P[b], "g-segment"); });
+    (o.codes || []).forEach(([a, b, n]) => {
+      const A = P[a], B = P[b], [ux, uy] = u(A, B), m = [(A[0] + B[0]) / 2, (A[1] + B[1]) / 2];
+      n = n || 1;
+      for (let k = 0; k < n; k++) { const c = (k - (n - 1) / 2) * 4, x = m[0] + ux * c, y = m[1] + uy * c; s += ln([x - uy * 6, y + ux * 6], [x + uy * 6, y - ux * 6], "g-code"); }
+    });
+    (o.droitAngle || []).forEach(([a, i, b]) => {
+      const I = P[i], [ax, ay] = u(I, P[a]), [bx, by] = u(I, P[b]), c = 9;
+      s += `<path class="g-code" d="M${r1(I[0] + ax * c)} ${r1(I[1] + ay * c)} L${r1(I[0] + (ax + bx) * c)} ${r1(I[1] + (ay + by) * c)} L${r1(I[0] + bx * c)} ${r1(I[1] + by * c)}"/>`;
+    });
+    (o.angles || []).forEach(([a, i, b, t, r]) => {
+      r = r || 20; const I = P[i], ua = u(I, P[a]), ub = u(I, P[b]), sens = ua[0] * ub[1] - ua[1] * ub[0] > 0 ? 1 : 0;
+      s += `<path class="g-arc" d="M${r1(I[0] + ua[0] * r)} ${r1(I[1] + ua[1] * r)} A${r} ${r} 0 0 ${sens} ${r1(I[0] + ub[0] * r)} ${r1(I[1] + ub[1] * r)}"/>`;
+      if (t) { const m = u([0, 0], [ua[0] + ub[0], ua[1] + ub[1]]), d = r + 10; s += txt(I[0] + m[0] * d, I[1] + m[1] * d + 4, t, ancreDe(m[0])); }
+    });
+    (o.cotes || []).forEach(([a, b, t, ref, d]) => {
+      const A = P[a], B = P[b], m = [(A[0] + B[0]) / 2, (A[1] + B[1]) / 2], [ux, uy] = u(A, B), R = ref ? P[ref] : G;
+      let n = [-uy, ux]; if ((m[0] - R[0]) * n[0] + (m[1] - R[1]) * n[1] < 0) n = [uy, -ux];
+      d = d || 9; s += txt(m[0] + n[0] * d, m[1] + n[1] * d + 4 + (n[1] > 0.35 ? 3 : 0), t, ancreDe(n[0]));
+    });
+    (o.textes || []).forEach(([x, y, t, ancre]) => { s += txt(x, y, t, ancre || "middle"); });
+    noms.forEach((n) => {
+      if ((o.sansPoint || []).includes(n)) return;
+      const [x, y] = P[n];
+      if (!o.sansDisque) s += `<circle class="g-point" cx="${r1(x)}" cy="${r1(y)}" r="3"/>`;
+      const dd = o.decal && o.decal[n];
+      if (dd) s += txt(x + dd[0], y + dd[1], n, dd[0] < 0 ? "end" : dd[0] === 0 ? "middle" : "start", "g-clabel");
+      else { const v = u(G, P[n]); s += txt(x + v[0] * 11, y + v[1] * 11 + 5 + (v[1] > 0.35 ? 3 : 0), n, ancreDe(v[0]), "g-clabel"); }
+    });
+    return s + `</svg>`;
+  }
+
   window.PM_EXO = window.PM_EXO || {};
   window.PM_EXO.GEN = window.PM_EXO.GEN || {};
-  Object.assign(window.PM_EXO, { FIGURES, graph, shuffle, arbreProba, outils: { rand, pick, randNZ, shuffle, par, sg, poly, interv, nbAxe, commenceVoyelle, deN, queN, leN, laN, largeurTexte, boiteTexte, seCoupent, graph, FIGURES, parabole, C, arbreProba } });
+  Object.assign(window.PM_EXO, { FIGURES, graph, shuffle, arbreProba, figGeo, outils: { rand, pick, randNZ, shuffle, par, sg, poly, interv, nbAxe, commenceVoyelle, deN, queN, leN, laN, largeurTexte, boiteTexte, seCoupent, graph, FIGURES, parabole, C, arbreProba, figGeo } });
 })();
