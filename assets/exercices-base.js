@@ -307,7 +307,9 @@
   //   segs: [["A", "B"]], caches: [["A", "B"]] (pointillés), droites: [["A", "B", k]] (prolongée de k × AB de chaque côté, 0,3 par défaut),
   //   droitAngle: [["A", "I", "B"]], codes: [["A", "B", n]] (n traits), angles: [["A", "I", "B", "35°", r]] (arc en I, texte facultatif),
   //   cotes: [["A", "B", "5 cm", "C"]] (texte au milieu de [AB], du côté opposé au point C, ou au centre de la figure),
-  //   cercles: [["O", r]], ellipses: [["O", rx, ry, true]] (true : moitié arrière en pointillés), textes: [[x, y, "texte", ancre]],
+  //   cercles: [["O", r]], ellipses: [["O", rx, ry, true]] (true : moitié arrière en pointillés), textes: [[x, y, "texte", ancre, classe]],
+  //   grille: [x0, y0, pas, nx, ny] (quadrillage), formes: [{ p: [[x, y], …], image: true }] (polygones donnés par leurs coordonnées),
+  //   chemins: [["M10 20 A30 30 0 0 1 70 20", true]] (tracé SVG libre, true : en pointillés),
   //   sansPoint: ["O"] (ni point ni nom), sansDisque: true (noms sans points), decal: { A: [dx, dy] }, aria }
   function figGeo(o) {
     const W = o.W || 320, H = o.H || 200, P = o.pts, r1 = (v) => +(+v).toFixed(1), noms = Object.keys(P);
@@ -318,6 +320,13 @@
     const txt = (x, y, t, ancre, c) => `<text class="${c || "g-label"}" x="${r1(x)}" y="${r1(y)}"${ancre && ancre !== "start" ? ` text-anchor="${ancre}"` : ""}${t === "?" ? ' style="fill:var(--ylang)"' : ""}>${t}</text>`;
     const poly = (t, c) => `<polygon class="${c}" points="${t.map((n) => P[n].map(r1).join(",")).join(" ")}"/>`;
     let s = `<svg class="graph geo" viewBox="0 0 ${W} ${H}" role="img" aria-label="${o.aria || "Figure de géométrie"}">`;
+    if (o.grille) {
+      const [x0, y0, p, nx, ny] = o.grille; s += `<g class="g-grid">`;
+      for (let i = 0; i <= nx; i++) s += ln([x0 + i * p, y0], [x0 + i * p, y0 + ny * p], "");
+      for (let j = 0; j <= ny; j++) s += ln([x0, y0 + j * p], [x0 + nx * p, y0 + j * p], "");
+      s += `</g>`;
+    }
+    (o.formes || []).forEach((f) => { s += `<polygon class="g-poly${f.image ? " g-poly-image" : ""}" points="${f.p.map((q) => q.map(r1).join(",")).join(" ")}"/>`; });
     (o.polys || []).forEach((t) => { s += poly(t, "g-poly"); });
     (o.teintes || []).forEach((t) => { s += poly(t, "g-poly g-poly-image"); });
     (o.cercles || []).forEach(([c, r]) => { s += `<circle class="g-cercle" cx="${r1(P[c][0])}" cy="${r1(P[c][1])}" r="${r}"/>`; });
@@ -326,6 +335,7 @@
       if (!demi) { s += `<ellipse class="g-arc-plein" cx="${r1(x)}" cy="${r1(y)}" rx="${rx}" ry="${ry}"/>`; return; }
       s += `<path class="g-cache-arc" d="M${r1(x - rx)} ${r1(y)} A${rx} ${ry} 0 0 1 ${r1(x + rx)} ${r1(y)}"/><path class="g-arc-plein" d="M${r1(x - rx)} ${r1(y)} A${rx} ${ry} 0 0 0 ${r1(x + rx)} ${r1(y)}"/>`;
     });
+    (o.chemins || []).forEach(([d, pointille]) => { s += `<path class="${pointille ? "g-cache-arc" : "g-arc-plein"}" d="${d}"/>`; });
     (o.droites || []).forEach(([a, b, k]) => {
       const A = P[a], B = P[b], d = [B[0] - A[0], B[1] - A[1]]; k = k == null ? 0.3 : k;
       s += ln([A[0] - k * d[0], A[1] - k * d[1]], [B[0] + k * d[0], B[1] + k * d[1]], "g-droite");
@@ -351,7 +361,7 @@
       let n = [-uy, ux]; if ((m[0] - R[0]) * n[0] + (m[1] - R[1]) * n[1] < 0) n = [uy, -ux];
       d = d || 9; s += txt(m[0] + n[0] * d, m[1] + n[1] * d + 4 + (n[1] > 0.35 ? 3 : 0), t, ancreDe(n[0]));
     });
-    (o.textes || []).forEach(([x, y, t, ancre]) => { s += txt(x, y, t, ancre || "middle"); });
+    (o.textes || []).forEach(([x, y, t, ancre, c]) => { s += txt(x, y, t, ancre || "middle", c); });
     noms.forEach((n) => {
       if ((o.sansPoint || []).includes(n)) return;
       const [x, y] = P[n];
