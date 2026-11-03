@@ -221,7 +221,7 @@ window.MANIFESTE = {
   "tronc-second-degre": {"niveau":"tronc","fichier":"data/tronc/second-degre.js","series":7,"qcm":21},
   "tronc-suites-geometriques": {"niveau":"tronc","fichier":"data/tronc/suites-geometriques.js","series":13,"qcm":19},
   "tronc-fonctions-exponentielles": {"niveau":"tronc","fichier":"data/tronc/fonctions-exponentielles.js","series":11,"qcm":19},
-  "techno-ensembles-logique": {"niveau":"techno","fichier":"data/techno/ensembles-logique.js","series":12,"qcm":23},
+  "techno-ensembles-logique": {"niveau":"techno","fichier":"data/techno/ensembles-logique.js","series":12,"qcm":23,"eval":"data/techno/evaluation/ensembles-logique.js"},
   "techno-python-listes": {"niveau":"techno","fichier":"data/techno/python-listes.js","series":9,"qcm":24},
   "techno-evolutions": {"niveau":"techno","fichier":"data/techno/evolutions.js","series":9,"qcm":22},
   "techno-calcul-graphiques": {"niveau":"techno","fichier":"data/techno/calcul-graphiques.js","series":8,"qcm":23},
