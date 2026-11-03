@@ -1,5 +1,6 @@
 /*
-  SUJET : Terminale maths complémentaires — Sujet type bac n° 1 (sujet original, données fictives)
+  SUJET : Terminale maths complémentaires — Sujet type évaluation n° 1 (sujet original, données fictives ;
+  option notée en contrôle continu, sans épreuve écrite au bac)
   Page #sujet-terminale-compl-1 ; PDF de l'énoncé et du corrigé fabriqués par outils/sujets-pdf.js.
   Même format que data/seconde/sujets/devoir-commun-1.js. Deux heures, calculatrice autorisée, trois exercices :
   suite arithmético-géométrique et logarithme ; loi binomiale et loi géométrique ; courbe de Lorenz, convexité et
@@ -7,7 +8,7 @@
 */
 window.SUJETS = window.SUJETS || {};
 window.SUJETS["terminale-compl-1"] = {
-  entete: "Terminale maths complémentaires · Sujet type bac n° 1 · Durée : 2 heures",
+  entete: "Terminale maths complémentaires · Sujet type évaluation n° 1 · Durée : 2 heures",
   consignes: "La calculatrice est **autorisée**. Les trois exercices sont indépendants. La qualité de la rédaction, la clarté et la précision des raisonnements sont prises en compte.",
   exercices: [
     {

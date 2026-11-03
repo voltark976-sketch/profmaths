@@ -609,7 +609,7 @@
     // Rubrique des sujets complets (devoir commun, type bac) : en tête de liste, dans une autre couleur
     if (sujetsDe(n).length) {
       const k = sujetsDe(n).length;
-      h += `<li><a class="chap chap-sujets" href="#sujets-${esc(n.id)}"><span class="num num-a">${esc(n.sujets.code || "S")}</span><span class="chap-t"><strong>${esc(n.sujets.rubrique)}</strong><span class="meta">${k} sujet${k > 1 ? "s" : ""} complet${k > 1 ? "s" : ""} · corrigé en ligne et en PDF</span></span><span class="go" aria-hidden="true">→</span></a></li>`;
+      h += `<li><a class="chap chap-sujets" href="#sujets-${esc(n.id)}">${pastilleSujets(n.sujets.code)}<span class="chap-t"><strong>${esc(n.sujets.rubrique)}</strong><span class="meta">${k} sujet${k > 1 ? "s" : ""} complet${k > 1 ? "s" : ""} · corrigé en ligne et en PDF</span></span><span class="go" aria-hidden="true">→</span></a></li>`;
     }
     if (!n.chapitres.length) h +=`<li><div class="chap chap-off"><span class="num num-a">…</span><span class="chap-t"><strong>Les chapitres arrivent bientôt</strong><span class="meta">En attendant, révise avec les vidéos d'<a href="${YT_MONKA}" target="_blank" rel="noopener">Yvan Monka</a>.</span></span></div></li>`;
     n.chapitres.forEach((ch) => {
@@ -632,6 +632,8 @@
   /* ---------- Sujets complets d'un niveau (champ sujets du catalogue) ---------- */
   // #sujets-<niveau> : la liste ; #sujet-<id> : le sujet en ligne ; #sujet-<id>.corrige : tous les corrigés ouverts (PDF du corrigé)
   const sujetsDe = (n) => (n && n.sujets && n.sujets.liste) || [];
+  // pastille de la rubrique (DC, BAC, ÉVAL…) : un code de 4 lettres est écrit plus petit pour tenir dans la pastille
+  const pastilleSujets = (code) => { const c = code || "S"; return `<span class="num num-a${c.length > 3 ? " num-long" : ""}">${esc(c)}</span>`; };
   const trouverSujet = (id) => { for (const n of CATALOGUE.niveaux) { const s = sujetsDe(n).find((x) => x.id === id); if (s) return { n, s }; } return null; };
   // Sujet officiel (champ officiel) : son énoncé reste sur le site d'origine, le lien passe avant notre corrigé
   const liensPdf = (s) => {
@@ -647,7 +649,7 @@
       <header class="niv-head"><p class="eyebrow">${esc(n.nom)}</p><h1><span class="pastille-niv" aria-hidden="true"></span>${esc(r.rubrique)}</h1>${r.intro ? `<p class="lead">${esc(r.intro)}</p>` : ""}</header>
       <ol class="sujets">`;
     sujetsDe(n).forEach((s) => {
-      h += `<li class="sujet-carte"><a class="chap chap-sujets" href="#sujet-${esc(s.id)}"><span class="num num-a">${esc(r.code || "S")}</span><span class="chap-t"><strong>${esc(s.titre)}</strong><span class="meta">${esc(s.periode || "")}${s.duree ? ` · ${esc(s.duree)}` : ""}</span></span><span class="go" aria-hidden="true">→</span></a>${liensPdf(s)}</li>`;
+      h += `<li class="sujet-carte"><a class="chap chap-sujets" href="#sujet-${esc(s.id)}">${pastilleSujets(r.code)}<span class="chap-t"><strong>${esc(s.titre)}</strong><span class="meta">${esc(s.periode || "")}${s.duree ? ` · ${esc(s.duree)}` : ""}</span></span><span class="go" aria-hidden="true">→</span></a>${liensPdf(s)}</li>`;
     });
     h += `</ol>` + piedDePage();
     $app.innerHTML = h;

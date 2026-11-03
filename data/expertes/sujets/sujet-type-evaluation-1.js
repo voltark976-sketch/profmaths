@@ -1,5 +1,6 @@
 /*
-  SUJET : Terminale maths expertes — Sujet type bac n° 1 (sujet original, données fictives)
+  SUJET : Terminale maths expertes — Sujet type évaluation n° 1 (sujet original, données fictives ;
+  option notée en contrôle continu, sans épreuve écrite au bac)
   Page #sujet-expertes-1 ; PDF de l'énoncé et du corrigé fabriqués par outils/sujets-pdf.js.
   Même format que data/seconde/sujets/devoir-commun-1.js. Deux heures, calculatrice autorisée, trois exercices :
   équation de degré 3 et triangle dans le plan complexe ; équation diophantienne et congruences ; chaîne de Markov à
@@ -36,7 +37,7 @@ window.SUJETS = window.SUJETS || {};
     return s + etiq + `</svg>`;
   };
   window.SUJETS["expertes-1"] = {
-    entete: "Terminale maths expertes · Sujet type bac n° 1 · Durée : 2 heures",
+    entete: "Terminale maths expertes · Sujet type évaluation n° 1 · Durée : 2 heures",
     consignes: "La calculatrice est **autorisée**. Les trois exercices sont indépendants. La qualité de la rédaction, la clarté et la précision des raisonnements sont prises en compte.",
     exercices: [
       {

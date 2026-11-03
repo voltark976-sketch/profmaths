@@ -1158,11 +1158,11 @@ window.CATALOGUE = {
       intro: "Option maths expertes (programme de 2019, en vigueur jusqu'en 2027) : nombres complexes, arithmétique, graphes et matrices, dans l'ordre du programme officiel. Vidéos et cours PDF d'Yvan Monka, en attendant ceux de la chaîne.",
       exercices: "assets/exercices-expertes.js",
       sujets: {
-        rubrique: "Sujets type bac",
-        code: "BAC",
-        intro: "Des sujets complets de deux heures, avec calculatrice, sur le programme de maths expertes (complexes, arithmétique, matrices et graphes), à faire en temps limité. Chaque sujet a son corrigé détaillé, en ligne et en PDF à imprimer.",
+        rubrique: "Sujets type évaluation",
+        code: "ÉVAL",
+        intro: "Les maths expertes sont notées en contrôle continu : il n'y a pas d'épreuve écrite au bac. Ces sujets complets de deux heures, avec calculatrice, préparent aux évaluations de l'année sur tout le programme (complexes, arithmétique, matrices et graphes). Chaque sujet a son corrigé détaillé, en ligne et en PDF à imprimer.",
         liste: [
-          { id: "expertes-1", titre: "Sujet type bac n° 1", periode: "Complexes, équation diophantienne, chaîne de Markov", duree: "2 heures", source: "data/expertes/sujets/sujet-type-bac-1.js", pdf: { enonce: "sujets/expertes/sujet-type-bac-1-enonce.pdf", corrige: "sujets/expertes/sujet-type-bac-1-corrige.pdf" }, ko: { enonce: 121, corrige: 221 } }
+          { id: "expertes-1", titre: "Sujet type évaluation n° 1", periode: "Complexes, équation diophantienne, chaîne de Markov", duree: "2 heures", source: "data/expertes/sujets/sujet-type-evaluation-1.js", pdf: { enonce: "sujets/expertes/sujet-type-evaluation-1-enonce.pdf", corrige: "sujets/expertes/sujet-type-evaluation-1-corrige.pdf" }, ko: { enonce: 122, corrige: 228 } }
         ]
       },
       chapitres: [
@@ -1249,11 +1249,11 @@ window.CATALOGUE = {
       id: "terminale",
       nom: "Terminale maths complémentaires",
       sujets: {
-        rubrique: "Sujets type bac",
-        code: "BAC",
-        intro: "Des sujets complets de deux heures, avec calculatrice, sur le programme de maths complémentaires, à faire en temps limité comme un devoir de fin d'année. Chaque sujet a son corrigé détaillé, en ligne et en PDF à imprimer.",
+        rubrique: "Sujets type évaluation",
+        code: "ÉVAL",
+        intro: "Les maths complémentaires sont notées en contrôle continu : il n'y a pas d'épreuve écrite au bac. Ces sujets complets de deux heures, avec calculatrice, préparent aux évaluations de l'année sur tout le programme. Chaque sujet a son corrigé détaillé, en ligne et en PDF à imprimer.",
         liste: [
-          { id: "terminale-compl-1", titre: "Sujet type bac n° 1", periode: "Suites, lois binomiale et géométrique, courbe de Lorenz", duree: "2 heures", source: "data/terminale/sujets/sujet-type-bac-1.js", pdf: { enonce: "sujets/terminale/sujet-type-bac-1-enonce.pdf", corrige: "sujets/terminale/sujet-type-bac-1-corrige.pdf" }, ko: { enonce: 139, corrige: 214 } }
+          { id: "terminale-compl-1", titre: "Sujet type évaluation n° 1", periode: "Suites, lois binomiale et géométrique, courbe de Lorenz", duree: "2 heures", source: "data/terminale/sujets/sujet-type-evaluation-1.js", pdf: { enonce: "sujets/terminale/sujet-type-evaluation-1-enonce.pdf", corrige: "sujets/terminale/sujet-type-evaluation-1-corrige.pdf" }, ko: { enonce: 139, corrige: 202 } }
         ]
       },
       chapitres: [

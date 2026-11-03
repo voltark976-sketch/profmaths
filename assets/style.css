@@ -1049,6 +1049,7 @@ table.suivi { border-collapse: collapse; background: var(--surface); font-varian
 /* L'entrée de la rubrique et les cartes des sujets sont en ylang, pour se distinguer des chapitres du niveau */
 a.chap.chap-sujets { background: var(--ylang-pale); border: 1.5px solid var(--ylang); }
 a.chap.chap-sujets .num { background: var(--ylang); color: var(--surface); }
+a.chap.chap-sujets .num-long { font-size: 0.8rem; letter-spacing: -0.02em; }
 a.chap.chap-sujets .go { color: var(--ylang); }
 a.chap.chap-sujets:hover { border-color: var(--ylang); }
 .sujets { list-style: none; margin: 20px 0 0; padding: 0; display: grid; gap: 16px; }
