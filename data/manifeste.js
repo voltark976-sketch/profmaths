@@ -210,7 +210,7 @@ window.MANIFESTE = {
   "premiere-epreuve-anticipee": {"niveau":"premiere","fichier":"data/premiere/epreuve-anticipee.js","series":13,"qcm":34,"eval":"data/premiere/evaluation/epreuve-anticipee.js"},
   "tronc-evolutions": {"niveau":"tronc","fichier":"data/tronc/evolutions.js","series":9,"qcm":22,"eval":"data/tronc/evaluation/evolutions.js"},
   "tronc-calcul": {"niveau":"tronc","fichier":"data/tronc/calcul.js","series":8,"qcm":20,"eval":"data/tronc/evaluation/calcul.js"},
-  "tronc-graphiques": {"niveau":"tronc","fichier":"data/tronc/graphiques.js","series":9,"qcm":19},
+  "tronc-graphiques": {"niveau":"tronc","fichier":"data/tronc/graphiques.js","series":9,"qcm":19,"eval":"data/tronc/evaluation/graphiques.js"},
   "tronc-donnees": {"niveau":"tronc","fichier":"data/tronc/donnees.js","series":11,"qcm":19},
   "tronc-tableaux-croises": {"niveau":"tronc","fichier":"data/tronc/tableaux-croises.js","series":8,"qcm":18},
   "tronc-ajustement-affine": {"niveau":"tronc","fichier":"data/tronc/ajustement-affine.js","series":7,"qcm":20},
