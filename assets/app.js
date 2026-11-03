@@ -399,7 +399,9 @@
       setTimeout(lancerCompte, 300);
       return;
     }
-    document.getElementById("jeu-btn").toggleAttribute("aria-current", chap === "jeu");
+    // Onglet « SNT » du bandeau (il a remplacé « Jeu ») : allumé sur la page SNT et ses chapitres
+    const nivSnt = CATALOGUE.niveaux.find((n) => n.groupe === "snt");
+    document.getElementById("snt-btn").toggleAttribute("aria-current", !!nivSnt && (chap === "snt" || chap === "niveau-" + nivSnt.id || nivSnt.chapitres.some((ch) => ch.id === chap)));
     $xpLien.toggleAttribute("aria-current", chap === "avatar");
     if (chap === "compte") pageCompte();
     else if (chap === "suivi") pageSuivi();
@@ -534,9 +536,9 @@
     const nbQcm = dispos.reduce((s, k) => s + nbQcmBanque(k), 0);
     let h = `<section class="hero"><div class="hero-in"><p class="eyebrow">Maths de l'école au lycée · Mayotte</p><h1>Une vidéo, un cours, des exercices. À ton rythme.</h1><p class="lead">Choisis ton niveau : tous ses chapitres s'affichent, dans l'ordre du programme.</p>
       <ul class="chiffres"><li><b>${dispos.length}</b> chapitres</li><li><b>${totSeries}</b> séries d'exercices</li><li><b>${nbQcm}</b> questions de QCM</li></ul></div>${DECOR_HERO}</section>`;
-    // Deux grandes cartes, Collège et Lycée : chacune ouvre la page qui regroupe ses classes
-    h += `<h2 class="titre-bloc">Choisis ton niveau</h2><nav class="cartes-cycle" aria-label="Primaire, collège, lycée ou SNT">`;
-    Object.keys(CYCLES).forEach((k) => {
+    // Grandes cartes Primaire, Collège et Lycée : chacune ouvre la page qui regroupe ses classes (la SNT passe par l'onglet du bandeau)
+    h += `<h2 class="titre-bloc">Choisis ton niveau</h2><nav class="cartes-cycle" aria-label="Primaire, collège ou lycée">`;
+    Object.keys(CYCLES).filter((k) => k !== "snt").forEach((k) => {
       const C = CYCLES[k], nivs = C.niveaux();
       if (!nivs.length) return;
       const nb = nivs.reduce((s, n) => s + chapitresEnLigne(n), 0);
