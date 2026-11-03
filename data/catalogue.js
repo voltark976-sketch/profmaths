@@ -976,6 +976,14 @@ window.CATALOGUE = {
       nom: "Première tronc commun",
       intro: "Mathématiques de Première générale pour les élèves qui n'ont pas la spécialité maths : programme intégré à l'enseignement scientifique (BO n° 14 du 2 avril 2026), suivi dans l'ordre du texte officiel : automatismes, information chiffrée, phénomènes aléatoires, phénomènes d'évolution. Vidéos de la chaîne quand elles existent, sinon d'Yvan Monka.",
       exercices: "assets/exercices-tronc.js",
+      sujets: {
+        rubrique: "Sujets type bac",
+        code: "BAC",
+        intro: "Des sujets complets de l'épreuve anticipée de mathématiques pour les élèves sans spécialité maths : deux heures sans calculatrice, des automatismes puis des exercices rédigés. Pour les sujets officiels, l'énoncé s'ouvre sur le site du ministère ; le corrigé détaillé est en ligne et en PDF à imprimer.",
+        liste: [
+          { id: "tronc-2026", titre: "Sujet du 12 juin 2026 (sujet officiel)", officiel: { url: "https://www.education.gouv.fr/sites/default/files/document/baccalaureat-general-2026-mathematiques-epreuve-anticipee-pour-les-candidats-sans-enseignements-de.pdf", source: "ministère", ko: 225 }, periode: "Métropole, La Réunion et Mayotte : première session de l'épreuve, partie 1 en QCM, corrigé ProfMaths", duree: "2 heures", source: "data/tronc/sujets/epreuve-anticipee-2026.js", pdf: { corrige: "sujets/tronc/epreuve-anticipee-2026-corrige.pdf" }, ko: { corrige: 188 } }
+        ]
+      },
       chapitres: [
         { id: "tronc-evolutions", numero: 1, titre: "Automatismes : évolutions et pourcentages", statut: "disponible", drive: "" },
         { id: "tronc-calcul", numero: 2, titre: "Automatismes : calcul algébrique et signes", statut: "disponible", drive: "" },
