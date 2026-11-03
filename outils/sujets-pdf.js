@@ -9,6 +9,7 @@
   (page #sujet-<id>.corrige : tous les corrigés ouverts). La feuille de style d'impression (assets/style.css,
   « @media print ») enlève le site autour et les boutons. Les PDF vont aux chemins du champ pdf du catalogue,
   et leur poids (en ko) est écrit dans le champ ko du sujet, dans data/catalogue.js.
+  Un sujet officiel (champ officiel : énoncé sur le site d'origine) n'a que le PDF de son corrigé.
   Chrome est cherché aux emplacements habituels ; sinon, indiquer son chemin dans la variable CHROME.
   Sans dépendance : Node 22 ou plus récent (fetch et WebSocket intégrés).
 */
@@ -91,7 +92,8 @@ const serveur = http.createServer((req, res) => {
         console.log(`✓ ${s.pdf[mode]} : ${ko[mode]} ko`);
       }
       // poids des PDF dans le catalogue (champ ko de la ligne du sujet)
-      catalogue = catalogue.split("\n").map((l) => (l.includes(`id: "${s.id}"`) ? l.replace(/ko: \{[^}]*\}/, `ko: { enonce: ${ko.enonce || 0}, corrige: ${ko.corrige || 0} }`) : l)).join("\n");
+      const champ = Object.keys(ko).map((k) => `${k}: ${ko[k]}`).join(", ");
+      catalogue = catalogue.split("\n").map((l) => (l.includes(`id: "${s.id}"`) ? l.replace(/ko: \{[^}]*\}/, `ko: { ${champ} }`) : l)).join("\n");
     }
     fs.writeFileSync(path.join(racine, "data/catalogue.js"), catalogue);
     if (erreurs.length) console.log("Erreurs JavaScript pendant l'affichage :\n" + erreurs.join("\n"));

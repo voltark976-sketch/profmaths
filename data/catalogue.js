@@ -14,6 +14,8 @@
   Un niveau peut avoir une rubrique de sujets complets (champ sujets : rubrique, code de la pastille, intro, liste).
   Chaque sujet : id (page #sujet-<id>), titre, periode, duree, source (fichier qui remplit window.SUJETS[id]),
   pdf (énoncé et corrigé, fabriqués par node outils/sujets-pdf.js) et ko (poids des PDF, écrit par le même outil).
+  Un sujet officiel (bac, sujet zéro) a en plus le champ officiel : { url du PDF officiel, source, ko }. Son énoncé
+  n'est pas recopié sur le site : la page renvoie à ce PDF, et seul notre corrigé a un PDF (pdf.corrige).
   Un niveau avec groupe: "college" (6e, 5e, 4e, 3e) n'a pas sa propre carte sur l'accueil :
   il est rangé derrière la carte « Collège » (page #college). Les autres niveaux sont
   rangés derrière la carte « Lycée » (page #lycee).
@@ -629,7 +631,7 @@ window.CATALOGUE = {
         code: "DC",
         intro: "Des sujets complets comme les devoirs communs de Seconde, à faire en temps limité. Chaque sujet a son corrigé détaillé, en ligne et en PDF à imprimer.",
         liste: [
-          { id: "seconde-dc-1", titre: "Devoir commun n° 1", periode: "Milieu d'année : chapitres 1 à 9", duree: "2 heures", source: "data/seconde/sujets/devoir-commun-1.js", pdf: { enonce: "sujets/seconde/devoir-commun-1-enonce.pdf", corrige: "sujets/seconde/devoir-commun-1-corrige.pdf" }, ko: { enonce: 154, corrige: 237 } }
+          { id: "seconde-dc-1", titre: "Devoir commun n° 1", periode: "Milieu d'année : chapitres 1 à 9", duree: "2 heures", source: "data/seconde/sujets/devoir-commun-1.js", pdf: { enonce: "sujets/seconde/devoir-commun-1-enonce.pdf", corrige: "sujets/seconde/devoir-commun-1-corrige.pdf" }, ko: { enonce: 154, corrige: 246 } }
         ]
       },
       chapitres: [
@@ -839,9 +841,10 @@ window.CATALOGUE = {
       sujets: {
         rubrique: "Sujets type bac",
         code: "BAC",
-        intro: "Des sujets complets au format de l'épreuve anticipée de mathématiques : deux heures sans calculatrice, des automatismes puis des exercices rédigés. Chaque sujet a son corrigé détaillé, en ligne et en PDF à imprimer.",
+        intro: "Des sujets complets au format de l'épreuve anticipée de mathématiques : deux heures sans calculatrice, des automatismes puis des exercices rédigés. Chaque sujet a son corrigé détaillé, en ligne et en PDF à imprimer. Pour les sujets officiels, l'énoncé s'ouvre sur le site d'origine.",
         liste: [
-          { id: "premiere-ea-1", titre: "Sujet type épreuve anticipée n° 1", periode: "Programme de Première spécialité, format de la session 2028", duree: "2 heures", source: "data/premiere/sujets/epreuve-anticipee-1.js", pdf: { enonce: "sujets/premiere/epreuve-anticipee-1-enonce.pdf", corrige: "sujets/premiere/epreuve-anticipee-1-corrige.pdf" }, ko: { enonce: 166, corrige: 232 } }
+          { id: "premiere-ea-1", titre: "Sujet type épreuve anticipée n° 1", periode: "Programme de Première spécialité, format de la session 2028", duree: "2 heures", source: "data/premiere/sujets/epreuve-anticipee-1.js", pdf: { enonce: "sujets/premiere/epreuve-anticipee-1-enonce.pdf", corrige: "sujets/premiere/epreuve-anticipee-1-corrige.pdf" }, ko: { enonce: 165, corrige: 232 } },
+          { id: "premiere-sz-1", titre: "Sujet zéro n° 1 (sujet officiel)", officiel: { url: "https://eduscol.education.gouv.fr/sites/default/files/document/sujet-specialite-1pdf-112050.pdf", source: "Eduscol", ko: 268 }, periode: "Énoncé officiel d'Eduscol, partie 1 en QCM, corrigé ProfMaths", duree: "2 heures", source: "data/premiere/sujets/sujet-zero-1.js", pdf: { corrige: "sujets/premiere/sujet-zero-1-corrige.pdf" }, ko: { corrige: 262 } }
         ]
       },
       chapitres: [

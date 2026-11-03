@@ -1045,6 +1045,7 @@ a.chap.chap-sujets:hover { border-color: var(--ylang); }
 .sujet-consignes { margin: 6px 0 4px; padding: 12px 14px; border-radius: var(--r); background: var(--surface); border: 1px solid var(--trait); }
 .sujet-entete { margin-top: 0; font-weight: 700; }
 .sujet-conseil { font-size: 0.9rem; }
+.sujet-source { display: none; font-size: 0.9rem; overflow-wrap: anywhere; } /* adresse de l'énoncé officiel : seulement à l'impression */
 
 /* Impression et PDF des sujets (outils/sujets-pdf.js) : page blanche, sans le site autour ni les boutons */
 @media print {
@@ -1055,9 +1056,11 @@ a.chap.chap-sujets:hover { border-color: var(--ylang); }
   body::before, body::after { display: none !important; }
   .barre-haut, .pied, .evite, .retour, .ressources, .eval-q-btn, .eval-fin, .suite, .sujet-conseil, .theme-menu { display: none !important; }
   html { font-size: 13.5px; }
-  .chap-head { margin: 0 0 8px !important; padding: 0 !important; background: none !important; border: 0 !important; box-shadow: none !important; }
-  .chap-head h1 { font-size: 1.7rem; }
+  /* sans cadre ni marge intérieure, le bord de l'en-tête rognait la première lettre : rien n'est coupé à l'impression */
+  .chap-head { margin: 0 0 8px !important; padding: 0 !important; overflow: visible !important; background: none !important; border: 0 !important; box-shadow: none !important; }
+  .chap-head h1 { font-size: 1.7rem; max-width: none; }
   .sujet-consignes { padding: 8px 12px; }
+  .sujet-source { display: block; }
   .eval-exo { margin-top: 10px; padding: 8px 12px; box-shadow: none; border: 1px solid var(--trait); border-top: 3px solid var(--ac); }
   .eval-q { padding: 6px 0; }
   .eval-corrige { margin-top: 6px; padding: 6px 10px; }

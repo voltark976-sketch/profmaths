@@ -632,8 +632,13 @@
   // #sujets-<niveau> : la liste ; #sujet-<id> : le sujet en ligne ; #sujet-<id>.corrige : tous les corrigés ouverts (PDF du corrigé)
   const sujetsDe = (n) => (n && n.sujets && n.sujets.liste) || [];
   const trouverSujet = (id) => { for (const n of CATALOGUE.niveaux) { const s = sujetsDe(n).find((x) => x.id === id); if (s) return { n, s }; } return null; };
-  const liensPdf = (s) => (s.pdf ? `<div class="ressources">${["enonce", "corrige"].filter((k) => s.pdf[k]).map((k) =>
-    `<a class="pdf" href="${esc(s.pdf[k])}${VERSION ? "?v=" + VERSION : ""}" target="_blank" rel="noopener"><span class="pdf-ico" aria-hidden="true">PDF</span><span>${k === "enonce" ? "Énoncé à imprimer" : "Corrigé détaillé"}${s.ko && s.ko[k] ? ` · ${s.ko[k]} ko` : ""}</span></a>`).join("")}</div>` : "");
+  // Sujet officiel (champ officiel) : son énoncé reste sur le site d'origine, le lien passe avant notre corrigé
+  const liensPdf = (s) => {
+    const liens = (s.officiel ? [`<a class="pdf" href="${esc(s.officiel.url)}" target="_blank" rel="noopener"><span class="pdf-ico" aria-hidden="true">PDF</span><span>Énoncé officiel (${esc(s.officiel.source)})${s.officiel.ko ? ` · ${s.officiel.ko} ko` : ""}</span></a>`] : [])
+      .concat(["enonce", "corrige"].filter((k) => s.pdf && s.pdf[k]).map((k) =>
+        `<a class="pdf" href="${esc(s.pdf[k])}${VERSION ? "?v=" + VERSION : ""}" target="_blank" rel="noopener"><span class="pdf-ico" aria-hidden="true">PDF</span><span>${k === "enonce" ? "Énoncé à imprimer" : "Corrigé détaillé"}${s.ko && s.ko[k] ? ` · ${s.ko[k]} ko` : ""}</span></a>`));
+    return liens.length ? `<div class="ressources">${liens.join("")}</div>` : "";
+  };
   function pageSujets(n) {
     const r = n.sujets;
     document.title = `${r.rubrique} · ${n.nom} · ProfMaths`;
@@ -655,7 +660,11 @@
     const afficher = () => {
       const d = window.SUJETS && window.SUJETS[s.id];
       if (!d) { $app.innerHTML = tete + msgReseau("Le sujet n'a pas pu se charger."); return; }
-      let h = tete + liensPdf(s) + `<div class="sujet-corps"><section class="sujet-consignes">${d.entete ? `<p class="sujet-entete">${inline(d.entete)}</p>` : ""}${d.consignes ? mdEval(d.consignes) : ""}${corrige ? "" : `<p class="muted sujet-conseil">En ligne : cherche d'abord sur une feuille, en temps limité, puis ouvre l'indice ou le corrigé de chaque question.</p>`}</section>`;
+      // sujet officiel : l'adresse complète de l'énoncé n'apparaît qu'à l'impression (PDF du corrigé), les boutons PDF étant masqués
+      const source = s.officiel ? `<p class="sujet-source">Énoncé officiel (${esc(s.officiel.source)}) : <a href="${esc(s.officiel.url)}">${esc(s.officiel.url.replace(/^https?:\/\//, ""))}</a></p>` : "";
+      const conseil = s.officiel ? "Ouvre l'énoncé officiel avec le bouton ci-dessus, cherche sur une feuille en temps limité, puis ouvre l'indice ou le corrigé de chaque question."
+        : "En ligne : cherche d'abord sur une feuille, en temps limité, puis ouvre l'indice ou le corrigé de chaque question.";
+      let h = tete + liensPdf(s) + `<div class="sujet-corps"><section class="sujet-consignes">${d.entete ? `<p class="sujet-entete">${inline(d.entete)}</p>` : ""}${d.consignes ? mdEval(d.consignes) : ""}${source}${corrige ? "" : `<p class="muted sujet-conseil">${conseil}</p>`}</section>`;
       (d.exercices || []).forEach((x, k) => { h += htmlExoEval(x, k, corrige); });
       h += `</div><a class="suite" href="#sujets-${esc(n.id)}">Tous les sujets →</a>`;
       $app.innerHTML = h;
