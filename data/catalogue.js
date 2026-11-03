@@ -1240,6 +1240,14 @@ window.CATALOGUE = {
     {
       id: "terminale",
       nom: "Terminale maths complémentaires",
+      sujets: {
+        rubrique: "Sujets type bac",
+        code: "BAC",
+        intro: "Des sujets complets de deux heures, avec calculatrice, sur le programme de maths complémentaires, à faire en temps limité comme un devoir de fin d'année. Chaque sujet a son corrigé détaillé, en ligne et en PDF à imprimer.",
+        liste: [
+          { id: "terminale-compl-1", titre: "Sujet type bac n° 1", periode: "Suites, lois binomiale et géométrique, courbe de Lorenz", duree: "2 heures", source: "data/terminale/sujets/sujet-type-bac-1.js", pdf: { enonce: "sujets/terminale/sujet-type-bac-1-enonce.pdf", corrige: "sujets/terminale/sujet-type-bac-1-corrige.pdf" }, ko: { enonce: 139, corrige: 214 } }
+        ]
+      },
       chapitres: [
         {
           id: "terminale-suites",
