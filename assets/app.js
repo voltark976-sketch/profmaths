@@ -634,9 +634,9 @@
   const trouverSujet = (id) => { for (const n of CATALOGUE.niveaux) { const s = sujetsDe(n).find((x) => x.id === id); if (s) return { n, s }; } return null; };
   // Sujet officiel (champ officiel) : son énoncé reste sur le site d'origine, le lien passe avant notre corrigé
   const liensPdf = (s) => {
-    const liens = (s.officiel ? [`<a class="pdf" href="${esc(s.officiel.url)}" target="_blank" rel="noopener"><span class="pdf-ico" aria-hidden="true">PDF</span><span>Énoncé officiel (${esc(s.officiel.source)})${s.officiel.ko ? ` · ${s.officiel.ko} ko` : ""}</span></a>`] : [])
+    const liens = (s.officiel ? [`<a class="pdf" href="${esc(s.officiel.url)}" target="_blank" rel="noopener"><span class="pdf-ico" aria-hidden="true">PDF</span><span>Énoncé officiel (${esc(s.officiel.source)})${s.officiel.ko ? ` · ${s.officiel.ko} ko` : ""}</span></a>`] : [])
       .concat(["enonce", "corrige"].filter((k) => s.pdf && s.pdf[k]).map((k) =>
-        `<a class="pdf" href="${esc(s.pdf[k])}${VERSION ? "?v=" + VERSION : ""}" target="_blank" rel="noopener"><span class="pdf-ico" aria-hidden="true">PDF</span><span>${k === "enonce" ? "Énoncé à imprimer" : "Corrigé détaillé"}${s.ko && s.ko[k] ? ` · ${s.ko[k]} ko` : ""}</span></a>`));
+        `<a class="pdf" href="${esc(s.pdf[k])}${VERSION ? "?v=" + VERSION : ""}" target="_blank" rel="noopener"><span class="pdf-ico" aria-hidden="true">PDF</span><span>${k === "enonce" ? "Énoncé à imprimer" : "Corrigé détaillé"}${s.ko && s.ko[k] ? ` · ${s.ko[k]} ko` : ""}</span></a>`));
     return liens.length ? `<div class="ressources">${liens.join("")}</div>` : "";
   };
   function pageSujets(n) {
