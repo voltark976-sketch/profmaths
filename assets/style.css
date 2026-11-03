@@ -1027,6 +1027,6 @@ table.suivi { border-collapse: collapse; background: var(--surface); font-varian
 .eval-indice, .eval-corrige { margin-top: 10px; }
 .eval-corrige { min-width: 0; padding: 10px 14px; border-radius: 10px; background: var(--bon-pale); border-left: 4px solid var(--bon); }
 .eval-corrige .tag { color: var(--bon); }
-.eval-exo table.valeurs th, .eval-exo table.valeurs td { padding: 5px 6px; } /* tableaux de signes : tiennent à 360 px */
+.eval-exo table.valeurs th, .eval-exo table.valeurs td { padding: 5px 4px; min-width: 1.4em; } /* tableaux de signes : tiennent à 360 px */
 .eval-fin { margin-top: 12px; }
 .eval-fin .btn-sec { width: 100%; }
