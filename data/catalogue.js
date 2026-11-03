@@ -1018,6 +1018,14 @@ window.CATALOGUE = {
       id: "terminale-spe",
       nom: "Terminale spécialité",
       intro: "Les 15 chapitres dans l'ordre de la progression de l'année. Dans chaque chapitre : automatismes et algorithmique en Python.",
+      sujets: {
+        rubrique: "Sujets type bac",
+        code: "BAC",
+        intro: "Des sujets complets du baccalauréat de spécialité : quatre heures, calculatrice autorisée, quatre exercices indépendants. Pour les sujets officiels, l'énoncé s'ouvre sur le site du ministère ; le corrigé détaillé est en ligne et en PDF à imprimer.",
+        liste: [
+          { id: "terminale-2026-j1", titre: "Bac 2026, jour 1 (sujet officiel)", officiel: { url: "https://www.education.gouv.fr/sites/default/files/document/baccalaureat-general-2026-mathematiques-517598.pdf", source: "ministère", ko: 458 }, periode: "16 juin 2026, métropole, La Réunion et Mayotte · corrigé ProfMaths", duree: "4 heures", source: "data/terminale-spe/sujets/bac-2026-jour-1.js", pdf: { corrige: "sujets/terminale-spe/bac-2026-jour-1-corrige.pdf" }, ko: { corrige: 291 } }
+        ]
+      },
       chapitres: [
         {
           id: "terminale-spe-suites-recurrence",
