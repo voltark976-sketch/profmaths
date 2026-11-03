@@ -836,6 +836,14 @@ window.CATALOGUE = {
     {
       id: "premiere",
       nom: "Première spécialité",
+      sujets: {
+        rubrique: "Sujets type bac",
+        code: "BAC",
+        intro: "Des sujets complets au format de l'épreuve anticipée de mathématiques : deux heures sans calculatrice, des automatismes puis des exercices rédigés. Chaque sujet a son corrigé détaillé, en ligne et en PDF à imprimer.",
+        liste: [
+          { id: "premiere-ea-1", titre: "Sujet type épreuve anticipée n° 1", periode: "Programme de Première spécialité, format de la session 2028", duree: "2 heures", source: "data/premiere/sujets/epreuve-anticipee-1.js", pdf: { enonce: "sujets/premiere/epreuve-anticipee-1-enonce.pdf", corrige: "sujets/premiere/epreuve-anticipee-1-corrige.pdf" }, ko: { enonce: 158, corrige: 222 } }
+        ]
+      },
       chapitres: [
         {
           id: "premiere-suites",
