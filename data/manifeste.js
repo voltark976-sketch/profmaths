@@ -258,7 +258,7 @@ window.MANIFESTE = {
   "expertes-divisibilite-congruences": {"niveau":"expertes","fichier":"data/expertes/divisibilite-congruences.js","series":9,"qcm":20,"eval":"data/expertes/evaluation/divisibilite-congruences.js"},
   "expertes-pgcd-bezout-gauss": {"niveau":"expertes","fichier":"data/expertes/pgcd-bezout-gauss.js","series":8,"qcm":20,"eval":"data/expertes/evaluation/pgcd-bezout-gauss.js"},
   "expertes-nombres-premiers": {"niveau":"expertes","fichier":"data/expertes/nombres-premiers.js","series":8,"qcm":20,"eval":"data/expertes/evaluation/nombres-premiers.js"},
-  "expertes-matrices": {"niveau":"expertes","fichier":"data/expertes/matrices.js","series":9,"qcm":20},
+  "expertes-matrices": {"niveau":"expertes","fichier":"data/expertes/matrices.js","series":9,"qcm":20,"eval":"data/expertes/evaluation/matrices.js"},
   "expertes-graphes": {"niveau":"expertes","fichier":"data/expertes/graphes.js","series":6,"qcm":18},
   "expertes-suites-matrices-markov": {"niveau":"expertes","fichier":"data/expertes/suites-matrices-markov.js","series":8,"qcm":18},
   "terminale-suites": {"niveau":"terminale","fichier":"data/terminale/suites.js","series":10,"qcm":28,"eval":"data/terminale/evaluation/suites.js"},
