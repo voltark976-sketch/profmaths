@@ -212,7 +212,7 @@ window.MANIFESTE = {
   "tronc-calcul": {"niveau":"tronc","fichier":"data/tronc/calcul.js","series":8,"qcm":20,"eval":"data/tronc/evaluation/calcul.js"},
   "tronc-graphiques": {"niveau":"tronc","fichier":"data/tronc/graphiques.js","series":9,"qcm":19,"eval":"data/tronc/evaluation/graphiques.js"},
   "tronc-donnees": {"niveau":"tronc","fichier":"data/tronc/donnees.js","series":11,"qcm":19,"eval":"data/tronc/evaluation/donnees.js"},
-  "tronc-tableaux-croises": {"niveau":"tronc","fichier":"data/tronc/tableaux-croises.js","series":8,"qcm":18},
+  "tronc-tableaux-croises": {"niveau":"tronc","fichier":"data/tronc/tableaux-croises.js","series":8,"qcm":18,"eval":"data/tronc/evaluation/tableaux-croises.js"},
   "tronc-ajustement-affine": {"niveau":"tronc","fichier":"data/tronc/ajustement-affine.js","series":7,"qcm":20},
   "tronc-probabilites-conditionnelles": {"niveau":"tronc","fichier":"data/tronc/probabilites-conditionnelles.js","series":6,"qcm":19},
   "tronc-epreuves-bernoulli": {"niveau":"tronc","fichier":"data/tronc/epreuves-bernoulli.js","series":5,"qcm":19},
