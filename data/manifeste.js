@@ -213,7 +213,7 @@ window.MANIFESTE = {
   "tronc-graphiques": {"niveau":"tronc","fichier":"data/tronc/graphiques.js","series":9,"qcm":19,"eval":"data/tronc/evaluation/graphiques.js"},
   "tronc-donnees": {"niveau":"tronc","fichier":"data/tronc/donnees.js","series":11,"qcm":19,"eval":"data/tronc/evaluation/donnees.js"},
   "tronc-tableaux-croises": {"niveau":"tronc","fichier":"data/tronc/tableaux-croises.js","series":8,"qcm":18,"eval":"data/tronc/evaluation/tableaux-croises.js"},
-  "tronc-ajustement-affine": {"niveau":"tronc","fichier":"data/tronc/ajustement-affine.js","series":7,"qcm":20},
+  "tronc-ajustement-affine": {"niveau":"tronc","fichier":"data/tronc/ajustement-affine.js","series":7,"qcm":20,"eval":"data/tronc/evaluation/ajustement-affine.js"},
   "tronc-probabilites-conditionnelles": {"niveau":"tronc","fichier":"data/tronc/probabilites-conditionnelles.js","series":6,"qcm":19},
   "tronc-epreuves-bernoulli": {"niveau":"tronc","fichier":"data/tronc/epreuves-bernoulli.js","series":5,"qcm":19},
   "tronc-suites-arithmetiques": {"niveau":"tronc","fichier":"data/tronc/suites-arithmetiques.js","series":13,"qcm":19},
