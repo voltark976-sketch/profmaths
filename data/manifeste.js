@@ -206,7 +206,7 @@ window.MANIFESTE = {
   "premiere-variables-aleatoires": {"niveau":"premiere","fichier":"data/premiere/variables-aleatoires.js","series":8,"qcm":30,"eval":"data/premiere/evaluation/variables-aleatoires.js"},
   "premiere-produit-scalaire-2": {"niveau":"premiere","fichier":"data/premiere/produit-scalaire-2.js","series":7,"qcm":31,"eval":"data/premiere/evaluation/produit-scalaire-2.js"},
   "premiere-geometrie-reperee": {"niveau":"premiere","fichier":"data/premiere/geometrie-reperee.js","series":7,"qcm":30,"eval":"data/premiere/evaluation/geometrie-reperee.js"},
-  "premiere-echantillons": {"niveau":"premiere","fichier":"data/premiere/echantillons.js","series":8,"qcm":28},
+  "premiere-echantillons": {"niveau":"premiere","fichier":"data/premiere/echantillons.js","series":8,"qcm":28,"eval":"data/premiere/evaluation/echantillons.js"},
   "premiere-epreuve-anticipee": {"niveau":"premiere","fichier":"data/premiere/epreuve-anticipee.js","series":13,"qcm":34},
   "tronc-evolutions": {"niveau":"tronc","fichier":"data/tronc/evolutions.js","series":9,"qcm":22},
   "tronc-calcul": {"niveau":"tronc","fichier":"data/tronc/calcul.js","series":8,"qcm":20},
