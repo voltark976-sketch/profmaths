@@ -1840,16 +1840,16 @@
   function coupeRelations(s) {
     return String(s == null ? "" : s).replace(/```[\s\S]*?```|\$([^$]+)\$/g, (m, f) => {
       if (f === undefined || f.length < 24) return m;
-      const morceaux = []; let d = 0, cur = "";
+      const morceaux = []; let d = 0, par = 0, cur = "";
       for (let i = 0; i < f.length; i++) {
         if (f[i] === "\\") {
           const mot = (f.slice(i).match(/^\\[a-zA-Z]+/) || [f.slice(i, i + 2)])[0];
           if (mot === "\\left") d++; else if (mot === "\\right") d--;
-          if (d === 0 && RELATIONS.includes(mot) && cur.trim()) { morceaux.push(cur); cur = ""; }
+          if (d === 0 && par === 0 && RELATIONS.includes(mot) && cur.trim()) { morceaux.push(cur); cur = ""; }
           cur += mot; i += mot.length - 1; continue;
         }
-        if (f[i] === "{") d++; else if (f[i] === "}") d--;
-        if (d === 0 && "=<>".includes(f[i]) && cur.trim()) { morceaux.push(cur); cur = ""; }
+        if (f[i] === "{") d++; else if (f[i] === "}") d--; else if (f[i] === "(") par++; else if (f[i] === ")") par--;
+        if (d === 0 && par === 0 && "=<>".includes(f[i]) && cur.trim()) { morceaux.push(cur); cur = ""; }
         cur += f[i];
       }
       morceaux.push(cur);
