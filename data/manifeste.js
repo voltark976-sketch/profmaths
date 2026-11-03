@@ -234,7 +234,7 @@ window.MANIFESTE = {
   "techno-deux-variables": {"niveau":"techno","fichier":"data/techno/deux-variables.js","series":7,"qcm":20,"eval":"data/techno/evaluation/deux-variables.js"},
   "techno-probabilites-conditionnelles": {"niveau":"techno","fichier":"data/techno/probabilites-conditionnelles.js","series":6,"qcm":19,"eval":"data/techno/evaluation/probabilites-conditionnelles.js"},
   "techno-epreuves-bernoulli": {"niveau":"techno","fichier":"data/techno/epreuves-bernoulli.js","series":5,"qcm":19,"eval":"data/techno/evaluation/epreuves-bernoulli.js"},
-  "techno-variables-aleatoires": {"niveau":"techno","fichier":"data/techno/variables-aleatoires.js","series":7,"qcm":19},
+  "techno-variables-aleatoires": {"niveau":"techno","fichier":"data/techno/variables-aleatoires.js","series":7,"qcm":19,"eval":"data/techno/evaluation/variables-aleatoires.js"},
   "terminale-spe-suites-recurrence": {"niveau":"terminale-spe","fichier":"data/terminale-spe/suites-recurrence.js","series":10,"qcm":33,"eval":"data/terminale-spe/evaluation/suites-recurrence.js"},
   "terminale-spe-derivation-convexite": {"niveau":"terminale-spe","fichier":"data/terminale-spe/derivation-convexite.js","series":10,"qcm":29,"eval":"data/terminale-spe/evaluation/derivation-convexite.js"},
   "terminale-spe-espace-1": {"niveau":"terminale-spe","fichier":"data/terminale-spe/espace-1.js","series":11,"qcm":25,"eval":"data/terminale-spe/evaluation/espace-1.js"},
