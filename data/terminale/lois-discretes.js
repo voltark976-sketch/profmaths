@@ -83,7 +83,7 @@ window.CHAPITRES["terminale-lois-discretes"] = {
       exemple: {
         enonce: "Chaque livraison arrive à l'heure avec la probabilité $0{,}8$, indépendamment des autres. $X$ compte les livraisons à l'heure parmi $3$. Calcule $P(X = 2)$ et $E(X)$.",
         solution: "$X$ suit $\\mathcal{B}(3\\,;0{,}8)$. $P(X = 2) = 3 \\times 0{,}8^2 \\times 0{,}2 = 0{,}384$ et $E(X) = 3 \\times 0{,}8 = 2{,}4$. Loi complète :",
-        tableau: { var: "k", nom: "P(X = k)", x: [0, 1, 2, 3], y: ["0{,}008", "0{,}096", "0{,}384", "0{,}512"] }
+        tableau: { lignes: [["k", "P(X = k)"], ["0", "0{,}008"], ["1", "0{,}096"], ["2", "0{,}384"], ["3", "0{,}512"]] } // en colonne : en ligne, il dépassait de 44 px à 360 px
       }
     },
     {
@@ -100,7 +100,7 @@ window.CHAPITRES["terminale-lois-discretes"] = {
       exemple: {
         enonce: "$10$ personnes réservent ; chacune annule avec la probabilité $0{,}2$, indépendamment. $X$ compte les annulations. Calcule $P(X \\geqslant 2)$, $P(2 \\leqslant X \\leqslant 4)$ et le plus petit $b$ tel que $P(X \\leqslant b) \\geqslant 0{,}95$.",
         solution: "$P(X \\geqslant 2) = 1 - F(1) \\approx 0{,}6242$ ; $P(2 \\leqslant X \\leqslant 4) = F(4) - F(1) \\approx 0{,}5914$. Comme $F(3) \\approx 0{,}8791 < 0{,}95$ et $F(4) \\approx 0{,}9672 \\geqslant 0{,}95$, $b = 4$.",
-        tableau: { var: "k", nom: "F(k)", x: [0, 1, 2, 3, 4, 5], y: ["0{,}1074", "0{,}3758", "0{,}6778", "0{,}8791", "0{,}9672", "0{,}9936"] }
+        tableau: { lignes: [["k", "F(k)"], ["0", "0{,}1074"], ["1", "0{,}3758"], ["2", "0{,}6778"], ["3", "0{,}8791"], ["4", "0{,}9672"], ["5", "0{,}9936"]] } // en colonne : en ligne, il dépassait de 201 px
       }
     },
     {
