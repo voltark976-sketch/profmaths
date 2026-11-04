@@ -1176,7 +1176,16 @@
   function statsNotes(v) {
     if (!v.length) return null;
     const s = [...v].sort((a, b) => a - b), n = s.length, moy = s.reduce((a, b) => a + b, 0) / n;
-    return { moy, med: n % 2 ? s[(n - 1) / 2] : (s[n / 2 - 1] + s[n / 2]) / 2, min: s[0], max: s[n - 1], et: Math.sqrt(s.reduce((a, b) => a + (b - moy) ** 2, 0) / n) };
+    return { moy, med: n % 2 ? s[(n - 1) / 2] : (s[n / 2 - 1] + s[n / 2]) / 2, q3: s[Math.ceil((3 * n) / 4) - 1], min: s[0], max: s[n - 1], et: Math.sqrt(s.reduce((a, b) => a + (b - moy) ** 2, 0) / n) };
+  }
+  // Moyenne, médiane et 3e quartile du temps et des XP du niveau d'une classe (tous les élèves de la liste)
+  function statsNiveau(N) {
+    const st = (val) => statsNotes(N.lignes.map(val)), sT = st((l) => l.tps * 60), sX = st((l) => l.xp);
+    if (!sT) return "";
+    const t = (v) => (v ? duree(v) : "0 min"), x = (v) => virgule(Math.round(v));
+    const ligne = (titre, s, f) => `<tr><th scope="row">${titre}</th><td>${f(s.moy)}</td><td>${f(s.med)}</td><td>${f(s.q3)}</td></tr>`;
+    return `<div class="scroll-x"><table class="suivi stats-niveau"><caption>Temps et XP du niveau · classe ${esc(N.g)} · ${esc(N.niv ? N.niv.nom : "niveau inconnu")}</caption><thead><tr><th></th><th scope="col">Moyenne</th><th scope="col">Médiane</th><th scope="col">3e quartile</th></tr></thead>
+      <tbody>${ligne("Temps", sT, t)}${ligne("XP", sX, x)}</tbody></table></div>`;
   }
   const dateLongue = (j) => new Date(j + "T00:00").toLocaleDateString("fr-FR", { day: "numeric", month: "long" });
   const SANS_DONNEES = "Aucune donnée de niveau pour l'instant : les XP et le temps par chapitre sont comptés depuis la mise à jour du 3 novembre 2026 au soir. Les chiffres apparaîtront dès qu'un élève connecté fera une série, un QCM ou un défi.";
@@ -1212,6 +1221,7 @@
         ${N.autoXp || N.autoT ? `Une case vide prend ce qu'a fait le ${RANG_REF}e élève le plus actif de la classe.` : ""} Les réglages sont gardés sur cet appareil, pour cette classe.
         ${N.estim ? "Avant le 3 novembre 2026, le site ne gardait que le total des XP et du temps : leur part dans le niveau est estimée d'après les meilleurs résultats de l'élève (étoiles, QCM, défi) et le temps par chapitre restant ; depuis, ils sont comptés exactement." : "XP et temps par chapitre ne sont comptés que depuis la mise à jour du 3 novembre 2026."}${N.niv ? "" : " Le niveau de cette classe est inconnu : aucun chapitre n'est compté."}${infos.avecListe ? " Les élèves jamais connectés sont en grisé." : ""}</p>
       <div class="freq-tuiles">${st ? tuile(virgule(st.moy, 1), "moyenne de la classe") + tuile(virgule(st.med), "note médiane") + tuile(`${virgule(st.min)} à ${virgule(st.max)}`, "note la plus basse et la plus haute") : ""}${infos.avecListe ? tuile(infos.jamais, `jamais connecté${infos.jamais > 1 ? "s" : ""}`) : ""}</div>
+      ${statsNiveau(N)}
       <p class="btns-prof"><button class="btn" type="button" id="n-excel">Télécharger en Excel</button>${groupesProf().length > 1 ? ` <button class="btn-sec" type="button" id="n-excel-tout">Excel de toutes mes classes</button>` : ""}</p>
       ${tableauSuivi(cols, N.lignes, "suivi-note")}</section>`;
     const garder = (modif) => { garderNotation(N.g, Object.assign({}, r, modif)); afficherSuivi(); };
@@ -1255,10 +1265,10 @@
             { v: l.note, s: 4, f: `ROUND(2*20*($B$5*IF($B$6>0,MIN(1,C${k}/$B$6),0)+(1-$B$5)*IF($B$7>0,MIN(1,D${k}/$B$7),0)),0)/2` }, l.x.jamais ? "non" : "oui"]);
         });
         if (!L.length) lignes.push(["Aucun élève"]);
-        const st = (col, val) => { const s = statsNotes(L.map(val)); return s ? [["moy", "AVERAGE"], ["med", "MEDIAN"], ["min", "MIN"], ["max", "MAX"], ["et", "STDEVP"]].map(([c, f]) => ({ v: Math.round(s[c] * 100) / 100, f: `${f}(${col}${d0}:${col}${d1})`, s: 3 })) : []; };
+        const st = (col, val) => { const s = statsNotes(L.map(val)); return s ? [["moy", "AVERAGE"], ["med", "MEDIAN"], ["q3", ""], ["min", "MIN"], ["max", "MAX"], ["et", "STDEVP"]].map(([c, f]) => ({ v: Math.round(s[c] * 100) / 100, f: f ? `${f}(${col}${d0}:${col}${d1})` : `SMALL(${col}${d0}:${col}${d1},ROUNDUP(3*COUNT(${col}${d0}:${col}${d1})/4,0))`, s: 3 })) : []; };
         const sx = st("C", (l) => l.xp), stt = st("D", (l) => l.tps), sn = st("F", (l) => l.note);
         lignes.push([]);
-        ["Moyenne", "Médiane", "Minimum", "Maximum", "Écart-type"].forEach((t, i) => lignes.push([{ v: t, s: 1 }, null, sx[i] || null, stt[i] || null, null, sn[i] || null]));
+        ["Moyenne", "Médiane", "3e quartile", "Minimum", "Maximum", "Écart-type"].forEach((t, i) => lignes.push([{ v: t, s: 1 }, null, sx[i] || null, stt[i] || null, null, sn[i] || null]));
         lignes.push([{ v: "Jamais connectés", s: 1 }, null, null, null, null, null, { v: L.filter((l) => l.x.jamais).length, f: `COUNTIF(G${d0}:G${d1},"non")` }]);
         return { nom: g, largeurs: [22, 18, 13, 21, 19, 10, 14], lignes };
       });
@@ -1359,6 +1369,7 @@
     $app.innerHTML = `<section class="page-suivi"><p class="eyebrow">Compte professeur · <a href="#frequentation">Fréquentation du site</a></p><h1>Suivi des élèves</h1>
       ${choix()}
       <div class="freq-tuiles"><div class="freq-tuile"><b>${actifs}/${liste.length}</b><span>élèves actifs ${periode}</span></div>${infos.avecListe ? `<div class="freq-tuile"><b>${infos.jamais}</b><span>jamais connecté${infos.jamais > 1 ? "s" : ""} au site</span></div>` : ""}<div class="freq-tuile"><b>${tempsClasse ? duree(tempsClasse) : "0 min"}</b><span>temps passé par la classe</span></div><div class="freq-tuile"><b>${actifs && tempsClasse ? duree(tempsClasse / actifs) : "–"}</b><span>par élève actif</span></div></div>
+      ${statsNiveau(N)}
       <p class="btns-prof"><button class="btn" type="button" id="n-excel">Télécharger en Excel</button>${groupesProf().length > 1 ? ` <button class="btn-sec" type="button" id="n-excel-tout">Excel de toutes mes classes</button>` : ""} <button class="btn-sec" type="button" id="n-reglages">Réglages de la note</button></p>
       <p class="muted">Actif = venu sur le site connecté, ou a fait une série ou un QCM, ${periode}. Temps = temps actif sur le site (page ouverte et utilisée, vidéos comprises). Chapitres = chapitres ouverts ou travaillés (série, QCM) sur la période. Touche un nom pour voir le détail par chapitre. XP niveau, Temps niveau et Note ne comptent que les chapitres de ${esc(N.niv ? N.niv.nom : "niveau de la classe")}${N.avecAutos && N.r.autos ? " et les Automatismes" : ""} (formule et réglages dans « Notation » de la liste des chapitres, Excel aussi).${infos.avecListe ? " Les élèves jamais connectés sont en grisé." : " Un élève n'apparaît qu'après sa première connexion (lance « creer-comptes.js --classes » pour voir aussi les autres)."}</p>
       ${notationVide(N) ? `<p class="alerte-notation">${SANS_DONNEES}</p>` : ""}

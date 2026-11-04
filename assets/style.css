@@ -790,6 +790,11 @@ table.suivi { border-collapse: collapse; background: var(--surface); font-varian
 .suivi-colonnes label { display: flex; align-items: center; gap: 6px; font-size: 0.92rem; min-height: 32px; }
 .suivi-colonnes input { width: 18px; height: 18px; }
 .alerte-notation { background: var(--ylang-pale); border-left: 4px solid var(--ylang); border-radius: var(--r); padding: 10px 14px; }
+/* Moyenne, médiane et 3e quartile du temps et des XP du niveau */
+.stats-niveau { margin: 4px 0 12px; }
+.stats-niveau caption { text-align: left; font-weight: 700; padding: 4px 0 6px; }
+.stats-niveau tbody th { font-weight: 700; }
+.stats-niveau th, .stats-niveau td { padding: 6px; }
 /* Tri (touche un titre) et filtres (ligne sous les titres) */
 .suivi thead th:first-child { position: sticky; left: 0; z-index: 1; }
 .suivi button.tri { font: inherit; font-weight: 700; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; display: inline-flex; align-items: center; gap: 3px; }
