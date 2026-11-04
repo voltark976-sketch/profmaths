@@ -1356,12 +1356,18 @@
     $app.innerHTML = `<section class="page-suivi"><p class="eyebrow">Compte professeur · <a href="#frequentation">Fréquentation du site</a></p><h1>Suivi des élèves</h1>
       ${choix()}
       <div class="freq-tuiles"><div class="freq-tuile"><b>${actifs}/${liste.length}</b><span>élèves actifs ${periode}</span></div>${infos.avecListe ? `<div class="freq-tuile"><b>${infos.jamais}</b><span>jamais connecté${infos.jamais > 1 ? "s" : ""} au site</span></div>` : ""}<div class="freq-tuile"><b>${tempsClasse ? duree(tempsClasse) : "0 min"}</b><span>temps passé par la classe</span></div><div class="freq-tuile"><b>${actifs && tempsClasse ? duree(tempsClasse / actifs) : "–"}</b><span>par élève actif</span></div></div>
+      <p class="btns-prof"><button class="btn" type="button" id="n-excel">Télécharger en Excel</button>${groupesProf().length > 1 ? ` <button class="btn-sec" type="button" id="n-excel-tout">Excel de toutes mes classes</button>` : ""} <button class="btn-sec" type="button" id="n-reglages">Réglages de la note</button></p>
       <p class="muted">Actif = venu sur le site connecté, ou a fait une série ou un QCM, ${periode}. Temps = temps actif sur le site (page ouverte et utilisée, vidéos comprises). Chapitres = chapitres ouverts ou travaillés (série, QCM) sur la période. Touche un nom pour voir le détail par chapitre. XP niveau, Temps niveau et Note ne comptent que les chapitres de ${esc(N.niv ? N.niv.nom : "niveau de la classe")}${N.avecAutos && N.r.autos ? " et les Automatismes" : ""} (formule et réglages dans « Notation » de la liste des chapitres, Excel aussi).${infos.avecListe ? " Les élèves jamais connectés sont en grisé." : " Un élève n'apparaît qu'après sa première connexion (lance « creer-comptes.js --classes » pour voir aussi les autres)."}</p>
       ${notationVide(N) ? `<p class="alerte-notation">${SANS_DONNEES}</p>` : ""}
       ${tableauSuivi(cols, lignes, "suivi-site", detail)}
       <h2>Chapitres travaillés par la classe</h2>
       ${chapsClasse.length ? `<div class="scroll-x"><table class="suivi freq-chap"><thead><tr><th>Chapitre</th><th>Élèves (${court})</th><th>Temps total</th></tr></thead><tbody>${chapsClasse.map(([id, v]) => `<tr><th scope="row">${dispo(id) ? `<a href="#${esc(id)}">${esc(titres[id] || id)}</a>` : esc(titres[id] || id)}</th><td>${v.eleves || "·"}</td><td>${v.temps ? duree(v.temps) : "·"}</td></tr>`).join("")}</tbody></table></div>` : `<p class="muted">Rien pour l'instant.</p>`}
       <p class="muted">Le temps passé n'est mesuré que pour un élève connecté à son compte, depuis la mise à jour du site d'octobre 2026. Les élèves ne voient pas ces durées.</p></section>`;
+    // Export Excel et réglages de la note (vue « Notation ») aussi depuis cette page
+    document.getElementById("n-excel").addEventListener("click", (ev) => exporterNotation([suiviChoix.groupe], ev.currentTarget));
+    const tout = document.getElementById("n-excel-tout");
+    if (tout) tout.addEventListener("click", (ev) => exporterNotation(groupesProf(), ev.currentTarget));
+    document.getElementById("n-reglages").addEventListener("click", () => { suiviChoix.chap = "note"; afficherSuivi(); });
     $app.querySelector(".suivi-site tbody").addEventListener("click", (ev) => {
       const b = ev.target.closest("[data-detail]");
       if (!b) return;
