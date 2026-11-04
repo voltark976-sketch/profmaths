@@ -71,11 +71,11 @@ window.EVALUATIONS["cinquieme-fractions"] = {
       {
         titre: "Le champ de Saïd",
         duree: 15, points: 6, calculatrice: false,
-        contexte: "Saïd plante les $\\dfrac{3}{8}$ de son champ en manioc, le quart en bananiers, et le reste en ambrevades (pois d'Angole). Les fractions sont à donner sous forme simplifiée.",
+        contexte: "Saïd plante les $\\dfrac{2}{5}$ de son champ en manioc, le tiers en bananiers, et le reste en ambrevades (pois d'Angole). Les fractions sont à donner sous forme simplifiée.",
         questions: [
-          { n: "1.", points: 2, texte: "Quelle fraction du champ est plantée en manioc ou en bananiers ?", corrige: "$\\dfrac{3}{8} + \\dfrac{1}{4} = \\dfrac{3}{8} + \\dfrac{2}{8} = \\dfrac{5}{8}$" },
-          { n: "2.", points: 2, texte: "Quelle fraction du champ reste pour les ambrevades ?", corrige: "$1 - \\dfrac{5}{8} = \\dfrac{8}{8} - \\dfrac{5}{8} = \\dfrac{3}{8}$" },
-          { n: "3.", points: 2, texte: "Le champ a une aire de $1\\,200$ m². Quelle aire est plantée en ambrevades ?", corrige: "$\\dfrac{3}{8}$ de $1\\,200$ : $1\\,200 \\div 8 \\times 3 = 150 \\times 3 = 450$ m²." }
+          { n: "1.", points: 2, texte: "Quelle fraction du champ est plantée en manioc ou en bananiers ?", indice: "$15$ est un multiple de $5$ et de $3$.", corrige: "$\\dfrac{2}{5} + \\dfrac{1}{3} = \\dfrac{6}{15} + \\dfrac{5}{15} = \\dfrac{11}{15}$" },
+          { n: "2.", points: 2, texte: "Quelle fraction du champ reste pour les ambrevades ?", corrige: "$1 - \\dfrac{11}{15} = \\dfrac{15}{15} - \\dfrac{11}{15} = \\dfrac{4}{15}$" },
+          { n: "3.", points: 2, texte: "Le champ a une aire de $1\\,500$ m². Quelle aire est plantée en ambrevades ?", corrige: "$\\dfrac{4}{15}$ de $1\\,500$ : $1\\,500 \\div 15 \\times 4 = 100 \\times 4 = 400$ m²." }
         ]
       }
     ]

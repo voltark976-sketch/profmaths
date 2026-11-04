@@ -64,7 +64,7 @@ window.EVALUATIONS["cinquieme-proportionnalite"] = {
         duree: 15, points: 7, calculatrice: false,
         contexte: "Quatre situations indépendantes.",
         questions: [
-          { n: "1.", points: 2, texte: "Calcule $20\\,\\%$ de $45$ €. Un sac de riz de $25$ € est soldé à $-20\\,\\%$ : quel est son nouveau prix ?", corrige: "$45 \\times 20 \\div 100 = 9$ €.\n\nRéduction : $25 \\times 20 \\div 100 = 5$ €, donc le sac coûte $25 - 5 = 20$ €." },
+          { n: "1.", points: 2, texte: "Calcule $20\\,\\%$ de $65$ €. Un sac de riz de $25$ € est soldé à $-20\\,\\%$ : quel est son nouveau prix ?", corrige: "$65 \\times 20 \\div 100 = 13$ €.\n\nRéduction : $25 \\times 20 \\div 100 = 5$ €, donc le sac coûte $25 - 5 = 20$ €." },
           { n: "2.", points: 2, texte: "Sur les $240$ élèves d'un collège, $35\\,\\%$ viennent à pied. Combien d'élèves viennent à pied ?", corrige: "$240 \\times 35 \\div 100 = 84$ élèves." },
           { n: "3.", points: 1.5, texte: "Dans un collège de $600$ élèves, $150$ mangent à la cantine. Quel pourcentage des élèves cela représente-t-il ?", corrige: "$\\dfrac{150}{600} = \\dfrac{1}{4} = \\dfrac{25}{100}$, soit $25\\,\\%$ des élèves." },
           { n: "4.", points: 1.5, texte: "Un tee-shirt à $18$ € augmente de $10\\,\\%$. Quel est son nouveau prix ?", corrige: "Hausse : $18 \\times 10 \\div 100 = 1{,}80$ €, donc le nouveau prix est $19{,}80$ €." }
