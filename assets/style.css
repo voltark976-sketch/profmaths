@@ -382,7 +382,8 @@ code.tt { font: 0.92em/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monosp
   .jeu-btn { padding: 7px 2px; }
   .haut-d { gap: 4px; }
   .theme-cycle { width: 30px; height: 30px; }
-  .compte-btn { padding: 7px 9px; }
+  .compte-btn { padding: 7px 7px; }
+  .haut-d .xp { gap: 4px; padding-right: 8px; } /* niveau à deux chiffres : « Connexion » reste entier */
 }
 @media (max-width: 340px) { .marque-t { display: none; } }
 
