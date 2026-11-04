@@ -737,17 +737,6 @@ a.profil:hover { box-shadow: var(--ombre-haut); }
 
 /* Personnalisation */
 .page-avatar h2 { margin-top: 26px; }
-.cats { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 6px; scrollbar-width: thin; }
-.cats button { flex: none; padding: 8px 13px; border-radius: 999px; border: 1px solid var(--trait); background: var(--surface); color: var(--encre); font: 700 0.85rem/1 var(--f-texte); cursor: pointer; }
-.cats button[aria-selected="true"] { background: var(--lagon); border-color: var(--lagon); color: var(--fond); }
-.options { display: grid; grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: 10px; margin-top: 10px; }
-.opt-av { display: grid; justify-items: center; gap: 5px; padding: 10px 6px; border-radius: 14px; border: 2px solid transparent; background: var(--surface); box-shadow: var(--ombre); cursor: pointer; font: inherit; color: var(--encre); transition: transform 0.12s, border-color 0.12s; }
-.opt-av:hover:not([disabled]) { transform: translateY(-2px); border-color: color-mix(in srgb, var(--lagon) 50%, transparent); }
-.opt-av[aria-pressed="true"] { border-color: var(--lagon); background: var(--lagon-pale); }
-.opt-nom { font-size: 0.78rem; line-height: 1.2; text-align: center; }
-.opt-av.verrou { cursor: not-allowed; box-shadow: none; border: 1px dashed var(--trait); background: transparent; }
-.opt-av.verrou svg { filter: grayscale(1); opacity: 0.45; }
-.opt-niv { font: 700 0.72rem/1 var(--f-texte); color: var(--ylang); }
 .regles-xp { margin-top: 26px; padding: 12px 16px; border-radius: var(--r); background: var(--surface); border: 1px solid var(--trait); }
 .regles-xp summary { font-weight: 700; cursor: pointer; }
 .regles-xp ul { padding-left: 1.2em; margin: 8px 0 0; }

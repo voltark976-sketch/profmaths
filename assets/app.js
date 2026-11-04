@@ -36,10 +36,15 @@
   function majXP() {
     const n = AV.niveau(prog.xp);
     $xp.textContent = n.niveau;
-    $xpAv.innerHTML = AV.dessin(monAvatar(n.niveau), 26);
+    $xpAv.innerHTML = AV.dessin(monAvatar(n.niveau), 26, null, { moi: true });
     $xpLien.title = `Niveau ${n.niveau} · ${n.rang} · ${prog.xp} XP`;
   }
   majXP();
+  // Le dessin de l'avatar arrive après l'affichage (assets/avatar-dessin.js) : on redessine le bandeau et la carte profil
+  document.addEventListener("pm-avatar-pret", () => {
+    majXP();
+    document.querySelectorAll(".profil-av[data-taille]").forEach((el) => { el.innerHTML = AV.dessin(monAvatar(), +el.dataset.taille, "Ton avatar", { moi: true }); });
+  });
   window.addEventListener("storage", (ev) => {
     if (ev.key !== CLE || !ev.newValue) return;
     try { prog = Object.assign({ xp: 0, exo: {}, qcm: {}, jeux: {}, quand: {} }, Compte.fusion(prog, JSON.parse(ev.newValue))); majXP(); } catch (e) {}
@@ -65,7 +70,8 @@
     document.querySelectorAll(".toast-niv").forEach((t) => t.remove());
     const t = document.createElement("div");
     t.className = "toast-niv";
-    t.innerHTML = `<span class="toast-av">${AV.dessin(monAvatar(apres), 48)}</span><span class="toast-t"><strong>Niveau ${apres} !</strong>${rangChange ? `<span>Nouveau rang : <b>${esc(AV.rang(apres))}</b></span>` : ""}${nouveautes.length ? `<span>Débloqué : ${nouveautes.map((r) => esc(r.nom)).join(", ")}</span>` : ""}<a href="#avatar">Voir mon avatar →</a></span><button type="button" class="toast-x" aria-label="Fermer">×</button>`;
+    const liste = nouveautes.slice(0, 3).map((r) => esc(r.nom)).join(", ") + (nouveautes.length > 3 ? ` et ${nouveautes.length - 3} autre${nouveautes.length > 4 ? "s" : ""}` : "");
+    t.innerHTML = `<span class="toast-av">${AV.dessin(monAvatar(apres), 48, null, { moi: true })}</span><span class="toast-t"><strong>Niveau ${apres} !</strong>${rangChange ? `<span>Nouveau rang : <b>${esc(AV.rang(apres))}</b></span>` : ""}${nouveautes.length ? `<span>Débloqué : ${liste}</span>` : ""}<a href="#avatar">Voir mon avatar →</a></span><button type="button" class="toast-x" aria-label="Fermer">×</button>`;
     document.body.appendChild(t);
     $annonce.textContent = `Niveau ${apres} !${rangChange ? ` Nouveau rang : ${AV.rang(apres)}.` : ""}${nouveautes.length ? ` Débloqué : ${nouveautes.map((r) => r.nom).join(", ")}.` : ""}`;
     const fermer = () => { t.classList.add("sort"); setTimeout(() => t.remove(), 300); };
@@ -686,25 +692,36 @@
   // Carte résumé : avatar, niveau, rang et barre d'XP (page compte et page avatar)
   function carteProfil(grand) {
     const n = AV.niveau(prog.xp), suiv = AV.prochaine(n.niveau);
-    return `<${grand ? "div" : "a href=\"#avatar\""} class="profil${grand ? " profil-grand" : ""}"><span class="profil-av">${AV.dessin(monAvatar(n.niveau), grand ? 132 : 72, "Ton avatar")}</span>
+    return `<${grand ? "div" : "a href=\"#avatar\""} class="profil${grand ? " profil-grand" : ""}"><span class="profil-av" data-taille="${grand ? 132 : 72}">${AV.dessin(monAvatar(n.niveau), grand ? 132 : 72, "Ton avatar", { moi: true })}</span>
       <span class="profil-t"><span class="eyebrow">Rang ${esc(n.rang)}</span><strong>Niveau ${n.niveau}</strong>
       <span class="barre-xp" role="progressbar" aria-valuemin="0" aria-valuemax="${n.besoin}" aria-valuenow="${n.dans}" aria-label="XP vers le niveau suivant"><span style="width:${Math.round((n.dans / n.besoin) * 100)}%"></span></span>
       <span class="meta">${n.dans} / ${n.besoin} XP · encore ${n.reste} XP pour le niveau ${n.niveau + 1}</span>
-      ${suiv ? `<span class="meta prochaine">Prochaine récompense au niveau ${suiv.niveau} : ${suiv.recompenses.map((r) => esc(r.nom)).join(", ")}</span>` : ""}</span></${grand ? "div" : "a"}>`;
+      ${suiv ? `<span class="meta prochaine">Prochaine récompense au niveau ${suiv.niveau} : ${suiv.recompenses.slice(0, 3).map((r) => esc(r.nom)).join(", ")}${suiv.recompenses.length > 3 ? "…" : ""}</span>` : ""}</span></${grand ? "div" : "a"}>`;
   }
 
-  let catAvatar = "cheveux";
+  // Page « Mon avatar » : carte profil, rangs et éditeur (assets/avatar-studio.js et .css, chargés seulement ici)
+  const CLE_AV_VU = "profmaths:avatar-vu"; // dernier niveau vu dans l'éditeur : ce qui s'est débloqué depuis est marqué « Nouveau »
+  function chargerCss(f) {
+    if (document.querySelector(`link[data-css="${f}"]`)) return Promise.resolve();
+    const base = document.querySelector('link[href*="style.css"]');
+    return new Promise((ok) => {
+      const l = document.createElement("link");
+      l.rel = "stylesheet"; l.dataset.css = f;
+      l.href = base ? base.getAttribute("href").replace("style.css", f) : "assets/" + f;
+      l.onload = l.onerror = ok;
+      document.head.appendChild(l);
+    });
+  }
   function pageAvatar() {
     document.title = "Mon avatar · ProfMaths";
     const n = AV.niveau(prog.xp);
     const rangs = window.NIVEAUX.rangs;
     $app.innerHTML = `<section class="page-avatar"><p class="eyebrow">Mon profil</p><h1>Mon avatar</h1>
-      <p class="lead">Gagne des XP avec les exercices, les QCM et les défis. À chaque niveau, de nouveaux éléments se débloquent pour ton avatar.</p>
+      <p class="lead">Gagne des XP avec les exercices, les QCM et les défis. À chaque niveau, de nouveaux éléments se débloquent : touche ceux qui ont un cadenas pour les essayer.</p>
       <div id="profil">${carteProfil(true)}</div>
       <ol class="rangs" aria-label="Rangs">${rangs.map((r, k) => { const fin = rangs[k + 1] ? rangs[k + 1].des - 1 : null; const ici = n.niveau >= r.des && (fin === null || n.niveau <= fin); return `<li class="${ici ? "ici" : n.niveau > (fin || Infinity) ? "fait" : ""}"><strong>${esc(r.nom)}</strong><span>niv. ${r.des}${fin ? `–${fin}` : " et +"}</span></li>`; }).join("")}</ol>
       <h2>Personnaliser</h2>
-      <div class="cats" role="tablist" aria-label="Parties de l'avatar">${AV.CATEGORIES.map((c) => `<button type="button" role="tab" data-cat="${c.id}" aria-selected="${c.id === catAvatar}">${esc(c.nom)}</button>`).join("")}</div>
-      <div id="options" class="options" role="tabpanel"></div>
+      <div id="studio"><p class="muted">Chargement de l'éditeur…</p></div>
       <details class="regles-xp"><summary>Comment gagner des XP ?</summary>
         <ul><li><strong>Exercices :</strong> jusqu'à ${XP.question} XP par question réussie (moins avec des indices ou des erreurs), comptés au bilan à la fin de la série.</li>
         <li><strong>QCM :</strong> ${XP.bonneReponseQcm} XP par bonne réponse.</li>
@@ -713,30 +730,21 @@
         <li><strong>Défis :</strong> après ${XP.defisPleinTarif} défis dans la journée, ceux sans nouveau record ont leurs ${divise(XP.defiApres)} jusqu'au lendemain.</li>
         <li>Chaque niveau demande un peu plus d'XP que le précédent : ${AV.xpPour(2)} XP pour le niveau 2, ${AV.xpPour(3) - AV.xpPour(2)} de plus pour le niveau 3, et ainsi de suite.</li></ul>
       </details></section>`;
-    $app.querySelectorAll(".cats button").forEach((b) => b.addEventListener("click", () => {
-      catAvatar = b.dataset.cat;
-      $app.querySelectorAll(".cats button").forEach((x) => x.setAttribute("aria-selected", x === b));
-      afficherOptions();
-    }));
-    afficherOptions();
-  }
-  function afficherOptions() {
-    const n = AV.niveau(prog.xp).niveau, av = monAvatar(n);
-    const $o = document.getElementById("options");
-    $o.innerHTML = window.NIVEAUX.avatar[catAvatar].map((e) => {
-      const ok = AV.debloque(e, n), choisi = av[catAvatar] === e.id;
-      const apercu = AV.dessin(Object.assign({}, av, { [catAvatar]: e.id }), 64);
-      return `<button type="button" class="opt-av${ok ? "" : " verrou"}" data-id="${e.id}" aria-pressed="${choisi}"${ok ? "" : " disabled"}>${apercu}<span class="opt-nom">${esc(e.nom)}</span>${ok ? "" : `<span class="opt-niv">🔒 Niveau ${e.niveau}</span>`}</button>`;
-    }).join("");
-    $o.querySelectorAll(".opt-av:not([disabled])").forEach((b) => b.addEventListener("click", () => {
-      prog.avatar = Object.assign(monAvatar(), { [catAvatar]: b.dataset.id, t: Date.now() });
-      save();
-      document.getElementById("profil").innerHTML = carteProfil(true);
-      const choisi = b.dataset.id;
-      afficherOptions();
-      const nb = document.querySelector(`#options [data-id="${choisi}"]`);
-      if (nb) nb.focus();
-    }));
+    const h0 = location.hash;
+    let vu = n.niveau;
+    try { const x = parseInt(localStorage.getItem(CLE_AV_VU), 10); if (x >= 1 && x <= n.niveau) vu = x; localStorage.setItem(CLE_AV_VU, n.niveau); } catch (e) {}
+    Promise.all([AV.pret(), chargerScript("assets/avatar-studio.js"), chargerCss("avatar-studio.css")]).then(() => {
+      if (!memePage(h0)) return;
+      window.PM_STUDIO(document.getElementById("studio"), {
+        niveau: n.niveau, avatar: prog.avatar, tenues: prog.avatar && prog.avatar.tenues, vuJusqua: vu,
+        enregistrer(av, tenues) {
+          prog.avatar = Object.assign(av, { tenues: [0, 1, 2].map((k) => tenues[k] || null), t: Date.now() });
+          save();
+          const p = document.getElementById("profil");
+          if (p) p.innerHTML = carteProfil(true);
+        }
+      });
+    }).catch(() => { if (memePage(h0)) document.getElementById("studio").innerHTML = msgReseau("L'éditeur d'avatar n'a pas pu se charger."); });
   }
 
   /* ---------- Page jeu : « Les Salles », deux versions ----------
