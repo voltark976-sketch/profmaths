@@ -1311,7 +1311,6 @@
       const j = jourISO(new Date(t)), hier = new Date(); hier.setDate(hier.getDate() - 1);
       return j === auj ? "aujourd'hui" : j === jourISO(hier) ? "hier" : new Date(t).toLocaleDateString("fr-FR", { day: "numeric", month: "short" });
     };
-    const parChap = {}; // chapitre -> élèves qui y ont fait un essai sur la période, temps total de la classe
     const lignes = liste.map((x) => {
       const q = x.quand || {}, tj = (x.temps || {}).j || {}, tch = (x.temps || {}).ch || {}, tder = (x.temps || {}).der || {};
       const tPeriode = Object.keys(tj).filter((j) => j >= debutJ).reduce((s, j) => s + (+tj[j] || 0), 0);
@@ -1323,9 +1322,6 @@
       const der = (id) => Math.max(ch[id] || 0, tder[id] ? new Date(tder[id] + "T12:00").getTime() : 0);
       for (const id in tch) if (!(id in ch)) ch[id] = 0;
       const vus = Object.keys(ch).filter((id) => ch[id] >= debut || (tder[id] || "") >= debutJ);
-      const compte = (id) => parChap[id] || (parChap[id] = { eleves: 0, temps: 0 });
-      vus.forEach((id) => { compte(id).eleves++; });
-      for (const id in tch) compte(id).temps += +tch[id] || 0;
       const dernier = x.jamais ? 0 : Math.max(ms(x.vuLe), ms(x.majLe), ...Object.values(q).map((t) => +t || 0));
       const detail = Object.keys(ch).sort((a, b) => der(b) - der(a) || (tch[b] || 0) - (tch[a] || 0)).map((id) => `<li><span>${esc(titres[id] || id)}</span><span>${tch[id] ? duree(tch[id]) : "–"}${der(id) ? ` · ${ch[id] ? "dernier essai" : "vu"} ${quand(ch[id] || der(id))}` : ""}</span></li>`).join("");
       const actif = tPeriode > 0 || vus.length > 0 || dernier >= debut;
@@ -1352,7 +1348,6 @@
         choix: [["<8", "Moins de 8", (l) => l.note < 8], ["8-12", "De 8 à moins de 12", (l) => l.note >= 8 && l.note < 12], ["12-16", "De 12 à moins de 16", (l) => l.note >= 12 && l.note < 16], ["16+", "16 ou plus", (l) => l.note >= 16]] }
     ];
     const detail = (l, i) => (l.detail ? `<tr class="suivi-detail" id="sd-${i}" hidden><td colspan="${cols.length}"><ul>${l.detail}</ul></td></tr>` : "");
-    const chapsClasse = Object.entries(parChap).filter(([, v]) => v.eleves || v.temps).sort((a, b) => b[1].eleves - a[1].eleves || b[1].temps - a[1].temps);
     $app.innerHTML = `<section class="page-suivi"><p class="eyebrow">Compte professeur · <a href="#frequentation">Fréquentation du site</a></p><h1>Suivi des élèves</h1>
       ${choix()}
       <div class="freq-tuiles"><div class="freq-tuile"><b>${actifs}/${liste.length}</b><span>élèves actifs ${periode}</span></div>${infos.avecListe ? `<div class="freq-tuile"><b>${infos.jamais}</b><span>jamais connecté${infos.jamais > 1 ? "s" : ""} au site</span></div>` : ""}<div class="freq-tuile"><b>${tempsClasse ? duree(tempsClasse) : "0 min"}</b><span>temps passé par la classe</span></div><div class="freq-tuile"><b>${actifs && tempsClasse ? duree(tempsClasse / actifs) : "–"}</b><span>par élève actif</span></div></div>
@@ -1360,8 +1355,6 @@
       <p class="muted">Actif = venu sur le site connecté, ou a fait une série ou un QCM, ${periode}. Temps = temps actif sur le site (page ouverte et utilisée, vidéos comprises). Chapitres = chapitres ouverts ou travaillés (série, QCM) sur la période. Touche un nom pour voir le détail par chapitre. XP niveau, Temps niveau et Note ne comptent que les chapitres de ${esc(N.niv ? N.niv.nom : "niveau de la classe")}${N.avecAutos && N.r.autos ? " et les Automatismes" : ""} (formule et réglages dans « Notation » de la liste des chapitres, Excel aussi).${infos.avecListe ? " Les élèves jamais connectés sont en grisé." : " Un élève n'apparaît qu'après sa première connexion (lance « creer-comptes.js --classes » pour voir aussi les autres)."}</p>
       ${notationVide(N) ? `<p class="alerte-notation">${SANS_DONNEES}</p>` : ""}
       ${tableauSuivi(cols, lignes, "suivi-site", detail)}
-      <h2>Chapitres travaillés par la classe</h2>
-      ${chapsClasse.length ? `<div class="scroll-x"><table class="suivi freq-chap"><thead><tr><th>Chapitre</th><th>Élèves (${court})</th><th>Temps total</th></tr></thead><tbody>${chapsClasse.map(([id, v]) => `<tr><th scope="row">${dispo(id) ? `<a href="#${esc(id)}">${esc(titres[id] || id)}</a>` : esc(titres[id] || id)}</th><td>${v.eleves || "·"}</td><td>${v.temps ? duree(v.temps) : "·"}</td></tr>`).join("")}</tbody></table></div>` : `<p class="muted">Rien pour l'instant.</p>`}
       <p class="muted">Le temps passé n'est mesuré que pour un élève connecté à son compte, depuis la mise à jour du site d'octobre 2026. Les élèves ne voient pas ces durées.</p></section>`;
     // Export Excel et réglages de la note (vue « Notation ») aussi depuis cette page
     document.getElementById("n-excel").addEventListener("click", (ev) => exporterNotation([suiviChoix.groupe], ev.currentTarget));
