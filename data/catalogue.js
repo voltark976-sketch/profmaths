@@ -148,6 +148,14 @@ window.CATALOGUE = {
       nom: "6e",
       groupe: "college",
       intro: "Programme de 6e en vigueur depuis la rentrée 2025 (cycle 3) : les 15 chapitres, avec cours, vidéos, exercices corrigés, QCM et fiches méthode.",
+      sujets: {
+        rubrique: "Sujets type devoir commun",
+        code: "DC",
+        intro: "Des sujets complets comme les devoirs communs de 6e, à faire en temps limité : une partie d'automatismes en 20 minutes sans calculatrice, puis des exercices avec calculatrice. Chaque sujet a son corrigé détaillé, en ligne et en PDF à imprimer.",
+        liste: [
+          { id: "sixieme-dc-1", titre: "Devoir commun n° 1", periode: "Milieu d'année : chapitres 1 à 8", duree: "1 h 30", source: "data/sixieme/sujets/devoir-commun-1.js", pdf: { enonce: "sujets/sixieme/devoir-commun-1-enonce.pdf", corrige: "sujets/sixieme/devoir-commun-1-corrige.pdf" }, ko: { enonce: 106, corrige: 144 } }
+        ]
+      },
       chapitres: [
         {
           id: "sixieme-nombres",
@@ -261,6 +269,14 @@ window.CATALOGUE = {
       nom: "5e",
       groupe: "college",
       intro: "Nouveau programme de 5e, en vigueur à la rentrée 2026 (BO n° 10 du 5 mars 2026). Les 18 chapitres, avec cours, vidéos et PDF d'Yvan Monka, exercices corrigés, QCM et fiches méthode.",
+      sujets: {
+        rubrique: "Sujets type devoir commun",
+        code: "DC",
+        intro: "Des sujets complets comme les devoirs communs de 5e, à faire en temps limité : une partie d'automatismes en 20 minutes sans calculatrice, puis des exercices avec calculatrice, comme au brevet. Chaque sujet a son corrigé détaillé, en ligne et en PDF à imprimer.",
+        liste: [
+          { id: "cinquieme-dc-1", titre: "Devoir commun n° 1", periode: "Milieu d'année : chapitres 1 à 9", duree: "1 h 30", source: "data/cinquieme/sujets/devoir-commun-1.js", pdf: { enonce: "sujets/cinquieme/devoir-commun-1-enonce.pdf", corrige: "sujets/cinquieme/devoir-commun-1-corrige.pdf" }, ko: { enonce: 114, corrige: 155 } }
+        ]
+      },
       chapitres: [
         {
           id: "cinquieme-calcul",
@@ -395,6 +411,14 @@ window.CATALOGUE = {
       nom: "4e",
       groupe: "college",
       intro: "Programme de 4e en vigueur en 2026-2027 (cycle 4, programme de 2020), en 15 chapitres ; les vidéos et les cours PDF sont ceux d'Yvan Monka.",
+      sujets: {
+        rubrique: "Sujets type devoir commun",
+        code: "DC",
+        intro: "Des sujets complets comme les devoirs communs de 4e, à faire en temps limité : une partie d'automatismes en 20 minutes sans calculatrice, puis des exercices avec calculatrice, comme au brevet. Chaque sujet a son corrigé détaillé, en ligne et en PDF à imprimer.",
+        liste: [
+          { id: "quatrieme-dc-1", titre: "Devoir commun n° 1", periode: "Milieu d'année : chapitres 1 à 8", duree: "1 h 30", source: "data/quatrieme/sujets/devoir-commun-1.js", pdf: { enonce: "sujets/quatrieme/devoir-commun-1-enonce.pdf", corrige: "sujets/quatrieme/devoir-commun-1-corrige.pdf" }, ko: { enonce: 117, corrige: 158 } }
+        ]
+      },
       chapitres: [
         {
           id: "quatrieme-divisibilite",
@@ -511,7 +535,7 @@ window.CATALOGUE = {
       sujets: {
         rubrique: "Sujets type brevet",
         code: "DNB",
-        intro: "Des sujets complets au format de l'épreuve de mathématiques du brevet depuis 2026 : deux heures, une partie d'automatismes en 20 minutes sans calculatrice, puis des exercices de raisonnement avec calculatrice. Chaque sujet a son corrigé détaillé, en ligne et en PDF à imprimer. Pour les sujets officiels, l'énoncé s'ouvre sur le site du ministère.",
+        intro: "Des sujets complets au format de l'épreuve de mathématiques du brevet depuis 2026 : deux heures, une partie d'automatismes en 20 minutes sans calculatrice, puis des exercices de raisonnement avec calculatrice. Chaque sujet a son corrigé détaillé, en ligne et en PDF à imprimer. Pour les sujets officiels, l'énoncé s'ouvre sur le site d'origine.",
         liste: [
           { id: "troisieme-brevet-1", titre: "Sujet type brevet n° 1", periode: "Programme de 3e, format du brevet depuis 2026", duree: "2 heures", source: "data/troisieme/sujets/sujet-type-brevet-1.js", pdf: { enonce: "sujets/troisieme/sujet-type-brevet-1-enonce.pdf", corrige: "sujets/troisieme/sujet-type-brevet-1-corrige.pdf" }, ko: { enonce: 145, corrige: 208 } },
           { id: "troisieme-dnb-metropole-2026", titre: "Brevet du 30 juin 2026 (sujet officiel)", officiel: { url: "https://www.apmep.fr/IMG/pdf/DNB_generale_Sujet_2026-06-30_Metropole_FK-v2.pdf", source: "APMEP", ko: 48 }, periode: "Métropole, La Réunion et Mayotte : le sujet passé à Mayotte, énoncé recomposé par l'APMEP, corrigé ProfMaths", duree: "2 heures", source: "data/troisieme/sujets/metropole-2026.js", pdf: { corrige: "sujets/troisieme/metropole-2026-corrige.pdf" }, ko: { corrige: 204 } },
