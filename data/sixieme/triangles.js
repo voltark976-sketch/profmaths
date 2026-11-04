@@ -62,14 +62,14 @@ window.CHAPITRES["sixieme-triangles"] = {
       titre: "La somme des angles d'un triangle",
       video: { titre: "Vidéo d'Yvan Monka : appliquer la règle des 180° dans le triangle", youtube: "https://youtu.be/S1vCp-O7fbw" },
       texte:
-        "Dans **tout** triangle, la somme des mesures des trois angles est égale à **$180$°**.\n\n" +
-        "Si l'on connaît deux angles, on trouve le troisième : $180$° moins les deux autres.\n\n" +
-        "Sur la figure : $\\widehat{ACB} = 180 - 62 - 37 = 81$°.\n\n" +
+        "Dans **tout** triangle, la somme des mesures des trois angles est égale à **$180^\\circ$**.\n\n" +
+        "Si l'on connaît deux angles, on trouve le troisième : $180^\\circ$ moins les deux autres.\n\n" +
+        "Sur la figure : $\\widehat{ACB} = 180 - 62 - 37 = 81^\\circ$.\n\n" +
         "On peut le vérifier en découpant les trois coins d'un triangle en papier : mis côte à côte, ils forment un angle plat.",
       figure: "tg6-somme",
       exemple: {
-        enonce: "Un triangle peut-il avoir des angles de $70$°, $60$° et $40$° ?",
-        solution: "$70 + 60 + 40 = 170$ : ce n'est pas $180$°, un tel triangle n'existe pas."
+        enonce: "Un triangle peut-il avoir des angles de $70^\\circ$, $60^\\circ$ et $40^\\circ$ ?",
+        solution: "$70 + 60 + 40 = 170$ : ce n'est pas $180^\\circ$, un tel triangle n'existe pas."
       }
     },
     {
@@ -77,13 +77,13 @@ window.CHAPITRES["sixieme-triangles"] = {
       video: { titre: "Vidéo d'Yvan Monka : calculer un angle dans un triangle", youtube: "https://youtu.be/x0UA6kbiDcM" },
       texte:
         "- Dans un triangle **isocèle**, les deux **angles à la base** ont la même mesure.\n" +
-        "- Dans un triangle **équilatéral**, les trois angles mesurent **$60$°** ($180 \\div 3$).\n" +
-        "- Dans un triangle **rectangle**, les deux autres angles ont une somme de **$90$°** ($180 - 90$).\n\n" +
-        "Sur la figure, $ABC$ est équilatéral : ses trois angles mesurent $60$°. Dans le triangle isocèle de la partie 2, $\\widehat{ABC} = \\widehat{ACB} = 55$°, et $\\widehat{BAC} = 180 - 2 \\times 55 = 70$°.",
+        "- Dans un triangle **équilatéral**, les trois angles mesurent **$60^\\circ$** ($180 \\div 3$).\n" +
+        "- Dans un triangle **rectangle**, les deux autres angles ont une somme de **$90^\\circ$** ($180 - 90$).\n\n" +
+        "Sur la figure, $ABC$ est équilatéral : ses trois angles mesurent $60^\\circ$. Dans le triangle isocèle de la partie 2, $\\widehat{ABC} = \\widehat{ACB} = 55^\\circ$, et $\\widehat{BAC} = 180 - 2 \\times 55 = 70^\\circ$.",
       figure: "tg6-cours-particuliers",
       exemple: {
-        enonce: "$DEF$ est isocèle en $D$ et $\\widehat{EDF} = 50$°. Combien mesurent les angles à la base ?",
-        solution: "Il reste $180 - 50 = 130$° pour deux angles égaux : $130 \\div 2 = 65$°. Donc $\\widehat{DEF} = \\widehat{DFE} = 65$°."
+        enonce: "$DEF$ est isocèle en $D$ et $\\widehat{EDF} = 50^\\circ$. Combien mesurent les angles à la base ?",
+        solution: "Il reste $180 - 50 = 130^\\circ$ pour deux angles égaux : $130 \\div 2 = 65^\\circ$. Donc $\\widehat{DEF} = \\widehat{DFE} = 65^\\circ$."
       }
     },
     {
@@ -126,23 +126,23 @@ window.CHAPITRES["sixieme-triangles"] = {
     { question: "Sur la figure, le triangle $ABC$ est :", figure: "tg6-isocele", choix: ["isocèle en $A$", "équilatéral", "rectangle en $A$", "isocèle en $B$"], bonne: 0, explication: "Le codage indique $AB = AC$ : isocèle de sommet principal $A$." },
     { question: "Peut-on construire un triangle de côtés $3$ cm, $4$ cm et $8$ cm ?", choix: ["Non, car $3 + 4 < 8$", "Oui, toujours", "Oui, car $8 = 2 \\times 4$", "Non, car les côtés sont différents"], bonne: 0, explication: "Le plus grand côté est plus long que la somme des deux autres : les arcs ne se coupent pas." },
     { question: "Avec des côtés de $3$ cm, $5$ cm et $8$ cm, on obtient :", choix: ["trois points alignés", "un triangle rectangle", "un triangle isocèle", "un triangle équilatéral"], bonne: 0, explication: "$3 + 5 = 8$ : le triangle est « aplati »." },
-    { question: "La somme des angles d'un triangle est :", choix: ["$180$°", "$360$°", "$90$°", "elle dépend du triangle"], bonne: 0, explication: "C'est vrai pour tous les triangles." },
-    { question: "Sur la figure, $\\widehat{ACB}$ mesure :", figure: "tg6-somme", choix: ["$81$°", "$99$°", "$261$°", "$71$°"], bonne: 0, explication: "$180 - 62 - 37 = 81$°." },
-    { question: "Un triangle peut-il avoir des angles de $70$°, $60$° et $40$° ?", choix: ["Non, car la somme fait $170$°", "Oui", "Oui, s'il est rectangle", "Non, car ils sont tous aigus"], bonne: 0, explication: "La somme doit faire $180$°." },
-    { question: "Chaque angle d'un triangle équilatéral mesure :", choix: ["$60$°", "$90$°", "$45$°", "$120$°"], bonne: 0, explication: "$180 \\div 3 = 60$." },
-    { question: "$ABC$ est rectangle en $A$ et $\\widehat{ABC} = 35$°. Alors $\\widehat{ACB} = $", choix: ["$55$°", "$145$°", "$35$°", "$65$°"], bonne: 0, explication: "$180 - 90 - 35 = 55$°." },
-    { question: "$DEF$ est isocèle en $D$ et $\\widehat{EDF} = 50$°. Les angles à la base mesurent :", choix: ["$65$°", "$130$°", "$50$°", "$40$°"], bonne: 0, explication: "$(180 - 50) \\div 2 = 65$°." },
-    { question: "$ABC$ est isocèle en $A$ et $\\widehat{ABC} = 70$°. Alors $\\widehat{BAC} = $", choix: ["$40$°", "$70$°", "$110$°", "$55$°"], bonne: 0, explication: "Les angles à la base mesurent $70$° chacun : $180 - 140 = 40$°." },
+    { question: "La somme des angles d'un triangle est :", choix: ["$180^\\circ$", "$360^\\circ$", "$90^\\circ$", "elle dépend du triangle"], bonne: 0, explication: "C'est vrai pour tous les triangles." },
+    { question: "Sur la figure, $\\widehat{ACB}$ mesure :", figure: "tg6-somme", choix: ["$81^\\circ$", "$99^\\circ$", "$261^\\circ$", "$71^\\circ$"], bonne: 0, explication: "$180 - 62 - 37 = 81^\\circ$." },
+    { question: "Un triangle peut-il avoir des angles de $70^\\circ$, $60^\\circ$ et $40^\\circ$ ?", choix: ["Non, car la somme fait $170^\\circ$", "Oui", "Oui, s'il est rectangle", "Non, car ils sont tous aigus"], bonne: 0, explication: "La somme doit faire $180^\\circ$." },
+    { question: "Chaque angle d'un triangle équilatéral mesure :", choix: ["$60^\\circ$", "$90^\\circ$", "$45^\\circ$", "$120^\\circ$"], bonne: 0, explication: "$180 \\div 3 = 60$." },
+    { question: "$ABC$ est rectangle en $A$ et $\\widehat{ABC} = 35^\\circ$. Alors $\\widehat{ACB} = $", choix: ["$55^\\circ$", "$145^\\circ$", "$35^\\circ$", "$65^\\circ$"], bonne: 0, explication: "$180 - 90 - 35 = 55^\\circ$." },
+    { question: "$DEF$ est isocèle en $D$ et $\\widehat{EDF} = 50^\\circ$. Les angles à la base mesurent :", choix: ["$65^\\circ$", "$130^\\circ$", "$50^\\circ$", "$40^\\circ$"], bonne: 0, explication: "$(180 - 50) \\div 2 = 65^\\circ$." },
+    { question: "$ABC$ est isocèle en $A$ et $\\widehat{ABC} = 70^\\circ$. Alors $\\widehat{BAC} = $", choix: ["$40^\\circ$", "$70^\\circ$", "$110^\\circ$", "$55^\\circ$"], bonne: 0, explication: "Les angles à la base mesurent $70^\\circ$ chacun : $180 - 140 = 40^\\circ$." },
     { question: "Dans un triangle rectangle, le côté opposé à l'angle droit s'appelle :", choix: ["l'hypoténuse", "la base", "la médiatrice", "le sommet principal"], bonne: 0, explication: "C'est le plus long côté du triangle rectangle." },
     { question: "Les trois médiatrices d'un triangle :", choix: ["se coupent en un même point", "sont parallèles", "passent par les sommets", "ne se coupent jamais"], bonne: 0, explication: "Elles sont concourantes : leur point commun est le centre du cercle circonscrit." },
     { question: "Le cercle circonscrit à un triangle :", choix: ["passe par ses trois sommets", "touche ses trois côtés à l'intérieur", "a pour diamètre le plus grand côté", "a pour centre un sommet"], bonne: 0, explication: "« Circonscrit » : qui entoure le triangle en passant par ses sommets." },
     { question: "$O$ est le centre du cercle circonscrit à $ABC$ et $OA = 3{,}5$ cm. Alors $OC = $", choix: ["$3{,}5$ cm", "$7$ cm", "$1{,}75$ cm", "on ne peut pas savoir"], bonne: 0, explication: "$[OA]$ et $[OC]$ sont deux rayons du même cercle." },
     { question: "Le triangle $ABC$ est rectangle en $C$. Où se trouve le centre $O$ de son cercle circonscrit ?", figure: "tg6-qcm-rectangle", choix: ["Au milieu de l'hypoténuse $[AB]$", "Au sommet $C$", "À l'extérieur du triangle", "Au milieu de $[AC]$"], bonne: 0, explication: "Pour un triangle rectangle, le centre du cercle circonscrit est le milieu de l'hypoténuse : $[AB]$ est un diamètre du cercle." },
     { question: "D'après le codage, le triangle $DEF$ est :", figure: "tg6-qcm-equi", choix: ["équilatéral", "rectangle", "isocèle seulement en $D$", "quelconque"], bonne: 0, explication: "Les trois côtés portent le même codage : ils ont la même longueur, le triangle est équilatéral." },
-    { question: "Le triangle $ABC$ est isocèle en $A$. Combien mesure l'angle marqué « ? » ?", figure: "tg6-qcm-isocele", choix: ["$70$°", "$140$°", "$40$°", "$20$°"], bonne: 0, explication: "Il reste $180 - 40 = 140$° pour les deux angles à la base, égaux : $140 \\div 2 = 70$°." },
+    { question: "Le triangle $ABC$ est isocèle en $A$. Combien mesure l'angle marqué « ? » ?", figure: "tg6-qcm-isocele", choix: ["$70^\\circ$", "$140^\\circ$", "$40^\\circ$", "$20^\\circ$"], bonne: 0, explication: "Il reste $180 - 40 = 140^\\circ$ pour les deux angles à la base, égaux : $140 \\div 2 = 70^\\circ$." },
     { question: "On essaie de construire au compas un triangle de côtés $8$ cm, $4$ cm et $3$ cm. Que montre la figure ?", figure: "tg6-qcm-arcs", choix: ["Les arcs ne se coupent pas : ce triangle n'existe pas", "Les arcs se coupent en deux points", "Le triangle est rectangle", "Il faut prendre un plus grand compas"], bonne: 0, explication: "$4 + 3 = 7 < 8$ : les deux autres côtés sont trop courts, les arcs ne se rencontrent pas." },
-    { question: "Ces trois angles peuvent-ils être les angles d'un même triangle ?", figure: "tg6-qcm-angles", choix: ["Non, car $50 + 60 + 80 = 190$°", "Oui, car ils sont tous aigus", "Oui, car $50 + 60 = 110$°", "On ne peut pas savoir"], bonne: 0, explication: "La somme des angles d'un triangle doit faire $180$° ; ici elle fait $190$°." },
-    { question: "Dans un triangle rectangle isocèle, chacun des deux angles aigus mesure :", choix: ["$45$°", "$60$°", "$90$°", "$30$°"], bonne: 0, explication: "Ils sont égaux et font $180 - 90 = 90$° à eux deux : $90 \\div 2 = 45$°." }
+    { question: "Ces trois angles peuvent-ils être les angles d'un même triangle ?", figure: "tg6-qcm-angles", choix: ["Non, car $50 + 60 + 80 = 190^\\circ$", "Oui, car ils sont tous aigus", "Oui, car $50 + 60 = 110^\\circ$", "On ne peut pas savoir"], bonne: 0, explication: "La somme des angles d'un triangle doit faire $180^\\circ$ ; ici elle fait $190^\\circ$." },
+    { question: "Dans un triangle rectangle isocèle, chacun des deux angles aigus mesure :", choix: ["$45^\\circ$", "$60^\\circ$", "$90^\\circ$", "$30^\\circ$"], bonne: 0, explication: "Ils sont égaux et font $180 - 90 = 90^\\circ$ à eux deux : $90 \\div 2 = 45^\\circ$." }
   ],
 
   /* ---------- 4. FICHE MÉTHODE ---------- */
@@ -161,11 +161,11 @@ window.CHAPITRES["sixieme-triangles"] = {
       titre: "Calculer un angle dans un triangle",
       etapes: [
         "Écris ce que tu sais : angles donnés, angle droit, triangle isocèle ou équilatéral.",
-        "Utilise la règle : la somme des trois angles fait $180$°.",
-        "Isocèle : les angles à la base sont égaux. Rectangle : les deux autres font $90$° à eux deux."
+        "Utilise la règle : la somme des trois angles fait $180^\\circ$.",
+        "Isocèle : les angles à la base sont égaux. Rectangle : les deux autres font $90^\\circ$ à eux deux."
       ],
       figure: "tg6-somme",
-      exemple: "Isocèle en $A$ avec $\\widehat{A} = 40$° : $(180 - 40) \\div 2 = 70$° pour chaque angle à la base."
+      exemple: "Isocèle en $A$ avec $\\widehat{A} = 40^\\circ$ : $(180 - 40) \\div 2 = 70^\\circ$ pour chaque angle à la base."
     },
     {
       titre: "Tracer le cercle circonscrit",
@@ -181,8 +181,8 @@ window.CHAPITRES["sixieme-triangles"] = {
   erreurs: [
     "Construire un triangle sans vérifier que les longueurs le permettent.",
     "Se fier à la figure plutôt qu'au codage pour dire qu'un triangle est isocèle ou rectangle.",
-    "Utiliser $360$° au lieu de $180$° pour la somme des angles d'un triangle.",
-    "Oublier l'angle droit ($90$°) dans un triangle rectangle.",
+    "Utiliser $360^\\circ$ au lieu de $180^\\circ$ pour la somme des angles d'un triangle.",
+    "Oublier l'angle droit ($90^\\circ$) dans un triangle rectangle.",
     "Dans un triangle isocèle, prendre l'angle au sommet pour un angle à la base.",
     "Croire que le centre du cercle circonscrit est toujours à l'intérieur du triangle."
   ]

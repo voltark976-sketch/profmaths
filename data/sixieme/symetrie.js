@@ -65,8 +65,8 @@ window.CHAPITRES["sixieme-symetrie"] = {
         "Pour construire le symétrique d'un polygone, il suffit de construire les symétriques de ses sommets, puis de les relier.",
       figure: "sx6-cours-proprietes",
       exemple: {
-        enonce: "$A'B'C'$ est le symétrique du triangle $ABC$. On sait que $AB = 4{,}2$ cm et $\\widehat{ABC} = 47$°. Que vaut $A'B'$ ? Et $\\widehat{A'B'C'}$ ?",
-        solution: "La symétrie conserve les longueurs et les angles : $A'B' = 4{,}2$ cm et $\\widehat{A'B'C'} = 47$°."
+        enonce: "$A'B'C'$ est le symétrique du triangle $ABC$. On sait que $AB = 4{,}2$ cm et $\\widehat{ABC} = 47^\\circ$. Que vaut $A'B'$ ? Et $\\widehat{A'B'C'}$ ?",
+        solution: "La symétrie conserve les longueurs et les angles : $A'B' = 4{,}2$ cm et $\\widehat{A'B'C'} = 47^\\circ$."
       }
     },
     {
@@ -113,7 +113,7 @@ window.CHAPITRES["sixieme-symetrie"] = {
     { question: "La symétrie axiale conserve :", choix: ["les longueurs et les angles", "seulement les longueurs", "seulement les angles", "ni les longueurs ni les angles"], bonne: 0, explication: "C'est un « pliage » : rien n'est déformé." },
     { question: "Le symétrique d'un segment de $5$ cm est :", choix: ["un segment de $5$ cm", "un segment de $10$ cm", "une droite", "un point"], bonne: 0, explication: "Les longueurs sont conservées." },
     { question: "Le symétrique d'un cercle de rayon $3$ cm est :", choix: ["un cercle de rayon $3$ cm", "un cercle de rayon $6$ cm", "un disque de rayon $1{,}5$ cm", "une droite"], bonne: 0, explication: "Son centre est le symétrique du centre, et le rayon ne change pas." },
-    { question: "Le symétrique d'un angle de $47$° mesure :", choix: ["$47$°", "$133$°", "$94$°", "$23{,}5$°"], bonne: 0, explication: "Les angles sont conservés." },
+    { question: "Le symétrique d'un angle de $47^\\circ$ mesure :", choix: ["$47^\\circ$", "$133^\\circ$", "$94^\\circ$", "$23{,}5^\\circ$"], bonne: 0, explication: "Les angles sont conservés." },
     { question: "Combien d'axes de symétrie a un carré ?", choix: ["$4$", "$2$", "$1$", "une infinité"], bonne: 0, explication: "Ses deux diagonales et les deux médiatrices de ses côtés." },
     { question: "Combien d'axes de symétrie a un rectangle (non carré) ?", figure: "sx6-rectangle", choix: ["$2$", "$4$", "$1$", "$0$"], bonne: 0, explication: "Les médiatrices des côtés ; les diagonales ne sont pas des axes." },
     { question: "Combien d'axes de symétrie a un triangle équilatéral ?", choix: ["$3$", "$1$", "$0$", "$6$"], bonne: 0, explication: "Les trois médiatrices de ses côtés." },
