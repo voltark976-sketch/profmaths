@@ -42,7 +42,7 @@ window.CHAPITRES["techno-second-degre"] = {
     {
       titre: "Trouver l'axe de symétrie sans formule",
       figure: "yp-cours-factorisee",
-      video: { titre: "Vidéo de ton prof : lire une forme canonique, sommet et extremum (exercice corrigé)", youtube: "https://youtu.be/bd8ZITKW6hs" },
+      video: { titre: "Vidéo de ton prof : lire une forme canonique, sommet et extremum (exercice corrigé)", youtube: "https://youtu.be/lkXbR7pNnLY" },
       texte:
         "Aucune formule n'est attendue pour le sommet : on utilise la **symétrie**.\n\n" +
         "- Avec deux points de même ordonnée : l'axe passe au milieu. Pour $f(x) = ax^2 + bx + c$, on résout $f(x) = c$ : $ax^2 + bx = x(ax + b) = 0$ donne $x = 0$ et $x = -\\dfrac{b}{a}$ ; l'axe est au milieu, $x = -\\dfrac{b}{2a}$.\n" +
@@ -55,7 +55,7 @@ window.CHAPITRES["techno-second-degre"] = {
     },
     {
       titre: "Forme factorisée : racines",
-      video: { titre: "Vidéo de ton prof : second degré, forme factorisée (cours complet)", youtube: "https://youtu.be/p4GJqFX6bMk" },
+      video: { titre: "Vidéo de ton prof : second degré, forme factorisée (cours complet)", youtube: "https://youtu.be/937bg7PGld0" },
       texte:
         "Une **racine** de $f$ est un nombre $x$ tel que $f(x) = 0$ : c'est l'abscisse d'un point où la parabole coupe l'axe des abscisses. Pour **vérifier** qu'une valeur est racine, on calcule son image : $2$ est racine de $x^2 - 3x + 2$ car $4 - 6 + 2 = 0$.\n\n" +
         "Quand $f$ est donnée sous **forme factorisée** $f(x) = a(x - x_1)(x - x_2)$, ses racines sont $x_1$ et $x_2$ (produit nul). Réciproquement, si on connaît les racines et $a$, on peut écrire cette forme : une parabole qui coupe l'axe en $-1$ et $4$ avec $a = 2$ est $f(x) = 2(x + 1)(x - 4)$.\n\n" +
@@ -69,7 +69,7 @@ window.CHAPITRES["techno-second-degre"] = {
     {
       titre: "Forme factorisée : signe",
       figure: "yp-cours-signe",
-      video: { titre: "Vidéo de ton prof : signe d'une forme factorisée et inéquations (exercice corrigé)", youtube: "https://youtu.be/xpcwo2134yI" },
+      video: { titre: "Vidéo de ton prof : signe d'une forme factorisée et inéquations (exercice corrigé)", youtube: "https://youtu.be/mm9DG45TIg4" },
       texte:
         "Pour $f(x) = a(x - x_1)(x - x_2)$ avec $x_1 < x_2$, le **tableau de signes** donne :\n\n" +
         "- **du signe de $a$ à l'extérieur** des racines (pour $x < x_1$ ou $x > x_2$) ;\n" +

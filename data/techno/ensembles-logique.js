@@ -108,7 +108,7 @@ window.CHAPITRES["techno-ensembles-logique"] = {
     },
     {
       titre: "Identité ou équation ? Le statut des lettres",
-      video: { titre: "Vidéo de ton prof : identité ou équation, paramètre m (exercice corrigé)", youtube: "https://youtu.be/tpadBfbxTt0" },
+      video: { titre: "Vidéo de ton prof : identité ou équation, paramètre m (exercice corrigé)", youtube: "https://youtu.be/Be5bAeUQH6Y" },
       texte:
         "Une égalité avec des lettres peut être :\n\n" +
         "- une **identité**, vraie pour toutes les valeurs : $(x + 1)^2 = x^2 + 2x + 1$. Les lettres sont des **indéterminées** ;\n" +

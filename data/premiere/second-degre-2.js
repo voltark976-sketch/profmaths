@@ -40,7 +40,7 @@ window.CHAPITRES["premiere-second-degre-2"] = {
     {
       titre: "Forme canonique : sommet et extremum",
       figure: "parabole-canonique",
-      video: { titre: "Vidéo de ton prof : lire une forme canonique, sommet et extremum (exercice corrigé)", youtube: "https://youtu.be/bd8ZITKW6hs" },
+      video: { titre: "Vidéo de ton prof : lire une forme canonique, sommet et extremum (exercice corrigé)", youtube: "https://youtu.be/lkXbR7pNnLY" },
       texte:
         "Toute fonction polynôme du second degré $f(x) = ax^2 + bx + c$ (avec $a \\neq 0$) peut s'écrire sous **forme canonique** :\n\n" +
         "$f(x) = a(x - \\alpha)^2 + \\beta$.\n\n" +
@@ -73,7 +73,7 @@ window.CHAPITRES["premiere-second-degre-2"] = {
     },
     {
       titre: "Forme canonique avec $\\alpha$ et $\\beta$",
-      video: { titre: "Vidéo de ton prof : trouver la forme canonique avec α et β (exercice corrigé)", youtube: "https://youtu.be/27CXhoSxvV8" },
+      video: { titre: "Vidéo de ton prof : trouver la forme canonique avec α et β (exercice corrigé)", youtube: "https://youtu.be/lhUEQk5RA6Q" },
       texte:
         "Autre méthode, valable pour tout trinôme $ax^2 + bx + c$ :\n\n" +
         "$\\alpha = -\\dfrac{b}{2a}$ puis $\\beta = f(\\alpha)$.\n\n" +
@@ -89,7 +89,7 @@ window.CHAPITRES["premiere-second-degre-2"] = {
     {
       titre: "Utiliser la forme canonique : minimum et équation",
       figure: "carre-niveaux",
-      video: { titre: "Vidéo de ton prof : forme canonique, minimum et f(x) = 0 (exercice corrigé)", youtube: "https://youtu.be/EG8NR8NU8w4" },
+      video: { titre: "Vidéo de ton prof : forme canonique, minimum et f(x) = 0 (exercice corrigé)", youtube: "https://youtu.be/_nNtu1B7V3c" },
       texte:
         "La forme canonique permet de résoudre $f(x) = 0$ en **isolant le carré** :\n\n" +
         "$a(x - \\alpha)^2 + \\beta = 0 \\iff (x - \\alpha)^2 = -\\dfrac{\\beta}{a}$.\n\n" +
@@ -171,7 +171,7 @@ window.CHAPITRES["premiere-second-degre-2"] = {
     {
       titre: "Choisir la forme adaptée",
       figure: "sd-cours-formes",
-      video: { titre: "Vidéo de ton prof : développée, canonique ou factorisée ? (exercice corrigé)", youtube: "https://youtu.be/um5vzSymAr4" },
+      video: { titre: "Vidéo de ton prof : développée, canonique ou factorisée ? (exercice corrigé)", youtube: "https://youtu.be/XDdZ5cXWNrg" },
       texte:
         "Une même fonction peut s'écrire de trois façons. On choisit la plus pratique selon la question :\n\n" +
         "- **développée** $ax^2 + bx + c$ : $f(0) = c$, des images, l'équation $f(x) = c$ ;\n" +
@@ -226,10 +226,10 @@ window.CHAPITRES["premiere-second-degre-2"] = {
   ],
 
   videos: [
-    { titre: "Exercice 5 · Forme canonique : minimum et f(x) = 0", type: "Découverte", youtube: "https://youtu.be/EG8NR8NU8w4" },
-    { titre: "Exercice 6 · Lire une forme canonique : sommet et extremum", type: "Application", youtube: "https://youtu.be/bd8ZITKW6hs" },
-    { titre: "Exercice 7 · Trouver la forme canonique avec α et β", type: "Méthode", youtube: "https://youtu.be/27CXhoSxvV8" },
-    { titre: "Exercice 8 · Développée, canonique ou factorisée ?", type: "Synthèse", youtube: "https://youtu.be/um5vzSymAr4" }
+    { titre: "Exercice 5 · Forme canonique : minimum et f(x) = 0", type: "Découverte", youtube: "https://youtu.be/_nNtu1B7V3c" },
+    { titre: "Exercice 6 · Lire une forme canonique : sommet et extremum", type: "Application", youtube: "https://youtu.be/lkXbR7pNnLY" },
+    { titre: "Exercice 7 · Trouver la forme canonique avec α et β", type: "Méthode", youtube: "https://youtu.be/lhUEQk5RA6Q" },
+    { titre: "Exercice 8 · Développée, canonique ou factorisée ?", type: "Synthèse", youtube: "https://youtu.be/XDdZ5cXWNrg" }
   ],
   videosNote: "Énoncés dans le livret élève ci-dessus (exercices 5 à 8).",
 
