@@ -21,7 +21,7 @@ window.CHAPITRES["techno-ensembles-logique"] = {
     {
       titre: "Élément, sous-ensemble, ensemble vide",
       figure: "ye-cours-ensembles",
-      video: { titre: "Vidéo de ton prof : ensembles de nombres et intervalles (cours de Seconde, 1/2)", youtube: "https://youtu.be/_O22jCGJLds" },
+      video: { titre: "Vidéo de ton prof : ensembles de nombres et intervalles (cours de Seconde, 1/2)", youtube: "https://youtu.be/lYnbWZ8m-mQ" },
       texte:
         "Un **ensemble** est une collection d'objets, ses **éléments**. On l'écrit entre accolades : $A = \\{2\\,;4\\,;6\\,;8\\}$.\n\n" +
         "- $4 \\in A$ : « $4$ **appartient** à $A$ » ; $5 \\notin A$ : « $5$ n'appartient pas à $A$ ».\n" +
@@ -37,7 +37,7 @@ window.CHAPITRES["techno-ensembles-logique"] = {
     {
       titre: "Les intervalles",
       figure: "ye-cours-intervalles",
-      video: { titre: "Vidéo de ton prof : inégalités et intervalles (exercice corrigé)", youtube: "https://youtu.be/u-z2yEgnBmI" },
+      video: { titre: "Vidéo de ton prof : inégalités et intervalles (exercice corrigé)", youtube: "https://youtu.be/8j4VRRDNNoE" },
       texte:
         "Un **intervalle** est un ensemble de réels « d'un seul tenant ». Le crochet dit si la borne est comprise :\n\n" +
         "- $[a\\,;b]$ : $a \\leqslant x \\leqslant b$ (bornes comprises) ; $]a\\,;b[$ : $a < x < b$ (bornes exclues).\n" +
@@ -51,7 +51,7 @@ window.CHAPITRES["techno-ensembles-logique"] = {
     {
       titre: "Intersection, réunion, complémentaire",
       figure: "ye-cours-venn",
-      video: { titre: "Vidéo de ton prof : intersection et réunion, les horaires du dispensaire", youtube: "https://youtu.be/Ov8R007Q9Eg" },
+      video: { titre: "Vidéo de ton prof : intersection et réunion, les horaires du dispensaire", youtube: "https://youtu.be/fCpB2PjxlpY" },
       texte:
         "Pour deux sous-ensembles $A$ et $B$ d'un ensemble $E$ :\n\n" +
         "- $A \\cap B$ (**intersection**, « $A$ inter $B$ ») : les éléments qui sont dans $A$ **et** dans $B$.\n" +

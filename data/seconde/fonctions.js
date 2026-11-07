@@ -41,7 +41,7 @@ window.CHAPITRES["seconde-fonctions"] = {
   cours: [
     {
       titre: "Qu'est-ce qu'une fonction ?",
-      video: { titre: "Vidéo de ton prof : généralités sur les fonctions, cours complet", youtube: "https://youtu.be/FYTU8j_1Nxg" },
+      video: { titre: "Vidéo de ton prof : généralités sur les fonctions, cours complet", youtube: "https://youtu.be/ZnIiTKahzkk" },
       texte:
         "Une **fonction** $f$ associe à chaque nombre $x$ de son ensemble de définition un **unique** nombre, noté $f(x)$.\n\n" +
         "- $f(x)$ est l'**image** de $x$ par $f$.\n" +
@@ -55,7 +55,7 @@ window.CHAPITRES["seconde-fonctions"] = {
     },
     {
       titre: "L'ensemble de définition",
-      video: { titre: "Vidéo de ton prof : valeur interdite, image et antécédent", youtube: "https://youtu.be/kDgEr5qJj0Q" },
+      video: { titre: "Vidéo de ton prof : valeur interdite, image et antécédent", youtube: "https://youtu.be/9yAkzXR7UBk" },
       texte:
         "L'**ensemble de définition** $D$ de $f$ regroupe tous les nombres $x$ qui ont une image.\n\n" +
         "- Un quotient n'existe que si son **dénominateur est non nul**.\n" +
@@ -86,7 +86,7 @@ window.CHAPITRES["seconde-fonctions"] = {
     },
     {
       titre: "La courbe représentative",
-      video: { titre: "Vidéo de ton prof : généralités sur les fonctions, cours complet", youtube: "https://youtu.be/FYTU8j_1Nxg" },
+      video: { titre: "Vidéo de ton prof : généralités sur les fonctions, cours complet", youtube: "https://youtu.be/ZnIiTKahzkk" },
       texte:
         "La **courbe** $\\mathcal{C}_f$ est l'ensemble des points $M(x\\,;f(x))$ avec $x \\in D$.\n\n" +
         "Un point $M(a\\,;b)$ appartient à $\\mathcal{C}_f$ si et seulement si $a \\in D$ **et** $f(a) = b$.\n\n" +
@@ -112,7 +112,7 @@ window.CHAPITRES["seconde-fonctions"] = {
     },
     {
       titre: "Résoudre graphiquement une équation ou une inéquation",
-      video: { titre: "Vidéo de ton prof : résoudre graphiquement équations et inéquations", youtube: "https://youtu.be/M1WsNoPcego" },
+      video: { titre: "Vidéo de ton prof : résoudre graphiquement équations et inéquations", youtube: "https://youtu.be/b3LlFIHppX4" },
       texte:
         "- $f(x) = k$ : abscisses des points de $\\mathcal{C}_f$ situés **sur** la droite $y = k$.\n" +
         "- $f(x) > k$ : abscisses des points de $\\mathcal{C}_f$ situés **strictement au-dessus** de $y = k$.\n" +
@@ -145,7 +145,7 @@ window.CHAPITRES["seconde-fonctions"] = {
     },
     {
       titre: "Modéliser une situation par une fonction",
-      video: { titre: "Vidéo de ton prof : modéliser par une fonction, l'enclos", youtube: "https://youtu.be/LeM5BO2az9w" },
+      video: { titre: "Vidéo de ton prof : modéliser par une fonction, l'enclos", youtube: "https://youtu.be/9dqxrdMeHm8" },
       texte:
         "Pour **modéliser** une situation, on choisit la **variable** (souvent $x$, ou $t$ pour un temps), on exprime la grandeur étudiée en fonction de cette variable, puis on précise son **domaine d'étude**.\n\n" +
         "- Une **image** répond à « combien vaut la grandeur pour cette valeur ? » : on calcule $f(a)$.\n" +
@@ -175,10 +175,10 @@ window.CHAPITRES["seconde-fonctions"] = {
 
   /* Les 4 exercices des PDF, corrigés en vidéo */
   videos: [
-    { titre: "Exercice 1 · Location de kayaks dans le lagon", type: "Lecture et calcul", youtube: "https://youtu.be/p03kXQ2bVXU" },
-    { titre: "Exercice 2 · Tout par le calcul", type: "Bilan", youtube: "https://youtu.be/kDgEr5qJj0Q" },
-    { titre: "Exercice 3 · Tout par le graphique", type: "Bilan", youtube: "https://youtu.be/M1WsNoPcego" },
-    { titre: "Exercice 4 · L'enclos des cabris", type: "Synthèse", youtube: "https://youtu.be/LeM5BO2az9w" }
+    { titre: "Exercice 1 · Location de kayaks dans le lagon", type: "Lecture et calcul", youtube: "https://youtu.be/IUuWdTjqyoE" },
+    { titre: "Exercice 2 · Tout par le calcul", type: "Bilan", youtube: "https://youtu.be/9yAkzXR7UBk" },
+    { titre: "Exercice 3 · Tout par le graphique", type: "Bilan", youtube: "https://youtu.be/b3LlFIHppX4" },
+    { titre: "Exercice 4 · L'enclos des cabris", type: "Synthèse", youtube: "https://youtu.be/9dqxrdMeHm8" }
   ],
 
   /* ---------- 2. EXERCICES INTERACTIFS ----------

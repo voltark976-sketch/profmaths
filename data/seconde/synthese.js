@@ -42,7 +42,7 @@ window.CHAPITRES["seconde-synthese"] = {
     {
       titre: "Optimisation : la boîte en carton",
       figure: "boite-patron",
-      video: { titre: "Vidéo de ton prof : modéliser par une fonction, l'enclos", youtube: "https://youtu.be/LeM5BO2az9w" },
+      video: { titre: "Vidéo de ton prof : modéliser par une fonction, l'enclos", youtube: "https://youtu.be/9dqxrdMeHm8" },
       texte:
         "Dans une plaque carrée de $30$ cm de côté, on découpe un carré de côté $x$ à chaque coin, puis on replie pour former une boîte sans couvercle.\n\n" +
         "- Le fond est un carré de côté $30 - 2x$, la hauteur vaut $x$, avec $0 < x < 15$.\n" +

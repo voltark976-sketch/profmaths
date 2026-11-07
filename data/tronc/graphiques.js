@@ -37,7 +37,7 @@ window.CHAPITRES["tronc-graphiques"] = {
     {
       titre: "Résoudre graphiquement $f(x) = k$ et $f(x) < k$",
       figure: "qf-cours-graphique",
-      video: { titre: "Vidéo de ton prof : résoudre graphiquement équations et inéquations", youtube: "https://youtu.be/M1WsNoPcego" },
+      video: { titre: "Vidéo de ton prof : résoudre graphiquement équations et inéquations", youtube: "https://youtu.be/b3LlFIHppX4" },
       texte:
         "On trace la droite horizontale $y = k$.\n\n" +
         "- Les solutions de $f(x) = k$ sont les **abscisses** des points d'intersection de $C_f$ avec cette droite.\n" +

@@ -135,7 +135,7 @@ window.CHAPITRES["seconde-variations"] = {
     {
       titre: "Problème d'optimisation",
       figure: "enclos",
-      video: { titre: "Vidéo de ton prof : modéliser par une fonction, l'enclos", youtube: "https://youtu.be/LeM5BO2az9w" },
+      video: { titre: "Vidéo de ton prof : modéliser par une fonction, l'enclos", youtube: "https://youtu.be/9dqxrdMeHm8" },
       texte:
         "**Optimiser**, c'est chercher la valeur de $x$ qui rend une quantité (aire, coût, bénéfice) la plus grande ou la plus petite possible.\n\n" +
         "- On exprime la quantité en fonction de $x$ : $A(x) = \\ldots$, en précisant les valeurs possibles de $x$.\n" +

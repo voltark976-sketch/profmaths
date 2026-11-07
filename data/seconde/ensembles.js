@@ -31,7 +31,7 @@ window.CHAPITRES["seconde-ensembles"] = {
   cours: [
     {
       titre: "Les ensembles de nombres",
-      video: { titre: "Vidéo de ton prof : ensembles de nombres et intervalles (cours 1/2)", youtube: "https://youtu.be/_O22jCGJLds" },
+      video: { titre: "Vidéo de ton prof : ensembles de nombres et intervalles (cours 1/2)", youtube: "https://youtu.be/lYnbWZ8m-mQ" },
       texte:
         "- $\\mathbb{N}$ : les **entiers naturels** $0$, $1$, $2$, $3$…\n" +
         "- $\\mathbb{Z}$ : les **entiers relatifs**, positifs ou négatifs : $-3$, $0$, $12$…\n" +
@@ -91,7 +91,7 @@ window.CHAPITRES["seconde-ensembles"] = {
     },
     {
       titre: "Encadrement décimal, arrondi, chiffres significatifs",
-      video: { titre: "Vidéo de ton prof : valeur absolue, encadrements et chiffres significatifs (cours 2/2)", youtube: "https://youtu.be/mR17fQObJNo" },
+      video: { titre: "Vidéo de ton prof : valeur absolue, encadrements et chiffres significatifs (cours 2/2)", youtube: "https://youtu.be/sDLHYPGcpKA" },
       texte:
         "La calculatrice ne donne qu'une **valeur approchée** d'un réel comme $\\sqrt{2}$ ou $\\pi$. On l'encadre par deux décimaux (schéma : on « zoome » sur la droite graduée).\n\n" +
         "- Un **encadrement d'amplitude** $10^{-n}$ de $x$ : $a \\leqslant x < b$, où $a$ et $b$ ont $n$ chiffres après la virgule et $b - a = 10^{-n}$. Pour $x$ positif, on trouve $a$ en coupant l'écriture de $x$ après le $n$-ième chiffre.\n" +
@@ -107,7 +107,7 @@ window.CHAPITRES["seconde-ensembles"] = {
     },
     {
       titre: "Les intervalles",
-      video: { titre: "Vidéo de ton prof : inégalités et intervalles (exercice corrigé)", youtube: "https://youtu.be/u-z2yEgnBmI" },
+      video: { titre: "Vidéo de ton prof : inégalités et intervalles (exercice corrigé)", youtube: "https://youtu.be/8j4VRRDNNoE" },
       texte:
         "Un **intervalle** est un ensemble de réels « sans trou » entre deux bornes.\n\n" +
         "- $a \\leqslant x \\leqslant b \\iff x \\in [a\\,;b]$\n" +
@@ -125,7 +125,7 @@ window.CHAPITRES["seconde-ensembles"] = {
     },
     {
       titre: "Intersection et réunion",
-      video: { titre: "Vidéo de ton prof : intersection et réunion, les horaires du dispensaire", youtube: "https://youtu.be/Ov8R007Q9Eg" },
+      video: { titre: "Vidéo de ton prof : intersection et réunion, les horaires du dispensaire", youtube: "https://youtu.be/fCpB2PjxlpY" },
       texte:
         "Soit $I$ et $J$ deux intervalles.\n\n" +
         "- $I \\cap J$ (« $I$ **inter** $J$ ») : les réels qui sont **à la fois** dans $I$ et dans $J$. C'est la partie commune. Elle peut être vide : on écrit $I \\cap J = \\varnothing$.\n" +
@@ -139,7 +139,7 @@ window.CHAPITRES["seconde-ensembles"] = {
     },
     {
       titre: "Valeur absolue et distance",
-      video: { titre: "Vidéo de ton prof : valeur absolue et distance (exercice corrigé)", youtube: "https://youtu.be/3c9x3VNu_EQ" },
+      video: { titre: "Vidéo de ton prof : valeur absolue et distance (exercice corrigé)", youtube: "https://youtu.be/tix92T8sPv8" },
       texte:
         "La **valeur absolue** de $x$, notée $|x|$, est sa distance à $0$ : $|x| = x$ si $x \\geqslant 0$, et $|x| = -x$ si $x < 0$.\n\n" +
         "- $|a - b|$ est la **distance** entre les nombres $a$ et $b$ sur la droite graduée. Elle n'est jamais négative.\n" +
@@ -155,11 +155,11 @@ window.CHAPITRES["seconde-ensembles"] = {
 
   /* Exercices corrigés en vidéo (playlist « Secondes : nombres réels et intervalles ») */
   videos: [
-    { titre: "#02 Classer des nombres dans les ensembles", type: "Ensembles", youtube: "https://youtu.be/i2g1xYlPFlw" },
-    { titre: "#07 Distances et intervalles, la route nationale", type: "Distance", youtube: "https://youtu.be/Yb8G5mM91kk" },
-    { titre: "#08 Chiffres significatifs, la parcelle de Sada", type: "Arrondis", youtube: "https://youtu.be/LF48GNKzqCg" },
-    { titre: "#09 Deux capteurs, une température (1/2)", type: "Bilan", youtube: "https://youtu.be/OheAUeb8tUo" },
-    { titre: "#10 Deux capteurs, une température (2/2)", type: "Bilan", youtube: "https://youtu.be/XXId57rKhuI" }
+    { titre: "#02 Classer des nombres dans les ensembles", type: "Ensembles", youtube: "https://youtu.be/n1z2se11HV8" },
+    { titre: "#07 Distances et intervalles, la route nationale", type: "Distance", youtube: "https://youtu.be/vuM-YqWe2TM" },
+    { titre: "#08 Chiffres significatifs, la parcelle de Sada", type: "Arrondis", youtube: "https://youtu.be/m3pEVtziZpk" },
+    { titre: "#09 Deux capteurs, une température (1/2)", type: "Bilan", youtube: "https://youtu.be/85JNFTb0NCM" },
+    { titre: "#10 Deux capteurs, une température (2/2)", type: "Bilan", youtube: "https://youtu.be/yucNz_a-Vyo" }
   ],
   videosNote: "Vidéos de ton prof : playlist « Secondes : nombres réels et intervalles ». L'énoncé est donné au début de chaque vidéo.",
 

@@ -25,7 +25,7 @@ window.CHAPITRES["techno-fonctions"] = {
   cours: [
     {
       titre: "Fonction, image, antécédent, courbe",
-      video: { titre: "Vidéo de ton prof : généralités sur les fonctions, cours complet", youtube: "https://youtu.be/FYTU8j_1Nxg" },
+      video: { titre: "Vidéo de ton prof : généralités sur les fonctions, cours complet", youtube: "https://youtu.be/ZnIiTKahzkk" },
       texte:
         "Une **fonction** $f$ associe à chaque nombre $x$ d'un ensemble **un seul** nombre $f(x)$, son **image**. On écrit $f : x \\mapsto f(x)$ ou $y = f(x)$ ; $x$ est la **variable**.\n\n" +
         "- $f(3) = 7$ : l'image de $3$ est $7$ ; $3$ est **un antécédent** de $7$ (un nombre peut avoir plusieurs antécédents, ou aucun).\n" +
@@ -67,7 +67,7 @@ window.CHAPITRES["techno-fonctions"] = {
     {
       titre: "Résoudre graphiquement, lire une courbe en contexte",
       figure: "yf-cours-temperature",
-      video: { titre: "Vidéo de ton prof : résoudre graphiquement équations et inéquations", youtube: "https://youtu.be/M1WsNoPcego" },
+      video: { titre: "Vidéo de ton prof : résoudre graphiquement équations et inéquations", youtube: "https://youtu.be/b3LlFIHppX4" },
       texte:
         "Sur une courbe (ici la température en fonction de l'heure) :\n\n" +
         "- $f(t) = 28$ : on trace la droite $y = 28$ et on lit les abscisses des intersections ($10$ h et $18$ h) ;\n" +
@@ -81,7 +81,7 @@ window.CHAPITRES["techno-fonctions"] = {
     },
     {
       titre: "Modéliser la dépendance entre deux grandeurs",
-      video: { titre: "Vidéo de ton prof : modéliser par une fonction, l'enclos", youtube: "https://youtu.be/LeM5BO2az9w" },
+      video: { titre: "Vidéo de ton prof : modéliser par une fonction, l'enclos", youtube: "https://youtu.be/9dqxrdMeHm8" },
       texte:
         "Pour étudier un problème, on choisit une variable $x$ (une longueur, une quantité, un temps), on exprime la grandeur étudiée en fonction de $x$, puis on utilise la fonction obtenue (courbe, tableau, calcul).\n\n" +
         "Exemples : le prix d'une course de taxi $p(x) = 2{,}5x + 4$ ($x$ en km) ; l'aire d'un enclos de largeur $x$ construit contre un mur avec $40$ m de grillage, $A(x) = x(40 - 2x)$ ; une grandeur **inversement proportionnelle** à $x$, comme le temps de trajet $t(v) = \\dfrac{120}{v}$ pour $120$ km à la vitesse $v$.\n\n" +
