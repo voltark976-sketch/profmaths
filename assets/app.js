@@ -591,7 +591,11 @@
     h += piedDePage(false); // sur l'accueil, les réseaux sont déjà dans le bloc « Retrouve ProfMaths »
     $app.innerHTML = h;
   }
-  const piedDePage = (reseaux = true) => `<footer class="pied">${reseaux ? liensReseaux("rs-liste rs-pied") : ""}<a class="rs rs-drive" href="https://drive.google.com/drive/folders/1mTeWgDGTv4hNYrD_ozxN9-cSDDGH_Oqn" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#00ac47" d="M8 3l3.9 6.6-7.4 11.9L1 15.5z"/><path fill="#ffba00" d="M8 3h8l7 12.5h-7.6z"/><path fill="#2684fc" d="M4.5 21.5l3.5-6h15l-3.5 6z"/></svg><span>Cours et corrigés</span></a><p class="pied-note">Site gratuit et sans publicité, fait par un professeur de mathématiques de Mayotte. Les chapitres déjà ouverts restent lisibles sans connexion.</p></footer>`;
+  // Mention des cours particuliers : le mail s'ouvre prérempli avec les informations à donner. Jamais pendant une série (voir pageChapitre).
+  const MAIL_COURS = "voltark976@gmail.com";
+  const LIEN_COURS = `mailto:${MAIL_COURS}?subject=${encodeURIComponent("Cours particuliers à distance")}&body=${encodeURIComponent("Bonjour,\n\nClasse :\nChapitres ou difficultés à travailler :\nObjectif (contrôle, examen, remise à niveau…) :\nDisponibilités et fréquence souhaitée :\n\nMerci !")}`;
+  const mentionCours = () => `<p class="pied-note pied-cours"><strong>Cours particuliers à distance :</strong> écris à <a href="${LIEN_COURS}">${MAIL_COURS}</a> en indiquant toutes les informations utiles (classe, besoins, disponibilités, fréquence souhaitée).</p>`;
+  const piedDePage = (reseaux = true, cours = true) => `<footer class="pied">${reseaux ? liensReseaux("rs-liste rs-pied") : ""}<a class="rs rs-drive" href="https://drive.google.com/drive/folders/1mTeWgDGTv4hNYrD_ozxN9-cSDDGH_Oqn" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#00ac47" d="M8 3l3.9 6.6-7.4 11.9L1 15.5z"/><path fill="#ffba00" d="M8 3h8l7 12.5h-7.6z"/><path fill="#2684fc" d="M4.5 21.5l3.5-6h15l-3.5 6z"/></svg><span>Cours et corrigés</span></a>${cours ? mentionCours() : ""}<p class="pied-note">Site gratuit et sans publicité, fait par un professeur de mathématiques de Mayotte. Les chapitres déjà ouverts restent lisibles sans connexion.</p></footer>`;
 
   /* ---------- Pages Collège et Lycée : les classes de chaque cycle ---------- */
   function pageCycle(k) {
@@ -1567,7 +1571,7 @@
       <header class="chap-head">${c.numero ? `<span class="chap-filigrane" aria-hidden="true" data-romain="${romain(c.numero)}">${c.numero}</span>` : ""}<p class="eyebrow">${esc(c.niveau)} · ${c.numero ? `Chapitre&nbsp;${c.numero}` : esc(c.periode || "Toute l'année")}</p><h1>${esc(c.titre)}</h1><p class="lead">${inline(c.accroche)}</p>
       <p class="score-chap">${etoiles(Math.round((b.got / b.total) * 5), 5)} <span>${b.got}/${b.total} étoiles d'exercices</span></p></header>
       <nav class="onglets${ongl.length > 5 ? " onglets-6" : ""}" aria-label="Parties du chapitre">${ongl.map((o) => `<a href="#${id}.${o.id}" ${o.id === onglet ? 'aria-current="page"' : ""}>${o.nom}</a>`).join("")}</nav>
-      <div class="panneau" id="panneau"></div>` + piedDePage();
+      <div class="panneau" id="panneau"></div>` + piedDePage(true, onglet === "cours" || onglet === "methode"); // pas de mention des cours particuliers pendant les exercices, QCM, défi et révisions
     $app.innerHTML = h;
     const p = document.getElementById("panneau");
     const h0 = location.hash;
