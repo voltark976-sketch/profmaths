@@ -39,7 +39,7 @@ window.CHAPITRES["premiere-second-degre"] = {
     {
       titre: "Fonction du second degré sous forme factorisée",
       figure: "sd-cours-paraboles",
-      video: { titre: "Vidéo de ton prof : second degré, forme factorisée (cours complet)", youtube: "https://youtu.be/937bg7PGld0" },
+      video: { titre: "Vidéo de ton prof : second degré, forme factorisée (cours complet)", youtube: "https://youtu.be/i6Dpx1ZPsNA" },
       texte:
         "Une **fonction polynôme du second degré** est définie sur $\\mathbb{R}$ par $f(x) = ax^2 + bx + c$ avec $a \\neq 0$ : c'est la **forme développée**. Sa courbe est une **parabole**, tournée vers le haut si $a > 0$, vers le bas si $a < 0$ (schéma).\n\n" +
         "Quand elle s'annule en $x_1$ et $x_2$, elle s'écrit aussi $f(x) = a(x - x_1)(x - x_2)$ : c'est la **forme factorisée**.\n\n" +
@@ -54,7 +54,7 @@ window.CHAPITRES["premiere-second-degre"] = {
     {
       titre: "Signe d'une forme factorisée",
       figure: "parabole-factorisee",
-      video: { titre: "Vidéo de ton prof : signe d'une forme factorisée et inéquations (exercice corrigé)", youtube: "https://youtu.be/mm9DG45TIg4" },
+      video: { titre: "Vidéo de ton prof : signe d'une forme factorisée et inéquations (exercice corrigé)", youtube: "https://youtu.be/1l52uktEkmI" },
       texte:
         "On reprend le **tableau de signes** de Seconde : une ligne par facteur, puis la règle des signes.\n\n" +
         "Résultat à retenir, avec $x_1 < x_2$ :\n" +
@@ -83,7 +83,7 @@ window.CHAPITRES["premiere-second-degre"] = {
     },
     {
       titre: "Factoriser directement",
-      video: { titre: "Vidéo de ton prof : factoriser pour résoudre une inéquation (exercice corrigé)", youtube: "https://youtu.be/-tbK5gdYn7k" },
+      video: { titre: "Vidéo de ton prof : factoriser pour résoudre une inéquation (exercice corrigé)", youtube: "https://youtu.be/VJ7VP4E7EMs" },
       texte:
         "Avant tout calcul, on cherche une factorisation **directe** :\n" +
         "- **coefficient de $x$ nul** : $3x^2 - 12 = 3(x^2 - 4) = 3(x - 2)(x + 2)$ ;\n" +
@@ -140,10 +140,10 @@ window.CHAPITRES["premiere-second-degre"] = {
   ],
 
   videos: [
-    { titre: "Exercice 1 · Lire a et les racines, puis développer", type: "Application", youtube: "https://youtu.be/YPAS1Mmet8w" },
+    { titre: "Exercice 1 · Lire a et les racines, puis développer", type: "Application", youtube: "https://youtu.be/yEZnFMhQHJ8" },
     { titre: "Exercice 2 · Identité ou équation, paramètre m", type: "Raisonnement", youtube: "https://youtu.be/Be5bAeUQH6Y" },
-    { titre: "Exercice 3 · Signe d'une forme factorisée et inéquations", type: "Méthode", youtube: "https://youtu.be/mm9DG45TIg4" },
-    { titre: "Exercice 4 · Factoriser pour résoudre une inéquation", type: "Synthèse", youtube: "https://youtu.be/-tbK5gdYn7k" }
+    { titre: "Exercice 3 · Signe d'une forme factorisée et inéquations", type: "Méthode", youtube: "https://youtu.be/1l52uktEkmI" },
+    { titre: "Exercice 4 · Factoriser pour résoudre une inéquation", type: "Synthèse", youtube: "https://youtu.be/VJ7VP4E7EMs" }
   ],
 
   /* ---------- 2. EXERCICES INTERACTIFS ---------- */

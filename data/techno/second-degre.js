@@ -55,7 +55,7 @@ window.CHAPITRES["techno-second-degre"] = {
     },
     {
       titre: "Forme factorisée : racines",
-      video: { titre: "Vidéo de ton prof : second degré, forme factorisée (cours complet)", youtube: "https://youtu.be/937bg7PGld0" },
+      video: { titre: "Vidéo de ton prof : second degré, forme factorisée (cours complet)", youtube: "https://youtu.be/i6Dpx1ZPsNA" },
       texte:
         "Une **racine** de $f$ est un nombre $x$ tel que $f(x) = 0$ : c'est l'abscisse d'un point où la parabole coupe l'axe des abscisses. Pour **vérifier** qu'une valeur est racine, on calcule son image : $2$ est racine de $x^2 - 3x + 2$ car $4 - 6 + 2 = 0$.\n\n" +
         "Quand $f$ est donnée sous **forme factorisée** $f(x) = a(x - x_1)(x - x_2)$, ses racines sont $x_1$ et $x_2$ (produit nul). Réciproquement, si on connaît les racines et $a$, on peut écrire cette forme : une parabole qui coupe l'axe en $-1$ et $4$ avec $a = 2$ est $f(x) = 2(x + 1)(x - 4)$.\n\n" +
@@ -69,7 +69,7 @@ window.CHAPITRES["techno-second-degre"] = {
     {
       titre: "Forme factorisée : signe",
       figure: "yp-cours-signe",
-      video: { titre: "Vidéo de ton prof : signe d'une forme factorisée et inéquations (exercice corrigé)", youtube: "https://youtu.be/mm9DG45TIg4" },
+      video: { titre: "Vidéo de ton prof : signe d'une forme factorisée et inéquations (exercice corrigé)", youtube: "https://youtu.be/1l52uktEkmI" },
       texte:
         "Pour $f(x) = a(x - x_1)(x - x_2)$ avec $x_1 < x_2$, le **tableau de signes** donne :\n\n" +
         "- **du signe de $a$ à l'extérieur** des racines (pour $x < x_1$ ou $x > x_2$) ;\n" +
