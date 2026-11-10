@@ -270,6 +270,10 @@ Attention : un déploiement remplace **toutes** les règles en ligne par celles 
 - classement : 20 points par seconde écoulée au plus (3 000 d'un coup), 10 000 à la création, ligne jamais supprimée par l'élève ;
 - côté professeur, le suivi ramène le temps et les XP des chapitres d'un jour à ce que permet le temps passé sur le site ce jour-là, et un **⚠** à côté des XP signale une progression impossible normalement (plus de 2 000 XP et plus de 1 XP par seconde passée sur le site, ou chapitres incohérents ; détail au survol).
 Un enregistrement refusé est retenté automatiquement (après 1, 2, 3… minutes).
+**Politique de sécurité de la page (CSP)**, dans l'en-tête d'`index.html` (depuis le 10 novembre 2026) : le navigateur n'exécute que les scripts du site, la bibliothèque Firebase (jsDelivr, version exacte) et le petit script du thème, reconnu par son empreinte sha256 ; il n'accepte les connexions que vers Firebase (`*.googleapis.com`), les vidéos que de youtube-nocookie.com, les images externes que des vignettes YouTube. Un texte piégé glissé dans la base ne pourrait donc pas lancer de script. Conséquences pour qui modifie le site :
+- après toute modification du script du thème dans l'en-tête d'`index.html`, lancer `node outils/regles/csp.js --corriger` (sinon le thème choisi et les polices ne s'appliquent plus) ; `node outils/regles/csp.js` seul vérifie ;
+- pas de `onclick="…"` ni de lien `javascript:` dans les pages : passer par `addEventListener` ;
+- un nouveau site externe (autre bibliothèque, autre lecteur vidéo, autre version de Firebase) doit être ajouté à la balise `Content-Security-Policy`, sinon il est bloqué (message « Refused to… » dans la console).
 Dans la console Firebase, Authentication > Méthode de connexion : seul **Adresse e-mail/Mot de passe** reste activé (Google désactivé).
 
 ### Installer Firebase sur un nouveau projet (une seule fois)

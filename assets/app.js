@@ -343,6 +343,8 @@
     }
     return `<button class="video" data-yt="${id}" aria-label="Lire la vidéo : ${esc(v.titre)}"><img loading="lazy" src="https://i.ytimg.com/vi/${id}/mqdefault.jpg" alt=""><span class="video-play" aria-hidden="true"></span></button>`;
   }
+  // Lien « recharge la page » des messages de réseau (pas de javascript: dans les liens, interdit par la politique de sécurité)
+  document.addEventListener("click", (e) => { if (e.target.closest("[data-recharger]")) { e.preventDefault(); location.reload(); } });
   document.addEventListener("click", (e) => {
     const b = e.target.closest("[data-yt]");
     if (!b) return;
@@ -407,7 +409,7 @@
     if (window.requestIdleCallback) requestIdleCallback(go, { timeout: 5000 }); else setTimeout(go, 3000);
   }
   const msgAttente = (t) => `<p class="patiente" role="status">${esc(t)}</p>`;
-  const msgReseau = (t) => `<p class="retour-rep info"><strong>${esc(t)}</strong> Vérifie ta connexion, puis <a href="javascript:location.reload()">recharge la page</a>. Les chapitres déjà ouverts restent lisibles hors connexion.</p>`;
+  const msgReseau = (t) => `<p class="retour-rep info"><strong>${esc(t)}</strong> Vérifie ta connexion, puis <a href="#" data-recharger>recharge la page</a>. Les chapitres déjà ouverts restent lisibles hors connexion.</p>`;
   const memePage = (h) => location.hash === h;
 
   function route() {

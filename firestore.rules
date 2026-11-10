@@ -213,5 +213,9 @@ service cloud.firestore {
       allow update: if modifies().hasOnly(['cours', 'exercices', 'qcm', 'defi', 'revisions', 'evaluation', 'methode']) && modifies().size() == 1
         && plusUn('cours') && plusUn('exercices') && plusUn('qcm') && plusUn('defi') && plusUn('revisions') && plusUn('evaluation') && plusUn('methode');
     }
+    // Préparation au CAPES : réservée au compte prof.maths (contenu hors du dépôt, envoyé par outils/capes/envoyer.js)
+    match /capes/{doc=**} {
+      allow read, write: if chef();
+    }
   }
 }

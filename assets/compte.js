@@ -21,7 +21,7 @@
   const DOMAINE = "profmaths.example.com"; // identifiant -> adresse technique, aucun e-mail n'est envoyé
   const DOMAINE_LIBRE = "inscrits.profmaths.example.com"; // comptes créés sur le site
   const CHEF = "prof.maths"; // seul compte qui voit et approuve les demandes
-  const FB_VERSION = "10.14.1";
+  const FB_VERSION = "10.14.1"; // la changer aussi dans la politique de sécurité (CSP) d'index.html, sinon Firebase est bloqué
   let ecouteur = () => {};
   let eleve = null; // { uid, identifiant, prenom, nom, classe, groupe, prof, inscrit, attente, externe }
   let fb = null; // { auth, db }

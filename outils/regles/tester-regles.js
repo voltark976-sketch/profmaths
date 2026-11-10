@@ -119,6 +119,14 @@ const pf = { identifiant: "prof.maths", prenom: "Prof", nom: "", xp: 50, exo: {}
 ecrire("prof.maths : envoi de son temps", "ALLOW", CHEF, "profs/c1", "update", plus(pf, { temps: { j: { "2026-11-10": 360 } }, vuLe: T, identifiant: "prof.maths" }), pf);
 ecrire("prof.maths : lire toutes les fiches", "ALLOW", CHEF, "eleves/e1", "get", null, f);
 
+// ---- Préparation au CAPES (réservée à prof.maths) ----
+const PROF = { uid: "p2", token: { prof: true, email: "louise.macron@profmaths.example.com" } };
+ecrire("CAPES : prof.maths lit une fiche", "ALLOW", CHEF, "capes/ch1/fiches/f1", "get", null, { titre: "x" });
+ecrire("CAPES : prof.maths écrit", "ALLOW", CHEF, "capes/ch1", "update", { titre: "y" }, { titre: "x" });
+ecrire("CAPES : un autre professeur lit", "DENY", PROF, "capes/ch1", "get", null, { titre: "x" });
+ecrire("CAPES : un élève lit", "DENY", ELEVE, "capes/ch1", "get", null, { titre: "x" });
+ecrire("CAPES : un compte inscrit écrit", "DENY", INSCRIT, "capes/ch1", "create", { titre: "z" });
+
 // ---- Fréquentation (inchangée, compteurs des onglets Révisions et Évaluation) ----
 ecrire("visite : onglet Révisions express", "ALLOW", null, "visitesChap/2026-11-10_seconde-signes", "create", { j: "2026-11-10", ch: "seconde-signes", revisions: 1 });
 
