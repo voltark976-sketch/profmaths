@@ -111,7 +111,12 @@ function blocs(lignes, fichier) {
     const ml = /^(?:[-*]|(\d+)[.)])\s+(.*)$/.exec(t);
     if (ml && !/^-\s*\[[ xX]\]/.test(t)) {
       const type = ml[1] ? "ol" : "ul";
-      if (!liste || liste.t !== type) { par = null; liste = { t: type, li: [], n: l.n }; out.push(liste); }
+      if (!liste || liste.t !== type) {
+        par = null;
+        liste = { t: type, li: [], n: l.n };
+        if (ml[1] && Number(ml[1]) > 1) liste.debut = Number(ml[1]); // liste numérotée reprise après une formule centrée
+        out.push(liste);
+      }
       liste.li.push(ml[2]);
       continue;
     }

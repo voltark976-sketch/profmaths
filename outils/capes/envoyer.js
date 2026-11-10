@@ -127,8 +127,8 @@ const champs = (o) => ({
 
   if (opt("--apercu")) {
     const d = path.join(SITE, "capes-apercu");
-    fs.rmSync(d, { recursive: true, force: true });
-    fs.mkdirSync(d);
+    fs.mkdirSync(d, { recursive: true });
+    for (const f of fs.readdirSync(d)) if (f.endsWith(".json")) fs.rmSync(path.join(d, f)); // fiches retirées du dossier
     fs.writeFileSync(path.join(d, "sommaire.json"), JSON.stringify(s));
     for (const el of elements) fs.writeFileSync(path.join(d, el.id + ".json"), JSON.stringify(F.sansLignes(Object.assign({}, el, { fichier: undefined }))));
     console.log(`Aperçu local écrit dans ${d} (ignoré par git).`);

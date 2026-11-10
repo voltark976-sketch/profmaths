@@ -20,8 +20,9 @@
 .cp-etat { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin: 4px 0 12px; }
 .cp-etat button { padding: 9px 4px; border-radius: 10px; border: 2px solid var(--trait); background: var(--surface); color: var(--encre); font: 600 0.88rem/1.2 var(--f-texte); cursor: pointer; min-width: 0; }
 .cp-etat button[aria-pressed="true"] { border-color: var(--lagon); background: var(--lagon-pale); }
-.cp-plan { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 8px; }
-.cp-plan .filtre { padding: 5px 11px; font-size: 0.85rem; }
+/* Plan de la fiche : une seule rangée qui défile sur téléphone */
+.cp-plan { display: flex; gap: 6px; margin: 0 0 8px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: thin; }
+.cp-plan .filtre { flex: none; padding: 5px 11px; font-size: 0.85rem; white-space: nowrap; }
 
 /* Encadrés de cours */
 .cp-boite { margin: 14px 0; padding: 12px 14px; border-radius: var(--r); background: var(--surface); border: 1px solid var(--trait); border-left: 4px solid var(--lagon); min-width: 0; }

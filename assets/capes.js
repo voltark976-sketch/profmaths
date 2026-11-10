@@ -31,7 +31,7 @@
       if (b.t === "p") return `<p>${txt(b.x)}</p>`;
       if (b.t === "m") return `<div class="cp-m">${o.tex(b.x, true)}</div>`;
       if (b.t === "h") return `<h3>${txt(b.x)}</h3>`;
-      if (b.t === "ul" || b.t === "ol") return `<${b.t}>${b.li.map((x) => `<li>${txt(x)}</li>`).join("")}</${b.t}>`;
+      if (b.t === "ul" || b.t === "ol") return `<${b.t}${b.debut > 1 ? ` start="${+b.debut}"` : ""}>${b.li.map((x) => `<li>${txt(x)}</li>`).join("")}</${b.t}>`;
       if (b.t === "boite") {
         const nom = BOITES[b.k] || b.k, k = o.esc(b.k);
         const tete = `<span class="tag">${o.esc(nom)}</span>${b.titre ? `<span class="cp-bt">${txt(b.titre)}</span>` : ""}`;

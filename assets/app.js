@@ -1433,7 +1433,11 @@
   function pageCapes(id) {
     document.title = "Préparation au CAPES · ProfMaths";
     let apercu = false;
-    try { apercu = /^(localhost|127\.0\.0\.1)$/.test(location.hostname) && localStorage.getItem("profmaths:capes-apercu") === "1"; } catch (e) {}
+    try {
+      const local = /^(localhost|127\.0\.0\.1)$/.test(location.hostname);
+      if (local && /[?&]capes-apercu\b/.test(location.search)) localStorage.setItem("profmaths:capes-apercu", "1");
+      apercu = local && localStorage.getItem("profmaths:capes-apercu") === "1";
+    } catch (e) {}
     if (!Compte.chef() && !apercu) {
       $app.innerHTML = `<section class="page-compte"><p class="eyebrow">Préparation au CAPES</p><h1>Page réservée au compte prof.maths</h1><p><a class="btn" href="#compte">Mon compte</a></p></section>`;
       return;
