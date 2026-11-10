@@ -14,6 +14,87 @@ service cloud.firestore {
         && d.classe == request.auth.token.classe && d.groupe == request.auth.token.groupe;
     }
 
+    // ---------- Garde-fous de la progression (fiches eleves, inscrits et profs) ----------
+    // Le site n'a pas de serveur : c'est le navigateur qui écrit les XP, les étoiles et le temps. Ces règles ne rendent pas
+    // la triche impossible, mais elles la bornent. Le 10 novembre 2026, un compte créé sur le site (test1) s'était donné
+    // 244 millions d'XP et 3 étoiles dans les 1 542 séries en écrivant directement dans la base depuis la console du navigateur.
+    // Dans ces fonctions, a est la fiche avant l'écriture ({} à la création) et n la fiche après.
+    // Secondes écoulées depuis la date k de la fiche (une journée si elle n'en a pas)
+    function ecoule(a, k) { return (request.time - a.get(k, request.time - duration.value(1, 'd'))).seconds(); }
+    function borne(t, parSec, max) { return t * parSec < max ? t * parSec : max; }
+    // Dates : celles du serveur (majLe, vuLe) ; creeLe est posée à la création et ne change plus
+    function dateServeur(n, a, k) { return !(k in n) || n[k] == request.time || (k in a && n[k] == a[k]); }
+    // Fiche neuve : tout à zéro (le site crée toujours ainsi la fiche d'un élève ou d'un compte inscrit sur le site)
+    function neuve(n) {
+      return n.get('xp', 0) == 0 && n.get('exo', {}).size() == 0 && n.get('qcm', {}).size() == 0
+        && n.get('jeux', {}).size() == 0 && n.get('quand', {}).size() == 0 && n.get('temps', {}).size() == 0
+        && n.get('creeLe', request.time) == request.time;
+    }
+    // Séries (exo), QCM, défis (jeux), dates des essais (quand) : 5 changements d'un coup, plus 1 par tranche de 15 s
+    // écoulées depuis le dernier enregistrement, 400 au plus ; 5 000 entrées au plus
+    function rythme(m, am, t) {
+      let c = m.diff(am).affectedKeys().size();
+      return m.size() <= 5000 && c <= 400 && 15 * (c - 5) <= t;
+    }
+    // XP : nombre entier qui ne baisse jamais ; au plus 4 XP par seconde écoulée depuis le dernier enregistrement (majLe),
+    // et 20 000 au plus d'un coup (une série rapporte moins de 150 XP, un QCM ou un défi guère plus)
+    function progression(n, a) {
+      let t = ecoule(a, 'majLe');
+      let x = n.get('xp', 0);
+      let x0 = a.get('xp', 0);
+      let exo = n.get('exo', {});
+      let qcm = n.get('qcm', {});
+      let jeux = n.get('jeux', {});
+      let quand = n.get('quand', {});
+      let pareil = x == x0 && exo == a.get('exo', {}) && qcm == a.get('qcm', {}) && jeux == a.get('jeux', {}) && quand == a.get('quand', {});
+      return n.get('avatar', {}) is map && n.get('avatar', {}).size() <= 60
+        && (pareil || (x is int && x >= x0 && x - x0 <= borne(t, 4, 20000)
+          && n.get('majLe', null) == request.time
+          && exo is map && qcm is map && jeux is map && quand is map
+          && rythme(exo, a.get('exo', {}), t) && rythme(qcm, a.get('qcm', {}), t)
+          && rythme(jeux, a.get('jeux', {}), t) && rythme(quand, a.get('quand', {}), t)));
+    }
+    // Temps actif et XP par chapitre (rangés dans « temps », envoyés avec vuLe) :
+    // - j (temps de chaque jour) : seuls les jours récents changent (de la veille au lendemain en temps universel, ce qui couvre
+    //   aujourd'hui et hier à Mayotte comme à Paris) ; d'un envoi à l'autre, le temps d'un jour n'augmente pas plus que
+    //   le temps écoulé depuis le dernier envoi (+ 30 s) et ne dépasse jamais 24 h ;
+    // - jc et xj (temps et XP du jour par chapitre) : seuls les jours récents changent ;
+    //   le suivi du professeur ramène le temps des chapitres d'un jour au temps de ce jour, et leurs XP à 4 XP par seconde
+    //   de ce jour (+ 300) : les règles ne savent pas parcourir des chapitres qu'elles ne connaissent pas d'avance ;
+    // - ch, xp, der (totaux par chapitre, pour l'affichage) : 15 chapitres changés au plus d'un coup.
+    function deux(v) { return v < 10 ? '0' + string(v) : string(v); }
+    function jourDe(t) { return string(t.year()) + '-' + deux(t.month()) + '-' + deux(t.day()); }
+    function joursRecents() {
+      return [jourDe(request.time - duration.value(1, 'd')), jourDe(request.time), jourDe(request.time + duration.value(1, 'd'))];
+    }
+    function valeur(v, o, pas, max) { return v is int && v >= o && v - o <= pas && v <= max; }
+    function inchange(nm, am, k) { return !(k in nm) || nm[k] == am.get(k, null); }
+    function jourTemps(nm, am, k, pas) { return inchange(nm, am, k) || valeur(nm[k], am.get(k, 0), pas, 86400); }
+    function tempsJours(nm, am, J, pas) {
+      return nm == am || (nm is map && nm.diff(am).affectedKeys().hasOnly(J)
+        && jourTemps(nm, am, J[0], pas) && jourTemps(nm, am, J[1], pas) && jourTemps(nm, am, J[2], pas));
+    }
+    function chapitresJours(nm, am, J) { return nm == am || (nm is map && nm.diff(am).affectedKeys().hasOnly(J)); }
+    function quinze(tn, ta, f) { return tn.get(f, {}) is map && tn.get(f, {}).diff(ta.get(f, {})).affectedKeys().size() <= 15; }
+    function tempsBornes(tn, ta, J, s) {
+      return tn.keys().hasOnly(['j', 'ch', 'der', 'jc', 'xp', 'xj'])
+        && tempsJours(tn.get('j', {}), ta.get('j', {}), J, s)
+        && chapitresJours(tn.get('jc', {}), ta.get('jc', {}), J) && chapitresJours(tn.get('xj', {}), ta.get('xj', {}), J)
+        && quinze(tn, ta, 'ch') && quinze(tn, ta, 'xp') && quinze(tn, ta, 'der');
+    }
+    function tempsOkT(n, tn, ta, dt) {
+      return tn == ta || (tn is map && n.get('vuLe', null) == request.time && tempsBornes(tn, ta, joursRecents(), borne(dt, 1, 86400) + 30));
+    }
+    function tempsOk(n, a) { return tempsOkT(n, n.get('temps', {}), a.get('temps', {}), ecoule(a, 'vuLe')); }
+    function ficheOk(n, a) {
+      return dateServeur(n, a, 'majLe') && dateServeur(n, a, 'vuLe') && progression(n, a) && tempsOk(n, a);
+    }
+    // Création : fiche neuve (élèves, comptes inscrits) ; mise à jour : creeLe inchangée et garde-fous ci-dessus
+    function ecritureOk(n, creationLibre) {
+      return (request.method == 'create' && (creationLibre || neuve(n)) && ficheOk(n, {}))
+        || (request.method == 'update' && n.get('creeLe', null) == resource.data.get('creeLe', null) && ficheOk(n, resource.data));
+    }
+
     // temps : temps actif sur le site (secondes, par jour et par chapitre), vuLe : dernière activité, lus par le professeur.
     // prof.maths (sans marque « groupes ») lit toutes les fiches : page « Tous les comptes »
     match /eleves/{uid} {
@@ -23,8 +104,8 @@ service cloud.firestore {
         || (prof() && (!('groupes' in request.auth.token) || resource.data.groupe in request.auth.token.groupes));
       allow create, update: if eleve() && request.auth.uid == uid
         && request.resource.data.keys().hasOnly(['identifiant', 'prenom', 'nom', 'classe', 'groupe', 'xp', 'exo', 'qcm', 'jeux', 'avatar', 'quand', 'temps', 'vuLe', 'creeLe', 'majLe'])
-        && request.resource.data.get('temps', {}) is map
-        && profilDuCompte(request.resource.data);
+        && profilDuCompte(request.resource.data)
+        && ecritureOk(request.resource.data, false);
     }
     // Liste des élèves de chaque classe (identifiant, prénom, nom), écrite seulement par outils/comptes (--classes) :
     // permet d'afficher dans le suivi les élèves jamais connectés. Un professeur lit celles de ses classes (document par document).
@@ -39,7 +120,7 @@ service cloud.firestore {
         && request.resource.data.keys().hasOnly(['identifiant', 'prenom', 'nom', 'xp', 'exo', 'qcm', 'jeux', 'avatar', 'quand', 'temps', 'vuLe', 'majLe'])
         && request.resource.data.get('identifiant', idCompte()) == idCompte()
         && texte(request.resource.data.get('prenom', ''), 0, 40) && texte(request.resource.data.get('nom', ''), 0, 40)
-        && request.resource.data.get('temps', {}) is map;
+        && ecritureOk(request.resource.data, true);
     }
 
     // ---------- Comptes créés sur le site (adresse technique @inscrits.profmaths.example.com, sans marque) ----------
@@ -61,10 +142,10 @@ service cloud.firestore {
       allow read: if (inscrit() && request.auth.uid == uid) || chef();
       allow create, update: if inscrit() && request.auth.uid == uid
         && request.resource.data.keys().hasOnly(['identifiant', 'prenom', 'nom', 'niveau', 'xp', 'exo', 'qcm', 'jeux', 'avatar', 'quand', 'temps', 'vuLe', 'creeLe', 'majLe'])
-        && request.resource.data.get('temps', {}) is map
         && request.resource.data.identifiant == idCompte()
         && texte(request.resource.data.prenom, 1, 40) && texte(request.resource.data.get('nom', ''), 0, 40)
-        && texte(request.resource.data.get('niveau', ''), 0, 40);
+        && texte(request.resource.data.get('niveau', ''), 0, 40)
+        && ecritureOk(request.resource.data, false);
     }
     // Demande de compte professeur : créée « en attente » par le demandeur, seul prof.maths change son statut
     match /demandesProf/{uid} {
@@ -76,18 +157,24 @@ service cloud.firestore {
         && texte(request.resource.data.prenom, 1, 40) && texte(request.resource.data.nom, 1, 40)
         && texte(request.resource.data.get('etablissement', ''), 0, 80) && texte(request.resource.data.contact, 1, 80)
         && texte(request.resource.data.get('message', ''), 0, 500)
-        && request.resource.data.niveaux is list && request.resource.data.niveaux.size() >= 1 && request.resource.data.niveaux.size() <= 12;
+        && request.resource.data.niveaux is list && request.resource.data.niveaux.size() >= 1 && request.resource.data.niveaux.size() <= 12
+        && request.resource.data.get('creeLe', request.time) == request.time;
       allow update: if chef()
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['statut', 'decideLe'])
         && request.resource.data.statut in ['attente', 'approuve', 'refuse'];
     }
+    // Classement du Défi chrono : prénom, classe et points (somme des records). Les points montent d'au plus 20 par seconde
+    // écoulée depuis la dernière mise à jour (3 000 au plus d'un coup) ; 10 000 au plus à la création ; jamais supprimé par l'élève
     match /classement/{uid} {
       allow read: if eleve() || prof();
-      allow write: if eleve() && request.auth.uid == uid
+      allow create, update: if eleve() && request.auth.uid == uid
         && request.resource.data.keys().hasOnly(['prenom', 'classe', 'points', 'majLe'])
         && request.resource.data.prenom == request.auth.token.prenom
         && request.resource.data.classe == request.auth.token.classe
-        && request.resource.data.points is int && request.resource.data.points >= 0;
+        && request.resource.data.points is int && request.resource.data.points >= 0
+        && request.resource.data.majLe == request.time
+        && ((request.method == 'create' && request.resource.data.points <= 10000)
+          || (request.method == 'update' && request.resource.data.points <= resource.data.points + borne(ecoule(resource.data, 'majLe'), 20, 3000)));
     }
 
     // Fréquentation du site : compteurs anonymes (aucun nom), lus seulement par les professeurs.

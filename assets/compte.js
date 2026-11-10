@@ -28,6 +28,15 @@
   let minuterie = null;
   let inscription = null; // compte en cours de création : { id, type, doc }
   let dernierClassement = ""; // évite de renvoyer la même ligne du classement
+  // Progression refusée par les règles Firestore : nouvel essai après 1, 2, 3… minutes (8 essais au plus)
+  let derniereProg = null, essaisRefus = 0, minuterieEssai = null;
+  function nouvelEssai() {
+    if (essaisRefus >= 8 || !derniereProg) return;
+    essaisRefus++;
+    clearTimeout(minuterieEssai);
+    const e = eleve, p = derniereProg;
+    minuterieEssai = setTimeout(() => { if (eleve && eleve === e) window.PM_COMPTE.sauver(p); }, essaisRefus * 60e3);
+  }
   // Fiche de progression : élève d'une classe (eleves/uid), élève inscrit sur le site (inscrits/uid) ou professeur (profs/uid)
   const fiche = (e) => fb.db.collection(e.prof ? "profs" : e.inscrit ? "inscrits" : "eleves").doc(e.uid);
   const lireProg = (d) => ({ xp: d.xp || 0, exo: d.exo || {}, qcm: d.qcm || {}, jeux: d.jeux || {}, avatar: d.avatar || null, quand: d.quand || {} });
@@ -230,8 +239,12 @@
     // Une table vide n'est pas envoyée : avec « merge », Firestore remplacerait la table existante par une table vide
     // (le temps par chapitre était effacé quand un envoi ne contenait que du temps passé hors des chapitres)
     const temps = {}, mettre = (k, v) => { if (Object.keys(v).length) temps[k] = v; };
-    mettre("j", plusTout(a.j)); mettre("ch", plusTout(a.ch)); mettre("der", a.der);
-    mettre("jc", parJour(a.jc)); mettre("xp", plusTout(a.xp)); mettre("xj", parJour(a.xj));
+    // Les règles Firestore n'acceptent que les jours récents (de la veille au lendemain, en temps universel) : le temps resté
+    // plus longtemps sur l'appareil est abandonné, sinon tout l'envoi serait refusé
+    const recents = [-1, 0, 1].map((k) => new Date(Date.now() + k * 864e5).toISOString().slice(0, 10));
+    const garder = (o) => { const r = {}; for (const k in o) if (recents.includes(k)) r[k] = o[k]; return r; };
+    mettre("j", plusTout(garder(a.j))); mettre("ch", plusTout(a.ch)); mettre("der", a.der);
+    mettre("jc", parJour(garder(a.jc))); mettre("xp", plusTout(a.xp)); mettre("xj", parJour(garder(a.xj)));
     fiche(eleve)
       .set(Object.assign(Object.keys(temps).length ? { temps } : {}, { vuLe: firebase.firestore.FieldValue.serverTimestamp() }, identite()), { merge: true })
       .catch(() => {}); // refusé : ces quelques minutes sont perdues, sans gêner l'élève
@@ -249,8 +262,14 @@
       etatInscrit(fb.auth.currentUser, e.identifiant).then(() => { relectureEnCours = false; });
       return;
     }
-    fiche(e).get().then((snap) => {
+    fiche(e).get().then(async (snap) => {
       if (eleve !== e) return;
+      // Fiche d'un élève jamais créée (réseau coupé à la première connexion) : les règles Firestore exigent qu'elle naisse
+      // à zéro ; la progression de l'appareil y est fusionnée ensuite
+      if (!snap.exists && !e.prof && !e.inscrit) {
+        await fiche(e).set({ identifiant: e.identifiant, prenom: e.prenom, nom: e.nom || "", classe: e.classe, groupe: e.groupe || "", xp: 0, exo: {}, qcm: {}, creeLe: firebase.firestore.FieldValue.serverTimestamp() });
+        if (eleve !== e) return;
+      }
       e.lectureEchouee = false;
       ecouteur(e, lireProg(snap.exists ? snap.data() : {}));
     }).catch(() => {}).then(() => { relectureEnCours = false; });
@@ -362,7 +381,7 @@
     },
 
     async deconnecter() {
-      clearTimeout(minuterie);
+      clearTimeout(minuterie); clearTimeout(minuterieEssai); essaisRefus = 0; derniereProg = null;
       envoyerTemps();
       if (fb) { await fb.auth.signOut(); return; }
       try { localStorage.removeItem(SESSION); } catch (e) {}
@@ -460,9 +479,14 @@
       minuterie = setTimeout(() => {
         if (fb && eleve.lectureEchouee) { relire(); return; }
         if (fb) {
+          derniereProg = prog;
           fiche(eleve)
             .set(Object.assign(copie, identite(), { majLe: firebase.firestore.FieldValue.serverTimestamp() }), { merge: true })
-            .catch(() => {}); // hors ligne : la copie locale reste, elle repartira au prochain enregistrement
+            .then(() => { essaisRefus = 0; })
+            // Hors ligne : la copie locale reste, elle repartira au prochain enregistrement.
+            // Refusé par les règles (trop d'XP d'un coup, par exemple après des essais faits sur un autre appareil) :
+            // nouvel essai plus tard, les règles acceptant un peu plus à chaque seconde écoulée
+            .catch((e) => { if (e && e.code === "permission-denied") nouvelEssai(); });
           // Classement : seulement le prénom, la classe et les points (lisible par les élèves connectés)
           const pts = pointsJeux(copie.jeux), sig = [eleve.uid, eleve.prenom, eleve.classe, pts].join("|");
           // Le professeur n'apparaît pas dans le classement des élèves

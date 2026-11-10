@@ -256,10 +256,20 @@ La page **Tous les comptes** (`#comptes`, lien sur la page Mon compte de prof.ma
 La page **Fréquentation du site** (`#frequentation`, lien sur la page Mon compte du professeur) montre les visites par jour, la part des téléphones, les onglets ouverts par niveau et par chapitre (y compris Révisions express et Entraînement évaluation, comptés seulement une fois les règles Firestore publiées : la liste des onglets de `visitesChap` dans `firestore.rules` doit rester la même que `ONGLETS_COMPTES` d'`assets/compte.js`), et les élèves connectés par classe, sur 7, 30 ou 90 jours ou 12 mois. Ce sont des compteurs anonymes rangés dans Firestore (collections `visites` et `visitesChap`) : aucun nom, aucun cookie, aucun service extérieur. Chaque appareil compte une fois par jour pour le site et une fois par jour pour chaque onglet ; les visites des comptes professeurs et les essais en local (localhost) ne sont pas comptés. Les règles `firestore.rules` n'autorisent qu'à ajouter 1 à un compteur, et seuls les professeurs peuvent les lire.
 
 ### Sécurité (Firebase)
-Le prénom, le nom, la classe et le groupe sont inscrits dans le compte lui-même au moment de la création. Les règles `firestore.rules` n'ouvrent les classes, le classement et la fréquentation qu'à ces comptes ; un compte créé sur le site n'a que sa fiche « Autres élèves » ou sa demande de compte professeur (voir plus haut), tout autre compte ne peut rien lire ni écrire, et un élève ne peut ni changer son nom ni lire la progression des autres. Après une modification des règles :
+Le prénom, le nom, la classe et le groupe sont inscrits dans le compte lui-même au moment de la création. Les règles `firestore.rules` n'ouvrent les classes, le classement et la fréquentation qu'à ces comptes ; un compte créé sur le site n'a que sa fiche « Autres élèves » ou sa demande de compte professeur (voir plus haut), tout autre compte ne peut rien lire ni écrire, et un élève ne peut ni changer son nom ni lire la progression des autres. Après une modification des règles, les tester sans les déployer (il faut le CLI firebase connecté), puis les déployer :
 ```
+node outils/regles/tester-regles.js
 firebase deploy --only firestore:rules --project profmaths-ca535
 ```
+Attention : un déploiement remplace **toutes** les règles en ligne par celles du fichier.
+
+**Garde-fous contre la triche** (depuis le 10 novembre 2026, après qu'un compte créé sur le site s'est donné 244 millions d'XP en écrivant dans la base depuis la console du navigateur). Le site n'a pas de serveur : c'est le navigateur de l'élève qui écrit sa progression, donc la triche ne peut pas être rendue impossible, seulement bornée :
+- XP : nombre entier qui ne baisse jamais, au plus 4 XP par seconde écoulée depuis le dernier enregistrement et 20 000 d'un coup ; séries, QCM et défis : 5 changements d'un coup plus 1 par tranche de 15 s ; une fiche (élève ou compte créé sur le site) naît à zéro ;
+- dates (`creeLe`, `majLe`, `vuLe`) : celles du serveur, `creeLe` ne change plus ;
+- temps : seuls les jours récents changent (veille, jour, lendemain), le temps d'un jour n'augmente pas plus que le temps écoulé depuis le dernier envoi et ne dépasse pas 24 h ;
+- classement : 20 points par seconde écoulée au plus (3 000 d'un coup), 10 000 à la création, ligne jamais supprimée par l'élève ;
+- côté professeur, le suivi ramène le temps et les XP des chapitres d'un jour à ce que permet le temps passé sur le site ce jour-là, et un **⚠** à côté des XP signale une progression impossible normalement (plus de 2 000 XP et plus de 1 XP par seconde passée sur le site, ou chapitres incohérents ; détail au survol).
+Un enregistrement refusé est retenté automatiquement (après 1, 2, 3… minutes).
 Dans la console Firebase, Authentication > Méthode de connexion : seul **Adresse e-mail/Mot de passe** reste activé (Google désactivé).
 
 ### Installer Firebase sur un nouveau projet (une seule fois)

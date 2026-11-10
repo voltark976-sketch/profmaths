@@ -943,7 +943,7 @@
       ${traitees.length ? `<details><summary>Demandes déjà traitées (${traitees.length})</summary><ul class="demandes">${traitees.map(carte).join("")}</ul></details>` : ""}
       <h2>Autres élèves (${eleves.length})</h2>
       <p class="muted">Élèves qui ont créé leur compte sur le site. Ils n'apparaissent ni dans tes classes ni dans le classement.</p>
-      ${eleves.length ? `<div class="table-defile"><table class="table-autres"><tr><th>Élève</th><th>Niveau</th><th>Identifiant</th><th>Créé le</th><th>XP</th></tr>${eleves.map((x) => `<tr><td>${esc(x.prenom)} ${esc(x.nom || "")}</td><td>${esc(x.niveau || "")}</td><td>${esc(x.identifiant)}</td><td>${date(x.creeLe)}</td><td>${+x.xp || 0}</td></tr>`).join("")}</table></div>` : `<p class="muted">Aucun pour l'instant.</p>`}`;
+      ${eleves.length ? `<div class="table-defile"><table class="table-autres"><tr><th>Élève</th><th>Niveau</th><th>Identifiant</th><th>Créé le</th><th>XP</th></tr>${eleves.map((x) => `<tr><td>${esc(x.prenom)} ${esc(x.nom || "")}</td><td>${esc(x.niveau || "")}</td><td>${esc(x.identifiant)}</td><td>${date(x.creeLe)}</td><td>${+x.xp || 0}${marqueAnomalie(x)}</td></tr>`).join("")}</table></div>` : `<p class="muted">Aucun pour l'instant.</p>`}`;
     document.querySelectorAll("[data-dem]").forEach((b) => b.addEventListener("click", async () => {
       b.disabled = true;
       try { await Compte.decider(b.dataset.dem, b.dataset.statut); pageDemandes(); }
@@ -1082,7 +1082,7 @@
           choix: [["fait", "Fait", (l) => l.qcm.ok], ["pas", "Pas fait", (l) => !l.qcm.ok], ["tout", "Tout juste", (l) => l.qcm.ok && l.qcm.score >= taille], ["moitie", "Moins de la moitié", (l) => l.qcm.ok && l.qcm.score * 2 < taille]] },
         { id: "dernier", titre: "Dernier essai", aide: "Date du dernier essai dans ce chapitre", desc: true, val: (l) => l.dernier, html: (l) => (l.dernier ? date(l.dernier) : "–"), choix: choixDate((l) => l.dernier, "Pas encore") },
         { id: "temps", titre: "Temps", aide: "Temps actif passé dans ce chapitre", desc: true, val: (l) => l.tps, html: (l) => (l.tps ? duree(l.tps) : "–"), choix: choixDuree((l) => l.tps) },
-        { id: "xp", titre: "XP", aide: "Points d'expérience", desc: true, val: (l) => l.xp, html: (l) => l.xp, choix: choixNombre((l) => l.xp, [50, 100, 200, 500]) }
+        { id: "xp", titre: "XP", aide: "Points d'expérience", desc: true, val: (l) => l.xp, html: (l) => l.xp + marqueAnomalie(l.x), choix: choixNombre((l) => l.xp, [50, 100, 200, 500]) }
       ]);
     $app.innerHTML = `<section class="page-suivi"><p class="eyebrow">Compte professeur · <a href="#frequentation">Fréquentation du site</a></p><h1>Suivi des élèves</h1>
       ${choix()}
@@ -1132,6 +1132,34 @@
       (étoiles des séries, meilleur QCM, record au défi, pondérés comme les XP qu'ils rapportent) ;
     - temps : (temps total par jour − temps enregistré par chapitre depuis) × part du niveau dans le temps par chapitre qui reste
       (à défaut, la part des XP). */
+  /* Progressions impossibles en se servant normalement du site. Le 10 novembre 2026, un compte créé sur le site (test1)
+    s'était donné 244 millions d'XP et 3 étoiles dans toutes les séries en écrivant directement dans la base depuis la console
+    du navigateur. Les règles Firestore bornent désormais ce qu'un élève peut écrire, mais elles ne savent pas vérifier chaque
+    chapitre : le suivi ramène donc le temps des chapitres d'un jour au temps passé sur le site ce jour-là, et leurs XP à
+    4 XP par seconde de ce jour (+ 300), et signale par ⚠ les fiches incohérentes (détail au survol ou au toucher). */
+  const XP_PAR_SECONDE = 4, XP_MARGE_JOUR = 300;
+  const sommeValeurs = (o) => Object.values(o || {}).reduce((a, v) => a + (+v || 0), 0);
+  function bornesJour(t, d) {
+    const jd = +(t.j || {})[d] || 0, sT = sommeValeurs((t.jc || {})[d]), sX = sommeValeurs((t.xj || {})[d]), maxX = XP_PAR_SECONDE * jd + XP_MARGE_JOUR;
+    return { fT: sT > jd + 60 ? jd / sT : 1, fX: sX > maxX ? maxX / sX : 1 };
+  }
+  function anomalies(x) {
+    if (!x || x.jamais) return [];
+    const t = x.temps || {}, xp = +x.xp || 0, sec = sommeValeurs(t.j), r = [];
+    // Les élèves les plus rapides gagnent moins de 1 XP par seconde passée sur le site (35 XP par minute au plus en novembre 2026)
+    if (xp > 2000 && xp > sec) r.push(`${xp} XP pour ${sec ? duree(sec) : "aucun temps compté"} sur le site`);
+    let jours = 0;
+    for (const d of new Set([...Object.keys(t.jc || {}), ...Object.keys(t.xj || {})])) { const b = bornesJour(t, d); if (b.fT < 1 || b.fX < 1) jours++; }
+    if (jours) r.push(`temps ou XP des chapitres plus grands que le temps passé sur le site (${jours} jour${jours > 1 ? "s" : ""})`);
+    if (sommeValeurs(t.xp) > xp + 1000) r.push("XP des chapitres plus grands que le total d'XP");
+    return r;
+  }
+  function marqueAnomalie(x) {
+    const a = anomalies(x);
+    if (!a.length) return "";
+    const txt = esc("Progression suspecte : " + a.join(" ; "));
+    return ` <span class="anomalie" title="${txt}" aria-label="${txt}" tabindex="0">⚠</span>`;
+  }
   const DEBUT_NOTATION = "2026-11-03";
   const XP_ETOILES = [10, 28, 40, 47]; // XP probables d'une série de 5 questions selon ses étoiles (0 à 3)
   function estimationAvant(x, ids) {
@@ -1142,7 +1170,8 @@
     const part = (o) => { let tout = 0, niv = 0; for (const c in o) { const v = +o[c] || 0; tout += v; if (ids.has(c)) niv += v; } return tout > 0 ? niv / tout : null; };
     const somme = (o) => Object.values(o || {}).reduce((a, v) => a + (+v || 0), 0);
     const t = x.temps || {}, pXp = part(poids), pT = part(t.ch || {});
-    const xpAvant = Math.max(0, (+x.xp || 0) - somme(t.xp));
+    // Au plus 1 XP par seconde passée sur le site (2 000 au moins) : seuil du repérage ⚠, qu'aucun élève n'atteint normalement
+    const xpAvant = Math.min(Math.max(0, (+x.xp || 0) - somme(t.xp)), Math.max(2000, somme(t.j)));
     const secAvant = Math.max(0, somme(t.j) - Object.values(t.jc || {}).reduce((a, o) => a + somme(o), 0));
     return { xp: xpAvant * (pXp || 0), sec: secAvant * (pT != null ? pT : pXp || 0) };
   }
@@ -1156,8 +1185,9 @@
     const lignes = liste.map((x) => {
       const t = x.temps || {}, xj = t.xj || {}, jc = t.jc || {}, chs = new Set();
       let xp = 0, sec = 0;
-      for (const j in xj) if (dans(j)) for (const c in xj[j]) if (ids.has(c)) { xp += +xj[j][c] || 0; chs.add(c); }
-      for (const j in jc) if (dans(j)) for (const c in jc[j]) if (ids.has(c)) { sec += +jc[j][c] || 0; chs.add(c); }
+      // Temps et XP des chapitres ramenés à ce que permet le temps passé sur le site ce jour-là (voir bornesJour)
+      for (const j in xj) if (dans(j)) { const f = bornesJour(t, j).fX; for (const c in xj[j]) if (ids.has(c)) { xp += (+xj[j][c] || 0) * f; chs.add(c); } }
+      for (const j in jc) if (dans(j)) { const f = bornesJour(t, j).fT; for (const c in jc[j]) if (ids.has(c)) { sec += (+jc[j][c] || 0) * f; chs.add(c); } }
       // Estimation d'avant la mise à jour, si la période la contient
       let est = null;
       if (r.estim && (!du || du < DEBUT_NOTATION) && !x.jamais) {
@@ -1200,7 +1230,7 @@
     const nom = (x) => `${esc(x.nom || "")} ${esc(x.prenom || x.identifiant || "")}`;
     const cols = [
       { id: "nom", titre: "Élève", aide: "Nom de l'élève", val: (l) => `${l.x.nom || ""} ${l.x.prenom || l.x.identifiant || ""}`.toLowerCase(), html: (l) => nom(l.x), choix: "texte" },
-      { id: "nxp", titre: "XP niveau", aide: "XP gagnés dans les chapitres du niveau", desc: true, val: (l) => l.xp, html: (l) => l.xp || "–", choix: choixNombre((l) => l.xp, [50, 100, 200, 500]) },
+      { id: "nxp", titre: "XP niveau", aide: "XP gagnés dans les chapitres du niveau", desc: true, val: (l) => l.xp, html: (l) => (l.xp || "–") + marqueAnomalie(l.x), choix: choixNombre((l) => l.xp, [50, 100, 200, 500]) },
       { id: "ntps", titre: "Temps niveau", aide: "Temps actif dans les chapitres du niveau", desc: true, val: (l) => l.tps, html: (l) => (l.tps ? duree(l.tps * 60) : "–"), choix: choixDuree((l) => l.tps * 60) },
       { id: "nnb", titre: "Chapitres", aide: "Chapitres du niveau travaillés", desc: true, val: (l) => l.nb, html: (l) => l.nb || "–", choix: choixNombre((l) => l.nb, [1, 2, 3, 5]) },
       { id: "nnote", titre: "Note /20", aide: "Note au prorata des XP et du temps", desc: true, val: (l) => l.note, html: (l) => `<strong>${virgule(l.note)}</strong>`,
@@ -1363,7 +1393,7 @@
       { id: "tper", titre: `Temps ${court}`, aide: `Temps actif ${periode}`, desc: true, val: (l) => l.tPeriode, html: (l) => (l.tPeriode ? duree(l.tPeriode) : "–"), choix: choixDuree((l) => l.tPeriode) },
       { id: "ttot", titre: "Temps total", aide: "Temps actif depuis le début", desc: true, val: (l) => l.tTotal, html: (l) => (l.tTotal ? duree(l.tTotal) : "–"), choix: choixDuree((l) => l.tTotal) },
       { id: "nb", titre: "Chapitres", aide: `Chapitres ouverts ou travaillés ${periode}`, desc: true, val: (l) => l.nb, html: (l) => l.nb || "–", choix: choixNombre((l) => l.nb, [1, 2, 3, 5]) },
-      { id: "xp", titre: "XP", aide: "Points d'expérience", desc: true, val: (l) => l.xp, html: (l) => l.xp, choix: choixNombre((l) => l.xp, [50, 100, 200, 500]) },
+      { id: "xp", titre: "XP", aide: "Points d'expérience", desc: true, val: (l) => l.xp, html: (l) => l.xp + marqueAnomalie(l.x), choix: choixNombre((l) => l.xp, [50, 100, 200, 500]) },
       { id: "nxp", titre: "XP niveau", aide: `XP gagnés dans les chapitres de ${N.niv ? N.niv.nom : "son niveau"}`, desc: true, val: (l) => l.nxp, html: (l) => l.nxp || "–", choix: choixNombre((l) => l.nxp, [50, 100, 200, 500]) },
       { id: "ntps", titre: "Temps niveau", aide: `Temps actif dans les chapitres de ${N.niv ? N.niv.nom : "son niveau"}`, desc: true, val: (l) => l.ntps, html: (l) => (l.ntps ? duree(l.ntps * 60) : "–"), choix: choixDuree((l) => l.ntps * 60) },
       { id: "nnote", titre: "Note /20", aide: "Note au prorata des XP et du temps du niveau (réglages dans la vue Notation)", desc: true, val: (l) => l.note, html: (l) => virgule(l.note),
@@ -1459,7 +1489,7 @@
         html: (l) => (l.x.jamais ? `<span class="jamais-co">jamais connecté</span>` : l.dernier ? quand(l.dernier) : "–"), choix: choixDate((l) => l.dernier, "Jamais connecté") },
       { id: "tper", titre: "Temps 7 j", aide: "Temps actif ces 7 derniers jours", desc: true, val: (l) => l.tPeriode, html: (l) => (l.tPeriode ? duree(l.tPeriode) : "–"), choix: choixDuree((l) => l.tPeriode) },
       { id: "ttot", titre: "Temps total", aide: "Temps actif depuis le début", desc: true, val: (l) => l.tTotal, html: (l) => (l.tTotal ? duree(l.tTotal) : "–"), choix: choixDuree((l) => l.tTotal) },
-      { id: "xp", titre: "XP", aide: "Points d'expérience", desc: true, val: (l) => l.xp, html: (l) => l.xp || "–", choix: choixNombre((l) => l.xp, [50, 100, 200, 500]) },
+      { id: "xp", titre: "XP", aide: "Points d'expérience", desc: true, val: (l) => l.xp, html: (l) => (l.xp || "–") + marqueAnomalie(l.x), choix: choixNombre((l) => l.xp, [50, 100, 200, 500]) },
       { id: "cree", titre: "Créé le", aide: "Date de création de la fiche (première connexion)", desc: true, val: (l) => l.cree, html: (l) => (l.cree ? dateCourte(l.cree) : "–"), choix: choixDate((l) => l.cree, "Inconnue") }
     ];
     const nb = (t) => lignes.filter((l) => l.type === t).length, attente = lignes.filter((l) => l.etat === "en attente").length;
