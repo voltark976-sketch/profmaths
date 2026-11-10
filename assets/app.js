@@ -135,7 +135,7 @@
   }
   majBoutonCompte();
   setTimeout(lancerCompte, 5000); // au plus tard 5 s après le départ
-  if (/^#(compte|suivi|demandes|comptes|frequentation|avatar)\b/.test(location.hash)) lancerCompte();
+  if (/^#(compte|suivi|demandes|comptes|frequentation|avatar|capes)\b/.test(location.hash)) lancerCompte();
 
   /* ---------- Apparence : le choix des thèmes ---------- */
   // Sans choix enregistré, le site prend le thème Mayotte, dont index.html charge la feuille pour tout
@@ -438,6 +438,7 @@
     else if (chap === "suivi") pageSuivi();
     else if (chap === "demandes") pageDemandes();
     else if (chap === "comptes") pageComptes();
+    else if (chap === "capes") pageCapes(onglet);
     else if (chap === "frequentation") pageFrequentation();
     else if (chap === "avatar") pageAvatar();
     else if (chap === "jeu") pageJeu(onglet);
@@ -799,7 +800,7 @@
     if (e && e.prof) {
       $app.innerHTML = `<section class="page-compte"><p class="eyebrow">Compte professeur</p><h1>Bonjour !</h1>
         <p class="lead">Identifiant : <strong>${esc(e.identifiant)}</strong></p>
-        <p class="btns-prof"><a class="btn" href="#suivi">Suivi des élèves</a> <a class="btn" href="#frequentation">Fréquentation du site</a>${Compte.chef() ? ` <a class="btn" href="#demandes">Demandes de comptes</a> <a class="btn" href="#comptes">Tous les comptes</a>` : ""}</p>
+        <p class="btns-prof"><a class="btn" href="#suivi">Suivi des élèves</a> <a class="btn" href="#frequentation">Fréquentation du site</a>${Compte.chef() ? ` <a class="btn" href="#demandes">Demandes de comptes</a> <a class="btn" href="#comptes">Tous les comptes</a> <a class="btn" href="#capes">Préparation au CAPES</a>` : ""}</p>
         <button class="btn-sec" id="deco">Se déconnecter</button></section>`;
       return deco();
     }
@@ -1422,6 +1423,32 @@
       const tr = document.getElementById("sd-" + b.dataset.detail), ouvrir = tr.hidden;
       tr.hidden = !ouvrir; b.setAttribute("aria-expanded", ouvrir);
     });
+  }
+
+  /* ---------- Page prof.maths : préparation au CAPES ----------
+     Le code de la page est dans assets/capes.js et assets/capes.css (chargés seulement ici). Le contenu n'est PAS dans
+     le dépôt : il est dans Firestore (collection « capes »), que les règles réservent au compte prof.maths, et vient de
+     fichiers Markdown privés envoyés par outils/capes/envoyer.js. Pour tester en local sans compte : localhost seulement,
+     localStorage « profmaths:capes-apercu » = 1, et l'aperçu écrit par « envoyer.js --apercu » (capes-apercu/, ignoré par git). */
+  function pageCapes(id) {
+    document.title = "Préparation au CAPES · ProfMaths";
+    let apercu = false;
+    try { apercu = /^(localhost|127\.0\.0\.1)$/.test(location.hostname) && localStorage.getItem("profmaths:capes-apercu") === "1"; } catch (e) {}
+    if (!Compte.chef() && !apercu) {
+      $app.innerHTML = `<section class="page-compte"><p class="eyebrow">Préparation au CAPES</p><h1>Page réservée au compte prof.maths</h1><p><a class="btn" href="#compte">Mon compte</a></p></section>`;
+      return;
+    }
+    const h0 = location.hash;
+    const CLE_AP = "profmaths:capes-apercu-prog";
+    const outils = apercu ? {
+      lire: (x) => fetch(`capes-apercu/${x}.json?t=${Date.now()}`).then((r) => (r.ok ? r.json() : null)),
+      progression: async () => { try { return JSON.parse(localStorage.getItem(CLE_AP)); } catch (e) { return null; } },
+      sauverProgression: async (p) => { localStorage.setItem(CLE_AP, JSON.stringify(p)); },
+    } : { lire: (x) => Compte.capesLire(x), progression: () => Compte.capesLire("progression"), sauverProgression: (p) => Compte.capesProgression(p) };
+    $app.innerHTML = `<section class="page-capes">${msgAttente("Chargement de l'espace CAPES…")}</section>`;
+    Promise.all([chargerScript("assets/capes.js"), chargerScript(KATEX), chargerCss("capes.css")])
+      .then(() => { if (memePage(h0)) window.PM_CAPES($app, id || "", Object.assign({ esc, inline, tex, ici: () => memePage(h0) }, outils)); })
+      .catch(() => { if (memePage(h0)) $app.innerHTML = msgReseau("L'espace CAPES n'a pas pu se charger."); });
   }
 
   /* ---------- Page prof.maths : tous les comptes du site et leur temps actif ---------- */

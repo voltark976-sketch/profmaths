@@ -1,0 +1,68 @@
+/* Espace « Préparation au CAPES » (assets/capes.js), chargé seulement sur ces pages. Reprend les couleurs du thème. */
+.page-capes h2 { margin-top: 1.6em; }
+.page-capes h3 { font-size: 1.05rem; margin: 1.2em 0 0.4em; }
+.cp-rub { border-top: 1px solid var(--trait); margin-top: 22px; }
+.cp-rub > h2 { margin-top: 0.9em; }
+.cp-rub .chapitres { margin-top: 12px; }
+.cp-badge { flex: none; font-size: 0.78rem; font-weight: 700; padding: 4px 8px; border-radius: 999px; background: var(--fond); color: var(--doux); border: 1px solid var(--trait); }
+.cp-badge.cp-e1 { background: var(--ylang-pale); color: var(--encre); border-color: transparent; }
+.cp-badge.cp-e2 { background: var(--lagon-pale); color: var(--encre); border-color: transparent; }
+.cp-badge.cp-e3 { background: var(--bon-pale); color: var(--bon); border-color: transparent; }
+
+/* Calendrier : compte à rebours */
+.cp-dates { list-style: none; padding: 0; margin: 16px 0; display: grid; gap: 8px; }
+.cp-dates li { display: flex; gap: 12px; align-items: center; background: var(--surface); border: 1px solid var(--trait); border-radius: var(--r); padding: 10px 14px; }
+.cp-dates li > b { flex: none; min-width: 3.4em; font: 700 1.1rem/1 var(--f-titre); color: var(--lagon); }
+.cp-dates li > span { display: grid; gap: 2px; min-width: 0; }
+.cp-global { display: grid; gap: 4px; margin: 16px 0 4px; }
+
+/* Où j'en suis */
+.cp-etat { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin: 4px 0 12px; }
+.cp-etat button { padding: 9px 4px; border-radius: 10px; border: 2px solid var(--trait); background: var(--surface); color: var(--encre); font: 600 0.88rem/1.2 var(--f-texte); cursor: pointer; min-width: 0; }
+.cp-etat button[aria-pressed="true"] { border-color: var(--lagon); background: var(--lagon-pale); }
+.cp-plan { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 8px; }
+.cp-plan .filtre { padding: 5px 11px; font-size: 0.85rem; }
+
+/* Encadrés de cours */
+.cp-boite { margin: 14px 0; padding: 12px 14px; border-radius: var(--r); background: var(--surface); border: 1px solid var(--trait); border-left: 4px solid var(--lagon); min-width: 0; }
+.cp-boite .cp-boite { margin: 10px 0 2px; padding: 10px 11px; }
+.cp-boite > p:last-child, .cp-boite > ul:last-child, .cp-boite > ol:last-child { margin-bottom: 0; }
+.cp-tete { margin: 0 0 6px; }
+.cp-bt { font-weight: 700; }
+.cp-theoreme, .cp-propriete, .cp-proposition, .cp-lemme, .cp-corollaire { border-left-color: var(--ylang); }
+.cp-theoreme .tag, .cp-propriete .tag, .cp-proposition .tag, .cp-lemme .tag, .cp-corollaire .tag { color: var(--ylang); }
+.cp-piege, .cp-contre-exemple { border-left-color: var(--faux); }
+.cp-piege .tag, .cp-contre-exemple .tag { color: var(--faux); }
+.cp-methode, .cp-a-savoir { border-left-color: var(--bon); }
+.cp-methode .tag, .cp-a-savoir .tag { color: var(--bon); }
+.cp-exemple, .cp-remarque, .cp-jury { background: var(--lagon-pale); border-color: transparent; border-left-color: var(--lagon); }
+details.cp-boite > summary, .cp-corrige > summary, .cp-carte > summary { cursor: pointer; }
+details.cp-boite[open] > summary { margin-bottom: 6px; }
+
+/* Formules centrées : défilent dans leur cadre plutôt que d'élargir la page (écran de 360 px) */
+.cp-m { overflow-x: auto; overflow-y: hidden; max-width: 100%; padding: 2px 0; }
+.page-capes .katex-display { margin: 0.6em 0; }
+
+/* Exercices */
+.cp-sec { border-top: 1px solid var(--trait); margin-top: 18px; }
+.cp-exo { margin: 14px 0; padding: 14px; background: var(--surface); border: 1px solid var(--trait); border-radius: var(--r); min-width: 0; }
+.cp-exo h3 { margin-top: 0; }
+.cp-exo .aides { margin-top: 10px; }
+.cp-actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0 0; }
+.cp-actions:empty { display: none; }
+.cp-corrige { margin-top: 10px; padding: 10px 12px; border-radius: 10px; background: var(--bon-pale); }
+.cp-corrige > summary { font-weight: 700; }
+
+/* QCM */
+.cp-qcm .expl { margin-top: 8px; }
+.cp-qcm .expl p { display: block; }
+
+/* Cartes flash */
+.cp-cartes { display: grid; gap: 8px; margin-top: 8px; }
+.cp-carte { background: var(--surface); border: 1px solid var(--trait); border-radius: var(--r); padding: 12px 14px; }
+.cp-carte > summary { font-weight: 700; }
+.cp-carte[open] { border-color: var(--lagon); }
+.cp-carte[open] > summary { margin-bottom: 8px; }
+
+.cp-liens { padding-left: 1.2em; }
+.cp-liens li { margin: 6px 0; }

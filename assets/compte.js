@@ -464,6 +464,19 @@
       classes.forEach((c) => { listes[c.uid] = c; });
       return { eleves, classes: listes, inscrits, demandes, profs, manquants };
     },
+    // prof.maths : préparation au CAPES (collection « capes », que les règles Firestore réservent à ce seul compte).
+    // Un document = { titre, rubrique, ordre, contenu (texte JSON), majLe } ; « progression » = { etats, qcm }
+    async capesLire(id) {
+      if (!fb || !this.chef()) throw new Error("Réservé au compte prof.maths");
+      const d = await fb.db.collection("capes").doc(id).get();
+      if (!d.exists) return null;
+      const x = d.data();
+      return id === "progression" ? { etats: x.etats || {}, qcm: x.qcm || {} } : JSON.parse(x.contenu || "null");
+    },
+    async capesProgression(p) {
+      if (!fb || !this.chef()) throw new Error("Réservé au compte prof.maths");
+      await fb.db.collection("capes").doc("progression").set({ etats: p.etats || {}, qcm: p.qcm || {}, majLe: firebase.firestore.FieldValue.serverTimestamp() });
+    },
     // statut : "approuve", "refuse" ou "attente"
     async decider(uid, statut) {
       if (!fb || !this.chef()) throw new Error("Réservé au compte prof.maths");
