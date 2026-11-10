@@ -33,7 +33,7 @@ window.CHAPITRES["seconde-calcul-litteral"] = {
   cours: [
     {
       titre: "Puissances entières relatives",
-      video: { titre: "Vidéo de ton prof : puissances d'exposant négatif et écriture scientifique (cours)", youtube: "https://youtu.be/rdKDDPQjuSc" },
+      video: { titre: "Vidéo de ton prof : puissances d'exposant négatif et écriture scientifique (cours)", youtube: "https://youtu.be/sthrpZzEWOk" },
       texte:
         "Pour $a \\neq 0$ et $n$ entier positif : $a^n = a \\times a \\times \\ldots \\times a$ ($n$ facteurs), $a^0 = 1$ et $a^{-n} = \\dfrac{1}{a^n}$.\n\n" +
         "Règles de calcul, pour $n$ et $p$ entiers relatifs :\n" +
@@ -48,7 +48,7 @@ window.CHAPITRES["seconde-calcul-litteral"] = {
     },
     {
       titre: "Racines carrées",
-      video: { titre: "Vidéo de ton prof : racines carrées, racine d'un carré et produit de racines (cours)", youtube: "https://youtu.be/ODWMW3VUk1A" },
+      video: { titre: "Vidéo de ton prof : racines carrées, racine d'un carré et produit de racines (cours)", youtube: "https://youtu.be/hbpk_spiNcU" },
       texte:
         "Pour $a \\geqslant 0$, $\\sqrt{a}$ est le nombre **positif** dont le carré est $a$ : $\\sqrt{49} = 7$. La racine carrée d'un nombre négatif n'existe pas.\n\n" +
         "- $(\\sqrt{a})^2 = a$ pour $a \\geqslant 0$, et $\\sqrt{a^2} = |a|$ pour tout réel $a$ : $\\sqrt{(-5)^2} = \\sqrt{25} = 5$.\n" +
@@ -78,7 +78,7 @@ window.CHAPITRES["seconde-calcul-litteral"] = {
     {
       titre: "Développer : distributivité et identités remarquables",
       figure: "identite-carre",
-      video: { titre: "Vidéo de ton prof : développer avec les identités remarquables (cours)", youtube: "https://youtu.be/YZQqSNhAI4M" },
+      video: { titre: "Vidéo de ton prof : développer avec les identités remarquables (cours)", youtube: "https://youtu.be/gjpOzJ4CQCo" },
       texte:
         "**Développer**, c'est transformer un produit en somme.\n" +
         "- Distributivité : $k(a + b) = ka + kb$.\n" +
@@ -97,7 +97,7 @@ window.CHAPITRES["seconde-calcul-litteral"] = {
     {
       titre: "Factoriser et choisir la bonne forme",
       figure: "cl-cours-facteur",
-      video: { titre: "Vidéo de ton prof : factoriser et choisir la forme la plus adaptée (cours)", youtube: "https://youtu.be/Pmk3kvDQIkI" },
+      video: { titre: "Vidéo de ton prof : factoriser et choisir la forme la plus adaptée (cours)", youtube: "https://youtu.be/v5PjIs9MCnU" },
       texte:
         "**Factoriser**, c'est transformer une somme en produit.\n" +
         "- On cherche d'abord un **facteur commun** : $ka + kb = k(a + b)$, même quand $k$ est une parenthèse.\n" +
@@ -142,7 +142,7 @@ window.CHAPITRES["seconde-calcul-litteral"] = {
     {
       titre: "Équations du premier degré",
       figure: "cl-cours-equation",
-      video: { titre: "Vidéo de ton prof : résoudre une équation, premier degré, produit nul et carré (cours)", youtube: "https://youtu.be/Nomu7XGq5YE" },
+      video: { titre: "Vidéo de ton prof : résoudre une équation, premier degré, produit nul et carré (cours)", youtube: "https://youtu.be/CklljjJ-PCA" },
       texte:
         "Pour résoudre $ax + b = cx + d$, on transforme l'équation en une équation **équivalente** ($\\iff$), qui a les mêmes solutions :\n" +
         "- on peut ajouter ou soustraire un même nombre (ou un même terme en $x$) aux deux membres ;\n" +
@@ -173,7 +173,7 @@ window.CHAPITRES["seconde-calcul-litteral"] = {
     {
       titre: "Équation produit nul",
       figure: "cl-cours-produit",
-      video: { titre: "Vidéo de ton prof : équation produit nul, factoriser d'abord (exercice corrigé)", youtube: "https://youtu.be/bJDw4N-DeGo" },
+      video: { titre: "Vidéo de ton prof : équation produit nul, factoriser d'abord (exercice corrigé)", youtube: "https://youtu.be/MvtQbzIFKQA" },
       texte:
         "**Propriété** : un produit est nul si et seulement si l'un au moins de ses facteurs est nul.\n\n" +
         "$A \\times B = 0 \\iff A = 0$ **ou** $B = 0$.\n\n" +
@@ -188,7 +188,7 @@ window.CHAPITRES["seconde-calcul-litteral"] = {
     {
       titre: "Isoler une variable dans une formule",
       figure: "cl-cours-cylindre",
-      video: { titre: "Vidéo de ton prof : isoler une variable dans une formule (cours)", youtube: "https://youtu.be/9t2gKeI4AFg" },
+      video: { titre: "Vidéo de ton prof : isoler une variable dans une formule (cours)", youtube: "https://youtu.be/uAZ4nDwiMqs" },
       texte:
         "Une formule de physique ou de géométrie se manipule comme une équation : on fait la même opération des deux côtés.\n\n" +
         "- $U = RI \\iff I = \\dfrac{U}{R}$ (on divise par $R$).\n" +
@@ -220,16 +220,16 @@ window.CHAPITRES["seconde-calcul-litteral"] = {
 
   /* Exercices corrigés en vidéo (playlist « Secondes : calcul littéral et équations ») */
   videos: [
-    { titre: "#02 Écrire sous la forme d'une seule puissance", type: "Puissances", youtube: "https://youtu.be/UOBF7k2gCGM" },
-    { titre: "#03 Écriture scientifique, la surface de Mayotte", type: "Puissances", youtube: "https://youtu.be/75_PWZsRmSY" },
-    { titre: "#05 Simplifier une racine carrée", type: "Racines", youtube: "https://youtu.be/picHv6xNWHE" },
-    { titre: "#07 Identités remarquables : 6 développements pas à pas", type: "Développer", youtube: "https://youtu.be/ET6bP_vCqT4" },
-    { titre: "#09 Factoriser : facteur commun et parenthèses", type: "Factoriser", youtube: "https://youtu.be/SBARImfYm78" },
-    { titre: "#10 Forme développée ou factorisée : laquelle choisir ?", type: "Factoriser", youtube: "https://youtu.be/kIH2KS83XDQ" },
-    { titre: "#12 Équations du premier degré, aucune ou toutes les solutions", type: "Équations", youtube: "https://youtu.be/V210HvqGfqg" },
-    { titre: "#14 Retrouver le côté d'une parcelle avec une équation", type: "Problème", youtube: "https://youtu.be/00qncTt7DQo" },
-    { titre: "#16 Formules de physique : vitesse, loi d'Ohm, énergie cinétique", type: "Formules", youtube: "https://youtu.be/D4Qce1Pahu8" },
-    { titre: "#17 Synthèse : le faré et sa terrasse", type: "Synthèse", youtube: "https://youtu.be/q61T4vpU5fM" },
+    { titre: "#02 Écrire sous la forme d'une seule puissance", type: "Puissances", youtube: "https://youtu.be/F5I84UnfP7I" },
+    { titre: "#03 Écriture scientifique, la surface de Mayotte", type: "Puissances", youtube: "https://youtu.be/eq3Bx1PEYwc" },
+    { titre: "#05 Simplifier une racine carrée", type: "Racines", youtube: "https://youtu.be/PYlc_35mIMk" },
+    { titre: "#07 Identités remarquables : 6 développements pas à pas", type: "Développer", youtube: "https://youtu.be/bB51LkFghuA" },
+    { titre: "#09 Factoriser : facteur commun et parenthèses", type: "Factoriser", youtube: "https://youtu.be/tesYI1ZypPo" },
+    { titre: "#10 Forme développée ou factorisée : laquelle choisir ?", type: "Factoriser", youtube: "https://youtu.be/7CaNshlZYNs" },
+    { titre: "#12 Équations du premier degré, aucune ou toutes les solutions", type: "Équations", youtube: "https://youtu.be/9Xuzr_tQwNQ" },
+    { titre: "#14 Retrouver le côté d'une parcelle avec une équation", type: "Problème", youtube: "https://youtu.be/sLgCMmSHB1M" },
+    { titre: "#16 Formules de physique : vitesse, loi d'Ohm, énergie cinétique", type: "Formules", youtube: "https://youtu.be/NuNSI_tJPho" },
+    { titre: "#17 Synthèse : le faré et sa terrasse", type: "Synthèse", youtube: "https://youtu.be/ITJEhYugt3E" },
     { titre: "Automatismes #07 : supprimer les parenthèses", type: "Développer", youtube: "https://youtu.be/FX8UOq0J7uM" },
     { titre: "Automatismes #12 : applications numériques et modélisation", type: "Formules", youtube: "https://youtu.be/WOSEvJv7GwQ" }
   ],
