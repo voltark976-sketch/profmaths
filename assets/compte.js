@@ -82,6 +82,7 @@
   }
   async function etatCompte(u) {
     if (!u) { eleve = null; ecouteur(null, null); return; }
+    banniIci = false;
     const idTech = (u.email || "").split("@")[0];
     if ((u.email || "").endsWith("@" + DOMAINE_LIBRE)) return etatInscrit(u, idTech);
     let c;
@@ -123,9 +124,23 @@
     }
   }
   const AUTRES = "Autres élèves";
+  const BANNI = "Ce compte a été banni.";
   // Compte créé sur le site : demande de professeur (en attente, refusée ou approuvée) ou élève hors des classes
   async function etatInscrit(u, idTech) {
     const neuf = inscription && inscription.id === idTech ? inscription : null;
+    // Compte banni (désactivé dans Firebase, par exemple test1 le 10 novembre 2026 pour progression truquée) : une session
+    // déjà ouverte sur l'appareil garde un jeton valable jusqu'à une heure ; on le fait renouveler pour le savoir tout de suite
+    if (!neuf) {
+      try { await u.getIdToken(true); }
+      catch (e) {
+        if (/user-disabled/.test((e && e.code) || "")) {
+          banniIci = true; // le message reste affiché sur la page du compte tant que personne ne se connecte
+          await fb.auth.signOut().catch(() => {});
+          if (location.hash !== "#compte") location.hash = "#compte";
+          return;
+        }
+      }
+    }
     const dRef = fb.db.collection("demandesProf").doc(u.uid), iRef = fb.db.collection("inscrits").doc(u.uid);
     try {
       // Première connexion juste après la création : on enregistre la fiche ou la demande (gardée pour un nouvel essai si le réseau coupe)
@@ -251,7 +266,7 @@
   }
   document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden") envoyerTemps(); });
   window.addEventListener("pagehide", envoyerTemps);
-  let erreurCompte = "";
+  let erreurCompte = "", banniIci = false;
   // Nouvel essai de lecture du compte après un échec ; la fusion se fait dans l'écouteur, qui enregistre ensuite
   let relectureEnCours = false;
   function relire() {
@@ -295,7 +310,7 @@
   window.PM_COMPTE = {
     demo: !CFG.firebase,
     classes: CFG.classes || [],
-    erreurCompte: () => { const m = erreurCompte; erreurCompte = ""; return m; },
+    erreurCompte: () => { const m = erreurCompte || (banniIci ? BANNI : ""); erreurCompte = ""; return m; },
     // XP gagnés dans un chapitre (compte connecté) : envoyés avec le temps, lus par le professeur pour la notation
     xpChapitre(chap, pts) {
       if (!compteTemps() || !chap || !(pts > 0)) return;
@@ -368,7 +383,8 @@
         catch (e) {
           if (!/invalid-credential|wrong-password|user-not-found/.test(e && e.code || "")) throw new Error(messageFirebase(e));
           try { await fb.auth.signInWithEmailAndPassword(`${id}@${DOMAINE_LIBRE}`, mdp); }
-          catch (e2) { throw new Error(messageFirebase(e2)); }
+          // Compte créé sur le site et désactivé : il a été banni (les comptes des classes désactivés gardent leur message)
+          catch (e2) { throw new Error(/user-disabled/.test((e2 && e2.code) || "") ? BANNI : messageFirebase(e2)); }
         }
         return; // onAuthStateChanged prend le relais
       }
