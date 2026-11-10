@@ -40,6 +40,9 @@
 details.cp-boite > summary, .cp-corrige > summary, .cp-carte > summary { cursor: pointer; }
 details.cp-boite[open] > summary { margin-bottom: 6px; }
 
+/* Formules courtes en ligne : d'un seul tenant (capes.js, garderCourtes) */
+.cp-court { white-space: nowrap; }
+
 /* Formules centrées : défilent dans leur cadre plutôt que d'élargir la page (écran de 360 px) */
 .cp-m { overflow-x: auto; overflow-y: hidden; max-width: 100%; padding: 2px 0; }
 .page-capes .katex-display { margin: 0.6em 0; }

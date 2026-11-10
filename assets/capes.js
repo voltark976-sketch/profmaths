@@ -42,6 +42,16 @@
     }).join("");
   }
 
+  // Formules courtes en ligne (« $k \geqslant 0$ ») : jamais coupées en fin de ligne sur un téléphone ; les longues gardent
+  // les coupures de KaTeX après « = », « ⩽ »…, sinon elles déborderaient de l'écran
+  function garderCourtes($app) {
+    $app.querySelectorAll(".katex").forEach((k) => {
+      if (k.closest(".katex-display")) return;
+      const a = k.querySelector("annotation");
+      if (a && a.textContent.length <= 30) k.classList.add("cp-court");
+    });
+  }
+
   /* ---------- Progression : où j'en suis (À voir, Vu, Revu, Maîtrisé) et meilleurs scores aux QCM ---------- */
   let minuterie = null;
   function sauver() {
@@ -82,6 +92,7 @@
           return `<a class="chap" href="#capes.${o.esc(e.id)}"><span class="chap-t"><strong>${txt(e.titre)}</strong>${e.resume ? `<span class="meta">${txt(e.resume)}</span>` : ""}${nb ? `<span class="meta">${o.esc(nb)}</span>` : ""}${barre(Math.round((etat(e.id) / 3) * 100))}</span><span class="cp-badge cp-e${etat(e.id)}">${ETATS[etat(e.id)]}</span></a>`;
         }).join("")}</div>` : `<p class="muted">Pas encore de fiche dans cette rubrique.</p>`}</section>`).join("")}
     </section>`;
+    garderCourtes($app);
   }
 
   /* ---------- Page d'une fiche ---------- */
@@ -118,6 +129,7 @@
       ${f.sections.length > 2 ? `<nav class="cp-plan" aria-label="Sur cette fiche">${f.sections.map((s, k) => (s.titre || s.type !== "texte" ? `<button type="button" class="filtre" data-aller="${k}">${txt(s.titre || { fiche: "Fiche", exercices: "Exercices", qcm: "QCM", cartes: "Cartes", liens: "Liens" }[s.type])}</button>` : "")).join("")}</nav>` : ""}
       <div class="page-capes cp-fiche">${rendre(f.intro)}${f.sections.map((s, k) => section(s, k, f.id)).join("")}</div>
       ${f.source ? `<p class="meta">Source : ${txt(f.source)}</p>` : ""}`;
+    garderCourtes($app);
     $app.querySelectorAll("[data-etat]").forEach((b) => b.addEventListener("click", () => {
       prog.etats = Object.assign({}, prog.etats, { [f.id]: +b.dataset.etat });
       $app.querySelectorAll("[data-etat]").forEach((x) => x.setAttribute("aria-pressed", x === b));
