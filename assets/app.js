@@ -50,8 +50,21 @@
     try { prog = Object.assign({ xp: 0, exo: {}, qcm: {}, jeux: {}, quand: {} }, Compte.fusion(prog, JSON.parse(ev.newValue))); majXP(); } catch (e) {}
   });
   // Ajoute des XP (nombre entier) et annonce un passage de niveau ; chap : chapitre où ils sont gagnés (notation du professeur)
+  // Plafonds : XP.parActivite par série, QCM ou défi, XP.parJour par jour (prog.xpJ = { j: numéro du jour, base: XP au début du jour },
+  // vérifiés aussi par les règles Firestore). plafondAtteint : le dernier gain a été réduit par le plafond du jour.
+  // Numéro du jour : jours écoulés depuis le 1er janvier 1970 en temps universel (le compteur repart à 3 h à Mayotte)
+  const numeroJour = () => Math.floor(Date.now() / 864e5);
+  let plafondAtteint = false;
   function gagnerXP(pts, chap) {
     pts = Math.max(0, Math.round(pts));
+    plafondAtteint = false;
+    if (!pts) return 0;
+    const auj = numeroJour();
+    if (!prog.xpJ || !(prog.xpJ.j >= auj)) prog.xpJ = { j: auj, base: prog.xp };
+    const reste = Math.max(0, XP.parJour - (prog.xp - prog.xpJ.base));
+    const voulu = Math.min(pts, XP.parActivite);
+    pts = Math.min(voulu, reste);
+    plafondAtteint = pts < voulu;
     if (!pts) return 0;
     const avant = AV.niveau(prog.xp).niveau;
     prog.xp += pts; save();
@@ -82,6 +95,7 @@
   // Coefficient d'XP quand on rejoue : record battu = XP complets, sinon beaucoup moins
   const coefRejeu = (premiere, progres, parfait) => (premiere || progres ? 1 : parfait ? XP.dejaParfait : XP.rejeuSansProgres);
   const divise = (c) => `XP divisés par ${String(Math.round((1 / c) * 10) / 10).replace(".", ",")}`;
+  const textePlafond = () => (plafondAtteint ? ` · <span>Plafond de ${XP.parJour.toLocaleString("fr-FR")} XP par jour atteint : les XP reviennent demain, tes étoiles et tes records comptent toujours</span>` : "");
   const texteCoef = (c, fem) => (c === XP.dejaParfait ? `déjà réussi${fem ? "e" : ""} parfaitement : ` : `rejoué${fem ? "e" : ""} sans battre ton record : `) + divise(c);
   // Défis : au-delà de quelques parties dans la journée (tous chapitres confondus), les XP diminuent
   function partieDuJour() {
@@ -735,7 +749,8 @@
         <li><strong>Défis chrono :</strong> ${XP.bonneReponseDefi} XP par bonne réponse.</li>
         <li><strong>Bats tes records :</strong> la première fois, ou quand tu fais mieux qu'avant (plus d'étoiles, meilleur score au QCM, record au défi), tu gagnes tous les XP. Rejouer sans faire mieux : ${divise(XP.rejeuSansProgres)}, et ${divise(XP.dejaParfait)} si tu avais déjà 3 étoiles ou 100 % au QCM.</li>
         <li><strong>Défis :</strong> après ${XP.defisPleinTarif} défis dans la journée, ceux sans nouveau record ont leurs ${divise(XP.defiApres)} jusqu'au lendemain.</li>
-        <li>Chaque niveau demande un peu plus d'XP que le précédent : ${AV.xpPour(2)} XP pour le niveau 2, ${AV.xpPour(3) - AV.xpPour(2)} de plus pour le niveau 3, et ainsi de suite.</li></ul>
+        <li><strong>Plafonds :</strong> ${XP.parActivite} XP au plus par série, QCM ou défi, et ${XP.parJour.toLocaleString("fr-FR")} XP au plus par jour.</li>
+      <li>Chaque niveau demande un peu plus d'XP que le précédent : ${AV.xpPour(2)} XP pour le niveau 2, ${AV.xpPour(3) - AV.xpPour(2)} de plus pour le niveau 3, et ainsi de suite.</li></ul>
       </details></section>`;
     const h0 = location.hash;
     let vu = n.niveau;
@@ -1155,6 +1170,12 @@
     for (const d of new Set([...Object.keys(t.jc || {}), ...Object.keys(t.xj || {})])) { const b = bornesJour(t, d); if (b.fT < 1 || b.fX < 1) jours++; }
     if (jours) r.push(`temps ou XP des chapitres plus grands que le temps passé sur le site (${jours} jour${jours > 1 ? "s" : ""})`);
     if (sommeValeurs(t.xp) > xp + 1000) r.push("XP des chapitres plus grands que le total d'XP");
+    // Temps actif (on n'y compte que les minutes où l'élève agit) : plus de 10 h dans une journée trahit un script
+    const longs = Object.keys(t.j || {}).filter((d) => (+t.j[d] || 0) > 36000);
+    if (longs.length) r.push(`plus de 10 h d'activité dans une journée (${longs.length} jour${longs.length > 1 ? "s" : ""})`);
+    // Plafond du jour (règles Firestore depuis novembre 2026) : la base du jour ne peut pas dépasser le total
+    const xj = x.xpJ;
+    if (xj && typeof xj === "object" && xp - (+xj.base || 0) > XP.parJour) r.push(`plus de ${XP.parJour} XP en une journée (le ${new Date(xj.j * 864e5).toLocaleDateString("fr-FR")})`);
     return r;
   }
   function marqueAnomalie(x) {
@@ -1874,7 +1895,7 @@
       save();
       const noteCoef = coef < 1 ? `Série ${texteCoef(coef, true)}.` : "";
       const msg = st === 3 ? "Série maîtrisée. Tu peux passer à la suivante." : st === 2 ? "Très bien ! Encore un essai pour la troisième étoile ?" : st === 1 ? "C'est un bon début. Relis la fiche méthode puis recommence." : "Pas de panique : regarde la vidéo et le cours, puis réessaie.";
-      p.innerHTML = `<div class="bilan"><p class="eyebrow">Bilan · ${inline(ex.titre)}</p><p class="gros">${score}<span>/${max} pts</span></p>${etoiles(st, 3)}${record ? `<p class="record">Nouveau record !</p>` : ""}<p>${msg}</p><p class="gain-xp">+${xpSerie} XP${noteCoef ? ` · <span>${noteCoef}</span>` : ""}</p>
+      p.innerHTML = `<div class="bilan"><p class="eyebrow">Bilan · ${inline(ex.titre)}</p><p class="gros">${score}<span>/${max} pts</span></p>${etoiles(st, 3)}${record ? `<p class="record">Nouveau record !</p>` : ""}<p>${msg}</p><p class="gain-xp">+${xpSerie} XP${noteCoef ? ` · <span>${noteCoef}</span>` : ""}${textePlafond()}</p>
         <div class="exo-actions"><button class="btn" id="encore">Recommencer</button><button class="btn-sec" id="retour">Autres séries</button></div></div>`;
       p.querySelector("#encore").addEventListener("click", () => lancerSerie(p, c, id, ex));
       p.querySelector("#retour").addEventListener("click", () => vueExercices(p, c, id));
@@ -1987,7 +2008,7 @@
       save();
       form.dataset.corrige = "1";
       const fin = p.querySelector(".qcm-fin");
-      fin.innerHTML = `<div class="bilan"><p class="eyebrow">Ton score</p><p class="gros">${bon}<span>/${qs.length}</span></p>${record && bon ? `<p class="record">Nouveau record !</p>` : ""}<p>+${gain} XP${coef < 1 ? ` (QCM ${texteCoef(coef)})` : ""}. ${bon >= 8 ? "Excellent, le chapitre est bien compris." : bon >= 5 ? "Bien. Relis les explications des questions ratées." : "Revois le cours et la fiche méthode, puis retente ta chance."}</p><button class="btn" type="submit">Nouveau QCM</button></div>`;
+      fin.innerHTML = `<div class="bilan"><p class="eyebrow">Ton score</p><p class="gros">${bon}<span>/${qs.length}</span></p>${record && bon ? `<p class="record">Nouveau record !</p>` : ""}<p>+${gain} XP${coef < 1 ? ` (QCM ${texteCoef(coef)})` : ""}${textePlafond()}. ${bon >= 8 ? "Excellent, le chapitre est bien compris." : bon >= 5 ? "Bien. Relis les explications des questions ratées." : "Revois le cours et la fiche méthode, puis retente ta chance."}</p><button class="btn" type="submit">Nouveau QCM</button></div>`;
       fin.insertAdjacentHTML("beforeend", inviteAbo("q", bon >= 0.6 * tot));
       fin.scrollIntoView({ behavior: "smooth", block: "center" });
     });
@@ -2161,7 +2182,7 @@
       const gain = gagnerXP(bonnes * XP.bonneReponseDefi * coef, theme.id);
       save();
       $c.innerHTML = `<div class="bilan"><p class="eyebrow">${esc(J.titre)} · ${esc(o.libelle)}</p><p>${esc(raison)}</p><p class="gros">${score}<span> pts</span></p>${record && score ? `<p class="record">Nouveau record !</p>` : ancien ? `<p class="muted">Ton record : ${ancien} pts</p>` : ""}
-        <p>${bonnes} bonne${bonnes > 1 ? "s" : ""} réponse${bonnes > 1 ? "s" : ""} sur ${n}. +${gain} XP${coef < 1 ? ` (déjà ${XP.defisPleinTarif} défis aujourd'hui sans nouveau record : ${divise(coef)} jusqu'à demain)` : ""}.</p>
+        <p>${bonnes} bonne${bonnes > 1 ? "s" : ""} réponse${bonnes > 1 ? "s" : ""} sur ${n}. +${gain} XP${coef < 1 ? ` (déjà ${XP.defisPleinTarif} défis aujourd'hui sans nouveau record : ${divise(coef)} jusqu'à demain)` : ""}${textePlafond()}.</p>
         <div class="exo-actions"><button class="btn" id="rejouer">Rejouer</button><button class="btn-sec" id="themes">${esc(o.retourTexte || "Changer de thème")}</button></div></div>`;
       $c.querySelector("#rejouer").addEventListener("click", () => lancerChrono(J, theme, o));
       $c.querySelector("#themes").addEventListener("click", o.retour);

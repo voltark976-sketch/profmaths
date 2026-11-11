@@ -39,7 +39,23 @@
   }
   // Fiche de progression : élève d'une classe (eleves/uid), élève inscrit sur le site (inscrits/uid) ou professeur (profs/uid)
   const fiche = (e) => fb.db.collection(e.prof ? "profs" : e.inscrit ? "inscrits" : "eleves").doc(e.uid);
-  const lireProg = (d) => ({ xp: d.xp || 0, exo: d.exo || {}, qcm: d.qcm || {}, jeux: d.jeux || {}, avatar: d.avatar || null, quand: d.quand || {} });
+  // XP et plafond du jour tels qu'ils sont dans la fiche (dernière lecture ou dernier envoi accepté) : voir journee()
+  let serveur = { xp: 0, xpJ: null };
+  const lireProg = (d) => {
+    serveur = { xp: d.xp || 0, xpJ: d.xpJ || null };
+    return { xp: d.xp || 0, exo: d.exo || {}, qcm: d.qcm || {}, jeux: d.jeux || {}, avatar: d.avatar || null, quand: d.quand || {}, xpJ: d.xpJ || null };
+  };
+  // Plafond du jour (règles Firestore) : xpJ = { j: numéro du jour (jours depuis le 1er janvier 1970, temps universel), base: XP au début du jour }. Le même jour, la base ne change plus ;
+  // un nouveau jour, elle ne dépasse pas les XP déjà enregistrés ; les XP envoyés restent sous base + plafond.
+  // Renvoie { xp, xpJ } à envoyer, ou null si les XP n'ont pas changé depuis le dernier envoi accepté.
+  function journee(prog) {
+    if (prog.xp === serveur.xp) return null;
+    const plafond = (window.NIVEAUX && window.NIVEAUX.xp.parJour) || 3000, S = serveur.xpJ;
+    let J = prog.xpJ && prog.xpJ.j ? { j: prog.xpJ.j, base: +prog.xpJ.base || 0 } : { j: Math.floor(Date.now() / 864e5), base: serveur.xp };
+    if (S && S.j >= J.j) J = { j: S.j, base: S.base };
+    else J.base = Math.min(J.base, serveur.xp);
+    return { xp: prog.xp > serveur.xp ? Math.min(prog.xp, J.base + plafond) : prog.xp, xpJ: J };
+  }
   // Points du classement : somme des records de l'élève sur tous les Défis chrono
   const pointsJeux = (jeux) => Object.values(jeux || {}).reduce((s, v) => s + (+v || 0), 0);
 
@@ -60,6 +76,10 @@
     // Avatar : on garde le plus récemment modifié
     const av = [a.avatar, b.avatar].filter((x) => x && typeof x === "object").sort((x, y) => (y.t || 0) - (x.t || 0))[0];
     if (av) out.avatar = Object.assign({}, av);
+    // Plafond du jour : le jour le plus récent ; le même jour, celui de b (la fiche du compte ou l'autre onglet)
+    const ja = a.xpJ && a.xpJ.j ? a.xpJ : null, jb = b.xpJ && b.xpJ.j ? b.xpJ : null;
+    const j = ja && (!jb || ja.j > jb.j) ? ja : jb;
+    if (j) out.xpJ = { j: j.j, base: +j.base || 0 };
     return out;
   }
 
@@ -489,13 +509,17 @@
       clearTimeout(minuterie);
       const copie = { xp: prog.xp, exo: Object.assign({}, prog.exo), qcm: Object.assign({}, prog.qcm), jeux: Object.assign({}, prog.jeux), quand: Object.assign({}, prog.quand) };
       if (prog.avatar) copie.avatar = Object.assign({}, prog.avatar);
+      const xpJ0 = prog.xpJ ? Object.assign({}, prog.xpJ) : null;
       minuterie = setTimeout(() => {
         if (fb && eleve.lectureEchouee) { relire(); return; }
         if (fb) {
           derniereProg = prog;
+          // XP gagnés depuis le dernier envoi : plafond du jour (sans changement, xpJ reste tel quel dans la fiche)
+          const jr = journee({ xp: copie.xp, xpJ: xpJ0 });
+          if (jr) { copie.xp = jr.xp; copie.xpJ = jr.xpJ; }
           fiche(eleve)
             .set(Object.assign(copie, identite(), { majLe: firebase.firestore.FieldValue.serverTimestamp() }), { merge: true })
-            .then(() => { essaisRefus = 0; })
+            .then(() => { essaisRefus = 0; if (jr && jr.xp >= serveur.xp) serveur = { xp: jr.xp, xpJ: jr.xpJ }; })
             // Hors ligne : la copie locale reste, elle repartira au prochain enregistrement.
             // Refusé par les règles (trop d'XP d'un coup, par exemple après des essais faits sur un autre appareil) :
             // nouvel essai plus tard, les règles acceptant un peu plus à chaque seconde écoulée
