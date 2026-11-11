@@ -1079,3 +1079,4 @@ a.chap.chap-sujets:hover { border-color: var(--ylang); }
   .eval-tete, .eval-contexte, .eval-partie { break-after: avoid; }
   a { color: inherit; text-decoration: none; }
 }
+.bandeau-banni { margin: 12px auto 0; max-width: 60rem; }

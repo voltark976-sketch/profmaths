@@ -39,22 +39,26 @@
   }
   // Fiche de progression : élève d'une classe (eleves/uid), élève inscrit sur le site (inscrits/uid) ou professeur (profs/uid)
   const fiche = (e) => fb.db.collection(e.prof ? "profs" : e.inscrit ? "inscrits" : "eleves").doc(e.uid);
-  // XP et plafond du jour tels qu'ils sont dans la fiche (dernière lecture ou dernier envoi accepté) : voir journee()
-  let serveur = { xp: 0, xpJ: null };
+  // Période d'XP de la fiche (règles Firestore, « banni ») : xpJ = { t: début (date du serveur), base: XP au début }.
+  // Un compte qui gagne XP.bannissement (10 000) XP ou plus pendant une période de 24 h est banni : sa fiche est figée.
+  // serveur : XP et période tels qu'ils sont dans la fiche (dernière lecture ou dernier envoi accepté), banni : fiche figée.
+  const SEUIL = () => (window.NIVEAUX && window.NIVEAUX.xp.bannissement) || 10000;
+  const enMs = (t) => (t && typeof t.toMillis === "function" ? t.toMillis() : +t || 0);
+  let serveur = { xp: 0, xpJ: null, banni: false };
   const lireProg = (d) => {
-    serveur = { xp: d.xp || 0, xpJ: d.xpJ || null };
-    return { xp: d.xp || 0, exo: d.exo || {}, qcm: d.qcm || {}, jeux: d.jeux || {}, avatar: d.avatar || null, quand: d.quand || {}, xpJ: d.xpJ || null };
+    const xpJ = d.xpJ && typeof d.xpJ === "object" ? { t: enMs(d.xpJ.t), base: +d.xpJ.base || 0 } : null;
+    serveur = { xp: d.xp || 0, xpJ, banni: !!xpJ && (d.xp || 0) - xpJ.base >= SEUIL() };
+    return { xp: d.xp || 0, exo: d.exo || {}, qcm: d.qcm || {}, jeux: d.jeux || {}, avatar: d.avatar || null, quand: d.quand || {} };
   };
-  // Plafond du jour (règles Firestore) : xpJ = { j: numéro du jour (jours depuis le 1er janvier 1970, temps universel), base: XP au début du jour }. Le même jour, la base ne change plus ;
-  // un nouveau jour, elle ne dépasse pas les XP déjà enregistrés ; les XP envoyés restent sous base + plafond.
-  // Renvoie { xp, xpJ } à envoyer, ou null si les XP n'ont pas changé depuis le dernier envoi accepté.
-  function journee(prog) {
-    if (prog.xp === serveur.xp) return null;
-    const plafond = (window.NIVEAUX && window.NIVEAUX.xp.parJour) || 3000, S = serveur.xpJ;
-    let J = prog.xpJ && prog.xpJ.j ? { j: prog.xpJ.j, base: +prog.xpJ.base || 0 } : { j: Math.floor(Date.now() / 864e5), base: serveur.xp };
-    if (S && S.j >= J.j) J = { j: S.j, base: S.base };
-    else J.base = Math.min(J.base, serveur.xp);
-    return { xp: prog.xp > serveur.xp ? Math.min(prog.xp, J.base + plafond) : prog.xp, xpJ: J };
+  // XP à envoyer : { xp, xpJ? } (xpJ seulement quand une nouvelle période commence). Les XP restent sous base + seuil − 1 :
+  // un élève honnête n'est jamais banni ; le reste part à la période suivante. Pendant les 10 minutes autour de la fin
+  // d'une période (horloge du téléphone un peu décalée), les nouveaux XP attendent l'envoi suivant.
+  function periode(xp) {
+    if (xp <= serveur.xp) return { xp };
+    const S = serveur.xpJ, fin = S ? S.t + 864e5 : 0, now = Date.now(), marge = 6e5;
+    if (S && now < fin - marge) return { xp: Math.min(xp, S.base + SEUIL() - 1) };
+    if (S && now <= fin + marge) return { xp: serveur.xp };
+    return { xp: Math.min(xp, serveur.xp + SEUIL() - 1), xpJ: { t: firebase.firestore.FieldValue.serverTimestamp(), base: serveur.xp } };
   }
   // Points du classement : somme des records de l'élève sur tous les Défis chrono
   const pointsJeux = (jeux) => Object.values(jeux || {}).reduce((s, v) => s + (+v || 0), 0);
@@ -76,10 +80,6 @@
     // Avatar : on garde le plus récemment modifié
     const av = [a.avatar, b.avatar].filter((x) => x && typeof x === "object").sort((x, y) => (y.t || 0) - (x.t || 0))[0];
     if (av) out.avatar = Object.assign({}, av);
-    // Plafond du jour : le jour le plus récent ; le même jour, celui de b (la fiche du compte ou l'autre onglet)
-    const ja = a.xpJ && a.xpJ.j ? a.xpJ : null, jb = b.xpJ && b.xpJ.j ? b.xpJ : null;
-    const j = ja && (!jb || ja.j > jb.j) ? ja : jb;
-    if (j) out.xpJ = { j: j.j, base: +j.base || 0 };
     return out;
   }
 
@@ -325,6 +325,8 @@
       ecrireJSON(CLE_TEMPS, a);
     },
     eleve: () => eleve,
+    // Compte banni (10 000 XP ou plus gagnés en moins d'un jour) : plus rien n'est enregistré
+    banni: () => !!eleve && serveur.banni,
     fusion,
 
     // onChange(eleve, progressionDistante) est appelé à chaque connexion ou déconnexion
@@ -509,17 +511,20 @@
       clearTimeout(minuterie);
       const copie = { xp: prog.xp, exo: Object.assign({}, prog.exo), qcm: Object.assign({}, prog.qcm), jeux: Object.assign({}, prog.jeux), quand: Object.assign({}, prog.quand) };
       if (prog.avatar) copie.avatar = Object.assign({}, prog.avatar);
-      const xpJ0 = prog.xpJ ? Object.assign({}, prog.xpJ) : null;
       minuterie = setTimeout(() => {
         if (fb && eleve.lectureEchouee) { relire(); return; }
         if (fb) {
+          if (serveur.banni) return; // fiche figée par les règles : rien ne serait accepté
           derniereProg = prog;
-          // XP gagnés depuis le dernier envoi : plafond du jour (sans changement, xpJ reste tel quel dans la fiche)
-          const jr = journee({ xp: copie.xp, xpJ: xpJ0 });
-          if (jr) { copie.xp = jr.xp; copie.xpJ = jr.xpJ; }
+          const p = periode(copie.xp);
+          copie.xp = p.xp;
+          if (p.xpJ) copie.xpJ = p.xpJ;
           fiche(eleve)
             .set(Object.assign(copie, identite(), { majLe: firebase.firestore.FieldValue.serverTimestamp() }), { merge: true })
-            .then(() => { essaisRefus = 0; if (jr && jr.xp >= serveur.xp) serveur = { xp: jr.xp, xpJ: jr.xpJ }; })
+            .then(() => {
+              essaisRefus = 0;
+              if (p.xp > serveur.xp) serveur = { xp: p.xp, xpJ: p.xpJ ? { t: Date.now(), base: p.xpJ.base } : serveur.xpJ, banni: false };
+            })
             // Hors ligne : la copie locale reste, elle repartira au prochain enregistrement.
             // Refusé par les règles (trop d'XP d'un coup, par exemple après des essais faits sur un autre appareil) :
             // nouvel essai plus tard, les règles acceptant un peu plus à chaque seconde écoulée

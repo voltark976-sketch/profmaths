@@ -32,9 +32,9 @@ window.NIVEAUX = {
     dejaParfait: 0.1,        // série déjà à 3 étoiles ou QCM déjà à 100 % : XP divisés par 10
     defisPleinTarif: 3,      // défis par jour (tous chapitres confondus) qui rapportent tous leurs XP
     defiApres: 0.25,         // ensuite, les défis sans nouveau record rapportent 4 fois moins jusqu'au lendemain
-    // Plafonds (contre les scripts qui se donnent des XP en continu, novembre 2026) :
-    parActivite: 150,        // XP au plus pour une série, un QCM ou un défi (une série de 12 questions en rapporte 120)
-    parJour: 3000            // XP au plus par jour ; les mêmes nombres sont écrits dans firestore.rules (plafondJour)
+    // Contre les scripts qui se donnent des XP en continu (novembre 2026) : un compte qui gagne ce nombre d'XP en moins
+    // d'un jour est banni (sa fiche est figée). Le même nombre est écrit dans firestore.rules (banni) : changer les deux.
+    bannissement: 10000
   },
 
   /*

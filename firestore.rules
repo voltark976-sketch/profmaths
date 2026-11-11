@@ -86,25 +86,27 @@ service cloud.firestore {
       return tn == ta || (tn is map && n.get('vuLe', null) == request.time && tempsBornes(tn, ta, joursRecents(), borne(dt, 1, 86400) + 30));
     }
     function tempsOk(n, a) { return tempsOkT(n, n.get('temps', {}), a.get('temps', {}), ecoule(a, 'vuLe')); }
-    // Plafond du jour (11 novembre 2026) : le compte test2 gagnait 4 XP par seconde, jour et nuit, avec un script qui restait
-    // sous la limite de vitesse. xpJ = { j: numéro du jour (jours écoulés depuis le 1er janvier 1970 en temps universel : le jour change à 3 h à Mayotte ;
-    // la veille ou le lendemain sont acceptés si l'horloge de l'appareil est décalée), base: XP au début de ce jour }. Le même jour, la base ne change plus ; un jour plus récent, elle ne dépasse
-    // pas les XP déjà enregistrés ; les XP ne dépassent jamais base + 3 000 (plafond parJour de data/niveaux.js).
-    // Un script ne gagne donc plus que 3 000 XP par jour au plus (6 000 une seule fois, en prenant le lendemain d'avance).
-    function plafondJour(n, a) {
+    // Bannissement (11 novembre 2026) : le compte test2 gagnait 4 XP par seconde, jour et nuit, avec un script qui restait
+    // sous la limite de vitesse. Un compte qui gagne 10 000 XP ou plus en moins d'un jour est banni : sa fiche est figée
+    // pour toujours (plus aucune écriture : XP, séries, temps, avatar, classement) ; seul le professeur peut la débloquer
+    // (outils/comptes/debannir.js). Un élève, même très rapide, gagne au plus 35 XP par minute : 10 000 XP demandent
+    // près de 5 h de travail sans pause ; le site garde lui-même les XP sous ce seuil (il ne bannit jamais un élève honnête).
+    // xpJ = { t: début de la période (date du serveur), base: XP au début de la période }. Pendant 24 h, xpJ ne change plus ;
+    // ensuite, le premier enregistrement qui ajoute des XP ouvre une nouvelle période (t = maintenant, base = XP déjà enregistrés au plus).
+    function banni(d) {
+      let A = d.get('xpJ', null);
+      return A is map && d.get('xp', 0) - A.get('base', 0) >= 10000;
+    }
+    function periodeXp(n, a) {
       let J = n.get('xpJ', null);
       let A = a.get('xpJ', null);
-      let x = n.get('xp', 0);
-      let jourNum = math.floor(request.time.toMillis() / 86400000);
-      return (J == A && x == a.get('xp', 0))
-        || (J is map && J.keys().hasOnly(['j', 'base']) && J.base is int
-          && J.j is int && J.j >= jourNum - 1 && J.j <= jourNum + 1 && x - J.base <= 3000
-          && ((A is map && J.j == A.get('j', 0))
-            ? J.base == A.get('base', 0)
-            : ((!(A is map) || J.j > A.get('j', 0)) && J.base <= a.get('xp', 0))));
+      let enCours = A is map && A.get('t', null) is timestamp && request.time < A.t + duration.value(1, 'd');
+      return (J == A && (n.get('xp', 0) == a.get('xp', 0) || enCours))
+        || (!enCours && J is map && J.keys().hasOnly(['t', 'base']) && J.t == request.time
+          && J.base is int && J.base <= a.get('xp', 0));
     }
     function ficheOk(n, a) {
-      return dateServeur(n, a, 'majLe') && dateServeur(n, a, 'vuLe') && progression(n, a) && plafondJour(n, a) && tempsOk(n, a);
+      return !banni(a) && dateServeur(n, a, 'majLe') && dateServeur(n, a, 'vuLe') && progression(n, a) && periodeXp(n, a) && tempsOk(n, a);
     }
     // Création : fiche neuve (élèves, comptes inscrits) ; mise à jour : creeLe inchangée et garde-fous ci-dessus
     function ecritureOk(n, creationLibre) {
@@ -185,6 +187,7 @@ service cloud.firestore {
     match /classement/{uid} {
       allow read: if eleve() || prof();
       allow create, update: if eleve() && request.auth.uid == uid
+        && !banni(get(/databases/$(database)/documents/eleves/$(uid)).data)
         && request.resource.data.keys().hasOnly(['prenom', 'classe', 'points', 'majLe'])
         && request.resource.data.prenom == request.auth.token.prenom
         && request.resource.data.classe == request.auth.token.classe

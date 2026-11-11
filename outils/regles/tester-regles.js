@@ -31,6 +31,7 @@ const fiche = (o = {}) => Object.assign({}, profil, {
   creeLe: "2026-10-10T06:25:32Z", majLe: avantT(120), vuLe: avantT(310),
 }, o);
 const plus = (base, o) => JSON.parse(JSON.stringify(Object.assign({}, base, o)));
+const t0plus = (t) => { const c = JSON.parse(JSON.stringify(t)); c.j["2026-11-10"] += 60; return c; };
 const nCles = (n, v) => Object.fromEntries(Array.from({ length: n }, (_, i) => ["chap-" + i + ":serie", v]));
 
 const cas = [];
@@ -45,27 +46,33 @@ ecrire("élève : première connexion (fiche neuve)", "ALLOW", ELEVE, "eleves/e1
 ecrire("élève : création avec des XP", "DENY", ELEVE, "eleves/e1", "create", plus(neuve, { xp: 500 }));
 ecrire("élève : création avec une fausse date", "DENY", ELEVE, "eleves/e1", "create", plus(neuve, { creeLe: "2026-11-10T00:00:00Z" }));
 const f = fiche();
-// Plafond du jour : xpJ = { j: jour, base: XP au début du jour } (la fiche f n'en a pas encore : premier jour plafonné)
-const JN = Math.floor(Date.parse(T) / 864e5); // numéro du jour (jours depuis le 1er janvier 1970, temps universel)
-const J0 = { j: JN, base: 1200 };
+// Bannissement : xpJ = { t: début de la période (date du serveur), base: XP au début } ; 10 000 XP ou plus en moins d'un jour = banni
+const J0 = { t: T, base: 1200 }; // nouvelle période ouverte par cet enregistrement (la fiche f n'en a pas encore)
 ecrire("élève : fin de série (+100 XP, 1 série, 2 min après)", "ALLOW", ELEVE, "eleves/e1", "update",
   plus(f, { xp: 1300, xpJ: J0, exo: Object.assign({}, f.exo, { "seconde-signes:s3": 3 }), quand: Object.assign({}, f.quand, { "seconde-signes:s3": 1762790000000 }), majLe: T }), f);
 ecrire("élève : +100 XP 10 s après le dernier enregistrement", "DENY", ELEVE, "eleves/e1", "update", plus(f, { xp: 1300, xpJ: J0, majLe: T }), fiche({ majLe: avantT(10) }));
 ecrire("élève : 244 millions d'XP d'un coup", "DENY", ELEVE, "eleves/e1", "update", plus(f, { xp: 244445100, xpJ: J0, majLe: T }), fiche({ majLe: avantT(86400 * 3) }));
-ecrire("élève : +3 000 XP après 3 jours (fusion d'un autre appareil, plafond du jour)", "ALLOW", ELEVE, "eleves/e1", "update", plus(f, { xp: 4200, xpJ: J0, majLe: T }), fiche({ majLe: avantT(86400 * 3) }));
-ecrire("élève : +15 000 XP après 3 jours", "DENY", ELEVE, "eleves/e1", "update", plus(f, { xp: 16200, xpJ: J0, majLe: T }), fiche({ majLe: avantT(86400 * 3) }));
-// Le script de test2 : 4 XP par seconde, sous la limite de vitesse, toute la journée
-const fJ = fiche({ xp: 3000, xpJ: { j: JN, base: 1200 }, majLe: avantT(3600) });
-ecrire("élève : script à 4 XP/s, encore sous le plafond du jour", "ALLOW", ELEVE, "eleves/e1", "update", plus(fJ, { xp: 4200, majLe: T }), fJ);
-ecrire("élève : script à 4 XP/s, au-delà de 3 000 XP dans la journée", "DENY", ELEVE, "eleves/e1", "update", plus(fJ, { xp: 4300, majLe: T }), fJ);
-ecrire("élève : script qui remonte la base du jour", "DENY", ELEVE, "eleves/e1", "update", plus(fJ, { xp: 6000, xpJ: { j: JN, base: 3000 }, majLe: T }), fJ);
-ecrire("élève : script qui efface la base du jour", "DENY", ELEVE, "eleves/e1", "update", plus(fJ, { xp: 6000, xpJ: null, majLe: T }), fJ);
-ecrire("élève : nouveau jour avec une base plus haute que ses XP", "DENY", ELEVE, "eleves/e1", "update", plus(f, { xp: 6000, xpJ: { j: JN, base: 3000 }, majLe: T }), fiche({ majLe: avantT(86400) }));
-ecrire("élève : jour inventé (dans 5 jours)", "DENY", ELEVE, "eleves/e1", "update", plus(fJ, { xp: 4000, xpJ: { j: JN + 5, base: 3000 }, majLe: T }), fJ);
-ecrire("élève : retour à un jour passé", "DENY", ELEVE, "eleves/e1", "update", plus(fJ, { xp: 4000, xpJ: { j: JN - 1, base: 3000 }, majLe: T }), fJ);
-ecrire("élève : nouveau jour (ou horloge en avance d'un jour), nouvelle base", "ALLOW", ELEVE, "eleves/e1", "update", plus(fJ, { xp: 3100, xpJ: { j: JN + 1, base: 3000 }, majLe: T }), fJ);
-ecrire("élève : avatar changé, plafond du jour inchangé", "ALLOW", ELEVE, "eleves/e1", "update", plus(fJ, { avatar: { peau: 4, t: 3 }, majLe: T }), fJ);
-ecrire("élève : XP sans plafond du jour (site pas encore rechargé)", "DENY", ELEVE, "eleves/e1", "update", plus(f, { xp: 1240, majLe: T }), fiche({ majLe: avantT(60) }));
+ecrire("élève : +9 000 XP après 3 jours (fusion d'un autre appareil)", "ALLOW", ELEVE, "eleves/e1", "update", plus(f, { xp: 10200, xpJ: J0, majLe: T }), fiche({ majLe: avantT(86400 * 3) }));
+const fP = fiche({ xp: 3000, xpJ: { t: avantT(3600 * 5), base: 1200 }, majLe: avantT(3600) }); // période commencée il y a 5 h
+ecrire("élève : XP pendant la période (base inchangée)", "ALLOW", ELEVE, "eleves/e1", "update", plus(fP, { xp: 3100, majLe: T }), fP);
+ecrire("élève : script de test2, franchit 10 000 XP dans la période (accepté, la fiche est alors bannie)", "ALLOW", ELEVE, "eleves/e1", "update", plus(fP, { xp: 11300, majLe: T }), fP);
+const fB = fiche({ xp: 11300, xpJ: { t: avantT(3600 * 5), base: 1200 }, majLe: avantT(3600) });
+ecrire("banni : encore des XP", "DENY", ELEVE, "eleves/e1", "update", plus(fB, { xp: 11400, majLe: T }), fB);
+ecrire("banni : une série", "DENY", ELEVE, "eleves/e1", "update", plus(fB, { exo: Object.assign({}, f.exo, { "seconde-signes:s3": 3 }), majLe: T }), fB);
+ecrire("banni : changer d'avatar", "DENY", ELEVE, "eleves/e1", "update", plus(fB, { avatar: { peau: 4, t: 3 }, majLe: T }), fB);
+ecrire("banni : envoyer du temps", "DENY", ELEVE, "eleves/e1", "update", plus(fB, { temps: t0plus(fB.temps), vuLe: T }), fB);
+const fBv = fiche({ xp: 11300, xpJ: { t: avantT(86400 * 3), base: 1200 }, majLe: avantT(86400 * 2) });
+ecrire("banni : toujours banni 3 jours après", "DENY", ELEVE, "eleves/e1", "update", plus(fBv, { xp: 11400, xpJ: { t: T, base: 11300 }, majLe: T }), fBv);
+ecrire("banni : lire sa fiche (pour voir le bandeau)", "ALLOW", ELEVE, "eleves/e1", "get", null, fB);
+ecrire("élève : script qui remonte la base pendant la période", "DENY", ELEVE, "eleves/e1", "update", plus(fP, { xp: 12000, xpJ: { t: T, base: 3000 }, majLe: T }), fP);
+ecrire("élève : script qui efface la période", "DENY", ELEVE, "eleves/e1", "update", plus(fP, { xp: 3100, xpJ: null, majLe: T }), fP);
+ecrire("élève : nouvelle période avec une date inventée", "DENY", ELEVE, "eleves/e1", "update", plus(f, { xp: 1300, xpJ: { t: "2026-11-09T16:00:00Z", base: 1200 }, majLe: T }), fiche({ majLe: avantT(600) }));
+ecrire("élève : nouvelle période avec une base plus haute que ses XP", "DENY", ELEVE, "eleves/e1", "update", plus(f, { xp: 9000, xpJ: { t: T, base: 3000 }, majLe: T }), fiche({ majLe: avantT(86400) }));
+const fV = fiche({ xp: 3000, xpJ: { t: avantT(90000), base: 1200 }, majLe: avantT(3600) }); // période de plus de 24 h
+ecrire("élève : nouvelle période après 24 h", "ALLOW", ELEVE, "eleves/e1", "update", plus(fV, { xp: 3100, xpJ: { t: T, base: 3000 }, majLe: T }), fV);
+ecrire("élève : XP après 24 h sans nouvelle période", "DENY", ELEVE, "eleves/e1", "update", plus(fV, { xp: 3100, majLe: T }), fV);
+ecrire("élève : avatar changé, période inchangée", "ALLOW", ELEVE, "eleves/e1", "update", plus(fP, { avatar: { peau: 4, t: 3 }, majLe: T }), fP);
+ecrire("élève : XP sans période (site pas encore rechargé)", "DENY", ELEVE, "eleves/e1", "update", plus(f, { xp: 1240, majLe: T }), fiche({ majLe: avantT(60) }));
 ecrire("élève : XP qui baissent", "DENY", ELEVE, "eleves/e1", "update", plus(f, { xp: 100, majLe: T }), f);
 ecrire("élève : XP en nombre décimal", "DENY", ELEVE, "eleves/e1", "update", plus(f, { xp: 1250.5, majLe: T }), f);
 ecrire("élève : XP changés sans date du serveur", "DENY", ELEVE, "eleves/e1", "update", plus(f, { xp: 1250 }), f);
@@ -118,18 +125,21 @@ ecrire("inscrit : création du compte", "ALLOW", INSCRIT, "inscrits/i1", "create
 ecrire("inscrit : création avec des XP", "DENY", INSCRIT, "inscrits/i1", "create", plus(ins, { xp: 244445100 }));
 ecrire("inscrit : création avec 1 542 séries", "DENY", INSCRIT, "inscrits/i1", "create", plus(ins, { exo: nCles(1542, 3) }));
 const insF = plus(ins, { xp: 300, creeLe: "2026-11-10T13:19:00Z", majLe: avantT(200), vuLe: avantT(200), temps: { j: { "2026-11-10": 400 } } });
-ecrire("inscrit : fin de QCM (+80 XP)", "ALLOW", INSCRIT, "inscrits/i1", "update", plus(insF, { xp: 380, xpJ: { j: JN, base: 300 }, qcm: { "terminale-suites": 16 }, majLe: T }), insF);
+ecrire("inscrit : fin de QCM (+80 XP)", "ALLOW", INSCRIT, "inscrits/i1", "update", plus(insF, { xp: 380, xpJ: { t: T, base: 300 }, qcm: { "terminale-suites": 16 }, majLe: T }), insF);
 ecrire("inscrit : creeLe remplacée par minuit", "DENY", INSCRIT, "inscrits/i1", "update", plus(insF, { creeLe: "2026-11-10T00:00:00Z", majLe: T }), insF);
 ecrire("inscrit : écrire dans la fiche d'un élève", "DENY", INSCRIT, "eleves/e1", "update", plus(f, { majLe: T }), f);
 ecrire("inscrit : lire le classement", "DENY", INSCRIT, "classement/e1", "get", null, { prenom: "Jean", classe: "Seconde", points: 10, majLe: avantT(5) });
 
 // ---- Classement ----
+// Les règles lisent la fiche de l'élève (get) pour refuser un compte banni : la lecture est simulée
+const ficheLue = (d) => { cas[cas.length - 1].req.functionMocks = [{ function: "get", args: [{ exactValue: DOC.replace(/^\//, "/") + "eleves/e1" }], result: { value: { data: d } } }]; };
 const cl = { prenom: "Jean", classe: "Seconde", points: 300, majLe: avantT(120) };
-ecrire("classement : première entrée", "ALLOW", ELEVE, "classement/e1", "create", plus(cl, { majLe: T }));
-ecrire("classement : première entrée à 50 000 points", "DENY", ELEVE, "classement/e1", "create", plus(cl, { points: 50000, majLe: T }));
-ecrire("classement : nouveau record (+500, 2 min après)", "ALLOW", ELEVE, "classement/e1", "update", plus(cl, { points: 800, majLe: T }), cl);
-ecrire("classement : +5 000 points d'un coup", "DENY", ELEVE, "classement/e1", "update", plus(cl, { points: 5300, majLe: T }), fiche && plus(cl, { majLe: avantT(86400) }));
-ecrire("classement : points sans date du serveur", "DENY", ELEVE, "classement/e1", "update", plus(cl, { points: 400 }), cl);
+ecrire("classement : première entrée", "ALLOW", ELEVE, "classement/e1", "create", plus(cl, { majLe: T })); ficheLue(f);
+ecrire("classement : première entrée à 50 000 points", "DENY", ELEVE, "classement/e1", "create", plus(cl, { points: 50000, majLe: T })); ficheLue(f);
+ecrire("classement : nouveau record (+500, 2 min après)", "ALLOW", ELEVE, "classement/e1", "update", plus(cl, { points: 800, majLe: T }), cl); ficheLue(f);
+ecrire("classement : compte banni", "DENY", ELEVE, "classement/e1", "update", plus(cl, { points: 800, majLe: T }), cl); ficheLue(fB);
+ecrire("classement : +5 000 points d'un coup", "DENY", ELEVE, "classement/e1", "update", plus(cl, { points: 5300, majLe: T }), fiche && plus(cl, { majLe: avantT(86400) })); ficheLue(f);
+ecrire("classement : points sans date du serveur", "DENY", ELEVE, "classement/e1", "update", plus(cl, { points: 400 }), cl); ficheLue(f);
 ecrire("classement : supprimer sa ligne", "DENY", ELEVE, "classement/e1", "delete", null, cl);
 
 // ---- Professeur ----
