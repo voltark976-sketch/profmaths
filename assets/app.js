@@ -506,11 +506,9 @@
   </svg>`;
   const YT_PROF = "https://www.youtube.com/@Profmaths-q1p";
   const YT_MONKA = "https://www.youtube.com/@YMONKA";
-  // Les réseaux de ProfMaths (même nom partout : profmathsq1p). Icônes SVG en ligne, couleur = currentColor.
+  // La chaîne YouTube de ProfMaths (Instagram et TikTok retirés le 2026-11-20). Icônes SVG en ligne, couleur = currentColor.
   const RESEAUX = [
     { id: "yt", nom: "YouTube", url: YT_PROF + "?sub_confirmation=1", ico: `<svg viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" d="M23 7.2a3 3 0 0 0-2.1-2.1C19 4.6 12 4.6 12 4.6s-7 0-8.9.5A3 3 0 0 0 1 7.2 31 31 0 0 0 .5 12 31 31 0 0 0 1 16.8a3 3 0 0 0 2.1 2.1c1.9.5 8.9.5 8.9.5s7 0 8.9-.5a3 3 0 0 0 2.1-2.1 31 31 0 0 0 .5-4.8 31 31 0 0 0-.5-4.8zM9.8 15.1V8.9l5.4 3.1z"/></svg>` },
-    { id: "ig", nom: "Instagram", url: "https://www.instagram.com/profmathsq1p/", ico: `<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="2.5" width="19" height="19" rx="5.5" fill="none" stroke="currentColor" stroke-width="2.2"/><circle cx="12" cy="12" r="4.3" fill="none" stroke="currentColor" stroke-width="2.2"/><circle cx="17.6" cy="6.4" r="1.4"/></svg>` },
-    { id: "tt", nom: "TikTok", url: "https://www.tiktok.com/@profmathsq1p", ico: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16.6 2h-3.4v13.4a2.9 2.9 0 1 1-2.9-2.9c.3 0 .6 0 .9.1V9.1a6.3 6.3 0 1 0 5.4 6.3V8.6a8 8 0 0 0 4.7 1.5V6.7a4.7 4.7 0 0 1-4.7-4.7z"/></svg>` }
   ];
   const liensReseaux = (cls) => `<span class="${cls}">${RESEAUX.map((r) => `<a class="rs rs-${r.id}" href="${r.url}" target="_blank" rel="noopener">${r.ico}<span>${r.nom}</span></a>`).join("")}</span>`;
   // Invitation à s'abonner à la chaîne : rare et jamais en pleine série. Elle n'apparaît que sur un bilan
@@ -595,16 +593,16 @@
         <span class="cycle-pied"><span class="meta">${nb ? `${nb} chapitre${nb > 1 ? "s" : ""} en ligne` : "En préparation"}</span><span class="go" aria-hidden="true">→</span></span></a>`;
     });
     h += `</nav>`;
-    // Les réseaux de ProfMaths d'abord ; le jeu et la chaîne d'Yvan Monka en plus petit
-    h += `<h2 class="titre-bloc">Retrouve ProfMaths</h2><section class="reseaux" aria-label="ProfMaths sur YouTube, Instagram et TikTok">
-      <p class="reseaux-t"><strong>Les cours en vidéo sur YouTube, un défi d'une minute chaque jour sur Instagram et TikTok.</strong> Abonne-toi pour ne rien rater !</p>
+    // La chaîne YouTube de ProfMaths d'abord ; le jeu et la chaîne d'Yvan Monka en plus petit
+    h += `<h2 class="titre-bloc">Retrouve ProfMaths</h2><section class="reseaux" aria-label="ProfMaths sur YouTube">
+      <p class="reseaux-t"><strong>Tous les cours en vidéo sur la chaîne YouTube, chapitre par chapitre.</strong> Abonne-toi pour ne rien rater !</p>
       ${liensReseaux("rs-grand")}</section>
       <div class="decouvrir decouvrir-mini">
       <a class="promo promo-jeu" href="#jeu"><span class="promo-ico" aria-hidden="true">🏛️</span><span class="promo-t"><strong>Les Salles</strong><span>Le jeu : résous les exercices gravés sur les stèles pour ouvrir les portes.</span></span><span class="go" aria-hidden="true">→</span></a>
       <a class="promo promo-monka" href="${YT_MONKA}" target="_blank" rel="noopener"><span class="promo-ico" aria-hidden="true">▶</span><span class="promo-t"><strong>Yvan Monka</strong><span>Une autre explication de chaque notion, pour revoir une méthode autrement.</span></span><span class="go" aria-hidden="true">→</span></a>
     </div>`;
     if (!Compte.eleve()) h += `<a class="invite" href="#compte"><strong>Crée ton compte</strong><span>pour retrouver ton niveau, ton avatar et tes étoiles sur n'importe quel téléphone ou ordinateur.</span></a>`;
-    h += piedDePage(false); // sur l'accueil, les réseaux sont déjà dans le bloc « Retrouve ProfMaths »
+    h += piedDePage(false); // sur l'accueil, YouTube est déjà dans le bloc « Retrouve ProfMaths »
     $app.innerHTML = h;
   }
   // Mention des cours particuliers : le mail s'ouvre prérempli avec les informations à donner. Jamais pendant une série (voir pageChapitre).
