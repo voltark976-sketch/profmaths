@@ -785,10 +785,7 @@
       $app.innerHTML = `<section class="page-jeu">${intro}
         <h2 class="titre-bloc">Choisis ton niveau</h2>
         <div class="choix-jeu">${cles.filter((k) => !VERSIONS_JEU[k].chapitre).map(bouton).join("")}</div>
-        <h2 class="titre-bloc">Un temple pour un chapitre</h2>
-        <p class="muted">Chaque stèle t'apprend d'abord une leçon du chapitre, puis te met à l'épreuve.</p>
-        <div class="choix-jeu">${cles.filter((k) => VERSIONS_JEU[k].chapitre).map(bouton).join("")}</div>
-        <p class="muted">Chaque niveau et chaque chapitre garde sa propre progression dans ce navigateur.</p></section>`;
+        <p class="muted">Chaque niveau garde sa propre progression dans ce navigateur. Certains chapitres ont aussi leur propre temple, à jouer directement dans l'onglet Cours du chapitre.</p></section>`;
       return;
     }
     const src = v.page || `${v.dossier}/index.html`;
@@ -1695,6 +1692,11 @@
     (c.liens || []).forEach((l) => { h += `<a class="pdf" href="${l.url}"${l.url.startsWith("#") ? "" : ' target="_blank" rel="noopener"'}><span class="pdf-ico lien" aria-hidden="true">${l.type === "video" ? "▶" : "JEU"}</span><span>${esc(l.titre)}</span></a>`; });
     if (c.playlist) h += `<a class="pdf" href="${c.playlist}" target="_blank" rel="noopener"><span class="pdf-ico yt" aria-hidden="true">▶</span><span>Playlist du chapitre sur YouTube</span></a>`;
     h += `</div>`;
+    // Le temple du chapitre dans le jeu Les Salles (champ « jeu » du chapitre) : le jeu ne se charge qu'au clic
+    const vj = c.jeu && VERSIONS_JEU[c.jeu];
+    if (vj) h += `<section class="jeu-chapitre"><h2>Le jeu du chapitre : Les Salles</h2>
+      <p class="muted">Un temple pour ce chapitre : chaque stèle t'apprend d'abord une leçon, puis son gardien te met à l'épreuve. Sur téléphone, des boutons apparaissent sous la salle ; ta progression reste dans ce navigateur.</p>
+      <div id="jeu-chap"><button class="btn" type="button" id="lancer-jeu">🏛️ Jouer dans le temple</button></div></section>`;
     // Déroulé en séances (SNT : séances de 1 h et de 2 h en alternance), replié pour ne pas allonger la page
     if (c.seances && c.seances.length) {
       h += `<section class="seances"><h2>Le chapitre en ${c.seances.length} séances</h2>${c.seancesNote ? `<p class="muted">${inline(c.seancesNote)}</p>` : ""}`;
@@ -1721,6 +1723,12 @@
     }
     h += `<a class="suite" href="#${id}.exercices">Je m'entraîne avec les exercices →</a>`;
     p.innerHTML = h;
+    const lancer = document.getElementById("lancer-jeu");
+    if (lancer) lancer.addEventListener("click", () => {
+      document.getElementById("jeu-chap").innerHTML = `<iframe class="cadre-jeu" src="${vj.page}" title="Jeu Les Salles : ${esc(vj.nom)}" width="100%" height="720" style="border:0"></iframe>
+        <p class="muted"><a href="${vj.page}" target="_blank" rel="noopener">Ouvrir le jeu en plein écran</a> (conseillé sur téléphone, tenu à l'horizontale)</p>`;
+      Compte.visite("jeu");
+    });
   }
 
   /* ---------- Exercices ---------- */
