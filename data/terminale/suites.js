@@ -113,7 +113,7 @@ window.CHAPITRES["terminale-suites"] = {
     {
       titre: "Modèle de Malthus : la population de Mayotte",
       figure: "tsu-malthus",
-      video: { titre: "Vidéo de ton prof : limite d'une suite et recherche de seuil (cours de Première)", youtube: "https://youtu.be/ug71_j3MXlo" },
+      video: { titre: "Vidéo de ton prof : limite d'une suite et recherche de seuil (cours de Première)", youtube: "https://youtu.be/IenjveOEpUQ" },
       texte:
         "Le **modèle de Malthus** suppose que la population augmente chaque année du même pourcentage : $P_{n+1} = (1 + t)P_n$, donc $P_n = P_0 \\times (1 + t)^n$, une suite géométrique.\n\n" +
         "Hypothèse de travail : environ $320\\,000$ habitants à Mayotte en 2024 et $+3\\,\\%$ par an. Alors $P_n = 320\\,000 \\times 1{,}03^n$ ; la figure montre environ $430\\,000$ habitants au bout de $10$ ans.\n\n" +

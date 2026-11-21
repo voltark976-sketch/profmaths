@@ -31,7 +31,7 @@ window.CHAPITRES["terminale-spe-limites-suites"] = {
     {
       titre: "Limite finie, limite infinie",
       figure: "lsu-limite",
-      video: { titre: "Vidéo de ton prof (rappel de Première) : limite d'une suite et recherche de seuil", youtube: "https://youtu.be/ug71_j3MXlo" },
+      video: { titre: "Vidéo de ton prof (rappel de Première) : limite d'une suite et recherche de seuil", youtube: "https://youtu.be/IenjveOEpUQ" },
       texte:
         "- La suite $(u_n)$ **converge vers le réel $\\ell$** si tout intervalle ouvert contenant $\\ell$ contient **tous les termes à partir d'un certain rang**. On note $\\lim\\limits_{n \\to +\\infty} u_n = \\ell$. Cette limite est unique.\n" +
         "- $(u_n)$ **tend vers $+\\infty$** si, pour tout réel $A$, l'intervalle $]A\\,;+\\infty[$ contient tous les termes à partir d'un certain rang : la suite finit par dépasser n'importe quel nombre, et reste au-dessus.\n" +

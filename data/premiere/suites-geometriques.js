@@ -33,7 +33,7 @@ window.CHAPITRES["premiere-suites-geometriques"] = {
     {
       titre: "Définition : multiplier toujours par le même nombre",
       figure: "suite-geo",
-      video: { titre: "Vidéo de ton prof : suites géométriques, raison et terme général (cours 4/6)", youtube: "https://youtu.be/Nx56kUnM1oI" },
+      video: { titre: "Vidéo de ton prof : suites géométriques, raison et terme général (cours complet)", youtube: "https://youtu.be/Z6SB3Ct9NSQ" },
       texte:
         "$(u_n)$ est **géométrique** de raison $q$ si l'on passe d'un terme au suivant en **multipliant** toujours par $q$ : pour tout $n$, $u_{n+1} = q \\times u_n$.\n\n" +
         "- **Terme général** : $u_n = u_0 \\times q^n$, et plus généralement $u_n = u_p \\times q^{n-p}$.\n" +
@@ -62,7 +62,7 @@ window.CHAPITRES["premiere-suites-geometriques"] = {
     {
       titre: "Évolutions à taux constant",
       figure: "sg-cours-prix",
-      video: { titre: "Vidéo de ton prof : évolution à taux constant, la valeur d'un scooter (exercice corrigé)", youtube: "https://youtu.be/l5z9ZUXsDFA" },
+      video: { titre: "Vidéo de ton prof : évolution à taux constant, la valeur d'un scooter (exercice corrigé)", youtube: "https://youtu.be/-HMGcKNx1iE" },
       texte:
         "Augmenter une quantité de $t\\,\\%$, c'est la multiplier par $1 + \\dfrac{t}{100}$ ; la diminuer de $t\\,\\%$, c'est la multiplier par $1 - \\dfrac{t}{100}$.\n\n" +
         "Une quantité qui évolue de $t\\,\\%$ **à chaque étape** (chaque année, chaque heure…) forme une suite géométrique de raison $q = 1 \\pm \\dfrac{t}{100}$ : c'est une croissance (ou une décroissance) **exponentielle**.\n\n" +
@@ -92,7 +92,7 @@ window.CHAPITRES["premiere-suites-geometriques"] = {
     {
       titre: "Somme $1 + q + \\dots + q^n$",
       figure: "sg-cours-somme",
-      video: { titre: "Vidéo de ton prof : sommes de termes consécutifs (cours 5/6)", youtube: "https://youtu.be/vP3Ts0VRPd4" },
+      video: { titre: "Vidéo de ton prof : sommes de termes consécutifs (cours 5/6)", youtube: "https://youtu.be/4ioUotfQs-o" },
       texte:
         "**Propriété** : pour tout réel $q \\neq 1$ et tout entier $n$,\n\n" +
         "$1 + q + q^2 + \\dots + q^n = \\dfrac{1 - q^{n+1}}{1 - q}$.\n\n" +
@@ -123,7 +123,7 @@ window.CHAPITRES["premiere-suites-geometriques"] = {
     {
       titre: "Une suite auxiliaire géométrique",
       figure: "sg-cours-auxiliaire",
-      video: { titre: "Vidéo de ton prof : une suite auxiliaire géométrique, la plage (exercice corrigé)", youtube: "https://youtu.be/9a9eqhi2VxE" },
+      video: { titre: "Vidéo de ton prof : une suite auxiliaire géométrique, la plage (exercice corrigé)", youtube: "https://youtu.be/4letmKwAO3o" },
       texte:
         "Une suite définie par $u_{n+1} = a\\,u_n + b$ n'est en général ni arithmétique ni géométrique. On l'étudie avec une **suite auxiliaire** $v_n = u_n - c$, avec $c$ bien choisi, qui elle est géométrique.\n\n" +
         "Exemple : sous perfusion, un patient reçoit $40$ mg de médicament par heure, et son corps en élimine $20\\,\\%$ par heure : $u_0 = 500$ et $u_{n+1} = 0{,}8\\,u_n + 40$.\n\n" +
@@ -139,7 +139,7 @@ window.CHAPITRES["premiere-suites-geometriques"] = {
     {
       titre: "Limite et seuil",
       figure: "sg-cours-seuil",
-      video: { titre: "Vidéo de ton prof : limite d'une suite et recherche de seuil (cours 6/6)", youtube: "https://youtu.be/ug71_j3MXlo" },
+      video: { titre: "Vidéo de ton prof : limite d'une suite et recherche de seuil (cours 6/6)", youtube: "https://youtu.be/IenjveOEpUQ" },
       texte:
         "Comportement de $q^n$ quand $n$ devient très grand (observé ici, démontré en Terminale) :\n\n" +
         "- si $q > 1$ : $q^n$ devient aussi grand qu'on veut, limite $+\\infty$ ;\n" +
@@ -187,7 +187,7 @@ window.CHAPITRES["premiere-suites-geometriques"] = {
     {
       titre: "Linéaire ou exponentielle ?",
       figure: "lineaire-exponentiel",
-      video: { titre: "Vidéo de ton prof : linéaire ou exponentiel ? Les abonnés de Lagon propre (problème corrigé)", youtube: "https://youtu.be/eUVrDnmVZek" },
+      video: { titre: "Vidéo de ton prof : linéaire ou exponentiel ? Les abonnés de Lagon propre (problème corrigé)", youtube: "https://youtu.be/iWjeyYCC3Ok" },
       texte:
         "Deux façons de grandir :\n\n" +
         "- **croissance linéaire** : on **ajoute** la même quantité à chaque étape (suite arithmétique) ;\n" +
@@ -202,10 +202,10 @@ window.CHAPITRES["premiere-suites-geometriques"] = {
   ],
 
   videos: [
-    { titre: "Exercice 17 · Évolution à taux constant : la valeur d'un scooter", type: "Taux constant", youtube: "https://youtu.be/l5z9ZUXsDFA" },
-    { titre: "Exercice 18 · Une suite auxiliaire géométrique : la plage", type: "Suite auxiliaire", youtube: "https://youtu.be/9a9eqhi2VxE" },
-    { titre: "Exercice 20 · Calculer des sommes : Gauss et puissances", type: "Sommes", youtube: "https://youtu.be/HvTkzP61KcI" },
-    { titre: "Exercice 29 · Linéaire ou exponentiel ? Les abonnés de Lagon propre", type: "Problème", youtube: "https://youtu.be/eUVrDnmVZek" }
+    { titre: "Exercice 17 · Évolution à taux constant : la valeur d'un scooter", type: "Taux constant", youtube: "https://youtu.be/-HMGcKNx1iE" },
+    { titre: "Exercice 18 · Une suite auxiliaire géométrique : la plage", type: "Suite auxiliaire", youtube: "https://youtu.be/4letmKwAO3o" },
+    { titre: "Exercice 20 · Calculer des sommes : Gauss et puissances", type: "Sommes", youtube: "https://youtu.be/jsmqUdYrle0" },
+    { titre: "Exercice 29 · Linéaire ou exponentiel ? Les abonnés de Lagon propre", type: "Problème", youtube: "https://youtu.be/iWjeyYCC3Ok" }
   ],
   videosNote: "Énoncés dans le dossier élève ci-dessus (numéros des exercices du dossier).",
 

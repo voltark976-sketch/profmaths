@@ -71,7 +71,7 @@ window.CHAPITRES["seconde-synthese"] = {
     {
       titre: "Fonctions définies sur $\\mathbb{N}$",
       figure: "sy-cours-suite",
-      video: { titre: "Vidéo de ton prof (Première) : la notion de suite, pour aller plus loin", youtube: "https://youtu.be/sVkYEQQWvDo" },
+      video: { titre: "Vidéo de ton prof (Première) : la notion de suite, pour aller plus loin", youtube: "https://youtu.be/7AjjGIj889s" },
       texte:
         "Certaines fonctions ne sont définies que pour des entiers : on note $u(n)$ au lieu de $f(x)$.\n\n" +
         "- $u(n) = 3n + 2$ : on ajoute $3$ à chaque étape (comme une fonction affine).\n" +

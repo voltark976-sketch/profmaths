@@ -26,7 +26,7 @@ window.CHAPITRES["techno-suites-arithmetiques-geometriques"] = {
     {
       titre: "Suites arithmétiques",
       figure: "yg-cours-arith",
-      video: { titre: "Vidéo de ton prof : suites arithmétiques, raison et terme général (cours 3/6)", youtube: "https://youtu.be/nFBjpbUaTrM" },
+      video: { titre: "Vidéo de ton prof : suites arithmétiques, raison et terme général (cours 3/6)", youtube: "https://youtu.be/UuU9axB8ZQo" },
       texte:
         "Une suite est **arithmétique** quand on passe d'un terme au suivant en **ajoutant toujours le même nombre** $r$, la **raison** : $u(n + 1) = u(n) + r$.\n\n" +
         "**Terme de rang $n$** : $u(n) = u(0) + n \\times r$. Plus généralement, $u(n) = u(p) + (n - p) \\times r$.\n\n" +
@@ -40,7 +40,7 @@ window.CHAPITRES["techno-suites-arithmetiques-geometriques"] = {
     {
       titre: "Suites géométriques",
       figure: "yg-cours-geo",
-      video: { titre: "Vidéo de ton prof : suites géométriques, raison et terme général (cours 4/6)", youtube: "https://youtu.be/Nx56kUnM1oI" },
+      video: { titre: "Vidéo de ton prof : suites géométriques, raison et terme général (cours complet)", youtube: "https://youtu.be/Z6SB3Ct9NSQ" },
       texte:
         "Une suite est **géométrique** quand on passe d'un terme au suivant en **multipliant toujours par le même nombre** $q$, la **raison** : $u(n + 1) = q \\times u(n)$. En Première technologique, on se limite aux termes **strictement positifs** ($u(0) > 0$ et $q > 0$).\n\n" +
         "**Terme de rang $n$** : $u(n) = u(0) \\times q^n$. Plus généralement, $u(n) = u(p) \\times q^{n - p}$.\n\n" +
@@ -79,7 +79,7 @@ window.CHAPITRES["techno-suites-arithmetiques-geometriques"] = {
     {
       titre: "Linéaire ou exponentiel ? Modéliser",
       figure: "yg-cours-compare",
-      video: { titre: "Vidéo de ton prof : linéaire ou exponentiel ? Les abonnés de Lagon propre (problème corrigé)", youtube: "https://youtu.be/eUVrDnmVZek" },
+      video: { titre: "Vidéo de ton prof : linéaire ou exponentiel ? Les abonnés de Lagon propre (problème corrigé)", youtube: "https://youtu.be/iWjeyYCC3Ok" },
       texte:
         "Face à une situation, la question est : **ajoute-t-on** une quantité fixe (arithmétique) ou **multiplie-t-on** par un coefficient fixe (géométrique) ?\n\n" +
         "- « $+ 50$ abonnés par mois » : $u(n + 1) = u(n) + 50$, croissance linéaire.\n" +

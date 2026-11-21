@@ -128,7 +128,7 @@ window.CHAPITRES["terminale-arithmetico-geometriques"] = {
   ],
 
   videos: [
-    { titre: "Ton prof : une suite auxiliaire géométrique, la plage (exercice corrigé de Première)", type: "Exercice", youtube: "https://youtu.be/9a9eqhi2VxE" },
+    { titre: "Ton prof : une suite auxiliaire géométrique, la plage (exercice corrigé de Première)", type: "Exercice", youtube: "https://youtu.be/4letmKwAO3o" },
     { titre: "Calculer la somme des termes d'une suite géométrique (rappel)", type: "Rappel", youtube: "https://youtu.be/rIaYMXPbWE8" }
   ],
   videosNote: "Vidéo de ton prof, puis d'Yvan Monka : l'énoncé est donné au début de chaque vidéo.",

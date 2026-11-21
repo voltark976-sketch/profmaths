@@ -30,7 +30,7 @@ window.CHAPITRES["terminale-spe-suites-recurrence"] = {
     {
       titre: "Rappels : définir une suite",
       figure: "rec-cours-nuage",
-      video: { titre: "Vidéo de ton prof (rappel de Première) : notion de suite, formule explicite et récurrence", youtube: "https://youtu.be/sVkYEQQWvDo" },
+      video: { titre: "Vidéo de ton prof (rappel de Première) : notion de suite, formule explicite et récurrence", youtube: "https://youtu.be/7AjjGIj889s" },
       texte:
         "Une **suite** $(u_n)$ associe un nombre $u_n$ à chaque entier naturel $n$ (le **rang**).\n\n" +
         "- **Forme explicite** : $u_n$ se calcule directement à partir de $n$, par exemple $u_n = n^2 - 3n$.\n" +
@@ -94,7 +94,7 @@ window.CHAPITRES["terminale-spe-suites-recurrence"] = {
     {
       titre: "Sens de variation d'une suite",
       figure: "rec-cours-escalier",
-      video: { titre: "Vidéo de ton prof (rappel de Première) : sens de variation d'une suite, trois méthodes", youtube: "https://youtu.be/jpI-dQAsU24" },
+      video: { titre: "Vidéo de ton prof (rappel de Première) : sens de variation d'une suite, trois méthodes", youtube: "https://youtu.be/JBgqzDqJI5U" },
       texte:
         "$(u_n)$ est **croissante** si $u_{n+1} \\geqslant u_n$ pour tout $n$, **décroissante** si $u_{n+1} \\leqslant u_n$ pour tout $n$. Méthodes :\n\n" +
         "- étudier le **signe de** $u_{n+1} - u_n$ ;\n" +
@@ -128,7 +128,7 @@ window.CHAPITRES["terminale-spe-suites-recurrence"] = {
     {
       titre: "Algorithmique : suites en Python",
       figure: "rec-cours-seuil",
-      video: { titre: "Vidéo de ton prof (rappel de Première) : limite d'une suite et recherche de seuil", youtube: "https://youtu.be/ug71_j3MXlo" },
+      video: { titre: "Vidéo de ton prof (rappel de Première) : limite d'une suite et recherche de seuil", youtube: "https://youtu.be/IenjveOEpUQ" },
       texte:
         "Trois programmes types, à savoir lire et écrire :\n\n" +
         "- **Calculer un terme** : une boucle $\\texttt{for}$ répète la relation de récurrence.\n" +

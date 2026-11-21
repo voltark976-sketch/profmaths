@@ -28,7 +28,7 @@ window.CHAPITRES["tronc-suites-geometriques"] = {
     {
       titre: "Suite géométrique : on multiplie toujours par la même raison",
       figure: "qg-cours-sierpinski",
-      video: { titre: "Vidéo de ton prof : suites géométriques, raison et terme général (cours 4/6)", youtube: "https://youtu.be/Nx56kUnM1oI" },
+      video: { titre: "Vidéo de ton prof : suites géométriques, raison et terme général (cours complet)", youtube: "https://youtu.be/Z6SB3Ct9NSQ" },
       texte:
         "Une suite est **géométrique** quand on passe d'un terme au suivant en **multipliant toujours par le même nombre** $q$, appelé **raison** :\n\n" +
         "$u(n + 1) = q \\times u(n)$ pour tout entier $n$.\n\n" +
@@ -84,7 +84,7 @@ window.CHAPITRES["tronc-suites-geometriques"] = {
     {
       titre: "Linéaire ou exponentiel ? Le modèle de Malthus",
       figure: "qg-cours-compare",
-      video: { titre: "Vidéo de ton prof : linéaire ou exponentiel ? Les abonnés de Lagon propre (problème corrigé)", youtube: "https://youtu.be/eUVrDnmVZek" },
+      video: { titre: "Vidéo de ton prof : linéaire ou exponentiel ? Les abonnés de Lagon propre (problème corrigé)", youtube: "https://youtu.be/iWjeyYCC3Ok" },
       texte:
         "- On **ajoute** toujours la même quantité : croissance **linéaire**, suite **arithmétique**, points alignés.\n" +
         "- On **multiplie** toujours par le même nombre (taux d'évolution constant) : croissance **exponentielle**, suite **géométrique**.\n\n" +

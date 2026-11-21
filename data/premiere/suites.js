@@ -35,7 +35,7 @@ window.CHAPITRES["premiere-suites"] = {
     {
       titre: "Qu'est-ce qu'une suite ?",
       figure: "su-cours-chaine",
-      video: { titre: "Vidéo de ton prof : notion de suite, formule explicite et récurrence (cours 1/6)", youtube: "https://youtu.be/sVkYEQQWvDo" },
+      video: { titre: "Vidéo de ton prof : notion de suite, formule explicite et récurrence (cours 1/6)", youtube: "https://youtu.be/7AjjGIj889s" },
       texte:
         "Une **suite** $(u_n)$ associe à chaque entier naturel $n$ un nombre $u_n$, appelé **terme de rang $n$**. On note aussi $u(n)$ : une suite est une fonction définie sur $\\mathbb{N}$.\n\n" +
         "Plusieurs **modes de génération** :\n" +
@@ -51,7 +51,7 @@ window.CHAPITRES["premiere-suites"] = {
     {
       titre: "Motifs et dénombrements",
       figure: "motif-galets",
-      video: { titre: "Vidéo de ton prof : un motif d'allumettes, récurrence et formule (exercice corrigé)", youtube: "https://youtu.be/8xREkcpiSrg" },
+      video: { titre: "Vidéo de ton prof : un motif d'allumettes, récurrence et formule (exercice corrigé)", youtube: "https://youtu.be/GbL8IPwRyqk" },
       texte:
         "Pour un motif qui grandit d'étape en étape (galets, allumettes, carreaux), on note $u_n$ le nombre d'objets à l'étape $n$.\n\n" +
         "- On **compte** les premiers termes.\n" +
@@ -66,7 +66,7 @@ window.CHAPITRES["premiere-suites"] = {
     {
       titre: "Représentation et sens de variation",
       figure: "suite-nuage",
-      video: { titre: "Vidéo de ton prof : sens de variation d'une suite, trois méthodes (cours 2/6)", youtube: "https://youtu.be/jpI-dQAsU24" },
+      video: { titre: "Vidéo de ton prof : sens de variation d'une suite, trois méthodes (cours 2/6)", youtube: "https://youtu.be/JBgqzDqJI5U" },
       texte:
         "On représente une suite par le **nuage de points** de coordonnées $(n\\,;u_n)$ : on ne relie pas les points.\n\n" +
         "- $(u_n)$ est **croissante** si, pour tout $n$, $u_{n+1} \\geqslant u_n$ ; **décroissante** si, pour tout $n$, $u_{n+1} \\leqslant u_n$.\n" +
@@ -115,9 +115,9 @@ window.CHAPITRES["premiere-suites"] = {
 
   videosNote: "Énoncés dans le dossier élève ci-dessus (numéros des exercices du dossier).",
   videos: [
-    { titre: "Exercice 1 · Calculer des termes avec une formule explicite", type: "Notion de suite", youtube: "https://youtu.be/fDxBIGzwXzc" },
-    { titre: "Exercice 4 · Un motif d'allumettes : récurrence et formule", type: "Motif", youtube: "https://youtu.be/8xREkcpiSrg" },
-    { titre: "Exercice 6 · Représenter, conjecturer, puis démontrer", type: "Sens de variation", youtube: "https://youtu.be/sY5T06fwq1E" }
+    { titre: "Exercice 1 · Calculer des termes avec une formule explicite", type: "Notion de suite", youtube: "https://youtu.be/ayLNXw7AwBM" },
+    { titre: "Exercice 4 · Un motif d'allumettes : récurrence et formule", type: "Motif", youtube: "https://youtu.be/GbL8IPwRyqk" },
+    { titre: "Exercice 6 · Représenter, conjecturer, puis démontrer", type: "Sens de variation", youtube: "https://youtu.be/BPPSahqDmBs" }
   ],
 
   /* ---------- 2. EXERCICES INTERACTIFS ---------- */

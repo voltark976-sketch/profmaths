@@ -28,7 +28,7 @@ window.CHAPITRES["tronc-suites-arithmetiques"] = {
     {
       titre: "Une suite : des nombres numérotés",
       figure: "qu-cours-modes",
-      video: { titre: "Vidéo de ton prof : notion de suite, formule explicite et récurrence (cours 1/6)", youtube: "https://youtu.be/sVkYEQQWvDo" },
+      video: { titre: "Vidéo de ton prof : notion de suite, formule explicite et récurrence (cours 1/6)", youtube: "https://youtu.be/7AjjGIj889s" },
       texte:
         "Une **suite** $u$ associe à chaque entier naturel $n$ un nombre noté $u(n)$ : le **terme de rang $n$**. Elle modélise une grandeur qui évolue **par étapes** (chaque année, chaque mois, chaque motif) : c'est une évolution **discrète**.\n\n" +
         "Deux façons de la définir :\n\n" +
@@ -43,7 +43,7 @@ window.CHAPITRES["tronc-suites-arithmetiques"] = {
     {
       titre: "Suite arithmétique : on ajoute toujours la même raison",
       figure: "qa-cours-motifs",
-      video: { titre: "Vidéo de ton prof : suites arithmétiques, raison et terme général (cours 3/6)", youtube: "https://youtu.be/nFBjpbUaTrM" },
+      video: { titre: "Vidéo de ton prof : suites arithmétiques, raison et terme général (cours 3/6)", youtube: "https://youtu.be/UuU9axB8ZQo" },
       texte:
         "Une suite est **arithmétique** quand on passe d'un terme au suivant en **ajoutant toujours le même nombre** $r$, appelé **raison** :\n\n" +
         "$u(n + 1) = u(n) + r$ pour tout entier $n$.\n\n" +
@@ -84,7 +84,7 @@ window.CHAPITRES["tronc-suites-arithmetiques"] = {
     },
     {
       titre: "Modéliser : intérêts simples, seuil",
-      video: { titre: "Vidéo de ton prof : linéaire ou exponentiel ? Les abonnés de Lagon propre (problème corrigé)", youtube: "https://youtu.be/eUVrDnmVZek" },
+      video: { titre: "Vidéo de ton prof : linéaire ou exponentiel ? Les abonnés de Lagon propre (problème corrigé)", youtube: "https://youtu.be/iWjeyYCC3Ok" },
       texte:
         "Une grandeur qui **augmente (ou diminue) de la même quantité** à chaque étape se modélise par une suite arithmétique.\n\n" +
         "**Intérêts simples.** On place $2\\,000$ € à $3\\,\\%$ par an à intérêts simples : chaque année, on reçoit $3\\,\\%$ du capital **de départ**, soit $60$ €. Le capital après $n$ années est $u(n) = 2\\,000 + 60n$.\n\n" +

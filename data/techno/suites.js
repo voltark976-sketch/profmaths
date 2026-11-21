@@ -26,7 +26,7 @@ window.CHAPITRES["techno-suites"] = {
     {
       titre: "Qu'est-ce qu'une suite ? Deux modes de génération",
       figure: "ys-cours-modes",
-      video: { titre: "Vidéo de ton prof : notion de suite, formule explicite et récurrence (cours 1/6)", youtube: "https://youtu.be/sVkYEQQWvDo" },
+      video: { titre: "Vidéo de ton prof : notion de suite, formule explicite et récurrence (cours 1/6)", youtube: "https://youtu.be/7AjjGIj889s" },
       texte:
         "Une **suite** $(u(n))$ associe à chaque entier naturel $n$ un nombre $u(n)$, le **terme de rang $n$**. On lit « $u$ de $n$ » ; on note aussi $u_n$.\n\n" +
         "Deux façons de définir une suite :\n\n" +
@@ -65,7 +65,7 @@ window.CHAPITRES["techno-suites"] = {
     },
     {
       titre: "Sens de variation",
-      video: { titre: "Vidéo de ton prof : sens de variation d'une suite, trois méthodes (cours 2/6)", youtube: "https://youtu.be/jpI-dQAsU24" },
+      video: { titre: "Vidéo de ton prof : sens de variation d'une suite, trois méthodes (cours 2/6)", youtube: "https://youtu.be/JBgqzDqJI5U" },
       texte:
         "Une suite est **croissante** si chaque terme est supérieur ou égal au précédent : $u(n + 1) \\geqslant u(n)$ pour tout $n$. Elle est **décroissante** si $u(n + 1) \\leqslant u(n)$ pour tout $n$.\n\n" +
         "Méthode : étudier le **signe de $u(n + 1) - u(n)$**. Pour $u(n) = 7 - 2n$ : $u(n + 1) - u(n) = 7 - 2(n + 1) - (7 - 2n) = -2 < 0$, la suite est décroissante.\n\n" +

@@ -30,7 +30,7 @@ window.CHAPITRES["premiere-suites-arithmetiques"] = {
     {
       titre: "Définition et terme général",
       figure: "sa-cours-chaine",
-      video: { titre: "Vidéo de ton prof : suites arithmétiques, raison et terme général (cours 3/6)", youtube: "https://youtu.be/nFBjpbUaTrM" },
+      video: { titre: "Vidéo de ton prof : suites arithmétiques, raison et terme général (cours 3/6)", youtube: "https://youtu.be/UuU9axB8ZQo" },
       texte:
         "$(u_n)$ est **arithmétique** de raison $r$ si l'on passe d'un terme au suivant en **ajoutant** toujours $r$ : pour tout $n$, $u_{n+1} = u_n + r$.\n\n" +
         "- **Terme général** : $u_n = u_0 + nr$, et plus généralement $u_n = u_p + (n - p)r$.\n" +
@@ -57,7 +57,7 @@ window.CHAPITRES["premiere-suites-arithmetiques"] = {
     {
       titre: "Lien avec les fonctions affines, sens de variation",
       figure: "suite-arith",
-      video: { titre: "Vidéo de ton prof : croissance linéaire, la mangrove (exercice corrigé)", youtube: "https://youtu.be/1UcA3wiJL4w" },
+      video: { titre: "Vidéo de ton prof : croissance linéaire, la mangrove (exercice corrigé)", youtube: "https://youtu.be/Zi9jRw6KsFc" },
       texte:
         "$u_n = u_0 + nr$ est de la forme $f(n)$ avec $f(x) = rx + u_0$ : une **fonction affine**. Les points $(n\\,;u_n)$ sont **alignés** sur une droite de coefficient directeur $r$.\n\n" +
         "- $r > 0$ : la suite est **croissante** ; $r < 0$ : **décroissante** ; $r = 0$ : constante.\n" +
@@ -70,7 +70,7 @@ window.CHAPITRES["premiere-suites-arithmetiques"] = {
     {
       titre: "Somme $1 + 2 + \\dots + n$",
       figure: "sa-cours-gauss",
-      video: { titre: "Vidéo de ton prof : sommes de termes consécutifs (cours 5/6)", youtube: "https://youtu.be/vP3Ts0VRPd4" },
+      video: { titre: "Vidéo de ton prof : sommes de termes consécutifs (cours 5/6)", youtube: "https://youtu.be/4ioUotfQs-o" },
       texte:
         "**Propriété** : $1 + 2 + \\dots + n = \\dfrac{n(n + 1)}{2}$.\n\n" +
         "**Démonstration** (Gauss). Soit $S = 1 + 2 + \\dots + n$. On l'écrit aussi à l'envers : $S = n + (n - 1) + \\dots + 1$. En additionnant les deux lignes terme à terme, chaque colonne vaut $n + 1$, et il y a $n$ colonnes : $2S = n(n + 1)$, donc $S = \\dfrac{n(n + 1)}{2}$.\n\n" +
@@ -100,10 +100,10 @@ window.CHAPITRES["premiere-suites-arithmetiques"] = {
 
   videosNote: "Énoncés dans le dossier élève ci-dessus (numéros des exercices du dossier).",
   videos: [
-    { titre: "Exercice 11 · Calculer avec le terme général", type: "Terme général", youtube: "https://youtu.be/lcNbml_x86s" },
-    { titre: "Exercice 13 · Croissance linéaire : la mangrove", type: "Modéliser", youtube: "https://youtu.be/1UcA3wiJL4w" },
-    { titre: "Exercice 20 · Calculer des sommes : Gauss et puissances", type: "Sommes", youtube: "https://youtu.be/HvTkzP61KcI" },
-    { titre: "Exercice 22 · Les gradins du stade : somme et seuil", type: "Sommes", youtube: "https://youtu.be/-cmCL0ZkKzo" }
+    { titre: "Exercice 11 · Calculer avec le terme général", type: "Terme général", youtube: "https://youtu.be/bOrgVtu2Ca8" },
+    { titre: "Exercice 13 · Croissance linéaire : la mangrove", type: "Modéliser", youtube: "https://youtu.be/Zi9jRw6KsFc" },
+    { titre: "Exercice 20 · Calculer des sommes : Gauss et puissances", type: "Sommes", youtube: "https://youtu.be/jsmqUdYrle0" },
+    { titre: "Exercice 22 · Les gradins du stade : somme et seuil", type: "Sommes", youtube: "https://youtu.be/hBIrvu9mKLc" }
   ],
 
   /* ---------- 2. EXERCICES INTERACTIFS ---------- */
