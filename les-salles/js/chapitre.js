@@ -13,7 +13,7 @@
 //  premiere-suites.js) et ajouter <id> à la liste CHAPITRES_DISPONIBLES.
 // =====================================================================
 (function () {
-  var VERSION = "202611211200";   // à changer à chaque mise en ligne d'un fichier du jeu
+  var VERSION = "202611210755";   // à changer à chaque mise en ligne d'un fichier du jeu
   var CHAPITRES_DISPONIBLES = ["premiere-suites"];
 
   var m = /[?&]c=([a-z0-9-]+)/.exec(window.location.search);
