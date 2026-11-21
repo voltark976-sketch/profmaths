@@ -770,24 +770,30 @@
      #jeu.moyen : dossier les-salles/ (lycée). Chaque version a sa propre sauvegarde. */
   const VERSIONS_JEU = {
     facile: { nom: "Facile", public: "primaire et collège", dossier: "les-salles-ecole" },
-    moyen: { nom: "Moyen", public: "lycée", dossier: "les-salles" }
+    moyen: { nom: "Moyen", public: "lycée", dossier: "les-salles" },
+    // Un temple pour un seul chapitre (les-salles/chapitre.html?c=…, données dans les-salles/chapitres/<id>.js)
+    "premiere-suites": { nom: "Suites numériques", public: "Première spécialité, chapitre 1", page: "les-salles/chapitre.html?c=premiere-suites", chapitre: "premiere-suites" }
   };
   function pageJeu(version) {
     document.title = "Les Salles · ProfMaths";
     const v = VERSIONS_JEU[version];
     const intro = `<p class="eyebrow">Jeu</p><h1>Les Salles</h1>
       <p class="lead">Un jeu de plateforme dans un temple grec : résous les exercices gravés sur les stèles pour ouvrir les portes.</p>`;
+    const bouton = (k) => `<a class="btn" href="#jeu.${k}">${VERSIONS_JEU[k].nom} (${VERSIONS_JEU[k].public})</a>`;
     if (!v) {
+      const cles = Object.keys(VERSIONS_JEU);
       $app.innerHTML = `<section class="page-jeu">${intro}
         <h2 class="titre-bloc">Choisis ton niveau</h2>
-        <div class="choix-jeu">${Object.keys(VERSIONS_JEU).map((k) =>
-          `<a class="btn" href="#jeu.${k}">${VERSIONS_JEU[k].nom} (${VERSIONS_JEU[k].public})</a>`).join("")}</div>
-        <p class="muted">Chaque niveau garde sa propre progression dans ce navigateur.</p></section>`;
+        <div class="choix-jeu">${cles.filter((k) => !VERSIONS_JEU[k].chapitre).map(bouton).join("")}</div>
+        <h2 class="titre-bloc">Un temple pour un chapitre</h2>
+        <p class="muted">Chaque stèle t'apprend d'abord une leçon du chapitre, puis te met à l'épreuve.</p>
+        <div class="choix-jeu">${cles.filter((k) => VERSIONS_JEU[k].chapitre).map(bouton).join("")}</div>
+        <p class="muted">Chaque niveau et chaque chapitre garde sa propre progression dans ce navigateur.</p></section>`;
       return;
     }
-    const src = `${v.dossier}/index.html`;
+    const src = v.page || `${v.dossier}/index.html`;
     $app.innerHTML = `<section class="page-jeu">${intro}
-      <p><strong>Niveau ${v.nom} (${v.public})</strong> · <a href="#jeu">changer de niveau</a></p>
+      <p><strong>${v.chapitre ? "Chapitre" : "Niveau"} ${v.nom} (${v.public})</strong> · <a href="#jeu">${v.chapitre ? "autres versions du jeu" : "changer de niveau"}</a>${v.chapitre ? ` · <a href="#${v.chapitre}">le cours du chapitre</a>` : ""}</p>
       <p class="muted">Sur ordinateur, se joue au clavier : clique une fois dans le jeu (le bouton « Commencer » suffit) pour que les touches répondent. Sur téléphone, des boutons apparaissent sous la salle : ouvre plutôt le jeu en plein écran et tiens ton téléphone à l'horizontale. Ta progression reste dans ce navigateur.</p>
       <iframe class="cadre-jeu" src="${src}" title="Jeu Les Salles, niveau ${v.nom}" width="100%" height="720" style="border:0"></iframe>
       <p class="muted"><a href="${src}" target="_blank" rel="noopener">Ouvrir le jeu en plein écran</a></p></section>`;
@@ -1685,7 +1691,8 @@
   function vueCours(p, c, id) {
     let h = `<div class="ressources">`;
     c.pdfs.forEach((f) => { h += `<a class="pdf" href="${f.url}" target="_blank" rel="noopener"><span class="pdf-ico" aria-hidden="true">PDF</span><span>${esc(f.titre)}</span></a>`; });
-    (c.liens || []).forEach((l) => { h += `<a class="pdf" href="${l.url}" target="_blank" rel="noopener"><span class="pdf-ico lien" aria-hidden="true">${l.type === "video" ? "▶" : "JEU"}</span><span>${esc(l.titre)}</span></a>`; });
+    // Un lien interne au site (« #jeu.premiere-suites » : le temple du chapitre dans Les Salles) s'ouvre dans la même page
+    (c.liens || []).forEach((l) => { h += `<a class="pdf" href="${l.url}"${l.url.startsWith("#") ? "" : ' target="_blank" rel="noopener"'}><span class="pdf-ico lien" aria-hidden="true">${l.type === "video" ? "▶" : "JEU"}</span><span>${esc(l.titre)}</span></a>`; });
     if (c.playlist) h += `<a class="pdf" href="${c.playlist}" target="_blank" rel="noopener"><span class="pdf-ico yt" aria-hidden="true">▶</span><span>Playlist du chapitre sur YouTube</span></a>`;
     h += `</div>`;
     // Déroulé en séances (SNT : séances de 1 h et de 2 h en alternance), replié pour ne pas allonger la page

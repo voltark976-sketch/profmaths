@@ -20,6 +20,8 @@ window.CHAPITRES["premiere-suites"] = {
   accroche: "Des galets, des allumettes, une population d'année en année : définir une suite, calculer ses termes, étudier ses variations et deviner sa limite.",
 
   playlist: "https://www.youtube.com/playlist?list=PLUTXHp2G5xZ4",
+  // Le temple du chapitre dans le jeu Les Salles (les-salles/chapitres/premiere-suites.js)
+  liens: [{ titre: "Le jeu Les Salles : le temple des suites", url: "#jeu.premiere-suites", type: "jeu" }],
   drive: "https://drive.google.com/drive/folders/1Ymru1W2dLIhiEgpawEdchTrVvaK8Q3n6",
   pdfs: [
     {

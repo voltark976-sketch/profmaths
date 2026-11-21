@@ -39,8 +39,49 @@
     arene: $("arene"), steleRegle: $("stele-regle"), vie: $("compteur-vie"), niveau: $("compteur-niveau"),
     niveauTexte: $("texte-niveau"), son: $("bouton-son"),
     steleMancheLigne: $("stele-manche-ligne"), steleManche: $("stele-manche"), steleChrono: $("stele-chrono"),
-    steleContexte: $("stele-contexte")
+    steleContexte: $("stele-contexte"),
+    // La leçon d'une stèle (version « chapitre » seulement : chapitre.html)
+    capsule: $("stele-capsule"), capsuleTitre: $("stele-capsule-titre"), capsuleTexte: $("stele-capsule-texte"),
+    capsuleOk: $("stele-capsule-ok")
   };
+
+  // ---------------------------------------------------------------
+  //  Écrire un texte : les formules entre $…$ passent par KaTeX quand
+  //  il est chargé (version « chapitre ») ; sinon, texte brut comme avant.
+  //  Dans un texte à formules : **gras**, `code`, un saut de ligne,
+  //  et « - » en début de ligne pour une puce.
+  // ---------------------------------------------------------------
+  function echapper(t) {
+    return String(t).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  }
+  function enrichir(t) {
+    return t.replace(/`([^`]+)`/g, "<code>$1</code>");
+  }
+  function versHTML(texte) {
+    // **gras** peut entourer une formule : on pose des marques avant de découper aux $
+    var ouvert = false;
+    texte = String(texte).replace(/\*\*/g, function () { ouvert = !ouvert; return ouvert ? "\u0001" : "\u0002"; });
+    var morceaux = texte.split("$"), html = "";
+    for (var k = 0; k < morceaux.length; k++) {
+      if (k % 2 === 1 && k < morceaux.length - 1) {
+        try { html += window.katex.renderToString(morceaux[k], { throwOnError: false }); }
+        catch (e) { html += echapper(morceaux[k]); }
+      } else html += enrichir(echapper(k % 2 === 1 ? "$" + morceaux[k] : morceaux[k]));
+    }
+    // les puces sont des blocs : pas de saut de ligne autour d'elles
+    var lignes = html.split("\n"), sortie = "";
+    for (var i = 0; i < lignes.length; i++) {
+      var puce = /^- /.test(lignes[i]);
+      if (i > 0 && !puce && !/^- /.test(lignes[i - 1])) sortie += "<br>";
+      sortie += puce ? '<span class="puce">' + lignes[i].slice(2) + "</span>" : lignes[i];
+    }
+    return sortie.replace(/\u0001/g, "<strong>").replace(/\u0002/g, "</strong>");
+  }
+  function ecrire(elt, texte) {
+    texte = texte || "";
+    if (window.katex && /[$`\n*]/.test(texte)) elt.innerHTML = versHTML(texte);
+    else elt.textContent = texte;
+  }
 
   var PAS_DE_TEMPS = 1 / 120;   // le moteur avance par petits pas réguliers
 
@@ -376,6 +417,10 @@
 
     var niveau = NIVEAUX[numero];
     el.chapitre.textContent = titreChapitre(niveau.numeroChapitre);
+    // Une salle peut tirer de nouveaux exercices à chaque entrée (version « chapitre »)
+    if (typeof niveau.preparer === "function") {
+      try { niveau.preparer(); } catch (err) { if (window.console) console.error(err); }
+    }
     etat = Moteur.chargerSalle(niveau);
     if (etat.erreur) {
       afficherErreur("Problème dans la salle « " + (niveau.nom || "sans nom") + " » de niveaux.js : " + etat.erreur);
@@ -393,7 +438,7 @@
     var chap = LISTE_CHAPITRES[niveau.numeroChapitre];
     el.titre.textContent = niveau.secrete ? "Sanctuaire secret · " + niveau.nom
       : "Salle " + niveau.rang + " / " + chap.salles.length + " · " + (niveau.nom || "sans nom");
-    el.athena.textContent = niveau.athena || niveau.message || "";
+    ecrire(el.athena, niveau.athena || niveau.message || "");
     remplirChoixSalles();
     afficherSceaux();
     // Talos entre dans la salle avec tous ses cœurs
@@ -473,12 +518,12 @@
     if (guide >= 0) {
       var p = etat.guides[guide].philosophe || {};
       el.bulleNom.textContent = p.nom || "";
-      el.bulleTexte.textContent = p.texte || "";
+      ecrire(el.bulleTexte, p.texte || "");
       el.bulle.className = "";
     } else {
       var ins = etat.inscriptions[inscription].inscription || {};
       el.bulleNom.textContent = ins.titre ? "Inscription d'Athéna · " + ins.titre : "Inscription d'Athéna";
-      el.bulleTexte.textContent = ins.texte || "";
+      ecrire(el.bulleTexte, ins.texte || "");
       el.bulle.className = "inscription";
     }
     el.bulle.hidden = false;
@@ -532,17 +577,18 @@
   function remplirExercice(s) {
     var ex = s.exercice;
     var n = s.exercices.length, k = s.manche || 0;
-    el.steleTitre.textContent = ex.titre || (s.effet === "figure" ? "Le problème d'Hermès" : (s.bonus ? "Automatisme" : "Exercice"));
-    el.steleEnonce.textContent = ex.enonce || "";
+    ecrire(el.steleTitre, ex.titre || (s.effet === "figure" ? "Le problème d'Hermès" : (s.bonus ? "Automatisme" : "Exercice")));
+    ecrire(el.steleEnonce, ex.enonce || "");
     el.steleUnite.textContent = ex.unite || "";
     el.steleIndice.hidden = true;
-    el.steleIndice.textContent = ex.indice ? "Indice : " + ex.indice : "";
+    ecrire(el.steleIndice, ex.indice ? "Indice : " + ex.indice : "");
     el.steleExplication.hidden = true;
-    el.steleExplication.textContent = ex.explication ? "Correction : " + ex.explication : "";
+    ecrire(el.steleExplication, ex.explication ? "Correction : " + ex.explication : "");
     el.steleRetour.textContent = "";
     el.steleRetour.className = "retour";
     el.steleContexte.hidden = !s.contexte;
-    el.steleContexte.textContent = s.contexte ? "Le problème : " + s.contexte : "";
+    ecrire(el.steleContexte, s.contexte ? "Le problème : " + s.contexte : "");
+    remplirCapsule(s);
     // La ligne de la manche (et le sablier, à droite)
     var texte = "";
     if (!s.resolue) {
@@ -558,9 +604,40 @@
     el.steleValider.textContent = "Graver";
   }
 
+  // ---------------------------------------------------------------
+  //  La leçon d'une stèle (champ « capsule » : { titre, texte, exemple }).
+  //  À la première ouverture, la leçon s'affiche seule et le sablier
+  //  attend : « Au combat ! » lance la première manche. Ensuite, elle
+  //  reste en haut du parchemin, repliée (« Revoir la leçon »).
+  // ---------------------------------------------------------------
+  function enLecon() { return !!el.capsule && el.stele.classList.contains("en-lecon"); }
+  function remplirCapsule(s) {
+    if (!el.capsule) return;
+    var c = s.capsule;
+    el.capsule.hidden = !c;
+    if (!c) return;
+    ecrire(el.capsuleTitre, "Leçon : " + c.titre);
+    ecrire(el.capsuleTexte, c.texte + (c.exemple ? "\n\n**Exemple.** " + c.exemple : ""));
+  }
+  function montrerLecon(s, oui) {
+    if (!el.capsule) return;
+    el.stele.classList.toggle("en-lecon", !!oui);
+    if (s.capsule) el.capsule.open = !!oui;
+  }
+  function finirLecon() {
+    var s = etat.steles[steleOuverte];
+    s.capsuleLue = true;
+    montrerLecon(s, false);
+    lancerChrono(s, true);
+    afficherChrono();
+    el.steleReponse.focus();
+  }
+  if (el.capsuleOk) el.capsuleOk.addEventListener("click", function () { if (steleOuverte >= 0 && enLecon()) finirLecon(); });
+
   function ouvrirStele(i) {
     var s = etat.steles[i];
     var ex = s.exercice;
+    var lecon = !!el.capsule && !!s.capsule && !s.resolue && !s.capsuleLue;
     steleOuverte = i;
     enPause = true;
     Commandes.relacherTout();
@@ -601,11 +678,12 @@
       : "Bonne réponse : Talos terrasse le gardien. Erreur ou sablier vide : il perd un cœur.");
 
     // Le sablier : il reprend là où il en était si l'on avait fui ce combat
-    if (!s.resolue) lancerChrono(s, false);
+    if (!s.resolue && !lecon) lancerChrono(s, false);
     remplirExercice(s);
+    montrerLecon(s, lecon);
 
     if (s.resolue) {
-      el.steleReponse.value = String(ex.reponse).replace(".", ",");
+      el.steleReponse.value = ex.reponseTexte || String(ex.reponse).replace(".", ",");
       el.steleReponse.disabled = true;
       el.steleValider.disabled = true;
       el.steleRetour.textContent = "Cette stèle est déjà résolue.";
@@ -637,7 +715,8 @@
     }
     if (gardiensPossibles && !dejaResolue) Gardiens.commencerCombat(etat, i);
     afficherChrono();
-    if (!s.resolue) el.steleReponse.focus(); else el.steleFermer.focus();
+    if (lecon) { el.capsuleOk.focus({ preventScroll: true }); el.steleForm.scrollTop = 0; }   // la leçon se lit depuis le début
+    else if (!s.resolue) el.steleReponse.focus(); else el.steleFermer.focus();
   }
 
   // ---------------------------------------------------------------
@@ -773,6 +852,7 @@
     var s = i >= 0 && etat ? etat.steles[i] : null;
     cacherArene();
     el.stele.hidden = true;
+    el.stele.classList.remove("en-lecon");
     steleOuverte = -1;
     mancheEnAttente = false;
     el.steleReponse.blur();
@@ -814,6 +894,7 @@
   el.steleForm.addEventListener("submit", function (e) {
     e.preventDefault();
     if (steleOuverte < 0 || enCombat || koEnAttente) return;
+    if (enLecon()) { finirLecon(); return; }
     if (mancheEnAttente) { mancheSuivante(); return; }
     var stele = etat.steles[steleOuverte];
     if (stele.resolue) return;
@@ -1080,7 +1161,7 @@
     enPause = true;
     Commandes.relacherTout();
     el.fenetreTitre.textContent = titre;
-    el.fenetreTexte.textContent = texte;
+    ecrire(el.fenetreTexte, texte);
     el.fenetreBouton.textContent = libelleBouton || "";
     el.fenetreBouton.hidden = !action;
     el.fenetreBouton2.textContent = libelleBouton2 || "";

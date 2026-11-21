@@ -206,7 +206,16 @@ Installer une nouvelle version du jeu :
 1. Décompressez le nouveau zip : vous obtenez un dossier `les-salles`.
 2. Supprimez l'ancien dossier `les-salles/` du site, puis mettez le nouveau à sa place (même nom, à côté de `index.html`).
 3. Vérifiez que le dossier ne contient pas de fichier de réponses, puis remettez le site en ligne.
-Sur GitHub, le plus simple est de demander à Claude de le faire : il remplace le dossier sur `main` et `gh-pages`. Rien d'autre à modifier, tant que la page du jeu reste `les-salles/index.html`.
+Sur GitHub, le plus simple est de demander à Claude de le faire : il remplace le dossier sur `main` et `gh-pages`. Rien d'autre à modifier, tant que la page du jeu reste `les-salles/index.html`. **Attention** : depuis novembre 2026, `les-salles/` contient aussi la version « chapitre » (ci-dessous) et des ajouts dans `js/jeu.js`, `js/moteur.js` et `js/sauvegarde.js` : un nouveau zip doit les garder.
+
+### Un temple pour un chapitre (version « chapitre », depuis le 21 novembre 2026)
+Le même moteur et les mêmes salles, mais avec les exercices d'un seul chapitre. Premier chapitre : **Suites numériques** (Première spécialité), adresse `#jeu.premiere-suites`, lien « JEU » dans l'onglet Cours du chapitre.
+- Page du jeu : `les-salles/chapitre.html?c=premiere-suites`. `les-salles/js/chapitre.js` charge KaTeX, le fichier du chapitre `les-salles/chapitres/<id>.js`, puis le moteur. Le gros `niveaux/niveaux.js` (salles de Seconde) n'est pas chargé.
+- Le fichier du chapitre (format de `niveaux.js`, voir son en-tête) contient les couleurs, les salles (plans repris de la version Seconde), les **leçons** des stèles (`capsule` : affichée seule à la première ouverture, le sablier attend « Au combat ! », puis repliée en haut du parchemin) et les **générateurs** : les exercices sont tirés au sort à chaque entrée dans une salle. Formules entre `$…$`, code entre accents graves.
+- Chaque chapitre garde sa sauvegarde (`salles-<id>` dans le navigateur).
+- Vérifier un chapitre : `node outils/salles-verifier.js premiere-suites` (≥ 29 questions par générateur, réponses décimales, KaTeX, plans).
+- Ajouter un chapitre : écrire `les-salles/chapitres/<id>.js` sur le modèle des suites, ajouter `<id>` à `CHAPITRES_DISPONIBLES` dans `les-salles/js/chapitre.js` et à `VERSIONS_JEU` dans `assets/app.js`, et un lien `liens` dans le fichier du chapitre du site.
+- À chaque mise en ligne d'un fichier du jeu : `VERSION` de `les-salles/js/chapitre.js` et les `?v=` de `chapitre.html` prennent **le même numéro que le `?v=` du site** (KaTeX est alors déjà en cache pour les élèves qui ont ouvert un chapitre).
 
 ## Mise en ligne
 Voir `MISE-EN-LIGNE.md` (GitHub Pages, gratuit, sans rien installer).

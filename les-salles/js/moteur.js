@@ -86,6 +86,7 @@ var Moteur = (function () {
     stele.monstre = monstre;
     stele.boss = entree.boss || "";          // le nom du boss, s'il y en a un
     stele.contexte = entree.contexte || "";  // l'énoncé commun aux questions
+    stele.capsule = entree.capsule || null; // la leçon de la stèle (version « chapitre »)
     return "";
   }
 

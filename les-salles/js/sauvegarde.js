@@ -17,7 +17,8 @@
 
 var Sauvegarde = (function () {
 
-  var CLE = "salles-maths-progression";
+  // La version « chapitre » (chapitre.html) garde sa propre sauvegarde (window.SALLES_CLE).
+  var CLE = typeof window.SALLES_CLE === "string" && window.SALLES_CLE ? window.SALLES_CLE : "salles-maths-progression";
 
   // L'ordre des salles dans la version précédente du jeu, qui retenait
   // des numéros : il sert à relire une ancienne sauvegarde.

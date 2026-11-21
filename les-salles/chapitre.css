@@ -1,0 +1,82 @@
+/* ====================================================================
+   VERSION « CHAPITRE » (chapitre.html) : ajouts à style.css
+   - la leçon de chaque stèle (capsule de cours) ;
+   - les formules KaTeX, les puces et le code dans les textes.
+   Les couleurs propres au chapitre sont dans son fichier chapitres/<id>.js.
+   ==================================================================== */
+
+/* ---------- La leçon de la stèle ---------- */
+.capsule {
+  margin: 0 0 10px;
+  border: 1px solid var(--or-sombre);
+  border-left: 4px solid var(--or-sombre);
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.45);
+  padding: 4px 10px;
+}
+.capsule[hidden] { display: none; }
+.capsule summary {
+  cursor: pointer;
+  font-family: var(--police-titre);
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--encre);
+  padding: 4px 0;
+}
+.capsule-texte { font-size: 1.02rem; line-height: 1.5; padding: 2px 0 6px; overflow-wrap: anywhere; }
+#stele-capsule-ok { display: none; margin: 4px 0 8px; }
+
+/* Première ouverture : la leçon seule, le combat attend */
+#stele.en-lecon .capsule summary { pointer-events: none; list-style: none; font-size: 1rem; }
+#stele.en-lecon .capsule summary::-webkit-details-marker { display: none; }
+#stele.en-lecon #stele-capsule-ok { display: inline-block; }
+#stele.en-lecon #stele-titre,
+#stele.en-lecon #stele-enonce,
+#stele.en-lecon #stele-contexte,
+#stele.en-lecon .ligne-reponse,
+#stele.en-lecon #stele-retour,
+#stele.en-lecon #stele-indice,
+#stele.en-lecon #stele-explication,
+#stele.en-lecon #stele-manche-ligne { display: none !important; }
+#stele.en-lecon .capsule { background: rgba(255, 255, 255, 0.6); }
+
+/* ---------- Textes enrichis ---------- */
+.puce { display: block; padding-left: 1.1em; text-indent: -0.8em; }
+.puce::before { content: "•"; display: inline-block; width: 0.8em; text-indent: 0; }
+.parchemin code, #bulle code {
+  font-family: Consolas, "Courier New", monospace;
+  font-size: 0.92em;
+  background: rgba(0, 0, 0, 0.07);
+  border-radius: 3px;
+  padding: 0 3px;
+  white-space: pre-wrap;
+}
+.katex { font-size: 1.05em; }
+/* Une formule longue passe à la ligne plutôt que de déborder sur téléphone */
+.parchemin .katex, #bulle .katex, #athena .katex { white-space: normal; }
+.parchemin .katex .base, #bulle .katex .base { white-space: nowrap; }
+.parchemin, #bulle { overflow-wrap: anywhere; }
+
+/* ---------- Téléphone ---------- */
+@media (max-width: 420px) {
+  .combat .parchemin { padding: 10px 12px 8px; }
+  .capsule-texte { font-size: 0.98rem; }
+  #stele-capsule-ok { width: 100%; }
+}
+
+/* Le bouton « Fermer » ne se coupe pas en morceaux sur un écran étroit */
+.combat .ligne-boutons { flex-wrap: wrap; gap: 6px; }
+#stele-fermer { white-space: nowrap; }
+@media (max-width: 420px) {
+  .regle-combat { flex: 1 1 100%; }
+}
+
+/* Les boutons tactiles aux couleurs du chapitre */
+#manette button { background: rgba(19, 36, 34, 0.9); }
+
+/* Téléphone à l'horizontale : l'arène rapetisse pour laisser lire la leçon et l'énoncé */
+@media (orientation: landscape) and (max-height: 520px) {
+  .combat { width: min(980px, calc(100vw - 280px)); }
+  .combat #arene { height: 30vh; width: auto; max-width: 100%; align-self: center; }
+  .combat .parchemin { margin-top: 0; }
+}
