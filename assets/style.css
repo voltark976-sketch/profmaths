@@ -545,6 +545,7 @@ a.chap:hover .go { transform: translateX(3px); }
 .promo-jeu .promo-ico { background: linear-gradient(135deg, #e0a526, #c2501f); }
 .promo-jeu .eyebrow { color: var(--ylang); }
 .promo-jeu .promo-btn { background: var(--ylang); color: #fff; }
+.promo-chap { margin-top: 14px; position: relative; z-index: 1; }
 /* Chaîne YouTube de ProfMaths (accueil, pied de page) */
 .rs-liste { display: flex; flex-wrap: wrap; gap: 8px; }
 .rs { display: inline-flex; align-items: center; gap: 6px; padding: 7px 12px; border-radius: 999px; font: 700 0.88rem/1 var(--f-texte); text-decoration: none; white-space: nowrap; transition: transform 0.15s; }

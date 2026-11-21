@@ -1652,12 +1652,20 @@
     const nivChap = CATALOGUE.niveaux.find((n) => n.chapitres.some((ch) => ch.id === id));
     let h = `<a class="retour" href="#${nivChap ? "niveau-" + esc(nivChap.id) : ""}">← ${nivChap ? esc(nivChap.nom) : "Accueil"} : tous les chapitres</a>
       <header class="chap-head">${c.numero ? `<span class="chap-filigrane" aria-hidden="true" data-romain="${romain(c.numero)}">${c.numero}</span>` : ""}<p class="eyebrow">${esc(c.niveau)} · ${c.numero ? `Chapitre&nbsp;${c.numero}` : esc(c.periode || "Toute l'année")}</p><h1>${esc(c.titre)}</h1><p class="lead">${inline(c.accroche)}</p>
-      <p class="score-chap">${etoiles(Math.round((b.got / b.total) * 5), 5)} <span>${b.got}/${b.total} étoiles d'exercices</span></p></header>
+      <p class="score-chap">${etoiles(Math.round((b.got / b.total) * 5), 5)} <span>${b.got}/${b.total} étoiles d'exercices</span></p>
+      ${c.jeu && VERSIONS_JEU[c.jeu] ? `<a class="promo promo-jeu promo-chap" href="#${id}.cours" id="promo-jeu-chap"><span class="promo-ico" aria-hidden="true">🏛️</span><span class="promo-t"><span class="eyebrow">Nouveau · le jeu du chapitre</span><strong>Le temple des Salles</strong><span>Une leçon sur chaque stèle, puis un combat pour l'appliquer.</span><span class="promo-btn">Jouer maintenant →</span></span></a>` : ""}</header>
       <nav class="onglets${ongl.length > 5 ? " onglets-6" : ""}" aria-label="Parties du chapitre">${ongl.map((o) => `<a href="#${id}.${o.id}" ${o.id === onglet ? 'aria-current="page"' : ""}>${o.nom}</a>`).join("")}</nav>
       <div class="panneau" id="panneau"></div>` + piedDePage(true, onglet === "cours" || onglet === "methode"); // pas de mention des cours particuliers pendant les exercices, QCM, défi et révisions
     $app.innerHTML = h;
     const p = document.getElementById("panneau");
     const h0 = location.hash;
+    // La carte du jeu : ouvre le jeu dans l'onglet Cours et le fait défiler à l'écran
+    const promoJeu = document.getElementById("promo-jeu-chap");
+    if (promoJeu) promoJeu.addEventListener("click", (e) => {
+      if (onglet !== "cours") { jeuAOuvrir = true; return; }
+      e.preventDefault();
+      ouvrirJeuChapitre();
+    });
     if (onglet === "revisions" || onglet === "evaluation") return vueEntrainement(p, c, id, onglet);
     if (onglet === "cours" || onglet === "methode") {
       // Le cours s'affiche sans attendre les générateurs ; une figure qui en a besoin arrive dès qu'ils sont là
@@ -1729,6 +1737,16 @@
         <p class="muted"><a href="${vj.page}" target="_blank" rel="noopener">Ouvrir le jeu en plein écran</a> (conseillé sur téléphone, tenu à l'horizontale)</p>`;
       Compte.visite("jeu");
     });
+    if (lancer && jeuAOuvrir) setTimeout(ouvrirJeuChapitre, 250);   // après le retour en haut de page du changement d'onglet
+    jeuAOuvrir = false;
+  }
+  // Venu de la carte « Le temple des Salles » d'un autre onglet : le jeu s'ouvre dès l'arrivée sur le Cours
+  let jeuAOuvrir = false;
+  function ouvrirJeuChapitre() {
+    const b = document.getElementById("lancer-jeu");
+    if (b) b.click();
+    const z = document.getElementById("jeu-chap");
+    if (z) z.closest("section").scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
   /* ---------- Exercices ---------- */
