@@ -1405,6 +1405,9 @@ window.CATALOGUE = {
       id: "snt",
       nom: "SNT Seconde",
       groupe: "snt",
+      // Masquée le 2026-11-25 à la demande de Voltark (pas encore au point) : les fichiers restent en place.
+      // Pour la remettre en ligne : passer masque à false, relancer node outils/manifeste.js et remettre l'onglet « SNT » du bandeau (index.html).
+      masque: true,
       intro: "Sciences numériques et technologie, programme officiel de Seconde. Chaque chapitre : un cours complet découpé en séances de 1 h et de 2 h, des activités interactives, des vidéos, des exercices corrigés avec indices, un QCM, une fiche méthode, et des PDF à imprimer pour travailler sans connexion.",
       exercices: "assets/exercices-snt.js",
       chapitres: [
@@ -1419,3 +1422,5 @@ window.CATALOGUE = {
     }
   ]
 };
+// Niveaux masqués (masque: true) : retirés du site (accueil, bandeau, liens, manifeste) sans supprimer leurs fichiers
+window.CATALOGUE.niveaux = window.CATALOGUE.niveaux.filter((n) => !n.masque);
