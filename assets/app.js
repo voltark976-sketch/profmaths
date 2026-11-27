@@ -842,7 +842,7 @@
       }));
       $app.innerHTML = `<section class="page-compte"><p class="eyebrow">Mon compte</p><h1>Bonjour ${esc(e.prenom || e.identifiant)} !</h1>
         <p class="lead">Identifiant : <strong>${esc(e.identifiant)}</strong>${e.classe ? ` · ${esc(e.classe)}${e.groupe ? " " + esc(e.groupe) : ""}${e.niveau ? " (" + esc(e.niveau) + ")" : ""}` : ""}</p>${demo}
-        ${e.inscrit ? `<p class="demo">Tu es dans une classe de M. Cadena ? Déconnecte-toi et utilise plutôt les identifiants transmis sur Pronote : c'est avec eux que ton professeur voit ton travail.</p>` : ""}
+        ${e.inscrit ? `<p class="demo">Tu es dans la classe de M. Cadena ou d'un collègue qui utilise le site ? Déconnecte-toi et utilise plutôt les identifiants transmis sur Pronote : c'est avec eux que ton professeur voit ton travail.</p>` : ""}
         ${carteProfil()}
         <h2>Ma progression</h2>${lignes ? `<ol class="chapitres">${lignes}</ol>` : `<p class="muted">Aucun chapitre commencé pour l'instant. Choisis ton niveau sur l'<a href="#">accueil</a> et lance une première série !</p>`}
         <p class="muted">Ta progression est enregistrée automatiquement après chaque exercice et chaque QCM.</p>
@@ -850,7 +850,7 @@
         <p class="muted">Sur un téléphone partagé, pense à te déconnecter : tes points restent sauvegardés dans ton compte.</p></section>`;
       return deco();
     }
-    // Connexion, ou création d'un compte : élève (hors des classes de M. Cadena) ou demande de compte professeur
+    // Connexion, ou création d'un compte : élève (hors des classes inscrites par leur professeur) ou demande de compte professeur
     const niveaux = CATALOGUE.niveaux.filter((n) => n.id !== "automatismes" && n.nom !== "Automatismes").map((n) => n.nom);
     const options = niveaux.concat("Autre").map((n) => `<option>${esc(n)}</option>`).join("");
     const cases = niveaux.map((n) => `<label class="case"><input type="checkbox" name="pr-niv" value="${esc(n)}"> ${esc(n)}</label>`).join("");
@@ -863,10 +863,10 @@
         <label for="co-id">Identifiant <span class="aide-champ">ex. : prenom.nom</span></label><input id="co-id" name="username" autocomplete="username" autocapitalize="none" spellcheck="false" required>
         <label for="co-mdp">Mot de passe</label><input id="co-mdp" name="password" type="password" autocomplete="current-password" required>
         <p class="erreur" role="alert">${esc(Compte.erreurCompte())}</p><button class="btn" type="submit">Me connecter</button>
-        <p class="muted">Élève de M. Cadena : tes identifiants t'ont été transmis sur Pronote. Mot de passe oublié ? Demande-le à ton professeur.</p>
+        <p class="muted">Élève de M. Cadena ou d'un de ses collègues : tes identifiants t'ont été transmis sur Pronote. Mot de passe oublié ? Demande-le à ton professeur.</p>
       </form>
       <div id="p-cr" hidden>
-        <p class="note-cadena"><strong>Tu es dans une classe de M. Cadena ?</strong> Ne crée pas de compte : tu as déjà un identifiant et un mot de passe, transmis sur Pronote. Utilise « Me connecter ».</p>
+        <p class="note-cadena"><strong>Tu es dans la classe de M. Cadena ou d'un collègue qui utilise le site ?</strong> Ne crée pas de compte : tu as déjà un identifiant et un mot de passe, transmis sur Pronote. Utilise « Me connecter ».</p>
         <p class="qui">Je suis :</p>
         <div class="bascule" role="tablist"><button type="button" role="tab" id="t-el" aria-selected="true">Élève</button><button type="button" role="tab" id="t-pr" aria-selected="false">Professeur</button></div>
         <form id="f-el" class="formulaire" autocomplete="on">
@@ -875,7 +875,7 @@
           <label for="el-niv">Niveau</label><select id="el-niv">${options}</select>
           ${champsCompte("el")}
           <p class="erreur" role="alert"></p><button class="btn" type="submit">Créer mon compte</button>
-          <p class="muted">Ton compte est rangé dans « Autres élèves » : tu gardes ta progression, mais tu n'apparais pas dans les classes ni dans le classement des élèves de M. Cadena.</p>
+          <p class="muted">Ton compte est rangé dans « Autres élèves » : tu gardes ta progression, mais tu n'apparais pas dans les classes ni dans le classement des classes inscrites par leur professeur.</p>
         </form>
         <form id="f-pr" class="formulaire" autocomplete="on" hidden>
           <p class="note">Un compte professeur est validé par M. Cadena. Deux possibilités : lui écrire directement à <a href="${mailDemande({})}">${MAIL_PROF}</a>, ou remplir ce formulaire : la demande lui arrive sur son compte, et un mail tout prêt vous est proposé pour le prévenir.</p>
@@ -2115,7 +2115,7 @@
     Compte.classement(demande).then((l) => {
       if (demande !== filtreClassement || !$top.isConnected) return;
       if (l === null) { $top.innerHTML = `<li class="top-vide"><a href="#compte">Connecte-toi</a> pour voir le classement et y apparaître.</li>`; return; }
-      if (l.reserve) { $top.innerHTML = `<li class="top-vide">Le classement est réservé aux classes de M. Cadena. Tes records restent dans ton compte.</li>`; return; }
+      if (l.reserve) { $top.innerHTML = `<li class="top-vide">Le classement est réservé aux classes inscrites par leur professeur. Tes records restent dans ton compte.</li>`; return; }
       if (!l.length) { $top.innerHTML = `<li class="top-vide">Personne pour l'instant. Lance un défi pour être le premier !</li>`; return; }
       $top.innerHTML = l.map((x, k) => `<li class="${x.moi ? "moi" : ""}"><span class="rang">${["🥇", "🥈", "🥉"][k] || k + 1}</span><span class="top-nom"><strong>${esc(x.prenom)}</strong>${!demande && x.classe ? `<span class="meta">${esc(classeCourte(x.classe))}</span>` : ""}</span><span class="top-pts">${x.points} pts</span></li>`).join("");
     }).catch(() => {
